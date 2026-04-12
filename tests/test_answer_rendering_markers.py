@@ -192,3 +192,25 @@ def test_numberline_yaml_legacy_word_show_values_are_not_rendered():
 
     assert "ALT" not in worksheet_html
     assert "ALT" not in solution_html
+
+
+def test_grid_fallback_solution_text_is_only_rendered_in_solution_mode():
+    options = {"type": "grid", "rows": "4", "cols": "4"}
+    content = "solution_text: 'Nur Loesungstext'\n"
+
+    worksheet_html = _render_answer_block(options, content, include_solutions=False)
+    solution_html = _render_answer_block(options, content, include_solutions=True)
+
+    assert "Nur Loesungstext" not in worksheet_html
+    assert "Nur Loesungstext" in solution_html
+
+
+def test_numberline_fallback_solution_key_is_only_rendered_in_solution_mode():
+    options = {"type": "numberline", "min": "0", "max": "5"}
+    content = "solution: 'Skizze mit Begruendung'\n"
+
+    worksheet_html = _render_answer_block(options, content, include_solutions=False)
+    solution_html = _render_answer_block(options, content, include_solutions=True)
+
+    assert "Skizze mit Begruendung" not in worksheet_html
+    assert "Skizze mit Begruendung" in solution_html

@@ -158,6 +158,18 @@ def save_recent_files(recent_files: list[str]) -> dict[str, object]:
     return save_local_config(config)
 
 
+def add_recent_file(recent_files: list[str], path_text: str, max_recent_files: int) -> list[str]:
+    """Insert a recent-file entry at the front, remove duplicates, and cap list size."""
+    cleaned = [item for item in recent_files if item != path_text]
+    cleaned.insert(0, path_text)
+    return cleaned[:max_recent_files]
+
+
+def remove_recent_file(recent_files: list[str], path_text: str) -> list[str]:
+    """Remove a recent-file entry from the in-memory list."""
+    return [item for item in recent_files if item != path_text]
+
+
 def _load_legacy_payload(path: Path) -> object:
     if not path.exists():
         return None

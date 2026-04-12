@@ -3,14 +3,9 @@
 from __future__ import annotations
 
 import tkinter as tk
-from .blatt_ui_dependencies import (
-    COLOR_PROFILE_ORDER,
-    CONTRAST_PROFILE_LABELS,
-    CONTRAST_PROFILE_ORDER,
-    FONT_PROFILE_LABELS,
-    FONT_PROFILE_ORDER,
-    FONT_SIZE_PROFILE_LABELS,
-    FONT_SIZE_PROFILE_ORDER,
+from tkinter import ttk
+
+from .ui_constants import (
     PREVIEW_CANVAS_PADDING_PX,
     PREVIEW_MIN_FRAME_PX,
     PREVIEW_PAGE_GAP_PX,
@@ -21,8 +16,18 @@ from .blatt_ui_dependencies import (
     PREVIEW_ZOOM_MIN_PERCENT,
     VIEW_LAYOUT_STACK,
     VIEW_LAYOUT_STRIP,
-    get_theme,
-    ttk,
+)
+from .ui_theme import get_theme
+from ..styles.blatt_styles import (
+    FONT_PROFILE_LABELS,
+    FONT_PROFILE_ORDER,
+    FONT_SIZE_PROFILE_LABELS,
+    FONT_SIZE_PROFILE_ORDER,
+)
+from ..styles.worksheet_design import (
+    COLOR_PROFILE_ORDER,
+    CONTRAST_PROFILE_LABELS,
+    CONTRAST_PROFILE_ORDER,
 )
 
 

@@ -1,0 +1,26 @@
+# Agent Guardrails (blattwerk)
+
+Dieses Repository hat verbindliche Leitplanken fuer KI-Programmierer.
+
+Ziel in einfachen Worten:
+- Architektur als stabilen Ist-Zustand dokumentieren.
+- Aenderungsverlauf getrennt und nachvollziehbar fuehren.
+- Oeffentliche Kommunikation konsistent ueber Changelog und Releases.
+
+Verbindliche Regeln:
+
+1. Architektur-Dokumentrollen
+- `docs/ARCHITEKTUR.md` und `docs/ARCHITEKTUR_EINFACH.md` enthalten nur den aktuellen Zustand.
+- Historie/Abschluesse gehoeren nicht in diese Dateien.
+
+2. Development-Log-Pflicht
+- Bei Feature- und Architektur-Aenderungen muss `docs/DEVELOPMENT_LOG.md` im selben Zyklus aktualisiert werden.
+- Reine Bugfix-Only-Aenderungen koennen ohne Development-Log-Eintrag erfolgen.
+
+3. Public-Kommunikation
+- Nutzerrelevante Aenderungen werden in `CHANGELOG.md` gepflegt.
+- PRs verwenden die Checkliste in `.github/pull_request_template.md`.
+
+4. Automatische Gates
+- Lokaler Check und CI pruefen die Guardrails ueber `tools/ci/check_ai_guardrails.py`.
+- Ein Verstoß blockiert den Build.

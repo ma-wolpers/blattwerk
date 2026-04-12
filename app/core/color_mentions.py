@@ -53,3 +53,32 @@ def find_color_mentions_in_file(input_path: Path, max_hits: int = 6):
     """Liest eine Datei und liefert gefundene Farbbegriffe zurück."""
     markdown_text = read_markdown_text(input_path)
     return find_color_mentions(markdown_text, max_hits=max_hits)
+
+
+def detect_bw_mode_color_warning_mentions(
+    input_path: Path | None,
+    current_profile: str | None,
+    previous_profile: str | None = None,
+    bw_profiles: set[str] | None = None,
+    max_hits: int = 6,
+):
+    """Ermittelt Farbhinweis-Treffer, wenn in einen S/W-Modus gewechselt wurde."""
+
+    if input_path is None:
+        return []
+
+    path = Path(input_path)
+    if not path.exists():
+        return []
+
+    allowed_bw_profiles = bw_profiles or {"bw"}
+    current = (current_profile or "").strip().lower()
+    previous = (previous_profile or "").strip().lower()
+
+    if current not in allowed_bw_profiles:
+        return []
+
+    if previous and previous in allowed_bw_profiles:
+        return []
+
+    return find_color_mentions_in_file(path, max_hits=max_hits)

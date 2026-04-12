@@ -6,44 +6,53 @@ from pathlib import Path
 import tempfile
 import fitz
 from PIL import Image, ImageTk
-from .blatt_ui_dependencies import CUSTOM_FIT_MODE, PREVIEW_CANVAS_PADDING_PX, PREVIEW_MIN_FRAME_PX, PREVIEW_PAGE_GAP_PX, PREVIEW_PAGE_MARGIN_PX, PREVIEW_SCALE_MAX, PREVIEW_SCALE_MIN, PREVIEW_ZOOM_MAX_PERCENT, PREVIEW_ZOOM_MIN_PERCENT, VIEW_LAYOUT_SINGLE, VIEW_LAYOUT_STACK, VIEW_LAYOUT_STRIP, build_worksheet, clamp, filedialog, find_active_page_index, get_centered_view_fractions, get_preview_frame_size, get_zoom_target_size, inspect_markdown_document, invalidate_stylesheet_template_cache, messagebox, parse_scrollregion
+from tkinter import filedialog, messagebox
+
+from .ui_constants import (
+    CUSTOM_FIT_MODE,
+    PREVIEW_CANVAS_PADDING_PX,
+    PREVIEW_MIN_FRAME_PX,
+    PREVIEW_PAGE_GAP_PX,
+    PREVIEW_PAGE_MARGIN_PX,
+    PREVIEW_SCALE_MAX,
+    PREVIEW_SCALE_MIN,
+    PREVIEW_ZOOM_MAX_PERCENT,
+    PREVIEW_ZOOM_MIN_PERCENT,
+    VIEW_LAYOUT_SINGLE,
+    VIEW_LAYOUT_STACK,
+    VIEW_LAYOUT_STRIP,
+)
+from .preview_geometry import (
+    clamp,
+    find_active_page_index,
+    get_centered_view_fractions,
+    get_preview_frame_size,
+    get_zoom_target_size,
+    parse_scrollregion,
+)
+from ..core.build_requests import WorksheetBuildRequest, build_worksheet_from_request
+from ..core.diagnostic_warnings import build_warning_payload
+from ..styles.blatt_styles import invalidate_stylesheet_template_cache
 
 class BlattwerkAppPreviewMixin:
     """Rendert, skaliert und navigiert die Arbeitsblatt-Vorschau."""
     def _show_document_diagnostics(self, input_path: Path, context_label: str):
             """Zeigt nicht-blockierende Blattwerk-Warnungen einmalig pro Dokumentzustand."""
-            try:
-                inspected = inspect_markdown_document(str(input_path))
-            except Exception:
+            warning_payload = build_warning_payload(input_path, context_label)
+            if warning_payload is None:
                 return
 
-            diagnostics = inspected.diagnostics
-            signature = (
-                str(input_path.resolve()),
-                tuple((d.code, d.block_index, d.message) for d in diagnostics),
-                context_label,
-            )
+            signature = warning_payload["signature"]
             if signature == self._last_diagnostics_signature:
                 return
 
             self._last_diagnostics_signature = signature
-            if not diagnostics:
+            if warning_payload["count"] <= 0:
                 return
 
-            preview_lines = []
-            for diagnostic in diagnostics[:8]:
-                location = (
-                    f" [Block {diagnostic.block_index}]" if diagnostic.block_index is not None else ""
-                )
-                preview_lines.append(f"- {diagnostic.code}{location}: {diagnostic.message}")
-
-            hidden_count = len(diagnostics) - len(preview_lines)
-            if hidden_count > 0:
-                preview_lines.append(f"- ... und {hidden_count} weitere Warnungen")
-
             messagebox.showwarning(
-                f"Blattwerk-Warnungen ({context_label})",
-                "Das Dokument wurde trotzdem verarbeitet.\n\n" + "\n".join(preview_lines),
+                warning_payload["title"],
+                "Das Dokument wurde trotzdem verarbeitet.\n\n" + warning_payload["message"],
             )
 
     def _draw_preview_page(self, x_pos: int, y_pos: int, fitted: Image.Image, tk_image: ImageTk.PhotoImage):
@@ -90,16 +99,18 @@ class BlattwerkAppPreviewMixin:
             with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
                 temp_pdf_path = Path(tmp.name)
 
-            worksheet_design = self._worksheet_design_kwargs()
+            worksheet_design = self._worksheet_design_options()
 
             try:
-                build_worksheet(
-                    str(input_path),
-                    str(temp_pdf_path),
-                    include_solutions=include_solutions,
-                    page_format=page_format,
-                    print_profile=contrast_profile,
-                    **worksheet_design,
+                build_worksheet_from_request(
+                    WorksheetBuildRequest(
+                        input_path=input_path,
+                        output_path=temp_pdf_path,
+                        include_solutions=include_solutions,
+                        page_format=page_format,
+                        print_profile=contrast_profile,
+                        design=worksheet_design,
+                    )
                 )
 
                 pages = []

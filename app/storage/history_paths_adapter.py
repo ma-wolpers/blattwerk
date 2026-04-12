@@ -1,25 +1,19 @@
-"""Hilfsfunktionen für Verlaufspfade und UI-Storage-Dateien."""
+"""History-path helpers used by UI persistence and recent-files handling."""
 
 from __future__ import annotations
 
 import os
 from pathlib import Path
 
-from ..storage.local_config_store import (
-    DEFAULT_HISTORY_ROOT_NAME,
-    DEFAULT_MAX_RECENT_FILES,
-    LEGACY_RECENT_FILES_PATH,
-    LEGACY_UI_SETTINGS_PATH,
-    LOCAL_CONFIG_PATH,
-    STORAGE_STATE_DIR,
-)
+from .local_config_store import DEFAULT_HISTORY_ROOT_NAME, DEFAULT_MAX_RECENT_FILES
 
 MAX_RECENT_FILES = DEFAULT_MAX_RECENT_FILES
 HISTORY_ROOT_NAME = DEFAULT_HISTORY_ROOT_NAME
 
 
 def find_history_root(anchor_name: str):
-    """Sucht den übergeordneten Projektordner für relative Verlaufspfade."""
+    """Find the top-level anchor folder used for relative history paths."""
+
     file_path = Path(__file__).resolve()
     for parent in file_path.parents:
         if parent.name.lower() == anchor_name.lower():
@@ -28,12 +22,14 @@ def find_history_root(anchor_name: str):
 
 
 def clean_path_text(path_text):
-    """Bereinigt Pfadtexte um Leerzeichen und umschließende Anführungszeichen."""
+    """Normalize textual path entries from persisted values or user input."""
+
     return (path_text or "").strip().strip('"').strip("'")
 
 
 def to_history_relative_path(path: Path, history_root: Path):
-    """Konvertiert absolute Dateipfade in Verlaufspfade relativ zu `history_root`."""
+    """Convert absolute paths into history-root-relative paths when possible."""
+
     try:
         resolved = path.expanduser().resolve()
     except Exception:
@@ -51,7 +47,8 @@ def to_history_relative_path(path: Path, history_root: Path):
 
 
 def resolve_history_path(path_text: str, history_root: Path):
-    """Löst Verlaufseinträge (relativ/absolut) in absolute Dateipfade auf."""
+    """Resolve a relative/absolute history entry into an absolute path."""
+
     cleaned = clean_path_text(path_text)
     if not cleaned:
         return Path(cleaned)
@@ -66,7 +63,8 @@ def resolve_history_path(path_text: str, history_root: Path):
 def normalize_recent_entries(
     entries: list[str], history_root: Path, max_recent_files: int
 ):
-    """Normalisiert Verlaufseinträge auf relative Pfade und entfernt Duplikate."""
+    """Normalize, deduplicate and cap recent-file history entries."""
+
     normalized = []
     seen = set()
 

@@ -4,8 +4,50 @@ from __future__ import annotations
 
 from pathlib import Path
 from PIL import Image
+import tkinter as tk
+from tkinter import messagebox, ttk
 
-from .blatt_ui_dependencies import BW_COLOR_PROFILE_KEYS, COLOR_PROFILE_LABELS, COLOR_PROFILE_ORDER, CONTRAST_PROFILE_ORDER, DEFAULT_COLOR_PROFILE, DEFAULT_FONT_PROFILE, DEFAULT_FONT_SIZE_PROFILE, FONT_PROFILE_LABELS, FONT_PROFILE_ORDER, FONT_SIZE_PROFILE_LABELS, FONT_SIZE_PROFILE_ORDER, PREVIEW_ZOOM_MAX_PERCENT, PREVIEW_ZOOM_MIN_PERCENT, VIEW_FIT_PAGE, VIEW_FIT_WIDTH, VIEW_LAYOUT_SINGLE, VIEW_LAYOUT_STACK, VIEW_LAYOUT_STRIP, VIEW_MODE_LABELS, apply_window_theme, clamp, configure_ttk_theme, find_color_mentions_in_file, get_color_profile_preview, get_fit_scales, get_theme, messagebox, normalize_color_profile, normalize_font_profile, normalize_font_size_profile, populate_theme_menu, style_canvas, style_preview_placeholder, tk, ttk
+from ..core.color_mentions import detect_bw_mode_color_warning_mentions
+from ..core.build_requests import WorksheetDesignOptions
+from ..styles.blatt_styles import (
+    DEFAULT_FONT_PROFILE,
+    DEFAULT_FONT_SIZE_PROFILE,
+    FONT_PROFILE_LABELS,
+    FONT_PROFILE_ORDER,
+    FONT_SIZE_PROFILE_LABELS,
+    FONT_SIZE_PROFILE_ORDER,
+    normalize_font_profile,
+    normalize_font_size_profile,
+)
+from ..styles.worksheet_design import (
+    COLOR_PROFILE_LABELS,
+    COLOR_PROFILE_ORDER,
+    CONTRAST_PROFILE_ORDER,
+    DEFAULT_COLOR_PROFILE,
+    get_color_profile_preview,
+    normalize_color_profile,
+)
+from .preview_geometry import clamp, get_fit_scales
+from .ui_constants import (
+    PREVIEW_ZOOM_MAX_PERCENT,
+    PREVIEW_ZOOM_MIN_PERCENT,
+    VIEW_FIT_PAGE,
+    VIEW_FIT_WIDTH,
+    VIEW_LAYOUT_SINGLE,
+    VIEW_LAYOUT_STACK,
+    VIEW_LAYOUT_STRIP,
+    VIEW_MODE_LABELS,
+)
+from .ui_theme import (
+    apply_window_theme,
+    configure_ttk_theme,
+    get_theme,
+    populate_theme_menu,
+    style_canvas,
+    style_preview_placeholder,
+)
+
+BW_COLOR_PROFILE_KEYS = {"bw"}
 
 class BlattwerkAppStyleMixin:
     """Kapselt Theme-, Menü- und Designprofil-Logik der GUI."""
@@ -24,11 +66,15 @@ class BlattwerkAppStyleMixin:
 
     def _worksheet_design_kwargs(self):
             """Worksheet design kwargs."""
-            return {
-                "color_profile": normalize_color_profile(self.design_color_profile_var.get()),
-                "font_profile": normalize_font_profile(self.design_font_profile_var.get()),
-                "font_size_profile": normalize_font_size_profile(self.design_font_size_profile_var.get()),
-            }
+            return self._worksheet_design_options().as_kwargs()
+
+    def _worksheet_design_options(self):
+            """Worksheet design options."""
+            return WorksheetDesignOptions(
+                color_profile=normalize_color_profile(self.design_color_profile_var.get()),
+                font_profile=normalize_font_profile(self.design_font_profile_var.get()),
+                font_size_profile=normalize_font_size_profile(self.design_font_size_profile_var.get()),
+            )
 
     def _set_font_profile(self, profile_key: str):
             """Set font profile."""
@@ -313,11 +359,6 @@ class BlattwerkAppStyleMixin:
 
             self.root.config(menu=menubar)
 
-    @staticmethod
-    def _is_bw_profile(profile_key: str | None):
-            """Is bw profile."""
-            return normalize_color_profile(profile_key) in BW_COLOR_PROFILE_KEYS
-
     def _get_input_path_if_exists(self):
             """Get input path if exists."""
             input_text = self._clean_path_text(self.input_var.get())
@@ -330,17 +371,13 @@ class BlattwerkAppStyleMixin:
     def _warn_if_bw_mode_has_color_mentions(self, previous_profile: str | None = None):
             """Warn if bw mode has color mentions."""
             current_profile = normalize_color_profile(self.design_color_profile_var.get())
-            if current_profile not in BW_COLOR_PROFILE_KEYS:
-                return
-
-            if previous_profile is not None and self._is_bw_profile(previous_profile):
-                return
-
             input_path = self._get_input_path_if_exists()
-            if input_path is None:
-                return
-
-            mentions = find_color_mentions_in_file(input_path)
+            mentions = detect_bw_mode_color_warning_mentions(
+                input_path=input_path,
+                current_profile=current_profile,
+                previous_profile=previous_profile,
+                bw_profiles=BW_COLOR_PROFILE_KEYS,
+            )
             if not mentions:
                 return
 

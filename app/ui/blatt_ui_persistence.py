@@ -3,35 +3,38 @@
 from __future__ import annotations
 
 from pathlib import Path
-from .blatt_ui_dependencies import (
-    COLOR_PROFILE_ORDER,
+import tkinter as tk
+from tkinter import messagebox, ttk
+
+from .ui_theme import normalize_theme_key
+from ..storage.local_config_store import (
+    add_recent_file,
     DEFAULT_HISTORY_ROOT_NAME,
     DEFAULT_MAX_RECENT_FILES,
     LOCAL_CONFIG_PATH,
     MAX_MAX_RECENT_FILES,
     MIN_MAX_RECENT_FILES,
-    add_recent_file,
-    find_history_root,
     load_recent_files,
+    remove_recent_file,
     load_system_settings,
     load_ui_settings,
-    messagebox,
     migrate_legacy_config,
-    normalize_color_profile,
-    normalize_contrast_profile,
-    normalize_font_profile,
-    normalize_font_size_profile,
-    normalize_recent_entries,
-    normalize_theme_key,
-    remove_recent_file,
-    resolve_history_path,
     save_recent_files,
     save_system_settings,
     save_ui_settings,
-    tk,
-    to_history_relative_path,
-    ttk,
 )
+from ..storage.system_settings_adapter import normalize_system_settings_payload
+from ..storage.history_paths_adapter import (
+    find_history_root,
+    normalize_recent_entries,
+    resolve_history_path,
+    to_history_relative_path,
+)
+from ..styles.ui_profile_adapter import (
+    normalize_design_profiles_for_persistence,
+    resolve_persisted_design_profiles,
+)
+from ..styles.worksheet_design import COLOR_PROFILE_ORDER
 
 class BlattwerkAppPersistenceMixin:
     """Verwaltet Persistenz für Verlauf, Dialogpfade und UI-Einstellungen."""
@@ -140,53 +143,36 @@ class BlattwerkAppPersistenceMixin:
 
             migrate_legacy_config(delete_legacy_files=True)
 
-            system_settings = load_system_settings()
-            history_root_name = str(system_settings.get("history_root_name", DEFAULT_HISTORY_ROOT_NAME)).strip()
-            if not history_root_name:
-                history_root_name = DEFAULT_HISTORY_ROOT_NAME
-            max_recent_files = int(system_settings.get("max_recent_files", DEFAULT_MAX_RECENT_FILES))
-            if max_recent_files < MIN_MAX_RECENT_FILES:
-                max_recent_files = MIN_MAX_RECENT_FILES
-            if max_recent_files > MAX_MAX_RECENT_FILES:
-                max_recent_files = MAX_MAX_RECENT_FILES
-
-            self.system_settings = {
-                "history_root_name": history_root_name,
-                "max_recent_files": max_recent_files,
-            }
-            self.history_root_name = history_root_name
-            self.max_recent_files = max_recent_files
-            self.history_root = find_history_root(history_root_name)
+            system_settings = normalize_system_settings_payload(load_system_settings())
+            self.system_settings = system_settings
+            self.history_root_name = str(system_settings["history_root_name"])
+            self.max_recent_files = int(system_settings["max_recent_files"])
+            self.history_root = find_history_root(self.history_root_name)
             self.ui_settings = load_ui_settings()
 
             saved_theme = normalize_theme_key(self.ui_settings.get("theme"))
             self.theme_var.set(saved_theme)
-            self.preview_contrast_var.set(normalize_contrast_profile(self.ui_settings.get("worksheet_contrast")))
-
-            saved_color_profile = self.ui_settings.get("worksheet_color_profile")
-            if not saved_color_profile:
-                legacy_color_mode = (self.ui_settings.get("worksheet_color_mode") or "").strip().lower()
-                legacy_accent = (self.ui_settings.get("worksheet_accent") or "").strip().lower()
-                if legacy_color_mode == "bw":
-                    saved_color_profile = "bw"
-                elif legacy_accent in COLOR_PROFILE_ORDER:
-                    saved_color_profile = legacy_accent
-
-            self.design_color_profile_var.set(normalize_color_profile(saved_color_profile))
-
-            saved_font_profile = self.ui_settings.get("worksheet_font_profile")
-            self.design_font_profile_var.set(normalize_font_profile(saved_font_profile))
-            saved_font_size_profile = self.ui_settings.get("worksheet_font_size_profile")
-            self.design_font_size_profile_var.set(normalize_font_size_profile(saved_font_size_profile))
+            resolved_profiles = resolve_persisted_design_profiles(
+                self.ui_settings,
+                color_profile_order=COLOR_PROFILE_ORDER,
+            )
+            self.preview_contrast_var.set(resolved_profiles["worksheet_contrast"])
+            self.design_color_profile_var.set(resolved_profiles["worksheet_color_profile"])
+            self.design_font_profile_var.set(resolved_profiles["worksheet_font_profile"])
+            self.design_font_size_profile_var.set(resolved_profiles["worksheet_font_size_profile"])
 
     def _save_ui_settings(self):
             """Speichert aktuelle UI-Einstellungen."""
 
             self.ui_settings["theme"] = normalize_theme_key(self.theme_var.get())
-            self.ui_settings["worksheet_contrast"] = normalize_contrast_profile(self.preview_contrast_var.get())
-            self.ui_settings["worksheet_color_profile"] = normalize_color_profile(self.design_color_profile_var.get())
-            self.ui_settings["worksheet_font_profile"] = normalize_font_profile(self.design_font_profile_var.get())
-            self.ui_settings["worksheet_font_size_profile"] = normalize_font_size_profile(self.design_font_size_profile_var.get())
+            self.ui_settings.update(
+                normalize_design_profiles_for_persistence(
+                    worksheet_contrast=self.preview_contrast_var.get(),
+                    worksheet_color_profile=self.design_color_profile_var.get(),
+                    worksheet_font_profile=self.design_font_profile_var.get(),
+                    worksheet_font_size_profile=self.design_font_size_profile_var.get(),
+                )
+            )
             save_ui_settings(self.ui_settings)
 
     def _save_recent_files(self):

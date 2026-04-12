@@ -297,11 +297,11 @@ def annotate_pdf_running_elements_with_retry(
     attempts=6,
     delay_seconds=0.2,
 ):
-    """Versucht die Annotation robust mehrfach, ohne Folgeprozess hart zu blockieren."""
+    """Annotiert PDF-Laufelemente mit begrenztem Retry nur bei transienten I/O-Fehlern."""
 
     last_error = None
 
-    for _ in range(attempts):
+    for attempt in range(1, max(1, attempts) + 1):
         try:
             annotate_pdf_running_elements(
                 pdf_path,
@@ -314,16 +314,46 @@ def annotate_pdf_running_elements_with_retry(
             break
         except Exception as error:
             last_error = error
-            time.sleep(delay_seconds)
+            if not _is_transient_annotation_error(error):
+                raise RuntimeError(
+                    f"PDF-Annotation fehlgeschlagen (nicht transient): {error}"
+                ) from error
+
+            if attempt >= max(1, attempts):
+                break
+
+            wait_for_file_stable(pdf_path, checks=2, delay_seconds=delay_seconds)
     else:
         raise RuntimeError(f"PDF-Annotation fehlgeschlagen: {last_error}")
 
-    for _ in range(attempts):
+    for _ in range(max(1, attempts)):
         if verify_pdf_running_elements(pdf_path, title, copyright_text):
             return
-        time.sleep(delay_seconds)
+        wait_for_file_stable(pdf_path, checks=2, delay_seconds=delay_seconds)
 
-    return
+    raise RuntimeError("PDF-Annotation konnte nicht verifiziert werden.")
+
+
+def _is_transient_annotation_error(error):
+    """Erkennt typische temporäre Dateizugriffsfehler beim Schreiben/Ersetzen."""
+
+    if isinstance(error, PermissionError):
+        return True
+
+    if isinstance(error, OSError):
+        winerror = getattr(error, "winerror", None)
+        if winerror in {5, 32, 33}:
+            return True
+
+    message = str(error).lower()
+    transient_markers = (
+        "access is denied",
+        "permission denied",
+        "being used by another process",
+        "resource busy",
+        "device or resource busy",
+    )
+    return any(marker in message for marker in transient_markers)
 
 
 def verify_pdf_running_elements(pdf_path, title, copyright_text):
@@ -350,7 +380,11 @@ def verify_pdf_running_elements(pdf_path, title, copyright_text):
 
         if page_count > 1:
             first_text = doc[0].get_text()
-            if f"1/{page_count}" not in first_text:
+            page_text_markers = {
+                f"Seite 1 von {page_count}",
+                f"1/{page_count}",
+            }
+            if not any(marker in first_text for marker in page_text_markers):
                 return False
 
         if page_count > 1 and normalized_title:

@@ -7,9 +7,8 @@ import math
 import re
 from html import escape
 
-import yaml
-
 from .answer_special_shared import _option_is_enabled, _safe_int
+from .answer_yaml_payload import parse_yaml_answer_payload_with_solution
 
 
 def _parse_grid_scale(raw_value):
@@ -80,19 +79,7 @@ def render_grid_answer(options, content, include_solutions, render_solution_text
 
 def _parse_grid_payload(content):
     """Parse YAML payload for grid overlays and return `(payload, fallback_solution_text)`."""
-    text = (content or "").strip()
-    if not text:
-        return {}, ""
-
-    try:
-        parsed = yaml.safe_load(text)
-    except yaml.YAMLError:
-        return {}, ""
-
-    if isinstance(parsed, dict):
-        return parsed, str(parsed.get("solution") or parsed.get("solution_text") or "")
-
-    return {}, ""
+    return parse_yaml_answer_payload_with_solution(content)
 
 
 def _render_grid_primitives_svg(options, payload, rows, cols, include_solutions):

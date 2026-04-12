@@ -5,6 +5,10 @@ Diese Datei erklärt die Architektur in einfacher Sprache.
 Wichtig:
 Sie muss immer zusammen mit [docs/ARCHITEKTUR.md](docs/ARCHITEKTUR.md) geändert werden.
 
+Dokumentrollen:
+- Die beiden Architekturdateien zeigen nur den aktuellen Zustand.
+- Der Aenderungsverlauf steht nur in [docs/DEVELOPMENT_LOG.md](docs/DEVELOPMENT_LOG.md).
+
 ## Die Grundidee
 
 Blattwerk hat klare Schichten.
@@ -72,14 +76,10 @@ Frage 2: Werden Speichermodule konsequent benutzt?
 Frage 3: Weiß jedes Modul nur das Nötige?
 - Soll: Ja, nach Schichtgrenzen.
 
-## Aktuell noch offen
+## Dokumentgrenze
 
-Aktuell keine offenen Architekturaufgaben aus diesem Review.
-
-Abgeschlossen:
-- Recent-Files-Verantwortung liegt jetzt vollständig in `local_config_store.py`; der separate Store wurde entfernt.
-- Core-Fassaden wurden auf eine klare Schnittstelle reduziert: `app/core/wiring.py`.
-- Die Wordsearch-Erzeugung hat jetzt ein klares Strategie-Modell in `app/core/wordsearch_strategy.py` statt fester Suchgrenzen.
+Diese Datei ist kein Aenderungsprotokoll.
+"Was wurde wann geaendert" steht nur im Development-Log.
 
 ## Guardrails (Build, Export, CI)
 
@@ -98,6 +98,9 @@ Abgeschlossen:
 4. Bildpfade in Markdown bleiben portabel:
   - der Validator meldet absolute lokale Bildpfade als `PT001`
   - relative Pfade und Web-URLs bleiben erlaubt
+5. Development-Log ist Pflicht:
+  - keine Feature- oder Architekturänderung ohne Eintrag in [docs/DEVELOPMENT_LOG.md](docs/DEVELOPMENT_LOG.md)
+  - der Eintrag passiert im gleichen Arbeitszyklus
 
 ## Regel vor jedem Merge
 
@@ -105,3 +108,4 @@ Abgeschlossen:
 2. Passen die Schichtgrenzen?
 3. Wird eine Brute-Force-Regel verletzt?
 4. Wurden beide Architekturdateien zusammen aktualisiert?
+5. Wurde bei Feature- oder Architekturänderung [docs/DEVELOPMENT_LOG.md](docs/DEVELOPMENT_LOG.md) aktualisiert?

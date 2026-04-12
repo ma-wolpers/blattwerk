@@ -7,6 +7,7 @@ import re
 from html import escape
 
 from .answer_special_shared import _as_text_list, _option_is_enabled, _safe_int
+from .wordsearch_strategy import resolve_wordsearch_generation_strategy
 
 
 def _normalize_wordsearch_token(word):
@@ -238,6 +239,7 @@ def _build_wordsearch_grid(words, options):
     rng = random.Random(seed_value)
     allow_diagonal = _option_is_enabled(options.get("diagonal"), default=False)
     min_rows, min_cols = _parse_min_wordsearch_size(options)
+    strategy = resolve_wordsearch_generation_strategy(options)
     directions_by_word = _assign_wordsearch_directions(
         words, options, allow_diagonal, rng
     )
@@ -245,10 +247,13 @@ def _build_wordsearch_grid(words, options):
     total_letters = sum(len(word) for word in sorted_words)
     longest_word = max(len(word) for word in sorted_words)
 
-    lower_rows = max(min_rows, 3)
-    lower_cols = max(min_cols, 3)
+    lower_rows = max(min_rows, strategy.min_grid_edge)
+    lower_cols = max(min_cols, strategy.min_grid_edge)
     upper_bound = max(
-        longest_word + 10, int((total_letters * 1.25) ** 0.5) + 12, min_rows, min_cols
+        longest_word + strategy.longest_word_padding,
+        int((total_letters * strategy.area_density_factor) ** 0.5) + strategy.sqrt_padding,
+        min_rows,
+        min_cols,
     )
 
     candidate_sizes = []
@@ -265,8 +270,8 @@ def _build_wordsearch_grid(words, options):
 
     candidate_sizes.sort(key=lambda item: (item[0], item[1], item[2]))
 
-    for _area, _shape_bias, rows, cols in candidate_sizes[:140]:
-        for _attempt in range(16):
+    for _area, _shape_bias, rows, cols in candidate_sizes[: strategy.max_candidate_sizes]:
+        for _attempt in range(strategy.placement_attempts_per_size):
             grid = [[None for _ in range(cols)] for _ in range(rows)]
             fill_counts = [[0 for _ in range(cols)] for _ in range(rows)]
             placements = {}
@@ -283,7 +288,7 @@ def _build_wordsearch_grid(words, options):
 
                 rng.shuffle(candidates)
                 candidates.sort(key=lambda item: item[0], reverse=True)
-                limit = min(len(candidates), 120)
+                limit = min(len(candidates), strategy.max_candidates_per_word)
 
                 for overlap, start_row, start_col, d_row, d_col in candidates[:limit]:
                     _ = overlap

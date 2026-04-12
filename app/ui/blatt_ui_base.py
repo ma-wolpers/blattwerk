@@ -2,19 +2,17 @@
 
 from __future__ import annotations
 
-from .blatt_ui_dependencies import (
+import tkinter as tk
+
+from .blatt_shortcuts import build_preview_shortcuts
+from .shortcut_manager import ShortcutManager
+from .ui_constants import VIEW_FIT_WIDTH, VIEW_LAYOUT_SINGLE
+from .ui_theme import DEFAULT_THEME
+from ..storage.history_paths_adapter import HISTORY_ROOT_NAME, find_history_root
+from ..styles.blatt_styles import DEFAULT_FONT_PROFILE, DEFAULT_FONT_SIZE_PROFILE
+from ..styles.worksheet_design import (
     CONTRAST_PROFILE_ORDER,
     DEFAULT_COLOR_PROFILE,
-    DEFAULT_FONT_PROFILE,
-    DEFAULT_FONT_SIZE_PROFILE,
-    DEFAULT_THEME,
-    HISTORY_ROOT_NAME,
-    VIEW_FIT_WIDTH,
-    VIEW_LAYOUT_SINGLE,
-    ShortcutManager,
-    build_preview_shortcuts,
-    find_history_root,
-    tk,
 )
 
 class BlattwerkAppBase:

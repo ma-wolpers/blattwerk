@@ -9,7 +9,7 @@ from .blatt_ui_help_preview import BlattwerkAppHelpPreviewMixin
 from .blatt_ui_persistence import BlattwerkAppPersistenceMixin
 from .blatt_ui_preview import BlattwerkAppPreviewMixin
 from .blatt_ui_style import BlattwerkAppStyleMixin
-from .blatt_ui_dependencies import tk
+import tkinter as tk
 from .window_identity import apply_window_icon, configure_windows_process_identity
 
 

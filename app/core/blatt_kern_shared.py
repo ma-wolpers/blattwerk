@@ -241,6 +241,62 @@ def parse_blocks(text):
     return blocks
 
 
+def build_block_index_line_map(text):
+    """Liefert 1-basierte Startzeilen pro Blockindex im parse_blocks-Reihenfolge."""
+
+    index_to_line = {}
+    lines = text.splitlines(keepends=True)
+
+    block_start_pattern = re.compile(r"^:::(\w+)(.*)$")
+    self_closing_pattern = re.compile(r"^:::(\w+)(.*?):::$")
+
+    block_index = 0
+    block_open_line = None
+    raw_buffer_start_line = None
+    in_block = False
+
+    for line_no, raw_line in enumerate(lines, start=1):
+        stripped = raw_line.strip()
+        if not in_block:
+            if self_closing_pattern.match(stripped):
+                if raw_buffer_start_line is not None:
+                    index_to_line[block_index] = raw_buffer_start_line
+                    block_index += 1
+                    raw_buffer_start_line = None
+                index_to_line[block_index] = line_no
+                block_index += 1
+                continue
+
+            start_match = block_start_pattern.match(stripped)
+            if start_match:
+                if raw_buffer_start_line is not None:
+                    index_to_line[block_index] = raw_buffer_start_line
+                    block_index += 1
+                    raw_buffer_start_line = None
+                in_block = True
+                block_open_line = line_no
+                continue
+
+            if raw_buffer_start_line is None:
+                raw_buffer_start_line = line_no
+            continue
+
+        if stripped == ":::":
+            index_to_line[block_index] = block_open_line or line_no
+            block_index += 1
+            in_block = False
+            block_open_line = None
+
+    if in_block:
+        index_to_line[block_index] = block_open_line or max(1, len(lines))
+        block_index += 1
+
+    if raw_buffer_start_line is not None:
+        index_to_line[block_index] = raw_buffer_start_line
+
+    return index_to_line
+
+
 def normalize_markdown(text):
     """Ergänzt Leerzeilen vor Listen für stabileres Markdown-Rendering."""
     lines = text.splitlines()

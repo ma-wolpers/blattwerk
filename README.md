@@ -135,6 +135,10 @@ python blattwerk.py
 - Agent-Setup und Agent-Erstellung: `docs/AGENT_SETUP.md`
 - CSS-Anleitung: `docs/CSS_ANLEITUNG.md`
 - Architektur (intern): `docs/ARCHITEKTUR.md`
+- Architektur (einfach): `docs/ARCHITEKTUR_EINFACH.md`
+- Development-Log (technischer Verlauf): `docs/DEVELOPMENT_LOG.md`
+- Changelog (oeffentliche Aenderungen): `CHANGELOG.md`
+- Copilot-Workflow (Prompt- und Review-Standard): `docs/COPILOT_WORKFLOW.md`
 
 ## Lizenz
 

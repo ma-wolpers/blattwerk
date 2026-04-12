@@ -6,22 +6,25 @@ from pathlib import Path
 import tempfile
 import fitz
 from PIL import Image, ImageTk
-from .blatt_ui_dependencies import (
+from tkinter import ttk
+import tkinter as tk
+
+from .ui_constants import (
     PREVIEW_CANVAS_PADDING_PX,
     PREVIEW_MIN_FRAME_PX,
     PREVIEW_SCALE_MAX,
     PREVIEW_SCALE_MIN,
     PREVIEW_ZOOM_MAX_PERCENT,
     PREVIEW_ZOOM_MIN_PERCENT,
-    build_help_cards,
+)
+from .preview_geometry import (
     clamp,
     get_fit_scales,
     get_preview_frame_size,
-    get_theme,
     get_zoom_target_size,
-    ttk,
-    tk,
 )
+from .ui_theme import get_theme
+from ..core.build_requests import HelpCardsBuildRequest, build_help_cards_from_request
 
 
 class BlattwerkAppHelpPreviewMixin:
@@ -186,18 +189,20 @@ class BlattwerkAppHelpPreviewMixin:
         contrast_profile: str,
     ):
         """Render help pdf pages."""
-        worksheet_design = self._worksheet_design_kwargs()
+        worksheet_design = self._worksheet_design_options()
         with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
             temp_pdf_path = Path(tmp.name)
 
         try:
-            build_help_cards(
-                str(input_path),
-                str(temp_pdf_path),
-                include_solutions=include_solutions,
-                page_format=page_format,
-                print_profile=contrast_profile,
-                **worksheet_design,
+            build_help_cards_from_request(
+                HelpCardsBuildRequest(
+                    input_path=input_path,
+                    output_path=temp_pdf_path,
+                    include_solutions=include_solutions,
+                    page_format=page_format,
+                    print_profile=contrast_profile,
+                    design=worksheet_design,
+                )
             )
 
             pages = []

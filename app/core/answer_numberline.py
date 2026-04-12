@@ -6,9 +6,8 @@ import math
 import re
 from html import escape
 
-import yaml
-
 from .answer_special_shared import _option_is_enabled, _safe_int
+from .answer_yaml_payload import parse_yaml_answer_payload_with_solution
 
 
 def render_number_line_answer(
@@ -62,19 +61,7 @@ def render_number_line_answer(
 
 def _parse_number_line_payload(content):
     """Parse YAML payload for number line markers and optional extra solution text."""
-    text = (content or "").strip()
-    if not text:
-        return {}, ""
-
-    try:
-        parsed = yaml.safe_load(text)
-    except yaml.YAMLError:
-        return {}, ""
-
-    if isinstance(parsed, dict):
-        return parsed, str(parsed.get("solution") or parsed.get("solution_text") or "")
-
-    return {}, ""
+    return parse_yaml_answer_payload_with_solution(content)
 
 
 def _build_number_line_config(options):

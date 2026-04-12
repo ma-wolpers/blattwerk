@@ -9,6 +9,10 @@ Diese Datei ist die technische Architekturfassung.
 Sie ist immer synchron mit [docs/ARCHITEKTUR_EINFACH.md](docs/ARCHITEKTUR_EINFACH.md) zu pflegen.
 Änderungen an nur einer der beiden Dateien sind nicht erlaubt.
 
+Dokumentrollen:
+- `docs/ARCHITEKTUR.md` und `docs/ARCHITEKTUR_EINFACH.md` beschreiben nur den aktuellen Architekturzustand.
+- Verlaufs- und Aenderungsdokumentation liegt ausschließlich in `docs/DEVELOPMENT_LOG.md`.
+
 ## Programmkern
 
 Der Programmkern liegt in `app/core`.
@@ -54,10 +58,6 @@ Erlaubt als Ausnahme:
 - Retry nur bei klassifizierten transienten Fehlern
 - begrenzte Versuche mit nachvollziehbarem Abbruchfehler
 
-Aktueller Status:
-- PDF-Retry in `blatt_kern_io_pdf.py` ist klassifiziert und begrenzt (zulässige Ausnahme)
-- Wordsearch-Erzeugung nutzt weiterhin harte Suchgrenzen/Heuristiken (`answer_special_wordsearch.py`) und bleibt offene Architekturaufgabe
-
 ## Anti-Glue-Regeln
 
 1. Keine Sammel-Import-Fassade in UI.
@@ -93,14 +93,10 @@ Aktueller Status:
    - darf: Profil- und Designregeln
    - darf nicht: Dokumentdiagnostik, GUI-Interaktion
 
-## Offene Architekturaufgaben
+## Dokumentationsgrenzen
 
-Aktuell keine offenen Architekturaufgaben aus diesem Review.
-
-Abgeschlossen:
-- Recent-Files-Ownership ist auf `local_config_store.py` konsolidiert; separater Store wurde entfernt.
-- Core-Re-Export-Fassaden wurden entfernt; explizite Public-Wiring-Schnittstelle ist `app/core/wiring.py`.
-- Wordsearch-Generierung nutzt jetzt ein explizites Strategie-/Konfigurationsmodell in `app/core/wordsearch_strategy.py` (statt harter Suchgrenzen).
+Diese Architekturdokumente enthalten keine Historie, keine "zuletzt ergänzt"-Notizen und keine Abschlusslisten.
+Historische Änderungen, Migrationsschritte und laufende Arbeitsprotokolle stehen nur im `docs/DEVELOPMENT_LOG.md`.
 
 ## Guardrails (Build/Export/CI)
 
@@ -120,6 +116,9 @@ Abgeschlossen:
 4. Markdown-Bildquellen bleiben portabel:
    - Validator meldet absolute lokale Bildpfade als `PT001`
    - erlaubt bleiben relative Pfade sowie Web-URLs (`http/https`)
+5. Development-Log-Pflicht:
+   - keine Feature- oder Architekturänderung ohne Update in `docs/DEVELOPMENT_LOG.md`
+   - der Log-Eintrag wird im selben Arbeitszyklus gepflegt
 
 ## Merge-Checkliste
 
@@ -128,3 +127,4 @@ Vor Merge einer Architektur-relevanten Änderung:
 2. Schichtgrenzen gegen diese Datei prüfen.
 3. Prüfen, ob Brute-Force-Regel verletzt wird.
 4. Beide Architekturdateien gemeinsam aktualisieren.
+5. Bei Feature- oder Architekturänderung: `docs/DEVELOPMENT_LOG.md` aktualisieren.
