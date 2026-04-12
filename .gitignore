@@ -41,6 +41,7 @@ build/
 # VS Code extension build artifacts
 node_modules/
 *.vsix
+vscode-extension/blattwerk-language/out/
 
 # OS metadata
 desktop.ini
