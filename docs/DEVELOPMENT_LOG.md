@@ -9,6 +9,10 @@ Regel:
 ## [Unreleased]
 
 ### Changed
+- Shortcut-Abdeckung der Standardfunktionen erweitert: fehlende Menü-/Ansichtsaktionen erhielten zentrale Bindings in `build_preview_shortcuts`.
+- Neue globale Shortcuts ergänzt: `Strg+O` (Markdown öffnen), `Strg+,` (Einstellungen), `Strg+1/2/3` (Bereichsansicht), `Strg+T` (Theme-Zyklus), `Strg+F` (Schriftprofil-Zyklus).
+- Theme- und Schriftprofilwechsel über dedizierte zyklische Helfer im Style-Mixin zentralisiert, damit Persistenz/Redraw weiter über bestehende Pfade läuft.
+- Nutzerhandbuch-Abschnitt zu Vorschau-Shortcuts auf den aktuellen Stand erweitert.
 - Architektur-Dokumentrollen getrennt: `docs/ARCHITEKTUR.md` und `docs/ARCHITEKTUR_EINFACH.md` beschreiben nur den Ist-Zustand; Verlaufsinhalte wurden entfernt.
 - Guardrails erweitert: Feature-/Architekturaenderungen erfordern jetzt ein gleichzeitiges Update dieses Development-Logs.
 - Hauptfenster auf splitbare Zwei-Bereichs-Ansicht erweitert: Vorschau und Schreibbereich koennen einzeln oder gemeinsam angezeigt werden.

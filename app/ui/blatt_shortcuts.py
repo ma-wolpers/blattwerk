@@ -4,6 +4,9 @@ from __future__ import annotations
 
 from .shortcut_manager import ShortcutBinding
 from .ui_constants import (
+    EDITOR_VIEW_BOTH,
+    EDITOR_VIEW_EDITOR_ONLY,
+    EDITOR_VIEW_PREVIEW_ONLY,
     VIEW_FIT_PAGE,
     VIEW_FIT_WIDTH,
     VIEW_LAYOUT_SINGLE,
@@ -68,6 +71,53 @@ def build_preview_shortcuts(app):
             "<Control-n>",
             app.create_new_markdown_file,
             "Strg+N   neue Markdown-Datei",
+            ignore_when_text_input=False,
+            allow_modifiers=True,
+        ),
+        ShortcutBinding(
+            "<Control-o>",
+            app.pick_input,
+            "Strg+O   Markdown öffnen",
+            ignore_when_text_input=False,
+            allow_modifiers=True,
+        ),
+        ShortcutBinding(
+            "<Control-comma>",
+            app._open_local_settings_dialog,
+            "Strg+,   Einstellungen",
+            ignore_when_text_input=False,
+            allow_modifiers=True,
+        ),
+        ShortcutBinding(
+            "<Control-1>",
+            lambda: app._set_editor_view_mode(EDITOR_VIEW_PREVIEW_ONLY),
+            "Strg+1/2/3   Vorschau / beides / Editor",
+            ignore_when_text_input=False,
+            allow_modifiers=True,
+        ),
+        ShortcutBinding(
+            "<Control-2>",
+            lambda: app._set_editor_view_mode(EDITOR_VIEW_BOTH),
+            ignore_when_text_input=False,
+            allow_modifiers=True,
+        ),
+        ShortcutBinding(
+            "<Control-3>",
+            lambda: app._set_editor_view_mode(EDITOR_VIEW_EDITOR_ONLY),
+            ignore_when_text_input=False,
+            allow_modifiers=True,
+        ),
+        ShortcutBinding(
+            "<Control-t>",
+            app._cycle_theme,
+            "Strg+T   Theme wechseln",
+            ignore_when_text_input=False,
+            allow_modifiers=True,
+        ),
+        ShortcutBinding(
+            "<Control-f>",
+            app._cycle_font_profile,
+            "Strg+F   Schriftprofil wechseln",
             ignore_when_text_input=False,
             allow_modifiers=True,
         ),

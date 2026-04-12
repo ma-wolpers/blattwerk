@@ -36,6 +36,7 @@ Installation/Setup steht bewusst in `README.md`.
 - `← / →`: Seitenwechsel
 - `↑ / ↓`: Scrollen
 - `S`: Druckprofil wechseln
+- `F`: Farbprofil wechseln
 - `4 / 5`: DIN A4 / DIN A5
 - `0 / 1`: Seitenbreite / ganze Seite
 - `E / N / U`: Einzel / nebeneinander / untereinander
@@ -44,7 +45,13 @@ Installation/Setup steht bewusst in `README.md`.
 - `Leertaste`: Vorschau aktualisieren
 - `Enter`: Exportdialog öffnen
 - `O`: Markdown öffnen
+- `Strg+O`: Markdown öffnen
+- `Strg+N`: neue Markdown-Datei
 - `Z`: zuletzt geladenes Markdown öffnen
+- `Strg+,`: Einstellungen öffnen
+- `Strg+1 / Strg+2 / Strg+3`: Nur Vorschau / Vorschau+Schreibbereich / Nur Schreibbereich
+- `Strg+T`: Theme wechseln
+- `Strg+F`: Schriftprofil wechseln
 - `Esc`: App beenden
 
 ## 5) Exportdialog-Shortcuts

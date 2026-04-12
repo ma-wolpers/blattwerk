@@ -7,6 +7,8 @@ The format is based on Keep a Changelog.
 ## [Unreleased]
 
 ### Changed
+- Standardfunktionen sind jetzt konsistent per Tastatur erreichbar: neue Shortcuts für Einstellungen, Bereichsansicht, Theme- und Schriftprofilwechsel wurden ergänzt.
+- Shortcut-Set für Dateiaktionen erweitert: Markdown öffnen ist nun zusätzlich mit `Ctrl+O` verfügbar.
 - Architecture documentation now cleanly separates stable architecture reference from internal development history.
 - Main window now supports three area modes: preview only, split view, or editor only.
 - Split view opens editor and preview side-by-side with draggable divider and equal default width.

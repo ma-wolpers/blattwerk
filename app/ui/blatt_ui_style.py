@@ -42,6 +42,7 @@ from .ui_constants import (
     VIEW_MODE_LABELS,
 )
 from .ui_theme import (
+    THEME_ORDER,
     apply_window_theme,
     configure_ttk_theme,
     get_theme,
@@ -65,6 +66,16 @@ class BlattwerkAppStyleMixin:
             previous_profile = self.design_color_profile_var.get()
             self._cycle_option(self.design_color_profile_var, COLOR_PROFILE_ORDER, step=step)
             self._warn_if_bw_mode_has_color_mentions(previous_profile=previous_profile)
+            self._on_worksheet_design_changed()
+
+    def _cycle_theme(self, step: int = 1):
+            """Cycle through available themes and apply immediately."""
+            self._cycle_option(self.theme_var, THEME_ORDER, step=step)
+            self._on_theme_changed()
+
+    def _cycle_font_profile(self, step: int = 1):
+            """Cycle through available worksheet font profiles."""
+            self._cycle_option(self.design_font_profile_var, FONT_PROFILE_ORDER, step=step)
             self._on_worksheet_design_changed()
 
     def _worksheet_design_kwargs(self):
