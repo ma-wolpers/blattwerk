@@ -4,9 +4,11 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from .export_path_guardrails import validate_export_output_path
 from .blatt_kern_io_html import absolutize_local_image_sources, apply_image_size_options
 from .blatt_kern_io_pdf import annotate_pdf_running_elements_with_retry, write_pdf_from_html
-from .blatt_kern_render import collect_help_blocks, render_help_cards_html, render_html
+from .blatt_kern_help_render import collect_help_blocks, render_help_cards_html
+from .blatt_kern_layout_render import render_html
 from .blatt_kern_shared import get_copyright_text
 from .blatt_validator import (
     BuildDiagnostic,
@@ -60,7 +62,10 @@ def build_worksheet(
     html = absolutize_local_image_sources(html, md_file.parent)
     html = apply_image_size_options(html)
 
-    out_file = Path(out_path)
+    out_file = validate_export_output_path(
+        out_path,
+        allowed_suffixes={".pdf", ".html"},
+    )
     suffix = out_file.suffix.lower()
 
     if suffix == ".html":
@@ -123,7 +128,10 @@ def build_help_cards(
     html = absolutize_local_image_sources(html, md_file.parent)
     html = apply_image_size_options(html)
 
-    out_file = Path(out_path)
+    out_file = validate_export_output_path(
+        out_path,
+        allowed_suffixes={".pdf", ".html"},
+    )
     suffix = out_file.suffix.lower()
 
     if suffix == ".html":

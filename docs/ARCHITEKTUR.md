@@ -1,146 +1,130 @@
 # Architekturübersicht Blattwerk
 
-Diese Struktur ist auf Erweiterbarkeit ausgelegt (neue Blöcke, neue View-Modi, andere Designs):
+Ziel: klare Schichtung ohne Klebercode. Jede fachliche Entscheidung hat genau einen Ort.
 
-```text
-blattwerk/
-├─ blattwerk.py              # App-Start (einziger Python-Einstieg im Hauptordner)
-├─ docs/                     # Projektdokumentation (gebündelt)
-├─ examples/                 # Beispiele, Assets und Beispiel-Outputs
-├─ vscode-extension/         # VS Code Extension (Language Tools)
-├─ app/                      # Interne Implementierungsmodule
-│  ├─ ui/                    # GUI-Controller + Vorschau/Navigation
-│  ├─ core/                  # Markdown→HTML/PDF Kernpipeline
-│  ├─ cli/                   # Python-CLI-Bridge (z. B. Diagnostik-JSON)
-│  ├─ styles/                # Druckprofile + Stylesheet-Building
-│  ├─ storage/               # Verlaufspersistenz
-│  └─ __init__.py
-├─ assets/
-│  └─ worksheet.css          # Externe CSS-Vorlage (direkt editierbar)
-└─ ...
-```
+## Dokumentregel (verbindlich)
 
-## Verantwortlichkeiten
+Diese Datei ist die technische Architekturfassung.
 
-- `app/ui/blatt_ui.py`
-  - Reine UI-Interaktion (Dateiauswahl, Vorschau, Zoom, Layoutmodus, Export)
-  - Orchestriert Export über `app/ui/export_dialog.py`
-  - Nutzt zentrale Werte aus `app/ui/ui_constants.py`
-  - Delegiert Geometrie an `app/ui/preview_geometry.py`
-  - Delegiert Verlaufsspeicherung an `app/storage/recent_files_store.py`
+Sie ist immer synchron mit [docs/ARCHITEKTUR_EINFACH.md](docs/ARCHITEKTUR_EINFACH.md) zu pflegen.
+Änderungen an nur einer der beiden Dateien sind nicht erlaubt.
 
-- `app/core/blatt_kern.py`
-  - Parsing/Rendering-Pipeline
-  - HTML/PDF-Erzeugung
-  - PDF-Laufelemente (Seitenzahl/Lauftitel)
-  - propagiert Frontmatter-Dokumentmodus (`mode`) bis in den Task-Renderer
+## Programmkern
 
-- `app/core/blatt_validator.py`
-  - dedizierte Dokumentvalidierung fuer Frontmatter, Blocktypen und Optionen
-  - liefert stabile/oeffentliche Diagnosecodes fuer UI, CLI und spaetere Editor-Integration
-  - markiert kritische Fehler (severity `error`) fuer teilweise blockierenden Build
-  - validiert Dokumentmodus im Frontmatter (`mode: ws|test`)
+Der Programmkern liegt in `app/core`.
 
-- `app/cli/blatt_diagnostics_cli.py`
-  - JSON-Bridge auf den Validator fuer externe Tools (z. B. VS Code Diagnostics)
-  - liefert range-basierte Meldungen fuer Editor-Markierungen
+Kernaufgaben:
+1. Parse (`split_front_matter`, `parse_blocks`)
+2. Validate (`inspect_markdown_text`)
+3. Render (`render_html`, Block-/Answer-Dispatch)
+4. Build (`build_worksheet`, `build_help_cards`)
 
-- `vscode-extension/blattwerk-language`
-  - VS Code Integration fuer Blattwerk-Markdown (Highlighting, Folding, Snippets, Diagnostics)
-  - bezieht Diagnosen bewusst aus Python statt Regelduplikation in TypeScript
+Zusätzliche Kern-Usecases:
+- `diagnostic_warnings.py` (Warnaufbereitung)
+- `build_requests.py` (typisierte Build-Schnittstelle)
+- `color_mentions.py` (fachliche BW/Farb-Regel)
 
-- `app/core/color_mentions.py`
-  - zentrale Erkennung von Farbbegriffen in Markdown-Texten
-  - bewusst UI-unabhängig, damit Prüfregeln nicht in Widgets dupliziert werden
-  - nutzbar für GUI-Warnungen und spätere Prüf-/Linting-Pfade
+## Schichtenmodell
 
-- `app/core/answer_grid_plot.py`
-  - Renderer für visuelle Antwortfelder mit SVG-Overlay-Logik
-  - aktuell: `grid` (inkl. Achsen/Ticks/Labels/Punkte/Funktionen), `dots`
-  - unterstützt markerbasierte Sichtbarkeit auf Elementebene (`show: "§"|"%"|"&"`)
+| Schicht | Verantwortung | Nicht erlaubt | Primärmodule |
+|---|---|---|---|
+| `app/core` | Fachregeln, Parse/Validate/Render/Build | UI-Dialoge, Persistenzdetails | `blatt_kern_io_build.py`, `blatt_validator.py`, `blatt_kern_layout_render.py` |
+| `app/ui` | Input, View-State, Anzeige | Fachregel-Ownership, Persistenzpolicy | `blatt_ui_*.py` |
+| `app/storage` | Laden/Speichern, Persistenzformat, Pfad-/Systemadapter | Render-/Validierungslogik | `local_config_store.py`, `history_paths_adapter.py`, `system_settings_adapter.py` |
+| `app/styles` | Profilauflösung, Designnormalisierung, CSS | Dokumentdiagnostik, Persistenzentscheidungen | `blatt_styles.py`, `worksheet_design.py`, `ui_profile_adapter.py` |
+| `app/cli` | Adapter auf Kern-API | Regelduplikation | `blatt_diagnostics_cli.py` |
 
-- `app/core/answer_numberline.py`
-  - dedizierter Renderer für horizontale Zahlengeraden/Zahlenstrahle
-  - Tick-/Skalenlogik, Label-Rendering und Antwortkästchen
-  - markerbasierte Sichtbarkeit auf Elementebene (`show: "§"|"%"|"&"`)
+## Ablauf-Invarianten
 
-- `app/styles/blatt_styles.py`
-  - Druckprofilauflösung (`standard`/`strong`)
-  - Mapping Profil/Schrift/Schriftgröße → CSS-Variablen
-  - Laden von `assets/worksheet.css` als Basis-CSS
-  - Ergänzen dynamischer Laufzeit-Overrides (`@page`, `:root`)
-  - Metadatenbasierte Seitenrand-Overrides (z. B. Lochrand über YAML `lochen: ja/nein`)
-  - Übergabe des Kontrastprofils an die Design-CSS-Erzeugung
-  - Farbkonvertierung für PDF-Laufelemente
+1. Parse genau einmal.
+2. Validate genau einmal.
+3. Render genau einmal.
+4. Output genau einmal schreiben.
+5. Optionaler Postprozess nur mit expliziten Erfolgskriterien.
 
-- `app/styles/worksheet_design.py`
-  - Farbschema-/Design-Overrides je Farbprofil
-  - zentrale Symbolstil-Entscheidung über `_resolve_symbol_style(...)`
-  - Symbolwerte über dataclass-basierte Presets (`Filter`, `Stroke`, `Shadow`) gebündelt
-  - robuste Regel: genau ein Symbolfilter-Pfad (kein doppelter `task-work-symbol`-Override in S/W)
+## Brute-Force-Regel
 
-- `assets/worksheet.css`
-  - Alle visuellen Regeln zentral als Datei
-  - Standardkonformes CSS mit Defaults (direkt editierbar/lintbar)
-  - Keine Python-String-CSS-Blöcke mehr im Kern
+Verboten als Primärstrategie:
+- blindes Retry mit pauschalem `sleep`
+- zweite Parser-Implementierung neben dem Kernparser
+- stille Fallback-Semantik ohne dokumentierten Vertrag
 
-## UI-Architektur (integriert)
+Erlaubt als Ausnahme:
+- Retry nur an I/O-Grenzen
+- Retry nur bei klassifizierten transienten Fehlern
+- begrenzte Versuche mit nachvollziehbarem Abbruchfehler
 
-```text
-app/
-├─ ui/
-│  ├─ blatt_ui.py         # Haupt-UI-Controller (BlattwerkApp)
-│  ├─ export_dialog.py    # ExportDialog (modal)
-│  ├─ ui_constants.py     # Zoom/Layout-Konstanten + Modus-Schlüssel
-│  └─ preview_geometry.py # Geometrie-/Zoom-Berechnungen (ohne Tk-Abhängigkeit)
-└─ storage/
-   └─ recent_files_store.py  # Laden/Speichern der Verlaufsliste
-```
+Aktueller Status:
+- PDF-Retry in `blatt_kern_io_pdf.py` ist klassifiziert und begrenzt (zulässige Ausnahme)
+- Wordsearch-Erzeugung nutzt weiterhin harte Suchgrenzen/Heuristiken (`answer_special_wordsearch.py`) und bleibt offene Architekturaufgabe
 
-- `app/ui/blatt_ui.py`
-  - Eventfluss, Vorschauzustand, Navigation, Exportablauf
-  - nutzt `app/ui/export_dialog.py` und `app/ui/ui_constants.py`
-  - verwaltet Designauswahl (Farbprofil, Schriftprofil, Schriftgrößenprofil)
-  - triggert S/W-Farbwarnungen, delegiert Textanalyse an `app/core/color_mentions.py`
+## Anti-Glue-Regeln
 
-- `app/ui/export_dialog.py`
-  - ausschließlich Exportoptionen und Ergebnisobjekt
-  - kann später separat erweitert werden (weitere Formate/Optionen)
+1. Keine Sammel-Import-Fassade in UI.
+2. Jede Persistenz-Ressource hat genau eine führende API.
+3. Re-Exports im Core sind nur in `app/core/wiring.py` erlaubt.
+4. Adapter dürfen transformieren, aber keine fachlichen Entscheidungen übernehmen.
+5. UI zeigt Ergebnisse an, Kern liefert Entscheidungsinhalt.
 
-- `app/ui/ui_constants.py`
-  - zentrale Anpassung von Grenzen und Modi
-  - vermeidet Magic Numbers und String-Duplikate
+## Leitfragen-Check (Soll = Ja)
 
-- `app/ui/preview_geometry.py`
-  - reine Mathe-/Geometrie-Helfer (Zoomgröße, Zentrierung, aktive Seite)
-  - reduziert UI-Kopplung in `app/ui/blatt_ui.py`
+1. Macht die GUI etwas außer I/O und View-State?
+    - Soll: nein.
+2. Gibt es Speichermodule und werden sie konsequent genutzt?
+    - Soll: ja, mit eindeutiger API pro Ressource.
+3. Weiß jedes Modul nur, was es wissen muss?
+    - Soll: ja, nach Schichtvertrag und Modulmatrix.
 
-- `app/storage/recent_files_store.py`
-  - JSON-Persistenz der zuletzt geöffneten Dateien
-  - testbar und unabhängig von Tk-Widgets
+## Modulmatrix (Wissensgrenzen)
 
-## Erweiterungspunkte
+- `app/ui/*`
+   - darf: Eventfluss, Dialogzustand, View-State
+   - darf nicht: Regeldefinition, Parserdetails, Persistenzschema
 
-1. Neues Druckprofil:
-  - in `PRINT_PROFILE_PRESETS` (`app/styles/blatt_styles.py`) ergänzen
-2. Neues Seitenformat:
-  - in `PAGE_LAYOUTS` (`app/styles/blatt_styles.py`) ergänzen
-3. Neues visuelles Design:
-   - direkt in `assets/worksheet.css` anpassen
-4. Neue Vorschau-Layoutidee:
-  - in `app/ui/blatt_ui.py` als eigener Renderpfad (wie `single`/`strip`/`stack`)
-5. Neue Exportoption:
-  - Dialogelement in `app/ui/export_dialog.py`
-  - Übergabe im Exportpfad in `app/ui/blatt_ui.py`
-6. Geometrieverhalten ändern (aktive Seite/Zentrierung):
-  - in `app/ui/preview_geometry.py`
-7. Verlaufsspeicherung austauschen (z. B. sqlite):
-  - in `app/storage/recent_files_store.py`
+- `app/core/*`
+   - darf: Dokumentmodell, Regeln, Renderentscheidungen, Buildablauf
+   - darf nicht: Tk-Widgets, Theme-UI, Speicherpfadkonfiguration
 
-## Stabilitätsprinzipien
+- `app/storage/*`
+   - darf: Persistenzschema, Pfadauflösung, Konfigurationsnormalisierung
+   - darf nicht: Render-/Fachentscheidungen
 
-- Verantwortlichkeiten pro Datei getrennt
-- CSS aus Python ausgelagert
-- Fallbacks bei unbekannten Profilen/Formaten
-- Keine harte Kopplung von UI-Details mit Rendering-Details
-- Dokumentweite Darstellungsmodi werden zentral im Renderfluss weitergereicht (Frontmatter -> Layout-Renderer -> Block-Renderer), statt lokal dupliziert
+- `app/styles/*`
+   - darf: Profil- und Designregeln
+   - darf nicht: Dokumentdiagnostik, GUI-Interaktion
+
+## Offene Architekturaufgaben
+
+Aktuell keine offenen Architekturaufgaben aus diesem Review.
+
+Abgeschlossen:
+- Recent-Files-Ownership ist auf `local_config_store.py` konsolidiert; separater Store wurde entfernt.
+- Core-Re-Export-Fassaden wurden entfernt; explizite Public-Wiring-Schnittstelle ist `app/core/wiring.py`.
+- Wordsearch-Generierung nutzt jetzt ein explizites Strategie-/Konfigurationsmodell in `app/core/wordsearch_strategy.py` (statt harter Suchgrenzen).
+
+## Guardrails (Build/Export/CI)
+
+1. Diagnostik-Strenge ist adaptergesteuert und explizit:
+   - CLI unterstuetzt `--mode standard|strict|permissive`
+   - `standard`: blockiert kritische Diagnostik
+   - `strict`: blockiert jede Diagnostik
+   - `permissive`: blockiert nur `severity=error`
+2. Export-Entscheidungen bleiben im Kern:
+   - UI liefert nur Dateipfad/Optionen
+   - Blockierlogik wird nicht in UI dupliziert
+   - Export-Ziele werden vor dem Schreiben zentral validiert (`app/core/export_path_guardrails.py`)
+   - gesperrt sind interne Technikordner wie `.git` oder `.venv`
+3. Persistierte JSON-Pfade im Repo bleiben portabel:
+   - keine absoluten Systempfade in getrackten State-JSON-Dateien
+   - CI prueft das ueber `tools/repo_ci/check_no_absolute_paths.py`
+4. Markdown-Bildquellen bleiben portabel:
+   - Validator meldet absolute lokale Bildpfade als `PT001`
+   - erlaubt bleiben relative Pfade sowie Web-URLs (`http/https`)
+
+## Merge-Checkliste
+
+Vor Merge einer Architektur-relevanten Änderung:
+1. Eigentümer der Fachentscheidung benennen.
+2. Schichtgrenzen gegen diese Datei prüfen.
+3. Prüfen, ob Brute-Force-Regel verletzt wird.
+4. Beide Architekturdateien gemeinsam aktualisieren.

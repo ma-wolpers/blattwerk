@@ -164,3 +164,25 @@ def test_frontmatter_invalid_mode_emits_fm002():
 
     fm002 = [d for d in diagnostics if d.code == "FM002"]
     assert fm002
+
+
+def test_absolute_markdown_image_path_emits_pt001():
+    text = _build_document(
+        ":::task\n"
+        "![Abb](A:/7thCloud/7thVault/ZZ Assets/plot.png)\n"
+        ":::"
+    )
+    diagnostics = inspect_markdown_text(text).diagnostics
+
+    pt001 = [d for d in diagnostics if d.code == "PT001"]
+    assert pt001
+
+
+def test_relative_markdown_image_path_has_no_pt001():
+    text = _build_document(
+        ":::task\n"
+        "![Abb](ZZ Assets/plot.png)\n"
+        ":::"
+    )
+    codes = {d.code for d in inspect_markdown_text(text).diagnostics}
+    assert "PT001" not in codes

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+import re
 
 import yaml
 
@@ -207,6 +208,12 @@ CRITICAL_DIAGNOSTIC_CODES = {
     "AN003",  # Invalid YAML in schema-driven answer blocks.
 }
 
+_MARKDOWN_IMAGE_PATH_RE = re.compile(r"!\[[^\]]*\]\(([^)]+)\)")
+_HTML_IMAGE_SRC_RE = re.compile(r"<img[^>]+src=[\"']([^\"']+)[\"']", re.IGNORECASE)
+_WINDOWS_ABSOLUTE_PATH_RE = re.compile(r"^[a-zA-Z]:[\\/]")
+_UNC_ABSOLUTE_PATH_RE = re.compile(r"^[\\/]{2}[^\\/]+[\\/][^\\/]+")
+_POSIX_ABSOLUTE_PATH_RE = re.compile(r"^/")
+
 
 def _normalize_value(value):
     return (value or "").strip().lower()
@@ -268,6 +275,38 @@ def _option_items(options):
         if str(key).startswith("_"):
             continue
         yield key, value
+
+
+def _is_local_absolute_path(path_text):
+    normalized = str(path_text or "").strip().strip("\"").strip("'")
+    if not normalized:
+        return False
+
+    if normalized.startswith(("http://", "https://", "data:", "mailto:")):
+        return False
+
+    return bool(
+        _WINDOWS_ABSOLUTE_PATH_RE.match(normalized)
+        or _UNC_ABSOLUTE_PATH_RE.match(normalized)
+        or _POSIX_ABSOLUTE_PATH_RE.match(normalized)
+    )
+
+
+def _collect_absolute_image_paths(block_content):
+    paths = []
+    content = str(block_content or "")
+
+    for match in _MARKDOWN_IMAGE_PATH_RE.finditer(content):
+        candidate = match.group(1).strip()
+        if _is_local_absolute_path(candidate):
+            paths.append(candidate)
+
+    for match in _HTML_IMAGE_SRC_RE.finditer(content):
+        candidate = match.group(1).strip()
+        if _is_local_absolute_path(candidate):
+            paths.append(candidate)
+
+    return paths
 
 
 def _append_invalid_option_value(
@@ -375,6 +414,24 @@ def _collect_document_diagnostics(meta, blocks):
             )
 
     for index, (block_type, options, content) in enumerate(blocks):
+        absolute_image_paths = _collect_absolute_image_paths(content)
+        if absolute_image_paths:
+            preview = ", ".join(absolute_image_paths[:2])
+            remainder = len(absolute_image_paths) - 2
+            remainder_text = f" (+{remainder} weitere)" if remainder > 0 else ""
+            diagnostics.append(
+                BuildDiagnostic(
+                    code="PT001",
+                    message=(
+                        "Absolute lokale Bildpfade gefunden. "
+                        "Bitte relative Projektpfade verwenden: "
+                        f"{preview}{remainder_text}"
+                    ),
+                    block_index=index,
+                    block_type=block_type,
+                )
+            )
+
         if block_type not in KNOWN_BLOCK_TYPES:
             diagnostics.append(
                 BuildDiagnostic(

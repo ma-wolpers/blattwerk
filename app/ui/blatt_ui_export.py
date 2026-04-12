@@ -6,13 +6,17 @@ from pathlib import Path
 import tempfile
 import zipfile
 import fitz
-from .blatt_ui_dependencies import (
-    ExportDialog,
-    build_help_cards,
-    build_worksheet,
-    inspect_markdown_document,
-    messagebox,
+from tkinter import messagebox
+
+from .export_dialog import ExportDialog
+from ..core.build_requests import (
+    HelpCardsBuildRequest,
+    WorksheetBuildRequest,
+    build_help_cards_from_request,
+    build_worksheet_from_request,
 )
+from ..core.diagnostic_warnings import build_warning_payload
+from ..core.export_path_guardrails import validate_export_output_path
 
 
 class BlattwerkAppExportMixin:
@@ -20,29 +24,13 @@ class BlattwerkAppExportMixin:
 
     def _show_export_diagnostics(self, input_path: Path):
         """Zeigt nicht-blockierende Warnungen vor dem Export an."""
-        try:
-            inspected = inspect_markdown_document(str(input_path))
-        except Exception:
+        warning_payload = build_warning_payload(input_path, "Export")
+        if warning_payload is None or warning_payload["count"] <= 0:
             return
-
-        diagnostics = inspected.diagnostics
-        if not diagnostics:
-            return
-
-        lines = []
-        for diagnostic in diagnostics[:8]:
-            location = (
-                f" [Block {diagnostic.block_index}]" if diagnostic.block_index is not None else ""
-            )
-            lines.append(f"- {diagnostic.code}{location}: {diagnostic.message}")
-
-        remaining = len(diagnostics) - len(lines)
-        if remaining > 0:
-            lines.append(f"- ... und {remaining} weitere Warnungen")
 
         messagebox.showwarning(
-            "Blattwerk-Warnungen (Export)",
-            "Export laeuft weiter, aber es gibt Warnungen:\n\n" + "\n".join(lines),
+            warning_payload["title"],
+            "Export laeuft weiter, aber es gibt Warnungen:\n\n" + warning_payload["message"],
         )
 
     @staticmethod
@@ -60,6 +48,42 @@ class BlattwerkAppExportMixin:
             return path_obj.with_name(base_stem + path_obj.suffix)
         return path_obj
 
+    def _worksheet_build_request(
+        self,
+        *,
+        input_path: Path,
+        output_path: Path,
+        include_solutions: bool,
+        page_format: str,
+        contrast_profile: str,
+    ):
+        return WorksheetBuildRequest(
+            input_path=input_path,
+            output_path=output_path,
+            include_solutions=include_solutions,
+            page_format=page_format,
+            print_profile=contrast_profile,
+            design=self._worksheet_design_options(),
+        )
+
+    def _help_cards_build_request(
+        self,
+        *,
+        input_path: Path,
+        output_path: Path,
+        include_solutions: bool,
+        page_format: str,
+        contrast_profile: str,
+    ):
+        return HelpCardsBuildRequest(
+            input_path=input_path,
+            output_path=output_path,
+            include_solutions=include_solutions,
+            page_format=page_format,
+            print_profile=contrast_profile,
+            design=self._worksheet_design_options(),
+        )
+
     def _export_pdf(
         self,
         input_path: Path,
@@ -69,26 +93,27 @@ class BlattwerkAppExportMixin:
         contrast_profile: str,
     ):
         """Export pdf."""
-        worksheet_design = self._worksheet_design_kwargs()
         if mode == "both":
             worksheet_path = self._without_solution_suffix(output_path)
             solution_path = self._with_solution_suffix(worksheet_path)
 
-            out_worksheet = build_worksheet(
-                str(input_path),
-                str(worksheet_path),
-                include_solutions=False,
-                page_format=page_format,
-                print_profile=contrast_profile,
-                **worksheet_design,
+            out_worksheet = build_worksheet_from_request(
+                self._worksheet_build_request(
+                    input_path=input_path,
+                    output_path=worksheet_path,
+                    include_solutions=False,
+                    page_format=page_format,
+                    contrast_profile=contrast_profile,
+                )
             )
-            out_solution = build_worksheet(
-                str(input_path),
-                str(solution_path),
-                include_solutions=True,
-                page_format=page_format,
-                print_profile=contrast_profile,
-                **worksheet_design,
+            out_solution = build_worksheet_from_request(
+                self._worksheet_build_request(
+                    input_path=input_path,
+                    output_path=solution_path,
+                    include_solutions=True,
+                    page_format=page_format,
+                    contrast_profile=contrast_profile,
+                )
             )
             return [out_worksheet, out_solution]
 
@@ -97,13 +122,14 @@ class BlattwerkAppExportMixin:
         if include_solutions:
             target = self._with_solution_suffix(target)
 
-        out_file = build_worksheet(
-            str(input_path),
-            str(target),
-            include_solutions=include_solutions,
-            page_format=page_format,
-            print_profile=contrast_profile,
-            **worksheet_design,
+        out_file = build_worksheet_from_request(
+            self._worksheet_build_request(
+                input_path=input_path,
+                output_path=target,
+                include_solutions=include_solutions,
+                page_format=page_format,
+                contrast_profile=contrast_profile,
+            )
         )
         return [out_file]
 
@@ -116,26 +142,27 @@ class BlattwerkAppExportMixin:
         contrast_profile: str,
     ):
         """Export html."""
-        worksheet_design = self._worksheet_design_kwargs()
         if mode == "both":
             worksheet_path = self._without_solution_suffix(output_path)
             solution_path = self._with_solution_suffix(worksheet_path)
 
-            out_worksheet = build_worksheet(
-                str(input_path),
-                str(worksheet_path),
-                include_solutions=False,
-                page_format=page_format,
-                print_profile=contrast_profile,
-                **worksheet_design,
+            out_worksheet = build_worksheet_from_request(
+                self._worksheet_build_request(
+                    input_path=input_path,
+                    output_path=worksheet_path,
+                    include_solutions=False,
+                    page_format=page_format,
+                    contrast_profile=contrast_profile,
+                )
             )
-            out_solution = build_worksheet(
-                str(input_path),
-                str(solution_path),
-                include_solutions=True,
-                page_format=page_format,
-                print_profile=contrast_profile,
-                **worksheet_design,
+            out_solution = build_worksheet_from_request(
+                self._worksheet_build_request(
+                    input_path=input_path,
+                    output_path=solution_path,
+                    include_solutions=True,
+                    page_format=page_format,
+                    contrast_profile=contrast_profile,
+                )
             )
             return [out_worksheet, out_solution]
 
@@ -144,13 +171,14 @@ class BlattwerkAppExportMixin:
         if include_solutions:
             target = self._with_solution_suffix(target)
 
-        out_file = build_worksheet(
-            str(input_path),
-            str(target),
-            include_solutions=include_solutions,
-            page_format=page_format,
-            print_profile=contrast_profile,
-            **worksheet_design,
+        out_file = build_worksheet_from_request(
+            self._worksheet_build_request(
+                input_path=input_path,
+                output_path=target,
+                include_solutions=include_solutions,
+                page_format=page_format,
+                contrast_profile=contrast_profile,
+            )
         )
         return [out_file]
 
@@ -161,19 +189,25 @@ class BlattwerkAppExportMixin:
         include_solutions: bool,
         page_format: str,
         contrast_profile: str,
-        worksheet_design: dict,
+        worksheet_design,
     ):
         """Exports one worksheet variant as PNG files inside a ZIP archive."""
+        output_zip_path = validate_export_output_path(
+            output_zip_path,
+            allowed_suffixes={".zip"},
+        )
         with tempfile.TemporaryDirectory() as tmp_dir:
             tmp_dir_path = Path(tmp_dir)
             temp_pdf = tmp_dir_path / "source.pdf"
-            build_worksheet(
-                str(input_path),
-                str(temp_pdf),
-                include_solutions=include_solutions,
-                page_format=page_format,
-                print_profile=contrast_profile,
-                **worksheet_design,
+            build_worksheet_from_request(
+                WorksheetBuildRequest(
+                    input_path=input_path,
+                    output_path=temp_pdf,
+                    include_solutions=include_solutions,
+                    page_format=page_format,
+                    print_profile=contrast_profile,
+                    design=worksheet_design,
+                )
             )
 
             with (
@@ -199,7 +233,7 @@ class BlattwerkAppExportMixin:
         contrast_profile: str,
     ):
         """Export png zip."""
-        worksheet_design = self._worksheet_design_kwargs()
+        worksheet_design = self._worksheet_design_options()
         if mode == "both":
             worksheet_path = self._without_solution_suffix(output_path)
             solution_path = self._with_solution_suffix(worksheet_path)
@@ -245,20 +279,23 @@ class BlattwerkAppExportMixin:
         contrast_profile: str,
     ):
         """Export help cards png."""
-        worksheet_design = self._worksheet_design_kwargs()
-        output_path = output_path.with_suffix(".png")
+        output_path = validate_export_output_path(
+            output_path.with_suffix(".png"),
+            allowed_suffixes={".png"},
+        )
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             tmp_dir_path = Path(tmp_dir)
             temp_pdf = tmp_dir_path / "help_cards.pdf"
-            build_help_cards(
-                str(input_path),
-                str(temp_pdf),
-                include_solutions=False,
-                page_format=page_format,
-                print_profile=contrast_profile,
-                **worksheet_design,
+            build_help_cards_from_request(
+                self._help_cards_build_request(
+                    input_path=input_path,
+                    output_path=temp_pdf,
+                    include_solutions=False,
+                    page_format=page_format,
+                    contrast_profile=contrast_profile,
+                )
             )
 
             created_files = []

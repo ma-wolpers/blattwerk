@@ -18,6 +18,7 @@ Der Validator prueft Blattwerk-Markdown vor dem Build und liefert stabile Diagno
 - Build-Orchestrierung: `app/core/blatt_kern_io_build.py`
   - `build_worksheet(..., block_on_critical=True)`
   - `build_help_cards(..., block_on_critical=True)`
+  - Exportziel-Guardrails: `app/core/export_path_guardrails.py`
 - CLI Bridge (JSON): `python -m app.cli.blatt_diagnostics_cli --file <datei.md>`
 
 ## Stabiler Diagnosekatalog
@@ -32,6 +33,7 @@ Der Validator prueft Blattwerk-Markdown vor dem Build und liefert stabile Diagno
 - `AN004`: YAML-Root hat falschen Typ (kein Mapping).
 - `AN005`: `answer`-Block ist leer (Best-Practice-Warnung).
 - `AN006`: Marker-Konflikt/Syntaxfehler in textbasierten `answer`-Inhalten (Legacy-Marker am Zeilenanfang und -ende gleichzeitig oder ungeschlossene Inline-Tokens wie `%{...`).
+- `PT001`: Absolute lokale Bildpfade in Markdown/HTML-Bildquellen gefunden (Portabilitätswarnung).
 
 ## Blocking-Regel
 

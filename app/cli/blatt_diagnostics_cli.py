@@ -4,66 +4,11 @@ from __future__ import annotations
 
 import argparse
 import json
-import re
 import sys
 from pathlib import Path
 
-from app.core.blatt_validator import inspect_markdown_document
-
-
-def _build_block_index_line_map(text: str) -> dict[int, int]:
-    """Approximate 1-based start line for each parsed block index."""
-    index_to_line: dict[int, int] = {}
-    lines = text.splitlines(keepends=True)
-
-    block_start_pattern = re.compile(r"^:::(\w+)(.*)$")
-    self_closing_pattern = re.compile(r"^:::(\w+)(.*?):::$")
-
-    block_index = 0
-    block_open_line = None
-    raw_buffer_start_line = None
-    in_block = False
-
-    for line_no, raw_line in enumerate(lines, start=1):
-        stripped = raw_line.strip()
-        if not in_block:
-            if self_closing_pattern.match(stripped):
-                if raw_buffer_start_line is not None:
-                    index_to_line[block_index] = raw_buffer_start_line
-                    block_index += 1
-                    raw_buffer_start_line = None
-                index_to_line[block_index] = line_no
-                block_index += 1
-                continue
-
-            start_match = block_start_pattern.match(stripped)
-            if start_match:
-                if raw_buffer_start_line is not None:
-                    index_to_line[block_index] = raw_buffer_start_line
-                    block_index += 1
-                    raw_buffer_start_line = None
-                in_block = True
-                block_open_line = line_no
-                continue
-
-            if raw_buffer_start_line is None:
-                raw_buffer_start_line = line_no
-            continue
-
-        if stripped == ":::":
-            index_to_line[block_index] = block_open_line or line_no
-            block_index += 1
-            in_block = False
-            block_open_line = None
-
-    if in_block:
-        index_to_line[block_index] = block_open_line or max(1, len(lines))
-        block_index += 1
-
-    if raw_buffer_start_line is not None:
-        index_to_line[block_index] = raw_buffer_start_line
-
-    return index_to_line
+from app.core.blatt_validator import has_blocking_diagnostics, inspect_markdown_document
+from app.core.blatt_kern_shared import build_block_index_line_map
 
 
 def _line_range(text: str, line_1_based: int) -> tuple[int, int]:
@@ -76,10 +21,18 @@ def _line_range(text: str, line_1_based: int) -> tuple[int, int]:
     return line_index, len(line_text)
 
 
-def _diagnostics_json(file_path: Path) -> dict:
+def _is_blocking_mode(diagnostics, mode: str) -> bool:
+    if mode == "strict":
+        return bool(diagnostics)
+    if mode == "permissive":
+        return any(diagnostic.severity == "error" for diagnostic in diagnostics)
+    return has_blocking_diagnostics(diagnostics)
+
+
+def _diagnostics_json(file_path: Path, mode: str) -> dict:
     text = file_path.read_text(encoding="utf-8")
     inspected = inspect_markdown_document(file_path)
-    index_line_map = _build_block_index_line_map(text)
+    index_line_map = build_block_index_line_map(text)
 
     diagnostics = []
     for diagnostic in inspected.diagnostics:
@@ -106,6 +59,8 @@ def _diagnostics_json(file_path: Path) -> dict:
     return {
         "source": "blattwerk-validator",
         "file": str(file_path),
+        "mode": mode,
+        "blocking": _is_blocking_mode(inspected.diagnostics, mode),
         "diagnostics": diagnostics,
     }
 
@@ -120,6 +75,20 @@ def main() -> int:
         "--pretty",
         action="store_true",
         help="Pretty-print JSON for human inspection",
+    )
+    parser.add_argument(
+        "--mode",
+        choices=("standard", "strict", "permissive"),
+        default="standard",
+        help=(
+            "Validation mode: standard blocks critical diagnostics, strict blocks any "
+            "diagnostic, permissive blocks only severity=error"
+        ),
+    )
+    parser.add_argument(
+        "--fail-on-blocking",
+        action="store_true",
+        help="Return exit code 3 when the selected mode marks diagnostics as blocking",
     )
     args = parser.parse_args()
 
@@ -138,7 +107,7 @@ def main() -> int:
         return 1
 
     try:
-        payload = _diagnostics_json(file_path)
+        payload = _diagnostics_json(file_path, args.mode)
     except Exception as exc:
         print(
             json.dumps(
@@ -156,6 +125,9 @@ def main() -> int:
         print(json.dumps(payload, ensure_ascii=False, indent=2))
     else:
         print(json.dumps(payload, ensure_ascii=False))
+
+    if args.fail_on_blocking and payload.get("blocking"):
+        return 3
 
     return 0
 
