@@ -157,6 +157,7 @@ class BlattwerkAppStyleMixin:
             """Wendet das aktive Theme auf Fenster, ttk-Styles und Canvas an."""
 
             theme_key = self.theme_var.get()
+            theme = get_theme(theme_key)
             apply_window_theme(self.root, theme_key)
             configure_ttk_theme(self.root, theme_key)
 
@@ -172,6 +173,15 @@ class BlattwerkAppStyleMixin:
             if self.help_preview_window is not None and self.help_preview_window.winfo_exists():
                 apply_window_theme(self.help_preview_window, theme_key)
                 configure_ttk_theme(self.help_preview_window, theme_key)
+
+            if getattr(self, "editor_widget", None) is not None:
+                self.editor_widget.configure(
+                    background=theme["bg_surface"],
+                    foreground=theme["fg_primary"],
+                    insertbackground=theme["fg_primary"],
+                    selectbackground=theme["accent_soft"],
+                    selectforeground=theme["fg_primary"],
+                )
 
             self._refresh_color_profile_swatches()
 

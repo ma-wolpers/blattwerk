@@ -149,18 +149,16 @@ class BlattwerkAppEditorMixin:
 
         if mode == EDITOR_VIEW_EDITOR_ONLY:
             self.editor_preview_paned.add(self.editor_container)
-            if self.preview_h_scroll is not None:
-                self.preview_h_scroll.pack_forget()
         elif mode == EDITOR_VIEW_BOTH:
             self.editor_preview_paned.add(self.editor_container)
             self.editor_preview_paned.add(self.preview_container)
             self._schedule_equal_split()
-            if self.preview_h_scroll is not None:
-                self.preview_h_scroll.pack(fill="x", padx=12, pady=(0, 8), after=self.editor_preview_paned)
+            if hasattr(self, "_reflow_responsive_sections"):
+                self.root.after_idle(self._reflow_responsive_sections)
         else:
             self.editor_preview_paned.add(self.preview_container)
-            if self.preview_h_scroll is not None:
-                self.preview_h_scroll.pack(fill="x", padx=12, pady=(0, 8), after=self.editor_preview_paned)
+            if hasattr(self, "_reflow_responsive_sections"):
+                self.root.after_idle(self._reflow_responsive_sections)
 
     def _schedule_equal_split(self):
         """Starts a guarded retry cycle to place the splitter in the middle."""
