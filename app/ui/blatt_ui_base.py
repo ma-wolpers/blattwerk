@@ -6,7 +6,11 @@ import tkinter as tk
 
 from .blatt_shortcuts import build_preview_shortcuts
 from .shortcut_manager import ShortcutManager
-from .ui_constants import VIEW_FIT_WIDTH, VIEW_LAYOUT_SINGLE
+from .ui_constants import (
+    EDITOR_VIEW_PREVIEW_ONLY,
+    VIEW_FIT_WIDTH,
+    VIEW_LAYOUT_SINGLE,
+)
 from .ui_theme import DEFAULT_THEME
 from ..storage.history_paths_adapter import HISTORY_ROOT_NAME, find_history_root
 from ..styles.blatt_styles import DEFAULT_FONT_PROFILE, DEFAULT_FONT_SIZE_PROFILE
@@ -30,6 +34,7 @@ class BlattwerkAppBase:
         self.preview_contrast_var = tk.StringVar(value="standard")
         self.preview_fit_mode_var = tk.StringVar(value=VIEW_FIT_WIDTH)
         self.preview_layout_mode_var = tk.StringVar(value=VIEW_LAYOUT_SINGLE)
+        self.editor_view_mode_var = tk.StringVar(value=EDITOR_VIEW_PREVIEW_ONLY)
         self.design_color_profile_var = tk.StringVar(value=DEFAULT_COLOR_PROFILE)
         self.design_font_profile_var = tk.StringVar(value=DEFAULT_FONT_PROFILE)
         self.design_font_size_profile_var = tk.StringVar(value=DEFAULT_FONT_SIZE_PROFILE)
@@ -46,6 +51,16 @@ class BlattwerkAppBase:
         self._page_layout_boxes = []
         self._last_preview_input_path = None
         self.zoom_percent = 100
+        self.editor_widget = None
+        self.editor_vertical_scrollbar = None
+        self.editor_container = None
+        self.preview_container = None
+        self.editor_preview_paned = None
+        self.preview_h_scroll = None
+        self._editor_loading_content = False
+        self._editor_save_after_id = None
+        self._editor_save_delay_ms = 800
+        self._editor_last_loaded_path = None
         self.recent_files = []
         self.recent_menu = None
         self.ui_settings = {}

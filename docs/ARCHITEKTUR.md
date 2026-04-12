@@ -38,6 +38,12 @@ Zusätzliche Kern-Usecases:
 | `app/styles` | Profilauflösung, Designnormalisierung, CSS | Dokumentdiagnostik, Persistenzentscheidungen | `blatt_styles.py`, `worksheet_design.py`, `ui_profile_adapter.py` |
 | `app/cli` | Adapter auf Kern-API | Regelduplikation | `blatt_diagnostics_cli.py` |
 
+UI-Zuschnitt im Hauptfenster:
+- Die Hauptansicht verwendet ein horizontales Paned-Layout mit zwei Bereichen: links Schreibbereich, rechts Vorschau.
+- Sichtbarkeit ist ein expliziter View-State (`preview_only`, `both`, `editor_only`) in der UI-Schicht.
+- Der Schreibbereich speichert Markdown-Aenderungen debounced direkt auf Dateiebene (UTF-8), ohne automatische Vorschau-Aktualisierung.
+- Die Vorschau bleibt weiterhin explizit manuell aktualisiert und bezieht ihren Inhalt wie bisher ausschließlich aus dem aktuellen Dateisystemstand.
+
 ## Ablauf-Invarianten
 
 1. Parse genau einmal.

@@ -6,6 +6,9 @@ import tkinter as tk
 from tkinter import ttk
 
 from .ui_constants import (
+    EDITOR_VIEW_BOTH,
+    EDITOR_VIEW_EDITOR_ONLY,
+    EDITOR_VIEW_PREVIEW_ONLY,
     PREVIEW_CANVAS_PADDING_PX,
     PREVIEW_MIN_FRAME_PX,
     PREVIEW_PAGE_GAP_PX,
@@ -82,6 +85,31 @@ class BlattwerkAppBuildMixin:
             variable=self.preview_page_format_var,
             command=self.refresh_preview,
         ).pack(side="left", padx=(10, 0))
+
+        ttk.Separator(options_row, orient="vertical").pack(side="left", fill="y", padx=12)
+
+        ttk.Label(options_row, text="Bereich:").pack(side="left")
+        ttk.Radiobutton(
+            options_row,
+            text="Vorschau",
+            value=EDITOR_VIEW_PREVIEW_ONLY,
+            variable=self.editor_view_mode_var,
+            command=lambda: self._set_editor_view_mode(EDITOR_VIEW_PREVIEW_ONLY),
+        ).pack(side="left", padx=(8, 0))
+        ttk.Radiobutton(
+            options_row,
+            text="Beides",
+            value=EDITOR_VIEW_BOTH,
+            variable=self.editor_view_mode_var,
+            command=lambda: self._set_editor_view_mode(EDITOR_VIEW_BOTH),
+        ).pack(side="left", padx=(8, 0))
+        ttk.Radiobutton(
+            options_row,
+            text="Schreibbereich",
+            value=EDITOR_VIEW_EDITOR_ONLY,
+            variable=self.editor_view_mode_var,
+            command=lambda: self._set_editor_view_mode(EDITOR_VIEW_EDITOR_ONLY),
+        ).pack(side="left", padx=(8, 0))
 
         design_row = ttk.Frame(outer)
         design_row.pack(fill="x", pady=(0, 8))
@@ -179,21 +207,25 @@ class BlattwerkAppBuildMixin:
         self.status_label = ttk.Label(info_row, textvariable=self.status_var, style="Muted.TLabel")
         self.status_label.pack(side="right")
 
-        preview_frame = ttk.Frame(outer, relief="solid", borderwidth=1)
-        preview_frame.pack(fill="both", expand=True)
+        self.editor_preview_paned = ttk.Panedwindow(outer, orient="horizontal")
+        self.editor_preview_paned.pack(fill="both", expand=True)
+
+        self.editor_container = ttk.Frame(self.editor_preview_paned, relief="solid", borderwidth=1)
+        self.preview_container = ttk.Frame(self.editor_preview_paned, relief="solid", borderwidth=1)
+
+        self._build_editor_panel(self.editor_container)
 
         theme = get_theme(self.theme_var.get())
-        self.preview_canvas = tk.Canvas(preview_frame, background=theme["bg_main"], highlightthickness=0)
+        self.preview_canvas = tk.Canvas(self.preview_container, background=theme["bg_main"], highlightthickness=0)
         self.preview_canvas.pack(side="left", fill="both", expand=True)
 
-        v_scroll = ttk.Scrollbar(preview_frame, orient="vertical", command=self.preview_canvas.yview)
+        v_scroll = ttk.Scrollbar(self.preview_container, orient="vertical", command=self.preview_canvas.yview)
         v_scroll.pack(side="right", fill="y")
-        h_scroll = ttk.Scrollbar(self.root, orient="horizontal", command=self.preview_canvas.xview)
-        h_scroll.pack(fill="x", padx=12, pady=(0, 8))
+        self.preview_h_scroll = ttk.Scrollbar(outer, orient="horizontal", command=self.preview_canvas.xview)
 
-        self.preview_canvas.configure(yscrollcommand=v_scroll.set, xscrollcommand=h_scroll.set)
+        self.preview_canvas.configure(yscrollcommand=v_scroll.set, xscrollcommand=self.preview_h_scroll.set)
         v_scroll.configure(command=self._on_vertical_scrollbar)
-        h_scroll.configure(command=self._on_horizontal_scrollbar)
+        self.preview_h_scroll.configure(command=self._on_horizontal_scrollbar)
 
         self.preview_text_item = self.preview_canvas.create_text(
             40,
@@ -218,6 +250,7 @@ class BlattwerkAppBuildMixin:
         self.preview_canvas.bind("<Shift-Button-5>", self._on_preview_mousewheel)
         self.preview_canvas.bind("<Control-Button-4>", self._on_preview_mousewheel)
         self.preview_canvas.bind("<Control-Button-5>", self._on_preview_mousewheel)
+        self._apply_editor_view_mode()
         self._update_nav_buttons()
 
     def _on_canvas_resize(self, _event):

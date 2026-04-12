@@ -29,6 +29,9 @@ from ..styles.worksheet_design import (
 )
 from .preview_geometry import clamp, get_fit_scales
 from .ui_constants import (
+    EDITOR_VIEW_BOTH,
+    EDITOR_VIEW_EDITOR_ONLY,
+    EDITOR_VIEW_PREVIEW_ONLY,
     PREVIEW_ZOOM_MAX_PERCENT,
     PREVIEW_ZOOM_MIN_PERCENT,
     VIEW_FIT_PAGE,
@@ -344,6 +347,25 @@ class BlattwerkAppStyleMixin:
                 value=VIEW_LAYOUT_STACK,
                 variable=self.preview_layout_mode_var,
                 command=lambda: self.set_preview_layout_mode(VIEW_LAYOUT_STACK),
+            )
+            view_menu.add_separator()
+            view_menu.add_radiobutton(
+                label="Nur Vorschau",
+                value=EDITOR_VIEW_PREVIEW_ONLY,
+                variable=self.editor_view_mode_var,
+                command=lambda: self._set_editor_view_mode(EDITOR_VIEW_PREVIEW_ONLY),
+            )
+            view_menu.add_radiobutton(
+                label="Vorschau und Schreibbereich",
+                value=EDITOR_VIEW_BOTH,
+                variable=self.editor_view_mode_var,
+                command=lambda: self._set_editor_view_mode(EDITOR_VIEW_BOTH),
+            )
+            view_menu.add_radiobutton(
+                label="Nur Schreibbereich",
+                value=EDITOR_VIEW_EDITOR_ONLY,
+                variable=self.editor_view_mode_var,
+                command=lambda: self._set_editor_view_mode(EDITOR_VIEW_EDITOR_ONLY),
             )
             view_menu.add_separator()
 

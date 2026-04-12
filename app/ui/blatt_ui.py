@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from .blatt_ui_base import BlattwerkAppBase
 from .blatt_ui_build import BlattwerkAppBuildMixin
+from .blatt_ui_editor import BlattwerkAppEditorMixin
 from .blatt_ui_export import BlattwerkAppExportMixin
 from .blatt_ui_help_preview import BlattwerkAppHelpPreviewMixin
 from .blatt_ui_persistence import BlattwerkAppPersistenceMixin
@@ -15,6 +16,7 @@ from .window_identity import apply_window_icon, configure_windows_process_identi
 
 class BlattwerkApp(
     BlattwerkAppExportMixin,
+    BlattwerkAppEditorMixin,
     BlattwerkAppPreviewMixin,
     BlattwerkAppHelpPreviewMixin,
     BlattwerkAppBuildMixin,

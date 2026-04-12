@@ -26,6 +26,9 @@ So vermeiden wir Klebercode und Verwirrung.
   - Hier ist die Oberfläche.
   - Sie nimmt Eingaben an und zeigt Ergebnisse.
   - Sie soll keine Fachregeln erfinden.
+  - Das Hauptfenster kann Vorschau und Schreibbereich einzeln oder zusammen anzeigen.
+  - Der Schreibbereich speichert Aenderungen debounced direkt in die Markdown-Datei.
+  - Die Vorschau wird weiterhin bewusst manuell aktualisiert.
 
 - `app/storage`
   - Hier werden Daten gespeichert und geladen.

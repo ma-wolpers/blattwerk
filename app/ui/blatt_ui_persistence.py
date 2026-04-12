@@ -7,6 +7,11 @@ import tkinter as tk
 from tkinter import messagebox, ttk
 
 from .ui_theme import normalize_theme_key
+from .ui_constants import (
+    EDITOR_VIEW_BOTH,
+    EDITOR_VIEW_EDITOR_ONLY,
+    EDITOR_VIEW_PREVIEW_ONLY,
+)
 from ..storage.local_config_store import (
     add_recent_file,
     DEFAULT_HISTORY_ROOT_NAME,
@@ -160,6 +165,20 @@ class BlattwerkAppPersistenceMixin:
             self.design_color_profile_var.set(resolved_profiles["worksheet_color_profile"])
             self.design_font_profile_var.set(resolved_profiles["worksheet_font_profile"])
             self.design_font_size_profile_var.set(resolved_profiles["worksheet_font_size_profile"])
+            self.editor_view_mode_var.set(self._normalize_editor_view_mode(self.ui_settings.get("editor_view_mode")))
+
+    @staticmethod
+    def _normalize_editor_view_mode(value):
+            """Normalisiert gespeicherten Bereichsmodus auf erlaubte Werte."""
+
+            valid_modes = {
+                EDITOR_VIEW_PREVIEW_ONLY,
+                EDITOR_VIEW_BOTH,
+                EDITOR_VIEW_EDITOR_ONLY,
+            }
+            if value in valid_modes:
+                return value
+            return EDITOR_VIEW_PREVIEW_ONLY
 
     def _save_ui_settings(self):
             """Speichert aktuelle UI-Einstellungen."""
@@ -173,6 +192,7 @@ class BlattwerkAppPersistenceMixin:
                     worksheet_font_size_profile=self.design_font_size_profile_var.get(),
                 )
             )
+            self.ui_settings["editor_view_mode"] = self._normalize_editor_view_mode(self.editor_view_mode_var.get())
             save_ui_settings(self.ui_settings)
 
     def _save_recent_files(self):
@@ -220,6 +240,7 @@ class BlattwerkAppPersistenceMixin:
             """Setzt Eingabedatei, lädt Vorschau und optional Verlaufseintrag."""
 
             self.input_var.set(str(input_path))
+            self._load_editor_content(input_path)
             self._warn_if_bw_mode_has_color_mentions()
             self.refresh_preview()
             if add_recent:
