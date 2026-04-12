@@ -86,7 +86,6 @@ class BlattwerkAppEditorMixin:
             self.root.after_cancel(self._editor_save_after_id)
 
         self._editor_save_after_id = self.root.after(self._editor_save_delay_ms, self._save_editor_content)
-        self.status_var.set("Speichert…")
 
     def _save_editor_content(self):
         """Writes the current editor content back to the selected markdown file."""
@@ -112,10 +111,8 @@ class BlattwerkAppEditorMixin:
     def _set_editor_view_mode(self, mode: str):
         """Updates the selected editor/preview view mode and applies layout."""
 
-        if mode == self.editor_view_mode_var.get():
-            return
-
-        self.editor_view_mode_var.set(mode)
+        if mode != self.editor_view_mode_var.get():
+            self.editor_view_mode_var.set(mode)
         self._apply_editor_view_mode()
         self._load_editor_for_current_input_if_needed()
         self._save_ui_settings()
@@ -151,19 +148,25 @@ class BlattwerkAppEditorMixin:
                 pass
 
         if mode == EDITOR_VIEW_EDITOR_ONLY:
-            self.editor_preview_paned.add(self.editor_container, weight=1)
+            self.editor_preview_paned.add(self.editor_container)
             if self.preview_h_scroll is not None:
                 self.preview_h_scroll.pack_forget()
         elif mode == EDITOR_VIEW_BOTH:
-            self.editor_preview_paned.add(self.editor_container, weight=1)
-            self.editor_preview_paned.add(self.preview_container, weight=1)
-            self.root.after_idle(self._set_equal_split)
+            self.editor_preview_paned.add(self.editor_container)
+            self.editor_preview_paned.add(self.preview_container)
+            self._schedule_equal_split()
             if self.preview_h_scroll is not None:
                 self.preview_h_scroll.pack(fill="x", padx=12, pady=(0, 8), after=self.editor_preview_paned)
         else:
-            self.editor_preview_paned.add(self.preview_container, weight=1)
+            self.editor_preview_paned.add(self.preview_container)
             if self.preview_h_scroll is not None:
                 self.preview_h_scroll.pack(fill="x", padx=12, pady=(0, 8), after=self.editor_preview_paned)
+
+    def _schedule_equal_split(self):
+        """Starts a guarded retry cycle to place the splitter in the middle."""
+
+        self._equal_split_attempts = 0
+        self.root.after_idle(self._set_equal_split)
 
     def _set_equal_split(self):
         """Sets a 50/50 split when both panes are visible."""
@@ -176,7 +179,20 @@ class BlattwerkAppEditorMixin:
             return
 
         total_width = self.editor_preview_paned.winfo_width()
-        if total_width <= 2:
+        if total_width <= 80:
+            if self._equal_split_attempts < 10:
+                self._equal_split_attempts += 1
+                self.root.after(30, self._set_equal_split)
             return
 
-        self.editor_preview_paned.sashpos(0, max(1, total_width // 2))
+        try:
+            split_x = max(1, total_width // 2)
+            if hasattr(self.editor_preview_paned, "sashpos"):
+                self.editor_preview_paned.sashpos(0, split_x)
+            else:
+                self.editor_preview_paned.sash_place(0, split_x, 1)
+            self._equal_split_attempts = 0
+        except tk.TclError:
+            if self._equal_split_attempts < 10:
+                self._equal_split_attempts += 1
+                self.root.after(30, self._set_equal_split)

@@ -61,6 +61,7 @@ class BlattwerkAppBase:
         self._editor_save_after_id = None
         self._editor_save_delay_ms = 800
         self._editor_last_loaded_path = None
+        self._equal_split_attempts = 0
         self.recent_files = []
         self.recent_menu = None
         self.ui_settings = {}

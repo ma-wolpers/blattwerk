@@ -207,7 +207,14 @@ class BlattwerkAppBuildMixin:
         self.status_label = ttk.Label(info_row, textvariable=self.status_var, style="Muted.TLabel")
         self.status_label.pack(side="right")
 
-        self.editor_preview_paned = ttk.Panedwindow(outer, orient="horizontal")
+        self.editor_preview_paned = tk.PanedWindow(
+            outer,
+            orient="horizontal",
+            sashwidth=6,
+            sashrelief="raised",
+            opaqueresize=True,
+            bd=0,
+        )
         self.editor_preview_paned.pack(fill="both", expand=True)
 
         self.editor_container = ttk.Frame(self.editor_preview_paned, relief="solid", borderwidth=1)
