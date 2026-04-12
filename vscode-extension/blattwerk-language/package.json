@@ -1,0 +1,84 @@
+{
+  "name": "blattwerk-language",
+  "displayName": "Blattwerk Language Tools",
+  "description": "Syntax highlighting, snippets, folding and diagnostics for Blattwerk markdown.",
+  "version": "0.1.0",
+  "publisher": "blattwerk",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ma-wolpers/tools4school.git"
+  },
+  "engines": {
+    "vscode": "^1.95.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Linters"
+  ],
+  "activationEvents": [
+    "onLanguage:markdown"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "blattwerk.validateDocument",
+        "title": "Blattwerk: Validate Current Document"
+      }
+    ],
+    "configuration": {
+      "title": "Blattwerk",
+      "properties": {
+        "blattwerk.diagnostics.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable Blattwerk diagnostics for markdown documents."
+        },
+        "blattwerk.diagnostics.pythonCommand": {
+          "type": "string",
+          "default": "python",
+          "description": "Python executable used to run the Blattwerk diagnostics bridge."
+        },
+        "blattwerk.diagnostics.cliModule": {
+          "type": "string",
+          "default": "app.cli.blatt_diagnostics_cli",
+          "description": "Python module path used with -m for diagnostics."
+        },
+        "blattwerk.diagnostics.extraArgs": {
+          "type": "array",
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "description": "Additional arguments passed to the diagnostics CLI."
+        }
+      }
+    },
+    "grammars": [
+      {
+        "path": "./syntaxes/blattwerk-injection.tmLanguage.json",
+        "scopeName": "blattwerk.markdown.injection",
+        "injectTo": [
+          "text.html.markdown"
+        ]
+      }
+    ],
+    "snippets": [
+      {
+        "language": "markdown",
+        "path": "./snippets/blattwerk.code-snippets"
+      }
+    ]
+  },
+  "scripts": {
+    "build": "tsc -p .",
+    "watch": "tsc -w -p .",
+    "vscode:prepublish": "npm run build"
+  },
+  "devDependencies": {
+    "@types/node": "^20.16.11",
+    "@types/vscode": "^1.95.0",
+    "@vscode/vsce": "^3.7.1",
+    "typescript": "^5.7.2"
+  }
+}

@@ -1,0 +1,407 @@
+"""Layout estimation, columns rendering, and worksheet HTML document rendering."""
+
+from __future__ import annotations
+
+import re
+from html import escape
+
+from .answer_special import estimate_matching_weight, estimate_wordsearch_weight
+from ..styles.blatt_styles import build_stylesheet
+from .blatt_kern_shared import (
+    _safe_int,
+    annotate_standalone_subtasks,
+    assign_task_numbers,
+    format_meta_line,
+    get_copyright_text,
+    get_current_school_year_label,
+    is_hole_punch_layout_enabled,
+    normalize_document_mode,
+    should_render_block,
+    split_sections,
+)
+from .blatt_kern_task_render import render_block
+
+
+def parse_columns_template(options, fallback_count):
+    """Parst optionale Spaltenbreitenangaben in ein CSS-Grid-Template."""
+    template_raw = options.get("widths") or options.get("ratio")
+    if not template_raw:
+        return None, fallback_count
+
+    normalized = template_raw.replace(":", " ").replace(",", " ")
+    raw_parts = [part for part in normalized.split() if part.strip()]
+    if len(raw_parts) < 2:
+        return None, fallback_count
+
+    css_parts = []
+    for part in raw_parts:
+        value = part.strip()
+        if re.fullmatch(r"\d+(\.\d+)?", value):
+            css_parts.append(f"{value}fr")
+            continue
+
+        if re.fullmatch(r"\d+(\.\d+)?(fr|%|px|cm|mm|em|rem)", value):
+            css_parts.append(value)
+
+    if len(css_parts) < 2:
+        return None, fallback_count
+
+    return " ".join(css_parts), len(css_parts)
+
+
+def parse_height_cm(height_value, default_cm=4.0):
+    """Extrahiert Zentimeterwerte aus Strings wie `4cm`."""
+    if not height_value:
+        return default_cm
+
+    match = re.fullmatch(
+        r"\s*(\d+(?:\.\d+)?)\s*cm\s*", str(height_value), flags=re.IGNORECASE
+    )
+    if match:
+        return float(match.group(1))
+    return default_cm
+
+
+def estimate_block_weight(block_type, options, content, include_solutions):
+    """Schätzt den Platzbedarf eines Blocks für automatische Spaltenbreiten."""
+    if not should_render_block(block_type, options, include_solutions):
+        return 0.0
+
+    cleaned = re.sub(r"[`*_#>\-\|\[\]\(\)]", " ", content or "")
+    text_length = max(0, len(cleaned.strip()))
+    if block_type == "raw" and text_length == 0:
+        return 0.0
+
+    lines = [line.strip() for line in cleaned.splitlines() if line.strip()]
+    longest_line = max((len(line) for line in lines), default=0)
+    text_complexity = (text_length / 120.0) + (longest_line / 55.0)
+
+    if block_type in {"material", "task", "info", "raw", "solution"}:
+        type_factor = {
+            "material": 1.45,
+            "info": 1.35,
+            "raw": 1.10,
+            "solution": 1.05,
+            "task": 0.45,
+        }.get(block_type, 1.0)
+        base = 0.55
+        if block_type == "task":
+            base = 0.25
+        return base + (text_complexity * type_factor)
+
+    if block_type == "answer":
+        atype = options.get("type", "space")
+        if atype == "mc":
+            base = 1.0 + (text_length / 140.0)
+            return min(4.2, max(1.0, base))
+
+        if atype == "cloze":
+            gap_count = len(re.findall(r"\{\{\s*[^{}]+\s*\}\}", content or ""))
+            base = 1.0 + (gap_count * 0.45) + (text_length / 240.0)
+            return min(4.8, max(1.0, base))
+
+        if atype == "matching":
+            return estimate_matching_weight(text_length, include_solutions)
+
+        if atype == "wordsearch":
+            return estimate_wordsearch_weight(options, content)
+
+        if include_solutions:
+            if text_length == 0:
+                return 0.0
+
+            if atype == "lines":
+                rows = max(1, _safe_int(options.get("rows", 3), 3))
+                return max(1.0, rows * 0.7)
+            if atype == "grid":
+                rows = max(1, _safe_int(options.get("rows", 5), 5))
+                return max(1.4, rows * 0.85 + (text_length / 260.0))
+            if atype == "dots":
+                return max(
+                    1.2,
+                    parse_height_cm(options.get("height", "4cm")) * 0.9
+                    + (text_length / 240.0),
+                )
+            if atype == "space":
+                return max(
+                    1.2,
+                    parse_height_cm(options.get("height", "3cm")) * 0.85
+                    + (text_length / 240.0),
+                )
+            if atype in {"numberline", "number_line", "zahlengerade", "zahlenstrahl"}:
+                return max(
+                    1.0,
+                    parse_height_cm(options.get("height", "2.7cm")) * 0.9
+                    + (text_length / 260.0),
+                )
+
+            return max(1.0, text_length / 180.0)
+
+        if atype == "lines":
+            return max(0.8, _safe_int(options.get("rows", 3), 3) * 0.7)
+        if atype == "grid":
+            rows = _safe_int(options.get("rows", 5), 5)
+            cols = _safe_int(options.get("cols", 20), 20) if options.get("cols") else 20
+            return max(1.2, (rows * cols) / 55.0)
+        if atype == "dots":
+            return max(1.0, parse_height_cm(options.get("height", "4cm")) * 1.1)
+        if atype == "space":
+            return max(1.0, parse_height_cm(options.get("height", "3cm")) * 1.0)
+        if atype in {"numberline", "number_line", "zahlengerade", "zahlenstrahl"}:
+            return max(0.9, parse_height_cm(options.get("height", "2.7cm")) * 0.85)
+
+    return max(0.6, text_length / 180.0)
+
+
+def auto_columns_template(columns_blocks, include_solutions):
+    """Erzeugt ein Verhältnis-Template basierend auf geschätzten Spaltengewichten."""
+    weights = []
+    for column_blocks in columns_blocks:
+        column_weight = 0.0
+        for block_type, options, content in column_blocks:
+            column_weight += estimate_block_weight(
+                block_type, options, content, include_solutions
+            )
+        weights.append(max(0.8, min(column_weight, 7.0)))
+
+    if not weights:
+        return None
+
+    return " ".join(f"{weight:.2f}fr" for weight in weights)
+
+
+def render_columns_container(
+    columns_blocks,
+    options,
+    include_solutions,
+    document_mode="ws",
+):
+    """Rendert einen `columns`-Container inklusive automatischer Breitenlogik."""
+    if not columns_blocks:
+        return ""
+
+    columns_count = len(columns_blocks)
+    explicit_template, explicit_count = parse_columns_template(options, columns_count)
+
+    if explicit_template:
+        columns_count = max(2, min(explicit_count, 6))
+        columns_blocks = columns_blocks[:columns_count]
+        template = explicit_template
+    else:
+        template = auto_columns_template(columns_blocks, include_solutions)
+
+    if not template:
+        template = " ".join("1fr" for _ in columns_blocks)
+
+    column_html = []
+    for column_blocks in columns_blocks:
+        rendered_parts = []
+        for block_type, block_options, content in column_blocks:
+            rendered = render_block(
+                block_type,
+                block_options,
+                content,
+                include_solutions=include_solutions,
+                document_mode=document_mode,
+            )
+            if rendered:
+                rendered_parts.append(rendered)
+        column_html.append(f"<div class='column'>{''.join(rendered_parts)}</div>")
+
+    return f"<div class='columns columns-custom' style='--col-template:{template}'>{''.join(column_html)}</div>"
+
+
+def render_body_with_columns(blocks, include_solutions, document_mode="ws"):
+    """Rendert den Body und behandelt `columns`/`nextcol`/`endcolumns` Zustände."""
+    html_parts = []
+    in_columns = False
+    columns_options = {}
+    columns_blocks = []
+    current_column_index = 0
+
+    for block_type, options, content in blocks:
+        if block_type == "columns" and not in_columns:
+            # Start eines Spaltenkontexts; nachfolgende Blöcke gehen in Spaltenpuffer.
+            in_columns = True
+            columns_options = dict(options)
+
+            try:
+                columns_count = int(columns_options.get("cols", 2))
+            except ValueError:
+                columns_count = 2
+
+            columns_count = max(2, min(columns_count, 6))
+            columns_blocks = [[] for _ in range(columns_count)]
+            current_column_index = 0
+            continue
+
+        if block_type == "nextcol" and in_columns:
+            # Expliziter Wechsel zur nächsten Spalte.
+            if current_column_index + 1 >= len(columns_blocks):
+                if len(columns_blocks) < 6:
+                    columns_blocks.append([])
+                    current_column_index += 1
+            else:
+                current_column_index += 1
+            continue
+
+        if block_type == "endcolumns" and in_columns:
+            # Spaltenkontext abschließen, normalisieren und als einen Container rendern.
+            columns_blocks = [col for col in columns_blocks if col is not None]
+            columns_blocks = [
+                col for col in columns_blocks if col or len(columns_blocks) <= 2
+            ]
+            if len(columns_blocks) < 2:
+                columns_blocks.append([])
+            html_parts.append(
+                render_columns_container(
+                    columns_blocks,
+                    columns_options,
+                    include_solutions,
+                    document_mode=document_mode,
+                )
+            )
+            in_columns = False
+            columns_options = {}
+            columns_blocks = []
+            current_column_index = 0
+            continue
+
+        if in_columns:
+            if not columns_blocks:
+                columns_blocks = [[]]
+            columns_blocks[current_column_index].append((block_type, options, content))
+            continue
+
+        rendered = render_block(
+            block_type,
+            options,
+            content,
+            include_solutions=include_solutions,
+            document_mode=document_mode,
+        )
+        if rendered:
+            html_parts.append(rendered)
+
+    if in_columns:
+        html_parts.append(
+            render_columns_container(
+                columns_blocks,
+                columns_options,
+                include_solutions,
+                document_mode=document_mode,
+            )
+        )
+
+    return "".join(html_parts)
+
+
+def render_html(
+    meta,
+    blocks,
+    include_solutions=False,
+    page_format="a4_portrait",
+    print_profile="standard",
+    color_profile="indigo",
+    font_profile="segoe",
+    font_size_profile="normal",
+):
+    """Baut das vollständige HTML-Dokument inklusive Styles und Header/Footer."""
+    document_mode = normalize_document_mode((meta or {}).get("mode"), default="ws")
+    numbered_blocks = assign_task_numbers(blocks)
+    enriched_blocks = annotate_standalone_subtasks(numbered_blocks)
+    body = render_body_with_columns(
+        enriched_blocks,
+        include_solutions=include_solutions,
+        document_mode=document_mode,
+    )
+    sectioned_body = split_sections(body)
+    meta_line = format_meta_line(meta)
+    school_year_label = escape(get_current_school_year_label())
+    right_header_label = "Lösungsversion" if include_solutions else school_year_label
+    right_header_html = right_header_label
+    if include_solutions:
+        right_header_html = (
+            "<span class='solution-version-inline'>Lösungsversion</span>"
+        )
+
+    student_header = ""
+    if meta.get("show_student_header", False):
+        student_header = """
+        <div class="student-header">
+            <div class="student-field">
+                <span class="student-label">Name</span>
+                <span class="student-line"></span>
+            </div>
+            <div class="student-field">
+                <span class="student-label">Lerngruppe</span>
+                <span class="student-line"></span>
+            </div>
+            <div class="student-field">
+                <span class="student-label">Datum</span>
+                <span class="student-line"></span>
+            </div>
+        </div>
+        """
+
+    document_header = ""
+    if meta.get("show_document_header", True):
+        document_header = f"""
+<div class="document-header">
+<div class="header-meta">
+{meta_line}
+</div>
+<div class="header-right">
+<div class="header-school-year">{right_header_html}</div>
+</div>
+</div>
+"""
+
+    stylesheet = build_stylesheet(
+        page_format,
+        print_profile,
+        hole_punch_enabled=is_hole_punch_layout_enabled(meta),
+        color_profile=color_profile,
+        font_profile=font_profile,
+        font_size_profile=font_size_profile,
+    )
+
+    copyright_text = get_copyright_text(meta)
+
+    return f"""<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>{meta.get("Titel", "Arbeitsblatt")}</title>
+<script>
+window.MathJax = {{
+    tex: {{
+        inlineMath: [['$', '$']],
+        displayMath: [['$$', '$$']],
+        processEscapes: true,
+    }},
+    svg: {{
+        fontCache: 'none'
+    }}
+}};
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+<style>
+{stylesheet}
+</style>
+</head>
+<body>
+
+{document_header}
+
+{student_header}
+
+<h1>{meta.get("Titel", "")}</h1>
+
+{sectioned_body}
+
+<!-- Footer wird nach PDF-Erzeugung einheitlich per PyMuPDF gesetzt. -->
+
+</body>
+</html>
+"""

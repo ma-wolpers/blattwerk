@@ -1,0 +1,51 @@
+{
+  "scopeName": "blattwerk.markdown.injection",
+  "injectionSelector": "L:text.html.markdown",
+  "patterns": [
+    {
+      "name": "meta.block.blattwerk",
+      "begin": "^(\\s*)(:::(?:material|info|task|subtask|answer|solution|columns|nextcol|endcolumns|help|hilfe))(?=\\s|$)",
+      "beginCaptures": {
+        "2": {
+          "name": "keyword.control.blattwerk"
+        }
+      },
+      "end": "^(\\s*:::)\\s*$",
+      "endCaptures": {
+        "1": {
+          "name": "keyword.control.blattwerk"
+        }
+      },
+      "patterns": [
+        {
+          "match": "\\b(show|type|work|action|hint|points|rows|cols|height|width|widths|row_height|headers|row_labels|axis|origin|step_x|step_y|min|max|tick_step|ticks|tick_spacing_mm|tick_spacing_cm|tick_spacing|major_every|max_width_mm|max_width_cm|full_width|positive_sign|signed_positive|inline|tf|true_false|correct|options|gap|gap_length|words|layout|orientation|left|right|top|bottom|matches|links|min_size|min_rows|min_cols|diagonal|horizontal|vertical|title|level|label|ratio)\\b(?==)",
+          "name": "variable.parameter.blattwerk"
+        },
+        {
+          "match": "^(\\s*)([§$&])(?=\\s|$)",
+          "captures": {
+            "2": {
+              "name": "keyword.control.blattwerk"
+            }
+          }
+        },
+        {
+          "match": "(^|\\s)([§$&])(\\s*)$",
+          "captures": {
+            "2": {
+              "name": "keyword.control.blattwerk"
+            }
+          }
+        },
+        {
+          "match": "(?<==)([^\\s]+)",
+          "name": "string.unquoted.blattwerk"
+        }
+      ]
+    },
+    {
+      "match": "^(\\s*:::(?:material|info|task|subtask|answer|solution|columns|nextcol|endcolumns|help|hilfe)[^\\n]*:::)\\s*$",
+      "name": "keyword.control.blattwerk"
+    }
+  ]
+}

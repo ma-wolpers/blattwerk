@@ -1,0 +1,48 @@
+{
+  "Task Block": {
+    "scope": "markdown",
+    "prefix": "bwtask",
+    "body": [
+      "::: task points=${1:2} work=${2:single} action=${3:read}",
+      "${4:Aufgabentext}",
+      ":::"
+    ],
+    "description": "Insert a Blattwerk task block"
+  },
+  "Answer Lines Block": {
+    "scope": "markdown",
+    "prefix": "bwanswerlines",
+    "body": [
+      "::: answer type=lines rows=${1:4}",
+      "${2}",
+      ":::"
+    ],
+    "description": "Insert a Blattwerk lines answer block"
+  },
+  "Help Block": {
+    "scope": "markdown",
+    "prefix": "bwhelp",
+    "body": [
+      "::: help title=\"${1:Hilfe}\" level=${2:1}",
+      "${3:Hilfetext}",
+      ":::"
+    ],
+    "description": "Insert a Blattwerk help card block"
+  },
+  "Frontmatter": {
+    "scope": "markdown",
+    "prefix": "bwfm",
+    "body": [
+      "---",
+      "Titel: ${1:Titel}",
+      "Fach: ${2:Fach}",
+      "Thema: ${3:Thema}",
+      "show_student_header: ${4:true}",
+      "show_document_header: ${5:true}",
+      "---",
+      "",
+      "${6}"
+    ],
+    "description": "Insert required Blattwerk frontmatter"
+  }
+}

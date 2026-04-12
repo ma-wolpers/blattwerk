@@ -1,0 +1,1 @@
+"""Kernlogik-Module für Blattwerk."""

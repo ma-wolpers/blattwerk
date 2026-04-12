@@ -1,0 +1,166 @@
+from app.core.blatt_validator import inspect_markdown_text
+
+
+def _build_document(answer_block):
+    return (
+        "---\n"
+        "Titel: T\n"
+        "Fach: M\n"
+        "Thema: X\n"
+        "---\n"
+        f"{answer_block}\n"
+    )
+
+
+def _build_document_with_mode(mode_value, block_content="Ein Block"):
+    return (
+        "---\n"
+        "Titel: T\n"
+        "Fach: M\n"
+        "Thema: X\n"
+        f"mode: {mode_value}\n"
+        "---\n"
+        f"{block_content}\n"
+    )
+
+
+def test_empty_answer_block_emits_an005_warning():
+    text = _build_document(":::answer type=lines\n\n:::")
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+    assert "AN005" in codes
+
+
+def test_conflicting_line_markers_emit_an006_warning():
+    text = _build_document(":::answer type=lines\n%{Start\n:::")
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+    assert "AN006" in codes
+
+
+def test_conflicting_legacy_start_and_end_markers_emit_an006_warning():
+    text = _build_document(":::answer type=lines\n§ Start %\n:::")
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+    assert "AN006" in codes
+
+
+def test_non_empty_answer_without_marker_conflict_has_no_new_warnings():
+    text = _build_document(":::answer type=lines\n&{Impuls}\n:::")
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+    assert "AN005" not in codes
+    assert "AN006" not in codes
+
+
+def test_matching_new_options_are_allowed_without_op001():
+    text = _build_document(
+        ":::answer type=matching height_mode=uniform align=center scale=0.4cm "
+        "show_guides=false lane_align=center\n"
+        "left:\n"
+        "  - A\n"
+        "right:\n"
+        "  - B\n"
+        "worksheet_matches:\n"
+        "  - '1-1'\n"
+        "matches:\n"
+        "  - '1-1'\n"
+        ":::"
+    )
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+    assert "OP001" not in codes
+
+
+def test_matching_with_single_item_side_emits_ma001_warning():
+    text = _build_document(
+        ":::answer type=matching\n"
+        "left:\n"
+        "  - Nur eins\n"
+        "right:\n"
+        "  - A\n"
+        "  - B\n"
+        "matches:\n"
+        "  - '1-1'\n"
+        ":::"
+    )
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+    assert "MA001" in codes
+
+
+def test_grid_yaml_marker_show_values_are_accepted():
+    text = _build_document(
+        ":::answer type=grid rows=4 cols=4\n"
+        "points:\n"
+        "  - {col: 1, row: 1, show: '§'}\n"
+        "pairs:\n"
+        "  - {x: 0, y: 0, show: '&'}\n"
+        "functions:\n"
+        "  - {expr: 'x', domain: '-1:1', show: '%'}\n"
+        ":::"
+    )
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+    assert "AN007" not in codes
+
+
+def test_grid_yaml_legacy_show_values_emit_an007_error():
+    text = _build_document(
+        ":::answer type=grid rows=4 cols=4\n"
+        "points:\n"
+        "  - {col: 1, row: 1, show: 'both'}\n"
+        ":::"
+    )
+    inspected = inspect_markdown_text(text)
+    an007 = [d for d in inspected.diagnostics if d.code == "AN007"]
+    assert an007
+    assert an007[0].severity == "error"
+
+
+def test_numberline_yaml_marker_show_values_are_accepted():
+    text = _build_document(
+        ":::answer type=numberline min=-3 max=3\n"
+        "labels:\n"
+        "  - {value: -2, show: '§'}\n"
+        "answers:\n"
+        "  - {value: 0, show: '&'}\n"
+        "arcs:\n"
+        "  - {from: -2, to: 0, show: '%'}\n"
+        ":::"
+    )
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+    assert "AN007" not in codes
+
+
+def test_numberline_yaml_legacy_show_values_emit_an007_error():
+    text = _build_document(
+        ":::answer type=numberline min=-3 max=3\n"
+        "labels:\n"
+        "  - {value: -1, show: 'both'}\n"
+        ":::"
+    )
+    inspected = inspect_markdown_text(text)
+    an007 = [d for d in inspected.diagnostics if d.code == "AN007"]
+    assert an007
+    assert an007[0].severity == "error"
+
+
+def test_frontmatter_mode_ws_and_test_are_accepted():
+    ws_doc = _build_document_with_mode("ws")
+    test_doc = _build_document_with_mode("test")
+
+    ws_codes = {d.code for d in inspect_markdown_text(ws_doc).diagnostics}
+    test_codes = {d.code for d in inspect_markdown_text(test_doc).diagnostics}
+
+    assert "FM002" not in ws_codes
+    assert "FM002" not in test_codes
+
+
+def test_frontmatter_invalid_mode_emits_fm002():
+    doc = _build_document_with_mode("worksheet")
+    diagnostics = inspect_markdown_text(doc).diagnostics
+
+    fm002 = [d for d in diagnostics if d.code == "FM002"]
+    assert fm002
