@@ -80,11 +80,13 @@ class BlattwerkAppEditorMixin:
             return
 
         self.editor_widget.edit_modified(False)
+        self.status_var.set("Ungespeichert")
 
         if self._editor_save_after_id is not None:
             self.root.after_cancel(self._editor_save_after_id)
 
         self._editor_save_after_id = self.root.after(self._editor_save_delay_ms, self._save_editor_content)
+        self.status_var.set("Speichert…")
 
     def _save_editor_content(self):
         """Writes the current editor content back to the selected markdown file."""
@@ -100,8 +102,9 @@ class BlattwerkAppEditorMixin:
 
         content = self.editor_widget.get("1.0", "end-1c")
         try:
+            self.status_var.set("Speichert…")
             input_path.write_text(content, encoding="utf-8")
-            self.status_var.set("Markdown gespeichert")
+            self.status_var.set("Gespeichert")
         except Exception as error:
             self.status_var.set("Speichern fehlgeschlagen")
             messagebox.showerror("Speichern fehlgeschlagen", str(error))

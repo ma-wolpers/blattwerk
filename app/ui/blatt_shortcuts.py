@@ -65,6 +65,13 @@ def build_preview_shortcuts(app):
         ShortcutBinding("<KP_Enter>", app.open_export_dialog),
         ShortcutBinding("<KeyPress-o>", app.pick_input, "O   Markdown öffnen"),
         ShortcutBinding(
+            "<Control-n>",
+            app.create_new_markdown_file,
+            "Strg+N   neue Markdown-Datei",
+            ignore_when_text_input=False,
+            allow_modifiers=True,
+        ),
+        ShortcutBinding(
             "<KeyPress-z>", app._open_last_markdown, "Z   zuletzt geladenes Markdown"
         ),
         ShortcutBinding("<Escape>", app.root.destroy, "Esc   Beenden"),

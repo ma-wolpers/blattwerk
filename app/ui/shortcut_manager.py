@@ -15,6 +15,7 @@ class ShortcutBinding:
     action: Callable[[], None]
     menu_label: str | None = None
     ignore_when_text_input: bool = True
+    allow_modifiers: bool = False
 
 
 class ShortcutManager:
@@ -41,7 +42,7 @@ class ShortcutManager:
             yield label
 
     def _dispatch(self, binding: ShortcutBinding, event):
-        if self._has_modifier_keys(event):
+        if self._has_modifier_keys(event) and not binding.allow_modifiers:
             return None
 
         if binding.ignore_when_text_input and self._is_text_input_widget(

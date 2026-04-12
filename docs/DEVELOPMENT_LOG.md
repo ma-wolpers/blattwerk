@@ -13,6 +13,8 @@ Regel:
 - Guardrails erweitert: Feature-/Architekturaenderungen erfordern jetzt ein gleichzeitiges Update dieses Development-Logs.
 - Hauptfenster auf splitbare Zwei-Bereichs-Ansicht erweitert: Vorschau und Schreibbereich koennen einzeln oder gemeinsam angezeigt werden.
 - Neuer Schreibbereich als einfacher Markdown-Editor integriert; Aenderungen werden debounced live auf Dateiebene gespeichert (ohne Auto-Refresh der Vorschau).
+- Speicherrueckmeldung im Editor sichtbar gemacht: klare Stati fuer "Ungespeichert", "Speichert…" und "Gespeichert".
+- Neuer Datei-Workflow fuer "Neue Markdown-Datei": per Systemdialog Pfad waehlen, Datei mit Standardinhalt erzeugen und direkt oeffnen.
 
 ### Added
 - `CHANGELOG.md` als oeffentliche, nutzerorientierte Kommunikation.

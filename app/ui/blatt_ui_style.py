@@ -304,6 +304,7 @@ class BlattwerkAppStyleMixin:
             menubar = tk.Menu(self.root)
 
             file_menu = tk.Menu(menubar, tearoff=False)
+            file_menu.add_command(label="Neue Markdown-Datei…", command=self.create_new_markdown_file)
             file_menu.add_command(label="Markdown öffnen…", command=self.pick_input)
 
             self.recent_menu = tk.Menu(file_menu, tearoff=False)

@@ -36,6 +36,64 @@ from ..styles.blatt_styles import invalidate_stylesheet_template_cache
 
 class BlattwerkAppPreviewMixin:
     """Rendert, skaliert und navigiert die Arbeitsblatt-Vorschau."""
+
+    @staticmethod
+    def _default_markdown_content():
+            """Liefert den Standardinhalt für neu erzeugte Markdown-Dateien."""
+
+            return (
+                "---\n"
+                "Titel: Neues Arbeitsblatt\n"
+                "Fach: Fach eintragen\n"
+                "Thema: Thema eintragen\n"
+                "---\n\n"
+                ":::material title=\"Hinweis\"\n"
+                "Arbeite sauber und lies jede Aufgabe genau.\n"
+                ":::\n\n"
+                ":::task points=2 work=single action=read\n"
+                "Formuliere hier deine erste Aufgabe.\n"
+                ":::\n"
+            )
+
+    def create_new_markdown_file(self):
+            """Erzeugt eine neue Markdown-Datei über Dateidialog und öffnet sie direkt."""
+
+            dialog_kwargs = {
+                "title": "Neue Markdown-Datei anlegen",
+                "defaultextension": ".md",
+                "filetypes": [("Markdown", "*.md"), ("Alle Dateien", "*.*")],
+            }
+            initial_dir = self._get_initial_dialog_dir("input_markdown")
+            if initial_dir:
+                dialog_kwargs["initialdir"] = initial_dir
+
+            selected = filedialog.asksaveasfilename(**dialog_kwargs)
+            if not selected:
+                return
+
+            target_path = Path(selected)
+            if target_path.suffix.lower() != ".md":
+                target_path = target_path.with_suffix(".md")
+
+            if target_path.exists():
+                messagebox.showerror(
+                    "Datei existiert bereits",
+                    "Bitte wähle einen neuen Dateinamen, damit keine bestehende Datei überschrieben wird.",
+                )
+                return
+
+            try:
+                target_path.parent.mkdir(parents=True, exist_ok=True)
+                target_path.write_text(self._default_markdown_content(), encoding="utf-8")
+            except Exception as error:
+                messagebox.showerror("Datei konnte nicht erstellt werden", str(error))
+                self.status_var.set("Neue Datei konnte nicht erstellt werden")
+                return
+
+            self._set_last_dialog_dir("input_markdown", str(target_path))
+            self.status_var.set("Neue Markdown-Datei erstellt")
+            self._open_input_path(target_path, add_recent=True)
+
     def _show_document_diagnostics(self, input_path: Path, context_label: str):
             """Zeigt nicht-blockierende Blattwerk-Warnungen einmalig pro Dokumentzustand."""
             warning_payload = build_warning_payload(input_path, context_label)
