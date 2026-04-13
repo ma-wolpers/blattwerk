@@ -90,6 +90,7 @@ class BlattwerkAppEditorMixin:
         self.editor_widget.bind("<<Modified>>", self._on_editor_modified)
         self.editor_widget.bind("<KeyRelease>", self._on_editor_key_release)
         self.editor_widget.bind("<Button-1>", self._on_editor_mouse_click)
+        self.editor_widget.bind("<FocusIn>", self._on_editor_focus_in)
 
         preferences = getattr(self, "user_preferences", {})
         if bool(preferences.get("shortcuts_editor_group_enabled", True)):
@@ -178,13 +179,146 @@ class BlattwerkAppEditorMixin:
             self.editor_widget.delete("1.0", "end")
             self.editor_widget.insert("1.0", content)
             self.editor_widget.edit_modified(False)
+            self._editor_has_unsaved_changes = False
             self._editor_last_loaded_path = input_path
+            self._update_editor_source_snapshot(input_path)
             self._editor_last_saved_block_type_counts = self._collect_editor_block_type_counts(content)
             self._queue_editor_highlighting(immediate=True)
             self._queue_editor_diagnostics(immediate=True)
             self._queue_editor_outline(immediate=True)
         finally:
             self._editor_loading_content = False
+
+    @staticmethod
+    def _format_external_change_age(file_mtime_ns: int) -> str:
+        """Formats the age of the external file change for conflict prompts."""
+
+        changed_at = datetime.fromtimestamp(file_mtime_ns / 1_000_000_000)
+        now = datetime.now()
+        delta_seconds = max(0, int((now - changed_at).total_seconds()))
+        if delta_seconds < 60:
+            relative = f"vor {delta_seconds} s"
+        elif delta_seconds < 3600:
+            relative = f"vor {delta_seconds // 60} min"
+        elif delta_seconds < 86400:
+            relative = f"vor {delta_seconds // 3600} h"
+        else:
+            relative = f"vor {delta_seconds // 86400} Tagen"
+
+        return f"{relative} ({changed_at.strftime('%Y-%m-%d %H:%M:%S')})"
+
+    def _update_editor_source_snapshot(self, input_path: Path):
+        """Stores the latest known source timestamp for the active editor file."""
+
+        try:
+            file_stat = input_path.stat()
+        except Exception:
+            return
+
+        self._editor_last_known_source_path = input_path
+        self._editor_last_known_source_mtime_ns = int(file_stat.st_mtime_ns)
+
+    def _show_editor_source_conflict_dialog(self, *, input_path: Path, age_text: str) -> str:
+        """Shows a modal conflict dialog and returns discard, overwrite, or cancel."""
+
+        dialog = tk.Toplevel(self.root)
+        dialog.title("Externe Änderung erkannt")
+        dialog.transient(self.root)
+        dialog.resizable(False, False)
+        try:
+            dialog.grab_set()
+        except Exception:
+            pass
+
+        body = ttk.Frame(dialog, padding=12)
+        body.pack(fill="both", expand=True)
+
+        ttk.Label(
+            body,
+            text=(
+                "Die Quelldatei wurde extern geändert.\n"
+                f"Datei: {input_path.name}\n"
+                f"Geändert: {age_text}\n\n"
+                "Lokale ungespeicherte Änderungen sind vorhanden."
+            ),
+            justify="left",
+        ).pack(anchor="w")
+
+        button_row = ttk.Frame(body)
+        button_row.pack(fill="x", pady=(12, 0))
+
+        result = {"value": "cancel"}
+
+        def choose(value: str):
+            result["value"] = value
+            dialog.destroy()
+
+        ttk.Button(button_row, text="Verwerfen", command=lambda: choose("discard")).pack(side="left")
+        ttk.Button(button_row, text="Überschreiben", command=lambda: choose("overwrite")).pack(side="left", padx=(8, 0))
+        ttk.Button(button_row, text="Abbrechen", command=lambda: choose("cancel")).pack(side="right")
+
+        dialog.protocol("WM_DELETE_WINDOW", lambda: choose("cancel"))
+        dialog.wait_window()
+        return result["value"]
+
+    def _sync_editor_with_source(self, trigger: str = "focus"):
+        """Reconciles editor state with external file changes before editing continues."""
+
+        del trigger  # currently only used for tracing when needed
+
+        if self.editor_widget is None:
+            return
+        if self._editor_loading_content:
+            return
+        if self._editor_source_sync_in_progress:
+            return
+
+        input_path = self._get_input_path_if_exists()
+        if input_path is None:
+            return
+
+        try:
+            current_mtime_ns = int(input_path.stat().st_mtime_ns)
+        except Exception:
+            return
+
+        known_path = self._editor_last_known_source_path
+        known_mtime_ns = self._editor_last_known_source_mtime_ns
+
+        if known_path != input_path or known_mtime_ns is None:
+            self._editor_last_known_source_path = input_path
+            self._editor_last_known_source_mtime_ns = current_mtime_ns
+            return
+
+        if current_mtime_ns <= known_mtime_ns:
+            return
+
+        self._editor_source_sync_in_progress = True
+        try:
+            if self._editor_has_unsaved_changes:
+                age_text = self._format_external_change_age(current_mtime_ns)
+                decision = self._show_editor_source_conflict_dialog(input_path=input_path, age_text=age_text)
+                if decision == "discard":
+                    self._load_editor_content(input_path)
+                    self.status_var.set("Externe Änderung übernommen (lokale Änderungen verworfen)")
+                elif decision == "overwrite":
+                    self._save_editor_content()
+                    if self._editor_has_unsaved_changes:
+                        self.status_var.set("Überschreiben fehlgeschlagen")
+                    else:
+                        self.status_var.set("Externe Änderung überschrieben (lokaler Stand gespeichert)")
+                else:
+                    self.status_var.set("Konflikt mit externer Änderung: keine Aktion")
+            else:
+                self._load_editor_content(input_path)
+                self.status_var.set("Externe Änderung übernommen")
+        finally:
+            self._editor_source_sync_in_progress = False
+
+    def _on_editor_focus_in(self, _event=None):
+        """Synchronizes the editor with external file changes when focus enters."""
+
+        self._sync_editor_with_source(trigger="focus")
 
     def _on_editor_modified(self, _event=None):
         """Schedules a debounced save after user edits."""
@@ -200,6 +334,7 @@ class BlattwerkAppEditorMixin:
             return
 
         self.editor_widget.edit_modified(False)
+        self._editor_has_unsaved_changes = True
         self.status_var.set("Ungespeichert")
         self._queue_editor_highlighting()
         self._queue_editor_diagnostics()
@@ -249,6 +384,8 @@ class BlattwerkAppEditorMixin:
 
             input_path.write_text(content, encoding="utf-8")
             self._record_editor_manual_block_type_usage(content)
+            self._editor_has_unsaved_changes = False
+            self._update_editor_source_snapshot(input_path)
             self.status_var.set("Gespeichert")
             self._queue_editor_highlighting(immediate=True)
             self._queue_editor_diagnostics(immediate=True)

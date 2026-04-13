@@ -9,6 +9,8 @@ Regel:
 ## [Unreleased]
 
 ### Changed
+- Editor-Sync bei Fokus/Tab-Wechsel ergaenzt: vor dem Weiterarbeiten wird der aktuelle Dateistand (mtime in ns) mit einem gespeicherten Snapshot abgeglichen; bei externer Aenderung wird automatisch nachgeladen oder im Konfliktfall ein Modal mit `Verwerfen`/`Ueberschreiben` gezeigt.
+- Editorzustand um explizites Unsaved-Tracking erweitert (`_editor_has_unsaved_changes`), weil der Tk-Modified-Flag fuer Debounce-Speichern sofort zurueckgesetzt wird und sonst Konflikte mit externen Dateiaenderungen nicht zuverlaessig erkannt werden.
 - Vorschau-/Editor-Workflow auf dokumentorientierte Tab-Leiste erweitert: mehrere Markdown-Dateien koennen gleichzeitig offen sein und beim Tab-Wechsel werden Format-/Gestaltungs- sowie Vorschaueinstellungen pro Dokument isoliert wiederhergestellt.
 - Tab-Wechsel stellt nun auch den Ansichtszustand pro Dokument wieder her (Zoom, aktive Seite, vertikale/horizontale Scrollposition).
 - Vorschau-Pipeline um tab-lokalen Cache erweitert: bei unveraenderter Datei und unveraenderten Render-Optionen wird beim Tab-Wechsel aus Cache geladen statt sofort neu zu kompilieren.

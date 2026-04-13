@@ -83,6 +83,10 @@ class BlattwerkAppBase:
         self._editor_completion_context_meta = {}
         self._editor_last_saved_block_type_counts = {}
         self._editor_last_loaded_path = None
+        self._editor_has_unsaved_changes = False
+        self._editor_last_known_source_path = None
+        self._editor_last_known_source_mtime_ns = None
+        self._editor_source_sync_in_progress = False
         self._equal_split_attempts = 0
         self.recent_files = []
         self.recent_menu = None
@@ -309,6 +313,9 @@ class BlattwerkAppBase:
         previous_tab_id = self._active_document_tab_id
         if previous_tab_id == selected_tab_id:
             return
+
+        if hasattr(self, "_sync_editor_with_source"):
+            self._sync_editor_with_source(trigger="tab-switch")
 
         self._persist_active_document_tab_state()
         self._active_document_tab_id = selected_tab_id
