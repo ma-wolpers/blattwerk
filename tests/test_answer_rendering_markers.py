@@ -214,3 +214,21 @@ def test_numberline_fallback_solution_key_is_only_rendered_in_solution_mode():
 
     assert "Skizze mit Begruendung" not in worksheet_html
     assert "Skizze mit Begruendung" in solution_html
+
+
+def test_cloze_wordbank_shows_duplicate_words_by_default():
+    options = {"type": "cloze", "words": "below"}
+    content = "Die {{CPU}} arbeitet mit der {{CPU}}."
+
+    worksheet_html = _render_answer_block(options, content, include_solutions=False)
+
+    assert worksheet_html.count("<span class='cloze-word'>CPU</span>") == 2
+
+
+def test_cloze_wordbank_can_hide_duplicate_words():
+    options = {"type": "cloze", "words": "below", "words_multi": "false"}
+    content = "Die {{CPU}} arbeitet mit der {{CPU}}."
+
+    worksheet_html = _render_answer_block(options, content, include_solutions=False)
+
+    assert worksheet_html.count("<span class='cloze-word'>CPU</span>") == 1

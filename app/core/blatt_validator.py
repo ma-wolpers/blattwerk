@@ -176,6 +176,7 @@ BLOCK_ALLOWED_OPTIONS = {
         "gap",
         "gap_length",
         "words",
+        "words_multi",
         "layout",
         "orientation",
         "left",

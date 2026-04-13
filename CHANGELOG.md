@@ -7,6 +7,7 @@ The format is based on Keep a Changelog.
 ## [Unreleased]
 
 ### Changed
+- Cloze answer blocks now support `words_multi` (default `true`) to control whether duplicate solution words appear multiple times in the word bank or only once.
 - Completion preference names are now consistently `completion_*`; legacy snippet-oriented preference keys were removed.
 - Option value catalogs for completion are now discovered automatically from core `KNOWN_*` constants.
 - Write-area snippet templates are now disabled to avoid intrusive block-template insertions during normal completion flow.

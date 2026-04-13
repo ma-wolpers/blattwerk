@@ -9,6 +9,7 @@ Regel:
 ## [Unreleased]
 
 ### Changed
+- Cloze-Renderer erweitert: neue Option `words_multi` (Standard `true`) steuert, ob identische Loesungswoerter in der Wortbank mehrfach oder dedupliziert angezeigt werden.
 - Completion-Einstellungen terminologisch hart umgestellt: `snippet_*`/`snippets_*` durch `completion_*` ersetzt; obsolete Snippet-Only-Settings entfernt.
 - `completion_catalogs` ergänzt Value-Kataloge jetzt automatisch aus Core-`KNOWN_*`-Konstanten statt fester Handliste.
 - Interner Editor-Cleanup: verbliebene Snippet-Session-Logik (Placeholder-Markierungen, Tab/Shift-Tab-Feldnavigation, Session-Sync) entfernt, nachdem Snippet-Vorlagen deaktiviert wurden.

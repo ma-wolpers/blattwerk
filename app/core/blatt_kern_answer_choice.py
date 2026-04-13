@@ -249,6 +249,17 @@ def _shuffle_word_bank(words):
 
     return original[1:] + original[:1]
 
+def _deduplicate_words_preserve_order(words):
+    """Entfernt doppelte Wörter aus der Wortbank und behält die Reihenfolge bei."""
+    unique_words = []
+    seen_words = set()
+    for word in words:
+        if word in seen_words:
+            continue
+        seen_words.add(word)
+        unique_words.append(word)
+    return unique_words
+
 def _render_cloze_answer(md, options, content, include_solutions):
     """Rendert Lückentext mit optionaler Wortbank und Lösungsausgabe."""
     cloze_pattern = re.compile(r"\{\{\s*([^{}]+?)\s*\}\}")
@@ -259,6 +270,7 @@ def _render_cloze_answer(md, options, content, include_solutions):
 
     gap_mode = _normalize_gap_mode(options.get("gap"))
     word_position = _normalize_word_position(options.get("words"))
+    words_multi = _option_is_enabled(options.get("words_multi"), default=True)
     fixed_gap_length = max(4, _safe_int(options.get("gap_length", 10), 10))
     gap_length_multiplier = 2
 
@@ -288,6 +300,8 @@ def _render_cloze_answer(md, options, content, include_solutions):
     word_bank_html = ""
     if not include_solutions and word_position != "none":
         word_bank_words = [solution_word for _placeholder, solution_word, _ in replacements]
+        if not words_multi:
+            word_bank_words = _deduplicate_words_preserve_order(word_bank_words)
         shuffled_words = _shuffle_word_bank(word_bank_words)
         chips = "".join(
             f"<span class='cloze-word'>{escape(solution_word)}</span>" for solution_word in shuffled_words
