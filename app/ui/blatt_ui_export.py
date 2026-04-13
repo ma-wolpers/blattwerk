@@ -22,8 +22,49 @@ from ..core.export_path_guardrails import validate_export_output_path
 class BlattwerkAppExportMixin:
     """Stellt Export-Workflows für PDF/HTML/PNG/ZIP bereit."""
 
+    def _metadata_defaults_from_preferences(self):
+        preferences = getattr(self, "user_preferences", {})
+        defaults = {
+            "Autor": str(preferences.get("default_document_author", "") or "").strip(),
+            "Schule": str(preferences.get("default_school_name", "") or "").strip(),
+            "Fach": str(preferences.get("default_subject", "") or "").strip(),
+            "Klassenstufe": str(preferences.get("default_grade_level", "") or "").strip(),
+            "Sprache": str(preferences.get("language_variant", "") or "").strip(),
+            "Datumsformat": str(preferences.get("date_format", "") or "").strip(),
+        }
+        return {key: value for key, value in defaults.items() if value}
+
+    def _copyright_text_from_preferences(self):
+        preferences = getattr(self, "user_preferences", {})
+        holder = str(preferences.get("copyright_holder", "") or "").strip()
+        mode = str(preferences.get("copyright_year_mode", "current") or "current").strip()
+        fixed_year = int(str(preferences.get("copyright_year_fixed", 2026) or 2026))
+        footer_extra = str(preferences.get("footer_extra_text", "") or "").strip()
+
+        if not holder:
+            return ""
+
+        from datetime import datetime
+
+        current_year = datetime.now().year
+        if mode == "fixed":
+            year_text = str(fixed_year)
+        elif mode == "span":
+            year_text = f"{fixed_year}-{current_year}" if fixed_year <= current_year else str(current_year)
+        else:
+            year_text = str(current_year)
+
+        base = f"{holder} · {year_text}"
+        if footer_extra:
+            return f"{base} · {footer_extra}"
+        return base
+
     def _show_export_diagnostics(self, input_path: Path):
         """Zeigt nicht-blockierende Warnungen vor dem Export an."""
+        preferences = getattr(self, "user_preferences", {})
+        if not bool(preferences.get("pre_export_diagnostics_enabled", True)):
+            return
+
         warning_payload = build_warning_payload(input_path, "Export")
         if warning_payload is None or warning_payload["count"] <= 0:
             return
@@ -33,18 +74,18 @@ class BlattwerkAppExportMixin:
             "Export laeuft weiter, aber es gibt Warnungen:\n\n" + warning_payload["message"],
         )
 
-    @staticmethod
-    def _with_solution_suffix(path_obj: Path):
+    def _with_solution_suffix(self, path_obj: Path):
         """With solution suffix."""
-        if path_obj.stem.endswith("_loesung"):
+        suffix = str(getattr(self, "user_preferences", {}).get("solution_suffix", "_loesung") or "_loesung")
+        if path_obj.stem.endswith(suffix):
             return path_obj
-        return path_obj.with_name(path_obj.stem + "_loesung" + path_obj.suffix)
+        return path_obj.with_name(path_obj.stem + suffix + path_obj.suffix)
 
-    @staticmethod
-    def _without_solution_suffix(path_obj: Path):
+    def _without_solution_suffix(self, path_obj: Path):
         """Without solution suffix."""
-        if path_obj.stem.endswith("_loesung"):
-            base_stem = path_obj.stem[: -len("_loesung")]
+        suffix = str(getattr(self, "user_preferences", {}).get("solution_suffix", "_loesung") or "_loesung")
+        if path_obj.stem.endswith(suffix):
+            base_stem = path_obj.stem[: -len(suffix)]
             return path_obj.with_name(base_stem + path_obj.suffix)
         return path_obj
 
@@ -64,6 +105,8 @@ class BlattwerkAppExportMixin:
             page_format=page_format,
             print_profile=contrast_profile,
             design=self._worksheet_design_options(),
+            metadata_defaults=self._metadata_defaults_from_preferences(),
+            copyright_text_override=self._copyright_text_from_preferences() or None,
         )
 
     def _help_cards_build_request(
@@ -82,6 +125,8 @@ class BlattwerkAppExportMixin:
             page_format=page_format,
             print_profile=contrast_profile,
             design=self._worksheet_design_options(),
+            metadata_defaults=self._metadata_defaults_from_preferences(),
+            copyright_text_override=self._copyright_text_from_preferences() or None,
         )
 
     def _export_pdf(
@@ -207,6 +252,8 @@ class BlattwerkAppExportMixin:
                     page_format=page_format,
                     print_profile=contrast_profile,
                     design=worksheet_design,
+                    metadata_defaults=self._metadata_defaults_from_preferences(),
+                    copyright_text_override=self._copyright_text_from_preferences() or None,
                 )
             )
 
@@ -325,20 +372,36 @@ class BlattwerkAppExportMixin:
             return
 
         default_mode = "both"
+        preferences = getattr(self, "user_preferences", {})
+        default_mode = str(preferences.get("default_export_mode", default_mode) or default_mode)
+        if default_mode not in {"worksheet", "solution", "both"}:
+            default_mode = "both"
+        default_format = str(preferences.get("default_export_format", preferences.get("default_export_page_format", "pdf")) or "pdf")
+        if default_format not in {"pdf", "html", "png", "pngzip"}:
+            default_format = "pdf"
+
         dialog = ExportDialog(
             self.root,
             input_path=input_path,
-            default_format="pdf",
+            default_format=default_format,
             default_mode=default_mode,
             theme_key=self.theme_var.get(),
             initial_output_dir=self._get_initial_dialog_dir("export_output"),
+            worksheet_label=str(preferences.get("worksheet_label", "Aufgaben") or "Aufgaben"),
+            solution_label=str(preferences.get("solution_label", "Loesung") or "Loesung"),
+            solution_suffix=str(preferences.get("solution_suffix", "_loesung") or "_loesung"),
         )
         if not dialog.result:
             return
 
         fmt = dialog.result["format"]
         mode = dialog.result["mode"]
-        page_format = self.preview_page_format_var.get()
+        preferences = getattr(self, "user_preferences", {})
+        preferred_page_format = str(preferences.get("default_export_page_format", "") or "").strip()
+        if preferred_page_format in {"a4_portrait", "a5_landscape"}:
+            page_format = preferred_page_format
+        else:
+            page_format = self.preview_page_format_var.get()
         contrast_profile = self.preview_contrast_var.get()
         output_path = Path(dialog.result["output_path"])
         self._set_last_dialog_dir("export_output", output_path)

@@ -12,7 +12,6 @@ from .ui_constants import (
     VIEW_LAYOUT_SINGLE,
 )
 from .ui_theme import DEFAULT_THEME
-from ..storage.history_paths_adapter import HISTORY_ROOT_NAME, find_history_root
 from ..styles.blatt_styles import DEFAULT_FONT_PROFILE, DEFAULT_FONT_SIZE_PROFILE
 from ..styles.worksheet_design import (
     CONTRAST_PROFILE_ORDER,
@@ -27,6 +26,10 @@ class BlattwerkAppBase:
         self.root.title("Blattwerk Vorschau")
         self.root.geometry("980x860")
         self.root.minsize(760, 640)
+        try:
+            self._default_tk_scaling = float(self.root.tk.call("tk", "scaling"))
+        except Exception:
+            self._default_tk_scaling = 1.0
 
         self.input_var = tk.StringVar()
         self.preview_mode_var = tk.StringVar(value="worksheet")
@@ -86,12 +89,16 @@ class BlattwerkAppBase:
         self.recent_files = []
         self.recent_menu = None
         self.ui_settings = {}
-        self.history_root = find_history_root(HISTORY_ROOT_NAME)
         self.shortcut_manager = ShortcutManager(self.root)
         self.shortcut_bindings = build_preview_shortcuts(self)
         self._color_profile_swatches = {}
         self._hovered_color_profile = None
         self._swatch_tooltip = None
+        self._responsive_controls_wrap_enabled = True
+        self._reduce_motion = False
+        self._ui_density = "comfort"
+        self._window_geometry_after_id = None
+        self._editor_snippet_highlight_after_id = None
 
         self.help_preview_window = None
         self.help_preview_canvas = None
@@ -111,9 +118,15 @@ class BlattwerkAppBase:
         self._configure_styles()
         self._build_menu()
         self._build_ui()
+        if hasattr(self, "_apply_user_preferences_live") and hasattr(self, "user_preferences"):
+            self._apply_user_preferences_live(self.user_preferences)
         self._apply_theme(redraw_preview=False)
         self._refresh_zoom_label()
         self._bind_shortcuts()
+        if hasattr(self, "_bind_window_geometry_tracking"):
+            self._bind_window_geometry_tracking()
+        if hasattr(self, "_maybe_apply_startup_file_preference"):
+            self._maybe_apply_startup_file_preference()
 
     @staticmethod
     def _clean_path_text(value):
@@ -123,6 +136,10 @@ class BlattwerkAppBase:
 
     def _bind_shortcuts(self):
         """Registriert globale Tastaturkürzel für Vorschau-Steuerung."""
+
+        preferences = getattr(self, "user_preferences", {})
+        if not bool(preferences.get("shortcuts_preview_group_enabled", True)):
+            return
 
         self.shortcut_manager.bind_all(self.shortcut_bindings)
 

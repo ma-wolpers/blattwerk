@@ -9,7 +9,6 @@ from copy import deepcopy
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
-DEFAULT_HISTORY_ROOT_NAME = "7thCloud"
 DEFAULT_MAX_RECENT_FILES = 5
 MIN_MAX_RECENT_FILES = 1
 MAX_MAX_RECENT_FILES = 20
@@ -26,6 +25,7 @@ SYSTEM_KEY = "system"
 UI_SETTINGS_KEY = "ui_settings"
 RECENT_FILES_KEY = "recent_files"
 COMPLETION_STATS_KEY = "completion_stats"
+USER_PREFERENCES_KEY = "user_preferences"
 
 _COMPLETION_DECAY_HALF_LIFE_DAYS = 14.0
 _SECONDS_PER_DAY = 86400.0
@@ -45,7 +45,6 @@ def _decay_value(value: float, *, from_ts: float, to_ts: float) -> float:
 DEFAULT_LOCAL_CONFIG = {
     "version": 1,
     SYSTEM_KEY: {
-        "history_root_name": DEFAULT_HISTORY_ROOT_NAME,
         "max_recent_files": DEFAULT_MAX_RECENT_FILES,
     },
     UI_SETTINGS_KEY: {},
@@ -54,6 +53,7 @@ DEFAULT_LOCAL_CONFIG = {
         "block_type_usage": {},
         "option_value_usage": {},
     },
+    USER_PREFERENCES_KEY: {},
 }
 
 
@@ -69,10 +69,6 @@ def _normalize_system_settings(raw: object) -> dict[str, object]:
     normalized = deepcopy(DEFAULT_LOCAL_CONFIG[SYSTEM_KEY])
     if not isinstance(raw, dict):
         return normalized
-
-    history_root_name = str(raw.get("history_root_name", "")).strip()
-    if history_root_name:
-        normalized["history_root_name"] = history_root_name
 
     max_recent_raw = raw.get("max_recent_files", DEFAULT_MAX_RECENT_FILES)
     try:
@@ -102,6 +98,10 @@ def _normalize_recent_files(raw: object, max_recent_files: int) -> list[str]:
 
 
 def _normalize_ui_settings(raw: object) -> dict[str, object]:
+    return dict(raw) if isinstance(raw, dict) else {}
+
+
+def _normalize_user_preferences(raw: object) -> dict[str, object]:
     return dict(raw) if isinstance(raw, dict) else {}
 
 
@@ -176,6 +176,7 @@ def normalize_local_config(raw: object) -> dict[str, object]:
     base[UI_SETTINGS_KEY] = _normalize_ui_settings(raw.get(UI_SETTINGS_KEY))
     base[RECENT_FILES_KEY] = _normalize_recent_files(raw.get(RECENT_FILES_KEY), max_recent_files)
     base[COMPLETION_STATS_KEY] = _normalize_completion_stats(raw.get(COMPLETION_STATS_KEY))
+    base[USER_PREFERENCES_KEY] = _normalize_user_preferences(raw.get(USER_PREFERENCES_KEY))
     return base
 
 
@@ -203,11 +204,10 @@ def load_system_settings() -> dict[str, object]:
     return dict(payload) if isinstance(payload, dict) else dict(DEFAULT_LOCAL_CONFIG[SYSTEM_KEY])
 
 
-def save_system_settings(*, history_root_name: str, max_recent_files: int) -> dict[str, object]:
+def save_system_settings(*, max_recent_files: int) -> dict[str, object]:
     config = load_local_config()
     config[SYSTEM_KEY] = _normalize_system_settings(
         {
-            "history_root_name": history_root_name,
             "max_recent_files": max_recent_files,
         }
     )
@@ -223,6 +223,18 @@ def load_ui_settings() -> dict[str, object]:
 def save_ui_settings(settings: dict[str, object]) -> dict[str, object]:
     config = load_local_config()
     config[UI_SETTINGS_KEY] = _normalize_ui_settings(settings)
+    return save_local_config(config)
+
+
+def load_user_preferences() -> dict[str, object]:
+    config = load_local_config()
+    payload = config.get(USER_PREFERENCES_KEY)
+    return dict(payload) if isinstance(payload, dict) else {}
+
+
+def save_user_preferences(preferences: dict[str, object]) -> dict[str, object]:
+    config = load_local_config()
+    config[USER_PREFERENCES_KEY] = _normalize_user_preferences(preferences)
     return save_local_config(config)
 
 

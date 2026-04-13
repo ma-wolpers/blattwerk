@@ -6,11 +6,8 @@ from app.styles.ui_profile_adapter import (
 
 
 def test_normalize_system_settings_payload_clamps_invalid_values():
-    normalized = normalize_system_settings_payload(
-        {"history_root_name": "", "max_recent_files": "999"}
-    )
+    normalized = normalize_system_settings_payload({"max_recent_files": "999"})
 
-    assert normalized["history_root_name"] == "7thCloud"
     assert normalized["max_recent_files"] == 20
 
 

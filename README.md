@@ -93,7 +93,7 @@ Empfohlene VS Code Setting in diesem Repo:
 Einstellungen aendern:
 
 1. In der App `Datei > Einstellungen...` oeffnen.
-2. `Root-Anker (Verlauf)` und `Max. zuletzt geoeffnete Dateien` anpassen.
+2. `Max. zuletzt geoeffnete Dateien` und weitere Nutzeroptionen anpassen.
 3. Speichern.
 
 ## Update auf neuem Rechner / nach frischem Clone

@@ -22,11 +22,17 @@ class ExportDialog:
         default_mode: str,
         theme_key: str,
         initial_output_dir: str | None = None,
+        worksheet_label: str = "Aufgaben",
+        solution_label: str = "Loesung",
+        solution_suffix: str = "_loesung",
     ):
         self.parent = parent
         self.input_path = input_path
         self.theme_key = theme_key
         self.initial_output_dir = initial_output_dir
+        self.worksheet_label = str(worksheet_label or "Aufgaben")
+        self.solution_label = str(solution_label or "Loesung")
+        self.solution_suffix = str(solution_suffix or "_loesung")
 
         self.result = None
 
@@ -101,14 +107,14 @@ class ExportDialog:
         ttk.Label(mode_row, text="Inhalt:", width=15).pack(side="left")
         ttk.Radiobutton(
             mode_row,
-            text="Aufgaben",
+            text=self.worksheet_label,
             value="worksheet",
             variable=self.mode_var,
             command=self._on_mode_changed,
         ).pack(side="left")
         ttk.Radiobutton(
             mode_row,
-            text="Lösung",
+            text=self.solution_label,
             value="solution",
             variable=self.mode_var,
             command=self._on_mode_changed,
@@ -292,7 +298,7 @@ class ExportDialog:
         mode = self.mode_var.get()
         suffix = ""
         if mode == "solution":
-            suffix += "_loesung"
+            suffix += self.solution_suffix
         elif mode == "help_cards":
             suffix += "_hilfe"
 

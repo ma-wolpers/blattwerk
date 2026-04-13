@@ -18,6 +18,19 @@ Installation/Setup steht bewusst in `README.md`.
 3. Einstellungen anpassen (Format/Modus/Profil)
 4. Exportdialog öffnen und Ausgabe erzeugen
 
+## 2a) Einstellungen (Registerkarten)
+
+- Einstellungen öffnen: `Datei > Einstellungen…` oder `Strg+,`.
+- Die Einstellungen sind in Registerkarten organisiert (links scrollbare Tab-Liste, rechts scrollbare Inhalte).
+- Es gibt `Anwenden` (speichert sofort und bleibt offen), `Speichern` (speichert und schließt), `Abbrechen` (verwirft nicht gespeicherte Änderungen).
+- Wichtige Bereiche:
+	- Allgemein (z. B. maximale Zahl zuletzt geöffneter Dateien, Startverhalten)
+	- Editor (Snippets, Diagnostik, Outline)
+	- Ansicht/Layout, Design/Theme, Export
+	- Identität/Copyright und Dokument-Defaults
+	- Accessibility, Backup, Shortcut-Gruppen
+- Der frühere `Root-Anker (Verlauf)` existiert nicht mehr. Zuletzt geöffnete Dateien werden direkt als normale Dateipfade verwaltet.
+
 ## 3) Vorschau – was passiert bei welcher Einstellung?
 
 - **Seitenformat** (`DIN A4` / `DIN A5`) steuert die Seitengröße im späteren Export.

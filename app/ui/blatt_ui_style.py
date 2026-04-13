@@ -239,6 +239,10 @@ class BlattwerkAppStyleMixin:
             """Show swatch tooltip."""
             self._hide_swatch_tooltip()
 
+            preferences = getattr(self, "user_preferences", {})
+            if not bool(preferences.get("tooltips_enabled", True)):
+                return
+
             tooltip = tk.Toplevel(self.root)
             tooltip.overrideredirect(True)
             tooltip.attributes("-topmost", True)
@@ -336,6 +340,21 @@ class BlattwerkAppStyleMixin:
 
             file_menu.add_separator()
             file_menu.add_command(label="Einstellungen…", command=self._open_local_settings_dialog)
+
+            settings_tabs_menu = tk.Menu(file_menu, tearoff=False)
+            settings_tabs_menu.add_command(label="Allgemein", command=lambda: self._open_local_settings_dialog("general"))
+            settings_tabs_menu.add_command(label="Editor Snippets", command=lambda: self._open_local_settings_dialog("editor_snippets"))
+            settings_tabs_menu.add_command(label="Editor Diagnostik", command=lambda: self._open_local_settings_dialog("editor_diagnostics"))
+            settings_tabs_menu.add_command(label="Ansicht und Layout", command=lambda: self._open_local_settings_dialog("view_layout"))
+            settings_tabs_menu.add_command(label="Design und Theme", command=lambda: self._open_local_settings_dialog("design_theme"))
+            settings_tabs_menu.add_command(label="Export", command=lambda: self._open_local_settings_dialog("export"))
+            settings_tabs_menu.add_command(label="Shortcuts", command=lambda: self._open_local_settings_dialog("shortcuts"))
+            settings_tabs_menu.add_command(label="Identitaet und Copyright", command=lambda: self._open_local_settings_dialog("identity"))
+            settings_tabs_menu.add_command(label="Dokument Defaults", command=lambda: self._open_local_settings_dialog("document_defaults"))
+            settings_tabs_menu.add_command(label="Accessibility", command=lambda: self._open_local_settings_dialog("accessibility"))
+            settings_tabs_menu.add_command(label="Backup", command=lambda: self._open_local_settings_dialog("backup"))
+            file_menu.add_cascade(label="Einstellungen direkt", menu=settings_tabs_menu)
+
             file_menu.add_command(label="Beenden", command=self.root.destroy)
 
             menubar.add_cascade(label="Datei", menu=file_menu)
@@ -438,6 +457,10 @@ class BlattwerkAppStyleMixin:
 
     def _iter_shortcut_menu_labels(self):
             """Liefert deduplizierte Shortcut-Hinweise in definierter Reihenfolge."""
+
+            preferences = getattr(self, "user_preferences", {})
+            if not bool(preferences.get("shortcuts_menu_hints_visible", True)):
+                return
 
             yield from self.shortcut_manager.iter_menu_labels(self.shortcut_bindings)
 

@@ -37,22 +37,55 @@ from ..styles.blatt_styles import invalidate_stylesheet_template_cache
 class BlattwerkAppPreviewMixin:
     """Rendert, skaliert und navigiert die Arbeitsblatt-Vorschau."""
 
-    @staticmethod
-    def _default_markdown_content():
+    def _default_markdown_content(self):
             """Liefert den Standardinhalt für neu erzeugte Markdown-Dateien."""
 
+            preferences = getattr(self, "user_preferences", {})
+            title_prefix = str(preferences.get("new_doc_title_prefix", "") or "").strip()
+            default_subject = str(preferences.get("default_subject", "") or "").strip() or "Fach eintragen"
+            author = str(preferences.get("default_document_author", "") or "").strip()
+            school = str(preferences.get("default_school_name", "") or "").strip()
+            language_variant = str(preferences.get("language_variant", "") or "").strip()
+            date_format = str(preferences.get("date_format", "") or "").strip()
+            worksheet_label = str(preferences.get("worksheet_label", "") or "").strip()
+            default_grade = str(preferences.get("default_grade_level", "") or "").strip()
+            work_emoji_visible = bool(preferences.get("default_work_emoji_visible", True))
+
+            title = "Neues Arbeitsblatt"
+            if title_prefix:
+                title = f"{title_prefix} {title}".strip()
+
+            metadata_lines = [
+                "---",
+                f"Titel: {title}",
+                f"Fach: {default_subject}",
+                "Thema: Thema eintragen",
+            ]
+            if author:
+                metadata_lines.append(f"Autor: {author}")
+            if school:
+                metadata_lines.append(f"Schule: {school}")
+            if default_grade:
+                metadata_lines.append(f"Klassenstufe: {default_grade}")
+            if language_variant:
+                metadata_lines.append(f"Sprache: {language_variant}")
+            if date_format:
+                metadata_lines.append(f"Datumsformat: {date_format}")
+            if worksheet_label:
+                metadata_lines.append(f"LabelAufgaben: {worksheet_label}")
+            if not work_emoji_visible:
+                metadata_lines.append("mode: test")
+            metadata_lines.append("---")
+
             return (
-                "---\n"
-                "Titel: Neues Arbeitsblatt\n"
-                "Fach: Fach eintragen\n"
-                "Thema: Thema eintragen\n"
-                "---\n\n"
-                ":::material title=\"Hinweis\"\n"
-                "Arbeite sauber und lies jede Aufgabe genau.\n"
-                ":::\n\n"
-                ":::task points=2 work=single action=read\n"
-                "Formuliere hier deine erste Aufgabe.\n"
-                ":::\n"
+                "\n".join(metadata_lines)
+                + "\n\n"
+                + ":::material title=\"Hinweis\"\n"
+                + "Arbeite sauber und lies jede Aufgabe genau.\n"
+                + ":::\n\n"
+                + ":::task points=2 work=single action=read\n"
+                + "Formuliere hier deine erste Aufgabe.\n"
+                + ":::\n"
             )
 
     def create_new_markdown_file(self):
@@ -158,6 +191,12 @@ class BlattwerkAppPreviewMixin:
                 temp_pdf_path = Path(tmp.name)
 
             worksheet_design = self._worksheet_design_options()
+            metadata_defaults = {}
+            if hasattr(self, "_metadata_defaults_from_preferences"):
+                metadata_defaults = self._metadata_defaults_from_preferences()
+            copyright_override = None
+            if hasattr(self, "_copyright_text_from_preferences"):
+                copyright_override = self._copyright_text_from_preferences() or None
 
             try:
                 build_worksheet_from_request(
@@ -168,6 +207,8 @@ class BlattwerkAppPreviewMixin:
                         page_format=page_format,
                         print_profile=contrast_profile,
                         design=worksheet_design,
+                        metadata_defaults=metadata_defaults,
+                        copyright_text_override=copyright_override,
                     )
                 )
 

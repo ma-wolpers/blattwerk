@@ -27,6 +27,23 @@ def _raise_on_blocking_diagnostics(diagnostics):
     raise ValueError(f"Dokument enthaelt kritische Fehler und kann nicht gebaut werden:\n{summary}")
 
 
+def _merge_metadata_defaults(meta: dict[str, object], metadata_defaults: dict[str, str] | None):
+    """Merge default metadata values into parsed frontmatter when fields are missing."""
+
+    if not metadata_defaults:
+        return dict(meta)
+
+    merged = dict(meta)
+    for key, value in metadata_defaults.items():
+        text = str(value or "").strip()
+        if not text:
+            continue
+        existing = str(merged.get(key, "") or "").strip()
+        if not existing:
+            merged[key] = text
+    return merged
+
+
 def build_worksheet(
     md_path,
     out_path,
@@ -38,12 +55,14 @@ def build_worksheet(
     font_size_profile="normal",
     diagnostics_out=None,
     block_on_critical=True,
+    metadata_defaults=None,
+    copyright_text_override=None,
 ):
     """Erstellt aus einer Markdown-Datei eine HTML- oder PDF-Ausgabe."""
     md_file = Path(md_path)
     text = md_file.read_text(encoding="utf-8")
     inspected = inspect_markdown_text(text)
-    meta = inspected.meta
+    meta = _merge_metadata_defaults(inspected.meta, metadata_defaults)
     blocks = inspected.blocks
     if block_on_critical:
         _raise_on_blocking_diagnostics(inspected.diagnostics)
@@ -78,7 +97,7 @@ def build_worksheet(
         annotate_pdf_running_elements_with_retry(
             pdf_file,
             meta.get("Titel", "").strip(),
-            get_copyright_text(meta),
+            str(copyright_text_override or get_copyright_text(meta)),
             print_profile=print_profile,
             include_solutions=include_solutions,
         )
@@ -98,13 +117,15 @@ def build_help_cards(
     font_size_profile="normal",
     diagnostics_out=None,
     block_on_critical=True,
+    metadata_defaults=None,
+    copyright_text_override=None,
 ):
     """Erstellt aus Hilfeblöcken einer Markdown-Datei eine HTML- oder PDF-Ausgabe."""
 
     md_file = Path(md_path)
     text = md_file.read_text(encoding="utf-8")
     inspected = inspect_markdown_text(text)
-    meta = inspected.meta
+    meta = _merge_metadata_defaults(inspected.meta, metadata_defaults)
     blocks = inspected.blocks
     if block_on_critical:
         _raise_on_blocking_diagnostics(inspected.diagnostics)
@@ -140,6 +161,14 @@ def build_help_cards(
         return out_file
 
     if suffix == ".pdf":
-        return write_pdf_from_html(html, out_file)
+        pdf_file = write_pdf_from_html(html, out_file)
+        annotate_pdf_running_elements_with_retry(
+            pdf_file,
+            meta.get("Titel", "").strip(),
+            str(copyright_text_override or get_copyright_text(meta)),
+            print_profile=print_profile,
+            include_solutions=include_solutions,
+        )
+        return pdf_file
 
     raise ValueError("Ausgabedatei muss auf .pdf oder .html enden.")

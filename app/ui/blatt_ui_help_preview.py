@@ -190,6 +190,12 @@ class BlattwerkAppHelpPreviewMixin:
     ):
         """Render help pdf pages."""
         worksheet_design = self._worksheet_design_options()
+        metadata_defaults = {}
+        if hasattr(self, "_metadata_defaults_from_preferences"):
+            metadata_defaults = self._metadata_defaults_from_preferences()
+        copyright_override = None
+        if hasattr(self, "_copyright_text_from_preferences"):
+            copyright_override = self._copyright_text_from_preferences() or None
         with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
             temp_pdf_path = Path(tmp.name)
 
@@ -202,6 +208,8 @@ class BlattwerkAppHelpPreviewMixin:
                     page_format=page_format,
                     print_profile=contrast_profile,
                     design=worksheet_design,
+                    metadata_defaults=metadata_defaults,
+                    copyright_text_override=copyright_override,
                 )
             )
 

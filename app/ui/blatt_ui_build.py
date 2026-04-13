@@ -344,6 +344,12 @@ class BlattwerkAppBuildMixin:
             group.grid_forget()
 
         main_group.grid(row=0, column=0, sticky="w")
+
+        if not bool(getattr(self, "_responsive_controls_wrap_enabled", True)):
+            for index, group in enumerate(optional_groups, start=1):
+                group.grid(row=0, column=index, sticky="w", padx=(gap_px, 0), pady=(0, 0))
+            return
+
         current_row = 0
         current_col = 1
         used_width = main_group.winfo_reqwidth()

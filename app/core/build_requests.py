@@ -38,6 +38,8 @@ class WorksheetBuildRequest:
         font_profile="segoe",
         font_size_profile="normal",
     )
+    metadata_defaults: dict[str, str] | None = None
+    copyright_text_override: str | None = None
 
 
 @dataclass(frozen=True)
@@ -54,6 +56,8 @@ class HelpCardsBuildRequest:
         font_profile="segoe",
         font_size_profile="normal",
     )
+    metadata_defaults: dict[str, str] | None = None
+    copyright_text_override: str | None = None
 
 
 def build_worksheet_from_request(request: WorksheetBuildRequest):
@@ -65,6 +69,8 @@ def build_worksheet_from_request(request: WorksheetBuildRequest):
         include_solutions=request.include_solutions,
         page_format=request.page_format,
         print_profile=request.print_profile,
+        metadata_defaults=request.metadata_defaults,
+        copyright_text_override=request.copyright_text_override,
         **request.design.as_kwargs(),
     )
 
@@ -78,5 +84,7 @@ def build_help_cards_from_request(request: HelpCardsBuildRequest):
         include_solutions=request.include_solutions,
         page_format=request.page_format,
         print_profile=request.print_profile,
+        metadata_defaults=request.metadata_defaults,
+        copyright_text_override=request.copyright_text_override,
         **request.design.as_kwargs(),
     )

@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from pathlib import Path
+from datetime import datetime
 import re
+import shutil
 import tkinter as tk
 from tkinter import messagebox, ttk
 
@@ -125,17 +127,20 @@ class BlattwerkAppEditorMixin:
         self.editor_widget.configure(yscrollcommand=self.editor_vertical_scrollbar.set)
         self.editor_widget.bind("<<Modified>>", self._on_editor_modified)
         self.editor_widget.bind("<KeyRelease>", self._on_editor_key_release)
-        self.editor_widget.bind("<Control-space>", self._on_editor_completion_trigger)
-        self.editor_widget.bind("<Control-Shift-period>", self._on_editor_insert_triple_pair)
-        self.editor_widget.bind("<Control-colon>", self._on_editor_insert_triple_pair)
-        self.editor_widget.bind("<Escape>", self._on_editor_escape)
-        self.editor_widget.bind("<Tab>", self._on_editor_tab)
-        self.editor_widget.bind("<Shift-Tab>", self._on_editor_shift_tab)
-        self.editor_widget.bind("<ISO_Left_Tab>", self._on_editor_shift_tab)
-        self.editor_widget.bind("<Up>", self._on_editor_completion_move_up)
-        self.editor_widget.bind("<Down>", self._on_editor_completion_move_down)
-        self.editor_widget.bind("<Return>", self._on_editor_completion_enter)
         self.editor_widget.bind("<Button-1>", self._on_editor_mouse_click)
+
+        preferences = getattr(self, "user_preferences", {})
+        if bool(preferences.get("shortcuts_editor_group_enabled", True)):
+            self.editor_widget.bind("<Control-space>", self._on_editor_completion_trigger)
+            self.editor_widget.bind("<Control-Shift-period>", self._on_editor_insert_triple_pair)
+            self.editor_widget.bind("<Control-colon>", self._on_editor_insert_triple_pair)
+            self.editor_widget.bind("<Escape>", self._on_editor_escape)
+            self.editor_widget.bind("<Tab>", self._on_editor_tab)
+            self.editor_widget.bind("<Shift-Tab>", self._on_editor_shift_tab)
+            self.editor_widget.bind("<ISO_Left_Tab>", self._on_editor_shift_tab)
+            self.editor_widget.bind("<Up>", self._on_editor_completion_move_up)
+            self.editor_widget.bind("<Down>", self._on_editor_completion_move_down)
+            self.editor_widget.bind("<Return>", self._on_editor_completion_enter)
 
         diagnostics_frame = ttk.LabelFrame(parent, text="Diagnostik")
         diagnostics_frame.pack(fill="x", padx=8, pady=(0, 8))
@@ -168,6 +173,8 @@ class BlattwerkAppEditorMixin:
         outline_frame = ttk.LabelFrame(parent, text="Struktur")
         outline_frame.pack(fill="x", padx=8, pady=(0, 8))
         outline_frame.columnconfigure(0, weight=1)
+        if not bool(preferences.get("outline_visible_on_start", True)):
+            outline_frame.pack_forget()
 
         self.editor_outline_listbox = tk.Listbox(
             outline_frame,
@@ -256,6 +263,28 @@ class BlattwerkAppEditorMixin:
         content = self.editor_widget.get("1.0", "end-1c")
         try:
             self.status_var.set("Speichert…")
+            preferences = getattr(self, "user_preferences", {})
+            if bool(preferences.get("backup_on_save", False)) and input_path.exists():
+                keep_versions = int(str(preferences.get("backup_versions_keep", 3) or 3))
+                keep_versions = max(1, min(50, keep_versions))
+                backup_dir = input_path.parent / "backup_pre_migration"
+                backup_dir.mkdir(parents=True, exist_ok=True)
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                backup_name = f"{input_path.stem}_{timestamp}{input_path.suffix}"
+                backup_path = backup_dir / backup_name
+                shutil.copy2(input_path, backup_path)
+
+                backup_files = sorted(
+                    backup_dir.glob(f"{input_path.stem}_*{input_path.suffix}"),
+                    key=lambda path: path.stat().st_mtime,
+                    reverse=True,
+                )
+                for stale_file in backup_files[keep_versions:]:
+                    try:
+                        stale_file.unlink()
+                    except Exception:
+                        pass
+
             input_path.write_text(content, encoding="utf-8")
             self._record_editor_manual_block_type_usage(content)
             self.status_var.set("Gespeichert")
@@ -437,6 +466,10 @@ class BlattwerkAppEditorMixin:
     def _queue_editor_diagnostics(self, immediate: bool = False):
         """Schedules a debounced diagnostics refresh for current editor text."""
 
+        preferences = getattr(self, "user_preferences", {})
+        if not bool(preferences.get("diagnostics_live_enabled", True)) and not immediate:
+            return
+
         if self.editor_widget is None:
             return
 
@@ -589,7 +622,17 @@ class BlattwerkAppEditorMixin:
     def _set_editor_diagnostics(self, items):
         """Renders diagnostics into listbox and colored line tags."""
 
-        self._editor_diagnostics_items = list(items)
+        preferences = getattr(self, "user_preferences", {})
+        threshold = str(preferences.get("diagnostics_severity_threshold", "warning"))
+        threshold_rank = {"error": 2, "warning": 1, "info": 0}
+        min_rank = threshold_rank.get(threshold, 1)
+        filtered_items = []
+        for item in items:
+            severity = str(item.get("severity", "warning"))
+            if threshold_rank.get(severity, 1) >= min_rank:
+                filtered_items.append(item)
+
+        self._editor_diagnostics_items = list(filtered_items)
 
         if self.editor_widget is not None:
             self.editor_widget.tag_remove("diag_warning", "1.0", "end")
@@ -607,6 +650,8 @@ class BlattwerkAppEditorMixin:
             last_line = int(self.editor_widget.index("end-1c").split(".")[0] or 1)
             for line, severity in line_severity.items():
                 safe_line = max(1, min(int(line), max(1, last_line)))
+                if severity != "error" and not bool(preferences.get("syntax_warning_highlight_enabled", True)):
+                    continue
                 tag_name = "diag_error" if severity == "error" else "diag_warning"
                 start = f"{safe_line}.0"
                 end = f"{safe_line}.0 lineend+1c"
@@ -685,9 +730,23 @@ class BlattwerkAppEditorMixin:
             self._refresh_editor_block_pair_highlight()
             return
 
-        trigger_chars = {"_", ":", "=", " "}
+        preferences = getattr(self, "user_preferences", {})
+        if not bool(preferences.get("snippets_auto_enabled", True)):
+            self._refresh_editor_block_pair_highlight()
+            return
+
+        trigger_chars = {"_", " "}
+        if bool(preferences.get("snippet_trigger_colon", True)):
+            trigger_chars.add(":")
+        if bool(preferences.get("snippet_trigger_equals", True)):
+            trigger_chars.add("=")
+
+        trigger_keys = {"BackSpace"}
+        if bool(preferences.get("snippet_trigger_enter", True)):
+            trigger_keys.add("Return")
+
         should_trigger = (
-            event.keysym in {"BackSpace", "Return"}
+            event.keysym in trigger_keys
             or bool(event.char and (event.char.isalnum() or event.char in trigger_chars))
         )
 
@@ -731,14 +790,16 @@ class BlattwerkAppEditorMixin:
 
         if self._editor_completion_items:
             return self._on_editor_completion_accept()
-        if self._editor_snippet_placeholders:
+        preferences = getattr(self, "user_preferences", {})
+        if self._editor_snippet_placeholders and bool(preferences.get("snippet_tabstop_navigation", True)):
             return self._advance_editor_snippet_placeholder(step=1)
         return None
 
     def _on_editor_shift_tab(self, _event=None):
         """Moves to previous snippet placeholder when session is active."""
 
-        if self._editor_snippet_placeholders:
+        preferences = getattr(self, "user_preferences", {})
+        if self._editor_snippet_placeholders and bool(preferences.get("snippet_tabstop_navigation", True)):
             return self._advance_editor_snippet_placeholder(step=-1)
         return None
 
@@ -846,7 +907,18 @@ class BlattwerkAppEditorMixin:
 
         self._editor_completion_items = list(suggestions)
         width_chars = max((len(item["label"]) for item in self._editor_completion_items), default=40)
-        self._editor_completion_listbox.configure(width=min(110, max(46, width_chars + 2)))
+        preferences = getattr(self, "user_preferences", {})
+        popup_width_mode = str(preferences.get("snippet_popup_width_mode", "wide") or "wide")
+        if popup_width_mode == "compact":
+            min_width = 32
+            max_width = 72
+        elif popup_width_mode == "normal":
+            min_width = 40
+            max_width = 90
+        else:
+            min_width = 46
+            max_width = 110
+        self._editor_completion_listbox.configure(width=min(max_width, max(min_width, width_chars + 2)))
         self._editor_completion_listbox.configure(height=min(8, len(self._editor_completion_items)))
         self._editor_completion_listbox.delete(0, "end")
         for item in self._editor_completion_items:
@@ -871,6 +943,11 @@ class BlattwerkAppEditorMixin:
         """Derives completion candidates from current line and cursor context."""
 
         if self.editor_widget is None:
+            return None
+
+        preferences = getattr(self, "user_preferences", {})
+        completion_context_mode = str(preferences.get("completion_context_sources", "smart") or "smart")
+        if auto and completion_context_mode == "manual_only":
             return None
 
         insert_index = self.editor_widget.index("insert")
@@ -1063,12 +1140,13 @@ class BlattwerkAppEditorMixin:
         if auto and not active_contexts:
             return None
 
-        if auto and (in_block_header or "option_value" in active_contexts):
+        allow_aggressive_auto = completion_context_mode == "all"
+        if auto and (in_block_header or "option_value" in active_contexts) and not allow_aggressive_auto:
             return None
 
         snippet_items = []
         for snippet in _COMPLETION_SNIPPETS:
-            if auto and bool(snippet.get("manual_only")):
+            if auto and bool(snippet.get("manual_only")) and completion_context_mode != "all":
                 continue
             if token_prefix and not snippet["label"].lower().startswith(token_prefix.lower()):
                 continue
@@ -1520,13 +1598,38 @@ class BlattwerkAppEditorMixin:
 
         start_index = self.editor_widget.index(start_mark)
         end_index = self.editor_widget.index(end_mark)
+        preferences = getattr(self, "user_preferences", {})
+        highlight_enabled = bool(preferences.get("snippet_field_highlight_enabled", True))
+        highlight_ms = int(str(preferences.get("snippet_field_highlight_ms", 600) or 600))
+        highlight_ms = max(100, min(5000, highlight_ms))
+
         self.editor_widget.tag_remove(tk.SEL, "1.0", "end")
         self.editor_widget.tag_remove("snippet_active", "1.0", "end")
         self.editor_widget.tag_add(tk.SEL, start_index, end_index)
-        self.editor_widget.tag_add("snippet_active", start_index, end_index)
+        if highlight_enabled:
+            self.editor_widget.tag_add("snippet_active", start_index, end_index)
+
+            pending_id = getattr(self, "_editor_snippet_highlight_after_id", None)
+            if pending_id is not None:
+                try:
+                    self.root.after_cancel(pending_id)
+                except Exception:
+                    pass
+            self._editor_snippet_highlight_after_id = self.root.after(
+                highlight_ms,
+                self._clear_editor_snippet_active_tag,
+            )
         self.editor_widget.mark_set("insert", end_index)
         self.editor_widget.see(start_index)
         self.editor_widget.focus_set()
+
+    def _clear_editor_snippet_active_tag(self):
+        """Removes transient snippet highlight tag after configured timeout."""
+
+        self._editor_snippet_highlight_after_id = None
+        if self.editor_widget is None:
+            return
+        self.editor_widget.tag_remove("snippet_active", "1.0", "end")
 
     def _advance_editor_snippet_placeholder(self, step: int):
         """Moves placeholder selection forward/backward in active snippet session."""
@@ -1580,6 +1683,9 @@ class BlattwerkAppEditorMixin:
         before_start = self.editor_widget.compare(insert_index, "<", start_index)
         after_end = self.editor_widget.compare(insert_index, ">", end_index)
         if before_start or after_end:
+            preferences = getattr(self, "user_preferences", {})
+            if not bool(preferences.get("snippet_auto_finish_on_flow_leave", True)):
+                return
             self._clear_editor_snippet_session()
             return
 
@@ -1860,6 +1966,9 @@ class BlattwerkAppEditorMixin:
         """Starts a guarded retry cycle to place the splitter in the middle."""
 
         self._equal_split_attempts = 0
+        if bool(getattr(self, "_reduce_motion", False)):
+            self._set_equal_split()
+            return
         self.root.after_idle(self._set_equal_split)
 
     def _set_equal_split(self):
@@ -1874,19 +1983,26 @@ class BlattwerkAppEditorMixin:
 
         total_width = self.editor_preview_paned.winfo_width()
         if total_width <= 80:
+            if bool(getattr(self, "_reduce_motion", False)):
+                return
             if self._equal_split_attempts < 10:
                 self._equal_split_attempts += 1
                 self.root.after(30, self._set_equal_split)
             return
 
         try:
-            split_x = max(1, total_width // 2)
+            preferences = getattr(self, "user_preferences", {})
+            split_ratio = float(preferences.get("startup_split_ratio", 0.5) or 0.5)
+            split_ratio = max(0.2, min(0.8, split_ratio))
+            split_x = max(1, int(total_width * split_ratio))
             if hasattr(self.editor_preview_paned, "sashpos"):
                 self.editor_preview_paned.sashpos(0, split_x)
             else:
                 self.editor_preview_paned.sash_place(0, split_x, 1)
             self._equal_split_attempts = 0
         except tk.TclError:
+            if bool(getattr(self, "_reduce_motion", False)):
+                return
             if self._equal_split_attempts < 10:
                 self._equal_split_attempts += 1
                 self.root.after(30, self._set_equal_split)
