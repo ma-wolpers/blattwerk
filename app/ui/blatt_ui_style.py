@@ -512,6 +512,8 @@ class BlattwerkAppStyleMixin:
                     x_view_start=x_view_start,
                     y_view_start=y_view_start,
                 )
+            if hasattr(self, "_persist_active_document_tab_state"):
+                self._persist_active_document_tab_state()
 
     def set_preview_layout_mode(self, layout_mode):
             """Schaltet zwischen Einzelseite und Seitenband um."""
@@ -522,3 +524,5 @@ class BlattwerkAppStyleMixin:
             self.preview_layout_mode_var.set(layout_mode)
             if self.preview_images:
                 self._show_current_page(reset_scroll=True)
+            if hasattr(self, "_persist_active_document_tab_state"):
+                self._persist_active_document_tab_state()

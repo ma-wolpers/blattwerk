@@ -37,6 +37,35 @@ from ..styles.blatt_styles import invalidate_stylesheet_template_cache
 class BlattwerkAppPreviewMixin:
     """Rendert, skaliert und navigiert die Arbeitsblatt-Vorschau."""
 
+    def _build_preview_cache_key(self, input_path: Path, include_solutions: bool, page_format: str, contrast_profile: str):
+            """Builds a deterministic cache key for rendered preview pages."""
+
+            stats = input_path.stat()
+            return (
+                str(input_path),
+                int(getattr(stats, "st_mtime_ns", int(stats.st_mtime * 1_000_000_000))),
+                int(stats.st_size),
+                bool(include_solutions),
+                str(page_format),
+                str(contrast_profile),
+                str(self.design_color_profile_var.get()),
+                str(self.design_font_profile_var.get()),
+                str(self.design_font_size_profile_var.get()),
+            )
+
+    def _active_document_tab_state(self):
+            """Returns mutable state dict for the currently active tab when available."""
+
+            tab_id = getattr(self, "_active_document_tab_id", None)
+            if tab_id is None:
+                return None
+            return self.document_tabs.get(tab_id)
+
+    def _refresh_preview_for_active_tab(self):
+            """Refreshes active tab preview while favoring cached pages when possible."""
+
+            self.refresh_preview(force_rebuild=False)
+
     def _default_markdown_content(self):
             """Liefert den Standardinhalt für neu erzeugte Markdown-Dateien."""
 
@@ -283,7 +312,7 @@ class BlattwerkAppPreviewMixin:
                 except Exception:
                     pass
 
-    def refresh_preview(self):
+    def refresh_preview(self, force_rebuild=False):
             """Lädt die Vorschau neu, z. B. nach Änderungen an der Markdown-Datei."""
 
             input_path = self._validate_input()
@@ -293,6 +322,43 @@ class BlattwerkAppPreviewMixin:
             include_solutions = self.preview_mode_var.get() == "solution"
             page_format = self.preview_page_format_var.get()
             contrast_profile = self.preview_contrast_var.get()
+            tab_state = self._active_document_tab_state()
+
+            cache_key = None
+            if tab_state is not None:
+                try:
+                    cache_key = self._build_preview_cache_key(input_path, include_solutions, page_format, contrast_profile)
+                except Exception:
+                    cache_key = None
+
+            cached_images = tab_state.get("preview_images") if isinstance(tab_state, dict) else None
+            if (
+                not force_rebuild
+                and tab_state is not None
+                and cache_key is not None
+                and tab_state.get("preview_cache_key") == cache_key
+                and isinstance(cached_images, list)
+                and bool(cached_images)
+            ):
+                self.preview_images = cached_images
+                self._last_preview_input_path = input_path
+                self.current_page_index = max(
+                    0,
+                    min(int(tab_state.get("current_page_index", 0)), len(self.preview_images) - 1),
+                )
+                self.zoom_percent = int(str(tab_state.get("zoom_percent", self.zoom_percent) or self.zoom_percent))
+                x_view_start = float(tab_state.get("x_view_start", 0.0) or 0.0)
+                y_view_start = float(tab_state.get("y_view_start", 0.0) or 0.0)
+
+                self._show_current_page(
+                    reset_scroll=False,
+                    x_view_start=x_view_start,
+                    y_view_start=y_view_start,
+                )
+                self._refresh_zoom_label()
+                self.status_var.set("Vorschau aus Cache geladen")
+                self._update_nav_buttons()
+                return
 
             preserve_position = self._last_preview_input_path == input_path and bool(self.preview_images)
             previous_page_index = self.current_page_index
@@ -305,6 +371,10 @@ class BlattwerkAppPreviewMixin:
                 self._show_document_diagnostics(input_path, "Vorschau")
                 self.preview_images = self._render_pdf_pages(input_path, include_solutions, page_format, contrast_profile)
                 self._last_preview_input_path = input_path
+
+                if tab_state is not None and cache_key is not None:
+                    tab_state["preview_cache_key"] = cache_key
+                    tab_state["preview_images"] = list(self.preview_images)
 
                 if self.preview_images:
                     self.current_page_index = min(previous_page_index, len(self.preview_images) - 1) if preserve_position else 0
@@ -330,6 +400,8 @@ class BlattwerkAppPreviewMixin:
                 self.status_var.set("Fehler in der Vorschau")
                 messagebox.showerror("Fehler", f"Vorschau konnte nicht erstellt werden:\n{error}")
 
+            if hasattr(self, "_persist_active_document_tab_state"):
+                self._persist_active_document_tab_state()
             self._update_nav_buttons()
 
     def _get_preview_frame_size(self):
@@ -537,12 +609,16 @@ class BlattwerkAppPreviewMixin:
 
             self.preview_canvas.yview(*args)
             self._update_current_page_from_viewport_center()
+            if hasattr(self, "_persist_active_document_tab_state"):
+                self._persist_active_document_tab_state()
 
     def _on_horizontal_scrollbar(self, *args):
             """Leitet Scrollbar-Scroll weiter und aktualisiert aktive Seite."""
 
             self.preview_canvas.xview(*args)
             self._update_current_page_from_viewport_center()
+            if hasattr(self, "_persist_active_document_tab_state"):
+                self._persist_active_document_tab_state()
 
     def _update_nav_buttons(self):
             """Update nav buttons."""
@@ -561,6 +637,8 @@ class BlattwerkAppPreviewMixin:
             self._refresh_zoom_label()
             if self.preview_images:
                 self._show_current_page()
+            if hasattr(self, "_persist_active_document_tab_state"):
+                self._persist_active_document_tab_state()
 
     @staticmethod
     def _wheel_direction(event):
@@ -600,6 +678,8 @@ class BlattwerkAppPreviewMixin:
                 self.preview_canvas.yview_scroll(scroll_units, "units")
 
             self._update_current_page_from_viewport_center()
+            if hasattr(self, "_persist_active_document_tab_state"):
+                self._persist_active_document_tab_state()
 
             return "break"
 
@@ -610,6 +690,8 @@ class BlattwerkAppPreviewMixin:
             self._refresh_zoom_label()
             if self.preview_images:
                 self._show_current_page()
+            if hasattr(self, "_persist_active_document_tab_state"):
+                self._persist_active_document_tab_state()
 
     def prev_page(self):
             """Prev page."""
@@ -622,6 +704,8 @@ class BlattwerkAppPreviewMixin:
             else:
                 self._show_current_page()
                 self._update_nav_buttons()
+            if hasattr(self, "_persist_active_document_tab_state"):
+                self._persist_active_document_tab_state()
 
     def next_page(self):
             """Next page."""
@@ -634,3 +718,5 @@ class BlattwerkAppPreviewMixin:
             else:
                 self._show_current_page()
                 self._update_nav_buttons()
+            if hasattr(self, "_persist_active_document_tab_state"):
+                self._persist_active_document_tab_state()

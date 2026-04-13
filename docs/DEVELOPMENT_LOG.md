@@ -9,6 +9,12 @@ Regel:
 ## [Unreleased]
 
 ### Changed
+- Vorschau-/Editor-Workflow auf dokumentorientierte Tab-Leiste erweitert: mehrere Markdown-Dateien koennen gleichzeitig offen sein und beim Tab-Wechsel werden Format-/Gestaltungs- sowie Vorschaueinstellungen pro Dokument isoliert wiederhergestellt.
+- Tab-Wechsel stellt nun auch den Ansichtszustand pro Dokument wieder her (Zoom, aktive Seite, vertikale/horizontale Scrollposition).
+- Vorschau-Pipeline um tab-lokalen Cache erweitert: bei unveraenderter Datei und unveraenderten Render-Optionen wird beim Tab-Wechsel aus Cache geladen statt sofort neu zu kompilieren.
+- Oeffnen-Pfade (Dateidialog, Recent-Menue, Shortcut `Z`) auf zentralen Dokument-Dispatcher umgestellt; bereits geoeffnete Dateien werden nicht doppelt geoeffnet, melden stattdessen "ist schon offen" und fokussieren den vorhandenen Tab.
+- `Z` oeffnet jetzt das juengste noch nicht geoeffnete Markdown aus der Recent-Liste und ueberspringt bereits offene Eintraege.
+- Vorschau-Headerzeilen "Blattwerk Vorschau" und "Markdown laden, Vorschau pruefen, danach gezielt exportieren." aus dem Vorschaubereich entfernt; Fenstertitel lautet nun "Blattwerk".
 - Cloze-Renderer erweitert: neue Option `words_multi` (Standard `true`) steuert, ob identische Loesungswoerter in der Wortbank mehrfach oder dedupliziert angezeigt werden.
 - Completion-Einstellungen terminologisch hart umgestellt: `snippet_*`/`snippets_*` durch `completion_*` ersetzt; obsolete Snippet-Only-Settings entfernt.
 - `completion_catalogs` ergänzt Value-Kataloge jetzt automatisch aus Core-`KNOWN_*`-Konstanten statt fester Handliste.

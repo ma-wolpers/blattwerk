@@ -83,6 +83,21 @@ class BlattwerkAppBuildMixin:
             command=lambda: self._set_editor_view_mode(EDITOR_VIEW_EDITOR_ONLY),
         ).pack(side="left", padx=(8, 0))
 
+        tab_row = ttk.Frame(outer)
+        tab_row.pack(fill="x", pady=(0, 8))
+        ttk.Label(tab_row, text="Dokumente:", width=16).pack(side="left")
+
+        self.document_notebook = ttk.Notebook(tab_row)
+        self.document_notebook.pack(side="left", fill="x", expand=True)
+        self.document_notebook.bind("<<NotebookTabChanged>>", self._on_document_tab_changed)
+
+        ttk.Button(
+            tab_row,
+            text="Tab schließen",
+            command=self.close_active_document_tab,
+            style="SecondaryAction.TButton",
+        ).pack(side="left", padx=(8, 0))
+
         self.editor_preview_paned = tk.PanedWindow(
             outer,
             orient="horizontal",
@@ -100,12 +115,6 @@ class BlattwerkAppBuildMixin:
 
         preview_controls = ttk.Frame(self.preview_container, padding=8)
         preview_controls.pack(fill="x")
-
-        ttk.Label(preview_controls, text="Blattwerk Vorschau", font=("Segoe UI", 14, "bold")).pack(anchor="w")
-        ttk.Label(
-            preview_controls,
-            text="Markdown laden, Vorschau prüfen, danach gezielt exportieren.",
-        ).pack(anchor="w", pady=(2, 10))
 
         self._responsive_sections = []
 

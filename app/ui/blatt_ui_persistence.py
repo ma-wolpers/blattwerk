@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from tkinter import messagebox
+from tkinter import messagebox, ttk
 
 from .ui_theme import normalize_theme_key
 from ..storage.local_config_store import (
@@ -37,6 +37,108 @@ from .settings_dialog import SettingsDialog
 
 class BlattwerkAppPersistenceMixin:
     """Verwaltet Persistenz für Verlauf, Dialogpfade und UI-Einstellungen."""
+
+    def _find_open_tab_id_for_path(self, input_path: Path):
+            """Returns the notebook tab id for a currently open document path."""
+
+            normalized_path = self._normalize_document_path(input_path)
+            return self._document_tab_path_index.get(normalized_path)
+
+    def _create_document_tab(self, input_path: Path):
+            """Creates a new notebook tab and state entry for the provided file path."""
+
+            if self.document_notebook is None:
+                return None
+
+            normalized_path = self._normalize_document_path(input_path)
+            tab_title = Path(normalized_path).name
+            container = ttk.Frame(self.document_notebook)
+            self.document_notebook.add(container, text=tab_title)
+            tab_id = self.document_notebook.tabs()[-1]
+
+            state = self._build_document_tab_state(Path(normalized_path))
+            self.document_tabs[tab_id] = state
+            self._document_tab_order.append(tab_id)
+            self._document_tab_path_index[normalized_path] = tab_id
+            return tab_id
+
+    def _clear_active_document_view(self):
+            """Resets editor and preview when no document tab remains open."""
+
+            self.input_var.set("")
+            self.preview_images = []
+            self.current_page_index = 0
+            self._clear_preview_image_items()
+            self.preview_canvas.itemconfig(self.preview_text_item, text="Noch keine Vorschau geladen.")
+            self.preview_canvas.coords(self.preview_text_item, 40, 40)
+            self.preview_canvas.config(scrollregion=(0, 0, 600, 400))
+            self.page_info_var.set("Seite 0/0")
+            self.zoom_info_var.set("Zoom: 100%")
+            self._update_nav_buttons()
+            if self.editor_widget is not None:
+                self._editor_loading_content = True
+                try:
+                    self.editor_widget.delete("1.0", "end")
+                    self.editor_widget.edit_modified(False)
+                finally:
+                    self._editor_loading_content = False
+
+    def close_active_document_tab(self):
+            """Closes the currently selected document tab and restores another tab if available."""
+
+            if self.document_notebook is None:
+                return
+
+            tab_id = self.document_notebook.select()
+            if not tab_id:
+                return
+
+            tab_state = self.document_tabs.pop(tab_id, None)
+            if tab_state is not None:
+                tab_path = tab_state.get("path")
+                if isinstance(tab_path, str):
+                    self._document_tab_path_index.pop(tab_path, None)
+            self._document_tab_order = [item for item in self._document_tab_order if item != tab_id]
+
+            self._tab_switch_in_progress = True
+            try:
+                self.document_notebook.forget(tab_id)
+            finally:
+                self._tab_switch_in_progress = False
+
+            remaining_tabs = self.document_notebook.tabs()
+            if not remaining_tabs:
+                self._active_document_tab_id = None
+                self._clear_active_document_view()
+                self.status_var.set("Kein Dokument geöffnet")
+                return
+
+            next_tab_id = remaining_tabs[0]
+            self._activate_document_tab(next_tab_id, apply_state=True)
+
+    def _open_most_recent_not_open_file(self) -> bool:
+            """Opens the newest recent file that is not already opened in a tab."""
+
+            stale_entries = []
+            for path_text in list(getattr(self, "recent_files", [])):
+                file_path = resolve_recent_path(path_text)
+                if not file_path.exists():
+                    stale_entries.append(path_text)
+                    continue
+
+                if self._find_open_tab_id_for_path(file_path) is not None:
+                    continue
+
+                self._open_input_path(file_path, add_recent=True, show_duplicate_message=False)
+                if stale_entries:
+                    for stale_entry in stale_entries:
+                        self._remove_recent_file(stale_entry)
+                return True
+
+            if stale_entries:
+                for stale_entry in stale_entries:
+                    self._remove_recent_file(stale_entry)
+            return False
 
     def _open_local_settings_dialog(self, initial_tab: str | None = None):
             """Öffnet den zentralen tab-basierten Einstellungsdialog."""
@@ -270,15 +372,34 @@ class BlattwerkAppPersistenceMixin:
             self._save_recent_files()
             self._refresh_recent_menu()
 
-    def _open_input_path(self, input_path: Path, add_recent=True):
-            """Setzt Eingabedatei, lädt Vorschau und optional Verlaufseintrag."""
+    def _open_input_path(self, input_path: Path, add_recent=True, show_duplicate_message=True):
+            """Öffnet ein Markdown-Dokument in eigenem Tab oder fokussiert den vorhandenen Tab."""
 
-            self.input_var.set(str(input_path))
-            self._load_editor_content(input_path)
-            self._warn_if_bw_mode_has_color_mentions()
-            self.refresh_preview()
+            normalized_path = Path(self._normalize_document_path(input_path))
+            existing_tab_id = self._find_open_tab_id_for_path(normalized_path)
+            if existing_tab_id is not None:
+                self._activate_document_tab(existing_tab_id, apply_state=True)
+                if show_duplicate_message:
+                    messagebox.showwarning(
+                        "Bereits geöffnet",
+                        f"Die Datei ist schon offen:\n{normalized_path}",
+                    )
+                self.status_var.set(f"Datei ist schon offen: {normalized_path.name}")
+                return False
+
+            self._persist_active_document_tab_state()
+
+            tab_id = self._create_document_tab(normalized_path)
+            if tab_id is None:
+                self.status_var.set("Dokument-Tab konnte nicht erstellt werden")
+                return False
+
+            self._activate_document_tab(tab_id, apply_state=False)
+            self._active_document_tab_id = tab_id
+            self._apply_document_tab_state(tab_id)
             if add_recent:
-                self._add_recent_file(input_path)
+                self._add_recent_file(normalized_path)
+            return True
 
     def _open_recent_file(self, path_text: str):
             """Öffnet eine Datei aus der Verlaufsliste oder entfernt ungültige Einträge."""
@@ -292,7 +413,7 @@ class BlattwerkAppPersistenceMixin:
                 self._remove_recent_file(path_text)
                 return
 
-            self._open_input_path(file_path, add_recent=True)
+            self._open_input_path(file_path, add_recent=True, show_duplicate_message=True)
 
     def _get_initial_dialog_dir(self, purpose: str):
             """Get initial dialog dir."""

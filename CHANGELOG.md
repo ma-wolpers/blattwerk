@@ -7,6 +7,12 @@ The format is based on Keep a Changelog.
 ## [Unreleased]
 
 ### Changed
+- Blattwerk now supports multiple open markdown documents via tabs in the main window, with per-document preview settings (for example task/solution mode, DIN format, contrast, and design profile) restored on tab switch.
+- Tab switches now also restore per-document view position (zoom level, active page, horizontal/vertical scroll position).
+- Preview switching between tabs now reuses cached preview pages when the source file and render options are unchanged, avoiding unnecessary recompilation.
+- Opening a markdown file that is already open no longer creates a duplicate tab: Blattwerk now shows an "ist schon offen" warning and focuses the existing tab.
+- `Z` now opens the newest recent markdown that is not already open, skipping already-open entries instead of repeatedly reopening only the latest one.
+- The preview heading texts "Blattwerk Vorschau" and "Markdown laden, Vorschau prüfen, danach gezielt exportieren." were removed, and the window title is now "Blattwerk".
 - Cloze answer blocks now support `words_multi` (default `true`) to control whether duplicate solution words appear multiple times in the word bank or only once.
 - Completion preference names are now consistently `completion_*`; legacy snippet-oriented preference keys were removed.
 - Option value catalogs for completion are now discovered automatically from core `KNOWN_*` constants.

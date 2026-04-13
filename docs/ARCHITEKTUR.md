@@ -40,6 +40,11 @@ Zusätzliche Kern-Usecases:
 
 UI-Zuschnitt im Hauptfenster:
 - Die Hauptansicht verwendet ein horizontales Paned-Layout mit zwei Bereichen: links Schreibbereich, rechts Vorschau.
+- Oberhalb des Paned-Layouts fuehrt die UI eine dokumentorientierte Tab-Leiste; jedes geoeffnete Markdown wird als eigener Tab verwaltet.
+- Der tab-lokale View-State (u. a. Aufgabe/Loesung, DIN A4/A5, Kontrast/Farbprofil/Schrift, Layout/Fit) liegt in `app/ui` und wird beim Tab-Wechsel explizit geladen/gesichert.
+- Der tab-lokale View-State umfasst ebenfalls Zoom, aktive Seite und Canvas-Scrollposition (x/y), damit der Ansichtskontext pro Dokument erhalten bleibt.
+- Alle Oeffnungspfade (Dateidialog, Recent-Menue, Shortcut `Z`) laufen ueber einen zentralen Open-Dispatcher in `app/ui`; bei bereits offenen Dateien fokussiert die UI den vorhandenen Tab statt eine zweite Instanz zu erstellen.
+- Die Vorschau verwendet tab-lokale Cache-Keys aus Dateistand plus Render-Optionen; unveraenderte Tab-Wechsel nutzen den Cache ohne erneuten Build.
 - Sichtbarkeit ist ein expliziter View-State (`preview_only`, `both`, `editor_only`) in der UI-Schicht.
 - Der Schreibbereich speichert Markdown-Aenderungen debounced direkt auf Dateiebene (UTF-8), ohne automatische Vorschau-Aktualisierung.
 - Der Schreibbereich nutzt die Validator-API aus `app/core` direkt fuer debounced Live-Diagnostik; die UI mappt nur auf Zeilenmarkierung und Navigationsliste.

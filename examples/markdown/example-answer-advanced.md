@@ -19,7 +19,7 @@ Empfohlener Testlauf in der UI:
 Achte dabei besonders auf:
 
 - Overlay-Verhalten bei `lines`, `dots`, `grid`
-- `{{...}}`-Markierungen in `table`-Zellen
+- `%{...}`-Markierungen in `table`-Zellen
 - markerbasierte Sichtbarkeit bei Grid- und Numberline-Elementen (`show: "§"|"%"|"&"`)
 - Zahlengeraden mit `labels` und `answers`
 :::
@@ -120,15 +120,15 @@ answers:
 ---
 
 :::task points=5 work=partner action=exchange
-Vervollständigt die Tabelle. Inhalte in `{{...}}` sind nur für die Lösung gedacht.
+Vervollständigt die Tabelle. Inhalte in `%{...}` sind nur für die Lösung gedacht.
 :::
 
 :::answer type=table rows=5 cols=3 row_height=1.8cm headers="Signal|Bauteil|Funktion"
 cells:
-  - ["Taster", "Eingabe", "{{startet den Stromkreis}}"]
-  - ["LED", "Ausgabe", "{{zeigt den Zustand an}}"]
+  - ["Taster", "Eingabe", "%{startet den Stromkreis}"]
+  - ["LED", "Ausgabe", "%{zeigt den Zustand an}"]
   - ["", "Widerstand", "begrenzt Strom"]
-  - ["Sensor", "{{Eingabe}}", "liefert Messwert"]
+  - ["Sensor", "%{Eingabe}", "liefert Messwert"]
   - ["", "", ""]
 solution: |
   Zusatzhinweis (nur in der Lösungsversion):
