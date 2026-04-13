@@ -80,9 +80,6 @@ class BlattwerkAppBase:
         self._editor_completion_replace_end = None
         self._editor_completion_context_kind = None
         self._editor_completion_context_meta = {}
-        self._editor_snippet_placeholders = []
-        self._editor_snippet_active_index = -1
-        self._editor_snippet_mark_counter = 0
         self._editor_last_saved_block_type_counts = {}
         self._editor_last_loaded_path = None
         self._equal_split_attempts = 0
@@ -98,7 +95,6 @@ class BlattwerkAppBase:
         self._reduce_motion = False
         self._ui_density = "comfort"
         self._window_geometry_after_id = None
-        self._editor_snippet_highlight_after_id = None
 
         self.help_preview_window = None
         self.help_preview_canvas = None

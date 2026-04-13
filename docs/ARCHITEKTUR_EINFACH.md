@@ -30,6 +30,7 @@ So vermeiden wir Klebercode und Verwirrung.
   - Der Schreibbereich speichert Aenderungen debounced direkt in die Markdown-Datei.
   - Der Schreibbereich zeigt Live-Diagnostik aus dem Programmkern (Validator) und markiert nur betroffene Zeilen in der UI.
   - Syntax-Highlighting und Completion sind UI-Funktionen; ihre fachlichen Vorschlagsquellen kommen weiterhin aus dem Programmkern.
+  - Completion-Kandidaten kommen zentral aus `app/core/completion_catalogs.py`; die UI hält dafür keine eigenen statischen Fachlisten.
   - Als Folding-Ersatz gibt es eine Struktur-Outline im UI, die direkt zu Frontmatter/Blockstellen springt.
   - Die Vorschau wird weiterhin bewusst manuell aktualisiert.
 

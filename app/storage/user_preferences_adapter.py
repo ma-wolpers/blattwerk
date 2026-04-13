@@ -29,7 +29,7 @@ from .local_config_store import (
 
 TAB_ORDER = [
     "general",
-    "editor_snippets",
+    "editor_completion",
     "editor_diagnostics",
     "view_layout",
     "design_theme",
@@ -43,7 +43,7 @@ TAB_ORDER = [
 
 TAB_LABELS = {
     "general": "Allgemein",
-    "editor_snippets": "Editor Snippets",
+    "editor_completion": "Editor Vervollständigung",
     "editor_diagnostics": "Editor Diagnostik",
     "view_layout": "Ansicht und Layout",
     "design_theme": "Design und Theme",
@@ -77,55 +77,29 @@ PREFERENCE_SPECS = {
         "type": "bool",
         "default": False,
     },
-    # Editor Snippets
-    "snippets_auto_enabled": {
-        "tab": "editor_snippets",
-        "label": "Auto-Snippet Vorschlaege",
+    # Editor Versvollstaendigung
+    "completion_auto_enabled": {
+        "tab": "editor_completion",
+        "label": "Auto-Completion Vorschlaege",
         "type": "bool",
         "default": True,
     },
-    "snippet_trigger_colon": {"tab": "editor_snippets", "label": "Trigger Doppelpunkt", "type": "bool", "default": True},
-    "snippet_trigger_equals": {"tab": "editor_snippets", "label": "Trigger Gleichheitszeichen", "type": "bool", "default": True},
-    "snippet_trigger_enter": {"tab": "editor_snippets", "label": "Trigger Enter", "type": "bool", "default": True},
+    "completion_trigger_colon": {"tab": "editor_completion", "label": "Trigger Doppelpunkt", "type": "bool", "default": True},
+    "completion_trigger_equals": {"tab": "editor_completion", "label": "Trigger Gleichheitszeichen", "type": "bool", "default": True},
+    "completion_trigger_enter": {"tab": "editor_completion", "label": "Trigger Enter", "type": "bool", "default": True},
     "completion_context_sources": {
-        "tab": "editor_snippets",
+        "tab": "editor_completion",
         "label": "Completion-Kontextquellen",
         "type": "enum",
         "default": "smart",
         "values": ["smart", "all", "manual_only"],
     },
-    "snippet_popup_width_mode": {
-        "tab": "editor_snippets",
-        "label": "Snippet-Popup Breite",
+    "completion_popup_width_mode": {
+        "tab": "editor_completion",
+        "label": "Completion-Popup Breite",
         "type": "enum",
         "default": "wide",
         "values": ["compact", "normal", "wide"],
-    },
-    "snippet_tabstop_navigation": {
-        "tab": "editor_snippets",
-        "label": "Tabstop-Navigation aktiv",
-        "type": "bool",
-        "default": True,
-    },
-    "snippet_auto_finish_on_flow_leave": {
-        "tab": "editor_snippets",
-        "label": "Snippet-Session auto-finish",
-        "type": "bool",
-        "default": True,
-    },
-    "snippet_field_highlight_enabled": {
-        "tab": "editor_snippets",
-        "label": "Snippet-Feldhighlight aktiv",
-        "type": "bool",
-        "default": True,
-    },
-    "snippet_field_highlight_ms": {
-        "tab": "editor_snippets",
-        "label": "Snippet-Feldhighlight Dauer (ms)",
-        "type": "int",
-        "default": 600,
-        "min": 100,
-        "max": 5000,
     },
     # Editor Diagnostik
     "diagnostics_live_enabled": {

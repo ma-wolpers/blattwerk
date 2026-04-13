@@ -7,6 +7,12 @@ The format is based on Keep a Changelog.
 ## [Unreleased]
 
 ### Changed
+- Completion preference names are now consistently `completion_*`; legacy snippet-oriented preference keys were removed.
+- Option value catalogs for completion are now discovered automatically from core `KNOWN_*` constants.
+- Write-area snippet templates are now disabled to avoid intrusive block-template insertions during normal completion flow.
+- `Ctrl+Shift+.` now inserts `::: :::` and opens regular completion instead of forcing snippet-template suggestions.
+- Completion candidates are now sourced dynamically from a core catalog API, reducing stale suggestions after core option/type catalog updates.
+- Text option completion (for example `type` in `info`) now uses the full available core value catalogs.
 - Completion popups no longer close immediately when releasing modifier keys like `Shift` during typing.
 - Option value suggestions after `key=` now open automatically (not only via manual `Ctrl+Space`).
 - Option value suggestions now use the same local decay-based personalization mechanism as block-type suggestions.

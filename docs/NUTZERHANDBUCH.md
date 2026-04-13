@@ -123,8 +123,8 @@ Installation/Setup steht bewusst in `README.md`.
 - Blattwerk-Syntax wird im Editor farbig dargestellt (Frontmatter, `:::`-Blockkopf, `key=value`-Optionen, Marker `§/$/&`).
 - Für Vervollständigung im aktuellen Kontext `Strg+Leertaste` drücken.
 - Direkt nach `:::` (ohne Leerzeichen) werden automatisch alle möglichen Blocktypen vorgeschlagen.
-- `Strg+Shift+.` fügt `::: :::` ein, setzt den Cursor dazwischen und öffnet sofort die Snippet-Liste.
-- Snippet-Vorschläge erscheinen zusätzlich automatisch im passenden Kontext (ohne `Strg+Leertaste`).
+- `Strg+Shift+.` fügt `::: :::` ein, setzt den Cursor dazwischen und öffnet die normale Completion.
+- Snippet-Vorlagen im Schreibbereich sind deaktiviert.
 - Als passender Kontext gilt aktuell insbesondere:
 	- in öffnenden `:::`-Blockkopfzeilen (nicht bei schließenden `:::`)
 	- nach `Enter` innerhalb eines Blocks
@@ -144,17 +144,7 @@ Installation/Setup steht bewusst in `README.md`.
 - Gleichstand bei Blocktypen wird über die feste Blattwerk-Standardreihenfolge aufgelöst.
 - Vorschlag mit Doppelklick oder `Enter` übernehmen.
 - Solange die Vorschlagsliste offen ist, funktionieren `Pfeil hoch/runter`, `Enter` und `Tab` direkt im Editor.
-- Bei manueller Auslösung ohne passenden Kontext erscheinen zusätzlich Snippet-Vorschläge (Task, Answer-Lines, Help, Frontmatter).
-- Snippets setzen den Cursor nach dem Einfügen automatisch auf die erste sinnvolle Bearbeitungsstelle.
-- Snippet-Vorschläge sind kontextabhängig (z. B. Frontmatter-Snippet nur am Dokumentanfang, wenn noch keines vorhanden ist).
-- Zusätzlich werden Snippets nach Blocktyp gefiltert, damit nur fachlich passende Vorlagen erscheinen.
-- Befindest du dich schon im passenden Block (z. B. `answer`), wird beim Snippet-Einfügen nur der Inhalt ergänzt statt den Blockkopf erneut einzufügen.
-- Bei Snippets mit mehreren Feldern springt `Tab` zum nächsten Feld und `Shift+Tab` zurück.
-- Das aktive Snippet-Feld ist visuell hervorgehoben.
-- Die Feldhervorhebung passt sich dem aktiven Theme an.
-- Die Snippet-Navigation endet automatisch, wenn du den Feldfluss verlässt.
 - Die lokale Completion-Gewichtung kann in den Einstellungen über `Ranking zurücksetzen` gelöscht werden.
-- Störende Snippet-Fallbacks in Blockkopf-/Optionsfluss sind reduziert (z. B. kein automatisches `Answer-Lines`-Snippet im laufenden `answer`-Headerfluss).
 
 ## 12) Struktur-Outline
 

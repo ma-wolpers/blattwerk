@@ -343,7 +343,7 @@ class BlattwerkAppStyleMixin:
 
             settings_tabs_menu = tk.Menu(file_menu, tearoff=False)
             settings_tabs_menu.add_command(label="Allgemein", command=lambda: self._open_local_settings_dialog("general"))
-            settings_tabs_menu.add_command(label="Editor Snippets", command=lambda: self._open_local_settings_dialog("editor_snippets"))
+            settings_tabs_menu.add_command(label="Editor Vervollständigung", command=lambda: self._open_local_settings_dialog("editor_completion"))
             settings_tabs_menu.add_command(label="Editor Diagnostik", command=lambda: self._open_local_settings_dialog("editor_diagnostics"))
             settings_tabs_menu.add_command(label="Ansicht und Layout", command=lambda: self._open_local_settings_dialog("view_layout"))
             settings_tabs_menu.add_command(label="Design und Theme", command=lambda: self._open_local_settings_dialog("design_theme"))

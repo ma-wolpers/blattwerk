@@ -10,14 +10,13 @@ import tkinter as tk
 from tkinter import messagebox, ttk
 
 from ..core.blatt_kern_shared import build_block_index_line_map
+from ..core.completion_catalogs import (
+    get_completion_answer_types,
+    get_completion_block_types,
+    get_completion_options_for_block,
+    get_completion_option_values,
+)
 from ..core.blatt_validator import (
-    BLOCK_ALLOWED_OPTIONS,
-    KNOWN_ACTION_VALUES,
-    KNOWN_ANSWER_TYPES,
-    KNOWN_BLOCK_TYPES,
-    KNOWN_HINT_VALUES,
-    KNOWN_SHOW_VALUES,
-    KNOWN_WORK_VALUES,
     inspect_markdown_text,
 )
 from ..storage.local_config_store import (
@@ -46,43 +45,6 @@ _EDITOR_FRONTMATTER_KEYS = (
     "copyright",
 )
 
-_COMPLETION_BLOCK_TYPES = tuple(block for block in KNOWN_BLOCK_TYPES if block != "raw")
-_COMPLETION_ANSWER_TYPES = tuple(sorted(KNOWN_ANSWER_TYPES))
-_COMPLETION_TEXT_OPTION_VALUES_BY_KEY = {
-    "show": tuple(sorted(KNOWN_SHOW_VALUES)),
-    "work": tuple(sorted(KNOWN_WORK_VALUES)),
-    "action": tuple(sorted(KNOWN_ACTION_VALUES)),
-    "hint": tuple(sorted(KNOWN_HINT_VALUES)),
-    # `type` is used in different blocks (e.g., answer/info), so surface the full known corpus.
-    "type": tuple(sorted(set(KNOWN_ANSWER_TYPES) | set(KNOWN_HINT_VALUES) | set(KNOWN_ACTION_VALUES))),
-}
-_COMPLETION_SNIPPETS = (
-    {
-        "label": "Snippet: Task Block (bwtask)",
-        "insert_text": "::: task points=[[1:2]] work=[[2:single]] action=[[3:read]]\n[[4:Aufgabentext]]\n:::",
-        "contexts": {"blank_line", "block_header"},
-        "block_types": {"task"},
-    },
-    {
-        "label": "Snippet: Answer Lines (bwanswerlines)",
-        "insert_text": "::: answer type=lines rows=[[1:4]]\n[[2:]]\n:::",
-        "contexts": {"blank_line"},
-        "block_types": {"answer"},
-        "manual_only": True,
-    },
-    {
-        "label": "Snippet: Help Block (bwhelp)",
-        "insert_text": "::: help title=\"[[1:Hilfe]]\" level=[[2:1]]\n[[3:Hilfetext]]\n:::",
-        "contexts": {"blank_line", "block_header"},
-        "block_types": {"help", "hilfe"},
-    },
-    {
-        "label": "Snippet: Frontmatter (bwfm)",
-        "insert_text": "---\nTitel: [[1:Titel]]\nFach: [[2:Fach]]\nThema: [[3:Thema]]\nshow_student_header: true\nshow_document_header: true\n---\n",
-        "contexts": {"frontmatter_start"},
-        "block_types": set(),
-    },
-)
 _SYNTAX_TAGS = (
     "syn_frontmatter_delim",
     "syn_frontmatter_key",
@@ -321,11 +283,6 @@ class BlattwerkAppEditorMixin:
         self.editor_widget.tag_configure("syn_marker", foreground="#c92a2a")
         self.editor_widget.tag_configure("syn_block_close_error", background="#ffe2e2", foreground="#8b0000")
         self.editor_widget.tag_configure("syn_block_pair", background=theme["accent_soft"])
-        self.editor_widget.tag_configure(
-            "snippet_active",
-            background=theme["accent_soft"],
-            foreground=theme["fg_primary"],
-        )
 
     def _queue_editor_highlighting(self, immediate: bool = False):
         """Schedules syntax highlighting refresh with light debounce."""
@@ -705,8 +662,6 @@ class BlattwerkAppEditorMixin:
         if self.editor_widget is None:
             return
 
-        self._sync_editor_snippet_session()
-
         if event is None:
             return
 
@@ -726,23 +681,26 @@ class BlattwerkAppEditorMixin:
         }:
             return
 
+        if event.keysym in {"period", "colon"} and self._is_editor_completion_visible():
+            return
+
         if event.keysym in {"Up", "Down", "Left", "Right"}:
             self._refresh_editor_block_pair_highlight()
             return
 
         preferences = getattr(self, "user_preferences", {})
-        if not bool(preferences.get("snippets_auto_enabled", True)):
+        if not bool(preferences.get("completion_auto_enabled", True)):
             self._refresh_editor_block_pair_highlight()
             return
 
         trigger_chars = {"_", " "}
-        if bool(preferences.get("snippet_trigger_colon", True)):
+        if bool(preferences.get("completion_trigger_colon", True)):
             trigger_chars.add(":")
-        if bool(preferences.get("snippet_trigger_equals", True)):
+        if bool(preferences.get("completion_trigger_equals", True)):
             trigger_chars.add("=")
 
         trigger_keys = {"BackSpace"}
-        if bool(preferences.get("snippet_trigger_enter", True)):
+        if bool(preferences.get("completion_trigger_enter", True)):
             trigger_keys.add("Return")
 
         should_trigger = (
@@ -764,7 +722,7 @@ class BlattwerkAppEditorMixin:
         return "break"
 
     def _on_editor_insert_triple_pair(self, _event=None):
-        """Inserts `::: :::` and opens snippet suggestions at center cursor position."""
+        """Inserts `::: :::` and opens completion at center cursor position."""
 
         if self.editor_widget is None:
             return "break"
@@ -776,31 +734,24 @@ class BlattwerkAppEditorMixin:
         self._queue_editor_highlighting(immediate=True)
         self._queue_editor_diagnostics(immediate=True)
         self._queue_editor_outline(immediate=True)
-        self._open_editor_completion(auto=False, force_snippets=True)
+        self._open_editor_completion(auto=False)
         return "break"
 
     def _on_editor_escape(self, _event=None):
         """Closes completion popup when escape is pressed in editor."""
 
         self._close_editor_completion()
-        self._clear_editor_snippet_session()
 
     def _on_editor_tab(self, _event=None):
         """Applies selected completion on tab when popup is visible."""
 
         if self._editor_completion_items:
             return self._on_editor_completion_accept()
-        preferences = getattr(self, "user_preferences", {})
-        if self._editor_snippet_placeholders and bool(preferences.get("snippet_tabstop_navigation", True)):
-            return self._advance_editor_snippet_placeholder(step=1)
         return None
 
     def _on_editor_shift_tab(self, _event=None):
-        """Moves to previous snippet placeholder when session is active."""
+        """No-op for completion flow when no popup action applies."""
 
-        preferences = getattr(self, "user_preferences", {})
-        if self._editor_snippet_placeholders and bool(preferences.get("snippet_tabstop_navigation", True)):
-            return self._advance_editor_snippet_placeholder(step=-1)
         return None
 
     def _on_editor_completion_move_up(self, _event=None):
@@ -845,17 +796,16 @@ class BlattwerkAppEditorMixin:
         """Closes completion popup when user clicks in editor."""
 
         self._close_editor_completion()
-        self._clear_editor_snippet_session()
         if hasattr(self, "root"):
             self.root.after_idle(self._refresh_editor_block_pair_highlight)
 
-    def _open_editor_completion(self, auto: bool, force_snippets: bool = False):
+    def _open_editor_completion(self, auto: bool):
         """Collects completion suggestions and renders popup near caret."""
 
         if self.editor_widget is None:
             return
 
-        context = self._collect_editor_completion_context(auto=auto, force_snippets=force_snippets)
+        context = self._collect_editor_completion_context(auto=auto)
         if context is None:
             self._close_editor_completion()
             return
@@ -908,7 +858,7 @@ class BlattwerkAppEditorMixin:
         self._editor_completion_items = list(suggestions)
         width_chars = max((len(item["label"]) for item in self._editor_completion_items), default=40)
         preferences = getattr(self, "user_preferences", {})
-        popup_width_mode = str(preferences.get("snippet_popup_width_mode", "wide") or "wide")
+        popup_width_mode = str(preferences.get("completion_popup_width_mode", "wide") or "wide")
         if popup_width_mode == "compact":
             min_width = 32
             max_width = 72
@@ -939,7 +889,7 @@ class BlattwerkAppEditorMixin:
         self._editor_completion_popup.deiconify()
         self._editor_completion_popup.lift()
 
-    def _collect_editor_completion_context(self, auto: bool, force_snippets: bool = False):
+    def _collect_editor_completion_context(self, auto: bool):
         """Derives completion candidates from current line and cursor context."""
 
         if self.editor_widget is None:
@@ -963,7 +913,7 @@ class BlattwerkAppEditorMixin:
         is_closing_only_line = stripped_line == ":::"
         is_opening_header_line = is_block_header_line and not is_closing_only_line
 
-        if not force_snippets and left_stripped.startswith(":::"):
+        if left_stripped.startswith(":::"):
             after_fence = left_stripped[3:]
             if " " not in after_fence:
                 block_prefix = after_fence
@@ -978,7 +928,7 @@ class BlattwerkAppEditorMixin:
                         "kind": "block_type",
                         "block_type": block_type,
                     }
-                    for block_type in _COMPLETION_BLOCK_TYPES
+                    for block_type in get_completion_block_types()
                     if block_type.startswith(block_prefix)
                 ]
                 if auto and not suggestions:
@@ -994,7 +944,8 @@ class BlattwerkAppEditorMixin:
                 }
 
             block_token = after_fence.split(" ", 1)[0]
-            if block_token in BLOCK_ALLOWED_OPTIONS:
+            block_allowed_options = get_completion_options_for_block(block_token)
+            if block_allowed_options:
                 option_value_match = re.search(r"\b([A-Za-z_][A-Za-z0-9_]*)=([^\s]*)$", left_text)
                 if option_value_match:
                     option_key = option_value_match.group(1)
@@ -1025,8 +976,42 @@ class BlattwerkAppEditorMixin:
                             "insert_text": option,
                             "kind": "block_option",
                         }
-                        for option in sorted(BLOCK_ALLOWED_OPTIONS.get(block_token, set()))
+                        for option in block_allowed_options
                     ]
+                    if auto and not suggestions:
+                        return None
+
+                    return {
+                        "suggestions": suggestions,
+                        "replace_start": f"{line_no}.{cursor_col}",
+                        "replace_end": f"{line_no}.{cursor_col}",
+                        "kind": "block_option",
+                    }
+
+                if left_text.endswith(" "):
+                    used_option_keys = {
+                        match.group(1).strip().lower()
+                        for match in re.finditer(r"\b([A-Za-z_][A-Za-z0-9_]*)=", left_text)
+                    }
+                    suggestions = [
+                        {
+                            "label": option,
+                            "insert_text": option,
+                            "kind": "block_option",
+                        }
+                        for option in block_allowed_options
+                        if option.lower() not in used_option_keys
+                    ]
+                    if not suggestions:
+                        suggestions = [
+                            {
+                                "label": option,
+                                "insert_text": option,
+                                "kind": "block_option",
+                            }
+                            for option in block_allowed_options
+                        ]
+
                     if auto and not suggestions:
                         return None
 
@@ -1049,7 +1034,7 @@ class BlattwerkAppEditorMixin:
                             "block_type": "answer",
                             "option_key": "type",
                         }
-                        for answer_type in _COMPLETION_ANSWER_TYPES
+                        for answer_type in get_completion_answer_types()
                         if answer_type.startswith(value_prefix)
                     ]
                     if auto and not suggestions:
@@ -1080,7 +1065,7 @@ class BlattwerkAppEditorMixin:
                             "insert_text": option,
                             "kind": "block_option",
                         }
-                        for option in sorted(BLOCK_ALLOWED_OPTIONS.get(block_token, set()))
+                        for option in block_allowed_options
                         if option.startswith(key_prefix)
                     ]
                     return {
@@ -1090,7 +1075,7 @@ class BlattwerkAppEditorMixin:
                         "kind": "block_option",
                     }
 
-        if not force_snippets and self._editor_cursor_in_frontmatter(line_no):
+        if self._editor_cursor_in_frontmatter(line_no):
             frontmatter_match = re.match(r"^(\s*)([A-Za-z_][A-Za-z0-9_\-]*)?$", left_text)
             if frontmatter_match:
                 key_prefix = frontmatter_match.group(2) or ""
@@ -1114,124 +1099,7 @@ class BlattwerkAppEditorMixin:
                     "kind": "frontmatter_key",
                 }
 
-        token_match = re.search(r"([A-Za-z_][A-Za-z0-9_]*)$", left_text)
-        token_prefix = token_match.group(1) if token_match else ""
-        token_start = token_match.start(1) if token_match else cursor_col
-        is_blank_line = not stripped_line
-        in_block_header = left_stripped.startswith(":::")
-        header_block_prefix = ""
-        header_prefix_match = re.match(r"^\s*:::(\w*)", left_text)
-        if header_prefix_match:
-            header_block_prefix = (header_prefix_match.group(1) or "").strip().lower()
-        enclosing_block_type = self._editor_get_enclosing_block_type(line_no)
-        document_has_frontmatter = self._editor_document_has_frontmatter()
-
-        active_contexts = set()
-        # Blank-line auto suggestions are intentionally limited to in-block flow.
-        if is_blank_line and enclosing_block_type:
-            active_contexts.add("blank_line")
-        if in_block_header and is_opening_header_line:
-            active_contexts.add("block_header")
-        if not document_has_frontmatter and line_no <= 5:
-            active_contexts.add("frontmatter_start")
-        if bool(re.search(r"\b[A-Za-z_][A-Za-z0-9_]*=$", left_text)):
-            active_contexts.add("option_value")
-
-        if auto and not active_contexts:
-            return None
-
-        allow_aggressive_auto = completion_context_mode == "all"
-        if auto and (in_block_header or "option_value" in active_contexts) and not allow_aggressive_auto:
-            return None
-
-        snippet_items = []
-        for snippet in _COMPLETION_SNIPPETS:
-            if auto and bool(snippet.get("manual_only")) and completion_context_mode != "all":
-                continue
-            if token_prefix and not snippet["label"].lower().startswith(token_prefix.lower()):
-                continue
-            if not bool(set(snippet.get("contexts", set())) & active_contexts):
-                continue
-            if not self._snippet_matches_block_context(
-                snippet,
-                header_block_prefix=header_block_prefix,
-                enclosing_block_type=enclosing_block_type,
-            ):
-                continue
-
-            adapted = self._adapt_snippet_for_context(
-                snippet,
-                enclosing_block_type=enclosing_block_type,
-                in_block_header=in_block_header,
-            )
-            if adapted is not None:
-                adapted.setdefault("kind", "snippet")
-                adapted.setdefault("block_type", self._infer_snippet_primary_block_type(snippet))
-                snippet_items.append(adapted)
-
-        if auto and not snippet_items:
-            return None
-
-        return {
-            "suggestions": snippet_items,
-            "replace_start": f"{line_no}.{token_start}",
-            "replace_end": f"{line_no}.{cursor_col}",
-            "kind": "snippet",
-        }
-
-    @staticmethod
-    def _infer_snippet_primary_block_type(snippet) -> str | None:
-        """Returns primary block type for snippet statistics when available."""
-
-        block_types = snippet.get("block_types") if isinstance(snippet, dict) else None
-        if not block_types:
-            return None
-        ordered = [value for value in _COMPLETION_BLOCK_TYPES if value in block_types]
-        if ordered:
-            return ordered[0]
-        first = sorted(str(value) for value in block_types)[0]
-        return first.lower()
-
-    @staticmethod
-    def _adapt_snippet_for_context(snippet, enclosing_block_type: str | None, in_block_header: bool):
-        """Adapts snippet insert text when already inside the same block type."""
-
-        adapted = dict(snippet)
-        if in_block_header:
-            return adapted
-
-        block_types = {value.lower() for value in (snippet.get("block_types") or set())}
-        if not block_types:
-            return adapted
-        if not enclosing_block_type:
-            return adapted
-        if enclosing_block_type.lower() not in block_types:
-            return adapted
-
-        insert_text = str(snippet.get("insert_text") or "")
-        lines = insert_text.splitlines()
-        if len(lines) >= 2 and lines[0].lstrip().startswith(":::") and lines[-1].strip() == ":::":
-            body = "\n".join(lines[1:-1]).strip("\n")
-            adapted["insert_text"] = body
-            adapted["label"] = f"{snippet['label']} (Inhalt)"
-
-        return adapted
-
-    @staticmethod
-    def _snippet_matches_block_context(snippet, header_block_prefix: str, enclosing_block_type: str | None) -> bool:
-        """Checks whether a snippet should be offered for current block context."""
-
-        block_types = {value.lower() for value in (snippet.get("block_types") or set())}
-        if not block_types:
-            return True
-
-        if header_block_prefix:
-            return any(block_type.startswith(header_block_prefix) for block_type in block_types)
-
-        if enclosing_block_type:
-            return enclosing_block_type.lower() in block_types
-
-        return True
+        return None
 
     def _editor_get_enclosing_block_type(self, target_line_no: int) -> str | None:
         """Returns the currently open block type for a given line number, if any."""
@@ -1299,8 +1167,8 @@ class BlattwerkAppEditorMixin:
 
         self._record_editor_completion_usage(candidate)
 
-        insert_text, cursor_offset, placeholders = self._resolve_completion_insert(candidate)
-        if insert_text is None or cursor_offset is None or placeholders is None:
+        insert_text, cursor_offset = self._resolve_completion_insert(candidate)
+        if insert_text is None or cursor_offset is None:
             return "break"
 
         replace_start = self._editor_completion_replace_start or self.editor_widget.index("insert")
@@ -1309,7 +1177,6 @@ class BlattwerkAppEditorMixin:
         self.editor_widget.insert(replace_start, insert_text)
         self.editor_widget.mark_set("insert", f"{replace_start}+{cursor_offset}c")
         self.editor_widget.focus_set()
-        self._start_editor_snippet_session(replace_start, placeholders)
         self._queue_editor_highlighting(immediate=True)
         self._queue_editor_diagnostics(immediate=True)
         self._queue_editor_outline(immediate=True)
@@ -1359,7 +1226,7 @@ class BlattwerkAppEditorMixin:
         except Exception:
             scores = {}
 
-        order_index = {block_type: index for index, block_type in enumerate(_COMPLETION_BLOCK_TYPES)}
+        order_index = {block_type: index for index, block_type in enumerate(get_completion_block_types())}
 
         def _sort_key(item):
             block_type = str(item.get("block_type") or item.get("insert_text") or "").strip().lower()
@@ -1396,9 +1263,9 @@ class BlattwerkAppEditorMixin:
         option_key_norm = str(option_key or "").strip().lower()
         prefix_norm = str(value_prefix or "").strip().lower()
 
-        defaults = list(_COMPLETION_TEXT_OPTION_VALUES_BY_KEY.get(option_key_norm, ()))
+        defaults = list(get_completion_option_values(block_type_norm, option_key_norm))
         if not defaults and block_type_norm == "answer" and option_key_norm == "type":
-            defaults = list(_COMPLETION_ANSWER_TYPES)
+            defaults = list(get_completion_answer_types())
 
         learned = []
         try:
@@ -1480,11 +1347,11 @@ class BlattwerkAppEditorMixin:
         """Returns insert text plus target cursor offset after insertion."""
 
         if not isinstance(candidate, dict):
-            return None, None, None
+            return None, None
 
         raw_insert_text = candidate.get("insert_text")
         if raw_insert_text is None:
-            return None, None, None
+            return None, None
 
         placeholder_pattern = re.compile(r"\[\[(\d+):([^\]]*)\]\]")
         occurrences = []
@@ -1510,187 +1377,15 @@ class BlattwerkAppEditorMixin:
 
         if occurrences:
             ordered = sorted(occurrences, key=lambda item: (item["order"], item["start"]))
-            placeholder_spans = [
-                {
-                    "start": item["start"],
-                    "end": item["end"],
-                }
-                for item in ordered
-            ]
-            return parsed_insert_text, placeholder_spans[0]["start"], placeholder_spans
+            return parsed_insert_text, ordered[0]["start"]
 
         cursor_marker = "[[CURSOR]]"
         marker_index = parsed_insert_text.find(cursor_marker)
         if marker_index >= 0:
             insert_text = parsed_insert_text.replace(cursor_marker, "", 1)
-            return insert_text, marker_index, []
+            return insert_text, marker_index
 
-        return parsed_insert_text, len(parsed_insert_text), []
-
-    def _start_editor_snippet_session(self, replace_start: str, placeholders):
-        """Initializes snippet placeholders so Tab can jump field-by-field."""
-
-        self._clear_editor_snippet_session()
-        if self.editor_widget is None:
-            return
-
-        for span in placeholders or []:
-            start_offset = max(0, int(span.get("start", 0)))
-            end_offset = max(start_offset, int(span.get("end", start_offset)))
-
-            start_mark = f"snippet_start_{self._editor_snippet_mark_counter}"
-            self._editor_snippet_mark_counter += 1
-            end_mark = f"snippet_end_{self._editor_snippet_mark_counter}"
-            self._editor_snippet_mark_counter += 1
-
-            self.editor_widget.mark_set(start_mark, f"{replace_start}+{start_offset}c")
-            self.editor_widget.mark_set(end_mark, f"{replace_start}+{end_offset}c")
-            self.editor_widget.mark_gravity(start_mark, tk.LEFT)
-            self.editor_widget.mark_gravity(end_mark, tk.RIGHT)
-
-            self._editor_snippet_placeholders.append(
-                {
-                    "start_mark": start_mark,
-                    "end_mark": end_mark,
-                }
-            )
-
-        if self._editor_snippet_placeholders:
-            self._editor_snippet_active_index = 0
-            self._select_editor_snippet_placeholder(0)
-
-    def _clear_editor_snippet_session(self):
-        """Clears active snippet session and removes internal marks."""
-
-        if self.editor_widget is None:
-            self._editor_snippet_placeholders = []
-            self._editor_snippet_active_index = -1
-            return
-
-        for item in self._editor_snippet_placeholders:
-            for key in ("start_mark", "end_mark"):
-                mark_name = item.get(key)
-                if not mark_name:
-                    continue
-                try:
-                    self.editor_widget.mark_unset(mark_name)
-                except tk.TclError:
-                    pass
-
-        self.editor_widget.tag_remove(tk.SEL, "1.0", "end")
-        self.editor_widget.tag_remove("snippet_active", "1.0", "end")
-        self._editor_snippet_placeholders = []
-        self._editor_snippet_active_index = -1
-
-    def _select_editor_snippet_placeholder(self, index: int):
-        """Selects placeholder text range for active snippet navigation."""
-
-        if self.editor_widget is None:
-            return
-        if index < 0 or index >= len(self._editor_snippet_placeholders):
-            return
-
-        item = self._editor_snippet_placeholders[index]
-        start_mark = item.get("start_mark")
-        end_mark = item.get("end_mark")
-        if not start_mark or not end_mark:
-            return
-
-        start_index = self.editor_widget.index(start_mark)
-        end_index = self.editor_widget.index(end_mark)
-        preferences = getattr(self, "user_preferences", {})
-        highlight_enabled = bool(preferences.get("snippet_field_highlight_enabled", True))
-        highlight_ms = int(str(preferences.get("snippet_field_highlight_ms", 600) or 600))
-        highlight_ms = max(100, min(5000, highlight_ms))
-
-        self.editor_widget.tag_remove(tk.SEL, "1.0", "end")
-        self.editor_widget.tag_remove("snippet_active", "1.0", "end")
-        self.editor_widget.tag_add(tk.SEL, start_index, end_index)
-        if highlight_enabled:
-            self.editor_widget.tag_add("snippet_active", start_index, end_index)
-
-            pending_id = getattr(self, "_editor_snippet_highlight_after_id", None)
-            if pending_id is not None:
-                try:
-                    self.root.after_cancel(pending_id)
-                except Exception:
-                    pass
-            self._editor_snippet_highlight_after_id = self.root.after(
-                highlight_ms,
-                self._clear_editor_snippet_active_tag,
-            )
-        self.editor_widget.mark_set("insert", end_index)
-        self.editor_widget.see(start_index)
-        self.editor_widget.focus_set()
-
-    def _clear_editor_snippet_active_tag(self):
-        """Removes transient snippet highlight tag after configured timeout."""
-
-        self._editor_snippet_highlight_after_id = None
-        if self.editor_widget is None:
-            return
-        self.editor_widget.tag_remove("snippet_active", "1.0", "end")
-
-    def _advance_editor_snippet_placeholder(self, step: int):
-        """Moves placeholder selection forward/backward in active snippet session."""
-
-        if not self._editor_snippet_placeholders:
-            self._clear_editor_snippet_session()
-            return None
-
-        current = self._editor_snippet_active_index
-        if current < 0:
-            current = 0
-        target = current + step
-
-        if 0 <= target < len(self._editor_snippet_placeholders):
-            self._editor_snippet_active_index = target
-            self._select_editor_snippet_placeholder(target)
-            return "break"
-
-        self._clear_editor_snippet_session()
-        return "break"
-
-    def _sync_editor_snippet_session(self):
-        """Ends snippet session when cursor leaves active placeholder flow."""
-
-        if self.editor_widget is None or not self._editor_snippet_placeholders:
-            return
-
-        if self._editor_snippet_active_index < 0:
-            self._clear_editor_snippet_session()
-            return
-
-        if self._editor_snippet_active_index >= len(self._editor_snippet_placeholders):
-            self._clear_editor_snippet_session()
-            return
-
-        current = self._editor_snippet_placeholders[self._editor_snippet_active_index]
-        start_mark = current.get("start_mark")
-        end_mark = current.get("end_mark")
-        if not start_mark or not end_mark:
-            self._clear_editor_snippet_session()
-            return
-
-        try:
-            start_index = self.editor_widget.index(start_mark)
-            end_index = self.editor_widget.index(end_mark)
-        except tk.TclError:
-            self._clear_editor_snippet_session()
-            return
-
-        insert_index = self.editor_widget.index("insert")
-        before_start = self.editor_widget.compare(insert_index, "<", start_index)
-        after_end = self.editor_widget.compare(insert_index, ">", end_index)
-        if before_start or after_end:
-            preferences = getattr(self, "user_preferences", {})
-            if not bool(preferences.get("snippet_auto_finish_on_flow_leave", True)):
-                return
-            self._clear_editor_snippet_session()
-            return
-
-        self.editor_widget.tag_remove("snippet_active", "1.0", "end")
-        self.editor_widget.tag_add("snippet_active", start_index, end_index)
+        return parsed_insert_text, len(parsed_insert_text)
 
     def _editor_document_has_frontmatter(self) -> bool:
         """Detects whether the current editor buffer already contains frontmatter."""

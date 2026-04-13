@@ -9,6 +9,13 @@ Regel:
 ## [Unreleased]
 
 ### Changed
+- Completion-Einstellungen terminologisch hart umgestellt: `snippet_*`/`snippets_*` durch `completion_*` ersetzt; obsolete Snippet-Only-Settings entfernt.
+- `completion_catalogs` ergänzt Value-Kataloge jetzt automatisch aus Core-`KNOWN_*`-Konstanten statt fester Handliste.
+- Interner Editor-Cleanup: verbliebene Snippet-Session-Logik (Placeholder-Markierungen, Tab/Shift-Tab-Feldnavigation, Session-Sync) entfernt, nachdem Snippet-Vorlagen deaktiviert wurden.
+- Snippet-Vorlagen im Schreibbereich deaktiviert; Completion zeigt nur noch kontextbezogene Fachvorschläge statt Block-Template-Einfügen.
+- `Strg+Shift+.` öffnet nach Einfügen von `::: :::` jetzt die normale Completion statt einer erzwungenen Snippetliste.
+- Completion-SSOT-Refactor gestartet: fachliche Kandidatenlisten (Blocktypen, Option-Keys/-Values) werden im Editor nicht mehr statisch gehalten, sondern dynamisch über `app/core/completion_catalogs.py` aus dem Kern abgefragt.
+- Completion für Text-Optionen (z. B. `type` in `info`) nutzt jetzt die vollständigen Kern-Kataloge statt UI-lokaler Ableitungen.
 - Completion stabilisiert bei Modifier-Key-Releases: Loslassen von `Shift` schließt geöffnete Vorschlagslisten nicht mehr sofort.
 - Auto-Completion nach `key=` im Blockkopf/Optionsfluss ergänzt (nicht mehr nur manuell via `Ctrl+Space`).
 - Wert-Vorschläge nach `key=` nutzen jetzt dieselbe lokale Decay-Gewichtung wie Blocktyp-Vorschläge.
