@@ -127,6 +127,63 @@ class BlattwerkAppPreviewMixin:
             self.status_var.set("Neue Markdown-Datei erstellt")
             self._open_input_path(target_path, add_recent=True)
 
+    def save_markdown_file_as(self):
+            """Speichert die aktuelle Markdown-Datei unter neuem Pfad als Kopie."""
+
+            source_path = self._validate_input()
+            if source_path is None:
+                return
+
+            if self.editor_widget is not None:
+                content = self.editor_widget.get("1.0", "end-1c")
+            else:
+                try:
+                    content = source_path.read_text(encoding="utf-8")
+                except Exception as error:
+                    messagebox.showerror("Datei konnte nicht gelesen werden", str(error))
+                    self.status_var.set("Speichern unter fehlgeschlagen")
+                    return
+
+            dialog_kwargs = {
+                "title": "Markdown-Datei speichern unter",
+                "defaultextension": ".md",
+                "filetypes": [("Markdown", "*.md"), ("Alle Dateien", "*.*")],
+                "initialdir": str(source_path.parent),
+                "initialfile": source_path.name,
+            }
+            selected = filedialog.asksaveasfilename(**dialog_kwargs)
+            if not selected:
+                return
+
+            target_path = Path(selected)
+            if target_path.suffix.lower() != ".md":
+                target_path = target_path.with_suffix(".md")
+
+            if target_path == source_path:
+                messagebox.showwarning(
+                    "Speichern unter",
+                    "Bitte wähle einen anderen Pfad als die aktuell geöffnete Datei.",
+                )
+                return
+
+            if target_path.exists() and not messagebox.askyesno(
+                "Datei überschreiben?",
+                f"Die Datei existiert bereits und wird überschrieben:\n{target_path}\n\nMöchtest du fortfahren?",
+            ):
+                return
+
+            try:
+                target_path.parent.mkdir(parents=True, exist_ok=True)
+                target_path.write_text(content, encoding="utf-8")
+            except Exception as error:
+                messagebox.showerror("Datei konnte nicht gespeichert werden", str(error))
+                self.status_var.set("Speichern unter fehlgeschlagen")
+                return
+
+            self._set_last_dialog_dir("input_markdown", str(target_path))
+            self.status_var.set(f"Datei gespeichert unter: {target_path}")
+            self._open_input_path(target_path, add_recent=True)
+
     def _show_document_diagnostics(self, input_path: Path, context_label: str):
             """Zeigt nicht-blockierende Blattwerk-Warnungen einmalig pro Dokumentzustand."""
             warning_payload = build_warning_payload(input_path, context_label)

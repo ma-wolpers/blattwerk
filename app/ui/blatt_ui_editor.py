@@ -741,6 +741,9 @@ class BlattwerkAppEditorMixin:
         """Closes completion popup when escape is pressed in editor."""
 
         self._close_editor_completion()
+        if self.root is not None and bool(self.root.winfo_exists()):
+            self.root.focus_set()
+        return "break"
 
     def _on_editor_tab(self, _event=None):
         """Applies selected completion on tab when popup is visible."""

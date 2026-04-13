@@ -82,6 +82,13 @@ def build_preview_shortcuts(app):
             allow_modifiers=True,
         ),
         ShortcutBinding(
+            "<Control-Shift-s>",
+            app.save_markdown_file_as,
+            "Strg+Shift+S   Speichern unter",
+            ignore_when_text_input=False,
+            allow_modifiers=True,
+        ),
+        ShortcutBinding(
             "<Control-comma>",
             app._open_local_settings_dialog,
             "Strg+,   Einstellungen",
