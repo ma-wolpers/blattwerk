@@ -7,6 +7,41 @@ The format is based on Keep a Changelog.
 ## [Unreleased]
 
 ### Changed
+- Completion popups no longer close immediately when releasing modifier keys like `Shift` during typing.
+- Option value suggestions after `key=` now open automatically (not only via manual `Ctrl+Space`).
+- Option value suggestions now use the same local decay-based personalization mechanism as block-type suggestions.
+- Auto snippet fallback is now reduced in block-header/option flows (including removal of noisy `Answer-Lines` auto suggestions there).
+- Auto completion is now suppressed on pure closing-marker lines (`:::`) when already inside an open block, reducing unwanted popups while closing blocks.
+- Completion now opens immediately after typing `:::` (without needing a space) and suggests all available block types.
+- Block-type suggestion order is now locally personalized per installation using usage frequency with time decay.
+- Ties in block-type ranking now fall back to Blattwerk's fixed core block-type order.
+- Local completion ranking can now be reset from the settings dialog.
+- Auto snippet triggering now also reacts to `:` / `=` / `Enter`, improving automatic suggestions in block-header and option-value flows.
+- Auto snippet suggestions in `:::` lines now only appear for opening block headers, not for closing `:::` markers.
+- The write-area panel label is now back to `Struktur` (instead of folding-equivalent wording).
+- New write-area shortcut `Ctrl+Shift+.` inserts `::: :::`, places the cursor between both markers, and opens snippet suggestions immediately.
+- Unclosed blocks are now reported as diagnostics error `SY002`.
+- Matching `:::` pair highlighting now also updates when moving the cursor with arrow keys.
+- Diagnostic and outline list clicks now reliably trigger line jumps even when re-clicking an already selected item.
+- Snippet suggestions now open automatically in matching contexts (in addition to manual trigger).
+- Snippet suggestion popup is wider, so entries are easier to read.
+- When already inside a matching block, snippet insertion now adds only the inner content instead of duplicating block wrappers.
+- Editor outline now reflects nested block depth as a folding-equivalent navigation aid.
+- Closing `:::` markers are now syntax-highlighted like opening markers.
+- Text after a closing `:::` is now flagged as a syntax error (`SY001`) and shown in diagnostics.
+- When the cursor is inside a `:::` block, the corresponding opening/closing marker pair is now highlighted.
+- Active snippet-field highlighting now follows the selected UI theme.
+- The currently active snippet field is now visually highlighted while a snippet session is running.
+- Snippet sessions now auto-finish when the cursor leaves the active field flow.
+- Snippets now support real multi-field tab stops: `Tab` jumps to the next snippet field and `Shift+Tab` jumps back.
+- Snippet suggestions are now block-type-aware and only appear in matching contexts (for example, answer snippets in `answer` context).
+- Snippet completion now places the cursor on the first editing spot after insertion instead of always moving to the end.
+- Snippet suggestions are now context-aware (for example, frontmatter snippet only appears near document start when no frontmatter exists yet).
+- Completion in the write area now supports direct keyboard control from the editor (`Up`, `Down`, `Enter`, `Tab`) and can insert snippets as fallback suggestions.
+- The write area now includes a structure outline (frontmatter and block headers) as a folding-equivalent navigation aid with direct line jumps.
+- The write area now highlights Blattwerk syntax (frontmatter, block headers, option keys/values, and marker symbols) directly while editing.
+- The write area now offers context-aware keyword completion (block types, option keys, answer types, and frontmatter fields), available via `Ctrl+Space`.
+- The write area now shows live diagnostics while typing: warnings and errors are highlighted by line and listed below the editor.
 - Standardfunktionen sind jetzt konsistent per Tastatur erreichbar: neue Shortcuts für Einstellungen, Bereichsansicht, Theme- und Schriftprofilwechsel wurden ergänzt.
 - Shortcut-Set für Dateiaktionen erweitert: Markdown öffnen ist nun zusätzlich mit `Ctrl+O` verfügbar.
 - Architecture documentation now cleanly separates stable architecture reference from internal development history.

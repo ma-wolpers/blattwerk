@@ -22,6 +22,7 @@ from ..storage.local_config_store import (
     save_recent_files,
     save_system_settings,
     save_ui_settings,
+    reset_completion_stats,
 )
 from ..storage.system_settings_adapter import normalize_system_settings_payload
 from ..storage.history_paths_adapter import (
@@ -64,8 +65,11 @@ class BlattwerkAppPersistenceMixin:
             ttk.Label(content, text="Config-Datei:").grid(row=3, column=0, sticky="w", pady=4)
             ttk.Label(content, text=str(LOCAL_CONFIG_PATH)).grid(row=3, column=1, sticky="w", pady=4)
 
+            ttk.Label(content, text="Completion-Ranking:").grid(row=4, column=0, sticky="w", pady=4)
+            ttk.Label(content, text="Lokal pro Installation").grid(row=4, column=1, sticky="w", pady=4)
+
             buttons = ttk.Frame(content)
-            buttons.grid(row=4, column=0, columnspan=2, sticky="ew", pady=(12, 0))
+            buttons.grid(row=5, column=0, columnspan=2, sticky="ew", pady=(12, 0))
             buttons.columnconfigure(0, weight=1)
 
             def _reset_defaults():
@@ -98,7 +102,24 @@ class BlattwerkAppPersistenceMixin:
                 self._apply_local_system_settings(history_root_name=history_root_name, max_recent_files=max_recent)
                 dialog.destroy()
 
+            def _reset_completion_ranking():
+                if not messagebox.askyesno(
+                    "Completion-Ranking zurücksetzen",
+                    "Die lokale Nutzungsgewichtung für Blocktypen wird gelöscht. Fortfahren?",
+                    parent=dialog,
+                ):
+                    return
+
+                reset_completion_stats()
+                self.status_var.set("Completion-Ranking zurückgesetzt")
+                messagebox.showinfo(
+                    "Einstellungen",
+                    "Die lokale Completion-Rangfolge wurde zurückgesetzt.",
+                    parent=dialog,
+                )
+
             ttk.Button(buttons, text="Standard", command=_reset_defaults).pack(side="left")
+            ttk.Button(buttons, text="Ranking zurücksetzen", command=_reset_completion_ranking).pack(side="left", padx=(8, 0))
             ttk.Button(buttons, text="Abbrechen", command=dialog.destroy).pack(side="right")
             ttk.Button(buttons, text="Speichern", command=_save_and_close).pack(side="right", padx=(0, 8))
 

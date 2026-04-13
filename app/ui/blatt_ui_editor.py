@@ -3,13 +3,94 @@
 from __future__ import annotations
 
 from pathlib import Path
+import re
 import tkinter as tk
 from tkinter import messagebox, ttk
 
+from ..core.blatt_kern_shared import build_block_index_line_map
+from ..core.blatt_validator import (
+    BLOCK_ALLOWED_OPTIONS,
+    KNOWN_ACTION_VALUES,
+    KNOWN_ANSWER_TYPES,
+    KNOWN_BLOCK_TYPES,
+    KNOWN_HINT_VALUES,
+    KNOWN_SHOW_VALUES,
+    KNOWN_WORK_VALUES,
+    inspect_markdown_text,
+)
+from ..storage.local_config_store import (
+    get_block_type_decay_scores,
+    get_option_value_decay_scores,
+    record_block_type_usage,
+    record_block_type_usage_batch,
+    record_option_value_usage,
+)
 from .ui_constants import (
     EDITOR_VIEW_BOTH,
     EDITOR_VIEW_EDITOR_ONLY,
     EDITOR_VIEW_PREVIEW_ONLY,
+)
+from .ui_theme import get_theme
+
+
+_EDITOR_FRONTMATTER_KEYS = (
+    "Titel",
+    "Fach",
+    "Thema",
+    "show_student_header",
+    "show_document_header",
+    "mode",
+    "lochen",
+    "copyright",
+)
+
+_COMPLETION_BLOCK_TYPES = tuple(block for block in KNOWN_BLOCK_TYPES if block != "raw")
+_COMPLETION_ANSWER_TYPES = tuple(sorted(KNOWN_ANSWER_TYPES))
+_COMPLETION_TEXT_OPTION_VALUES_BY_KEY = {
+    "show": tuple(sorted(KNOWN_SHOW_VALUES)),
+    "work": tuple(sorted(KNOWN_WORK_VALUES)),
+    "action": tuple(sorted(KNOWN_ACTION_VALUES)),
+    "hint": tuple(sorted(KNOWN_HINT_VALUES)),
+    # `type` is used in different blocks (e.g., answer/info), so surface the full known corpus.
+    "type": tuple(sorted(set(KNOWN_ANSWER_TYPES) | set(KNOWN_HINT_VALUES) | set(KNOWN_ACTION_VALUES))),
+}
+_COMPLETION_SNIPPETS = (
+    {
+        "label": "Snippet: Task Block (bwtask)",
+        "insert_text": "::: task points=[[1:2]] work=[[2:single]] action=[[3:read]]\n[[4:Aufgabentext]]\n:::",
+        "contexts": {"blank_line", "block_header"},
+        "block_types": {"task"},
+    },
+    {
+        "label": "Snippet: Answer Lines (bwanswerlines)",
+        "insert_text": "::: answer type=lines rows=[[1:4]]\n[[2:]]\n:::",
+        "contexts": {"blank_line"},
+        "block_types": {"answer"},
+        "manual_only": True,
+    },
+    {
+        "label": "Snippet: Help Block (bwhelp)",
+        "insert_text": "::: help title=\"[[1:Hilfe]]\" level=[[2:1]]\n[[3:Hilfetext]]\n:::",
+        "contexts": {"blank_line", "block_header"},
+        "block_types": {"help", "hilfe"},
+    },
+    {
+        "label": "Snippet: Frontmatter (bwfm)",
+        "insert_text": "---\nTitel: [[1:Titel]]\nFach: [[2:Fach]]\nThema: [[3:Thema]]\nshow_student_header: true\nshow_document_header: true\n---\n",
+        "contexts": {"frontmatter_start"},
+        "block_types": set(),
+    },
+)
+_SYNTAX_TAGS = (
+    "syn_frontmatter_delim",
+    "syn_frontmatter_key",
+    "syn_block_fence",
+    "syn_block_type",
+    "syn_option_key",
+    "syn_option_value",
+    "syn_marker",
+    "syn_block_close_error",
+    "syn_block_pair",
 )
 
 
@@ -43,6 +124,72 @@ class BlattwerkAppEditorMixin:
         self.editor_vertical_scrollbar.pack(side="right", fill="y")
         self.editor_widget.configure(yscrollcommand=self.editor_vertical_scrollbar.set)
         self.editor_widget.bind("<<Modified>>", self._on_editor_modified)
+        self.editor_widget.bind("<KeyRelease>", self._on_editor_key_release)
+        self.editor_widget.bind("<Control-space>", self._on_editor_completion_trigger)
+        self.editor_widget.bind("<Control-Shift-period>", self._on_editor_insert_triple_pair)
+        self.editor_widget.bind("<Control-colon>", self._on_editor_insert_triple_pair)
+        self.editor_widget.bind("<Escape>", self._on_editor_escape)
+        self.editor_widget.bind("<Tab>", self._on_editor_tab)
+        self.editor_widget.bind("<Shift-Tab>", self._on_editor_shift_tab)
+        self.editor_widget.bind("<ISO_Left_Tab>", self._on_editor_shift_tab)
+        self.editor_widget.bind("<Up>", self._on_editor_completion_move_up)
+        self.editor_widget.bind("<Down>", self._on_editor_completion_move_down)
+        self.editor_widget.bind("<Return>", self._on_editor_completion_enter)
+        self.editor_widget.bind("<Button-1>", self._on_editor_mouse_click)
+
+        diagnostics_frame = ttk.LabelFrame(parent, text="Diagnostik")
+        diagnostics_frame.pack(fill="x", padx=8, pady=(0, 8))
+        diagnostics_frame.columnconfigure(2, weight=1)
+
+        ttk.Label(diagnostics_frame, text="Zeile").grid(row=0, column=0, sticky="w", padx=(8, 6), pady=(6, 4))
+        ttk.Label(diagnostics_frame, text="Code").grid(row=0, column=1, sticky="w", padx=(0, 6), pady=(6, 4))
+        ttk.Label(diagnostics_frame, text="Hinweis").grid(row=0, column=2, sticky="w", padx=(0, 8), pady=(6, 4))
+
+        self.editor_diagnostics_listbox = tk.Listbox(
+            diagnostics_frame,
+            activestyle="none",
+            borderwidth=0,
+            highlightthickness=0,
+            height=6,
+        )
+        self.editor_diagnostics_listbox.grid(row=1, column=0, columnspan=3, sticky="nsew", padx=(8, 0), pady=(0, 8))
+        self.editor_diagnostics_listbox.bind("<<ListboxSelect>>", self._on_editor_diagnostic_selected)
+        self.editor_diagnostics_listbox.bind("<ButtonRelease-1>", self._on_editor_diagnostic_click)
+
+        diagnostics_scrollbar = ttk.Scrollbar(
+            diagnostics_frame,
+            orient="vertical",
+            command=self.editor_diagnostics_listbox.yview,
+        )
+        diagnostics_scrollbar.grid(row=1, column=3, sticky="ns", padx=(0, 8), pady=(0, 8))
+        self.editor_diagnostics_listbox.configure(yscrollcommand=diagnostics_scrollbar.set)
+        diagnostics_frame.rowconfigure(1, weight=1)
+
+        outline_frame = ttk.LabelFrame(parent, text="Struktur")
+        outline_frame.pack(fill="x", padx=8, pady=(0, 8))
+        outline_frame.columnconfigure(0, weight=1)
+
+        self.editor_outline_listbox = tk.Listbox(
+            outline_frame,
+            activestyle="none",
+            borderwidth=0,
+            highlightthickness=0,
+            height=6,
+        )
+        self.editor_outline_listbox.grid(row=0, column=0, sticky="nsew", padx=(8, 0), pady=(6, 8))
+        self.editor_outline_listbox.bind("<<ListboxSelect>>", self._on_editor_outline_selected)
+        self.editor_outline_listbox.bind("<ButtonRelease-1>", self._on_editor_outline_click)
+
+        outline_scrollbar = ttk.Scrollbar(
+            outline_frame,
+            orient="vertical",
+            command=self.editor_outline_listbox.yview,
+        )
+        outline_scrollbar.grid(row=0, column=1, sticky="ns", padx=(0, 8), pady=(6, 8))
+        self.editor_outline_listbox.configure(yscrollcommand=outline_scrollbar.set)
+
+        self._configure_editor_diagnostic_tags()
+        self._configure_editor_syntax_tags()
 
     def _load_editor_content(self, input_path: Path):
         """Loads the selected markdown file into the editor widget."""
@@ -63,6 +210,10 @@ class BlattwerkAppEditorMixin:
             self.editor_widget.insert("1.0", content)
             self.editor_widget.edit_modified(False)
             self._editor_last_loaded_path = input_path
+            self._editor_last_saved_block_type_counts = self._collect_editor_block_type_counts(content)
+            self._queue_editor_highlighting(immediate=True)
+            self._queue_editor_diagnostics(immediate=True)
+            self._queue_editor_outline(immediate=True)
         finally:
             self._editor_loading_content = False
 
@@ -81,6 +232,9 @@ class BlattwerkAppEditorMixin:
 
         self.editor_widget.edit_modified(False)
         self.status_var.set("Ungespeichert")
+        self._queue_editor_highlighting()
+        self._queue_editor_diagnostics()
+        self._queue_editor_outline()
 
         if self._editor_save_after_id is not None:
             self.root.after_cancel(self._editor_save_after_id)
@@ -103,10 +257,1551 @@ class BlattwerkAppEditorMixin:
         try:
             self.status_var.set("Speichert…")
             input_path.write_text(content, encoding="utf-8")
+            self._record_editor_manual_block_type_usage(content)
             self.status_var.set("Gespeichert")
+            self._queue_editor_highlighting(immediate=True)
+            self._queue_editor_diagnostics(immediate=True)
+            self._queue_editor_outline(immediate=True)
         except Exception as error:
             self.status_var.set("Speichern fehlgeschlagen")
             messagebox.showerror("Speichern fehlgeschlagen", str(error))
+
+    def _configure_editor_diagnostic_tags(self):
+        """Configures text tags for diagnostic line highlighting."""
+
+        if self.editor_widget is None:
+            return
+
+        self.editor_widget.tag_configure("diag_warning", background="#fff4d8")
+        self.editor_widget.tag_configure("diag_error", background="#ffe2e2")
+
+    def _configure_editor_syntax_tags(self):
+        """Configures text tags for syntax highlighting in markdown editor."""
+
+        if self.editor_widget is None:
+            return
+
+        theme = get_theme(self.theme_var.get() if hasattr(self, "theme_var") else None)
+
+        self.editor_widget.tag_configure("syn_frontmatter_delim", foreground="#0b7285")
+        self.editor_widget.tag_configure("syn_frontmatter_key", foreground="#1864ab")
+        self.editor_widget.tag_configure("syn_block_fence", foreground="#b35c00")
+        self.editor_widget.tag_configure("syn_block_type", foreground="#9c36b5")
+        self.editor_widget.tag_configure("syn_option_key", foreground="#0b7285")
+        self.editor_widget.tag_configure("syn_option_value", foreground="#8d6b00")
+        self.editor_widget.tag_configure("syn_marker", foreground="#c92a2a")
+        self.editor_widget.tag_configure("syn_block_close_error", background="#ffe2e2", foreground="#8b0000")
+        self.editor_widget.tag_configure("syn_block_pair", background=theme["accent_soft"])
+        self.editor_widget.tag_configure(
+            "snippet_active",
+            background=theme["accent_soft"],
+            foreground=theme["fg_primary"],
+        )
+
+    def _queue_editor_highlighting(self, immediate: bool = False):
+        """Schedules syntax highlighting refresh with light debounce."""
+
+        if self.editor_widget is None:
+            return
+
+        if self._editor_highlighting_after_id is not None:
+            self.root.after_cancel(self._editor_highlighting_after_id)
+            self._editor_highlighting_after_id = None
+
+        if immediate:
+            self._refresh_editor_highlighting()
+            return
+
+        self._editor_highlighting_after_id = self.root.after(
+            self._editor_highlighting_delay_ms,
+            self._refresh_editor_highlighting,
+        )
+
+    def _refresh_editor_highlighting(self):
+        """Applies lightweight syntax highlighting to frontmatter and block headers."""
+
+        self._editor_highlighting_after_id = None
+        if self.editor_widget is None:
+            return
+
+        for tag_name in _SYNTAX_TAGS:
+            self.editor_widget.tag_remove(tag_name, "1.0", "end")
+
+        full_text = self.editor_widget.get("1.0", "end-1c")
+        structure = self._analyze_editor_block_structure(full_text)
+        closing_lines = {line_no for _open, line_no in structure["pairs"]}
+        closing_suffix_lines = set(structure["close_suffix_lines"])
+        self._editor_block_pairs_cache = list(structure["pairs"])
+
+        last_line = int(self.editor_widget.index("end-1c").split(".")[0] or 1)
+        in_frontmatter = False
+        frontmatter_delim_seen = 0
+
+        for line_no in range(1, max(1, last_line) + 1):
+            line_start = f"{line_no}.0"
+            line_end = f"{line_no}.end"
+            line_text = self.editor_widget.get(line_start, line_end)
+            stripped = line_text.strip()
+
+            if stripped == "---":
+                self.editor_widget.tag_add("syn_frontmatter_delim", line_start, line_end)
+                frontmatter_delim_seen += 1
+                in_frontmatter = frontmatter_delim_seen == 1
+                if frontmatter_delim_seen >= 2:
+                    in_frontmatter = False
+                continue
+
+            if in_frontmatter:
+                key_match = re.match(r"^(\s*)([^:\s][^:]*)(\s*:)", line_text)
+                if key_match:
+                    key_start = len(key_match.group(1))
+                    key_end = key_start + len(key_match.group(2))
+                    self.editor_widget.tag_add(
+                        "syn_frontmatter_key",
+                        f"{line_no}.{key_start}",
+                        f"{line_no}.{key_end}",
+                    )
+                continue
+
+            if line_no in closing_lines:
+                marker_col = line_text.find(":::")
+                if marker_col >= 0:
+                    self.editor_widget.tag_add(
+                        "syn_block_fence",
+                        f"{line_no}.{marker_col}",
+                        f"{line_no}.{marker_col + 3}",
+                    )
+
+                if line_no in closing_suffix_lines and marker_col >= 0:
+                    content_end = len(line_text)
+                    error_start = marker_col + 3
+                    while error_start < content_end and line_text[error_start].isspace():
+                        error_start += 1
+                    if error_start < content_end:
+                        self.editor_widget.tag_add(
+                            "syn_block_close_error",
+                            f"{line_no}.{error_start}",
+                            f"{line_no}.{content_end}",
+                        )
+                continue
+
+            header_match = re.match(r"^(\s*)(:::(\w+))(.*)$", line_text)
+            if header_match:
+                indent = len(header_match.group(1))
+                token = header_match.group(2)
+                token_start = indent
+                token_end = token_start + len(token)
+                self.editor_widget.tag_add(
+                    "syn_block_fence",
+                    f"{line_no}.{token_start}",
+                    f"{line_no}.{min(token_start + 3, token_end)}",
+                )
+                self.editor_widget.tag_add(
+                    "syn_block_type",
+                    f"{line_no}.{min(token_start + 3, token_end)}",
+                    f"{line_no}.{token_end}",
+                )
+
+                options_part = header_match.group(4) or ""
+                options_offset = token_end
+                for option_match in re.finditer(
+                    r"([A-Za-z_][A-Za-z0-9_]*)=(\"[^\"]*\"|'[^']*'|[^\s]+)",
+                    options_part,
+                ):
+                    key_start = options_offset + option_match.start(1)
+                    key_end = options_offset + option_match.end(1)
+                    value_start = options_offset + option_match.start(2)
+                    value_end = options_offset + option_match.end(2)
+                    self.editor_widget.tag_add(
+                        "syn_option_key",
+                        f"{line_no}.{key_start}",
+                        f"{line_no}.{key_end}",
+                    )
+                    self.editor_widget.tag_add(
+                        "syn_option_value",
+                        f"{line_no}.{value_start}",
+                        f"{line_no}.{value_end}",
+                    )
+
+            for marker_match in re.finditer(r"(^|\s)([§$&])(?=\s|$)", line_text):
+                marker_start = marker_match.start(2)
+                marker_end = marker_match.end(2)
+                self.editor_widget.tag_add(
+                    "syn_marker",
+                    f"{line_no}.{marker_start}",
+                    f"{line_no}.{marker_end}",
+                )
+
+        self._refresh_editor_block_pair_highlight()
+
+    def _queue_editor_diagnostics(self, immediate: bool = False):
+        """Schedules a debounced diagnostics refresh for current editor text."""
+
+        if self.editor_widget is None:
+            return
+
+        if self._editor_diagnostics_after_id is not None:
+            self.root.after_cancel(self._editor_diagnostics_after_id)
+            self._editor_diagnostics_after_id = None
+
+        if immediate:
+            self._refresh_editor_diagnostics()
+            return
+
+        self._editor_diagnostics_after_id = self.root.after(
+            self._editor_diagnostics_delay_ms,
+            self._refresh_editor_diagnostics,
+        )
+
+    def _refresh_editor_diagnostics(self):
+        """Collects diagnostics and updates list + line markers in the editor."""
+
+        self._editor_diagnostics_after_id = None
+
+        if self.editor_widget is None:
+            return
+
+        text = self.editor_widget.get("1.0", "end-1c")
+        try:
+            inspected = inspect_markdown_text(text)
+        except Exception:
+            self._set_editor_diagnostics([])
+            return
+
+        index_line_map = self._build_editor_diagnostics_line_map(text)
+        structure = self._analyze_editor_block_structure(text)
+        self._editor_block_pairs_cache = list(structure["pairs"])
+        items = []
+        for diagnostic in inspected.diagnostics:
+            if diagnostic.block_index is None:
+                line = 1
+            else:
+                line = index_line_map.get(diagnostic.block_index, 1)
+
+            items.append(
+                {
+                    "line": max(1, int(line)),
+                    "code": diagnostic.code,
+                    "severity": diagnostic.severity,
+                    "message": diagnostic.message,
+                }
+            )
+
+        for line_no in structure["close_suffix_lines"]:
+            items.append(
+                {
+                    "line": max(1, int(line_no)),
+                    "code": "SY001",
+                    "severity": "error",
+                    "message": "Nach schließendem ::: ist kein weiterer Text erlaubt.",
+                }
+            )
+
+        for line_no in structure["unclosed_open_lines"]:
+            items.append(
+                {
+                    "line": max(1, int(line_no)),
+                    "code": "SY002",
+                    "severity": "error",
+                    "message": "Block ist geöffnet, aber nicht mit ::: geschlossen.",
+                }
+            )
+
+        self._set_editor_diagnostics(items)
+
+    @staticmethod
+    def _analyze_editor_block_structure(markdown_text: str) -> dict:
+        """Parses block openings/closings to drive mapping, outline and pair matching."""
+
+        pairs = []
+        close_suffix_lines = []
+        block_stack = []
+        lines = markdown_text.splitlines()
+
+        self_closing_pattern = re.compile(r"^:::(\w+)(.*?):::$")
+        opening_pattern = re.compile(r"^:::(\w+)(.*)$")
+
+        for line_no, raw_line in enumerate(lines, start=1):
+            stripped = raw_line.strip()
+            if not stripped:
+                continue
+
+            if self_closing_pattern.match(stripped):
+                continue
+
+            opening_match = opening_pattern.match(stripped)
+            if opening_match:
+                block_stack.append((opening_match.group(1).lower(), line_no))
+                continue
+
+            if stripped.startswith(":::") and block_stack:
+                _open_type, open_line = block_stack.pop()
+                pairs.append((open_line, line_no))
+                if stripped != ":::":
+                    close_suffix_lines.append(line_no)
+
+        unclosed_open_lines = [line_no for _block_type, line_no in block_stack]
+
+        return {
+            "pairs": pairs,
+            "close_suffix_lines": close_suffix_lines,
+            "unclosed_open_lines": unclosed_open_lines,
+        }
+
+    def _build_editor_diagnostics_line_map(self, markdown_text: str) -> dict[int, int]:
+        """Maps validator block indices to original editor line numbers."""
+
+        content_text, content_base_line = self._extract_validation_content_and_base_line(markdown_text)
+        if not content_text:
+            return {}
+
+        local_index_map = build_block_index_line_map(content_text)
+        return {
+            block_index: content_base_line + max(0, int(local_line) - 1)
+            for block_index, local_line in local_index_map.items()
+        }
+
+    @staticmethod
+    def _extract_validation_content_and_base_line(markdown_text: str) -> tuple[str, int]:
+        """Returns validator content plus 1-based base line in original markdown."""
+
+        lines = markdown_text.splitlines(keepends=True)
+        content_start_line = 1
+        content_raw = markdown_text
+
+        if lines and lines[0].strip() == "---":
+            for line_index in range(1, len(lines)):
+                if lines[line_index].strip() == "---":
+                    content_start_line = line_index + 2
+                    content_raw = "".join(lines[line_index + 1 :])
+                    break
+
+        content_for_validation = content_raw.strip()
+        if not content_for_validation:
+            return "", content_start_line
+
+        leading_removed_chars = len(content_raw) - len(content_raw.lstrip())
+        leading_removed_text = content_raw[:leading_removed_chars]
+        leading_removed_lines = leading_removed_text.count("\n")
+        base_line = content_start_line + leading_removed_lines
+        return content_for_validation, max(1, base_line)
+
+    def _set_editor_diagnostics(self, items):
+        """Renders diagnostics into listbox and colored line tags."""
+
+        self._editor_diagnostics_items = list(items)
+
+        if self.editor_widget is not None:
+            self.editor_widget.tag_remove("diag_warning", "1.0", "end")
+            self.editor_widget.tag_remove("diag_error", "1.0", "end")
+
+            line_severity = {}
+            for item in self._editor_diagnostics_items:
+                existing = line_severity.get(item["line"])
+                severity = item["severity"]
+                if existing == "error":
+                    continue
+                if severity == "error" or existing is None:
+                    line_severity[item["line"]] = severity
+
+            last_line = int(self.editor_widget.index("end-1c").split(".")[0] or 1)
+            for line, severity in line_severity.items():
+                safe_line = max(1, min(int(line), max(1, last_line)))
+                tag_name = "diag_error" if severity == "error" else "diag_warning"
+                start = f"{safe_line}.0"
+                end = f"{safe_line}.0 lineend+1c"
+                self.editor_widget.tag_add(tag_name, start, end)
+
+        if self.editor_diagnostics_listbox is None:
+            return
+
+        self.editor_diagnostics_listbox.delete(0, "end")
+        if not self._editor_diagnostics_items:
+            self.editor_diagnostics_listbox.insert("end", "Keine Diagnostik")
+            return
+
+        for item in self._editor_diagnostics_items:
+            severity_label = "Fehler" if item["severity"] == "error" else "Warnung"
+            self.editor_diagnostics_listbox.insert(
+                "end",
+                f"{item['line']:>4}  {item['code']:<5}  {severity_label}: {item['message']}",
+            )
+
+    def _on_editor_diagnostic_selected(self, _event=None):
+        """Jumps to selected diagnostic line and moves cursor to that location."""
+
+        if self.editor_widget is None or self.editor_diagnostics_listbox is None:
+            return
+
+        selection = self.editor_diagnostics_listbox.curselection()
+        if not selection:
+            return
+
+        index = selection[0]
+        if index >= len(self._editor_diagnostics_items):
+            return
+
+        line = self._editor_diagnostics_items[index]["line"]
+        line_index = f"{max(1, int(line))}.0"
+        self.editor_widget.mark_set("insert", line_index)
+        self.editor_widget.see(line_index)
+        self.editor_widget.focus_set()
+        self._refresh_editor_block_pair_highlight()
+
+    def _on_editor_diagnostic_click(self, _event=None):
+        """Ensures click on already selected diagnostic still triggers jump."""
+
+        if hasattr(self, "root"):
+            self.root.after_idle(self._on_editor_diagnostic_selected)
+
+    def _on_editor_key_release(self, event=None):
+        """Keeps completion popup in sync while typing on matching contexts."""
+
+        if self.editor_widget is None:
+            return
+
+        self._sync_editor_snippet_session()
+
+        if event is None:
+            return
+
+        if event.keysym in {"Escape"}:
+            return
+
+        if event.keysym in {
+            "Shift_L",
+            "Shift_R",
+            "Control_L",
+            "Control_R",
+            "Alt_L",
+            "Alt_R",
+            "Meta_L",
+            "Meta_R",
+            "ISO_Level3_Shift",
+        }:
+            return
+
+        if event.keysym in {"Up", "Down", "Left", "Right"}:
+            self._refresh_editor_block_pair_highlight()
+            return
+
+        trigger_chars = {"_", ":", "=", " "}
+        should_trigger = (
+            event.keysym in {"BackSpace", "Return"}
+            or bool(event.char and (event.char.isalnum() or event.char in trigger_chars))
+        )
+
+        if should_trigger:
+            self._open_editor_completion(auto=True)
+        else:
+            self._close_editor_completion()
+
+        self._refresh_editor_block_pair_highlight()
+
+    def _on_editor_completion_trigger(self, _event=None):
+        """Opens completion suggestions manually via Ctrl+Space."""
+
+        self._open_editor_completion(auto=False)
+        return "break"
+
+    def _on_editor_insert_triple_pair(self, _event=None):
+        """Inserts `::: :::` and opens snippet suggestions at center cursor position."""
+
+        if self.editor_widget is None:
+            return "break"
+
+        insert_index = self.editor_widget.index("insert")
+        self.editor_widget.insert(insert_index, "::: :::")
+        self.editor_widget.mark_set("insert", f"{insert_index}+3c")
+        self.editor_widget.focus_set()
+        self._queue_editor_highlighting(immediate=True)
+        self._queue_editor_diagnostics(immediate=True)
+        self._queue_editor_outline(immediate=True)
+        self._open_editor_completion(auto=False, force_snippets=True)
+        return "break"
+
+    def _on_editor_escape(self, _event=None):
+        """Closes completion popup when escape is pressed in editor."""
+
+        self._close_editor_completion()
+        self._clear_editor_snippet_session()
+
+    def _on_editor_tab(self, _event=None):
+        """Applies selected completion on tab when popup is visible."""
+
+        if self._editor_completion_items:
+            return self._on_editor_completion_accept()
+        if self._editor_snippet_placeholders:
+            return self._advance_editor_snippet_placeholder(step=1)
+        return None
+
+    def _on_editor_shift_tab(self, _event=None):
+        """Moves to previous snippet placeholder when session is active."""
+
+        if self._editor_snippet_placeholders:
+            return self._advance_editor_snippet_placeholder(step=-1)
+        return None
+
+    def _on_editor_completion_move_up(self, _event=None):
+        """Moves completion selection up when popup is visible."""
+
+        if not self._is_editor_completion_visible() or self._editor_completion_listbox is None:
+            return None
+
+        selection = self._editor_completion_listbox.curselection()
+        current = selection[0] if selection else 0
+        new_index = max(0, current - 1)
+        self._editor_completion_listbox.selection_clear(0, "end")
+        self._editor_completion_listbox.selection_set(new_index)
+        self._editor_completion_listbox.activate(new_index)
+        self._editor_completion_listbox.see(new_index)
+        return "break"
+
+    def _on_editor_completion_move_down(self, _event=None):
+        """Moves completion selection down when popup is visible."""
+
+        if not self._is_editor_completion_visible() or self._editor_completion_listbox is None:
+            return None
+
+        selection = self._editor_completion_listbox.curselection()
+        current = selection[0] if selection else 0
+        max_index = max(0, len(self._editor_completion_items) - 1)
+        new_index = min(max_index, current + 1)
+        self._editor_completion_listbox.selection_clear(0, "end")
+        self._editor_completion_listbox.selection_set(new_index)
+        self._editor_completion_listbox.activate(new_index)
+        self._editor_completion_listbox.see(new_index)
+        return "break"
+
+    def _on_editor_completion_enter(self, _event=None):
+        """Accepts completion on enter when popup is visible."""
+
+        if self._editor_completion_items:
+            return self._on_editor_completion_accept()
+        return None
+
+    def _on_editor_mouse_click(self, _event=None):
+        """Closes completion popup when user clicks in editor."""
+
+        self._close_editor_completion()
+        self._clear_editor_snippet_session()
+        if hasattr(self, "root"):
+            self.root.after_idle(self._refresh_editor_block_pair_highlight)
+
+    def _open_editor_completion(self, auto: bool, force_snippets: bool = False):
+        """Collects completion suggestions and renders popup near caret."""
+
+        if self.editor_widget is None:
+            return
+
+        context = self._collect_editor_completion_context(auto=auto, force_snippets=force_snippets)
+        if context is None:
+            self._close_editor_completion()
+            return
+
+        suggestions = context.get("suggestions") or []
+        if not suggestions:
+            self._close_editor_completion()
+            return
+
+        completion_kind = context.get("kind")
+        raw_meta = context.get("meta")
+        completion_meta = dict(raw_meta) if isinstance(raw_meta, dict) else {}
+        if completion_kind == "block_type":
+            suggestions = self._rank_block_type_suggestions(suggestions)
+        if completion_kind == "option_value":
+            suggestions = self._rank_option_value_suggestions(
+                suggestions,
+                block_type=str(completion_meta.get("block_type") or ""),
+                option_key=str(completion_meta.get("option_key") or ""),
+            )
+
+        self._editor_completion_replace_start = context["replace_start"]
+        self._editor_completion_replace_end = context["replace_end"]
+        self._editor_completion_context_kind = completion_kind
+        self._editor_completion_context_meta = completion_meta
+
+        if self._editor_completion_popup is None or not self._editor_completion_popup.winfo_exists():
+            popup = tk.Toplevel(self.root)
+            popup.withdraw()
+            popup.overrideredirect(True)
+            popup.transient(self.root)
+
+            listbox = tk.Listbox(
+                popup,
+                activestyle="none",
+                height=min(8, len(suggestions)),
+                width=72,
+            )
+            listbox.pack(fill="both", expand=True)
+            listbox.bind("<Double-Button-1>", self._on_editor_completion_accept)
+            listbox.bind("<Return>", self._on_editor_completion_accept)
+            listbox.bind("<Escape>", lambda _event: self._close_editor_completion())
+
+            self._editor_completion_popup = popup
+            self._editor_completion_listbox = listbox
+
+        if self._editor_completion_listbox is None:
+            return
+
+        self._editor_completion_items = list(suggestions)
+        width_chars = max((len(item["label"]) for item in self._editor_completion_items), default=40)
+        self._editor_completion_listbox.configure(width=min(110, max(46, width_chars + 2)))
+        self._editor_completion_listbox.configure(height=min(8, len(self._editor_completion_items)))
+        self._editor_completion_listbox.delete(0, "end")
+        for item in self._editor_completion_items:
+            self._editor_completion_listbox.insert("end", item["label"])
+
+        self._editor_completion_listbox.selection_clear(0, "end")
+        self._editor_completion_listbox.selection_set(0)
+        self._editor_completion_listbox.activate(0)
+
+        caret_box = self.editor_widget.bbox("insert")
+        if caret_box is None:
+            self._close_editor_completion()
+            return
+
+        x = self.editor_widget.winfo_rootx() + caret_box[0]
+        y = self.editor_widget.winfo_rooty() + caret_box[1] + caret_box[3] + 2
+        self._editor_completion_popup.geometry(f"+{x}+{y}")
+        self._editor_completion_popup.deiconify()
+        self._editor_completion_popup.lift()
+
+    def _collect_editor_completion_context(self, auto: bool, force_snippets: bool = False):
+        """Derives completion candidates from current line and cursor context."""
+
+        if self.editor_widget is None:
+            return None
+
+        insert_index = self.editor_widget.index("insert")
+        line_no_text, col_text = insert_index.split(".")
+        line_no = int(line_no_text)
+        cursor_col = int(col_text)
+        line_text = self.editor_widget.get(f"{line_no}.0", f"{line_no}.end")
+        left_text = line_text[:cursor_col]
+        left_stripped = left_text.lstrip()
+        line_indent = len(left_text) - len(left_stripped)
+        stripped_line = line_text.strip()
+        is_block_header_line = bool(re.match(r"^\s*:::", line_text))
+        is_closing_only_line = stripped_line == ":::"
+        is_opening_header_line = is_block_header_line and not is_closing_only_line
+
+        if not force_snippets and left_stripped.startswith(":::"):
+            after_fence = left_stripped[3:]
+            if " " not in after_fence:
+                block_prefix = after_fence
+                # Avoid auto popup on likely closing marker lines inside an open block.
+                if auto and block_prefix == "" and stripped_line == ":::" and self._editor_get_enclosing_block_type(line_no):
+                    return None
+
+                suggestions = [
+                    {
+                        "label": block_type,
+                        "insert_text": block_type,
+                        "kind": "block_type",
+                        "block_type": block_type,
+                    }
+                    for block_type in _COMPLETION_BLOCK_TYPES
+                    if block_type.startswith(block_prefix)
+                ]
+                if auto and not suggestions:
+                    return None
+
+                replace_start = f"{line_no}.{line_indent + 3}"
+                replace_end = f"{line_no}.{line_indent + 3 + len(block_prefix)}"
+                return {
+                    "suggestions": suggestions,
+                    "replace_start": replace_start,
+                    "replace_end": replace_end,
+                    "kind": "block_type",
+                }
+
+            block_token = after_fence.split(" ", 1)[0]
+            if block_token in BLOCK_ALLOWED_OPTIONS:
+                option_value_match = re.search(r"\b([A-Za-z_][A-Za-z0-9_]*)=([^\s]*)$", left_text)
+                if option_value_match:
+                    option_key = option_value_match.group(1)
+                    value_prefix = option_value_match.group(2) or ""
+                    suggestions = self._build_option_value_suggestions(
+                        block_type=block_token,
+                        option_key=option_key,
+                        value_prefix=value_prefix,
+                    )
+                    if suggestions:
+                        value_start = option_value_match.start(2)
+                        value_end = option_value_match.end(2)
+                        return {
+                            "suggestions": suggestions,
+                            "replace_start": f"{line_no}.{value_start}",
+                            "replace_end": f"{line_no}.{value_end}",
+                            "kind": "option_value",
+                            "meta": {
+                                "block_type": block_token,
+                                "option_key": option_key.lower(),
+                            },
+                        }
+
+                if after_fence == f"{block_token} ":
+                    suggestions = [
+                        {
+                            "label": option,
+                            "insert_text": option,
+                            "kind": "block_option",
+                        }
+                        for option in sorted(BLOCK_ALLOWED_OPTIONS.get(block_token, set()))
+                    ]
+                    if auto and not suggestions:
+                        return None
+
+                    return {
+                        "suggestions": suggestions,
+                        "replace_start": f"{line_no}.{cursor_col}",
+                        "replace_end": f"{line_no}.{cursor_col}",
+                        "kind": "block_option",
+                    }
+
+                type_match = re.search(r"\btype=([A-Za-z_][A-Za-z0-9_]*)?$", left_text)
+                if block_token == "answer" and type_match:
+                    value_prefix = type_match.group(1) or ""
+
+                    suggestions = [
+                        {
+                            "label": answer_type,
+                            "insert_text": answer_type,
+                            "kind": "option_value",
+                            "block_type": "answer",
+                            "option_key": "type",
+                        }
+                        for answer_type in _COMPLETION_ANSWER_TYPES
+                        if answer_type.startswith(value_prefix)
+                    ]
+                    if auto and not suggestions:
+                        return None
+
+                    value_start = type_match.start(1) if type_match.group(1) is not None else type_match.end(0)
+                    value_end = type_match.end(1) if type_match.group(1) is not None else type_match.end(0)
+                    return {
+                        "suggestions": suggestions,
+                        "replace_start": f"{line_no}.{value_start}",
+                        "replace_end": f"{line_no}.{value_end}",
+                        "kind": "option_value",
+                        "meta": {
+                            "block_type": "answer",
+                            "option_key": "type",
+                        },
+                    }
+
+                key_match = re.search(r"([A-Za-z_][A-Za-z0-9_]*)$", left_text)
+                if key_match and "=" not in left_text[key_match.start(1):]:
+                    key_prefix = key_match.group(1)
+                    if auto and len(key_prefix) < 1:
+                        return None
+
+                    suggestions = [
+                        {
+                            "label": option,
+                            "insert_text": option,
+                            "kind": "block_option",
+                        }
+                        for option in sorted(BLOCK_ALLOWED_OPTIONS.get(block_token, set()))
+                        if option.startswith(key_prefix)
+                    ]
+                    return {
+                        "suggestions": suggestions,
+                        "replace_start": f"{line_no}.{key_match.start(1)}",
+                        "replace_end": f"{line_no}.{key_match.end(1)}",
+                        "kind": "block_option",
+                    }
+
+        if not force_snippets and self._editor_cursor_in_frontmatter(line_no):
+            frontmatter_match = re.match(r"^(\s*)([A-Za-z_][A-Za-z0-9_\-]*)?$", left_text)
+            if frontmatter_match:
+                key_prefix = frontmatter_match.group(2) or ""
+                if auto and len(key_prefix) < 1:
+                    return None
+
+                suggestions = [
+                    {
+                        "label": field_name,
+                        "insert_text": field_name,
+                        "kind": "frontmatter_key",
+                    }
+                    for field_name in _EDITOR_FRONTMATTER_KEYS
+                    if field_name.lower().startswith(key_prefix.lower())
+                ]
+                key_start = len(frontmatter_match.group(1))
+                return {
+                    "suggestions": suggestions,
+                    "replace_start": f"{line_no}.{key_start}",
+                    "replace_end": f"{line_no}.{key_start + len(key_prefix)}",
+                    "kind": "frontmatter_key",
+                }
+
+        token_match = re.search(r"([A-Za-z_][A-Za-z0-9_]*)$", left_text)
+        token_prefix = token_match.group(1) if token_match else ""
+        token_start = token_match.start(1) if token_match else cursor_col
+        is_blank_line = not stripped_line
+        in_block_header = left_stripped.startswith(":::")
+        header_block_prefix = ""
+        header_prefix_match = re.match(r"^\s*:::(\w*)", left_text)
+        if header_prefix_match:
+            header_block_prefix = (header_prefix_match.group(1) or "").strip().lower()
+        enclosing_block_type = self._editor_get_enclosing_block_type(line_no)
+        document_has_frontmatter = self._editor_document_has_frontmatter()
+
+        active_contexts = set()
+        # Blank-line auto suggestions are intentionally limited to in-block flow.
+        if is_blank_line and enclosing_block_type:
+            active_contexts.add("blank_line")
+        if in_block_header and is_opening_header_line:
+            active_contexts.add("block_header")
+        if not document_has_frontmatter and line_no <= 5:
+            active_contexts.add("frontmatter_start")
+        if bool(re.search(r"\b[A-Za-z_][A-Za-z0-9_]*=$", left_text)):
+            active_contexts.add("option_value")
+
+        if auto and not active_contexts:
+            return None
+
+        if auto and (in_block_header or "option_value" in active_contexts):
+            return None
+
+        snippet_items = []
+        for snippet in _COMPLETION_SNIPPETS:
+            if auto and bool(snippet.get("manual_only")):
+                continue
+            if token_prefix and not snippet["label"].lower().startswith(token_prefix.lower()):
+                continue
+            if not bool(set(snippet.get("contexts", set())) & active_contexts):
+                continue
+            if not self._snippet_matches_block_context(
+                snippet,
+                header_block_prefix=header_block_prefix,
+                enclosing_block_type=enclosing_block_type,
+            ):
+                continue
+
+            adapted = self._adapt_snippet_for_context(
+                snippet,
+                enclosing_block_type=enclosing_block_type,
+                in_block_header=in_block_header,
+            )
+            if adapted is not None:
+                adapted.setdefault("kind", "snippet")
+                adapted.setdefault("block_type", self._infer_snippet_primary_block_type(snippet))
+                snippet_items.append(adapted)
+
+        if auto and not snippet_items:
+            return None
+
+        return {
+            "suggestions": snippet_items,
+            "replace_start": f"{line_no}.{token_start}",
+            "replace_end": f"{line_no}.{cursor_col}",
+            "kind": "snippet",
+        }
+
+    @staticmethod
+    def _infer_snippet_primary_block_type(snippet) -> str | None:
+        """Returns primary block type for snippet statistics when available."""
+
+        block_types = snippet.get("block_types") if isinstance(snippet, dict) else None
+        if not block_types:
+            return None
+        ordered = [value for value in _COMPLETION_BLOCK_TYPES if value in block_types]
+        if ordered:
+            return ordered[0]
+        first = sorted(str(value) for value in block_types)[0]
+        return first.lower()
+
+    @staticmethod
+    def _adapt_snippet_for_context(snippet, enclosing_block_type: str | None, in_block_header: bool):
+        """Adapts snippet insert text when already inside the same block type."""
+
+        adapted = dict(snippet)
+        if in_block_header:
+            return adapted
+
+        block_types = {value.lower() for value in (snippet.get("block_types") or set())}
+        if not block_types:
+            return adapted
+        if not enclosing_block_type:
+            return adapted
+        if enclosing_block_type.lower() not in block_types:
+            return adapted
+
+        insert_text = str(snippet.get("insert_text") or "")
+        lines = insert_text.splitlines()
+        if len(lines) >= 2 and lines[0].lstrip().startswith(":::") and lines[-1].strip() == ":::":
+            body = "\n".join(lines[1:-1]).strip("\n")
+            adapted["insert_text"] = body
+            adapted["label"] = f"{snippet['label']} (Inhalt)"
+
+        return adapted
+
+    @staticmethod
+    def _snippet_matches_block_context(snippet, header_block_prefix: str, enclosing_block_type: str | None) -> bool:
+        """Checks whether a snippet should be offered for current block context."""
+
+        block_types = {value.lower() for value in (snippet.get("block_types") or set())}
+        if not block_types:
+            return True
+
+        if header_block_prefix:
+            return any(block_type.startswith(header_block_prefix) for block_type in block_types)
+
+        if enclosing_block_type:
+            return enclosing_block_type.lower() in block_types
+
+        return True
+
+    def _editor_get_enclosing_block_type(self, target_line_no: int) -> str | None:
+        """Returns the currently open block type for a given line number, if any."""
+
+        if self.editor_widget is None:
+            return None
+
+        line_count = int(self.editor_widget.index("end-1c").split(".")[0] or 1)
+        upper_bound = max(1, min(target_line_no, line_count))
+
+        block_stack = []
+        self_closing_pattern = re.compile(r"^\s*:::(\w+)(.*?):::\s*$")
+        block_open_pattern = re.compile(r"^\s*:::(\w+)(.*)$")
+
+        for line_no in range(1, upper_bound + 1):
+            text = self.editor_widget.get(f"{line_no}.0", f"{line_no}.end")
+            stripped = text.strip()
+
+            if not stripped:
+                continue
+
+            if self_closing_pattern.match(stripped):
+                continue
+
+            if stripped == ":::":
+                if block_stack:
+                    block_stack.pop()
+                continue
+
+            block_open_match = block_open_pattern.match(stripped)
+            if block_open_match:
+                block_stack.append(block_open_match.group(1).lower())
+
+        if not block_stack:
+            return None
+        return block_stack[-1]
+
+    def _editor_cursor_in_frontmatter(self, line_no: int) -> bool:
+        """Returns true when the given line index is inside frontmatter section."""
+
+        if self.editor_widget is None:
+            return False
+
+        frontmatter_delim_count = 0
+        for current_line in range(1, max(1, line_no) + 1):
+            text = self.editor_widget.get(f"{current_line}.0", f"{current_line}.end").strip()
+            if text == "---":
+                frontmatter_delim_count += 1
+
+        return frontmatter_delim_count == 1
+
+    def _on_editor_completion_accept(self, _event=None):
+        """Applies currently selected completion entry to the editor text."""
+
+        if self.editor_widget is None or self._editor_completion_listbox is None:
+            return "break"
+
+        selection = self._editor_completion_listbox.curselection()
+        if not selection:
+            return "break"
+
+        candidate = self._editor_completion_items[selection[0]]
+        if not candidate:
+            return "break"
+
+        self._record_editor_completion_usage(candidate)
+
+        insert_text, cursor_offset, placeholders = self._resolve_completion_insert(candidate)
+        if insert_text is None or cursor_offset is None or placeholders is None:
+            return "break"
+
+        replace_start = self._editor_completion_replace_start or self.editor_widget.index("insert")
+        replace_end = self._editor_completion_replace_end or self.editor_widget.index("insert")
+        self.editor_widget.delete(replace_start, replace_end)
+        self.editor_widget.insert(replace_start, insert_text)
+        self.editor_widget.mark_set("insert", f"{replace_start}+{cursor_offset}c")
+        self.editor_widget.focus_set()
+        self._start_editor_snippet_session(replace_start, placeholders)
+        self._queue_editor_highlighting(immediate=True)
+        self._queue_editor_diagnostics(immediate=True)
+        self._queue_editor_outline(immediate=True)
+        self._close_editor_completion()
+        return "break"
+
+    def _record_editor_completion_usage(self, candidate) -> None:
+        """Records block-type usage for completion ranking when candidate implies one."""
+
+        if not isinstance(candidate, dict):
+            return
+
+        block_type = candidate.get("block_type")
+        kind = str(candidate.get("kind") or "").strip().lower()
+        if not block_type and kind == "block_type":
+            block_type = candidate.get("insert_text")
+        if not block_type:
+            insert_text = str(candidate.get("insert_text") or "")
+            first_line = insert_text.splitlines()[0] if insert_text else ""
+            match = re.match(r"^\s*:::(\w+)", first_line)
+            if match:
+                block_type = match.group(1)
+
+        normalized = str(block_type or "").strip().lower()
+        kind = str(candidate.get("kind") or "").strip().lower()
+        if kind == "option_value":
+            option_key = str(candidate.get("option_key") or self._editor_completion_context_meta.get("option_key") or "").strip().lower()
+            value = str(candidate.get("insert_text") or "").strip().lower()
+            block_type_for_value = str(candidate.get("block_type") or self._editor_completion_context_meta.get("block_type") or "").strip().lower()
+            if block_type_for_value and option_key and value:
+                try:
+                    record_option_value_usage(block_type_for_value, option_key, value)
+                except Exception:
+                    pass
+
+        if normalized:
+            try:
+                record_block_type_usage(normalized)
+            except Exception:
+                pass
+
+    def _rank_block_type_suggestions(self, suggestions):
+        """Ranks block-type suggestions by local decay score, then core order."""
+
+        try:
+            scores = get_block_type_decay_scores()
+        except Exception:
+            scores = {}
+
+        order_index = {block_type: index for index, block_type in enumerate(_COMPLETION_BLOCK_TYPES)}
+
+        def _sort_key(item):
+            block_type = str(item.get("block_type") or item.get("insert_text") or "").strip().lower()
+            score = float(scores.get(block_type, 0.0))
+            return (
+                -score,
+                order_index.get(block_type, 10_000),
+                str(item.get("label") or "").lower(),
+            )
+
+        return sorted(list(suggestions), key=_sort_key)
+
+    def _rank_option_value_suggestions(self, suggestions, *, block_type: str, option_key: str):
+        """Ranks option value suggestions with same local decay mechanism as block types."""
+
+        block_type_norm = str(block_type or "").strip().lower()
+        option_key_norm = str(option_key or "").strip().lower()
+        try:
+            scores = get_option_value_decay_scores(block_type_norm, option_key_norm)
+        except Exception:
+            scores = {}
+
+        def _sort_key(item):
+            value = str(item.get("insert_text") or "").strip().lower()
+            score = float(scores.get(value, 0.0))
+            return (-score, str(item.get("label") or "").lower())
+
+        return sorted(list(suggestions), key=_sort_key)
+
+    def _build_option_value_suggestions(self, *, block_type: str, option_key: str, value_prefix: str):
+        """Builds option value candidates with optional learned ranking data."""
+
+        block_type_norm = str(block_type or "").strip().lower()
+        option_key_norm = str(option_key or "").strip().lower()
+        prefix_norm = str(value_prefix or "").strip().lower()
+
+        defaults = list(_COMPLETION_TEXT_OPTION_VALUES_BY_KEY.get(option_key_norm, ()))
+        if not defaults and block_type_norm == "answer" and option_key_norm == "type":
+            defaults = list(_COMPLETION_ANSWER_TYPES)
+
+        learned = []
+        try:
+            learned_scores = get_option_value_decay_scores(block_type_norm, option_key_norm)
+            learned = sorted(learned_scores.keys())
+        except Exception:
+            learned = []
+
+        seen = set()
+        merged: list[str] = []
+        for value in defaults + learned:
+            key = str(value).strip().lower()
+            if not key or key in seen:
+                continue
+            seen.add(key)
+            merged.append(str(value).strip())
+
+        filtered = [value for value in merged if value.lower().startswith(prefix_norm)]
+        return [
+            {
+                "label": value,
+                "insert_text": value,
+                "kind": "option_value",
+                "block_type": block_type_norm,
+                "option_key": option_key_norm,
+            }
+            for value in filtered
+        ]
+
+    @staticmethod
+    def _collect_editor_block_type_counts(markdown_text: str) -> dict[str, int]:
+        """Collects per-block-type counts from opening or self-closing block headers."""
+
+        counts: dict[str, int] = {}
+        self_closing_pattern = re.compile(r"^\s*:::(\w+)(.*?):::\s*$")
+        opening_pattern = re.compile(r"^\s*:::(\w+)(.*)$")
+
+        for line in markdown_text.splitlines():
+            stripped = line.strip()
+            if not stripped or stripped == ":::":
+                continue
+
+            self_closing_match = self_closing_pattern.match(stripped)
+            if self_closing_match:
+                block_type = self_closing_match.group(1).lower()
+                counts[block_type] = counts.get(block_type, 0) + 1
+                continue
+
+            opening_match = opening_pattern.match(stripped)
+            if opening_match:
+                block_type = opening_match.group(1).lower()
+                counts[block_type] = counts.get(block_type, 0) + 1
+
+        return counts
+
+    def _record_editor_manual_block_type_usage(self, markdown_text: str) -> None:
+        """Records block-type usage deltas from manually edited document content on save."""
+
+        current_counts = self._collect_editor_block_type_counts(markdown_text)
+        previous_counts = dict(getattr(self, "_editor_last_saved_block_type_counts", {}) or {})
+        increments: dict[str, int] = {}
+
+        for block_type, current_count in current_counts.items():
+            previous_count = int(previous_counts.get(block_type, 0))
+            delta = int(current_count) - previous_count
+            if delta > 0:
+                increments[block_type] = delta
+
+        if increments:
+            try:
+                record_block_type_usage_batch(increments)
+            except Exception:
+                pass
+
+        self._editor_last_saved_block_type_counts = current_counts
+
+    @staticmethod
+    def _resolve_completion_insert(candidate):
+        """Returns insert text plus target cursor offset after insertion."""
+
+        if not isinstance(candidate, dict):
+            return None, None, None
+
+        raw_insert_text = candidate.get("insert_text")
+        if raw_insert_text is None:
+            return None, None, None
+
+        placeholder_pattern = re.compile(r"\[\[(\d+):([^\]]*)\]\]")
+        occurrences = []
+        output_parts = []
+        scan_index = 0
+
+        for match in placeholder_pattern.finditer(raw_insert_text):
+            output_parts.append(raw_insert_text[scan_index:match.start()])
+            replacement_text = match.group(2)
+            output_offset = len("".join(output_parts))
+            output_parts.append(replacement_text)
+            occurrences.append(
+                {
+                    "order": int(match.group(1)),
+                    "start": output_offset,
+                    "end": output_offset + len(replacement_text),
+                }
+            )
+            scan_index = match.end()
+
+        output_parts.append(raw_insert_text[scan_index:])
+        parsed_insert_text = "".join(output_parts)
+
+        if occurrences:
+            ordered = sorted(occurrences, key=lambda item: (item["order"], item["start"]))
+            placeholder_spans = [
+                {
+                    "start": item["start"],
+                    "end": item["end"],
+                }
+                for item in ordered
+            ]
+            return parsed_insert_text, placeholder_spans[0]["start"], placeholder_spans
+
+        cursor_marker = "[[CURSOR]]"
+        marker_index = parsed_insert_text.find(cursor_marker)
+        if marker_index >= 0:
+            insert_text = parsed_insert_text.replace(cursor_marker, "", 1)
+            return insert_text, marker_index, []
+
+        return parsed_insert_text, len(parsed_insert_text), []
+
+    def _start_editor_snippet_session(self, replace_start: str, placeholders):
+        """Initializes snippet placeholders so Tab can jump field-by-field."""
+
+        self._clear_editor_snippet_session()
+        if self.editor_widget is None:
+            return
+
+        for span in placeholders or []:
+            start_offset = max(0, int(span.get("start", 0)))
+            end_offset = max(start_offset, int(span.get("end", start_offset)))
+
+            start_mark = f"snippet_start_{self._editor_snippet_mark_counter}"
+            self._editor_snippet_mark_counter += 1
+            end_mark = f"snippet_end_{self._editor_snippet_mark_counter}"
+            self._editor_snippet_mark_counter += 1
+
+            self.editor_widget.mark_set(start_mark, f"{replace_start}+{start_offset}c")
+            self.editor_widget.mark_set(end_mark, f"{replace_start}+{end_offset}c")
+            self.editor_widget.mark_gravity(start_mark, tk.LEFT)
+            self.editor_widget.mark_gravity(end_mark, tk.RIGHT)
+
+            self._editor_snippet_placeholders.append(
+                {
+                    "start_mark": start_mark,
+                    "end_mark": end_mark,
+                }
+            )
+
+        if self._editor_snippet_placeholders:
+            self._editor_snippet_active_index = 0
+            self._select_editor_snippet_placeholder(0)
+
+    def _clear_editor_snippet_session(self):
+        """Clears active snippet session and removes internal marks."""
+
+        if self.editor_widget is None:
+            self._editor_snippet_placeholders = []
+            self._editor_snippet_active_index = -1
+            return
+
+        for item in self._editor_snippet_placeholders:
+            for key in ("start_mark", "end_mark"):
+                mark_name = item.get(key)
+                if not mark_name:
+                    continue
+                try:
+                    self.editor_widget.mark_unset(mark_name)
+                except tk.TclError:
+                    pass
+
+        self.editor_widget.tag_remove(tk.SEL, "1.0", "end")
+        self.editor_widget.tag_remove("snippet_active", "1.0", "end")
+        self._editor_snippet_placeholders = []
+        self._editor_snippet_active_index = -1
+
+    def _select_editor_snippet_placeholder(self, index: int):
+        """Selects placeholder text range for active snippet navigation."""
+
+        if self.editor_widget is None:
+            return
+        if index < 0 or index >= len(self._editor_snippet_placeholders):
+            return
+
+        item = self._editor_snippet_placeholders[index]
+        start_mark = item.get("start_mark")
+        end_mark = item.get("end_mark")
+        if not start_mark or not end_mark:
+            return
+
+        start_index = self.editor_widget.index(start_mark)
+        end_index = self.editor_widget.index(end_mark)
+        self.editor_widget.tag_remove(tk.SEL, "1.0", "end")
+        self.editor_widget.tag_remove("snippet_active", "1.0", "end")
+        self.editor_widget.tag_add(tk.SEL, start_index, end_index)
+        self.editor_widget.tag_add("snippet_active", start_index, end_index)
+        self.editor_widget.mark_set("insert", end_index)
+        self.editor_widget.see(start_index)
+        self.editor_widget.focus_set()
+
+    def _advance_editor_snippet_placeholder(self, step: int):
+        """Moves placeholder selection forward/backward in active snippet session."""
+
+        if not self._editor_snippet_placeholders:
+            self._clear_editor_snippet_session()
+            return None
+
+        current = self._editor_snippet_active_index
+        if current < 0:
+            current = 0
+        target = current + step
+
+        if 0 <= target < len(self._editor_snippet_placeholders):
+            self._editor_snippet_active_index = target
+            self._select_editor_snippet_placeholder(target)
+            return "break"
+
+        self._clear_editor_snippet_session()
+        return "break"
+
+    def _sync_editor_snippet_session(self):
+        """Ends snippet session when cursor leaves active placeholder flow."""
+
+        if self.editor_widget is None or not self._editor_snippet_placeholders:
+            return
+
+        if self._editor_snippet_active_index < 0:
+            self._clear_editor_snippet_session()
+            return
+
+        if self._editor_snippet_active_index >= len(self._editor_snippet_placeholders):
+            self._clear_editor_snippet_session()
+            return
+
+        current = self._editor_snippet_placeholders[self._editor_snippet_active_index]
+        start_mark = current.get("start_mark")
+        end_mark = current.get("end_mark")
+        if not start_mark or not end_mark:
+            self._clear_editor_snippet_session()
+            return
+
+        try:
+            start_index = self.editor_widget.index(start_mark)
+            end_index = self.editor_widget.index(end_mark)
+        except tk.TclError:
+            self._clear_editor_snippet_session()
+            return
+
+        insert_index = self.editor_widget.index("insert")
+        before_start = self.editor_widget.compare(insert_index, "<", start_index)
+        after_end = self.editor_widget.compare(insert_index, ">", end_index)
+        if before_start or after_end:
+            self._clear_editor_snippet_session()
+            return
+
+        self.editor_widget.tag_remove("snippet_active", "1.0", "end")
+        self.editor_widget.tag_add("snippet_active", start_index, end_index)
+
+    def _editor_document_has_frontmatter(self) -> bool:
+        """Detects whether the current editor buffer already contains frontmatter."""
+
+        if self.editor_widget is None:
+            return False
+
+        line_count = int(self.editor_widget.index("end-1c").split(".")[0] or 1)
+        delimiter_lines = []
+        for line_no in range(1, max(1, line_count) + 1):
+            text = self.editor_widget.get(f"{line_no}.0", f"{line_no}.end").strip()
+            if text == "---":
+                delimiter_lines.append(line_no)
+                if len(delimiter_lines) >= 2:
+                    return True
+
+            if text and not delimiter_lines:
+                return False
+
+        return False
+
+    def _close_editor_completion(self):
+        """Hides and clears completion popup state."""
+
+        if self._editor_completion_popup is not None and self._editor_completion_popup.winfo_exists():
+            self._editor_completion_popup.withdraw()
+
+        self._editor_completion_items = []
+        self._editor_completion_replace_start = None
+        self._editor_completion_replace_end = None
+        self._editor_completion_context_kind = None
+        self._editor_completion_context_meta = {}
+
+    def _is_editor_completion_visible(self) -> bool:
+        """Returns true if completion popup exists and is currently visible."""
+
+        if self._editor_completion_popup is None:
+            return False
+        if not self._editor_completion_popup.winfo_exists():
+            return False
+        return self._editor_completion_popup.state() != "withdrawn"
+
+    def _queue_editor_outline(self, immediate: bool = False):
+        """Schedules an outline refresh to keep section navigation current."""
+
+        if self.editor_widget is None:
+            return
+
+        if self._editor_outline_after_id is not None:
+            self.root.after_cancel(self._editor_outline_after_id)
+            self._editor_outline_after_id = None
+
+        if immediate:
+            self._refresh_editor_outline()
+            return
+
+        self._editor_outline_after_id = self.root.after(
+            self._editor_outline_delay_ms,
+            self._refresh_editor_outline,
+        )
+
+    def _refresh_editor_outline(self):
+        """Builds editor outline from frontmatter and Blattwerk block headers."""
+
+        self._editor_outline_after_id = None
+        if self.editor_widget is None:
+            return
+
+        line_count = int(self.editor_widget.index("end-1c").split(".")[0] or 1)
+        items = []
+        frontmatter_count = 0
+        block_stack = []
+        self_closing_pattern = re.compile(r"^:::(\w+)(.*?):::$")
+        opening_pattern = re.compile(r"^:::(\w+)(.*)$")
+
+        for line_no in range(1, max(1, line_count) + 1):
+            line_text = self.editor_widget.get(f"{line_no}.0", f"{line_no}.end")
+            stripped = line_text.strip()
+
+            if stripped == "---":
+                frontmatter_count += 1
+                if frontmatter_count == 1:
+                    items.append(
+                        {
+                            "line": line_no,
+                            "label": f"{line_no:>4}  Frontmatter",
+                        }
+                    )
+                continue
+
+            if not stripped:
+                continue
+
+            if self_closing_pattern.match(stripped):
+                continue
+
+            opening_match = opening_pattern.match(stripped)
+            if opening_match:
+                block_type = opening_match.group(1)
+                rest = (opening_match.group(2) or "").strip()
+                indent = "  " * len(block_stack)
+                suffix = f" {rest}" if rest else ""
+                items.append(
+                    {
+                        "line": line_no,
+                        "label": f"{line_no:>4}  {indent}{block_type}{suffix}",
+                    }
+                )
+                block_stack.append(block_type.lower())
+                continue
+
+            if stripped.startswith(":::") and block_stack:
+                block_stack.pop()
+                continue
+
+        self._set_editor_outline(items)
+
+    def _set_editor_outline(self, items):
+        """Renders outline items in structure list for quick line navigation."""
+
+        self._editor_outline_items = list(items)
+        if self.editor_outline_listbox is None:
+            return
+
+        self.editor_outline_listbox.delete(0, "end")
+        if not self._editor_outline_items:
+            self.editor_outline_listbox.insert("end", "Keine Struktur erkannt")
+            return
+
+        for item in self._editor_outline_items:
+            self.editor_outline_listbox.insert("end", item["label"])
+
+    def _on_editor_outline_selected(self, _event=None):
+        """Jumps to selected structure entry in editor."""
+
+        if self.editor_widget is None or self.editor_outline_listbox is None:
+            return
+
+        selection = self.editor_outline_listbox.curselection()
+        if not selection:
+            return
+
+        index = selection[0]
+        if index >= len(self._editor_outline_items):
+            return
+
+        line = self._editor_outline_items[index]["line"]
+        line_index = f"{max(1, int(line))}.0"
+        self.editor_widget.mark_set("insert", line_index)
+        self.editor_widget.see(line_index)
+        self.editor_widget.focus_set()
+        self._refresh_editor_block_pair_highlight()
+
+    def _on_editor_outline_click(self, _event=None):
+        """Ensures click on already selected outline entry still triggers jump."""
+
+        if hasattr(self, "root"):
+            self.root.after_idle(self._on_editor_outline_selected)
+
+    def _refresh_editor_block_pair_highlight(self):
+        """Highlights opening/closing marker pair for block at current cursor line."""
+
+        if self.editor_widget is None:
+            return
+
+        self.editor_widget.tag_remove("syn_block_pair", "1.0", "end")
+
+        pairs = getattr(self, "_editor_block_pairs_cache", [])
+        if not pairs:
+            return
+
+        insert_index = self.editor_widget.index("insert")
+        current_line = int(insert_index.split(".")[0])
+        containing_pairs = [
+            (open_line, close_line)
+            for open_line, close_line in pairs
+            if open_line <= current_line <= close_line
+        ]
+        if not containing_pairs:
+            return
+
+        open_line, close_line = min(
+            containing_pairs,
+            key=lambda pair: (pair[1] - pair[0], pair[0]),
+        )
+
+        self._tag_block_pair_marker(open_line, include_type=True)
+        self._tag_block_pair_marker(close_line, include_type=False)
+
+    def _tag_block_pair_marker(self, line_no: int, include_type: bool):
+        """Applies block-pair highlight tag to marker token at given line."""
+
+        if self.editor_widget is None:
+            return
+
+        line_text = self.editor_widget.get(f"{line_no}.0", f"{line_no}.end")
+        marker_col = line_text.find(":::")
+        if marker_col < 0:
+            return
+
+        if include_type:
+            match = re.match(r"^(\s*)(:::(\w+))", line_text)
+            if match:
+                start_col = len(match.group(1))
+                end_col = start_col + len(match.group(2))
+            else:
+                start_col = marker_col
+                end_col = marker_col + 3
+        else:
+            start_col = marker_col
+            end_col = marker_col + 3
+
+        self.editor_widget.tag_add(
+            "syn_block_pair",
+            f"{line_no}.{start_col}",
+            f"{line_no}.{end_col}",
+        )
 
     def _set_editor_view_mode(self, mode: str):
         """Updates the selected editor/preview view mode and applies layout."""
@@ -156,6 +1851,7 @@ class BlattwerkAppEditorMixin:
             if hasattr(self, "_reflow_responsive_sections"):
                 self.root.after_idle(self._reflow_responsive_sections)
         else:
+            self._close_editor_completion()
             self.editor_preview_paned.add(self.preview_container)
             if hasattr(self, "_reflow_responsive_sections"):
                 self.root.after_idle(self._reflow_responsive_sections)

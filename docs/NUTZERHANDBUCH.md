@@ -9,6 +9,7 @@ Installation/Setup steht bewusst in `README.md`.
 - **Mitte**: Navigation, Zoom, Aktualisieren
 - **Rechts**: Export starten
 - **Unten**: Vorschau-Canvas mit Scrollbars und Seitenstatus
+- **Schreibbereich** (wenn aktiv): Markdown-Editor mit Live-Speichern und Live-Diagnostik
 
 ## 2) Grundablauf
 
@@ -95,3 +96,64 @@ Installation/Setup steht bewusst in `README.md`.
 - Markdown-Syntax: `docs/MD_FORMAT.md`
 - CSS-Anpassung: `docs/CSS_ANLEITUNG.md`
 - Arbeitsblatt-Regeln (Praxis): `docs/ARBEITSBLATT_NOTIZEN.md`
+
+## 10) Schreibbereich mit Live-Diagnostik
+
+- Beim Tippen im Schreibbereich wird die Diagnostik automatisch mit kurzer Verzögerung aktualisiert.
+- Warnungen und Fehler werden zeilenweise farbig markiert.
+- Unter dem Editor steht eine Diagnostikliste mit Zeile, Code und Meldung.
+- Klick auf einen Eintrag springt direkt zur betroffenen Zeile (auch bei erneutem Klick auf denselben Eintrag).
+- Beim Laden und Speichern einer Datei wird die Diagnostik ebenfalls neu berechnet.
+
+## 11) Syntax-Highlighting und Completion im Schreibbereich
+
+- Blattwerk-Syntax wird im Editor farbig dargestellt (Frontmatter, `:::`-Blockkopf, `key=value`-Optionen, Marker `§/$/&`).
+- Für Vervollständigung im aktuellen Kontext `Strg+Leertaste` drücken.
+- Direkt nach `:::` (ohne Leerzeichen) werden automatisch alle möglichen Blocktypen vorgeschlagen.
+- `Strg+Shift+.` fügt `::: :::` ein, setzt den Cursor dazwischen und öffnet sofort die Snippet-Liste.
+- Snippet-Vorschläge erscheinen zusätzlich automatisch im passenden Kontext (ohne `Strg+Leertaste`).
+- Als passender Kontext gilt aktuell insbesondere:
+	- in öffnenden `:::`-Blockkopfzeilen (nicht bei schließenden `:::`)
+	- nach `Enter` innerhalb eines Blocks
+	- in Frontmatter-Zeilen
+	- direkt nach `key=` in Blockoptionen
+- Vorschläge orientieren sich am Cursor-Kontext:
+	- Blocktyp nach `:::`
+	- Blockoptionen nach Blocktyp (z. B. direkt nach `:::answer `)
+	- `answer type`-Werte
+	- Frontmatter-Feldnamen
+- Bei Eingaben mit gedrückter `Shift`-Taste bleibt die geöffnete Vorschlagsliste stabil (kein sofortiges Schließen beim Loslassen von `Shift`).
+- Nach `key=` in Blockoptionen erscheinen Vorschläge auch automatisch (nicht nur per `Strg+Leertaste`).
+- Wert-Vorschläge nach `key=` nutzen dieselbe lokale Gewichtungsmechanik wie Blocktyp-Vorschläge.
+- In Blockkopfzeilen wird nur ergänzend eingefügt (z. B. Key nach `:::answer `), kein zusätzlicher Block-Wrapper.
+- Auf einer reinen `:::`-Zeile im bereits offenen Block (typischer Blockabschluss) öffnet kein Auto-Popup.
+- Blocktyp-Vorschläge werden lokal pro Installation gewichtet (häufiger und zuletzt genutzt zuerst).
+- Gleichstand bei Blocktypen wird über die feste Blattwerk-Standardreihenfolge aufgelöst.
+- Vorschlag mit Doppelklick oder `Enter` übernehmen.
+- Solange die Vorschlagsliste offen ist, funktionieren `Pfeil hoch/runter`, `Enter` und `Tab` direkt im Editor.
+- Bei manueller Auslösung ohne passenden Kontext erscheinen zusätzlich Snippet-Vorschläge (Task, Answer-Lines, Help, Frontmatter).
+- Snippets setzen den Cursor nach dem Einfügen automatisch auf die erste sinnvolle Bearbeitungsstelle.
+- Snippet-Vorschläge sind kontextabhängig (z. B. Frontmatter-Snippet nur am Dokumentanfang, wenn noch keines vorhanden ist).
+- Zusätzlich werden Snippets nach Blocktyp gefiltert, damit nur fachlich passende Vorlagen erscheinen.
+- Befindest du dich schon im passenden Block (z. B. `answer`), wird beim Snippet-Einfügen nur der Inhalt ergänzt statt den Blockkopf erneut einzufügen.
+- Bei Snippets mit mehreren Feldern springt `Tab` zum nächsten Feld und `Shift+Tab` zurück.
+- Das aktive Snippet-Feld ist visuell hervorgehoben.
+- Die Feldhervorhebung passt sich dem aktiven Theme an.
+- Die Snippet-Navigation endet automatisch, wenn du den Feldfluss verlässt.
+- Die lokale Completion-Gewichtung kann in den Einstellungen über `Ranking zurücksetzen` gelöscht werden.
+- Störende Snippet-Fallbacks in Blockkopf-/Optionsfluss sind reduziert (z. B. kein automatisches `Answer-Lines`-Snippet im laufenden `answer`-Headerfluss).
+
+## 12) Struktur-Outline
+
+- Unter der Diagnostik gibt es eine Struktur-Liste mit Frontmatter und Blattwerk-Blockköpfen.
+- Verschachtelte Blöcke werden eingerückt dargestellt.
+- Klick auf einen Eintrag springt direkt zur passenden Zeile im Schreibbereich (auch bei erneutem Klick auf denselben Eintrag).
+- Die Struktur-Liste wird beim Tippen, Laden und Speichern automatisch aktualisiert.
+
+## 13) Block-Markierung und Blockabschluss
+
+- Öffnende und schließende `:::`-Marker werden farblich hervorgehoben.
+- Wenn der Cursor innerhalb eines `:::`-Blocks steht, werden Start- und Endmarker des Blocks als Paar markiert.
+- Nach einem schließenden `:::` darf kein weiterer Text in derselben Zeile stehen.
+- Falls doch, erscheint ein Diagnostik-Fehler `SY001` und die Zeile wird entsprechend markiert.
+- Offene, nicht geschlossene Blöcke werden als Diagnostik-Fehler `SY002` markiert.

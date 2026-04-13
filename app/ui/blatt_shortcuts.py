@@ -89,20 +89,20 @@ def build_preview_shortcuts(app):
             allow_modifiers=True,
         ),
         ShortcutBinding(
-            "<Control-1>",
+            "<Control-Key-1>",
             lambda: app._set_editor_view_mode(EDITOR_VIEW_PREVIEW_ONLY),
             "Strg+1/2/3   Vorschau / beides / Editor",
             ignore_when_text_input=False,
             allow_modifiers=True,
         ),
         ShortcutBinding(
-            "<Control-2>",
+            "<Control-Key-2>",
             lambda: app._set_editor_view_mode(EDITOR_VIEW_BOTH),
             ignore_when_text_input=False,
             allow_modifiers=True,
         ),
         ShortcutBinding(
-            "<Control-3>",
+            "<Control-Key-3>",
             lambda: app._set_editor_view_mode(EDITOR_VIEW_EDITOR_ONLY),
             ignore_when_text_input=False,
             allow_modifiers=True,

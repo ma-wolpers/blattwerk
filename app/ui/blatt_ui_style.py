@@ -193,6 +193,8 @@ class BlattwerkAppStyleMixin:
                     selectbackground=theme["accent_soft"],
                     selectforeground=theme["fg_primary"],
                 )
+                if hasattr(self, "_configure_editor_syntax_tags"):
+                    self._configure_editor_syntax_tags()
 
             self._refresh_color_profile_swatches()
 
