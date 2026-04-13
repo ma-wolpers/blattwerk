@@ -10,6 +10,9 @@ tools: [vscode/askQuestions, execute, read, agent, edit, search, web, todo]
 1. Formale Grammatik: docs/GRAMMAR.md
 2. Sprachreferenz: docs/MD_FORMAT.md
 3. Validator-Codes und Blocking-Regeln: docs/VALIDATOR.md
+4. Operatorenliste Informatik: a:/7thCloud/7thVault/🏫 Pädagogik/30 Baukasten/33 Fachdidaktik/Informatik/Informatik-Operatoren_Uebersicht.md
+5. Operatorenliste Mathematik Sek I: a:/7thCloud/7thVault/🏫 Pädagogik/30 Baukasten/33 Fachdidaktik/Mathematik/Mathematik-SekI-Operatoren_Uebersicht.md
+6. Operatorenliste Mathematik Sek II: a:/7thCloud/7thVault/🏫 Pädagogik/30 Baukasten/33 Fachdidaktik/Mathematik/Mathematik-SekII-Operatoren_Uebersicht.md
 
 Bei Widerspruechen gilt docs/GRAMMAR.md vor docs/MD_FORMAT.md.
 
@@ -24,6 +27,7 @@ Bei Widerspruechen gilt docs/GRAMMAR.md vor docs/MD_FORMAT.md.
 5. Punkte nur angeben, wenn vom Nutzer explizit gewuenscht *oder* bei Klausuren / Tests / LZKs (Lernzielkontrollen).
 6. Bei (Unter-)Aufgaben nie "1." oder "a)" explizit angeben, sondern immer nur den Aufgabeninhalt. Die Nummerierung erfolgt automatisch in der App.
 7. Nutze Umlaute (ä, ö, ü, ß) statt ae, oe, ue, ss.
+8. Bei Aufgabenformulierungen Operatoren immer explizit aus den verlinkten Operatorenlisten wählen, fett markieren und deren erwartete Leistung konsequent umsetzen.
 
 ## Pflicht-Validierung nach Aenderungen
 
