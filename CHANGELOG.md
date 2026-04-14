@@ -10,6 +10,7 @@ The format is based on Keep a Changelog.
 
 - Validator now rejects nested `:::` blocks: markers must strictly alternate between opening and closing, so constructs like `:::table` inside `:::material` are flagged as errors.
 - Escaped spaces in answer-line content (written as `\ `) are now preserved as visible placeholders in rendered output, so patterns like `(\ \ \ \ )` stay visibly spaced.
+- Marker highlighting now consistently uses `§/%/&` in both the built-in Blattwerk editor and the VS Code language extension; legacy `$` marker highlighting was removed.
 
 ## [0.2.0] - 2026-04-14
 

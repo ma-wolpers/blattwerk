@@ -20,3 +20,7 @@ Pflichtregeln:
 
 5. Guardrails sind bindend
 - `tools/ci/check_ai_guardrails.py` muss lokal und in CI bestehen.
+
+6. Marker-/Tokenizer-Aenderungen immer synchron halten
+- Bei Aenderungen an Markierungen/Token (z. B. `§/%/&`, Regex, Syntax-Highlighting, Validator-Diagnostik) muessen Core-Parser/Validator, Blattwerk-Editor und VSCode-Extension im selben Zyklus angepasst werden.
+- Nach solchen Aenderungen immer mindestens `pytest-verify` und `guardrails-verify` ausfuehren.

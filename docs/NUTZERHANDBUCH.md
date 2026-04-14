@@ -120,7 +120,7 @@ Installation/Setup steht bewusst in `README.md`.
 
 ## 11) Syntax-Highlighting und Completion im Schreibbereich
 
-- Blattwerk-Syntax wird im Editor farbig dargestellt (Frontmatter, `:::`-Blockkopf, `key=value`-Optionen, Marker `§/$/&`).
+- Blattwerk-Syntax wird im Editor farbig dargestellt (Frontmatter, `:::`-Blockkopf, `key=value`-Optionen, Marker `§/%/&`).
 - Für Vervollständigung im aktuellen Kontext `Strg+Leertaste` drücken.
 - Direkt nach `:::` (ohne Leerzeichen) werden automatisch alle möglichen Blocktypen vorgeschlagen.
 - `Strg+Shift+.` fügt `::: :::` ein, setzt den Cursor dazwischen und öffnet die normale Completion.

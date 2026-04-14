@@ -22,7 +22,7 @@
           "name": "variable.parameter.blattwerk"
         },
         {
-          "match": "^(\\s*)([§$&])(?=\\s|$)",
+          "match": "^(\\s*)([§%&])(?=\\s|$)",
           "captures": {
             "2": {
               "name": "keyword.control.blattwerk"
@@ -30,7 +30,7 @@
           }
         },
         {
-          "match": "(^|\\s)([§$&])(\\s*)$",
+          "match": "(^|\\s)([§%&])(\\s*)$",
           "captures": {
             "2": {
               "name": "keyword.control.blattwerk"

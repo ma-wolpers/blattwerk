@@ -101,6 +101,24 @@ def _check_development_log_updated(staged: set[str], errors: list[str]) -> None:
         )
 
 
+def _check_marker_token_consistency(errors: list[str]) -> None:
+    """Ensure marker docs/highlighting stay aligned with core §/%/& token set."""
+    target_files = (
+        "app/ui/blatt_ui_editor.py",
+        "vscode-extension/blattwerk-language/syntaxes/blattwerk-injection.tmLanguage.json",
+        "docs/NUTZERHANDBUCH.md",
+    )
+
+    outdated_patterns = ("[§$&]", "§/$/&")
+    for rel_path in target_files:
+        text = _read(rel_path)
+        for pattern in outdated_patterns:
+            if pattern in text:
+                errors.append(
+                    f"{rel_path}: outdated marker token notation detected ({pattern}); expected §/%/&"
+                )
+
+
 def main() -> int:
     repo_root = _repo_root()
     staged = _staged_files(repo_root)
@@ -144,6 +162,7 @@ def main() -> int:
     )
 
     _check_development_log_updated(staged, errors)
+    _check_marker_token_consistency(errors)
 
     if errors:
         print("AI guardrail check failed:")

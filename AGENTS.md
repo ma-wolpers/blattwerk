@@ -24,3 +24,7 @@ Verbindliche Regeln:
 4. Automatische Gates
 - Lokaler Check und CI pruefen die Guardrails ueber `tools/ci/check_ai_guardrails.py`.
 - Ein Verstoß blockiert den Build.
+
+5. Marker-/Tokenizer-Konsistenz
+- Bei Aenderungen an Marker-/Tokenlogik (z. B. `§/%/&`, Regexe, Syntax-Highlighting, Validator-Diagnostik) muessen Core/Validator, Blattwerk-Editor und VSCode-Extension im selben Zyklus synchron angepasst werden.
+- Nach solchen Aenderungen sind mindestens `pytest-verify` und `guardrails-verify` verpflichtend.
