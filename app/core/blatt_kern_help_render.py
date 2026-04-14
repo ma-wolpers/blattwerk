@@ -99,18 +99,21 @@ body {
     margin: 0;
 }
 
+@page {
+    margin: 0;
+}
+
 .help-card {
     border: var(--material-border-width) solid var(--material-border-color);
     border-radius: 10px;
     padding: 0.65cm 0.7cm;
-    margin: 0;
+    margin: 0 0 0.45cm 0;
     break-inside: avoid;
     page-break-inside: avoid;
 }
 
-.help-card:not(:last-child) {
-    break-after: page;
-    page-break-after: always;
+.help-card:last-child {
+    margin-bottom: 0;
 }
 
 .help-card-header {

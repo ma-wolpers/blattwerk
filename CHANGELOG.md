@@ -7,7 +7,26 @@ The format is based on Keep a Changelog.
 ## [Unreleased]
 
 ### Changed
+- Table answer blocks (`answer type=table`) now support `header_columns` (alias `header_cols`) to render leading body columns as row headers.
+- Table answer blocks (`answer type=table`) now support `alignment=left|center|right|justify` to control cell text alignment, including per-column shorthand like `alignment="l r c c"`.
+- `columns` blocks now support an optional `gap` option for explicit horizontal column spacing (for example `gap=1cm`), in addition to `cols` and `widths/ratio`.
+- Section-break behavior was extended: `--` now acts as a soft split marker, and `---` now inserts an additional vertical `1cm` gap between sections while still serving as the regular split marker.
+- Lernhilfen now render and export card-native without worksheet-style running elements: no auto-inserted header/footer texts and no page numbering in lernhilfen PDF output.
+- Lernhilfen PDF output now uses a flowing card layout in one document (cards continue naturally on the next page when needed) instead of forcing one card per page.
+- Lernhilfen preview and lernhilfen PNG/PNG-ZIP export now use robust card-content cropping to remove empty page remainder and show/save only the visible card region.
+- Export workflows are now split by intent: worksheets and lernhilfen use separate export dialogs.
+- Export interaction is now standardized on `Ctrl+E` for export actions; `Enter` no longer triggers export confirmation in export dialogs.
+- The lernhilfen preview window now has its own `Exportieren` button and supports `Ctrl+E` directly in that window.
+- Lernhilfen are now shown as one vertically stacked, scrollable stream in the preview window; arrow keys jump directly to the previous/next lernhilfe.
+- The preview control row now includes a `Lernhilfen` button next to `Aktualisieren`; it stays visible and is automatically disabled when the active document has no lernhilfen.
+- `Ctrl+H` now opens the lernhilfen preview when lernhilfen exist in the active document (otherwise no action).
+- User-facing UI terminology now consistently uses `Lernhilfen` while markdown block syntax (`help` / `hilfe`) remains unchanged.
+- `Help cards only` export mode now supports `PDF`, `PNG`, and `PNG (ZIP)` from one unified export flow.
+- Help-card exports now use dedicated mode-aware pipelines: PDF and ZIP exports no longer fall through worksheet export branches.
+- The `View` menu now includes `Hilfekartenansicht`, opening the separate help-cards preview window directly.
+- Hovering over preview areas no longer steals keyboard focus from the write area; focus now changes on click (or window switch), matching toolbar-style interaction expectations.
 - The Blattwerker agent now enforces math notation defaults in generated worksheets: multiplication uses `·` and division uses `:`.
+- The Blattwerker agent now requires Blattwerk-native table syntax and avoids standard Markdown tables when generating worksheet content.
 - Validator checks for `:::` markers are now stricter: whitespace directly after `:::` is rejected, and orphan closing markers (`:::` without an open block) are now reported as errors.
 - The top menu now uses fully themed custom popup menus (instead of native Tk menus), including dark popup surfaces, dark borders, and nested side submenus.
 - Menu popups now close consistently on outside click and when the window deactivates (including Alt+Tab).

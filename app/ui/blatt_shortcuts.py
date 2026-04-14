@@ -64,8 +64,20 @@ def build_preview_shortcuts(app):
         ShortcutBinding(
             "<space>", app.refresh_preview, "Leertaste   Vorschau aktualisieren"
         ),
-        ShortcutBinding("<Return>", app.open_export_dialog, "Enter   Exportieren"),
-        ShortcutBinding("<KP_Enter>", app.open_export_dialog),
+        ShortcutBinding(
+            "<Control-e>",
+            app.open_worksheet_export_dialog,
+            "Strg+E   Exportieren",
+            ignore_when_text_input=False,
+            allow_modifiers=True,
+        ),
+        ShortcutBinding(
+            "<Control-h>",
+            app.open_help_preview_window,
+            "Strg+H   Lernhilfenansicht",
+            ignore_when_text_input=False,
+            allow_modifiers=True,
+        ),
         ShortcutBinding("<KeyPress-o>", app.pick_input, "O   Markdown öffnen"),
         ShortcutBinding(
             "<Control-n>",

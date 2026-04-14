@@ -365,6 +365,21 @@ class BlattwerkAppPreviewMixin:
                     x_view_start=x_view_start,
                     y_view_start=y_view_start,
                 )
+                if hasattr(self, "_update_lernhilfen_action_state"):
+                    self._update_lernhilfen_action_state(
+                        input_path=input_path,
+                        include_solutions=include_solutions,
+                    )
+                if (
+                    self.help_preview_window is not None
+                    and self.help_preview_window.winfo_exists()
+                ):
+                    self._refresh_help_preview(
+                        input_path,
+                        include_solutions,
+                        page_format,
+                        contrast_profile,
+                    )
                 self._refresh_zoom_label()
                 self.status_var.set("Vorschau aus Cache geladen")
                 self._update_nav_buttons()
@@ -403,7 +418,22 @@ class BlattwerkAppPreviewMixin:
                         y_view_start=y_view_start,
                     )
 
-                self._refresh_help_preview(input_path, include_solutions, page_format, contrast_profile)
+                if hasattr(self, "_update_lernhilfen_action_state"):
+                    self._update_lernhilfen_action_state(
+                        input_path=input_path,
+                        include_solutions=include_solutions,
+                    )
+
+                if (
+                    self.help_preview_window is not None
+                    and self.help_preview_window.winfo_exists()
+                ):
+                    self._refresh_help_preview(
+                        input_path,
+                        include_solutions,
+                        page_format,
+                        contrast_profile,
+                    )
 
                 self.status_var.set("Vorschau aktualisiert")
             except Exception as error:

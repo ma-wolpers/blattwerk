@@ -8,7 +8,7 @@ Diese Datei definiert die kanonische Grammatik fuer Blattwerk-Markdown.
 - `FRONTMATTER_DELIM` := `---` am Zeilenanfang
 - `BLOCK_OPEN` := `:::` gefolgt von Blockname und optionalen Optionen
 - `BLOCK_CLOSE` := `:::` auf eigener Zeile
-- `SECTION_BREAK` := `---` ausserhalb des Frontmatters
+- `SECTION_BREAK` := `---` oder `--` ausserhalb des Frontmatters
 - `SELF_CLOSING_BLOCK` := `::: name ... :::`
 
 Hinweise:
@@ -23,7 +23,7 @@ element           = block | self_closing_block | section_break | raw_markdown ;
 
 frontmatter       = delim, newline, yaml_lines, delim, newline* ;
 delim             = "---" ;
-section_break     = "---", newline ;
+section_break     = ("---" | "--"), newline ;
 
 block             = block_open, block_content, block_close ;
 block_open        = ":::", ws?, block_name, (ws, options)?, newline ;

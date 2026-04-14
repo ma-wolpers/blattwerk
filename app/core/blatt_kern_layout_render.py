@@ -49,6 +49,19 @@ def parse_columns_template(options, fallback_count):
     return " ".join(css_parts), len(css_parts)
 
 
+def parse_columns_gap(options):
+    """Parst optionalen Spaltenabstand (`gap`) als CSS-Laengenwert."""
+    gap_raw = (options or {}).get("gap")
+    if not gap_raw:
+        return None
+
+    value = str(gap_raw).strip()
+    if re.fullmatch(r"\d+(\.\d+)?(px|pt|cm|mm|em|rem|%)", value):
+        return value
+
+    return None
+
+
 def parse_height_cm(height_value, default_cm=4.0):
     """Extrahiert Zentimeterwerte aus Strings wie `4cm`."""
     if not height_value:
@@ -193,6 +206,8 @@ def render_columns_container(
     if not template:
         template = " ".join("1fr" for _ in columns_blocks)
 
+    column_gap = parse_columns_gap(options)
+
     column_html = []
     for column_blocks in columns_blocks:
         rendered_parts = []
@@ -208,7 +223,12 @@ def render_columns_container(
                 rendered_parts.append(rendered)
         column_html.append(f"<div class='column'>{''.join(rendered_parts)}</div>")
 
-    return f"<div class='columns columns-custom' style='--col-template:{template}'>{''.join(column_html)}</div>"
+    style_parts = [f"--col-template:{template}"]
+    if column_gap:
+        style_parts.append(f"--col-gap:{column_gap}")
+    inline_style = ";".join(style_parts)
+
+    return f"<div class='columns columns-custom' style='{escape(inline_style)}'>{''.join(column_html)}</div>"
 
 
 def render_body_with_columns(blocks, include_solutions, document_mode="ws"):

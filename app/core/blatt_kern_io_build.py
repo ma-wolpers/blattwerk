@@ -115,6 +115,7 @@ def build_help_cards(
     color_profile="indigo",
     font_profile="segoe",
     font_size_profile="normal",
+    add_running_elements=True,
     diagnostics_out=None,
     block_on_critical=True,
     metadata_defaults=None,
@@ -162,13 +163,14 @@ def build_help_cards(
 
     if suffix == ".pdf":
         pdf_file = write_pdf_from_html(html, out_file)
-        annotate_pdf_running_elements_with_retry(
-            pdf_file,
-            meta.get("Titel", "").strip(),
-            str(copyright_text_override or get_copyright_text(meta)),
-            print_profile=print_profile,
-            include_solutions=include_solutions,
-        )
+        if add_running_elements:
+            annotate_pdf_running_elements_with_retry(
+                pdf_file,
+                meta.get("Titel", "").strip(),
+                str(copyright_text_override or get_copyright_text(meta)),
+                print_profile=print_profile,
+                include_solutions=include_solutions,
+            )
         return pdf_file
 
     raise ValueError("Ausgabedatei muss auf .pdf oder .html enden.")

@@ -1,0 +1,83 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "pytest-verify",
+			"type": "shell",
+			"command": "a:/Code/blattwerk/.venv/Scripts/python.exe",
+			"args": [
+				"-m",
+				"pytest",
+				"-q"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "guardrails-verify",
+			"type": "shell",
+			"command": "a:/Code/blattwerk/.venv/Scripts/python.exe",
+			"args": [
+				"tools/ci/check_ai_guardrails.py"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "debug-ab5-help-preview",
+			"type": "shell",
+			"command": "a:/Code/blattwerk/.venv/Scripts/python.exe",
+			"args": [
+				"tools/tmp_debug_ab5_help_preview.py"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "debug-ab5-help-preview-2",
+			"type": "shell",
+			"command": "a:/Code/blattwerk/.venv/Scripts/python.exe",
+			"args": [
+				"tools/tmp_debug_ab5_help_preview.py"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "pytest-after-help-error-fix",
+			"type": "shell",
+			"command": "a:/Code/blattwerk/.venv/Scripts/python.exe",
+			"args": [
+				"-m",
+				"pytest",
+				"-q"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "guardrails-after-help-error-fix",
+			"type": "shell",
+			"command": "a:/Code/blattwerk/.venv/Scripts/python.exe",
+			"args": [
+				"tools/ci/check_ai_guardrails.py"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "pytest-after-lut-fix",
+			"type": "shell",
+			"command": "a:/Code/blattwerk/.venv/Scripts/python.exe",
+			"args": [
+				"-m",
+				"pytest",
+				"-q"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "guardrails-after-lut-fix",
+			"type": "shell",
+			"command": "a:/Code/blattwerk/.venv/Scripts/python.exe",
+			"args": [
+				"tools/ci/check_ai_guardrails.py"
+			],
+			"isBackground": false
+		}
+	]
+}

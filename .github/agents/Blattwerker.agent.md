@@ -29,6 +29,7 @@ Bei Widerspruechen gilt docs/GRAMMAR.md vor docs/MD_FORMAT.md.
 7. Nutze Umlaute (ä, ö, ü, ß) statt ae, oe, ue, ss.
 8. Bei Aufgabenformulierungen Operatoren immer explizit aus den verlinkten Operatorenlisten wählen, fett markieren und deren erwartete Leistung konsequent umsetzen.
 9. In Mathematikaufgaben konsequent diese Schreibweise verwenden: Division mit Doppelpunkt (:) und Multiplikation mit cdot-Punkt (·), nicht mit x, * oder ÷.
+10. Nutze für Tabellen konsequent die Blattwerk-Syntax (siehe docs/MD_FORMAT.md) und vermeide Markdown-Tabellen.
 
 ## Pflicht-Validierung nach Aenderungen
 

@@ -9,7 +9,25 @@ Regel:
 ## [Unreleased]
 
 ### Changed
+- Tabellenantworten erweitert: `answer type=table` unterstuetzt jetzt `header_columns` (Alias `header_cols`), um fuehrende Body-Spalten als Header-Spalten zu rendern.
+- Tabellenantworten erweitert: `answer type=table` unterstuetzt jetzt den neuen Key `alignment` (`left|center|right|justify`) fuer die Textausrichtung in Tabellenzellen, inklusive spaltenindividueller Kurzform wie `alignment="l r c c"`.
+- Spaltenlayout erweitert: `columns` unterstuetzt jetzt optional `gap` als expliziten horizontalen Spaltenabstand (CSS-Laenge) zusaetzlich zu `cols` und `widths/ratio`.
+- Abschnittstrenner erweitert: `--` fungiert jetzt als zusaetzliche Solltrennstelle; `---` erzeugt weiterhin die Solltrennstelle und fuegt im Seitenlayout zusaetzlich einen vertikalen Abstand von `1cm` zwischen Abschnitten ein.
+- Lernhilfen-Rendering auf kartenorientierten Fluss umgestellt: Karten erzwingen keinen Seitenumbruch mehr (`break-after: page` entfernt), sodass PDF-Ausgabe als fortlaufendes Dokument mit natuerlichem Seitenwechsel laeuft.
+- Running-Elements im Lernhilfen-Builder entkoppelt: Lernhilfen-Pfade koennen PDFs ohne nachtraegliche Kopf-/Fusszeile und ohne Seitenzahlen erzeugen (Arbeitsblattpfad unveraendert).
+- Lernhilfen-Vorschau und Lernhilfen-PNG-Export nutzen jetzt ein gemeinsames robustes Cropping gegen nahezu-weisse Seitenreste, damit nur der Kartenbereich sichtbar/gespeichert wird.
+- Export-Dialoge fachlich getrennt: eigener Arbeitsblatt-Exportdialog und eigener Lernhilfen-Exportdialog statt gemischtem Modus-Switch.
+- Export-Shortcut umgestellt: exportbezogen jetzt durchgaengig `Strg+E`; Enter/KP-Enter loesen Export in den Dialogen nicht mehr aus.
+- Lernhilfen-Vorschaufenster erweitert: eigener `Exportieren`-Button in der Fenster-Toolbar, ebenfalls via `Strg+E` ausloesbar.
+- Lernhilfen-Vorschau auf durchgehende Stapelansicht umgestellt: Karten werden untereinander in einem Scrollbereich dargestellt; Pfeiltasten springen zur vorherigen/naechsten Lernhilfe.
+- Vorschau-Zeile erweitert: neuer `Lernhilfen`-Button direkt neben `Aktualisieren`; Button bleibt sichtbar und wird ohne Lernhilfen im aktiven Dokument deaktiviert.
+- UI-Terminologie vereinheitlicht: Nutzertexte von Hilfekarten/Hilfebloecke auf Lernhilfen umgestellt (ohne Aenderung der Markdown-Blocksyntax `help`/`hilfe`).
+- Exportmodus `Nur Hilfekarten` erweitert: Exportdialog und Workflow unterstuetzen jetzt `PDF`, `PNG` und `PNG (ZIP)` statt nur `PNG`.
+- Hilfekarten-Exportpfade getrennt verdrahtet: `PDF` und `PNG (ZIP)` laufen jetzt ueber dedizierte Help-Cards-Builderpfade statt ueber Worksheet-Exportzweige.
+- Neue Ansichtsfunktion in `Ansicht`: `Hilfekartenansicht` oeffnet das separate Hilfekarten-Vorschaufenster direkt aus der Menueleiste.
+- Fokusverhalten im Schreibbereich-/Vorschau-Kontext angepasst: Hover ueber die Vorschau zieht den Fokus nicht mehr automatisch; Fokuswechsel erfolgt jetzt erst per Klick (bzw. Fensterwechsel).
 - Blattwerker-Agentregel fuer Mathe-Notation ergaenzt: Multiplikation soll konsequent als `·` und Division als `:` ausgegeben werden.
+- Blattwerker-Agentregel fuer Tabellen ergaenzt: Tabellen sollen konsequent in Blattwerk-Syntax erstellt werden; Markdown-Tabellen sind zu vermeiden.
 - Validator-Syntaxregeln fuer `:::` verschaerft: Nach `:::` ist kein Leerzeichen mehr erlaubt (nur `:::blocktyp` oder `:::`), und verwaiste schliessende Marker ohne offenen Block werden als Fehler diagnostiziert.
 - Menüzeile wieder auf eigene Custom-Popup-Architektur umgestellt (statt nativer Tk-Menüs): vollständig themefähige Dark-Popups mit verschachtelten Side-Submenus für Datei/Ansicht/Shortcuts.
 - Menüinteraktion stabilisiert: offene Popups schließen jetzt zuverlässig bei Klick außerhalb sowie bei Fenster-Deaktivierung (inkl. Alt+Tab).

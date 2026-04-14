@@ -66,7 +66,7 @@ class BlattwerkAppBuildMixin:
             file_row_actions,
             text="Exportieren…",
             style="PrimaryAction.TButton",
-            command=self.open_export_dialog,
+            command=self.open_worksheet_export_dialog,
         )
         self.export_btn.pack(side="right", padx=(0, 8))
 
@@ -267,10 +267,21 @@ class BlattwerkAppBuildMixin:
         ttk.Separator(actions_group_refresh, orient="vertical").pack(side="left", fill="y", padx=(0, 12))
         ttk.Button(actions_group_refresh, text="Aktualisieren", command=self.refresh_preview, style="UtilityAction.TButton").pack(side="left")
 
+        actions_group_lernhilfen = ttk.Frame(actions_section)
+        ttk.Separator(actions_group_lernhilfen, orient="vertical").pack(side="left", fill="y", padx=(0, 12))
+        self.lernhilfen_action_btn = ttk.Button(
+            actions_group_lernhilfen,
+            text="Lernhilfen",
+            command=self.open_help_preview_window,
+            style="UtilityAction.TButton",
+            state="disabled",
+        )
+        self.lernhilfen_action_btn.pack(side="left")
+
         self._register_responsive_section(
             container=actions_section,
             main_group=actions_group_main,
-            optional_groups=[actions_group_zoom, actions_group_refresh],
+            optional_groups=[actions_group_zoom, actions_group_refresh, actions_group_lernhilfen],
             indent_px=16,
             gap_px=12,
         )
@@ -310,7 +321,6 @@ class BlattwerkAppBuildMixin:
         )
 
         self.preview_canvas.bind("<Configure>", self._on_canvas_resize)
-        self.preview_canvas.bind("<Enter>", lambda _event: self.preview_canvas.focus_set())
         self.preview_canvas.bind("<Button-1>", lambda _event: self.preview_canvas.focus_set())
         self.preview_canvas.bind("<MouseWheel>", self._on_preview_mousewheel)
         self.preview_canvas.bind("<Shift-MouseWheel>", self._on_preview_mousewheel)

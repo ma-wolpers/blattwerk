@@ -72,6 +72,32 @@ def test_matching_new_options_are_allowed_without_op001():
     assert "OP001" not in codes
 
 
+def test_table_alignment_option_is_allowed_without_op001():
+    text = _build_document(
+        ":::answer type=table rows=2 cols=2 alignment=center\n"
+        "cells:\n"
+        "  - ['A', 'B']\n"
+        "  - ['C', 'D']\n"
+        ":::"
+    )
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+    assert "OP001" not in codes
+
+
+def test_table_header_columns_option_is_allowed_without_op001():
+    text = _build_document(
+        ":::answer type=table rows=2 cols=2 header_columns=1\n"
+        "cells:\n"
+        "  - ['A', 'B']\n"
+        "  - ['C', 'D']\n"
+        ":::"
+    )
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+    assert "OP001" not in codes
+
+
 def test_matching_with_single_item_side_emits_ma001_warning():
     text = _build_document(
         ":::answer type=matching\n"

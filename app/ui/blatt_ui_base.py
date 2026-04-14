@@ -116,9 +116,13 @@ class BlattwerkAppBase:
         self.help_zoom_percent = 100
         self._help_tk_preview_images = []
         self._help_preview_image_items = []
+        self._help_card_y_offsets = []
+        self._help_stacked_image_size = (0, 0)
         self.help_page_info_var = tk.StringVar(value="Hilfe 0/0")
         self.help_zoom_info_var = tk.StringVar(value="Zoom: 100%")
         self._help_last_preview_input_path = None
+        self._active_lernhilfen_available = False
+        self.lernhilfen_action_btn = None
         self._last_diagnostics_signature = None
 
         self._load_ui_settings()

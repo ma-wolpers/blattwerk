@@ -6,21 +6,71 @@ from pathlib import Path
 import tempfile
 import zipfile
 import fitz
+from PIL import Image
 from tkinter import messagebox
 
-from .export_dialog import ExportDialog
+from .export_dialog import LernhilfenExportDialog, WorksheetExportDialog
 from ..core.build_requests import (
     HelpCardsBuildRequest,
     WorksheetBuildRequest,
     build_help_cards_from_request,
     build_worksheet_from_request,
 )
+from ..core.blatt_kern_help_render import collect_help_blocks
+from ..core.blatt_validator import inspect_markdown_text
 from ..core.diagnostic_warnings import build_warning_payload
 from ..core.export_path_guardrails import validate_export_output_path
+from .help_card_image_trim import trim_lernhilfe_image
 
 
 class BlattwerkAppExportMixin:
     """Stellt Export-Workflows für PDF/HTML/PNG/ZIP bereit."""
+
+    def _count_visible_lernhilfen(self, input_path: Path, include_solutions: bool) -> int:
+        """Counts currently visible lernhilfen blocks for a given document and mode."""
+
+        try:
+            text = input_path.read_text(encoding="utf-8")
+            inspected = inspect_markdown_text(text)
+        except Exception:
+            return 0
+
+        return len(
+            collect_help_blocks(
+                inspected.blocks,
+                include_solutions=include_solutions,
+            )
+        )
+
+    def _update_lernhilfen_action_state(self, input_path: Path | None = None, include_solutions: bool | None = None):
+        """Updates the main preview-row lernhilfen action button state."""
+
+        button = getattr(self, "lernhilfen_action_btn", None)
+        if button is None:
+            return
+
+        active_input_path = input_path if input_path is not None else self._validate_input()
+        if not active_input_path:
+            button.config(state="disabled")
+            self._active_lernhilfen_available = False
+            return
+
+        if include_solutions is None:
+            include_solutions = self.preview_mode_var.get() == "solution"
+
+        has_lernhilfen = self._count_visible_lernhilfen(active_input_path, include_solutions=include_solutions) > 0
+        self._active_lernhilfen_available = has_lernhilfen
+        button.config(state="normal" if has_lernhilfen else "disabled")
+
+    def _current_preview_has_lernhilfen(self, input_path: Path | None = None) -> bool:
+        """Returns whether current document has visible lernhilfen in active preview mode."""
+
+        active_input_path = input_path if input_path is not None else self._validate_input()
+        if not active_input_path:
+            return False
+
+        include_solutions = self.preview_mode_var.get() == "solution"
+        return self._count_visible_lernhilfen(active_input_path, include_solutions=include_solutions) > 0
 
     def _metadata_defaults_from_preferences(self):
         preferences = getattr(self, "user_preferences", {})
@@ -117,6 +167,7 @@ class BlattwerkAppExportMixin:
         include_solutions: bool,
         page_format: str,
         contrast_profile: str,
+        add_running_elements: bool = True,
     ):
         return HelpCardsBuildRequest(
             input_path=input_path,
@@ -125,6 +176,7 @@ class BlattwerkAppExportMixin:
             page_format=page_format,
             print_profile=contrast_profile,
             design=self._worksheet_design_options(),
+            add_running_elements=add_running_elements,
             metadata_defaults=self._metadata_defaults_from_preferences(),
             copyright_text_override=self._copyright_text_from_preferences() or None,
         )
@@ -342,6 +394,7 @@ class BlattwerkAppExportMixin:
                     include_solutions=False,
                     page_format=page_format,
                     contrast_profile=contrast_profile,
+                    add_running_elements=False,
                 )
             )
 
@@ -351,6 +404,8 @@ class BlattwerkAppExportMixin:
                 for index in range(page_count):
                     page = doc.load_page(index)
                     pix = page.get_pixmap(dpi=200, alpha=False)
+                    image = Image.frombytes("RGB", (pix.width, pix.height), pix.samples)
+                    image = trim_lernhilfe_image(image)
 
                     if page_count == 1:
                         target_file = output_path
@@ -359,13 +414,91 @@ class BlattwerkAppExportMixin:
                             f"{output_path.stem}_{index + 1:02d}{output_path.suffix}"
                         )
 
-                    pix.save(target_file)
+                    image.save(target_file)
                     created_files.append(target_file)
 
         return created_files
 
+    def _export_help_cards_pdf(
+        self,
+        input_path: Path,
+        output_path: Path,
+        page_format: str,
+        contrast_profile: str,
+    ):
+        """Export help cards pdf as one paginated document."""
+
+        output_path = validate_export_output_path(
+            output_path.with_suffix(".pdf"),
+            allowed_suffixes={".pdf"},
+        )
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        out_file = build_help_cards_from_request(
+            self._help_cards_build_request(
+                input_path=input_path,
+                output_path=output_path,
+                include_solutions=False,
+                page_format=page_format,
+                contrast_profile=contrast_profile,
+                add_running_elements=False,
+            )
+        )
+        return [out_file]
+
+    def _export_help_cards_png_zip(
+        self,
+        input_path: Path,
+        output_zip_path: Path,
+        page_format: str,
+        contrast_profile: str,
+    ):
+        """Export help cards as PNG files bundled in one ZIP archive."""
+
+        output_zip_path = validate_export_output_path(
+            output_zip_path.with_suffix(".zip"),
+            allowed_suffixes={".zip"},
+        )
+        output_zip_path.parent.mkdir(parents=True, exist_ok=True)
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_dir_path = Path(tmp_dir)
+            temp_pdf = tmp_dir_path / "help_cards.pdf"
+            build_help_cards_from_request(
+                self._help_cards_build_request(
+                    input_path=input_path,
+                    output_path=temp_pdf,
+                    include_solutions=False,
+                    page_format=page_format,
+                    contrast_profile=contrast_profile,
+                    add_running_elements=False,
+                )
+            )
+
+            with (
+                fitz.open(temp_pdf) as doc,
+                zipfile.ZipFile(
+                    output_zip_path, "w", compression=zipfile.ZIP_DEFLATED
+                ) as archive,
+            ):
+                for idx in range(len(doc)):
+                    page = doc.load_page(idx)
+                    pix = page.get_pixmap(dpi=200, alpha=False)
+                    png_name = f"page_{idx + 1:03d}.png"
+                    png_path = tmp_dir_path / png_name
+                    image = Image.frombytes("RGB", (pix.width, pix.height), pix.samples)
+                    image = trim_lernhilfe_image(image)
+                    image.save(png_path)
+                    archive.write(png_path, arcname=png_name)
+
+        return [output_zip_path]
+
     def open_export_dialog(self):
-        """Öffnet den Exportdialog erst bei explizitem Klick auf Exportieren."""
+        """Compatibility wrapper that opens worksheet export dialog."""
+
+        self.open_worksheet_export_dialog()
+
+    def open_worksheet_export_dialog(self):
+        """Öffnet den dedizierten Arbeitsblatt-Exportdialog."""
 
         input_path = self._validate_input()
         if not input_path:
@@ -380,7 +513,7 @@ class BlattwerkAppExportMixin:
         if default_format not in {"pdf", "html", "png", "pngzip"}:
             default_format = "pdf"
 
-        dialog = ExportDialog(
+        dialog = WorksheetExportDialog(
             self.root,
             input_path=input_path,
             default_format=default_format,
@@ -419,10 +552,6 @@ class BlattwerkAppExportMixin:
                 out_files = self._export_html(
                     input_path, output_path, page_format, mode, contrast_profile
                 )
-            elif fmt == "png" and mode == "help_cards":
-                out_files = self._export_help_cards_png(
-                    input_path, output_path, page_format, contrast_profile
-                )
             else:
                 out_files = self._export_png_zip(
                     input_path, output_path, page_format, mode, contrast_profile
@@ -435,4 +564,69 @@ class BlattwerkAppExportMixin:
             )
         except Exception as error:
             self.status_var.set("Export fehlgeschlagen")
+            messagebox.showerror("Fehler", f"Export fehlgeschlagen:\n{error}")
+
+    def open_lernhilfen_export_dialog(self):
+        """Öffnet den dedizierten Lernhilfen-Exportdialog."""
+
+        input_path = self._validate_input()
+        if not input_path:
+            return
+
+        if not self._current_preview_has_lernhilfen(input_path):
+            return
+
+        preferences = getattr(self, "user_preferences", {})
+        default_format = str(preferences.get("default_export_format", preferences.get("default_export_page_format", "pdf")) or "pdf")
+        if default_format not in {"pdf", "png", "pngzip"}:
+            default_format = "pdf"
+
+        dialog = LernhilfenExportDialog(
+            self.root,
+            input_path=input_path,
+            default_format=default_format,
+            theme_key=self.theme_var.get(),
+            initial_output_dir=self._get_initial_dialog_dir("export_output"),
+        )
+        if not dialog.result:
+            return
+
+        fmt = dialog.result["format"]
+        preferences = getattr(self, "user_preferences", {})
+        preferred_page_format = str(preferences.get("default_export_page_format", "") or "").strip()
+        if preferred_page_format in {"a4_portrait", "a5_landscape"}:
+            page_format = preferred_page_format
+        else:
+            page_format = self.preview_page_format_var.get()
+        contrast_profile = self.preview_contrast_var.get()
+        output_path = Path(dialog.result["output_path"])
+        self._set_last_dialog_dir("export_output", output_path)
+
+        try:
+            self.status_var.set("Lernhilfen-Export läuft…")
+            self.root.update_idletasks()
+            self._show_export_diagnostics(input_path)
+
+            if fmt == "pdf":
+                out_files = self._export_help_cards_pdf(
+                    input_path, output_path, page_format, contrast_profile
+                )
+            elif fmt == "png":
+                out_files = self._export_help_cards_png(
+                    input_path, output_path, page_format, contrast_profile
+                )
+            elif fmt == "pngzip":
+                out_files = self._export_help_cards_png_zip(
+                    input_path, output_path, page_format, contrast_profile
+                )
+            else:
+                raise ValueError("Lernhilfen unterstützen nur PDF, PNG oder PNG (ZIP).")
+
+            self.status_var.set("Lernhilfen-Export abgeschlossen")
+            messagebox.showinfo(
+                "Export erfolgreich",
+                "Erstellt:\n" + "\n".join(str(path) for path in out_files),
+            )
+        except Exception as error:
+            self.status_var.set("Lernhilfen-Export fehlgeschlagen")
             messagebox.showerror("Fehler", f"Export fehlgeschlagen:\n{error}")

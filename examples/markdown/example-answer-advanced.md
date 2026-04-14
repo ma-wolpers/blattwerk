@@ -123,7 +123,7 @@ answers:
 Vervollständigt die Tabelle. Inhalte in `%{...}` sind nur für die Lösung gedacht.
 :::
 
-:::answer type=table rows=5 cols=3 row_height=1.8cm headers="Signal|Bauteil|Funktion"
+:::answer type=table rows=5 cols=3 row_height=1.8cm headers="Signal|Bauteil|Funktion" header_columns=1 alignment="l c r"
 cells:
   - ["Taster", "Eingabe", "%{startet den Stromkreis}"]
   - ["LED", "Ausgabe", "%{zeigt den Zustand an}"]

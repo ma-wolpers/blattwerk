@@ -232,3 +232,86 @@ def test_cloze_wordbank_can_hide_duplicate_words():
     worksheet_html = _render_answer_block(options, content, include_solutions=False)
 
     assert worksheet_html.count("<span class='cloze-word'>CPU</span>") == 1
+
+
+def test_table_alignment_center_sets_css_variable_on_wrapper():
+    options = {"type": "table", "rows": "1", "cols": "2", "alignment": "center"}
+    content = "cells:\n  - ['A', 'B']"
+
+    html = _render_answer_block(options, content, include_solutions=False)
+
+    assert "--table-text-align:center" in html
+
+
+def test_table_alignment_invalid_value_falls_back_to_left():
+    options = {"type": "table", "rows": "1", "cols": "2", "alignment": "diagonal"}
+    content = "cells:\n  - ['A', 'B']"
+
+    html = _render_answer_block(options, content, include_solutions=False)
+
+    assert "--table-text-align:left" in html
+
+
+def test_table_alignment_per_column_shorthand_is_applied():
+    options = {
+        "type": "table",
+        "rows": "1",
+        "cols": "4",
+        "alignment": "l r c c",
+        "headers": "A|B|C|D",
+    }
+    content = "cells:\n  - ['1', '2', '3', '4']"
+
+    html = _render_answer_block(options, content, include_solutions=False)
+
+    assert "<th style='text-align:left'>A</th>" in html
+    assert "<th style='text-align:right'>B</th>" in html
+    assert "<th style='text-align:center'>C</th>" in html
+    assert "<th style='text-align:center'>D</th>" in html
+    assert "<td style='text-align:left'>1</td>" in html
+    assert "<td style='text-align:right'>2</td>" in html
+    assert "<td style='text-align:center'>3</td>" in html
+    assert "<td style='text-align:center'>4</td>" in html
+
+
+def test_table_alignment_per_column_uses_long_aliases_too():
+    options = {
+        "type": "table",
+        "rows": "1",
+        "cols": "3",
+        "alignment": "links rechts mitte",
+    }
+    content = "cells:\n  - ['A', 'B', 'C']"
+
+    html = _render_answer_block(options, content, include_solutions=False)
+
+    assert "<td style='text-align:left'>A</td>" in html
+    assert "<td style='text-align:right'>B</td>" in html
+    assert "<td style='text-align:center'>C</td>" in html
+
+
+def test_table_header_columns_render_body_cells_as_row_headers():
+    options = {
+        "type": "table",
+        "rows": "2",
+        "cols": "3",
+        "headers": "A|B|C",
+        "header_columns": "1",
+    }
+    content = "cells:\n  - ['R1', '10', '20']\n  - ['R2', '30', '40']"
+
+    html = _render_answer_block(options, content, include_solutions=False)
+
+    assert "<th scope='row'>R1</th>" in html
+    assert "<th scope='row'>R2</th>" in html
+    assert "<td>10</td>" in html
+
+
+def test_table_header_cols_alias_is_supported():
+    options = {"type": "table", "rows": "1", "cols": "2", "header_cols": "1"}
+    content = "cells:\n  - ['Name', 'Wert']"
+
+    html = _render_answer_block(options, content, include_solutions=False)
+
+    assert "<th scope='row'>Name</th>" in html
+    assert "<td>Wert</td>" in html

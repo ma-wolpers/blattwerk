@@ -73,7 +73,7 @@ document = frontmatter, newline*, block_or_raw* ;
 frontmatter = "---", newline, yaml_lines, "---", newline* ;
 
 block_or_raw = block | section_break | raw_markdown ;
-section_break = "---", newline ;
+section_break = ("---" | "--"), newline ;
 
 block = open_block, block_content, close_block | self_closing_block ;
 open_block = ":::", block_name, (space, options)?, newline ;
@@ -283,8 +283,20 @@ Konflikt-/Syntaxregel:
 Option-Namenskonvention (kanonisch):
 - MC Inline-Breiten: nur `widths`
 - Table Spaltenbreiten: nur `widths`
+- Table Ausrichtung: nur `alignment`
 - Cloze Lückenmodus: nur `gap`
 - Cloze Wortbank-Position: nur `words`
+
+Table-Optionen (zusaetzlich zu `rows`/`cols`):
+- `row_height=<css-laenge>`
+- `headers="A|B|C"`
+- `header_columns=<n>` (Alias: `header_cols=<n>`)
+    - Rendert die ersten `n` Spalten im Tabellen-Body als Header-Spalten (`<th scope="row">`).
+- `row_labels="Zeile 1|Zeile 2|..."`
+- `widths=<gewichte|fr|css-breiten>`
+- `alignment=left|center|right|justify`
+    - Auch als Kurzform pro Spalte moeglich, z. B. `alignment="l r c c"`.
+    - Unterstuetzte Kurzformen: `l`, `r`, `c`, `j`.
 
 ### 5.6 solution
 Zweck: Musterlösungstext.
@@ -292,7 +304,12 @@ Optionen: `label=true|false` (optional, Standard `true`), `show` (optional)
 
 ### 5.7 columns / nextcol / endcolumns
 Zweck: Spaltenlayout.
-`columns` Optionen: `cols=2..6` (optional, Standard `2`), `widths` oder `ratio` (optional)
+`columns` Optionen: `cols=2..6` (optional, Standard `2`), `widths` oder `ratio` (optional), `gap` (optional)
+
+`gap`:
+- CSS-Laenge fuer den horizontalen Spaltenabstand.
+- Unterstuetzte Einheiten: `px`, `pt`, `cm`, `mm`, `em`, `rem`, `%`.
+- Beispiel: `:::columns cols=2 widths="2 1" gap=1cm :::`
 
 ### 5.8 help / hilfe
 Zweck: Hilfekartenblock (separate Hilfekarten-Ausgabe).
@@ -313,7 +330,8 @@ Legacy-Optionen wie `hide_in_solution` oder `hide_in_worksheet` sind nicht Teil 
 
 ## 7. Abschnittstrenner
 
-`---` markiert einen Abschnittswechsel und kann für Seitenumbrüche genutzt werden.
+- `---` markiert einen Abschnittswechsel (Solltrennstelle) und fuegt zusaetzlich einen vertikalen Abstand von `1cm` zwischen den beiden Abschnitten ein.
+- `--` fungiert ebenfalls als Solltrennstelle, jedoch ohne den zusaetzlichen `1cm`-Abstand.
 
 ## 8. Konfliktregel
 

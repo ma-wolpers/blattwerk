@@ -46,4 +46,6 @@ def test_help_cards_build_request_defaults_are_stable():
     assert request.include_solutions is False
     assert request.page_format == "a4_portrait"
     assert request.print_profile == "standard"
+    assert request.add_running_elements is True
+    assert request.block_on_critical is True
     assert request.design.font_profile == "segoe"

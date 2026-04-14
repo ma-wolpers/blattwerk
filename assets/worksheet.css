@@ -167,7 +167,7 @@ h1 {
 
 .columns {
     display: grid;
-    gap: 0.8cm;
+    gap: var(--col-gap, 0.8cm);
     margin-bottom: 0;
     align-items: start;
 }
@@ -1151,21 +1151,23 @@ h1 {
     border: var(--field-border-width) solid var(--field-border-color);
     padding: 0.25em 0.35em;
     vertical-align: top;
+    text-align: var(--table-text-align, left);
 }
 
 .answer-table th {
     background: var(--theme-accent-secondary-soft, #f3f3f3);
     font-weight: 600;
-    text-align: left;
 }
 
 .answer-table td {
     height: var(--table-row-height, 1.9cm);
 }
 
-.answer-table td.table-row-label {
+.answer-table td.table-row-label,
+.answer-table th.table-row-label {
     font-weight: 600;
     background: var(--theme-accent-secondary-soft, #f3f3f3);
+    text-align: left;
 }
 
 .table-solution-marker {
@@ -1194,6 +1196,10 @@ h1 {
     break-inside: avoid-page;
     page-break-inside: avoid;
     margin-bottom: var(--block-gap-regular);
+}
+
+.ab-section-gap {
+    height: 1cm;
 }
 
 .ab-section.page-break-before {

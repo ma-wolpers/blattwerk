@@ -17,7 +17,7 @@ Ein **Bit** kann genau zwei Zustände annehmen:
 Mehrere Bits zusammen nennt man eine **Binärzahl**.
 :::
 
-:::columns cols=2 :::
+:::columns cols=2 widths="2 1" gap=1cm :::
 
 ![Alternativtext](../assets/testbild.png "w=100%")
 
@@ -30,9 +30,9 @@ Je mehr Bits zur Verfügung stehen, desto mehr unterschiedliche Informationen k�
 
 :::endcolumns :::
 
----
+--
 
-:::columns cols=2 :::
+:::columns cols=2 gap=0.6cm :::
 
 :::material title="Kurzinfo"
 Die Potenzen von 2:
@@ -75,7 +75,7 @@ Mögliche richtige Aussagen:
 :::material
 ### Beispiel: Binärzahlen
 
-:::answer type=table rows=6 cols=2 row_height=1.0cm headers="Dezimal|Binär"
+:::answer type=table rows=6 cols=2 row_height=1.0cm headers="Dezimal|Binär" alignment=right
 cells:
 	-
 		- { text: "Beispielwerte", colspan: 2 }

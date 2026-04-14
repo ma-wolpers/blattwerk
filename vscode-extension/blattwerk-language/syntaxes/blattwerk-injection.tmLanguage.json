@@ -18,7 +18,7 @@
       },
       "patterns": [
         {
-          "match": "\\b(show|type|work|action|hint|points|rows|cols|height|width|widths|row_height|headers|row_labels|axis|origin|step_x|step_y|min|max|tick_step|ticks|tick_spacing_mm|tick_spacing_cm|tick_spacing|major_every|max_width_mm|max_width_cm|full_width|positive_sign|signed_positive|inline|tf|true_false|correct|options|gap|gap_length|words|layout|orientation|left|right|top|bottom|matches|links|min_size|min_rows|min_cols|diagonal|horizontal|vertical|title|level|label|ratio)\\b(?==)",
+          "match": "\\b(show|type|work|action|hint|points|rows|cols|height|width|widths|alignment|row_height|headers|header_columns|header_cols|row_labels|axis|origin|step_x|step_y|min|max|tick_step|ticks|tick_spacing_mm|tick_spacing_cm|tick_spacing|major_every|max_width_mm|max_width_cm|full_width|positive_sign|signed_positive|inline|tf|true_false|correct|options|gap|gap_length|words|layout|orientation|left|right|top|bottom|matches|links|min_size|min_rows|min_cols|diagonal|horizontal|vertical|title|level|label|ratio)\\b(?==)",
           "name": "variable.parameter.blattwerk"
         },
         {

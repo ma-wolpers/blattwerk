@@ -650,6 +650,12 @@ class BlattwerkAppStyleMixin:
                     "command": lambda: self._set_editor_view_mode(EDITOR_VIEW_EDITOR_ONLY),
                 },
                 {"type": "separator"},
+                {
+                    "type": "command",
+                    "label": "Lernhilfenansicht",
+                    "command": self.open_help_preview_window,
+                },
+                {"type": "separator"},
                 {"type": "submenu", "label": "Theme", "items": theme_items},
             ]
 

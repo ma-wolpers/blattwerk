@@ -213,6 +213,11 @@ def parse_blocks(text):
                 block_options = parse_options(options_raw)
                 block_buffer = []
             else:
+                if stripped_line == "--":
+                    # `--` ist ein weicher Abschnittswechsel (Solltrennstelle ohne Zusatzabstand).
+                    line_break = "\n" if line.endswith("\n") else ""
+                    raw_buffer.append(f"<!--BLATTWERK_SECTION_BREAK-->{line_break}")
+                    continue
                 raw_buffer.append(line)
         else:
             # Ein einzelnes ::: beendet den aktuellen Block.
@@ -410,16 +415,61 @@ def should_render_block(block_type, options, include_solutions):
 
 
 def split_sections(body_html):
-    """Teilt den Body an `<hr>` in druckstabile Abschnittscontainer."""
-    parts = re.split(r"<hr\s*/?>", body_html, flags=re.IGNORECASE)
-    clean_parts = [part.strip() for part in parts if part.strip()]
+    """Teilt den Body an Solltrennstellen in druckstabile Abschnittscontainer.
 
-    if not clean_parts and body_html.strip():
-        clean_parts = [body_html.strip()]
-
-    return "".join(
-        f"<section class='ab-section'>{part}</section>" for part in clean_parts
+    Regeln:
+    - `---` (Markdown-HR) trennt Abschnitte und fuegt zusaetzlich 1cm Vertikalabstand ein.
+    - `--` wird vorher als `<!--BLATTWERK_SECTION_BREAK-->` markiert und trennt ohne Zusatzabstand.
+    """
+    split_pattern = re.compile(
+        r"(<hr\s*/?>|<!--BLATTWERK_SECTION_BREAK-->)", flags=re.IGNORECASE
     )
+    tokens = split_pattern.split(body_html)
+    section_parts = []
+    pending_breaks = []
+    current = []
+
+    for token in tokens:
+        if token is None:
+            continue
+
+        stripped = token.strip()
+        if not stripped:
+            current.append(token)
+            continue
+
+        is_hard_break = bool(re.fullmatch(r"<hr\s*/?>", stripped, flags=re.IGNORECASE))
+        is_soft_break = stripped.lower() == "<!--blattwerk_section_break-->"
+
+        if is_hard_break or is_soft_break:
+            part = "".join(current).strip()
+            current = []
+            if part:
+                section_parts.append(("section", part))
+                pending_breaks.append("hard" if is_hard_break else "soft")
+            continue
+
+        current.append(token)
+
+    tail = "".join(current).strip()
+    if tail:
+        if section_parts and pending_breaks:
+            for break_kind in pending_breaks:
+                if break_kind == "hard":
+                    section_parts.append(("gap", ""))
+        section_parts.append(("section", tail))
+
+    if not section_parts and body_html.strip():
+        section_parts.append(("section", body_html.strip()))
+
+    html_parts = []
+    for part_kind, part_html in section_parts:
+        if part_kind == "gap":
+            html_parts.append("<div class='ab-section-gap' aria-hidden='true'></div>")
+        else:
+            html_parts.append(f"<section class='ab-section'>{part_html}</section>")
+
+    return "".join(html_parts)
 
 
 def format_meta_line(meta):

@@ -94,6 +94,54 @@ def _parse_table_widths(widths_raw, expected_cols):
 
     return [f"{(value / ratio_total) * 100:.4f}%" for value in ratio_values]
 
+
+def _normalize_table_alignment_token(value):
+    """Normalisiert Alias- und Kurzschreibweisen auf CSS-Ausrichtungswerte."""
+    aliases = {
+        "l": "left",
+        "links": "left",
+        "left": "left",
+        "c": "center",
+        "mitte": "center",
+        "center": "center",
+        "zentriert": "center",
+        "r": "right",
+        "rechts": "right",
+        "right": "right",
+        "j": "justify",
+        "justify": "justify",
+        "block": "justify",
+    }
+    return aliases.get(str(value).strip().lower())
+
+
+def _parse_table_alignment(raw_value, expected_cols):
+    """Liest globale oder spaltenindividuelle Tabellenausrichtung."""
+    if not raw_value:
+        return "left", []
+
+    normalized = str(raw_value).replace(":", " ").replace(",", " ")
+    parts = [part for part in normalized.split() if part.strip()]
+    if not parts:
+        return "left", []
+
+    if len(parts) == 1:
+        global_alignment = _normalize_table_alignment_token(parts[0])
+        return (global_alignment or "left"), []
+
+    if expected_cols < 1 or len(parts) < expected_cols:
+        return "left", []
+
+    per_column_alignments = []
+    for part in parts[:expected_cols]:
+        normalized_part = _normalize_table_alignment_token(part)
+        if not normalized_part:
+            return "left", []
+        per_column_alignments.append(normalized_part)
+
+    return per_column_alignments[0], per_column_alignments
+
+
 def _render_table_answer(options, content, include_solutions):
     """Rendert eine ausfüllbare Tabelle mit optionalen Zeilenlabels."""
 
@@ -115,6 +163,15 @@ def _render_table_answer(options, content, include_solutions):
         max_payload_cols = max((len(row) for row in cells_matrix), default=0)
         cols = max(cols, max_payload_cols)
 
+    header_columns_raw = options.get("header_columns")
+    if header_columns_raw is None:
+        header_columns_raw = options.get("header_cols")
+    header_columns = max(0, min(cols, _safe_int(header_columns_raw, 0)))
+
+    table_alignment, column_alignments = _parse_table_alignment(
+        options.get("alignment"), cols
+    )
+
     widths = _parse_table_widths(options.get("widths"), cols)
 
     colgroup = ""
@@ -125,8 +182,15 @@ def _render_table_answer(options, content, include_solutions):
     if headers:
         if len(headers) < cols:
             headers.extend([""] * (cols - len(headers)))
-        thead_cells = "".join(f"<th>{escape(text)}</th>" for text in headers[:cols])
-        thead = f"<thead><tr>{thead_cells}</tr></thead>"
+        thead_cells = []
+        for col_index, text in enumerate(headers[:cols]):
+            alignment_style = ""
+            if column_alignments:
+                alignment_style = (
+                    f" style='text-align:{escape(column_alignments[col_index])}'"
+                )
+            thead_cells.append(f"<th{alignment_style}>{escape(text)}</th>")
+        thead = f"<thead><tr>{''.join(thead_cells)}</tr></thead>"
 
     body_rows = []
     blocked_columns = [0] * cols
@@ -174,14 +238,32 @@ def _render_table_answer(options, content, include_solutions):
             else:
                 cell_content = ""
 
-            css_class = " class='table-row-label'" if col_index == 0 and first_label and colspan == 1 else ""
+            is_row_label_cell = col_index == 0 and first_label and colspan == 1
+            css_class = " class='table-row-label'" if is_row_label_cell else ""
             span_attrs = ""
+            style_attr = ""
+            tag_name = "td"
+            scope_attr = ""
             if colspan > 1:
                 span_attrs += f" colspan='{colspan}'"
             if rowspan > 1:
                 span_attrs += f" rowspan='{rowspan}'"
 
-            cells.append(f"<td{css_class}{span_attrs}>{cell_content}</td>")
+            in_header_columns = (
+                header_columns > 0
+                and col_index < header_columns
+                and (col_index + colspan) <= header_columns
+            )
+            if in_header_columns:
+                tag_name = "th"
+                scope_attr = " scope='row'"
+
+            if column_alignments and not is_row_label_cell:
+                style_attr = f" style='text-align:{escape(column_alignments[col_index])}'"
+
+            cells.append(
+                f"<{tag_name}{css_class}{span_attrs}{scope_attr}{style_attr}>{cell_content}</{tag_name}>"
+            )
 
             if rowspan > 1:
                 for span_col in range(col_index, col_index + colspan):
@@ -192,7 +274,7 @@ def _render_table_answer(options, content, include_solutions):
         body_rows.append(f"<tr>{''.join(cells)}</tr>")
 
     table_html = (
-        f"<div class='answer table-answer' style='--table-row-height:{row_height}'>"
+        f"<div class='answer table-answer' style='--table-row-height:{escape(row_height)};--table-text-align:{escape(table_alignment)}'>"
         f"<table class='answer-table'>{colgroup}{thead}<tbody>{''.join(body_rows)}</tbody></table>"
         "</div>"
     )
