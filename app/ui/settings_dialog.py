@@ -9,7 +9,7 @@ from ..storage.user_preferences_adapter import (
     get_tab_specs,
     normalize_user_preferences,
 )
-from .ui_theme import apply_window_theme, configure_ttk_theme
+from .ui_theme import apply_window_theme, configure_ttk_theme, get_theme
 
 
 class SettingsDialog:
@@ -33,6 +33,8 @@ class SettingsDialog:
         self._tab_specs = get_tab_specs()
         self._field_vars: dict[str, tk.Variable] = {}
         self._active_tab_key: str = self._tab_specs[0][0] if self._tab_specs else ""
+        self._theme = get_theme(theme_key)
+        self._toggle_widgets: dict[str, dict[str, object]] = {}
 
         self.window = tk.Toplevel(parent)
         self.window.title("Einstellungen")
@@ -60,7 +62,40 @@ class SettingsDialog:
         self.window.protocol("WM_DELETE_WINDOW", self._on_cancel)
         self.window.grab_set()
         self.window.focus_set()
+        self._apply_dialog_theme(theme_key)
         self.parent.wait_window(self.window)
+
+    def _apply_dialog_theme(self, theme_key: str):
+        """Wendet Theme auch auf klassische Tk-Widgets des Dialogs an."""
+        theme = get_theme(theme_key)
+        self._theme = theme
+
+        self.tab_listbox.configure(
+            background=theme["bg_surface"],
+            foreground=theme["fg_primary"],
+            selectbackground=theme["accent_soft"],
+            selectforeground=theme["fg_primary"],
+            highlightthickness=1,
+            highlightbackground=theme["border"],
+            highlightcolor=theme["accent"],
+            borderwidth=0,
+            relief="flat",
+        )
+
+        self.content_canvas.configure(
+            background=theme["bg_main"],
+            highlightthickness=0,
+            borderwidth=0,
+            relief="flat",
+        )
+        self._refresh_visible_toggles()
+
+    def _refresh_visible_toggles(self):
+        """Aktualisiert die Darstellung aller aktuell sichtbaren Toggle-Widgets."""
+        for toggle_data in self._toggle_widgets.values():
+            refresh_cb = toggle_data.get("refresh")
+            if callable(refresh_cb):
+                refresh_cb()
 
     def _build_tab_list(self, root):
         side = ttk.Frame(root)
@@ -155,6 +190,7 @@ class SettingsDialog:
 
         for child in self.content_frame.winfo_children():
             child.destroy()
+        self._toggle_widgets = {}
 
         header = ttk.Label(self.content_frame, text=self._get_tab_label(tab_key), style="SectionTitle.TLabel")
         header.grid(row=0, column=0, sticky="w", pady=(0, 8))
@@ -186,8 +222,7 @@ class SettingsDialog:
         var = self._field_vars[pref_key]
 
         if pref_type == "bool":
-            widget = ttk.Checkbutton(self.content_frame, variable=var)
-            widget.grid(row=row_index, column=1, sticky="w", pady=5)
+            self._render_boolean_toggle(row_index, pref_key, var)
             return row_index + 1
 
         if pref_type == "enum":
@@ -225,11 +260,79 @@ class SettingsDialog:
             return
         self._on_live_apply(self._collect_preferences())
 
+    def _render_boolean_toggle(self, row_index: int, pref_key: str, var: tk.Variable):
+        """Rendert boolesche Einstellungen als modernisierten Toggle-Switch."""
+
+        container = tk.Frame(self.content_frame, bd=0, highlightthickness=0)
+        container.grid(row=row_index, column=1, sticky="w", pady=5)
+
+        canvas = tk.Canvas(
+            container,
+            width=44,
+            height=24,
+            bd=0,
+            highlightthickness=0,
+            relief="flat",
+            cursor="hand2",
+        )
+        canvas.pack(side="left")
+
+        state_label = ttk.Label(container, text="", style="Muted.TLabel")
+        state_label.pack(side="left", padx=(8, 0))
+
+        def _toggle_state(_event=None):
+            var.set(not bool(var.get()))
+            _refresh()
+
+        def _refresh():
+            on_state = bool(var.get())
+            theme = self._theme
+
+            track_bg = theme["accent"] if on_state else theme["border"]
+            track_outline = theme["accent_hover"] if on_state else theme["border"]
+            knob_bg = theme["bg_surface"]
+            knob_outline = theme["border"]
+
+            container.configure(background=theme["bg_main"])
+            canvas.configure(background=theme["bg_main"])
+            canvas.delete("all")
+
+            # Track (pill shape)
+            canvas.create_oval(2, 2, 22, 22, fill=track_bg, outline=track_outline, width=1)
+            canvas.create_oval(22, 2, 42, 22, fill=track_bg, outline=track_outline, width=1)
+            canvas.create_rectangle(12, 2, 32, 22, fill=track_bg, outline=track_bg, width=0)
+
+            # Knob
+            knob_left = 22 if on_state else 2
+            knob_right = 42 if on_state else 22
+            canvas.create_oval(
+                knob_left,
+                2,
+                knob_right,
+                22,
+                fill=knob_bg,
+                outline=knob_outline,
+                width=1,
+            )
+
+            state_label.configure(
+                text="Ein" if on_state else "Aus",
+                foreground=theme["fg_primary"] if on_state else theme["fg_muted"],
+            )
+
+        canvas.bind("<Button-1>", _toggle_state)
+        state_label.bind("<Button-1>", _toggle_state)
+        container.bind("<Button-1>", _toggle_state)
+
+        self._toggle_widgets[pref_key] = {"refresh": _refresh}
+        _refresh()
+
     def _reset_tab_defaults(self):
         defaults = normalize_user_preferences({})
         for pref_key, _ in self._iter_tab_items(self._active_tab_key):
             var = self._field_vars[pref_key]
             var.set(str(defaults[pref_key]) if not isinstance(var, tk.BooleanVar) else bool(defaults[pref_key]))
+        self._refresh_visible_toggles()
 
     def _reset_all_defaults(self):
         defaults = normalize_user_preferences({})
@@ -239,6 +342,7 @@ class SettingsDialog:
                 var.set(bool(value))
             else:
                 var.set(str(value))
+        self._refresh_visible_toggles()
 
     def _on_apply(self):
         self.result = self._collect_preferences()

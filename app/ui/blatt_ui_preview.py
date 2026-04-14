@@ -247,12 +247,22 @@ class BlattwerkAppPreviewMixin:
             if initial_dir:
                 dialog_kwargs["initialdir"] = initial_dir
 
-            selected = filedialog.askopenfilename(**dialog_kwargs)
-            if not selected:
+            selected_paths = list(filedialog.askopenfilenames(**dialog_kwargs) or ())
+            if not selected_paths:
                 return
 
-            self._set_last_dialog_dir("input_markdown", selected)
-            self._open_input_path(Path(selected), add_recent=True)
+            max_open_count = 8
+            truncated_paths = selected_paths[:max_open_count]
+            self._set_last_dialog_dir("input_markdown", truncated_paths[0])
+
+            if len(selected_paths) > max_open_count:
+                messagebox.showinfo(
+                    "Auswahl begrenzt",
+                    "Es werden maximal 8 Dateien gleichzeitig geöffnet.",
+                )
+
+            for path_text in truncated_paths:
+                self._open_input_path(Path(path_text), add_recent=True)
 
     def _validate_input(self):
             """Validate input."""

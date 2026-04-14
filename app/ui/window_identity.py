@@ -9,6 +9,89 @@ import tkinter as tk
 APP_USER_MODEL_ID = "7thCloud.Blattwerk.2026.03"
 
 
+def _apply_native_menu_theme(prefer_dark: bool) -> None:
+    """Aktiviert auf Windows nach Möglichkeit dunkle native Menüs für den Prozess."""
+    if not sys.platform.startswith("win"):
+        return
+
+    try:
+        import ctypes
+
+        uxtheme = ctypes.WinDLL("uxtheme")
+        set_preferred_app_mode = getattr(uxtheme, "SetPreferredAppMode", None)
+        flush_menu_themes = getattr(uxtheme, "FlushMenuThemes", None)
+
+        if set_preferred_app_mode is not None:
+            # 1=AllowDark, 3=ForceLight
+            mode = 1 if prefer_dark else 3
+            set_preferred_app_mode.argtypes = [ctypes.c_int]
+            set_preferred_app_mode.restype = ctypes.c_int
+            set_preferred_app_mode(mode)
+
+        if flush_menu_themes is not None:
+            flush_menu_themes.argtypes = []
+            flush_menu_themes.restype = None
+            flush_menu_themes()
+    except Exception:
+        return
+
+
+def apply_window_chrome_theme(window: tk.Misc, prefer_dark: bool, _retry: bool = False) -> None:
+    """Setzt auf Windows einen dunklen oder hellen Titelbalken/Fensterrahmen."""
+    if not sys.platform.startswith("win"):
+        return
+
+    try:
+        import ctypes
+
+        window.update_idletasks()
+        user32 = ctypes.windll.user32
+        hwnd = ctypes.c_void_p(window.winfo_id())
+        try:
+            # Tk kann ein Child-HWND liefern; fuer DWM wird das Root-Fenster benoetigt.
+            ga_root = 2
+            user32.GetAncestor.argtypes = [ctypes.c_void_p, ctypes.c_uint]
+            user32.GetAncestor.restype = ctypes.c_void_p
+            root_hwnd = user32.GetAncestor(hwnd, ga_root)
+            if root_hwnd:
+                hwnd = ctypes.c_void_p(root_hwnd)
+        except Exception:
+            pass
+
+        dark_value = ctypes.c_int(1 if prefer_dark else 0)
+        attr_size = ctypes.sizeof(dark_value)
+        dwmapi = ctypes.windll.dwmapi
+        _apply_native_menu_theme(prefer_dark)
+
+        # Neuere Windows-Builds nutzen 20, ältere 19 für den gleichen Dark-Mode-Flag.
+        for attribute in (20, 19):
+            try:
+                dwmapi.DwmSetWindowAttribute(
+                    hwnd,
+                    ctypes.c_uint(attribute),
+                    ctypes.byref(dark_value),
+                    ctypes.c_uint(attr_size),
+                )
+            except Exception:
+                continue
+
+        try:
+            user32.DrawMenuBar.argtypes = [ctypes.c_void_p]
+            user32.DrawMenuBar.restype = ctypes.c_int
+            user32.DrawMenuBar(hwnd)
+        except Exception:
+            pass
+
+        if not _retry:
+            try:
+                # Manche Windows/Tk-Kombinationen nehmen den Wert erst nach dem ersten Map korrekt an.
+                window.after(120, lambda: apply_window_chrome_theme(window, prefer_dark, _retry=True))
+            except Exception:
+                pass
+    except Exception:
+        return
+
+
 def _apply_taskbar_icon_winapi(window: tk.Misc, icon_path: Path) -> None:
     """Setzt das Fenster-Icon via WinAPI explizit fuer SMALL und BIG."""
     try:

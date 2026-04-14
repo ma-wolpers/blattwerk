@@ -9,8 +9,11 @@ Regel:
 ## [Unreleased]
 
 ### Changed
+- Menüzeile wieder auf eigene Custom-Popup-Architektur umgestellt (statt nativer Tk-Menüs): vollständig themefähige Dark-Popups mit verschachtelten Side-Submenus für Datei/Ansicht/Shortcuts.
+- Menüinteraktion stabilisiert: offene Popups schließen jetzt zuverlässig bei Klick außerhalb sowie bei Fenster-Deaktivierung (inkl. Alt+Tab).
+- Alt-Mnemonics für Top-Menüs wiederhergestellt (`Alt+D`, `Alt+A`, `Alt+S`) inklusive unterstrichener Buchstaben in der Menüzeile.
 - Steuerzeile modernisiert: Bereichsauswahl und Dokument-Tabs stehen jetzt in einer gemeinsamen Leiste; die Bereichsauswahl nutzt ein segmentiertes Chip-Design statt klassischer Legacy-Radiobutton-Anmutung.
-- Tab-Interaktion verbessert: Tabs zeigen ein kleines Schließen-"×" direkt im Tabtitel; Schließen erfolgt per Klick auf den Marker statt über separate Schaltfläche.
+- Tab-Interaktion angepasst: das Schließen im Tabtitel wurde entfernt; stattdessen gibt es einen kleinen dedizierten Schließen-Button am rechten Rand derselben Dokument-Zeile.
 - Theme-Standards modernisiert: Standard-Theme auf `slate_indigo` gesetzt und neue Styles für Control-Strip, Segmente und Notebook-Tabs eingeführt, um braunlastige Legacy-Wirkung zu vermeiden.
 - Oeffnen-Pfade (Dateidialog, Recent-Menue, Shortcut `Z`) auf zentralen Dokument-Dispatcher umgestellt; bereits geoeffnete Dateien werden nicht doppelt geoeffnet, melden stattdessen "ist schon offen" und fokussieren den vorhandenen Tab.
 - `Z` oeffnet jetzt das juengste noch nicht geoeffnete Markdown aus der Recent-Liste und ueberspringt bereits offene Eintraege.

@@ -7,10 +7,18 @@ The format is based on Keep a Changelog.
 ## [Unreleased]
 
 ### Changed
+- The top menu now uses fully themed custom popup menus (instead of native Tk menus), including dark popup surfaces, dark borders, and nested side submenus.
+- Menu popups now close consistently on outside click and when the window deactivates (including Alt+Tab).
+- Alt mnemonics were restored for top-level menus (`Alt+D`, `Alt+A`, `Alt+S`) with underlined menu labels.
+- Tab close was moved out of the tab title: documents now use a dedicated small close button at the right side of the same control row.
+- `Ctrl+O` / open dialog now supports selecting multiple markdown files at once and opens up to 8 sheets in one operation.
+- Boolean settings in the settings dialog now use modern toggle switches (Ein/Aus) with theme-consistent dark styling.
+- Editor dark-theme visuals were refined: diagnostics and outline lists are now dark-compatible, syntax colors are tuned for dark readability (VS Code-like palette), and dark-theme primary text is slightly less bright.
+- Dark-theme frame/border tones were further softened centrally (including editor diagnostics/outline containers and common input/frame outlines) to reduce harsh bright edges.
+- Editor syntax highlighting colors were strengthened in both light and dark themes for clearer visual distinction while editing.
 - Beim Fokus auf den Schreibbereich (und beim Tab-Wechsel) gleicht Blattwerk den Editor jetzt zuerst mit der Quelldatei ab: externe Dateiaenderungen werden automatisch uebernommen, und bei Konflikten mit lokalen ungespeicherten Aenderungen erscheint ein Dialog mit den Optionen `Verwerfen` oder `Ueberschreiben` inklusive Altersanzeige der externen Aenderung.
 - Bereichsauswahl und Dokument-Tabs teilen jetzt eine gemeinsame obere Steuerzeile fuer ein kompakteres, moderneres Layout.
 - Bereichsumschaltung (Vorschau/Beides/Schreibbereich) wurde visuell als segmentierte Auswahl modernisiert.
-- Tabs zeigen jetzt ein kleines `×` direkt im Tabtitel und lassen sich darueber direkt schließen.
 - Default theme is now `slate_indigo`, reducing the previous brown-heavy look in the default UI.
 - Blattwerk now supports multiple open markdown documents via tabs in the main window, with per-document preview settings (for example task/solution mode, DIN format, contrast, and design profile) restored on tab switch.
 - Tab switches now also restore per-document view position (zoom level, active page, horizontal/vertical scroll position).

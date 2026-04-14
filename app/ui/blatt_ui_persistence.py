@@ -40,9 +40,9 @@ class BlattwerkAppPersistenceMixin:
 
     @staticmethod
     def _format_document_tab_title(path_text: str) -> str:
-            """Builds a compact tab title with inline close marker."""
+            """Builds a compact tab title without inline close markers."""
 
-            return f"{Path(path_text).name}  ×"
+            return Path(path_text).name
 
     def _on_document_notebook_click(self, event=None):
             """Handles close-clicks on tab title markers."""
@@ -380,6 +380,9 @@ class BlattwerkAppPersistenceMixin:
 
     def _refresh_recent_menu(self):
             """Aktualisiert Menüeinträge der zuletzt geöffneten Dateien."""
+
+            if hasattr(self, "_refresh_custom_menu_model"):
+                self._refresh_custom_menu_model()
 
             if self.recent_menu is None:
                 return

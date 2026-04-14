@@ -5,6 +5,8 @@ from __future__ import annotations
 import tkinter as tk
 from tkinter import ttk
 
+from .window_identity import apply_window_chrome_theme
+
 
 THEMES = {
     "slate_indigo": {
@@ -50,8 +52,8 @@ THEMES = {
         "label": "Midnight & Cyan",
         "bg_main": "#1E252D",
         "bg_surface": "#26313C",
-        "fg_primary": "#EAF1F7",
-        "fg_muted": "#B8C7D4",
+        "fg_primary": "#CCD6E0",
+        "fg_muted": "#9DAAB8",
         "accent": "#18A7C9",
         "accent_hover": "#1286A2",
         "accent_soft": "#2F3E4A",
@@ -76,8 +78,8 @@ THEMES = {
         "label": "Obsidian & Gold",
         "bg_main": "#1C1D1F",
         "bg_surface": "#242629",
-        "fg_primary": "#F3E9D2",
-        "fg_muted": "#C7BDA8",
+        "fg_primary": "#D6CEBF",
+        "fg_muted": "#AAA18F",
         "accent": "#C9A34A",
         "accent_hover": "#B28E3E",
         "accent_soft": "#34312A",
@@ -167,20 +169,30 @@ def apply_window_theme(window: tk.Misc, theme_key: str | None = None):
     """Wendet die Grundhintergrundfarbe auf ein Tk-Fenster an."""
     theme = get_theme(theme_key)
     window.configure({"bg": theme["bg_main"]})
+    is_dark_theme = _relative_luminance(theme["bg_main"]) < 0.20
+    apply_window_chrome_theme(window, prefer_dark=is_dark_theme)
+
+
+def is_dark_theme(theme_key: str | None = None) -> bool:
+    """Liefert, ob das Theme als dunkel eingestuft wird."""
+    theme = get_theme(theme_key)
+    return _relative_luminance(theme["bg_main"]) < 0.20
 
 
 def configure_ttk_theme(root: tk.Misc, theme_key: str | None = None):
     """Konfiguriert zentrale ttk-Styles auf Basis des gewählten Themes."""
 
     theme = get_theme(theme_key)
+    dark_theme = is_dark_theme(theme_key)
     style = ttk.Style(root)
+    ui_border = theme["border"]
     primary_bg = theme["accent"]
     primary_hover_bg = theme["accent_hover"]
-    secondary_bg = theme["border"]
+    secondary_bg = ui_border
     secondary_hover_bg = theme["accent_soft"]
-    nav_bg = _mix_hex(theme["border"], "#59A972", 0.20)
+    nav_bg = _mix_hex(ui_border, "#59A972", 0.20)
     nav_hover_bg = _mix_hex(theme["accent_soft"], "#59A972", 0.16)
-    util_bg = _mix_hex(theme["border"], "#8B73D9", 0.20)
+    util_bg = _mix_hex(ui_border, "#8B73D9", 0.20)
     util_hover_bg = _mix_hex(theme["accent_soft"], "#8B73D9", 0.16)
 
     primary_fg = _contrast_text_color(primary_bg)
@@ -201,6 +213,22 @@ def configure_ttk_theme(root: tk.Misc, theme_key: str | None = None):
         "TLabel", background=theme["bg_main"], foreground=theme["fg_primary"]
     )
     style.configure(
+        "TLabelframe",
+        background=theme["bg_main"],
+        bordercolor=ui_border,
+        lightcolor=ui_border,
+        darkcolor=ui_border,
+        borderwidth=1,
+        relief="solid",
+    )
+    style.configure(
+        "TLabelframe.Label",
+        background=theme["bg_main"],
+        foreground=theme["fg_muted"],
+        font=("Segoe UI Semibold", 9),
+    )
+    style.configure("TSeparator", background=ui_border)
+    style.configure(
         "TRadiobutton", background=theme["bg_main"], foreground=theme["fg_primary"]
     )
     style.map(
@@ -209,7 +237,63 @@ def configure_ttk_theme(root: tk.Misc, theme_key: str | None = None):
     )
 
     style.configure(
-        "TEntry", fieldbackground=theme["bg_surface"], foreground=theme["fg_primary"]
+        "TEntry",
+        fieldbackground=theme["bg_surface"],
+        foreground=theme["fg_primary"],
+        bordercolor=ui_border,
+        lightcolor=ui_border,
+        darkcolor=ui_border,
+    )
+    style.map(
+        "TEntry",
+        fieldbackground=[("readonly", theme["bg_surface"])],
+        foreground=[("readonly", theme["fg_primary"])],
+    )
+
+    combo_arrow_bg = _mix_hex(theme["border"], theme["bg_surface"], 0.40)
+    combo_arrow_hover_bg = _mix_hex(theme["accent_soft"], theme["bg_surface"], 0.48)
+    style.configure(
+        "TCombobox",
+        fieldbackground=theme["bg_surface"],
+        background=combo_arrow_bg,
+        foreground=theme["fg_primary"],
+        arrowcolor=theme["fg_primary"],
+        bordercolor=ui_border,
+        lightcolor=ui_border,
+        darkcolor=ui_border,
+        selectbackground=theme["accent_soft"],
+        selectforeground=theme["fg_primary"],
+    )
+    style.map(
+        "TCombobox",
+        fieldbackground=[("readonly", theme["bg_surface"])],
+        background=[("readonly", combo_arrow_bg), ("active", combo_arrow_hover_bg)],
+        foreground=[("readonly", theme["fg_primary"])],
+        arrowcolor=[("active", theme["fg_primary"])],
+        selectbackground=[("readonly", theme["accent_soft"])],
+        selectforeground=[("readonly", theme["fg_primary"])],
+    )
+    root.option_add("*TCombobox*Listbox.background", theme["bg_surface"])
+    root.option_add("*TCombobox*Listbox.foreground", theme["fg_primary"])
+    root.option_add("*TCombobox*Listbox.selectBackground", theme["accent_soft"])
+    root.option_add("*TCombobox*Listbox.selectForeground", theme["fg_primary"])
+
+    scroll_bg = _mix_hex(theme["border"], theme["bg_surface"], 0.35)
+    scroll_active_bg = _mix_hex(theme["accent_soft"], theme["bg_surface"], 0.52)
+    style.configure(
+        "TScrollbar",
+        troughcolor=theme["bg_main"],
+        background=scroll_bg,
+        arrowcolor=theme["fg_primary"],
+        bordercolor=ui_border,
+        lightcolor=ui_border,
+        darkcolor=ui_border,
+        gripcount=0,
+    )
+    style.map(
+        "TScrollbar",
+        background=[("active", scroll_active_bg), ("pressed", scroll_active_bg)],
+        arrowcolor=[("disabled", theme["fg_muted"])],
     )
     style.configure(
         "Muted.TLabel", background=theme["bg_main"], foreground=theme["fg_muted"]
@@ -219,9 +303,9 @@ def configure_ttk_theme(root: tk.Misc, theme_key: str | None = None):
         "TButton",
         background=secondary_bg,
         foreground=secondary_fg,
-        bordercolor=theme["border"],
-        lightcolor=theme["border"],
-        darkcolor=theme["border"],
+        bordercolor=ui_border,
+        lightcolor=ui_border,
+        darkcolor=ui_border,
         padding=(10, 6),
         relief="flat",
         font=("Segoe UI", 9),
@@ -253,9 +337,9 @@ def configure_ttk_theme(root: tk.Misc, theme_key: str | None = None):
         "SecondaryAction.TButton",
         background=secondary_bg,
         foreground=secondary_fg,
-        bordercolor=theme["border"],
-        lightcolor=theme["border"],
-        darkcolor=theme["border"],
+        bordercolor=ui_border,
+        lightcolor=ui_border,
+        darkcolor=ui_border,
         relief="flat",
         font=("Segoe UI", 9),
     )
@@ -298,7 +382,7 @@ def configure_ttk_theme(root: tk.Misc, theme_key: str | None = None):
     )
 
     strip_bg = _mix_hex(theme["bg_surface"], theme["accent_soft"], 0.22)
-    strip_border = _mix_hex(theme["border"], theme["accent"], 0.18)
+    strip_border = _mix_hex(ui_border, theme["accent"], 0.18)
     segmented_bg = _mix_hex(theme["bg_surface"], theme["accent_soft"], 0.35)
     segmented_fg = theme["fg_primary"]
     segmented_active_bg = _mix_hex(theme["accent"], theme["bg_surface"], 0.14)

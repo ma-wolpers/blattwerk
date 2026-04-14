@@ -105,7 +105,14 @@ class BlattwerkAppBuildMixin:
         self.document_notebook = ttk.Notebook(area_row, style="ControlStrip.TNotebook")
         self.document_notebook.pack(side="left", fill="x", expand=True)
         self.document_notebook.bind("<<NotebookTabChanged>>", self._on_document_tab_changed)
-        self.document_notebook.bind("<ButtonRelease-1>", self._on_document_notebook_click)
+
+        ttk.Button(
+            area_row,
+            text="×",
+            width=3,
+            style="SecondaryAction.TButton",
+            command=self.close_active_document_tab,
+        ).pack(side="left", padx=(8, 0))
 
         self._refresh_editor_mode_segmented_buttons()
         self.editor_view_mode_var.trace_add("write", lambda *_args: self._refresh_editor_mode_segmented_buttons())

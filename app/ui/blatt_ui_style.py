@@ -42,11 +42,11 @@ from .ui_constants import (
     VIEW_MODE_LABELS,
 )
 from .ui_theme import (
+    THEMES,
     THEME_ORDER,
     apply_window_theme,
     configure_ttk_theme,
     get_theme,
-    populate_theme_menu,
     style_canvas,
     style_preview_placeholder,
 )
@@ -193,8 +193,14 @@ class BlattwerkAppStyleMixin:
                     selectbackground=theme["accent_soft"],
                     selectforeground=theme["fg_primary"],
                 )
+                if hasattr(self, "_configure_editor_diagnostic_tags"):
+                    self._configure_editor_diagnostic_tags()
                 if hasattr(self, "_configure_editor_syntax_tags"):
                     self._configure_editor_syntax_tags()
+                if hasattr(self, "_apply_editor_theme_widgets"):
+                    self._apply_editor_theme_widgets()
+
+            self._refresh_custom_menu_theme()
 
             self._refresh_color_profile_swatches()
 
@@ -325,105 +331,533 @@ class BlattwerkAppStyleMixin:
                     fill=colors["secondary_border"],
                 )
 
+    def _refresh_custom_menu_theme(self):
+            """Applies current theme colors to custom top menu strip and open popups."""
+
+            menu_strip = getattr(self, "_custom_menu_strip", None)
+            if menu_strip is None or not menu_strip.winfo_exists():
+                return
+
+            theme = get_theme(self.theme_var.get())
+            strip_bg = theme["bg_surface"]
+            border = theme["border"]
+            muted = theme["fg_muted"]
+
+            menu_strip.configure(bg=strip_bg, highlightthickness=1, highlightbackground=border, bd=0)
+
+            active_key = getattr(self, "_active_menu_key", None)
+            for key, button in getattr(self, "_menu_top_buttons", {}).items():
+                if button is None or not button.winfo_exists():
+                    continue
+                is_active = key == active_key and bool(getattr(self, "_menu_popup_stack", []))
+                button.configure(
+                    bg=theme["accent_soft"] if is_active else strip_bg,
+                    fg=theme["fg_primary"],
+                    activebackground=theme["accent_soft"],
+                    activeforeground=theme["fg_primary"],
+                    highlightbackground=border,
+                    highlightcolor=theme["accent"],
+                    disabledforeground=muted,
+                )
+
+            for popup in list(getattr(self, "_menu_popup_stack", [])):
+                if popup is None or not popup.winfo_exists():
+                    continue
+                popup.configure(bg=border)
+                body = getattr(popup, "_menu_body", None)
+                if body is not None and body.winfo_exists():
+                    body.configure(bg=strip_bg)
+
+    def _close_all_menu_popups(self):
+            """Closes all open custom menu popups and resets active menu state."""
+
+            focus_guard_id = getattr(self, "_menu_focus_guard_after_id", None)
+            if focus_guard_id is not None:
+                try:
+                    self.root.after_cancel(focus_guard_id)
+                except Exception:
+                    pass
+                self._menu_focus_guard_after_id = None
+
+            for popup in reversed(list(getattr(self, "_menu_popup_stack", []))):
+                try:
+                    if popup is not None and popup.winfo_exists():
+                        popup.destroy()
+                except tk.TclError:
+                    pass
+
+            self._menu_popup_stack = []
+            self._active_menu_key = None
+            self._refresh_custom_menu_theme()
+
+    def _close_menu_popups_from_level(self, level: int):
+            """Closes submenu popups deeper than the requested level."""
+
+            stack = list(getattr(self, "_menu_popup_stack", []))
+            while len(stack) > level:
+                popup = stack.pop()
+                try:
+                    if popup is not None and popup.winfo_exists():
+                        popup.destroy()
+                except tk.TclError:
+                    pass
+            self._menu_popup_stack = stack
+
+    def _menu_widget_is_managed(self, widget) -> bool:
+            """Returns whether widget belongs to custom menu strip or one of its popups."""
+
+            if widget is None:
+                return False
+
+            managed_roots = []
+            strip = getattr(self, "_custom_menu_strip", None)
+            if strip is not None and strip.winfo_exists():
+                managed_roots.append(strip)
+            for popup in getattr(self, "_menu_popup_stack", []):
+                if popup is not None and popup.winfo_exists():
+                    managed_roots.append(popup)
+
+            current = widget
+            while current is not None:
+                for root_widget in managed_roots:
+                    if current == root_widget:
+                        return True
+                parent_name = current.winfo_parent()
+                if not parent_name:
+                    break
+                try:
+                    current = current._nametowidget(parent_name)
+                except Exception:
+                    break
+            return False
+
+    def _on_global_menu_click(self, event):
+            """Closes menu popups when user clicks outside menu strip or popup windows."""
+
+            if not getattr(self, "_menu_popup_stack", []):
+                return
+            if self._menu_widget_is_managed(getattr(event, "widget", None)):
+                return
+            self._close_all_menu_popups()
+
+    def _on_root_deactivate_for_menu(self, _event=None):
+            """Closes open menus on app deactivation (including Alt+Tab focus loss)."""
+
+            if not getattr(self, "_menu_popup_stack", []):
+                return
+
+            def _maybe_close():
+                focus_widget = None
+                try:
+                    focus_widget = self.root.focus_displayof()
+                except Exception:
+                    focus_widget = None
+
+                # Focuswechsel innerhalb der eigenen Custom-Menüs darf nicht schließen.
+                if self._menu_widget_is_managed(focus_widget):
+                    return
+
+                self._close_all_menu_popups()
+
+            self.root.after(0, _maybe_close)
+
+    def _schedule_menu_focus_guard(self):
+            """Continuously checks focus while menus are open and closes on real app focus loss."""
+
+            current_id = getattr(self, "_menu_focus_guard_after_id", None)
+            if current_id is not None:
+                try:
+                    self.root.after_cancel(current_id)
+                except Exception:
+                    pass
+                self._menu_focus_guard_after_id = None
+
+            if not getattr(self, "_menu_popup_stack", []):
+                return
+
+            def _check_focus():
+                self._menu_focus_guard_after_id = None
+                if not getattr(self, "_menu_popup_stack", []):
+                    return
+
+                focus_widget = None
+                try:
+                    focus_widget = self.root.focus_displayof()
+                except Exception:
+                    focus_widget = None
+
+                if focus_widget is None:
+                    self._close_all_menu_popups()
+                    return
+
+                if self._menu_widget_is_managed(focus_widget):
+                    self._menu_focus_guard_after_id = self.root.after(120, _check_focus)
+                    return
+
+                self._menu_focus_guard_after_id = self.root.after(120, _check_focus)
+
+            self._menu_focus_guard_after_id = self.root.after(160, _check_focus)
+
+    def _on_menu_mnemonic(self, menu_key: str):
+            """Opens top-level menu by mnemonic key and consumes the Alt event."""
+
+            self._open_top_menu_by_key(menu_key)
+            return "break"
+
+    def _bind_custom_menu_global_handlers(self):
+            """Installs global handlers for outside click and deactivation close behavior."""
+
+            if getattr(self, "_custom_menu_global_handlers_bound", False):
+                return
+
+            self.root.bind_all("<Button-1>", self._on_global_menu_click, add="+")
+            self.root.bind("<Unmap>", self._on_root_deactivate_for_menu, add="+")
+            self.root.bind("<Deactivate>", self._on_root_deactivate_for_menu, add="+")
+            self.root.bind_all("<Alt-d>", lambda _event: self._on_menu_mnemonic("datei"), add="+")
+            self.root.bind_all("<Alt-D>", lambda _event: self._on_menu_mnemonic("datei"), add="+")
+            self.root.bind_all("<Alt-a>", lambda _event: self._on_menu_mnemonic("ansicht"), add="+")
+            self.root.bind_all("<Alt-A>", lambda _event: self._on_menu_mnemonic("ansicht"), add="+")
+            self.root.bind_all("<Alt-s>", lambda _event: self._on_menu_mnemonic("shortcuts"), add="+")
+            self.root.bind_all("<Alt-S>", lambda _event: self._on_menu_mnemonic("shortcuts"), add="+")
+            self._custom_menu_global_handlers_bound = True
+
+    def _menu_popup_style(self):
+            """Returns consolidated colors for custom menu popups."""
+
+            theme = get_theme(self.theme_var.get())
+            return {
+                "popup_bg": theme["bg_surface"],
+                "popup_fg": theme["fg_primary"],
+                "popup_border": theme["border"],
+                "hover_bg": theme["accent_soft"],
+                "hover_fg": theme["fg_primary"],
+                "muted_fg": theme["fg_muted"],
+                "separator": theme["border"],
+            }
+
+    def _menu_shortcuts_items(self):
+            """Builds menu rows for shortcut hints."""
+
+            labels = list(self._iter_shortcut_menu_labels() or [])
+            if not labels:
+                return [{"type": "disabled", "label": "(leer)"}]
+            return [{"type": "disabled", "label": label} for label in labels]
+
+    def _menu_file_items(self):
+            """Builds rows for top menu Datei."""
+
+            recent_items = [
+                {
+                    "type": "command",
+                    "label": file_path,
+                    "command": (lambda p=file_path: self._open_recent_file(p)),
+                }
+                for file_path in self.recent_files
+            ]
+            if not recent_items:
+                recent_items = [{"type": "disabled", "label": "(leer)"}]
+
+            settings_items = [
+                {"type": "command", "label": "Allgemein", "command": lambda: self._open_local_settings_dialog("general")},
+                {"type": "command", "label": "Editor Vervollständigung", "command": lambda: self._open_local_settings_dialog("editor_completion")},
+                {"type": "command", "label": "Editor Diagnostik", "command": lambda: self._open_local_settings_dialog("editor_diagnostics")},
+                {"type": "command", "label": "Ansicht und Layout", "command": lambda: self._open_local_settings_dialog("view_layout")},
+                {"type": "command", "label": "Design und Theme", "command": lambda: self._open_local_settings_dialog("design_theme")},
+                {"type": "command", "label": "Export", "command": lambda: self._open_local_settings_dialog("export")},
+                {"type": "command", "label": "Shortcuts", "command": lambda: self._open_local_settings_dialog("shortcuts")},
+                {"type": "command", "label": "Identitaet und Copyright", "command": lambda: self._open_local_settings_dialog("identity")},
+                {"type": "command", "label": "Dokument Defaults", "command": lambda: self._open_local_settings_dialog("document_defaults")},
+                {"type": "command", "label": "Accessibility", "command": lambda: self._open_local_settings_dialog("accessibility")},
+                {"type": "command", "label": "Backup", "command": lambda: self._open_local_settings_dialog("backup")},
+            ]
+
+            return [
+                {"type": "command", "label": "Neue Markdown-Datei…", "command": self.create_new_markdown_file},
+                {"type": "command", "label": "Markdown öffnen…", "command": self.pick_input},
+                {"type": "command", "label": "Speichern unter…", "command": self.save_markdown_file_as},
+                {"type": "submenu", "label": "Zuletzt geöffnet", "items": recent_items},
+                {"type": "separator"},
+                {"type": "command", "label": "Einstellungen…", "command": self._open_local_settings_dialog},
+                {"type": "submenu", "label": "Einstellungen direkt", "items": settings_items},
+                {"type": "separator"},
+                {"type": "command", "label": "Beenden", "command": self.root.destroy},
+            ]
+
+    def _menu_view_items(self):
+            """Builds rows for top menu Ansicht including radio-like entries."""
+
+            theme_items = []
+            for theme_key in THEME_ORDER:
+                label = THEMES.get(theme_key, {}).get("label", theme_key)
+                theme_items.append(
+                    {
+                        "type": "radio",
+                        "label": label,
+                        "checked": self.theme_var.get() == theme_key,
+                        "command": (lambda key=theme_key: (self.theme_var.set(key), self._on_theme_changed())),
+                    }
+                )
+
+            return [
+                {
+                    "type": "radio",
+                    "label": "Seitenbreite",
+                    "checked": self.preview_fit_mode_var.get() == VIEW_FIT_WIDTH,
+                    "command": lambda: self.set_view_fit_mode(VIEW_FIT_WIDTH),
+                },
+                {
+                    "type": "radio",
+                    "label": "Ganze Seite",
+                    "checked": self.preview_fit_mode_var.get() == VIEW_FIT_PAGE,
+                    "command": lambda: self.set_view_fit_mode(VIEW_FIT_PAGE),
+                },
+                {"type": "separator"},
+                {
+                    "type": "radio",
+                    "label": "Einzelseite",
+                    "checked": self.preview_layout_mode_var.get() == VIEW_LAYOUT_SINGLE,
+                    "command": lambda: self.set_preview_layout_mode(VIEW_LAYOUT_SINGLE),
+                },
+                {
+                    "type": "radio",
+                    "label": "Seiten nebeneinander",
+                    "checked": self.preview_layout_mode_var.get() == VIEW_LAYOUT_STRIP,
+                    "command": lambda: self.set_preview_layout_mode(VIEW_LAYOUT_STRIP),
+                },
+                {
+                    "type": "radio",
+                    "label": "Seiten untereinander",
+                    "checked": self.preview_layout_mode_var.get() == VIEW_LAYOUT_STACK,
+                    "command": lambda: self.set_preview_layout_mode(VIEW_LAYOUT_STACK),
+                },
+                {"type": "separator"},
+                {
+                    "type": "radio",
+                    "label": "Nur Vorschau",
+                    "checked": self.editor_view_mode_var.get() == EDITOR_VIEW_PREVIEW_ONLY,
+                    "command": lambda: self._set_editor_view_mode(EDITOR_VIEW_PREVIEW_ONLY),
+                },
+                {
+                    "type": "radio",
+                    "label": "Vorschau und Schreibbereich",
+                    "checked": self.editor_view_mode_var.get() == EDITOR_VIEW_BOTH,
+                    "command": lambda: self._set_editor_view_mode(EDITOR_VIEW_BOTH),
+                },
+                {
+                    "type": "radio",
+                    "label": "Nur Schreibbereich",
+                    "checked": self.editor_view_mode_var.get() == EDITOR_VIEW_EDITOR_ONLY,
+                    "command": lambda: self._set_editor_view_mode(EDITOR_VIEW_EDITOR_ONLY),
+                },
+                {"type": "separator"},
+                {"type": "submenu", "label": "Theme", "items": theme_items},
+            ]
+
+    def _menu_top_definitions(self):
+            """Defines top-level menus with mnemonic keys and row builders."""
+
+            return [
+                {"key": "datei", "label": "Datei", "underline": 0, "alt": "d", "items_fn": self._menu_file_items},
+                {"key": "ansicht", "label": "Ansicht", "underline": 0, "alt": "a", "items_fn": self._menu_view_items},
+                {"key": "shortcuts", "label": "Shortcuts", "underline": 0, "alt": "s", "items_fn": self._menu_shortcuts_items},
+            ]
+
+    def _menu_execute_command(self, command):
+            """Runs menu command and closes all popups afterwards."""
+
+            self._close_all_menu_popups()
+            if callable(command):
+                command()
+
+    def _open_menu_popup(self, anchor_widget, items: list[dict], level: int, top_key: str):
+            """Creates one popup window for a menu level and renders row widgets."""
+
+            existing_stack = list(getattr(self, "_menu_popup_stack", []))
+            if level < len(existing_stack):
+                existing_popup = existing_stack[level]
+                if existing_popup is not None and existing_popup.winfo_exists():
+                    if getattr(existing_popup, "_menu_anchor_widget", None) == anchor_widget:
+                        return
+
+            self._close_menu_popups_from_level(level)
+
+            style = self._menu_popup_style()
+            popup = tk.Toplevel(self.root)
+            popup.overrideredirect(True)
+            popup.transient(self.root)
+            popup.attributes("-topmost", True)
+            popup.configure(bg=style["popup_border"], bd=1, highlightthickness=0)
+
+            body = tk.Frame(popup, bg=style["popup_bg"], bd=0, highlightthickness=0)
+            body.pack(fill="both", expand=True, padx=1, pady=1)
+            popup._menu_body = body
+            popup._menu_anchor_widget = anchor_widget
+
+            if level == 0:
+                x_pos = anchor_widget.winfo_rootx()
+                y_pos = anchor_widget.winfo_rooty() + anchor_widget.winfo_height()
+            else:
+                x_pos = anchor_widget.winfo_rootx() + anchor_widget.winfo_width() - 1
+                y_pos = anchor_widget.winfo_rooty()
+
+            popup.geometry(f"+{int(x_pos)}+{int(y_pos)}")
+            popup.lift()
+            popup.update_idletasks()
+
+            default_bg = style["popup_bg"]
+            default_fg = style["popup_fg"]
+            hover_bg = style["hover_bg"]
+            hover_fg = style["hover_fg"]
+
+            for row_index, item in enumerate(items):
+                row_type = item.get("type", "command")
+                if row_type == "separator":
+                    separator = tk.Frame(body, height=1, bg=style["separator"], bd=0, highlightthickness=0)
+                    separator.pack(fill="x", padx=8, pady=4)
+                    continue
+
+                text = item.get("label", "")
+                prefix = ""
+                suffix = ""
+                fg = default_fg
+
+                if row_type == "radio":
+                    prefix = "● " if bool(item.get("checked", False)) else "○ "
+                if row_type == "submenu":
+                    suffix = "   ▸"
+                if row_type == "disabled":
+                    fg = style["muted_fg"]
+
+                row = tk.Label(
+                    body,
+                    text=f"{prefix}{text}{suffix}",
+                    anchor="w",
+                    justify="left",
+                    bg=default_bg,
+                    fg=fg,
+                    padx=10,
+                    pady=6,
+                    font=("Segoe UI", 9),
+                )
+                row.pack(fill="x")
+
+                if row_type == "disabled":
+                    continue
+
+                def _set_row_hover(widget=row, active=True):
+                    try:
+                        if widget.winfo_exists():
+                            widget.configure(bg=hover_bg if active else default_bg, fg=hover_fg if active else fg)
+                    except tk.TclError:
+                        pass
+
+                if row_type == "submenu":
+                    submenu_items = list(item.get("items", []))
+
+                    def _open_submenu(_event=None, parent_row=row, sub_items=submenu_items, next_level=level + 1):
+                        self._open_menu_popup(parent_row, sub_items, next_level, top_key=top_key)
+
+                    row.bind("<Enter>", lambda _event, widget=row: _set_row_hover(widget, True))
+                    row.bind("<Leave>", lambda _event, widget=row: _set_row_hover(widget, False))
+                    row.bind("<Button-1>", _open_submenu)
+                    continue
+
+                command = item.get("command")
+                row.bind("<Enter>", lambda _event, widget=row: _set_row_hover(widget, True))
+                row.bind("<Leave>", lambda _event, widget=row: _set_row_hover(widget, False))
+                row.bind("<Button-1>", lambda _event, cmd=command: self._menu_execute_command(cmd))
+
+            self._menu_popup_stack.append(popup)
+            self._active_menu_key = top_key
+            self._refresh_custom_menu_theme()
+            self._schedule_menu_focus_guard()
+
+    def _open_top_menu(self, menu_definition: dict):
+            """Opens one top-level menu popup below its strip button."""
+
+            key = menu_definition.get("key")
+            button = getattr(self, "_menu_top_buttons", {}).get(key)
+            if button is None or not button.winfo_exists():
+                return
+
+            if key == getattr(self, "_active_menu_key", None) and getattr(self, "_menu_popup_stack", []):
+                self._close_all_menu_popups()
+                return
+
+            items = list(menu_definition.get("items_fn", lambda: [])())
+            self._open_menu_popup(button, items, level=0, top_key=key)
+
+    def _open_top_menu_by_key(self, key: str):
+            """Opens top-level menu by mnemonic key."""
+
+            for definition in getattr(self, "_menu_top_definitions_cache", []):
+                if definition.get("key") == key:
+                    self._open_top_menu(definition)
+                    return
+
+    def _build_custom_menu_strip(self):
+            """Builds themed custom menu strip with top-level buttons and mnemonics."""
+
+            old_strip = getattr(self, "_custom_menu_strip", None)
+            if old_strip is not None and old_strip.winfo_exists():
+                try:
+                    old_strip.destroy()
+                except tk.TclError:
+                    pass
+
+            self._close_all_menu_popups()
+            self._menu_top_buttons = {}
+
+            theme = get_theme(self.theme_var.get())
+            strip = tk.Frame(self.root, bg=theme["bg_surface"], highlightthickness=1, highlightbackground=theme["border"], bd=0)
+            root_children = [child for child in self.root.winfo_children() if child is not strip]
+            if root_children:
+                strip.pack(fill="x", side="top", before=root_children[0])
+            else:
+                strip.pack(fill="x", side="top")
+            self._custom_menu_strip = strip
+
+            definitions = self._menu_top_definitions()
+            self._menu_top_definitions_cache = definitions
+
+            for definition in definitions:
+                key = definition["key"]
+                button = tk.Button(
+                    strip,
+                    text=definition["label"],
+                    underline=int(definition.get("underline", 0)),
+                    relief="flat",
+                    bd=0,
+                    padx=10,
+                    pady=5,
+                    bg=theme["bg_surface"],
+                    fg=theme["fg_primary"],
+                    activebackground=theme["accent_soft"],
+                    activeforeground=theme["fg_primary"],
+                    highlightthickness=0,
+                    command=lambda d=definition: self._open_top_menu(d),
+                )
+                button.pack(side="left", padx=(0, 2))
+                self._menu_top_buttons[key] = button
+
+            self._bind_custom_menu_global_handlers()
+
+    def _refresh_custom_menu_model(self):
+            """Refresh hook used by persistence when recent files change."""
+
+            active_key = getattr(self, "_active_menu_key", None)
+            has_open_popups = bool(getattr(self, "_menu_popup_stack", []))
+            if has_open_popups:
+                self._close_all_menu_popups()
+                if active_key is not None:
+                    self._open_top_menu_by_key(active_key)
+
     def _build_menu(self):
-            """Erstellt Menüleiste inkl. zuletzt geöffneter Dateien."""
+            """Builds a themed custom menu strip replacing native Tk menubar."""
 
-            menubar = tk.Menu(self.root)
-
-            file_menu = tk.Menu(menubar, tearoff=False)
-            file_menu.add_command(label="Neue Markdown-Datei…", command=self.create_new_markdown_file)
-            file_menu.add_command(label="Markdown öffnen…", command=self.pick_input)
-            file_menu.add_command(label="Speichern unter…", command=self.save_markdown_file_as)
-
-            self.recent_menu = tk.Menu(file_menu, tearoff=False)
-            file_menu.add_cascade(label="Zuletzt geöffnet", menu=self.recent_menu)
-            self._refresh_recent_menu()
-
-            file_menu.add_separator()
-            file_menu.add_command(label="Einstellungen…", command=self._open_local_settings_dialog)
-
-            settings_tabs_menu = tk.Menu(file_menu, tearoff=False)
-            settings_tabs_menu.add_command(label="Allgemein", command=lambda: self._open_local_settings_dialog("general"))
-            settings_tabs_menu.add_command(label="Editor Vervollständigung", command=lambda: self._open_local_settings_dialog("editor_completion"))
-            settings_tabs_menu.add_command(label="Editor Diagnostik", command=lambda: self._open_local_settings_dialog("editor_diagnostics"))
-            settings_tabs_menu.add_command(label="Ansicht und Layout", command=lambda: self._open_local_settings_dialog("view_layout"))
-            settings_tabs_menu.add_command(label="Design und Theme", command=lambda: self._open_local_settings_dialog("design_theme"))
-            settings_tabs_menu.add_command(label="Export", command=lambda: self._open_local_settings_dialog("export"))
-            settings_tabs_menu.add_command(label="Shortcuts", command=lambda: self._open_local_settings_dialog("shortcuts"))
-            settings_tabs_menu.add_command(label="Identitaet und Copyright", command=lambda: self._open_local_settings_dialog("identity"))
-            settings_tabs_menu.add_command(label="Dokument Defaults", command=lambda: self._open_local_settings_dialog("document_defaults"))
-            settings_tabs_menu.add_command(label="Accessibility", command=lambda: self._open_local_settings_dialog("accessibility"))
-            settings_tabs_menu.add_command(label="Backup", command=lambda: self._open_local_settings_dialog("backup"))
-            file_menu.add_cascade(label="Einstellungen direkt", menu=settings_tabs_menu)
-
-            file_menu.add_command(label="Beenden", command=self.root.destroy)
-
-            menubar.add_cascade(label="Datei", menu=file_menu)
-
-            view_menu = tk.Menu(menubar, tearoff=False)
-            view_menu.add_radiobutton(
-                label="Seitenbreite",
-                value=VIEW_FIT_WIDTH,
-                variable=self.preview_fit_mode_var,
-                command=lambda: self.set_view_fit_mode(VIEW_FIT_WIDTH),
-            )
-            view_menu.add_radiobutton(
-                label="Ganze Seite",
-                value=VIEW_FIT_PAGE,
-                variable=self.preview_fit_mode_var,
-                command=lambda: self.set_view_fit_mode(VIEW_FIT_PAGE),
-            )
-            view_menu.add_separator()
-            view_menu.add_radiobutton(
-                label="Einzelseite",
-                value=VIEW_LAYOUT_SINGLE,
-                variable=self.preview_layout_mode_var,
-                command=lambda: self.set_preview_layout_mode(VIEW_LAYOUT_SINGLE),
-            )
-            view_menu.add_radiobutton(
-                label="Seiten nebeneinander",
-                value=VIEW_LAYOUT_STRIP,
-                variable=self.preview_layout_mode_var,
-                command=lambda: self.set_preview_layout_mode(VIEW_LAYOUT_STRIP),
-            )
-            view_menu.add_radiobutton(
-                label="Seiten untereinander",
-                value=VIEW_LAYOUT_STACK,
-                variable=self.preview_layout_mode_var,
-                command=lambda: self.set_preview_layout_mode(VIEW_LAYOUT_STACK),
-            )
-            view_menu.add_separator()
-            view_menu.add_radiobutton(
-                label="Nur Vorschau",
-                value=EDITOR_VIEW_PREVIEW_ONLY,
-                variable=self.editor_view_mode_var,
-                command=lambda: self._set_editor_view_mode(EDITOR_VIEW_PREVIEW_ONLY),
-            )
-            view_menu.add_radiobutton(
-                label="Vorschau und Schreibbereich",
-                value=EDITOR_VIEW_BOTH,
-                variable=self.editor_view_mode_var,
-                command=lambda: self._set_editor_view_mode(EDITOR_VIEW_BOTH),
-            )
-            view_menu.add_radiobutton(
-                label="Nur Schreibbereich",
-                value=EDITOR_VIEW_EDITOR_ONLY,
-                variable=self.editor_view_mode_var,
-                command=lambda: self._set_editor_view_mode(EDITOR_VIEW_EDITOR_ONLY),
-            )
-            view_menu.add_separator()
-
-            theme_menu = tk.Menu(view_menu, tearoff=False)
-            populate_theme_menu(theme_menu, self.theme_var, self._on_theme_changed)
-            view_menu.add_cascade(label="Theme", menu=theme_menu)
-            menubar.add_cascade(label="Ansicht", menu=view_menu)
-
-            shortcuts_menu = tk.Menu(menubar, tearoff=False)
-            for menu_label in self._iter_shortcut_menu_labels():
-                shortcuts_menu.add_command(label=menu_label, state="disabled")
-            menubar.add_cascade(label="Shortcuts", menu=shortcuts_menu)
-
-            self.root.config(menu=menubar)
+            self.root.config(menu="")
+            self.recent_menu = None
+            self._build_custom_menu_strip()
 
     def _get_input_path_if_exists(self):
             """Get input path if exists."""

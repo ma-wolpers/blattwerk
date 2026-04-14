@@ -31,7 +31,7 @@ from .ui_constants import (
     EDITOR_VIEW_EDITOR_ONLY,
     EDITOR_VIEW_PREVIEW_ONLY,
 )
-from .ui_theme import get_theme
+from .ui_theme import get_theme, is_dark_theme
 
 
 _EDITOR_FRONTMATTER_KEYS = (
@@ -400,8 +400,13 @@ class BlattwerkAppEditorMixin:
         if self.editor_widget is None:
             return
 
-        self.editor_widget.tag_configure("diag_warning", background="#fff4d8")
-        self.editor_widget.tag_configure("diag_error", background="#ffe2e2")
+        dark_theme = is_dark_theme(self.theme_var.get() if hasattr(self, "theme_var") else None)
+        if dark_theme:
+            self.editor_widget.tag_configure("diag_warning", background="#3F331F")
+            self.editor_widget.tag_configure("diag_error", background="#4A2329")
+        else:
+            self.editor_widget.tag_configure("diag_warning", background="#fff4d8")
+            self.editor_widget.tag_configure("diag_error", background="#ffe2e2")
 
     def _configure_editor_syntax_tags(self):
         """Configures text tags for syntax highlighting in markdown editor."""
@@ -410,16 +415,69 @@ class BlattwerkAppEditorMixin:
             return
 
         theme = get_theme(self.theme_var.get() if hasattr(self, "theme_var") else None)
+        dark_theme = is_dark_theme(self.theme_var.get() if hasattr(self, "theme_var") else None)
 
-        self.editor_widget.tag_configure("syn_frontmatter_delim", foreground="#0b7285")
-        self.editor_widget.tag_configure("syn_frontmatter_key", foreground="#1864ab")
-        self.editor_widget.tag_configure("syn_block_fence", foreground="#b35c00")
-        self.editor_widget.tag_configure("syn_block_type", foreground="#9c36b5")
-        self.editor_widget.tag_configure("syn_option_key", foreground="#0b7285")
-        self.editor_widget.tag_configure("syn_option_value", foreground="#8d6b00")
-        self.editor_widget.tag_configure("syn_marker", foreground="#c92a2a")
-        self.editor_widget.tag_configure("syn_block_close_error", background="#ffe2e2", foreground="#8b0000")
-        self.editor_widget.tag_configure("syn_block_pair", background=theme["accent_soft"])
+        if dark_theme:
+            self.editor_widget.tag_configure("syn_frontmatter_delim", foreground="#4FC1FF")
+            self.editor_widget.tag_configure("syn_frontmatter_key", foreground="#9CDCFE")
+            self.editor_widget.tag_configure("syn_block_fence", foreground="#D7BA7D")
+            self.editor_widget.tag_configure("syn_block_type", foreground="#C586C0")
+            self.editor_widget.tag_configure("syn_option_key", foreground="#4EC9B0")
+            self.editor_widget.tag_configure("syn_option_value", foreground="#CE9178")
+            self.editor_widget.tag_configure("syn_marker", foreground="#F44747")
+            self.editor_widget.tag_configure("syn_block_close_error", background="#5A1F2A", foreground="#FF9DA4")
+            self.editor_widget.tag_configure("syn_block_pair", background="#2C3744")
+        else:
+            self.editor_widget.tag_configure("syn_frontmatter_delim", foreground="#0b7285")
+            self.editor_widget.tag_configure("syn_frontmatter_key", foreground="#1864ab")
+            self.editor_widget.tag_configure("syn_block_fence", foreground="#b35c00")
+            self.editor_widget.tag_configure("syn_block_type", foreground="#9c36b5")
+            self.editor_widget.tag_configure("syn_option_key", foreground="#0b7285")
+            self.editor_widget.tag_configure("syn_option_value", foreground="#8d6b00")
+            self.editor_widget.tag_configure("syn_marker", foreground="#c92a2a")
+            self.editor_widget.tag_configure("syn_block_close_error", background="#ffe2e2", foreground="#8b0000")
+            self.editor_widget.tag_configure("syn_block_pair", background=theme["accent_soft"])
+
+    def _apply_editor_theme_widgets(self):
+        """Applies theme colors to editor side widgets beyond the main text area."""
+
+        theme = get_theme(self.theme_var.get() if hasattr(self, "theme_var") else None)
+        dark_theme = is_dark_theme(self.theme_var.get() if hasattr(self, "theme_var") else None)
+
+        border_hex = theme["border"]
+        if dark_theme:
+            border_hex = "#3A4654"
+
+        listbox_kwargs = {
+            "background": theme["bg_surface"],
+            "foreground": theme["fg_primary"],
+            "selectbackground": theme["accent_soft"],
+            "selectforeground": theme["fg_primary"],
+            "highlightthickness": 1,
+            "highlightbackground": border_hex,
+            "highlightcolor": theme["accent"],
+            "relief": "flat",
+            "borderwidth": 0,
+        }
+
+        if self.editor_diagnostics_listbox is not None:
+            self.editor_diagnostics_listbox.configure(**listbox_kwargs)
+
+        if self.editor_outline_listbox is not None:
+            self.editor_outline_listbox.configure(**listbox_kwargs)
+
+        if self._editor_completion_listbox is not None:
+            self._editor_completion_listbox.configure(**listbox_kwargs)
+
+        if self._editor_completion_popup is not None and self._editor_completion_popup.winfo_exists():
+            try:
+                self._editor_completion_popup.configure(
+                    background=theme["bg_surface"],
+                    highlightthickness=1,
+                    highlightbackground=border_hex,
+                )
+            except tk.TclError:
+                pass
 
     def _queue_editor_highlighting(self, immediate: bool = False):
         """Schedules syntax highlighting refresh with light debounce."""
