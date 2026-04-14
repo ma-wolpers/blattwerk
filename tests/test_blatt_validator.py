@@ -186,3 +186,34 @@ def test_relative_markdown_image_path_has_no_pt001():
     )
     codes = {d.code for d in inspect_markdown_text(text).diagnostics}
     assert "PT001" not in codes
+
+
+def test_space_after_block_marker_emits_bl002_error():
+    text = _build_document("::: answer type=lines\nInhalt\n:::")
+    inspected = inspect_markdown_text(text)
+    bl002 = [d for d in inspected.diagnostics if d.code == "BL002"]
+    assert bl002
+    assert bl002[0].severity == "error"
+
+
+def test_orphan_closing_marker_emits_bl003_error():
+    text = _build_document("Text vorab\n:::\nText danach")
+    inspected = inspect_markdown_text(text)
+    bl003 = [d for d in inspected.diagnostics if d.code == "BL003"]
+    assert bl003
+    assert bl003[0].severity == "error"
+
+
+def test_regular_open_and_close_marker_do_not_emit_bl003():
+    text = _build_document(":::task\nInhalt\n:::")
+    codes = {d.code for d in inspect_markdown_text(text).diagnostics}
+    assert "BL003" not in codes
+
+
+def test_orphan_closing_marker_line_number_includes_frontmatter():
+    text = _build_document(":::\n")
+    inspected = inspect_markdown_text(text)
+    bl003 = [d for d in inspected.diagnostics if d.code == "BL003"]
+    assert bl003
+    assert bl003[0].line_number == 6
+    assert "Zeile 6" in bl003[0].message

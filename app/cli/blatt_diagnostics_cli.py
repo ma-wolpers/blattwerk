@@ -36,7 +36,9 @@ def _diagnostics_json(file_path: Path, mode: str) -> dict:
 
     diagnostics = []
     for diagnostic in inspected.diagnostics:
-        if diagnostic.block_index is None:
+        if diagnostic.line_number is not None:
+            start_line = diagnostic.line_number
+        elif diagnostic.block_index is None:
             start_line = 1
         else:
             start_line = index_line_map.get(diagnostic.block_index, 1)

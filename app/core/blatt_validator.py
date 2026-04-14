@@ -24,6 +24,7 @@ class BuildDiagnostic:
     severity: str = "warning"
     block_index: int | None = None
     block_type: str | None = None
+    line_number: int | None = None
 
 
 @dataclass(frozen=True)
@@ -214,6 +215,9 @@ _HTML_IMAGE_SRC_RE = re.compile(r"<img[^>]+src=[\"']([^\"']+)[\"']", re.IGNORECA
 _WINDOWS_ABSOLUTE_PATH_RE = re.compile(r"^[a-zA-Z]:[\\/]")
 _UNC_ABSOLUTE_PATH_RE = re.compile(r"^[\\/]{2}[^\\/]+[\\/][^\\/]+")
 _POSIX_ABSOLUTE_PATH_RE = re.compile(r"^/")
+_BLOCK_START_PATTERN = re.compile(r"^:::(\w+)(.*)$")
+_SELF_CLOSING_BLOCK_PATTERN = re.compile(r"^:::(\w+)(.*?):::$")
+_BLOCK_WHITESPACE_AFTER_MARKER_PATTERN = re.compile(r"^:::\s+")
 
 
 def _normalize_value(value):
@@ -310,6 +314,81 @@ def _collect_absolute_image_paths(block_content):
     return paths
 
 
+def _extract_validation_content_and_base_line(markdown_text):
+    """Return validator content and its 1-based base line in the full document."""
+    lines = (markdown_text or "").splitlines(keepends=True)
+    content_start_line = 1
+    content_raw = markdown_text or ""
+
+    if lines and lines[0].strip() == "---":
+        for line_index in range(1, len(lines)):
+            if lines[line_index].strip() == "---":
+                content_start_line = line_index + 2
+                content_raw = "".join(lines[line_index + 1 :])
+                break
+
+    content_for_validation = content_raw.strip()
+    if not content_for_validation:
+        return "", max(1, content_start_line)
+
+    leading_removed_text = content_raw[: content_raw.find(content_for_validation)]
+    leading_removed_lines = leading_removed_text.count("\n")
+    base_line = content_start_line + leading_removed_lines
+    return content_for_validation, max(1, base_line)
+
+
+def _collect_block_marker_syntax_diagnostics(content_text, base_line=1):
+    """Validate ::: marker syntax directly on source lines."""
+    diagnostics = []
+    block_depth = 0
+
+    for line_no, raw_line in enumerate((content_text or "").splitlines(), start=1):
+        absolute_line_no = max(1, int(base_line) + line_no - 1)
+        stripped_line = raw_line.strip()
+        if not stripped_line.startswith(":::"):
+            continue
+
+        if _BLOCK_WHITESPACE_AFTER_MARKER_PATTERN.match(stripped_line):
+            diagnostics.append(
+                BuildDiagnostic(
+                    code="BL002",
+                    message=(
+                        "Ungueltige Blocksyntax in Zeile "
+                        f"{absolute_line_no}: Nach `:::` darf kein Leerzeichen folgen. "
+                        "Erlaubt sind nur `:::blocktyp` oder `:::`."
+                    ),
+                    severity="error",
+                    line_number=absolute_line_no,
+                )
+            )
+            continue
+
+        if stripped_line == ":::":
+            if block_depth == 0:
+                diagnostics.append(
+                    BuildDiagnostic(
+                        code="BL003",
+                        message=(
+                            "Ungueltiger Blockabschluss in Zeile "
+                            f"{absolute_line_no}: `:::` ohne passenden geoeffneten Block."
+                        ),
+                        severity="error",
+                        line_number=absolute_line_no,
+                    )
+                )
+            else:
+                block_depth -= 1
+            continue
+
+        if _SELF_CLOSING_BLOCK_PATTERN.match(stripped_line):
+            continue
+
+        if _BLOCK_START_PATTERN.match(stripped_line):
+            block_depth += 1
+
+    return diagnostics
+
+
 def _append_invalid_option_value(
     diagnostics, block_index, block_type, option, value, allowed
 ):
@@ -388,8 +467,10 @@ def _validate_payload_show_markers(diagnostics, block_index, answer_type, parsed
                 )
 
 
-def _collect_document_diagnostics(meta, blocks):
-    diagnostics = []
+def _collect_document_diagnostics(meta, blocks, content_text, content_base_line=1):
+    diagnostics = _collect_block_marker_syntax_diagnostics(
+        content_text, base_line=content_base_line
+    )
 
     for required_key in REQUIRED_FRONTMATTER_FIELDS:
         value = str((meta or {}).get(required_key, "")).strip()
@@ -647,9 +728,15 @@ def summarize_blocking_diagnostics(diagnostics):
 
 def inspect_markdown_text(markdown_text):
     """Parse markdown text and return parsed document plus diagnostics."""
-    meta, content = split_front_matter(markdown_text)
+    meta, _content_unused = split_front_matter(markdown_text)
+    content, content_base_line = _extract_validation_content_and_base_line(markdown_text)
     blocks = parse_blocks(content)
-    diagnostics = _collect_document_diagnostics(meta, blocks)
+    diagnostics = _collect_document_diagnostics(
+        meta,
+        blocks,
+        content,
+        content_base_line=content_base_line,
+    )
     return InspectedDocument(meta=meta, blocks=blocks, diagnostics=diagnostics)
 
 

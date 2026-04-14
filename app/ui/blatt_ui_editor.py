@@ -658,7 +658,9 @@ class BlattwerkAppEditorMixin:
         self._editor_block_pairs_cache = list(structure["pairs"])
         items = []
         for diagnostic in inspected.diagnostics:
-            if diagnostic.block_index is None:
+            if diagnostic.line_number is not None:
+                line = diagnostic.line_number
+            elif diagnostic.block_index is None:
                 line = 1
             else:
                 line = index_line_map.get(diagnostic.block_index, 1)

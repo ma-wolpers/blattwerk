@@ -7,6 +7,7 @@ The format is based on Keep a Changelog.
 ## [Unreleased]
 
 ### Changed
+- Validator checks for `:::` markers are now stricter: whitespace directly after `:::` is rejected, and orphan closing markers (`:::` without an open block) are now reported as errors.
 - The top menu now uses fully themed custom popup menus (instead of native Tk menus), including dark popup surfaces, dark borders, and nested side submenus.
 - Menu popups now close consistently on outside click and when the window deactivates (including Alt+Tab).
 - Alt mnemonics were restored for top-level menus (`Alt+D`, `Alt+A`, `Alt+S`) with underlined menu labels.
