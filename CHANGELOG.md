@@ -7,6 +7,7 @@ The format is based on Keep a Changelog.
 ## [Unreleased]
 
 ### Changed
+- Blattwerk-internales Markdown fuer Aufgaben/Material/Info/Loesungen und freien Text nutzt jetzt konsistente Umbruch-Semantik: einfacher Zeilenumbruch wirkt wie Shift+Enter (sichtbarer Zeilenumbruch), doppelter Zeilenumbruch wie Enter (Absatzwechsel); 3+ aufeinanderfolgende Leerzeilen werden auf einen Absatzwechsel begrenzt.
 - Table answer blocks (`answer type=table`) now support `header_columns` (alias `header_cols`) to render leading body columns as row headers.
 - Table answer blocks (`answer type=table`) now support `alignment=left|center|right|justify` to control cell text alignment, including per-column shorthand like `alignment="l r c c"`.
 - `columns` blocks now support an optional `gap` option for explicit horizontal column spacing (for example `gap=1cm`), in addition to `cols` and `widths/ratio`.

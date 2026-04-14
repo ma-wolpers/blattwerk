@@ -10,7 +10,7 @@ from pathlib import Path
 import markdown
 import yaml
 
-MARKDOWN_EXTENSIONS = ["tables"]
+MARKDOWN_EXTENSIONS = ["tables", "nl2br"]
 
 WORK_MODE_MAP = {
     "single": ("👤", "Einzelarbeit", "single"),
@@ -303,13 +303,33 @@ def build_block_index_line_map(text):
 
 
 def normalize_markdown(text):
-    """Ergänzt Leerzeilen vor Listen für stabileres Markdown-Rendering."""
-    lines = text.splitlines()
+    """Normalisiert Markdown für stabile Umbruch- und Listen-Semantik."""
+    if text is None:
+        return ""
+
+    lines = str(text).replace("\r\n", "\n").replace("\r", "\n").split("\n")
+
+    # Mehr als ein aufeinanderfolgender Leerzeilenlauf wird auf genau
+    # einen Absatzwechsel begrenzt.
+    collapsed_lines = []
+    previous_was_blank = False
+    for line in lines:
+        is_blank = not line.strip()
+        if is_blank:
+            if previous_was_blank:
+                continue
+            collapsed_lines.append("")
+            previous_was_blank = True
+            continue
+
+        collapsed_lines.append(line)
+        previous_was_blank = False
+
     normalized = []
 
     list_pattern = re.compile(r"^(\s*)([-*+]\s+|\d+\.\s+)")
 
-    for line in lines:
+    for line in collapsed_lines:
         is_list_line = bool(list_pattern.match(line))
         if is_list_line and normalized:
             prev = normalized[-1]

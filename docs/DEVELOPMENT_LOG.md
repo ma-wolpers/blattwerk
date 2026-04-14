@@ -9,6 +9,7 @@ Regel:
 ## [Unreleased]
 
 ### Changed
+- Markdown-Rendering fuer allgemeine Blattwerk-Inhalte vereinheitlicht: in Aufgaben/Material/Info/Loesungen sowie freiem Markdowntext gilt jetzt durchgaengig die Semantik einfacher Umbruch = Shift+Enter und doppelter Umbruch = Enter; Mehrfach-Leerzeilen (3+) werden auf einen Absatzwechsel reduziert.
 - Tabellenantworten erweitert: `answer type=table` unterstuetzt jetzt `header_columns` (Alias `header_cols`), um fuehrende Body-Spalten als Header-Spalten zu rendern.
 - Tabellenantworten erweitert: `answer type=table` unterstuetzt jetzt den neuen Key `alignment` (`left|center|right|justify`) fuer die Textausrichtung in Tabellenzellen, inklusive spaltenindividueller Kurzform wie `alignment="l r c c"`.
 - Spaltenlayout erweitert: `columns` unterstuetzt jetzt optional `gap` als expliziten horizontalen Spaltenabstand (CSS-Laenge) zusaetzlich zu `cols` und `widths/ratio`.
