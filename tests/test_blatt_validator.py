@@ -245,6 +245,34 @@ def test_orphan_closing_marker_line_number_includes_frontmatter():
     assert "Zeile 6" in bl003[0].message
 
 
+def test_nested_block_open_inside_open_block_emits_bl004_error():
+    text = _build_document(
+        ":::material\n"
+        "Einleitung\n"
+        ":::table rows=2 cols=2\n"
+        "cells:\n"
+        "  - ['A', 'B']\n"
+        "  - ['C', 'D']\n"
+        ":::\n"
+        ":::\n"
+    )
+    diagnostics = inspect_markdown_text(text).diagnostics
+    bl004 = [d for d in diagnostics if d.code == "BL004"]
+    bl003 = [d for d in diagnostics if d.code == "BL003"]
+
+    assert bl004
+    assert bl004[0].severity == "error"
+    assert bl003
+
+
+def test_self_closing_block_inside_open_block_emits_bl004_error():
+    text = _build_document(":::task\n:::space:::\n:::")
+    diagnostics = inspect_markdown_text(text).diagnostics
+    bl004 = [d for d in diagnostics if d.code == "BL004"]
+    assert bl004
+    assert bl004[0].severity == "error"
+
+
 def test_legacy_answer_block_emits_an008_error():
     text = _build_document(":::answer type=lines\nText\n:::")
     diagnostics = inspect_markdown_text(text).diagnostics

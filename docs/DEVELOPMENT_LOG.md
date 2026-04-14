@@ -34,6 +34,7 @@ Regel:
 - Blattwerker-Agentregel fuer Mathe-Notation ergaenzt: Multiplikation soll konsequent als `·` und Division als `:` ausgegeben werden.
 - Blattwerker-Agentregel fuer Tabellen ergaenzt: Tabellen sollen konsequent in Blattwerk-Syntax erstellt werden; Markdown-Tabellen sind zu vermeiden.
 - Validator-Syntaxregeln fuer `:::` verschaerft: Nach `:::` ist kein Leerzeichen mehr erlaubt (nur `:::blocktyp` oder `:::`), und verwaiste schliessende Marker ohne offenen Block werden als Fehler diagnostiziert.
+- Validator-Markerablauf weiter verschaerft: Verschachtelte `:::`-Bloecke sind jetzt explizit unzulaessig; Marker muessen strikt als oeffnen/schliessen abwechseln, inklusive Fehlerdiagnose fuer Oeffner oder Selbstschliesser innerhalb offener Bloecke.
 - Menüzeile wieder auf eigene Custom-Popup-Architektur umgestellt (statt nativer Tk-Menüs): vollständig themefähige Dark-Popups mit verschachtelten Side-Submenus für Datei/Ansicht/Shortcuts.
 - Menüinteraktion stabilisiert: offene Popups schließen jetzt zuverlässig bei Klick außerhalb sowie bei Fenster-Deaktivierung (inkl. Alt+Tab).
 - Alt-Mnemonics für Top-Menüs wiederhergestellt (`Alt+D`, `Alt+A`, `Alt+S`) inklusive unterstrichener Buchstaben in der Menüzeile.

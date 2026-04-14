@@ -422,10 +422,43 @@ def _collect_block_marker_syntax_diagnostics(content_text, base_line=1):
                 block_depth -= 1
             continue
 
-        if _SELF_CLOSING_BLOCK_PATTERN.match(stripped_line):
+        self_closing_match = _SELF_CLOSING_BLOCK_PATTERN.match(stripped_line)
+        if self_closing_match:
+            if block_depth > 0:
+                nested_type = self_closing_match.group(1)
+                diagnostics.append(
+                    BuildDiagnostic(
+                        code="BL004",
+                        message=(
+                            "Verschachtelter Block in Zeile "
+                            f"{absolute_line_no}: `:::{nested_type} ... :::` innerhalb "
+                            "eines bereits geoeffneten Blocks ist unzulaessig. "
+                            "`:::`-Marker muessen strikt abwechseln (oeffnen, schliessen, ...)."
+                        ),
+                        severity="error",
+                        line_number=absolute_line_no,
+                    )
+                )
             continue
 
-        if _BLOCK_START_PATTERN.match(stripped_line):
+        start_match = _BLOCK_START_PATTERN.match(stripped_line)
+        if start_match:
+            if block_depth > 0:
+                nested_type = start_match.group(1)
+                diagnostics.append(
+                    BuildDiagnostic(
+                        code="BL004",
+                        message=(
+                            "Verschachtelter Block in Zeile "
+                            f"{absolute_line_no}: `:::{nested_type}` innerhalb eines "
+                            "bereits geoeffneten Blocks ist unzulaessig. "
+                            "`:::`-Marker muessen strikt abwechseln (oeffnen, schliessen, ...)."
+                        ),
+                        severity="error",
+                        line_number=absolute_line_no,
+                    )
+                )
+                continue
             block_depth += 1
 
     return diagnostics

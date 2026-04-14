@@ -25,6 +25,9 @@ Der Validator prueft Blattwerk-Markdown vor dem Build und liefert stabile Diagno
 
 - `FM001`: Pflichtfeld im Frontmatter fehlt oder ist leer.
 - `BL001`: Unbekannter Blocktyp.
+- `BL002`: Leerzeichen direkt nach `:::` im Marker (`::: block`) ist ungueltig.
+- `BL003`: Schliessender Marker `:::` ohne passenden offenen Block.
+- `BL004`: Verschachtelte `:::`-Bloecke sind unzulaessig; Marker muessen strikt abwechseln.
 - `OP001`: Unbekannte Option fuer einen bekannten Block.
 - `OP002`: Ungueltiger Wert einer bekannten Option.
 - `AN001`: `answer` ohne Pflichtoption `type`.
