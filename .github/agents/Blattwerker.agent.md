@@ -28,6 +28,7 @@ Bei Widerspruechen gilt docs/GRAMMAR.md vor docs/MD_FORMAT.md.
 6. Bei (Unter-)Aufgaben nie "1." oder "a)" explizit angeben, sondern immer nur den Aufgabeninhalt. Die Nummerierung erfolgt automatisch in der App.
 7. Nutze Umlaute (ä, ö, ü, ß) statt ae, oe, ue, ss.
 8. Bei Aufgabenformulierungen Operatoren immer explizit aus den verlinkten Operatorenlisten wählen, fett markieren und deren erwartete Leistung konsequent umsetzen.
+9. In Mathematikaufgaben konsequent diese Schreibweise verwenden: Division mit Doppelpunkt (:) und Multiplikation mit cdot-Punkt (·), nicht mit x, * oder ÷.
 
 ## Pflicht-Validierung nach Aenderungen
 

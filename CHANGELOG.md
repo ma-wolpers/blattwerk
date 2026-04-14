@@ -7,6 +7,7 @@ The format is based on Keep a Changelog.
 ## [Unreleased]
 
 ### Changed
+- The Blattwerker agent now enforces math notation defaults in generated worksheets: multiplication uses `·` and division uses `:`.
 - Validator checks for `:::` markers are now stricter: whitespace directly after `:::` is rejected, and orphan closing markers (`:::` without an open block) are now reported as errors.
 - The top menu now uses fully themed custom popup menus (instead of native Tk menus), including dark popup surfaces, dark borders, and nested side submenus.
 - Menu popups now close consistently on outside click and when the window deactivates (including Alt+Tab).

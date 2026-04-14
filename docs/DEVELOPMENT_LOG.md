@@ -9,6 +9,7 @@ Regel:
 ## [Unreleased]
 
 ### Changed
+- Blattwerker-Agentregel fuer Mathe-Notation ergaenzt: Multiplikation soll konsequent als `·` und Division als `:` ausgegeben werden.
 - Validator-Syntaxregeln fuer `:::` verschaerft: Nach `:::` ist kein Leerzeichen mehr erlaubt (nur `:::blocktyp` oder `:::`), und verwaiste schliessende Marker ohne offenen Block werden als Fehler diagnostiziert.
 - Menüzeile wieder auf eigene Custom-Popup-Architektur umgestellt (statt nativer Tk-Menüs): vollständig themefähige Dark-Popups mit verschachtelten Side-Submenus für Datei/Ansicht/Shortcuts.
 - Menüinteraktion stabilisiert: offene Popups schließen jetzt zuverlässig bei Klick außerhalb sowie bei Fenster-Deaktivierung (inkl. Alt+Tab).
