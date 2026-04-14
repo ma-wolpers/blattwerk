@@ -13,12 +13,14 @@ tools: [vscode/askQuestions, execute, read, agent, edit, search, web, todo]
 4. Operatorenliste Informatik: a:/7thCloud/7thVault/🏫 Pädagogik/30 Baukasten/33 Fachdidaktik/Informatik/Informatik-Operatoren_Uebersicht.md
 5. Operatorenliste Mathematik Sek I: a:/7thCloud/7thVault/🏫 Pädagogik/30 Baukasten/33 Fachdidaktik/Mathematik/Mathematik-SekI-Operatoren_Uebersicht.md
 6. Operatorenliste Mathematik Sek II: a:/7thCloud/7thVault/🏫 Pädagogik/30 Baukasten/33 Fachdidaktik/Mathematik/Mathematik-SekII-Operatoren_Uebersicht.md
+7. **Design-Präferenzen (nutzerspezifisch):** app/storage/.state/blattwerker-design.md
 
 Bei Widerspruechen gilt docs/GRAMMAR.md vor docs/MD_FORMAT.md.
+Design-Präferenzen sind bindend, solange sie der Grammatik nicht widersprechen.
 
 ## Arbeitsregeln fuer den Agent
 
-1. Vor jeder inhaltlichen Markdown-Generierung zuerst docs/GRAMMAR.md lesen.
+1. Vor jeder inhaltlichen Markdown-Generierung zuerst docs/GRAMMAR.md **und** app/storage/.state/blattwerker-design.md lesen.
 2. Nur erlaubte Blocktypen/Optionen/Werte verwenden:
   - Answer-Bloecke immer mit type anlegen.
   - YAML-basierte answer-Typen nur mit gueltigem Mapping-YAML-Inhalt fuellen.
@@ -49,3 +51,10 @@ a:/7thCloud/.venv/Scripts/python.exe -m app.cli.blatt_diagnostics_cli --file <DA
 2. Keine blockierenden Diagnosen.
 3. Nur grammar-konforme Syntax.
 4. Inhalt entspricht den didaktischen Vorgaben.
+
+## Design-Präferenzen tracken
+
+Nach jeder Session mit neuen Gestaltungsentscheidungen:
+1. Den Nutzer per Multiple-Choice fragen, welche Entscheidungen in app/storage/.state/blattwerker-design.md aufgenommen werden sollen.
+2. Nur bestätigte Entscheidungen eintragen — präzise, allgemein formuliert (kein Beispiel-spezifisches Wording).
+3. Bereits eingetragene Präferenzen ab sofort bei allen neuen Blättern berücksichtigen.

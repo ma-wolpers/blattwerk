@@ -52,4 +52,4 @@ Thumbs.db
 .history/
 
 # Local app user state (never commit)
-app/storage/.state/*.json
+app/storage/.state/
