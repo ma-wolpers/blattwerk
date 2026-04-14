@@ -296,29 +296,38 @@ def _wrap_answer_with_solution(base_answer_html, solution_text_html):
 
     return f"<div class='answer-with-solution'>{solution_text_html}{base_answer_html}</div>"
 
-def _render_answer_block(options, content, include_solutions):
-    """Rendert Antwortflächen (lines/grid/numberline/dots/space) plus Spezialtypen."""
-    atype = (options.get("type") or "").strip().lower()
-    if not atype:
+def _render_answer_block(block_type, options=None, content=None, include_solutions=False):
+    """Rendert dedizierte Antwort-Blocktypen (lines/grid/numberline/dots/space etc.)."""
+    if isinstance(block_type, dict) and isinstance(options, str):
+        # Legacy helper-Aufruf aus Unit-Tests: _render_answer_block(options, content, ...)
+        legacy_options = block_type
+        block_type = legacy_options.get("type", "")
+        content = options
+        options = legacy_options
+
+    options = options or {}
+    content = content or ""
+    normalized_block_type = (block_type or "").strip().lower()
+    if not normalized_block_type:
         return ""
 
-    if atype == "mc":
+    if normalized_block_type == "mc":
         return _render_multiple_choice_answer(options, content, include_solutions)
 
-    if atype == "cloze":
+    if normalized_block_type == "cloze":
         md = _new_markdown_converter()
         return _render_cloze_answer(md, options, content, include_solutions)
 
-    if atype == "table":
+    if normalized_block_type == "table":
         return _render_table_answer(options, content, include_solutions)
 
-    if atype == "matching":
+    if normalized_block_type == "matching":
         return render_matching_answer(options, content, include_solutions)
 
-    if atype == "wordsearch":
+    if normalized_block_type == "wordsearch":
         return render_wordsearch_answer(options, content, include_solutions)
 
-    if atype == "lines":
+    if normalized_block_type == "lines":
         base_rows = max(1, _safe_int(options.get("rows", 3), 3))
 
         if include_solutions:
@@ -375,16 +384,16 @@ def _render_answer_block(options, content, include_solutions):
 
         return f"<div class='answer lines'>{lines}</div>"
 
-    if atype == "grid":
+    if normalized_block_type == "grid":
         return render_grid_answer(options, content, include_solutions, _render_answer_solution_text)
 
-    if atype in {"numberline", "number_line", "zahlengerade", "zahlenstrahl"}:
+    if normalized_block_type == "numberline":
         return render_number_line_answer(options, content, include_solutions, _render_answer_solution_text)
 
-    if atype == "dots":
+    if normalized_block_type == "dots":
         return render_dots_answer(options, content, include_solutions, _render_answer_solution_text)
 
-    if atype == "space":
+    if normalized_block_type == "space":
         height = options.get("height", "3cm")
         base_html = f"<div class='answer space' style='height:{height}'></div>"
 

@@ -189,7 +189,7 @@ def parse_blocks(text):
     for line in lines:
         if block_type is None:
             stripped_line = line.strip()
-            # Selbstschließende Kurzform wie :::answer type=space::: direkt übernehmen.
+            # Selbstschließende Kurzform wie :::space::: direkt übernehmen.
             self_closing_match = self_closing_pattern.match(stripped_line)
             if self_closing_match:
                 if raw_buffer:

@@ -31,7 +31,7 @@ CD-Audio hat 44.100 Samples/s, 16 Bit, Stereo (2 Kanäle).
 Wie viele Bit pro Sekunde entstehen unkomprimiert?
 :::
 
-:::answer type=dots height=4cm
+:::dots height=4cm
 :::
 
 :::solution
@@ -44,7 +44,7 @@ Wie viele Bit pro Sekunde entstehen unkomprimiert?
 Ergänze den Lückentext sinnvoll.
 :::
 
-:::answer type=cloze gap=fixed words=below
+:::cloze gap=fixed words=below
 Bei PCM wird ein analoges Signal in festen Zeitabständen {{abgetastet}}.
 Jeder Messwert wird auf eine endliche Zahl von Stufen {{quantisiert}}.
 Die Abtastrate beeinflusst die zeitliche Genauigkeit, die {{Bittiefe}} die Wertgenauigkeit.
@@ -60,7 +60,7 @@ Du willst ein Musikarchiv für späteres Mischen aufbauen.
 Wähle: PCM/WAV oder MP3? Begründe kurz.
 :::
 
-:::answer type=lines rows=3
+:::lines rows=3
 :::
 
 :::solution
@@ -75,7 +75,7 @@ A) "Daten erfassen" und
 B) "Daten weglassen, um zu komprimieren".
 :::
 
-:::answer type=dots height=4cm
+:::dots height=4cm
 :::
 
 :::solution

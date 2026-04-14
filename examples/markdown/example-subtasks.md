@@ -15,7 +15,7 @@ Lies den Infotext und bearbeite die Teilaufgaben.
 Markiere alle Fachwörter.
 :::
 
-:::answer type=lines rows=2
+:::lines rows=2
 Ein Fachwort ist ...
 Beispielantwort: "Algorithmus" $
 :::
@@ -24,7 +24,7 @@ Beispielantwort: "Algorithmus" $
 Erkläre einen Fachbegriff in eigenen Worten.
 :::
 
-:::answer type=lines rows=3
+:::lines rows=3
 & Nutze mindestens einen vollständigen Satz.
 :::
 
@@ -32,7 +32,7 @@ Erkläre einen Fachbegriff in eigenen Worten.
 Vergleicht eure Erklärungen und einigt euch auf eine gemeinsame Formulierung.
 :::
 
-:::answer type=dots height=4cm
+:::dots height=4cm
 § Gesprächsstart: "Wir sind uns einig, dass ..."
 :::
 
@@ -42,7 +42,7 @@ Vergleicht eure Erklärungen und einigt euch auf eine gemeinsame Formulierung.
 Nenne zwei Vorteile von festen Codesystemen.
 :::
 
-:::answer type=lines rows=3
+:::lines rows=3
 Antwortidee 1: Eindeutigkeit $
 & Antwortidee 2: Kompatibilität
 :::

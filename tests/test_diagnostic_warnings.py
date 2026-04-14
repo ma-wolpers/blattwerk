@@ -32,7 +32,7 @@ def test_build_warning_payload_formats_first_diagnostic_line(tmp_path):
         "Fach: M\n"
         "Thema: X\n"
         "---\n"
-        ":::answer type=lines\n\n:::\n",
+        ":::lines\n\n:::\n",
         encoding="utf-8",
     )
 

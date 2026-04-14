@@ -11,7 +11,6 @@ from tkinter import messagebox, ttk
 
 from ..core.blatt_kern_shared import build_block_index_line_map
 from ..core.completion_catalogs import (
-    get_completion_answer_types,
     get_completion_block_types,
     get_completion_options_for_block,
     get_completion_option_values,
@@ -1222,37 +1221,6 @@ class BlattwerkAppEditorMixin:
                         "kind": "block_option",
                     }
 
-                type_match = re.search(r"\btype=([A-Za-z_][A-Za-z0-9_]*)?$", left_text)
-                if block_token == "answer" and type_match:
-                    value_prefix = type_match.group(1) or ""
-
-                    suggestions = [
-                        {
-                            "label": answer_type,
-                            "insert_text": answer_type,
-                            "kind": "option_value",
-                            "block_type": "answer",
-                            "option_key": "type",
-                        }
-                        for answer_type in get_completion_answer_types()
-                        if answer_type.startswith(value_prefix)
-                    ]
-                    if auto and not suggestions:
-                        return None
-
-                    value_start = type_match.start(1) if type_match.group(1) is not None else type_match.end(0)
-                    value_end = type_match.end(1) if type_match.group(1) is not None else type_match.end(0)
-                    return {
-                        "suggestions": suggestions,
-                        "replace_start": f"{line_no}.{value_start}",
-                        "replace_end": f"{line_no}.{value_end}",
-                        "kind": "option_value",
-                        "meta": {
-                            "block_type": "answer",
-                            "option_key": "type",
-                        },
-                    }
-
                 key_match = re.search(r"([A-Za-z_][A-Za-z0-9_]*)$", left_text)
                 if key_match and "=" not in left_text[key_match.start(1):]:
                     key_prefix = key_match.group(1)
@@ -1464,8 +1432,6 @@ class BlattwerkAppEditorMixin:
         prefix_norm = str(value_prefix or "").strip().lower()
 
         defaults = list(get_completion_option_values(block_type_norm, option_key_norm))
-        if not defaults and block_type_norm == "answer" and option_key_norm == "type":
-            defaults = list(get_completion_answer_types())
 
         learned = []
         try:

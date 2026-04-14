@@ -9,7 +9,7 @@ Diese Datei definiert die kanonische Grammatik fuer Blattwerk-Markdown.
 - `BLOCK_OPEN` := `:::` gefolgt von Blockname und optionalen Optionen
 - `BLOCK_CLOSE` := `:::` auf eigener Zeile
 - `SECTION_BREAK` := `---` oder `--` ausserhalb des Frontmatters
-- `SELF_CLOSING_BLOCK` := `::: name ... :::`
+- `SELF_CLOSING_BLOCK` := `:::name ... :::`
 
 Hinweise:
 - Optionen werden als `key=value` gelesen; Trennzeichen ist Leerraum.
@@ -39,7 +39,16 @@ block_name        = "material"
                   | "info"
                   | "task"
                   | "subtask"
-                  | "answer"
+                  | "lines"
+                  | "grid"
+                  | "dots"
+                  | "space"
+                  | "table"
+                  | "numberline"
+                  | "mc"
+                  | "cloze"
+                  | "matching"
+                  | "wordsearch"
                   | "solution"
                   | "columns"
                   | "nextcol"
@@ -54,11 +63,11 @@ block_name        = "material"
 - Pflichtfelder im Frontmatter: `Titel`, `Fach`, `Thema`.
 - `subtask` ist nur als Folgeblock zu einem vorherigen `task` gueltig (nicht geschachtelt).
 - Sichtbarkeit ist nur ueber `show=worksheet|solution|both` definiert.
-- `answer` benoetigt immer `type`.
-- YAML-basierte `answer`-Typen (`grid`, `numberline`, `number_line`, `zahlengerade`, `zahlenstrahl`, `table`, `matching`) erwarten Mapping-YAML als Inhalt.
+- Legacy-Syntax `:::answer type=...` ist ungueltig; Antwortflaechen werden nur noch ueber dedizierte Blocktypen beschrieben.
+- YAML-basierte Antwort-Blocktypen (`grid`, `numberline`, `table`, `matching`) erwarten Mapping-YAML als Inhalt.
 - In Grid-YAML (`points`, `pairs`, `functions`) ist Element-Sichtbarkeit nur als `show: "§"|"%"|"&"` erlaubt.
 - In Numberline-YAML (`labels`, `answers`, `arcs`) ist Element-Sichtbarkeit nur als `show: "§"|"%"|"&"` erlaubt.
-- In textbasierten `answer`-Inhalten sind zwei Marker-Varianten erlaubt:
+- In textbasierten Antwort-Blockinhalten sind zwei Marker-Varianten erlaubt:
     - Legacy-Zeilenmarker als eigenes Token am Zeilenanfang/-ende:
         - `§` -> worksheet
         - `%` -> solution
@@ -83,5 +92,5 @@ Die vollstaendige Optionsmatrix und Aliasliste steht in `docs/MD_FORMAT.md`.
 
 ## 5. Diagnose-Codes und Stabilitaet
 
-Der Validator liefert stabile, oeffentliche Codes (z. B. `FM001`, `BL001`, `OP001`, `OP002`, `AN001`, `AN002`, `AN003`, `AN004`).
+Der Validator liefert stabile, oeffentliche Codes (z. B. `FM001`, `BL001`, `OP001`, `OP002`, `AN003`, `AN004`, `AN008`, `AN009`).
 Neue Codes duerfen nur additiv eingefuehrt werden; bestehende Codes bleiben stabil.

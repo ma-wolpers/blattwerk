@@ -155,30 +155,29 @@ Zweck: Teilaufgabe zu vorherigem `task`.
 Optionen: `work`, `action`, `show` (alle optional)
 Regel: Nur als Folgeblock auf Top-Level.
 
-### 5.5 answer
+### 5.5 Antwort-Blocktypen
 Zweck: Antwortbereich oder interaktiver Antworttyp.
-Pflichtoption: `type`
 
-Unterstützte `type`-Werte:
+Unterstützte dedizierte Blocktypen:
 - `lines`
 - `grid`
 - `dots`
 - `space`
 - `table`
-- `numberline` (Aliase: `number_line`, `zahlengerade`, `zahlenstrahl`)
+- `numberline`
 - `mc`
 - `cloze`
 - `matching`
 - `wordsearch`
 
 Regeln:
-- `answer` ohne `type` wird nicht gerendert.
+- Legacy-Syntax `:::answer type=...` ist nicht erlaubt.
 - Strukturierte Inhalte sind YAML.
 - `matching` ist YAML-only (kein alternatives [section]-Format).
 
 #### Lines-Optionen und Renderingverhalten
 
-Fuer `type=lines` gilt zusaetzlich:
+Fuer `lines` gilt zusaetzlich:
 
 - `rows=<n>`
     - Standard: `3`
@@ -195,7 +194,7 @@ Markdown auf Linien:
 
 #### Grid-Optionen
 
-Für `type=grid` gilt zusätzlich:
+Für `grid` gilt zusätzlich:
 
 - `scale=<css-laenge>`
     - Standard: `0.5cm`
@@ -228,7 +227,7 @@ Numberline-YAML-Sichtbarkeit auf Elementebene (`labels`, `answers`, `arcs`):
 
 #### Matching-Optionen
 
-Für `type=matching` gelten zusätzlich folgende Optionen:
+Für `matching` gelten zusätzlich folgende Optionen:
 
 - `height_mode=content|uniform`
     - Standard: `content`
@@ -251,9 +250,9 @@ Für `type=matching` gelten zusätzlich folgende Optionen:
 - Validierung:
     - Wenn eine Seite nur ein Element enthält (`1↔N`), erzeugt der Validator eine Warnung (`MA001`).
 
-#### Marker in `answer`-Inhalten
+#### Marker in textbasierten Antwort-Blockinhalten
 
-Für textbasierte `answer`-Inhalte sind zwei Varianten verfügbar:
+Für textbasierte Antwort-Blocktypen sind zwei Varianten verfügbar:
 
 Legacy-Zeilenmarker (gesamte Zeile):
 - `§` = Zeile nur im Arbeitsblatt

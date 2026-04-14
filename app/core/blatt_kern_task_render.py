@@ -16,6 +16,20 @@ from .blatt_kern_shared import (
 from .blatt_kern_answer_table import _render_answer_block
 
 
+ANSWER_BLOCK_TYPES = {
+    "lines",
+    "grid",
+    "dots",
+    "space",
+    "table",
+    "numberline",
+    "mc",
+    "cloze",
+    "matching",
+    "wordsearch",
+}
+
+
 def render_block(
     block_type,
     options,
@@ -80,8 +94,9 @@ def render_block(
             f"<div class='solution'>{label_html}{md.convert(normalized_content)}</div>"
         )
 
-    if block_type == "answer":
+    if block_type in ANSWER_BLOCK_TYPES:
         return _render_answer_block(
+            block_type,
             options,
             normalized_content,
             include_solutions,

@@ -43,7 +43,16 @@ KNOWN_BLOCK_TYPES = {
     "info",
     "task",
     "subtask",
-    "answer",
+    "lines",
+    "grid",
+    "dots",
+    "space",
+    "table",
+    "numberline",
+    "mc",
+    "cloze",
+    "matching",
+    "wordsearch",
     "solution",
     "columns",
     "nextcol",
@@ -54,7 +63,7 @@ KNOWN_BLOCK_TYPES = {
 KNOWN_SHOW_VALUES = {"worksheet", "solution", "both"}
 KNOWN_DOCUMENT_MODES = {"ws", "test"}
 GRID_MARKER_SHOW_VALUES = {"&", "§", "%"}
-NUMBERLINE_ANSWER_TYPES = {"numberline", "number_line", "zahlengerade", "zahlenstrahl"}
+NUMBERLINE_ANSWER_TYPES = {"numberline"}
 MARKER_SHOW_SECTIONS_BY_ANSWER_TYPE = {
     "grid": ("points", "pairs", "functions"),
     "numberline": ("labels", "answers", "arcs", "jumps", "arrows", "boxes", "blanks"),
@@ -106,27 +115,22 @@ KNOWN_HINT_VALUES = {
     "expert",
     "expertenaufgabe",
 }
-KNOWN_ANSWER_TYPES = {
+ANSWER_BLOCK_TYPES = {
     "lines",
     "grid",
     "dots",
     "space",
     "table",
     "numberline",
-    "number_line",
-    "zahlengerade",
-    "zahlenstrahl",
     "mc",
     "cloze",
     "matching",
     "wordsearch",
 }
+KNOWN_ANSWER_TYPES = ANSWER_BLOCK_TYPES
 YAML_ANSWER_TYPES = {
     "grid",
     "numberline",
-    "number_line",
-    "zahlengerade",
-    "zahlenstrahl",
     "table",
     "matching",
 }
@@ -136,13 +140,34 @@ BLOCK_ALLOWED_OPTIONS = {
     "info": {"type", "show"},
     "task": {"points", "work", "action", "hint", "show"},
     "subtask": {"work", "action", "show"},
-    "answer": {
-        "type",
+    "lines": {
+        "show",
+        "rows",
+    },
+    "grid": {
         "show",
         "rows",
         "cols",
         "scale",
+        "axis",
+        "axis_label_x",
+        "axis_label_y",
+        "origin",
+        "step_x",
+        "step_y",
+    },
+    "dots": {
+        "show",
         "height",
+    },
+    "space": {
+        "show",
+        "height",
+    },
+    "table": {
+        "show",
+        "rows",
+        "cols",
         "width",
         "widths",
         "alignment",
@@ -151,12 +176,10 @@ BLOCK_ALLOWED_OPTIONS = {
         "header_columns",
         "header_cols",
         "row_labels",
-        "axis",
-        "axis_label_x",
-        "axis_label_y",
-        "origin",
-        "step_x",
-        "step_y",
+    },
+    "numberline": {
+        "show",
+        "height",
         "min",
         "max",
         "minimum",
@@ -172,15 +195,27 @@ BLOCK_ALLOWED_OPTIONS = {
         "full_width",
         "positive_sign",
         "signed_positive",
+    },
+    "mc": {
+        "show",
         "inline",
         "tf",
         "true_false",
         "correct",
         "options",
+        "widths",
+    },
+    "cloze": {
+        "show",
         "gap",
         "gap_length",
         "words",
         "words_multi",
+        "layout",
+    },
+    "matching": {
+        "show",
+        "scale",
         "layout",
         "orientation",
         "left",
@@ -194,12 +229,16 @@ BLOCK_ALLOWED_OPTIONS = {
         "align",
         "show_guides",
         "lane_align",
+    },
+    "wordsearch": {
+        "show",
         "min_size",
         "min_rows",
         "min_cols",
         "diagonal",
         "horizontal",
         "vertical",
+        "words",
     },
     "solution": {"label", "show"},
     "columns": {"cols", "widths", "ratio", "gap"},
@@ -426,7 +465,7 @@ def _append_invalid_yaml_show_diagnostic(
             ),
             severity="error",
             block_index=block_index,
-            block_type="answer",
+            block_type=answer_type,
         )
     )
 
@@ -499,6 +538,21 @@ def _collect_document_diagnostics(meta, blocks, content_text, content_base_line=
             )
 
     for index, (block_type, options, content) in enumerate(blocks):
+        if block_type == "answer":
+            diagnostics.append(
+                BuildDiagnostic(
+                    code="AN008",
+                    message=(
+                        "Legacy-Syntax `:::answer type=...` ist nicht mehr erlaubt. "
+                        "Bitte dedizierten Blocktyp nutzen, z. B. `:::grid` oder `:::lines`."
+                    ),
+                    severity="error",
+                    block_index=index,
+                    block_type=block_type,
+                )
+            )
+            continue
+
         absolute_image_paths = _collect_absolute_image_paths(content)
         if absolute_image_paths:
             preview = ", ".join(absolute_image_paths[:2])
@@ -530,6 +584,21 @@ def _collect_document_diagnostics(meta, blocks, content_text, content_base_line=
 
         allowed_options = BLOCK_ALLOWED_OPTIONS.get(block_type, set())
         for option_key, option_value in _option_items(options):
+            if option_key == "type" and block_type in ANSWER_BLOCK_TYPES:
+                diagnostics.append(
+                    BuildDiagnostic(
+                        code="AN009",
+                        message=(
+                            f"Option `type` ist in Block `{block_type}` unzulaessig. "
+                            "Der Blocktyp selbst definiert bereits den Antworttyp."
+                        ),
+                        severity="error",
+                        block_index=index,
+                        block_type=block_type,
+                    )
+                )
+                continue
+
             if option_key not in allowed_options:
                 diagnostics.append(
                     BuildDiagnostic(
@@ -581,34 +650,10 @@ def _collect_document_diagnostics(meta, blocks, content_text, content_base_line=
                     option_value,
                     KNOWN_HINT_VALUES,
                 )
-            elif (
-                option_key == "type"
-                and block_type == "answer"
-                and normalized_value not in KNOWN_ANSWER_TYPES
-            ):
-                diagnostics.append(
-                    BuildDiagnostic(
-                        code="AN002",
-                        message=f"Unbekannter answer type `{option_value}`.",
-                        block_index=index,
-                        block_type=block_type,
-                    )
-                )
-
-        if block_type != "answer":
+        if block_type not in ANSWER_BLOCK_TYPES:
             continue
 
-        answer_type = _normalize_value(options.get("type"))
-        if not answer_type:
-            diagnostics.append(
-                BuildDiagnostic(
-                    code="AN001",
-                    message="Answer-Block ohne Pflichtoption `type` wird nicht gerendert.",
-                    block_index=index,
-                    block_type=block_type,
-                )
-            )
-            continue
+        answer_type = block_type
 
         if is_effectively_empty_answer_content(content):
             diagnostics.append(

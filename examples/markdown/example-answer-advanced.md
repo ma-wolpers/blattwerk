@@ -30,7 +30,7 @@ Achte dabei besonders auf:
 Notiere die Ergebnisse in das Linienfeld.
 :::
 
-:::answer type=lines rows=5
+:::lines rows=5
 § Ich rechne schrittweise ...
 1) 2^5 = 32 $
 & Kontrolliere am Ende alle Vorzeichen.
@@ -40,7 +40,7 @@ Notiere die Ergebnisse in das Linienfeld.
 Notiere im Punktfeld drei kurze Merksätze.
 :::
 
-:::answer type=dots height=5cm
+:::dots height=5cm
 § Formulierungshilfe: "Ein Koordinatensystem ..."
 Die x-Achse verläuft waagerecht. $
 & Die y-Achse verläuft senkrecht.
@@ -52,7 +52,7 @@ Die x-Achse verläuft waagerecht. $
 Markiere im Raster die angegebenen **Rasterpunkte** (ohne Koordinatensystem).
 :::
 
-:::answer type=grid rows=12 cols=18
+:::grid rows=12 cols=18
 points:
   - {col: 2, row: 2, label: "R1"}
   - {col: 10, row: 4, label: "R2"}
@@ -73,7 +73,7 @@ Arbeite mit dem Koordinatensystem:
 3. Zeichne den Graphen von $y = x^2 - 2$ im angegebenen Bereich.
 :::
 
-:::answer type=grid rows=20 cols=20 axis=true origin="10,10" step_x=0.5 step_y=1
+:::grid rows=20 cols=20 axis=true origin="10,10" step_x=0.5 step_y=1
 points:
   - {x: -3, y: 4, label: "A", show: "&"}
   - {x: 2, y: 3, label: "B", show: "&"}
@@ -105,7 +105,7 @@ Hier gilt wegen `axis=true`:
 Lies die Zahlengerade und ergänze die fehlenden Werte in den markierten Kästchen.
 :::
 
-:::answer type=numberline min=-1.5 max=4.5 tick_spacing_cm=1 major_every=2 height=2.9cm
+:::numberline min=-1.5 max=4.5 tick_spacing_cm=1 major_every=2 height=2.9cm
 labels:
   - {value: -1.5, show: "&"}
   - {value: 0, show: "&"}
@@ -123,7 +123,7 @@ answers:
 Vervollständigt die Tabelle. Inhalte in `%{...}` sind nur für die Lösung gedacht.
 :::
 
-:::answer type=table rows=5 cols=3 row_height=1.8cm headers="Signal|Bauteil|Funktion" header_columns=1 alignment="l c r"
+:::table rows=5 cols=3 row_height=1.8cm headers="Signal|Bauteil|Funktion" header_columns=1 alignment="l c r"
 cells:
   - ["Taster", "Eingabe", "%{startet den Stromkreis}"]
   - ["LED", "Ausgabe", "%{zeigt den Zustand an}"]
@@ -141,7 +141,7 @@ solution: |
 Optionaler Freitextbereich mit Lösungstext direkt im `space`-Block.
 :::
 
-:::answer type=space height=3.2cm
+:::space height=3.2cm
 § Satzstarter: "Der Signalfluss beginnt bei ..."
 Der Signalfluss verläuft von der Eingabe über die Verarbeitung zur Ausgabe. $
 & Verwende die Begriffe Eingabe, Verarbeitung, Ausgabe.

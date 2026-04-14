@@ -9,7 +9,7 @@ def test_block_index_line_map_matches_parse_blocks_order_for_mixed_content():
         "A\n"
         ":::\n"
         "\n"
-        ":::answer type=space::: \n"
+        ":::space::: \n"
         "Zwischentext\n"
         ":::solution\n"
         "L\n"
@@ -24,7 +24,7 @@ def test_block_index_line_map_matches_parse_blocks_order_for_mixed_content():
         "raw",
         "task",
         "raw",
-        "answer",
+        "space",
         "raw",
         "solution",
     ]

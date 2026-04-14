@@ -25,28 +25,28 @@ def _build_document_with_mode(mode_value, block_content="Ein Block"):
 
 
 def test_empty_answer_block_emits_an005_warning():
-    text = _build_document(":::answer type=lines\n\n:::")
+    text = _build_document(":::lines\n\n:::")
     inspected = inspect_markdown_text(text)
     codes = {diagnostic.code for diagnostic in inspected.diagnostics}
     assert "AN005" in codes
 
 
 def test_conflicting_line_markers_emit_an006_warning():
-    text = _build_document(":::answer type=lines\n%{Start\n:::")
+    text = _build_document(":::lines\n%{Start\n:::")
     inspected = inspect_markdown_text(text)
     codes = {diagnostic.code for diagnostic in inspected.diagnostics}
     assert "AN006" in codes
 
 
 def test_conflicting_legacy_start_and_end_markers_emit_an006_warning():
-    text = _build_document(":::answer type=lines\n§ Start %\n:::")
+    text = _build_document(":::lines\n§ Start %\n:::")
     inspected = inspect_markdown_text(text)
     codes = {diagnostic.code for diagnostic in inspected.diagnostics}
     assert "AN006" in codes
 
 
 def test_non_empty_answer_without_marker_conflict_has_no_new_warnings():
-    text = _build_document(":::answer type=lines\n&{Impuls}\n:::")
+    text = _build_document(":::lines\n&{Impuls}\n:::")
     inspected = inspect_markdown_text(text)
     codes = {diagnostic.code for diagnostic in inspected.diagnostics}
     assert "AN005" not in codes
@@ -55,7 +55,7 @@ def test_non_empty_answer_without_marker_conflict_has_no_new_warnings():
 
 def test_matching_new_options_are_allowed_without_op001():
     text = _build_document(
-        ":::answer type=matching height_mode=uniform align=center scale=0.4cm "
+        ":::matching height_mode=uniform align=center scale=0.4cm "
         "show_guides=false lane_align=center\n"
         "left:\n"
         "  - A\n"
@@ -74,7 +74,7 @@ def test_matching_new_options_are_allowed_without_op001():
 
 def test_table_alignment_option_is_allowed_without_op001():
     text = _build_document(
-        ":::answer type=table rows=2 cols=2 alignment=center\n"
+        ":::table rows=2 cols=2 alignment=center\n"
         "cells:\n"
         "  - ['A', 'B']\n"
         "  - ['C', 'D']\n"
@@ -87,7 +87,7 @@ def test_table_alignment_option_is_allowed_without_op001():
 
 def test_table_header_columns_option_is_allowed_without_op001():
     text = _build_document(
-        ":::answer type=table rows=2 cols=2 header_columns=1\n"
+        ":::table rows=2 cols=2 header_columns=1\n"
         "cells:\n"
         "  - ['A', 'B']\n"
         "  - ['C', 'D']\n"
@@ -100,7 +100,7 @@ def test_table_header_columns_option_is_allowed_without_op001():
 
 def test_matching_with_single_item_side_emits_ma001_warning():
     text = _build_document(
-        ":::answer type=matching\n"
+        ":::matching\n"
         "left:\n"
         "  - Nur eins\n"
         "right:\n"
@@ -117,7 +117,7 @@ def test_matching_with_single_item_side_emits_ma001_warning():
 
 def test_grid_yaml_marker_show_values_are_accepted():
     text = _build_document(
-        ":::answer type=grid rows=4 cols=4\n"
+        ":::grid rows=4 cols=4\n"
         "points:\n"
         "  - {col: 1, row: 1, show: '§'}\n"
         "pairs:\n"
@@ -133,7 +133,7 @@ def test_grid_yaml_marker_show_values_are_accepted():
 
 def test_grid_yaml_legacy_show_values_emit_an007_error():
     text = _build_document(
-        ":::answer type=grid rows=4 cols=4\n"
+        ":::grid rows=4 cols=4\n"
         "points:\n"
         "  - {col: 1, row: 1, show: 'both'}\n"
         ":::"
@@ -146,7 +146,7 @@ def test_grid_yaml_legacy_show_values_emit_an007_error():
 
 def test_numberline_yaml_marker_show_values_are_accepted():
     text = _build_document(
-        ":::answer type=numberline min=-3 max=3\n"
+        ":::numberline min=-3 max=3\n"
         "labels:\n"
         "  - {value: -2, show: '§'}\n"
         "answers:\n"
@@ -162,7 +162,7 @@ def test_numberline_yaml_marker_show_values_are_accepted():
 
 def test_numberline_yaml_legacy_show_values_emit_an007_error():
     text = _build_document(
-        ":::answer type=numberline min=-3 max=3\n"
+        ":::numberline min=-3 max=3\n"
         "labels:\n"
         "  - {value: -1, show: 'both'}\n"
         ":::"
@@ -215,7 +215,7 @@ def test_relative_markdown_image_path_has_no_pt001():
 
 
 def test_space_after_block_marker_emits_bl002_error():
-    text = _build_document("::: answer type=lines\nInhalt\n:::")
+    text = _build_document("::: lines\nInhalt\n:::")
     inspected = inspect_markdown_text(text)
     bl002 = [d for d in inspected.diagnostics if d.code == "BL002"]
     assert bl002
@@ -243,3 +243,17 @@ def test_orphan_closing_marker_line_number_includes_frontmatter():
     assert bl003
     assert bl003[0].line_number == 6
     assert "Zeile 6" in bl003[0].message
+
+
+def test_legacy_answer_block_emits_an008_error():
+    text = _build_document(":::answer type=lines\nText\n:::")
+    diagnostics = inspect_markdown_text(text).diagnostics
+    codes = {d.code for d in diagnostics}
+    assert "AN008" in codes
+
+
+def test_type_option_is_forbidden_on_dedicated_answer_blocks():
+    text = _build_document(":::grid type=grid rows=3 cols=3\n:::")
+    diagnostics = inspect_markdown_text(text).diagnostics
+    codes = {d.code for d in diagnostics}
+    assert "AN009" in codes

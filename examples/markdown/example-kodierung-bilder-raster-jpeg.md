@@ -31,7 +31,7 @@ Ein Bild hat 400 x 300 Pixel und 24 Bit Farbtiefe.
 Wie viele Byte braucht es unkomprimiert? (1 Byte = 8 Bit)
 :::
 
-:::answer type=dots height=3.5cm
+:::dots height=3.5cm
 :::
 
 :::solution
@@ -46,7 +46,7 @@ Wie viele Byte braucht es unkomprimiert? (1 Byte = 8 Bit)
 Ergänze den Lückentext sinnvoll.
 :::
 
-:::answer type=cloze gap=fixed words=below
+:::cloze gap=fixed words=below
 Eine Rastergrafik besteht aus vielen {{Pixeln}}.
 Die {{Auflösung}} beschreibt, wie viele Pixel insgesamt vorhanden sind.
 Die {{Farbtiefe}} legt fest, wie viele Farbwerte pro Pixel möglich sind.
@@ -63,7 +63,7 @@ A) Klassenfoto für Website: JPG oder PNG?
 B) Schullogo mit klaren Kanten: JPG oder PNG?
 :::
 
-:::answer type=lines rows=4
+:::lines rows=4
 :::
 
 :::solution
@@ -77,7 +77,7 @@ B) Meist PNG, weil Kanten sauber bleiben.
 Kreuze an: Welche Aussage trifft am besten zu?
 :::
 
-:::answer type=mc inline=true
+:::mc inline=true
 - [ ] Mehr Kompression verbessert immer die Bildqualität.
 - [x] Mehr Kompression verkleinert oft die Datei, kann aber Qualität kosten.
 - [ ] Die Auflösung hat keinen Einfluss auf die Dateigröße.

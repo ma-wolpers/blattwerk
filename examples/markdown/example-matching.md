@@ -13,7 +13,7 @@ Ziehe die passenden Verbindungen zwischen den Boxen. In der Arbeitsblattversion 
 Ordne die Begriffe den passenden Erklärungen zu.
 :::
 
-:::answer type=matching layout=horizontal height_mode=uniform align=center lane_align=center show_guides=false
+:::matching layout=horizontal height_mode=uniform align=center lane_align=center show_guides=false
 left:
   - "CPU"
   - "RAM"
@@ -40,7 +40,7 @@ matches:
 Ordne nun oben und unten zu. Mehrere Verbindungen pro Begriff sind erlaubt.
 :::
 
-:::answer type=matching layout=vertical height_mode=content align=center lane_align=center show_guides=false
+:::matching layout=vertical height_mode=content align=center lane_align=center show_guides=false
 top:
   - "Python"
   - "HTML"

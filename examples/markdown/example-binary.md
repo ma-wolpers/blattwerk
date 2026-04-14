@@ -46,7 +46,7 @@ Die Potenzen von 2:
 Ordne den Potenzen passende Binärstellen zu.
 :::
 
-:::answer type=lines rows=3
+:::lines rows=3
 :::
 
 :::solution
@@ -61,7 +61,7 @@ Ordne den Potenzen passende Binärstellen zu.
 Kreuze an, welche der folgenden Aussagen richtig sind.
 :::
 
-:::answer type=grid rows=4
+:::grid rows=4
 :::
 
 :::solution
@@ -75,7 +75,7 @@ Mögliche richtige Aussagen:
 :::material
 ### Beispiel: Binärzahlen
 
-:::answer type=table rows=6 cols=2 row_height=1.0cm headers="Dezimal|Binär" alignment=right
+:::table rows=6 cols=2 row_height=1.0cm headers=Dezimal|Binär alignment=right
 cells:
 	-
 		- { text: "Beispielwerte", colspan: 2 }
@@ -97,7 +97,7 @@ Tipp: Du darfst dir beim Rechnen eine Stellenwerttabelle (1, 2, 4, 8, 16, …) a
 Wandle die folgenden Dezimalzahlen in Binärzahlen um.
 :::
 
-:::answer type=lines rows=5
+:::lines rows=5
 § Rechenhilfe: Nutze eine Stellenwerttabelle (1, 2, 4, 8, ...).
 5 -> 0101 $
 & Achte auf führende Nullen.
@@ -116,7 +116,7 @@ Beispiel-Lösungen:
 Wandle die folgenden Binärzahlen in Dezimalzahlen um.
 :::
 
-:::answer type=lines rows=5
+:::lines rows=5
 § Starte mit der größten Zweierpotenz.
 0101 -> 5 $
 & Addiere nur aktive Stellen (Bit = 1).
@@ -137,7 +137,7 @@ Ein Computer speichert Buchstaben mithilfe von Zahlen.
 Erkläre **in eigenen Worten**, warum eine feste Codierung für Buchstaben notwendig ist.
 :::
 
-:::answer type=dots height=6cm
+:::dots height=6cm
 § Eine feste Codierung ist nötig, weil ...
 Ohne Normen würden Geräte Zahlen unterschiedlich deuten. $
 :::
@@ -155,7 +155,7 @@ Ein System verwendet **3 Bits** zur Codierung.
 2. Reichen 3 Bits aus, um alle Buchstaben des Alphabets zu speichern? Begründe.
 :::
 
-:::answer type=dots height=7cm
+:::dots height=7cm
 :::
 
 :::solution
@@ -169,7 +169,7 @@ Ein System verwendet **3 Bits** zur Codierung.
 *Kreuze* an, welche Aussage zum EVA-Prinzip korrekt ist.
 :::
 
-:::answer type=mc inline=true
+:::mc inline=true
 EVA steht für ...
 - [x] Eingabe, Verarbeitung, Ausgabe
 - [ ] Erfassen, Verteilen, Archivieren
@@ -187,6 +187,6 @@ Das ist richtig.
 *Ergänze* den Lückentext zum EVA-Prinzip.
 :::
 
-:::answer type=cloze gap=fixed words=below
+:::cloze gap=fixed words=below
 Bei der {{Eingabe}} werden Daten aufgenommen, in der {{Verarbeitung}} umgewandelt und bei der {{Ausgabe}} angezeigt.
 :::

@@ -9,9 +9,13 @@ Regel:
 ## [Unreleased]
 
 ### Changed
+- Answer-Syntax hart umgestellt: statt `:::answer type=...` gelten jetzt dedizierte Blocktypen (`:::lines`, `:::grid`, `:::dots`, `:::space`, `:::table`, `:::numberline`, `:::mc`, `:::cloze`, `:::matching`, `:::wordsearch`); Legacy-Syntax wird als Fehler diagnostiziert.
+- Validator auf blocktyp-spezifische Key-Mengen umgestellt; `type=` ist in dedizierten Antwort-Blocktypen unzulaessig und wird als Fehler diagnostiziert.
+- Render-Wiring umgestellt: Dispatch fuer Antwortflaechen erfolgt direkt ueber den Blocktyp statt ueber `answer type`.
+- Migrationswerkzeug `tools/migrate_answer_blocks.py` hinzugefuegt (Dry-Run/Write/Report) und Beispiele auf dedizierte Blocktypen migriert.
 - Markdown-Rendering fuer allgemeine Blattwerk-Inhalte vereinheitlicht: in Aufgaben/Material/Info/Loesungen sowie freiem Markdowntext gilt jetzt durchgaengig die Semantik einfacher Umbruch = Shift+Enter und doppelter Umbruch = Enter; Mehrfach-Leerzeilen (3+) werden auf einen Absatzwechsel reduziert.
-- Tabellenantworten erweitert: `answer type=table` unterstuetzt jetzt `header_columns` (Alias `header_cols`), um fuehrende Body-Spalten als Header-Spalten zu rendern.
-- Tabellenantworten erweitert: `answer type=table` unterstuetzt jetzt den neuen Key `alignment` (`left|center|right|justify`) fuer die Textausrichtung in Tabellenzellen, inklusive spaltenindividueller Kurzform wie `alignment="l r c c"`.
+- Tabellenantworten erweitert: `table`-Block unterstuetzt jetzt `header_columns` (Alias `header_cols`), um fuehrende Body-Spalten als Header-Spalten zu rendern.
+- Tabellenantworten erweitert: `table`-Block unterstuetzt jetzt den neuen Key `alignment` (`left|center|right|justify`) fuer die Textausrichtung in Tabellenzellen, inklusive spaltenindividueller Kurzform wie `alignment="l r c c"`.
 - Spaltenlayout erweitert: `columns` unterstuetzt jetzt optional `gap` als expliziten horizontalen Spaltenabstand (CSS-Laenge) zusaetzlich zu `cols` und `widths/ratio`.
 - Abschnittstrenner erweitert: `--` fungiert jetzt als zusaetzliche Solltrennstelle; `---` erzeugt weiterhin die Solltrennstelle und fuegt im Seitenlayout zusaetzlich einen vertikalen Abstand von `1cm` zwischen Abschnitten ein.
 - Lernhilfen-Rendering auf kartenorientierten Fluss umgestellt: Karten erzwingen keinen Seitenumbruch mehr (`break-after: page` entfernt), sodass PDF-Ausgabe als fortlaufendes Dokument mit natuerlichem Seitenwechsel laeuft.

@@ -13,7 +13,7 @@ Finde alle Wörter im Buchstabensalat. Markiere sie farbig.
 Wörter können waagerecht und senkrecht vorkommen.
 :::
 
-:::answer type=wordsearch min_size=11x13 diagonal=false
+:::wordsearch min_size=11x13 diagonal=false
 - Algorithmus
 - Eingabe
 - Ausgabe
@@ -30,7 +30,7 @@ Wörter können waagerecht und senkrecht vorkommen.
 Im zweiten Rätsel sind diagonale Wörter erlaubt; lange Wörter liegen bevorzugt waagerecht.
 :::
 
-:::answer type=wordsearch min_size=12 diagonal=true horizontal="ARBEITSSPEICHER|PROGRAMMIERUNG" vertical="BYTE|CODE"
+:::wordsearch min_size=12 diagonal=true horizontal=ARBEITSSPEICHER|PROGRAMMIERUNG vertical=BYTE|CODE
 - Arbeitsspeicher
 - Programmierung
 - Byte

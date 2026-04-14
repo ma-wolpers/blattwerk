@@ -7,9 +7,18 @@ The format is based on Keep a Changelog.
 ## [Unreleased]
 
 ### Changed
+
+## [0.2.0] - 2026-04-14
+
+### Changed
+- Answer blocks now use dedicated block types instead of `:::answer type=...`.
+	Supported forms are `:::lines`, `:::grid`, `:::dots`, `:::space`, `:::table`, `:::numberline`, `:::mc`, `:::cloze`, `:::matching`, and `:::wordsearch`.
+- Legacy syntax `:::answer type=...` is now rejected with explicit diagnostics.
+- Option validation for answer blocks is now type-specific; `type=` inside dedicated answer blocks is invalid.
+- Example markdown files were migrated to the new dedicated answer block syntax.
 - Blattwerk-internales Markdown fuer Aufgaben/Material/Info/Loesungen und freien Text nutzt jetzt konsistente Umbruch-Semantik: einfacher Zeilenumbruch wirkt wie Shift+Enter (sichtbarer Zeilenumbruch), doppelter Zeilenumbruch wie Enter (Absatzwechsel); 3+ aufeinanderfolgende Leerzeilen werden auf einen Absatzwechsel begrenzt.
-- Table answer blocks (`answer type=table`) now support `header_columns` (alias `header_cols`) to render leading body columns as row headers.
-- Table answer blocks (`answer type=table`) now support `alignment=left|center|right|justify` to control cell text alignment, including per-column shorthand like `alignment="l r c c"`.
+- Table answer blocks (`table`) now support `header_columns` (alias `header_cols`) to render leading body columns as row headers.
+- Table answer blocks (`table`) now support `alignment=left|center|right|justify` to control cell text alignment, including per-column shorthand like `alignment="l r c c"`.
 - `columns` blocks now support an optional `gap` option for explicit horizontal column spacing (for example `gap=1cm`), in addition to `cols` and `widths/ratio`.
 - Section-break behavior was extended: `--` now acts as a soft split marker, and `---` now inserts an additional vertical `1cm` gap between sections while still serving as the regular split marker.
 - Lernhilfen now render and export card-native without worksheet-style running elements: no auto-inserted header/footer texts and no page numbering in lernhilfen PDF output.

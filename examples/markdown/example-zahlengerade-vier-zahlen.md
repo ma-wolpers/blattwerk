@@ -11,7 +11,7 @@ show_document_header: true
 Markiere die vorgegebenen Zahlen auf der Zahlengeraden.
 :::
 
-:::answer type=numberline min=-22 max=32 tick_step=1 major_every=5 height=2cm
+:::numberline min=-22 max=32 tick_step=1 major_every=5 height=2cm
 labels:
   - {value: -20, show: "&"}
   - {value: -10, show: "&"}
@@ -27,7 +27,7 @@ labels:
 Lies die Werte der markierten Kästchen ab und ergänze sie.
 :::
 
-:::answer type=numberline min=-17 max=33 tick_step=1 tick_spacing_mm=5 major_every=5 height=3.1cm
+:::numberline min=-17 max=33 tick_step=1 tick_spacing_mm=5 major_every=5 height=3.1cm
 labels:
   - {value: -17, show: "§"}
   - {value: 33, show: "§"}

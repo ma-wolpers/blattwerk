@@ -29,7 +29,7 @@ Mini-Merkhilfe:
 Ordne die Begriffe zu.
 :::
 
-:::answer type=grid rows=3
+:::grid rows=3
 ::: 
 
 :::solution
@@ -44,7 +44,7 @@ Ordne die Begriffe zu.
 Ergänze den Lückentext sinnvoll.
 :::
 
-:::answer type=cloze gap=fixed words=below
+:::cloze gap=fixed words=below
 Unicode vergibt für jedes {{Zeichen}} eine eindeutige {{Nummer}}.
 Diese Nummer heißt {{Codepunkt}}.
 Damit der Computer sie speichern kann, wird sie mit einem Format wie {{UTF-8}} in {{Bytes}} umgewandelt.
@@ -61,13 +61,13 @@ Klasse A speichert als UTF-8, Klasse B als altes lokales Format.
 Was ist die beste Strategie? Kreuze an und begründe in 2 Sätzen.
 :::
 
-:::answer type=mc inline=true
+:::mc inline=true
 - [ ] Jede Klasse nutzt weiter ihr eigenes Format.
 - [x] Beide Klassen nutzen durchgängig UTF-8.
 - [ ] Klasse A entfernt alle Sonderzeichen.
 :::
 
-:::answer type=dots height=3.5cm
+:::dots height=3.5cm
 :::
 
 :::solution
@@ -82,7 +82,7 @@ Prüfe dein Verständnis: Schreibe eine 20-Sekunden-Erklärung.
 "Warum braucht man bei Texten eine Normkodierung?"
 :::
 
-:::answer type=dots height=3cm
+:::dots height=3cm
 :::
 
 :::solution
