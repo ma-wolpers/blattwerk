@@ -143,6 +143,7 @@ BLOCK_ALLOWED_OPTIONS = {
     "lines": {
         "show",
         "rows",
+        "height",
     },
     "grid": {
         "show",
@@ -387,6 +388,23 @@ def _collect_block_marker_syntax_diagnostics(content_text, base_line=1):
     for line_no, raw_line in enumerate((content_text or "").splitlines(), start=1):
         absolute_line_no = max(1, int(base_line) + line_no - 1)
         stripped_line = raw_line.strip()
+
+        if block_stack and stripped_line in {"---", "--"}:
+            diagnostics.append(
+                BuildDiagnostic(
+                    code="BL005",
+                    message=(
+                        "Ungueltiger Abschnittstrenner in Zeile "
+                        f"{absolute_line_no}: `{stripped_line}` innerhalb eines offenen "
+                        "`:::`-Blocks ist nicht erlaubt. "
+                        "Schliesse zuerst den aktuellen Block mit `:::` und setze den "
+                        "Abschnittstrenner danach auf Top-Level."
+                    ),
+                    severity="error",
+                    line_number=absolute_line_no,
+                )
+            )
+
         if not stripped_line.startswith(":::"):
             continue
 

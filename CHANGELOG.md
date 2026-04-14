@@ -8,6 +8,9 @@ The format is based on Keep a Changelog.
 
 ### Changed
 
+- VS Code grammar highlighting for Blattwerk block options is now synchronized with the core validator option catalog (including keys like `axis_label_x`, `height_mode`, `words_multi`, `worksheet_matches`, and `show_guides`).
+- CI/local guardrails now enforce sync between core validator block/option catalogs and VS Code extension regex catalogs to prevent future drift.
+- `lines` answer blocks now support `height=<css-length>` to control concrete line pitch per response row (for example `height=2.1em` or `height=8mm`).
 - Validator now rejects nested `:::` blocks: markers must strictly alternate between opening and closing, so constructs like `:::table` inside `:::material` are flagged as errors.
 - BL004 validator messages now explain the actual marker flow error (new block started before closing the current one) and give a dedicated hint for `task` -> `subtask` as top-level follow blocks.
 - Escaped spaces in answer-line content (written as `\ `) are now preserved as visible placeholders in rendered output, so patterns like `(\ \ \ \ )` stay visibly spaced.

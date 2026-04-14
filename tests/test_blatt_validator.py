@@ -98,6 +98,13 @@ def test_table_header_columns_option_is_allowed_without_op001():
     assert "OP001" not in codes
 
 
+def test_lines_height_option_is_allowed_without_op001():
+    text = _build_document(":::lines rows=2 height=2.2em\nHinweis\n:::")
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+    assert "OP001" not in codes
+
+
 def test_matching_with_single_item_side_emits_ma001_warning():
     text = _build_document(
         ":::matching\n"
@@ -282,6 +289,24 @@ def test_subtask_after_unclosed_task_gets_follow_block_hint():
     assert bl004[0].severity == "error"
     assert "Folgeblock" in bl004[0].message
     assert "zuerst `task` mit `:::` schliessen" in bl004[0].message
+
+
+def test_section_break_triple_dash_inside_open_block_emits_bl005_error():
+    text = _build_document(":::task\nInhalt\n---\n:::")
+    diagnostics = inspect_markdown_text(text).diagnostics
+    bl005 = [d for d in diagnostics if d.code == "BL005"]
+
+    assert bl005
+    assert bl005[0].severity == "error"
+
+
+def test_section_break_double_dash_inside_open_block_emits_bl005_error():
+    text = _build_document(":::task\nInhalt\n--\n:::")
+    diagnostics = inspect_markdown_text(text).diagnostics
+    bl005 = [d for d in diagnostics if d.code == "BL005"]
+
+    assert bl005
+    assert bl005[0].severity == "error"
 
 
 def test_legacy_answer_block_emits_an008_error():

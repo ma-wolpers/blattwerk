@@ -329,6 +329,12 @@ def _render_answer_block(block_type, options=None, content=None, include_solutio
 
     if normalized_block_type == "lines":
         base_rows = max(1, _safe_int(options.get("rows", 3), 3))
+        line_pitch = _parse_css_size(options.get("height"), "")
+        lines_style_attr = (
+            f" style='--answer-line-pitch:{escape(line_pitch)}'"
+            if line_pitch
+            else ""
+        )
 
         if include_solutions:
             solution_rows_html, _solution_visible_rows = render_answer_line_rows_html_for_mode(
@@ -351,7 +357,7 @@ def _render_answer_block(block_type, options=None, content=None, include_solutio
                     "<div class='line'></div>" for _ in range(solution_rows)
                 )
                 return (
-                    f"<div class='answer lines answer-overlay-container'>"
+                    f"<div class='answer lines answer-overlay-container'{lines_style_attr}>"
                     f"{lines}<div class='answer-overlay-text lines-overlay-text'>"
                     f"<div class='answer-solution-text lines-row-stack'>{solution_rows_html}</div>"
                     "</div>"
@@ -375,14 +381,14 @@ def _render_answer_block(block_type, options=None, content=None, include_solutio
         )
         if worksheet_rows_html:
             return (
-                f"<div class='answer lines answer-overlay-container'>"
+                f"<div class='answer lines answer-overlay-container'{lines_style_attr}>"
                 f"{lines}<div class='answer-overlay-text lines-overlay-text'>"
                 f"<div class='answer-solution-text lines-row-stack'>{worksheet_rows_html}</div>"
                 "</div>"
                 "</div>"
             )
 
-        return f"<div class='answer lines'>{lines}</div>"
+        return f"<div class='answer lines'{lines_style_attr}>{lines}</div>"
 
     if normalized_block_type == "grid":
         return render_grid_answer(options, content, include_solutions, _render_answer_solution_text)

@@ -9,6 +9,9 @@ Regel:
 ## [Unreleased]
 
 ### Changed
+- Guardrail-Check erweitert: `tools/ci/check_ai_guardrails.py` prueft jetzt die Synchronitaet zwischen Core-Validator (`KNOWN_BLOCK_TYPES`/`BLOCK_ALLOWED_OPTIONS`) und VSCode-Extension-RegExen (Blocktypen + Option-Keys).
+- VSCode-Extension-Grammatik synchronisiert: fehlende Option-Keys aus dem Core (u. a. `axis_label_x`, `height_mode`, `words_multi`, `worksheet_matches`, `show_guides`) werden jetzt als Blockparameter hervorgehoben.
+- `lines`-Antwortblock erweitert: neue Option `height=<css-laenge>` steuert die konkrete Zeilenhoehe (Pitch) im Linienraster; Validator-Optionen, Renderer-Ausgabe und Tests wurden synchron angepasst.
 - Answer-Syntax hart umgestellt: statt `:::answer type=...` gelten jetzt dedizierte Blocktypen (`:::lines`, `:::grid`, `:::dots`, `:::space`, `:::table`, `:::numberline`, `:::mc`, `:::cloze`, `:::matching`, `:::wordsearch`); Legacy-Syntax wird als Fehler diagnostiziert.
 - Escape-Verhalten fuer Antwortzeilen erweitert: Escaped-Leerzeichen (`\ `) bleiben beim Rendering als sichtbare Platzhalter erhalten (HTML als Non-Breaking-Spaces), damit Muster wie `(\ \ \ \ )` nicht kollabieren.
 - Marker-Highlighting konsolidiert: Editor und VSCode-Extension verwenden jetzt konsistent `§/%/&` (statt veralteter `$`-Erkennung); Guardrail-Check prueft zusaetzlich auf Marker-Drift in den relevanten Dateien.

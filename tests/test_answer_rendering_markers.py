@@ -114,6 +114,24 @@ def test_lines_answer_preserves_escaped_spaces_as_visible_placeholders():
     assert "(&nbsp;&nbsp;&nbsp;&nbsp;)" in solution_html
 
 
+def test_lines_height_option_sets_css_variable_on_wrapper():
+    options = {"type": "lines", "rows": "2", "height": "2.1em"}
+    content = "A"
+
+    worksheet_html = _render_answer_block(options, content, include_solutions=False)
+
+    assert "--answer-line-pitch:2.1em" in worksheet_html
+
+
+def test_lines_height_option_invalid_value_falls_back_to_default_pitch():
+    options = {"type": "lines", "rows": "2", "height": "auto"}
+    content = "A"
+
+    worksheet_html = _render_answer_block(options, content, include_solutions=False)
+
+    assert "--answer-line-pitch:" not in worksheet_html
+
+
 def test_lines_answer_solution_list_uses_valid_block_wrapper():
     options = {"type": "lines", "rows": "2"}
     content = "% - Punkt eins"

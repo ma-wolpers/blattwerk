@@ -28,6 +28,7 @@ Der Validator prueft Blattwerk-Markdown vor dem Build und liefert stabile Diagno
 - `BL002`: Leerzeichen direkt nach `:::` im Marker (`::: block`) ist ungueltig.
 - `BL003`: Schliessender Marker `:::` ohne passenden offenen Block.
 - `BL004`: Ungueltiger Blockwechsel: Ein neuer `:::`-Block startet, bevor der aktuell offene Block geschlossen wurde; Marker muessen strikt als Oeffnen/Schliessen abwechseln.
+- `BL005`: Abschnittstrenner `---` oder `--` innerhalb eines offenen `:::`-Blocks sind ungueltig; sie sind nur auf Top-Level erlaubt.
 - `OP001`: Unbekannte Option fuer einen bekannten Block.
 - `OP002`: Ungueltiger Wert einer bekannten Option.
 - `AN001`: `answer` ohne Pflichtoption `type`.

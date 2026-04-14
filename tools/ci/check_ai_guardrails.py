@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import json
+import re
 import subprocess
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 GUARDRAIL_RELEVANT_PATHS = {
     "AGENTS.md",
@@ -119,6 +124,178 @@ def _check_marker_token_consistency(errors: list[str]) -> None:
                 )
 
 
+def _load_core_block_and_option_catalogs(errors: list[str]) -> tuple[set[str], set[str]]:
+    """Read canonical block/option catalogs from validator constants."""
+    try:
+        from app.core import blatt_validator as validator
+    except Exception as exc:  # pragma: no cover - defensive guardrail fallback
+        errors.append(f"app/core/blatt_validator.py: import failed for guardrail sync check ({exc})")
+        return set(), set()
+
+    core_block_types = {
+        str(value).strip()
+        for value in getattr(validator, "KNOWN_BLOCK_TYPES", set())
+        if isinstance(value, str) and value.strip() and value.strip() != "raw"
+    }
+
+    core_option_keys: set[str] = set()
+    option_map = getattr(validator, "BLOCK_ALLOWED_OPTIONS", {})
+    if isinstance(option_map, dict):
+        for values in option_map.values():
+            if isinstance(values, set):
+                core_option_keys.update(
+                    str(value).strip()
+                    for value in values
+                    if isinstance(value, str) and value.strip()
+                )
+
+    return core_block_types, core_option_keys
+
+
+def _extract_alternatives(regex_text: str, marker: str) -> set[str]:
+    """Extract alternatives from a regex fragment like :::(?:a|b|c) or :::(a|b|c)."""
+    if not regex_text or marker not in regex_text:
+        return set()
+
+    if marker.endswith("(?:"):
+        close_token = ")"
+    else:
+        close_token = ")"
+
+    start = regex_text.find(marker)
+    if start < 0:
+        return set()
+    start += len(marker)
+    end = regex_text.find(close_token, start)
+    if end < 0:
+        return set()
+
+    return {
+        token.strip()
+        for token in regex_text[start:end].split("|")
+        if token.strip()
+    }
+
+
+def _extract_block_types_from_tm_language(rel_path: str, errors: list[str]) -> tuple[set[str], set[str]]:
+    """Extract block type alternatives from begin and self-closing grammar regexes."""
+    try:
+        payload = json.loads(_read(rel_path))
+    except Exception as exc:
+        errors.append(f"{rel_path}: invalid JSON ({exc})")
+        return set(), set()
+
+    begin_set: set[str] = set()
+    self_closing_set: set[str] = set()
+
+    for pattern in payload.get("patterns", []):
+        if not isinstance(pattern, dict):
+            continue
+        begin_regex = pattern.get("begin")
+        if isinstance(begin_regex, str) and ":::(?:" in begin_regex:
+            begin_set = _extract_alternatives(begin_regex, ":::(?:")
+
+        match_regex = pattern.get("match")
+        if isinstance(match_regex, str) and ":::(?:" in match_regex:
+            self_closing_set = _extract_alternatives(match_regex, ":::(?:")
+
+    if not begin_set:
+        errors.append(f"{rel_path}: could not extract block types from begin regex")
+    if not self_closing_set:
+        errors.append(f"{rel_path}: could not extract block types from self-closing regex")
+
+    return begin_set, self_closing_set
+
+
+def _extract_option_keys_from_tm_language(rel_path: str, errors: list[str]) -> set[str]:
+    """Extract option-key highlighting catalog from tmLanguage option-key regex."""
+    try:
+        payload = json.loads(_read(rel_path))
+    except Exception:
+        return set()
+
+    for pattern in payload.get("patterns", []):
+        if not isinstance(pattern, dict):
+            continue
+        inner_patterns = pattern.get("patterns")
+        if not isinstance(inner_patterns, list):
+            continue
+        for inner in inner_patterns:
+            if not isinstance(inner, dict):
+                continue
+            match_regex = inner.get("match")
+            if not isinstance(match_regex, str):
+                continue
+
+            capture = re.search(r"\\b\(([^)]+)\)\\b\(\?==\)", match_regex)
+            if capture:
+                return {
+                    token.strip()
+                    for token in capture.group(1).split("|")
+                    if token.strip()
+                }
+
+    errors.append(f"{rel_path}: could not extract option-key regex alternatives")
+    return set()
+
+
+def _extract_block_types_from_extension_ts(rel_path: str, errors: list[str]) -> set[str]:
+    """Extract block type alternatives from diagnostics hasDirective regex."""
+    text = _read(rel_path)
+    capture = re.search(r":::\(([^)]+)\)\\b/m", text)
+    if not capture:
+        errors.append(f"{rel_path}: could not extract hasDirective block type regex")
+        return set()
+
+    return {
+        token.strip()
+        for token in capture.group(1).split("|")
+        if token.strip()
+    }
+
+
+def _check_extension_validator_sync(errors: list[str]) -> None:
+    """Ensure validator block/option catalogs stay in sync with extension regex catalogs."""
+    core_block_types, core_option_keys = _load_core_block_and_option_catalogs(errors)
+    if not core_block_types:
+        return
+
+    tm_path = "vscode-extension/blattwerk-language/syntaxes/blattwerk-injection.tmLanguage.json"
+    ts_path = "vscode-extension/blattwerk-language/src/extension.ts"
+
+    begin_blocks, self_closing_blocks = _extract_block_types_from_tm_language(tm_path, errors)
+    ts_blocks = _extract_block_types_from_extension_ts(ts_path, errors)
+    tm_option_keys = _extract_option_keys_from_tm_language(tm_path, errors)
+
+    if begin_blocks and self_closing_blocks and begin_blocks != self_closing_blocks:
+        errors.append(
+            f"{tm_path}: begin/self-closing block catalogs differ -> "
+            f"begin-only={sorted(begin_blocks - self_closing_blocks)}, "
+            f"self-closing-only={sorted(self_closing_blocks - begin_blocks)}"
+        )
+
+    if begin_blocks:
+        missing_in_tm = sorted(core_block_types - begin_blocks)
+        if missing_in_tm:
+            errors.append(
+                f"{tm_path}: missing block types from validator catalog -> {missing_in_tm}"
+            )
+
+    if ts_blocks:
+        missing_in_ts = sorted(core_block_types - ts_blocks)
+        if missing_in_ts:
+            errors.append(
+                f"{ts_path}: missing block types from validator catalog -> {missing_in_ts}"
+            )
+
+    if tm_option_keys:
+        missing_option_keys = sorted(core_option_keys - tm_option_keys)
+        if missing_option_keys:
+            errors.append(
+                f"{tm_path}: missing option keys from validator BLOCK_ALLOWED_OPTIONS -> {missing_option_keys}"
+            )
+
+
 def main() -> int:
     repo_root = _repo_root()
     staged = _staged_files(repo_root)
@@ -163,6 +340,7 @@ def main() -> int:
 
     _check_development_log_updated(staged, errors)
     _check_marker_token_consistency(errors)
+    _check_extension_validator_sync(errors)
 
     if errors:
         print("AI guardrail check failed:")

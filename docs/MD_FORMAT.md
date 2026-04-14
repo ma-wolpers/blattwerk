@@ -182,6 +182,9 @@ Fuer `lines` gilt zusaetzlich:
 - `rows=<n>`
     - Standard: `3`
     - Definiert die Mindestanzahl sichtbarer Linien.
+- `height=<css-laenge>`
+    - Optional, z. B. `2.1em` oder `8mm`.
+    - Steuert die konkrete Linienhoehe (Zeilenraster/Pitch) pro Antwortzeile.
 
 Linienanzahl-Regel (Arbeitsblatt und Loesung):
 - Effektive Linienanzahl = `max(rows, sichtbare Inhaltszeilen)`.
