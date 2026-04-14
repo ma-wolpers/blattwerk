@@ -273,6 +273,17 @@ def test_self_closing_block_inside_open_block_emits_bl004_error():
     assert bl004[0].severity == "error"
 
 
+def test_subtask_after_unclosed_task_gets_follow_block_hint():
+    text = _build_document(":::task\nAufgabe\n:::subtask\nTeilaufgabe\n:::")
+    diagnostics = inspect_markdown_text(text).diagnostics
+    bl004 = [d for d in diagnostics if d.code == "BL004"]
+
+    assert bl004
+    assert bl004[0].severity == "error"
+    assert "Folgeblock" in bl004[0].message
+    assert "zuerst `task` mit `:::` schliessen" in bl004[0].message
+
+
 def test_legacy_answer_block_emits_an008_error():
     text = _build_document(":::answer type=lines\nText\n:::")
     diagnostics = inspect_markdown_text(text).diagnostics

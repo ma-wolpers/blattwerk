@@ -382,7 +382,7 @@ def _extract_validation_content_and_base_line(markdown_text):
 def _collect_block_marker_syntax_diagnostics(content_text, base_line=1):
     """Validate ::: marker syntax directly on source lines."""
     diagnostics = []
-    block_depth = 0
+    block_stack = []
 
     for line_no, raw_line in enumerate((content_text or "").splitlines(), start=1):
         absolute_line_no = max(1, int(base_line) + line_no - 1)
@@ -406,7 +406,7 @@ def _collect_block_marker_syntax_diagnostics(content_text, base_line=1):
             continue
 
         if stripped_line == ":::":
-            if block_depth == 0:
+            if not block_stack:
                 diagnostics.append(
                     BuildDiagnostic(
                         code="BL003",
@@ -419,21 +419,24 @@ def _collect_block_marker_syntax_diagnostics(content_text, base_line=1):
                     )
                 )
             else:
-                block_depth -= 1
+                block_stack.pop()
             continue
 
         self_closing_match = _SELF_CLOSING_BLOCK_PATTERN.match(stripped_line)
         if self_closing_match:
-            if block_depth > 0:
+            if block_stack:
                 nested_type = self_closing_match.group(1)
+                open_type = block_stack[-1]
                 diagnostics.append(
                     BuildDiagnostic(
                         code="BL004",
                         message=(
-                            "Verschachtelter Block in Zeile "
-                            f"{absolute_line_no}: `:::{nested_type} ... :::` innerhalb "
-                            "eines bereits geoeffneten Blocks ist unzulaessig. "
-                            "`:::`-Marker muessen strikt abwechseln (oeffnen, schliessen, ...)."
+                            "Ungueltiger Blockwechsel in Zeile "
+                            f"{absolute_line_no}: `:::{nested_type} ... :::` beginnt, bevor "
+                            f"der geoeffnete Block `:::{open_type}` geschlossen wurde. "
+                            "Blattwerk unterstuetzt keine verschachtelten Bloecke; "
+                            "setze zuerst eine eigene Zeile mit `:::` zum Schliessen des "
+                            "aktuellen Blocks."
                         ),
                         severity="error",
                         line_number=absolute_line_no,
@@ -443,23 +446,32 @@ def _collect_block_marker_syntax_diagnostics(content_text, base_line=1):
 
         start_match = _BLOCK_START_PATTERN.match(stripped_line)
         if start_match:
-            if block_depth > 0:
+            open_type = block_stack[-1] if block_stack else None
+            if block_stack:
                 nested_type = start_match.group(1)
+                follow_block_hint = ""
+                if open_type == "task" and nested_type == "subtask":
+                    follow_block_hint = (
+                        " `subtask` ist ein Folgeblock auf Top-Level: "
+                        "zuerst `task` mit `:::` schliessen, dann `:::subtask` oeffnen."
+                    )
                 diagnostics.append(
                     BuildDiagnostic(
                         code="BL004",
                         message=(
-                            "Verschachtelter Block in Zeile "
-                            f"{absolute_line_no}: `:::{nested_type}` innerhalb eines "
-                            "bereits geoeffneten Blocks ist unzulaessig. "
-                            "`:::`-Marker muessen strikt abwechseln (oeffnen, schliessen, ...)."
+                            "Ungueltiger Blockwechsel in Zeile "
+                            f"{absolute_line_no}: `:::{nested_type}` beginnt, bevor der "
+                            f"geoeffnete Block `:::{open_type}` geschlossen wurde. "
+                            "Blattwerk unterstuetzt keine verschachtelten Bloecke; "
+                            "setze zuerst eine eigene Zeile mit `:::` zum Schliessen des "
+                            f"aktuellen Blocks.{follow_block_hint}"
                         ),
                         severity="error",
                         line_number=absolute_line_no,
                     )
                 )
                 continue
-            block_depth += 1
+            block_stack.append(start_match.group(1))
 
     return diagnostics
 

@@ -9,6 +9,7 @@ The format is based on Keep a Changelog.
 ### Changed
 
 - Validator now rejects nested `:::` blocks: markers must strictly alternate between opening and closing, so constructs like `:::table` inside `:::material` are flagged as errors.
+- BL004 validator messages now explain the actual marker flow error (new block started before closing the current one) and give a dedicated hint for `task` -> `subtask` as top-level follow blocks.
 - Escaped spaces in answer-line content (written as `\ `) are now preserved as visible placeholders in rendered output, so patterns like `(\ \ \ \ )` stay visibly spaced.
 - Marker highlighting now consistently uses `§/%/&` in both the built-in Blattwerk editor and the VS Code language extension; legacy `$` marker highlighting was removed.
 
