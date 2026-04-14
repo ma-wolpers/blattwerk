@@ -38,6 +38,37 @@ from .settings_dialog import SettingsDialog
 class BlattwerkAppPersistenceMixin:
     """Verwaltet Persistenz für Verlauf, Dialogpfade und UI-Einstellungen."""
 
+    @staticmethod
+    def _format_document_tab_title(path_text: str) -> str:
+            """Builds a compact tab title with inline close marker."""
+
+            return f"{Path(path_text).name}  ×"
+
+    def _on_document_notebook_click(self, event=None):
+            """Handles close-clicks on tab title markers."""
+
+            notebook = getattr(self, "document_notebook", None)
+            if notebook is None or event is None:
+                return None
+
+            try:
+                tab_index = notebook.index(f"@{event.x},{event.y}")
+            except Exception:
+                return None
+
+            tabs = notebook.tabs()
+            if tab_index < 0 or tab_index >= len(tabs):
+                return None
+
+            tab_id = tabs[tab_index]
+            x_pos, _y_pos, width, _height = notebook.bbox(tab_index)
+            close_hitbox_start = x_pos + max(0, width - 24)
+            if event.x < close_hitbox_start:
+                return None
+
+            self._close_document_tab(tab_id)
+            return "break"
+
     def _find_open_tab_id_for_path(self, input_path: Path):
             """Returns the notebook tab id for a currently open document path."""
 
@@ -51,7 +82,7 @@ class BlattwerkAppPersistenceMixin:
                 return None
 
             normalized_path = self._normalize_document_path(input_path)
-            tab_title = Path(normalized_path).name
+            tab_title = self._format_document_tab_title(normalized_path)
             container = ttk.Frame(self.document_notebook)
             self.document_notebook.add(container, text=tab_title)
             tab_id = self.document_notebook.tabs()[-1]
@@ -83,13 +114,11 @@ class BlattwerkAppPersistenceMixin:
                 finally:
                     self._editor_loading_content = False
 
-    def close_active_document_tab(self):
-            """Closes the currently selected document tab and restores another tab if available."""
+    def _close_document_tab(self, tab_id: str):
+            """Closes a specific document tab and restores another tab if available."""
 
             if self.document_notebook is None:
                 return
-
-            tab_id = self.document_notebook.select()
             if not tab_id:
                 return
 
@@ -115,6 +144,14 @@ class BlattwerkAppPersistenceMixin:
 
             next_tab_id = remaining_tabs[0]
             self._activate_document_tab(next_tab_id, apply_state=True)
+
+    def close_active_document_tab(self):
+            """Closes the currently selected document tab."""
+
+            if self.document_notebook is None:
+                return
+            tab_id = self.document_notebook.select()
+            self._close_document_tab(tab_id)
 
     def _open_most_recent_not_open_file(self) -> bool:
             """Opens the newest recent file that is not already opened in a tab."""

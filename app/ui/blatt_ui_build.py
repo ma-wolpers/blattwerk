@@ -36,6 +36,18 @@ from ..styles.worksheet_design import (
 
 class BlattwerkAppBuildMixin:
     """Baut die Hauptoberfläche und verdrahtet Preview-Canvas/Controls."""
+    def _refresh_editor_mode_segmented_buttons(self):
+        """Updates segmented area buttons so the active view mode is visually highlighted."""
+
+        buttons = getattr(self, "_editor_mode_segment_buttons", {})
+        if not buttons:
+            return
+
+        active_mode = self.editor_view_mode_var.get()
+        for mode, button in buttons.items():
+            style_name = "SegmentedActive.TButton" if mode == active_mode else "Segmented.TButton"
+            button.configure(style=style_name)
+
     def _build_ui(self):
         """Build ui."""
         outer = ttk.Frame(self.root, padding=12)
@@ -58,45 +70,45 @@ class BlattwerkAppBuildMixin:
         )
         self.export_btn.pack(side="right", padx=(0, 8))
 
-        area_row = ttk.Frame(outer)
+        area_row = ttk.Frame(outer, style="ControlStrip.TFrame", padding=(8, 6))
         area_row.pack(fill="x", pady=(0, 8))
-        ttk.Label(area_row, text="Bereich:", width=16).pack(side="left")
-        ttk.Radiobutton(
-            area_row,
-            text="Vorschau",
-            value=EDITOR_VIEW_PREVIEW_ONLY,
-            variable=self.editor_view_mode_var,
-            command=lambda: self._set_editor_view_mode(EDITOR_VIEW_PREVIEW_ONLY),
-        ).pack(side="left", padx=(8, 0))
-        ttk.Radiobutton(
-            area_row,
-            text="Beides",
-            value=EDITOR_VIEW_BOTH,
-            variable=self.editor_view_mode_var,
-            command=lambda: self._set_editor_view_mode(EDITOR_VIEW_BOTH),
-        ).pack(side="left", padx=(8, 0))
-        ttk.Radiobutton(
-            area_row,
-            text="Schreibbereich",
-            value=EDITOR_VIEW_EDITOR_ONLY,
-            variable=self.editor_view_mode_var,
-            command=lambda: self._set_editor_view_mode(EDITOR_VIEW_EDITOR_ONLY),
-        ).pack(side="left", padx=(8, 0))
+        ttk.Label(area_row, text="Bereich:", width=10, style="ControlStripLabel.TLabel").pack(side="left", padx=(0, 8))
 
-        tab_row = ttk.Frame(outer)
-        tab_row.pack(fill="x", pady=(0, 8))
-        ttk.Label(tab_row, text="Dokumente:", width=16).pack(side="left")
+        segment_group = ttk.Frame(area_row, style="ControlStrip.TFrame")
+        segment_group.pack(side="left")
+        self._editor_mode_segment_buttons = {
+            EDITOR_VIEW_PREVIEW_ONLY: ttk.Button(
+                segment_group,
+                text="Vorschau",
+                style="Segmented.TButton",
+                command=lambda: self._set_editor_view_mode(EDITOR_VIEW_PREVIEW_ONLY),
+            ),
+            EDITOR_VIEW_BOTH: ttk.Button(
+                segment_group,
+                text="Beides",
+                style="Segmented.TButton",
+                command=lambda: self._set_editor_view_mode(EDITOR_VIEW_BOTH),
+            ),
+            EDITOR_VIEW_EDITOR_ONLY: ttk.Button(
+                segment_group,
+                text="Schreibbereich",
+                style="Segmented.TButton",
+                command=lambda: self._set_editor_view_mode(EDITOR_VIEW_EDITOR_ONLY),
+            ),
+        }
+        for button in self._editor_mode_segment_buttons.values():
+            button.pack(side="left", padx=(0, 6))
 
-        self.document_notebook = ttk.Notebook(tab_row)
+        ttk.Separator(area_row, orient="vertical", style="ControlStrip.TSeparator").pack(side="left", fill="y", padx=(10, 10))
+        ttk.Label(area_row, text="Dokumente:", width=10, style="ControlStripLabel.TLabel").pack(side="left", padx=(0, 8))
+
+        self.document_notebook = ttk.Notebook(area_row, style="ControlStrip.TNotebook")
         self.document_notebook.pack(side="left", fill="x", expand=True)
         self.document_notebook.bind("<<NotebookTabChanged>>", self._on_document_tab_changed)
+        self.document_notebook.bind("<ButtonRelease-1>", self._on_document_notebook_click)
 
-        ttk.Button(
-            tab_row,
-            text="Tab schließen",
-            command=self.close_active_document_tab,
-            style="SecondaryAction.TButton",
-        ).pack(side="left", padx=(8, 0))
+        self._refresh_editor_mode_segmented_buttons()
+        self.editor_view_mode_var.trace_add("write", lambda *_args: self._refresh_editor_mode_segmented_buttons())
 
         self.editor_preview_paned = tk.PanedWindow(
             outer,

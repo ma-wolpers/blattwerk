@@ -96,7 +96,7 @@ THEME_ORDER = [
     "obsidian_gold",
 ]
 
-DEFAULT_THEME = "sand_terracotta"
+DEFAULT_THEME = "slate_indigo"
 
 
 def normalize_theme_key(theme_key: str | None = None) -> str:
@@ -295,6 +295,91 @@ def configure_ttk_theme(root: tk.Misc, theme_key: str | None = None):
         "UtilityAction.TButton",
         background=[("active", util_hover_bg), ("pressed", util_hover_bg)],
         foreground=[("active", util_hover_fg), ("pressed", util_hover_fg)],
+    )
+
+    strip_bg = _mix_hex(theme["bg_surface"], theme["accent_soft"], 0.22)
+    strip_border = _mix_hex(theme["border"], theme["accent"], 0.18)
+    segmented_bg = _mix_hex(theme["bg_surface"], theme["accent_soft"], 0.35)
+    segmented_fg = theme["fg_primary"]
+    segmented_active_bg = _mix_hex(theme["accent"], theme["bg_surface"], 0.14)
+    segmented_active_fg = _contrast_text_color(segmented_active_bg)
+    tab_bg = _mix_hex(theme["bg_surface"], theme["accent_soft"], 0.15)
+    tab_selected_bg = _mix_hex(theme["accent"], theme["bg_surface"], 0.12)
+    tab_hover_bg = _mix_hex(theme["accent_soft"], theme["bg_surface"], 0.30)
+
+    style.configure(
+        "ControlStrip.TFrame",
+        background=strip_bg,
+        bordercolor=strip_border,
+        relief="flat",
+    )
+    style.configure(
+        "ControlStripLabel.TLabel",
+        background=strip_bg,
+        foreground=theme["fg_primary"],
+        font=("Segoe UI Semibold", 9),
+    )
+    style.configure(
+        "ControlStrip.TSeparator",
+        background=strip_border,
+    )
+
+    style.configure(
+        "Segmented.TButton",
+        background=segmented_bg,
+        foreground=segmented_fg,
+        bordercolor=strip_border,
+        lightcolor=strip_border,
+        darkcolor=strip_border,
+        padding=(12, 5),
+        relief="flat",
+        font=("Segoe UI", 9),
+    )
+    style.map(
+        "Segmented.TButton",
+        background=[("active", tab_hover_bg), ("pressed", tab_hover_bg)],
+        foreground=[("active", theme["fg_primary"]), ("pressed", theme["fg_primary"])],
+    )
+
+    style.configure(
+        "SegmentedActive.TButton",
+        background=segmented_active_bg,
+        foreground=segmented_active_fg,
+        bordercolor=theme["accent"],
+        lightcolor=theme["accent"],
+        darkcolor=theme["accent"],
+        padding=(12, 5),
+        relief="flat",
+        font=("Segoe UI Semibold", 9),
+    )
+    style.map(
+        "SegmentedActive.TButton",
+        background=[("active", primary_hover_bg), ("pressed", primary_hover_bg)],
+        foreground=[("active", primary_hover_fg), ("pressed", primary_hover_fg)],
+    )
+
+    style.configure(
+        "ControlStrip.TNotebook",
+        background=strip_bg,
+        bordercolor=strip_border,
+        lightcolor=strip_border,
+        darkcolor=strip_border,
+        tabmargins=(0, 0, 0, 0),
+    )
+    style.configure(
+        "ControlStrip.TNotebook.Tab",
+        background=tab_bg,
+        foreground=theme["fg_muted"],
+        bordercolor=strip_border,
+        lightcolor=strip_border,
+        darkcolor=strip_border,
+        padding=(12, 5),
+        font=("Segoe UI", 9),
+    )
+    style.map(
+        "ControlStrip.TNotebook.Tab",
+        background=[("selected", tab_selected_bg), ("active", tab_hover_bg)],
+        foreground=[("selected", theme["fg_primary"]), ("active", theme["fg_primary"])],
     )
 
 

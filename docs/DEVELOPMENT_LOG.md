@@ -9,11 +9,9 @@ Regel:
 ## [Unreleased]
 
 ### Changed
-- Editor-Sync bei Fokus/Tab-Wechsel ergaenzt: vor dem Weiterarbeiten wird der aktuelle Dateistand (mtime in ns) mit einem gespeicherten Snapshot abgeglichen; bei externer Aenderung wird automatisch nachgeladen oder im Konfliktfall ein Modal mit `Verwerfen`/`Ueberschreiben` gezeigt.
-- Editorzustand um explizites Unsaved-Tracking erweitert (`_editor_has_unsaved_changes`), weil der Tk-Modified-Flag fuer Debounce-Speichern sofort zurueckgesetzt wird und sonst Konflikte mit externen Dateiaenderungen nicht zuverlaessig erkannt werden.
-- Vorschau-/Editor-Workflow auf dokumentorientierte Tab-Leiste erweitert: mehrere Markdown-Dateien koennen gleichzeitig offen sein und beim Tab-Wechsel werden Format-/Gestaltungs- sowie Vorschaueinstellungen pro Dokument isoliert wiederhergestellt.
-- Tab-Wechsel stellt nun auch den Ansichtszustand pro Dokument wieder her (Zoom, aktive Seite, vertikale/horizontale Scrollposition).
-- Vorschau-Pipeline um tab-lokalen Cache erweitert: bei unveraenderter Datei und unveraenderten Render-Optionen wird beim Tab-Wechsel aus Cache geladen statt sofort neu zu kompilieren.
+- Steuerzeile modernisiert: Bereichsauswahl und Dokument-Tabs stehen jetzt in einer gemeinsamen Leiste; die Bereichsauswahl nutzt ein segmentiertes Chip-Design statt klassischer Legacy-Radiobutton-Anmutung.
+- Tab-Interaktion verbessert: Tabs zeigen ein kleines Schließen-"×" direkt im Tabtitel; Schließen erfolgt per Klick auf den Marker statt über separate Schaltfläche.
+- Theme-Standards modernisiert: Standard-Theme auf `slate_indigo` gesetzt und neue Styles für Control-Strip, Segmente und Notebook-Tabs eingeführt, um braunlastige Legacy-Wirkung zu vermeiden.
 - Oeffnen-Pfade (Dateidialog, Recent-Menue, Shortcut `Z`) auf zentralen Dokument-Dispatcher umgestellt; bereits geoeffnete Dateien werden nicht doppelt geoeffnet, melden stattdessen "ist schon offen" und fokussieren den vorhandenen Tab.
 - `Z` oeffnet jetzt das juengste noch nicht geoeffnete Markdown aus der Recent-Liste und ueberspringt bereits offene Eintraege.
 - Vorschau-Headerzeilen "Blattwerk Vorschau" und "Markdown laden, Vorschau pruefen, danach gezielt exportieren." aus dem Vorschaubereich entfernt; Fenstertitel lautet nun "Blattwerk".

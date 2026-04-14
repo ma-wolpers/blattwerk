@@ -8,6 +8,10 @@ The format is based on Keep a Changelog.
 
 ### Changed
 - Beim Fokus auf den Schreibbereich (und beim Tab-Wechsel) gleicht Blattwerk den Editor jetzt zuerst mit der Quelldatei ab: externe Dateiaenderungen werden automatisch uebernommen, und bei Konflikten mit lokalen ungespeicherten Aenderungen erscheint ein Dialog mit den Optionen `Verwerfen` oder `Ueberschreiben` inklusive Altersanzeige der externen Aenderung.
+- Bereichsauswahl und Dokument-Tabs teilen jetzt eine gemeinsame obere Steuerzeile fuer ein kompakteres, moderneres Layout.
+- Bereichsumschaltung (Vorschau/Beides/Schreibbereich) wurde visuell als segmentierte Auswahl modernisiert.
+- Tabs zeigen jetzt ein kleines `×` direkt im Tabtitel und lassen sich darueber direkt schließen.
+- Default theme is now `slate_indigo`, reducing the previous brown-heavy look in the default UI.
 - Blattwerk now supports multiple open markdown documents via tabs in the main window, with per-document preview settings (for example task/solution mode, DIN format, contrast, and design profile) restored on tab switch.
 - Tab switches now also restore per-document view position (zoom level, active page, horizontal/vertical scroll position).
 - Preview switching between tabs now reuses cached preview pages when the source file and render options are unchanged, avoiding unnecessary recompilation.
