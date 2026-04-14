@@ -44,3 +44,14 @@ def test_invalid_unclosed_inline_marker_is_reported():
 def test_effective_empty_detects_marker_only_lines():
     content = "§{}\n   &{}   \n%{}"
     assert is_effectively_empty_answer_content(content)
+
+
+def test_escaped_space_placeholders_are_kept_visible_in_filtered_text():
+    content = "(\\ \\ \\ \\ )"
+
+    worksheet = filter_answer_content_for_mode(content, include_solutions=False)
+    solution = filter_answer_content_for_mode(content, include_solutions=True)
+
+    assert worksheet == "(    )"
+    assert solution == "(    )"
+    assert not is_effectively_empty_answer_content(content)

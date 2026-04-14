@@ -103,6 +103,17 @@ def test_lines_answer_renders_inline_markdown_bold():
     assert "<strong>E</strong>" in solution_html
 
 
+def test_lines_answer_preserves_escaped_spaces_as_visible_placeholders():
+    options = {"type": "lines", "rows": "1"}
+    content = "(\\ \\ \\ \\ )"
+
+    worksheet_html = _render_answer_block(options, content, include_solutions=False)
+    solution_html = _render_answer_block(options, content, include_solutions=True)
+
+    assert "(&nbsp;&nbsp;&nbsp;&nbsp;)" in worksheet_html
+    assert "(&nbsp;&nbsp;&nbsp;&nbsp;)" in solution_html
+
+
 def test_lines_answer_solution_list_uses_valid_block_wrapper():
     options = {"type": "lines", "rows": "2"}
     content = "% - Punkt eins"

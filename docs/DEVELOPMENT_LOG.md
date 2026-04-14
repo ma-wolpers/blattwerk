@@ -10,6 +10,7 @@ Regel:
 
 ### Changed
 - Answer-Syntax hart umgestellt: statt `:::answer type=...` gelten jetzt dedizierte Blocktypen (`:::lines`, `:::grid`, `:::dots`, `:::space`, `:::table`, `:::numberline`, `:::mc`, `:::cloze`, `:::matching`, `:::wordsearch`); Legacy-Syntax wird als Fehler diagnostiziert.
+- Escape-Verhalten fuer Antwortzeilen erweitert: Escaped-Leerzeichen (`\ `) bleiben beim Rendering als sichtbare Platzhalter erhalten (HTML als Non-Breaking-Spaces), damit Muster wie `(\ \ \ \ )` nicht kollabieren.
 - Validator auf blocktyp-spezifische Key-Mengen umgestellt; `type=` ist in dedizierten Antwort-Blocktypen unzulaessig und wird als Fehler diagnostiziert.
 - Render-Wiring umgestellt: Dispatch fuer Antwortflaechen erfolgt direkt ueber den Blocktyp statt ueber `answer type`.
 - Migrationswerkzeug `tools/migrate_answer_blocks.py` hinzugefuegt (Dry-Run/Write/Report) und Beispiele auf dedizierte Blocktypen migriert.

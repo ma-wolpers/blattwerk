@@ -14,6 +14,7 @@ MARKER_SHOW_MODE = {
 }
 
 MARKER_TOKEN_PATTERN = "§%&"
+_ESCAPED_SPACE_TOKEN = "\ufff0"
 
 
 def _new_segment(text, show_mode):
@@ -21,6 +22,14 @@ def _new_segment(text, show_mode):
         "text": text,
         "show": show_mode,
     }
+
+
+def _decode_escaped_space_tokens(text, html=False):
+    if not text:
+        return text
+
+    replacement = "&nbsp;" if html else " "
+    return text.replace(_ESCAPED_SPACE_TOKEN, replacement)
 
 
 def _extract_leading_line_marker(line):
@@ -66,7 +75,11 @@ def parse_answer_line_visibility(raw_line, default_show="both"):
         char = line[index]
 
         if char == "\\" and index + 1 < len(line):
-            plain_buffer.append(line[index + 1])
+            escaped_char = line[index + 1]
+            if escaped_char == " ":
+                plain_buffer.append(_ESCAPED_SPACE_TOKEN)
+            else:
+                plain_buffer.append(escaped_char)
             index += 2
             continue
 
@@ -88,7 +101,11 @@ def parse_answer_line_visibility(raw_line, default_show="both"):
             while index < len(line):
                 marker_char_current = line[index]
                 if marker_char_current == "\\" and index + 1 < len(line):
-                    marker_buffer.append(line[index + 1])
+                    escaped_char = line[index + 1]
+                    if escaped_char == " ":
+                        marker_buffer.append(_ESCAPED_SPACE_TOKEN)
+                    else:
+                        marker_buffer.append(escaped_char)
                     index += 2
                     continue
                 if marker_char_current == "}":
@@ -148,7 +165,8 @@ def _render_inline_markdown_fragment(text):
     if paragraph_match:
         rendered = paragraph_match.group(1)
 
-    return (" " * leading_spaces) + rendered + (" " * trailing_spaces)
+    with_ascii_spaces = (" " * leading_spaces) + rendered + (" " * trailing_spaces)
+    return _decode_escaped_space_tokens(with_ascii_spaces, html=True)
 
 
 def _looks_like_block_html(fragment_html):
@@ -225,7 +243,7 @@ def filter_answer_content_for_mode(content, include_solutions, default_show="bot
             )
         )
         if visible_line.strip():
-            selected_lines.append(visible_line)
+            selected_lines.append(_decode_escaped_space_tokens(visible_line))
 
     return "\n".join(selected_lines).strip()
 

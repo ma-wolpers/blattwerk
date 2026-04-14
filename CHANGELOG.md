@@ -9,6 +9,7 @@ The format is based on Keep a Changelog.
 ### Changed
 
 - Validator now rejects nested `:::` blocks: markers must strictly alternate between opening and closing, so constructs like `:::table` inside `:::material` are flagged as errors.
+- Escaped spaces in answer-line content (written as `\ `) are now preserved as visible placeholders in rendered output, so patterns like `(\ \ \ \ )` stay visibly spaced.
 
 ## [0.2.0] - 2026-04-14
 

@@ -191,6 +191,7 @@ Linienanzahl-Regel (Arbeitsblatt und Loesung):
 Markdown auf Linien:
 - Markdown (z. B. `**fett**`, Listen) ist in `lines` erlaubt.
 - Zeilenabstaende und Linienraster sind auf denselben vertikalen Takt gekoppelt, damit explizite Newlines und Soft-Wraps geometrisch konsistent bleiben.
+- Escaped-Leerzeichen (`\ `) bleiben als sichtbare Platzhalter erhalten (z. B. `(\ \ \ \ )` fuer Klammer-Luecken).
 
 #### Grid-Optionen
 
