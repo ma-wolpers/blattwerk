@@ -8,6 +8,7 @@ The format is based on Keep a Changelog.
 
 ### Changed
 
+- Validator now reports `BL005` when section separators (`---` or `--`) are used inside an open `:::` block; separators are only allowed at top level.
 - VS Code grammar highlighting for Blattwerk block options is now synchronized with the core validator option catalog (including keys like `axis_label_x`, `height_mode`, `words_multi`, `worksheet_matches`, and `show_guides`).
 - CI/local guardrails now enforce sync between core validator block/option catalogs and VS Code extension regex catalogs to prevent future drift.
 - `lines` answer blocks now support `height=<css-length>` to control concrete line pitch per response row (for example `height=2.1em` or `height=8mm`).
