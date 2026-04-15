@@ -81,3 +81,64 @@ def test_render_html_respects_frontmatter_mode_in_both_output_modes():
     assert "- Einzelarbeit" not in solution_html
     assert "title='lesen'" in worksheet_html
     assert "title='lesen'" in solution_html
+
+
+def test_task_content_supports_marker_visibility_by_output_mode():
+    content = "§ Nur Arbeitsblatt\n% Nur Loesung\nIn beiden"
+    options = {"work": "single", "_show_task_label": "1"}
+
+    worksheet_html = render_block(
+        "task",
+        options,
+        content,
+        include_solutions=False,
+        document_mode="ws",
+    )
+    solution_html = render_block(
+        "task",
+        options,
+        content,
+        include_solutions=True,
+        document_mode="ws",
+    )
+
+    assert "Nur Arbeitsblatt" in worksheet_html
+    assert "Nur Loesung" not in worksheet_html
+    assert "In beiden" in worksheet_html
+
+    assert "Nur Arbeitsblatt" not in solution_html
+    assert "Nur Loesung" in solution_html
+    assert "In beiden" in solution_html
+
+
+def test_subtask_content_supports_marker_visibility_by_output_mode():
+    options = {
+        "work": "partner",
+        "_parent_work": "single",
+        "_subtask_index": "0",
+        "_subtask_total": "1",
+    }
+    content = "§ Nur Arbeitsblatt\n% Nur Loesung\nIn beiden"
+
+    worksheet_html = render_block(
+        "subtask",
+        options,
+        content,
+        include_solutions=False,
+        document_mode="ws",
+    )
+    solution_html = render_block(
+        "subtask",
+        options,
+        content,
+        include_solutions=True,
+        document_mode="ws",
+    )
+
+    assert "Nur Arbeitsblatt" in worksheet_html
+    assert "Nur Loesung" not in worksheet_html
+    assert "In beiden" in worksheet_html
+
+    assert "Nur Arbeitsblatt" not in solution_html
+    assert "Nur Loesung" in solution_html
+    assert "In beiden" in solution_html

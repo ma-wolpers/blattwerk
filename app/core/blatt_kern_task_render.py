@@ -13,6 +13,7 @@ from .blatt_kern_shared import (
     normalize_markdown,
     should_render_block,
 )
+from .answer_line_markers import filter_answer_content_for_mode
 from .blatt_kern_answer_table import _render_answer_block
 
 
@@ -59,6 +60,7 @@ def render_block(
             md,
             options,
             normalized_content,
+            include_solutions=include_solutions,
             document_mode=document_mode,
         )
 
@@ -85,6 +87,7 @@ def render_block(
             parent_work_info,
             parent_action_info,
             document_mode=document_mode,
+            include_solutions=include_solutions,
         )
 
     if block_type == "solution":
@@ -140,6 +143,7 @@ def _render_subtask_block(
     parent_work_info,
     parent_action_info,
     document_mode,
+    include_solutions,
 ):
     """Rendert eine einzelne Teilaufgabe innerhalb eines Task-Blocks."""
     subtask_work_info = None
@@ -169,19 +173,39 @@ def _render_subtask_block(
         if symbols:
             symbols_html = f"<span class='subtask-symbols'>{symbols}</span>"
 
-    body_html = (
-        md.convert(normalize_markdown(content)) if (content or "").strip() else ""
+    filtered_content = filter_answer_content_for_mode(
+        content,
+        include_solutions=include_solutions,
+        default_show="both",
     )
+    body_html = md.convert(normalize_markdown(filtered_content)) if filtered_content.strip() else ""
     return f"<div class='subtask'>{prefix_html}{symbols_html}<div class='subtask-content'>{body_html}</div></div>"
 
 
-def _render_task_content(md, normalized_content, task_work_info, task_action_info):
+def _render_task_content(
+    md,
+    content,
+    include_solutions,
+    task_work_info,
+    task_action_info,
+):
     """Rendert den Task-Text als normales Markdown."""
     del task_work_info, task_action_info
-    return md.convert(normalize_markdown(normalized_content))
+    filtered_content = filter_answer_content_for_mode(
+        content,
+        include_solutions=include_solutions,
+        default_show="both",
+    )
+    return md.convert(normalize_markdown(filtered_content))
 
 
-def _render_task_block(md, options, normalized_content, document_mode):
+def _render_task_block(
+    md,
+    options,
+    normalized_content,
+    include_solutions,
+    document_mode,
+):
     """Rendert Aufgabenkopf und Aufgabeninhalt."""
     task_id = options.get("_auto_number")
     points = options.get("points")
@@ -207,6 +231,10 @@ def _render_task_block(md, options, normalized_content, document_mode):
         header += f"<span class='task-points'>{points} P</span>"
     header += "</div>"
     task_body = _render_task_content(
-        md, normalized_content, task_work_info, task_action_info
+        md,
+        normalized_content,
+        include_solutions=include_solutions,
+        task_work_info=task_work_info,
+        task_action_info=task_action_info,
     )
     return f"<div class='task'>{header}{task_body}</div>"

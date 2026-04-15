@@ -8,6 +8,7 @@ The format is based on Keep a Changelog.
 
 ### Changed
 
+- `task`- und `subtask`-Inhalte unterstuetzen jetzt ebenfalls Marker-Visibility mit `§/%/&` auf Zeilenebene; ohne Marker bleiben Inhalte standardmaessig in Arbeitsblatt und Loesung sichtbar.
 - Validator now reports `BL005` when section separators (`---` or `--`) are used inside an open `:::` block; separators are only allowed at top level.
 - VS Code grammar highlighting for Blattwerk block options is now synchronized with the core validator option catalog (including keys like `axis_label_x`, `height_mode`, `words_multi`, `worksheet_matches`, and `show_guides`).
 - CI/local guardrails now enforce sync between core validator block/option catalogs and VS Code extension regex catalogs to prevent future drift.

@@ -9,6 +9,7 @@ Regel:
 ## [Unreleased]
 
 ### Changed
+- Task-/Subtask-Rendering erweitert: Inhalte in `:::task` und `:::subtask` werden jetzt markerbasiert (`§/%/&`) nach Ausgabeziel (Arbeitsblatt vs. Loesung) gefiltert; ohne Marker bleibt der Default `both` (sichtbar in beiden Modi).
 - Validator-Syntaxregel erweitert: Abschnittstrenner `---` und `--` innerhalb offener `:::`-Bloecke werden jetzt als Fehler `BL005` diagnostiziert (Trenner nur auf Top-Level erlaubt).
 - Guardrail-Check erweitert: `tools/ci/check_ai_guardrails.py` prueft jetzt die Synchronitaet zwischen Core-Validator (`KNOWN_BLOCK_TYPES`/`BLOCK_ALLOWED_OPTIONS`) und VSCode-Extension-RegExen (Blocktypen + Option-Keys).
 - VSCode-Extension-Grammatik synchronisiert: fehlende Option-Keys aus dem Core (u. a. `axis_label_x`, `height_mode`, `words_multi`, `worksheet_matches`, `show_guides`) werden jetzt als Blockparameter hervorgehoben.
