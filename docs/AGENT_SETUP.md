@@ -21,6 +21,7 @@ Bei Widerspruechen gilt docs/GRAMMAR.md vor docs/MD_FORMAT.md.
 4. YAML-basierte answer-Typen nur mit gueltigem Mapping-YAML-Inhalt fuellen.
 5. Falls Anforderungen unklar sind, nicht raten: konkrete Rueckfrage stellen.
 6. Punkte nur angeben, wenn vom Nutzer explizit gewuenscht *oder* bei Klausuren / Tests / LZKs (Lernzielkontrollen).
+7. Wenn explizite `§`-Marker fuer nur im Arbeitsblatt sichtbare Inhalte gesetzt werden, immer gegenpruefen, dass fuer denselben Aufgabenteil auch eine sichtbare Loesung vorhanden ist, typischerweise mit `%`-Marker oder einer blockeigenen Loesungsdarstellung.
 
 ## Pflicht-Validierung nach Aenderungen
 

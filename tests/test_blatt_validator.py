@@ -53,6 +53,34 @@ def test_non_empty_answer_without_marker_conflict_has_no_new_warnings():
     assert "AN006" not in codes
 
 
+def test_task_with_worksheet_marker_without_solution_emits_an010_warning():
+    text = _build_document(":::task\n§ Nur Arbeitsblatt\n:::")
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+    assert "AN010" in codes
+
+
+def test_task_with_matching_solution_marker_has_no_an010_warning():
+    text = _build_document(":::task\n§ Nur Arbeitsblatt\n% Musterloesung\n:::")
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+    assert "AN010" not in codes
+
+
+def test_answer_block_with_worksheet_marker_without_solution_emits_an010_warning():
+    text = _build_document(":::lines\n§ Nur Arbeitsblatt\n:::")
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+    assert "AN010" in codes
+
+
+def test_answer_block_with_matching_solution_marker_has_no_an010_warning():
+    text = _build_document(":::lines\n§ Nur Arbeitsblatt\n% Musterloesung\n:::")
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+    assert "AN010" not in codes
+
+
 def test_matching_new_options_are_allowed_without_op001():
     text = _build_document(
         ":::matching height_mode=uniform align=center scale=0.4cm "

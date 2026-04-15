@@ -8,6 +8,7 @@ The format is based on Keep a Changelog.
 
 ### Changed
 
+- Blattwerker prueft jetzt auch auf Aufgaben-/Antwortinhalte mit explizitem `§` ohne sichtbares Loesungs-Gegenstueck; solche Stellen werden als Validator-Warnung `AN010` markiert und in den Agent-Regeln abgesichert.
 - Lernhilfen rendern ihren abgeleiteten oder lokal gesetzten Tag jetzt auch direkt in der Kartenueberschrift als `Tag - Titel`.
 - `task` blocks now support `title=...`; worksheet headers render this as `Aufgabe N - Titel` before the work-mode hint (ea/pa/...).
 - Worksheet rendering now adds right-aligned Lernhilfe references on the preceding `task`/`subtask` block and derives labels automatically from an optional frontmatter `tag` (for example `→ 1A`, `→ Lernhilfen 1A, 1B`, or `→ Lernhilfen TAG1, TAG2`).

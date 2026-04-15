@@ -11,6 +11,7 @@ import yaml
 from .answer_line_markers import (
     collect_answer_marker_conflict_lines,
     is_effectively_empty_answer_content,
+    parse_answer_line_visibility,
 )
 from .blatt_kern_shared import parse_blocks, split_front_matter
 
@@ -572,6 +573,33 @@ def _validate_payload_show_markers(diagnostics, block_index, answer_type, parsed
                 )
 
 
+def _has_explicit_worksheet_marker_without_solution(content):
+    """Return true when content uses `§` markers but no explicit solution content."""
+    has_worksheet_marker = False
+    has_solution_marker = False
+
+    for raw_line in str(content or "").splitlines():
+        if not raw_line.strip():
+            continue
+
+        parsed = parse_answer_line_visibility(raw_line, default_show="both")
+        for segment in parsed.get("segments", []):
+            segment_text = str(segment.get("text", "")).strip()
+            if not segment_text:
+                continue
+
+            segment_show = segment.get("show")
+            if segment_show == "worksheet":
+                has_worksheet_marker = True
+            elif segment_show == "solution":
+                has_solution_marker = True
+
+            if has_worksheet_marker and has_solution_marker:
+                return False
+
+    return has_worksheet_marker and not has_solution_marker
+
+
 def _collect_document_diagnostics(meta, blocks, content_text, content_base_line=1):
     diagnostics = _collect_block_marker_syntax_diagnostics(
         content_text, base_line=content_base_line
@@ -737,6 +765,24 @@ def _collect_document_diagnostics(meta, blocks, content_text, content_base_line=
                     option_value,
                     KNOWN_HINT_VALUES,
                 )
+
+        if block_type in {"task", "subtask"} and _has_explicit_worksheet_marker_without_solution(
+            content
+        ):
+            diagnostics.append(
+                BuildDiagnostic(
+                    code="AN010",
+                    message=(
+                        f"Block `{block_type}` nutzt `§`-Marker ohne sichtbares "
+                        "Loesungs-Gegenstueck. Pruefe, ob zu jedem nur im "
+                        "Arbeitsblatt sichtbaren Aufgabenteil auch eine explizite "
+                        "Loesung vorhanden ist (z. B. mit `%`-Marker)."
+                    ),
+                    block_index=index,
+                    block_type=block_type,
+                )
+            )
+
         if block_type not in ANSWER_BLOCK_TYPES:
             continue
 
@@ -769,6 +815,21 @@ def _collect_document_diagnostics(meta, blocks, content_text, content_base_line=
                         "Answer-Zeilen mit ungueltiger §/%/&-Token-Syntax gefunden "
                         f"(Zeilen: {preview}{remainder_text}). "
                         "Bitte Marker als §{...}, %{...} oder &{...} schliessen."
+                    ),
+                    block_index=index,
+                    block_type=block_type,
+                )
+            )
+
+        if _has_explicit_worksheet_marker_without_solution(content):
+            diagnostics.append(
+                BuildDiagnostic(
+                    code="AN010",
+                    message=(
+                        f"Block `{block_type}` nutzt `§`-Marker ohne sichtbares "
+                        "Loesungs-Gegenstueck. Pruefe, ob zu jedem nur im "
+                        "Arbeitsblatt sichtbaren Aufgabenteil auch eine explizite "
+                        "Loesung vorhanden ist (z. B. mit `%`-Marker)."
                     ),
                     block_index=index,
                     block_type=block_type,

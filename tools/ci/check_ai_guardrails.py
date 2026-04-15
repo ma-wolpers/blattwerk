@@ -14,13 +14,20 @@ if str(ROOT) not in sys.path:
 GUARDRAIL_RELEVANT_PATHS = {
     "AGENTS.md",
     ".github/copilot-instructions.md",
+    ".github/agents/Blattwerker.agent.md",
     ".github/pull_request_template.md",
     "docs/ARCHITEKTUR.md",
     "docs/ARCHITEKTUR_EINFACH.md",
+    "docs/AGENT_SETUP.md",
     "docs/DEVELOPMENT_LOG.md",
+    "docs/VALIDATOR.md",
     "CHANGELOG.md",
     "tools/ci/check_ai_guardrails.py",
 }
+
+BLAETTWERKER_SOLUTION_RULE = (
+    "auch eine sichtbare Loesung vorhanden ist"
+)
 
 
 def _repo_root() -> Path:
@@ -296,6 +303,23 @@ def _check_extension_validator_sync(errors: list[str]) -> None:
             )
 
 
+def _check_blattwerker_solution_rule(errors: list[str]) -> None:
+    """Ensure Blattwerker docs keep the worksheet/solution pairing rule."""
+    for rel_path in (
+        ".github/agents/Blattwerker.agent.md",
+        "docs/AGENT_SETUP.md",
+    ):
+        _require_substring(
+            _read(rel_path),
+            BLAETTWERKER_SOLUTION_RULE,
+            rel_path,
+            errors,
+        )
+
+    validator_doc = _read("docs/VALIDATOR.md")
+    _require_substring(validator_doc, "AN010", "docs/VALIDATOR.md", errors)
+
+
 def main() -> int:
     repo_root = _repo_root()
     staged = _staged_files(repo_root)
@@ -341,6 +365,7 @@ def main() -> int:
     _check_development_log_updated(staged, errors)
     _check_marker_token_consistency(errors)
     _check_extension_validator_sync(errors)
+    _check_blattwerker_solution_rule(errors)
 
     if errors:
         print("AI guardrail check failed:")

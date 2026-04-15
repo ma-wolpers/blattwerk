@@ -9,6 +9,7 @@ Regel:
 ## [Unreleased]
 
 ### Changed
+- Validator und Blattwerker-Guardrails erweitert: markerbasierte Inhalte mit explizitem `§` ohne sichtbares Loesungs-Gegenstueck erzeugen jetzt `AN010`; zusaetzlich ist die Pruefregel in den Blattwerker-Agentvorgaben und im lokalen/CI-Guardrail verankert.
 - Lernhilfen-Kartenkopf erweitert: die sichtbare Kartenueberschrift verwendet jetzt dieselbe Labelableitung wie die Task-Verweise und rendert Tags als `Tag - Titel`, inklusive lokaler `help tag=...`-Overrides.
 - Task-Header erweitert: `:::task` unterstuetzt jetzt `title=...`; die Kopfzeile rendert `Aufgabe N - Titel` und zeigt den Titel links vor dem Arbeitsmodus-Hinweis.
 - Validator-Katalog fuer Task-Optionen erweitert: `title` ist als gueltiger Task-Key freigeschaltet (kein `OP001` mehr fuer `task title=...`).

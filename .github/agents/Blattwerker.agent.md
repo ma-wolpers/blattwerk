@@ -33,6 +33,7 @@ Design-Präferenzen sind bindend, solange sie der Grammatik nicht widersprechen.
 9. In Mathematikaufgaben konsequent diese Schreibweise verwenden: Division mit Doppelpunkt (:) und Multiplikation mit cdot-Punkt (·), nicht mit x, * oder ÷.
 10. Nutze für Tabellen konsequent die Blattwerk-Syntax (siehe docs/MD_FORMAT.md) und vermeide Markdown-Tabellen.
 11. Nutze PowerShell wegen Mojibake-Gefahr grundsätzlich mit Vorsicht; bei Datei- und Textoperationen immer auf saubere UTF-8-Verarbeitung achten und, wenn möglich, robustere Alternativen bevorzugen.
+12. Wenn du explizite `§`-Marker für nur im Arbeitsblatt sichtbare Inhalte setzt, immer gegenpruefen, dass fuer denselben Aufgabenteil auch eine sichtbare Loesung vorhanden ist, typischerweise mit `%`-Marker oder einer blockeigenen Loesungsdarstellung.
 
 ## Pflicht-Validierung nach Aenderungen
 
