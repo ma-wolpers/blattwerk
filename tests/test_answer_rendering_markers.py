@@ -234,6 +234,30 @@ def test_grid_fallback_solution_text_is_only_rendered_in_solution_mode():
     assert "Nur Loesungstext" in solution_html
 
 
+def test_grid_plain_marker_text_renders_in_worksheet_mode():
+    options = {"type": "grid", "rows": "4", "cols": "4"}
+    content = "§ Starthilfe\n% Nur Loesung\n"
+
+    worksheet_html = _render_answer_block(options, content, include_solutions=False)
+    solution_html = _render_answer_block(options, content, include_solutions=True)
+
+    assert "Starthilfe" in worksheet_html
+    assert "Nur Loesung" not in worksheet_html
+    assert "Starthilfe" not in solution_html
+    assert "Nur Loesung" in solution_html
+
+
+def test_grid_plain_unmarked_text_renders_in_both_modes():
+    options = {"type": "grid", "rows": "4", "cols": "4"}
+    content = "Leitfrage"
+
+    worksheet_html = _render_answer_block(options, content, include_solutions=False)
+    solution_html = _render_answer_block(options, content, include_solutions=True)
+
+    assert "Leitfrage" in worksheet_html
+    assert "Leitfrage" in solution_html
+
+
 def test_numberline_fallback_solution_key_is_only_rendered_in_solution_mode():
     options = {"type": "numberline", "min": "0", "max": "5"}
     content = "solution: 'Skizze mit Begruendung'\n"

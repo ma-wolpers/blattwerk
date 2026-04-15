@@ -60,6 +60,11 @@ def render_grid_answer(options, content, include_solutions, render_solution_text
     else:
         solution_text_html = ""
 
+    # Plain marker text inside `:::grid` should still render as overlay text.
+    # Structured YAML payloads (points/functions/...) stay source-only and are not echoed.
+    if not solution_text_html and not payload and (content or "").strip():
+        solution_text_html = render_solution_text(content, include_solutions)
+
     overlay_parts = []
     if primitives_svg:
         overlay_parts.append(primitives_svg)
