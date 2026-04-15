@@ -95,7 +95,7 @@ def test_grid_axis_origin_outside_grid_clamps_visual_axis_only():
     assert "<line class='grid-axis' x1='0' y1='10.0000' x2='10.0000' y2='10.0000' />" in html
     assert "<line class='grid-axis' x1='0.0000' y1='0' x2='0.0000' y2='10.0000' />" in html
     assert ">3</text>" in html
-    assert ">-14</text>" in html
+    assert ">14</text>" in html
 
 
 def test_grid_axis_positive_y_points_upward():

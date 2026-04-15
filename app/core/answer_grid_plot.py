@@ -356,7 +356,7 @@ def _render_axis_ticks_and_labels(
             gy, rows
         ):
             tick_markup.append(
-                f"<text class='grid-axis-label grid-axis-label-y' x='{axis_origin_x - 0.28:.4f}' y='{gy + 0.04:.4f}'>{_format_axis_label(logical_y)}</text>"
+                f"<text class='grid-axis-label grid-axis-label-y' x='{axis_origin_x - 0.28:.4f}' y='{gy + 0.04:.4f}'>{_format_axis_label(-logical_y)}</text>"
             )
 
     return tick_markup
