@@ -295,6 +295,13 @@ h1 {
     font-weight: normal;
 }
 
+.task-help-reference {
+    color: var(--task-hint-color);
+    font-size: 0.9em;
+    font-weight: normal;
+    white-space: nowrap;
+}
+
 .task-points {
     white-space: nowrap;
     flex-shrink: 0;
@@ -311,7 +318,7 @@ h1 {
 
 .subtask {
     display: grid;
-    grid-template-columns: auto auto 1fr;
+    grid-template-columns: auto auto 1fr auto;
     align-items: start;
     column-gap: 0.35em;
     margin: 1em 0 0.35em 1.4em;
@@ -335,6 +342,12 @@ h1 {
 
 .subtask-content > *:last-child {
     margin-bottom: 0;
+}
+
+.subtask-help-reference {
+    justify-self: end;
+    align-self: start;
+    margin-top: 0.05em;
 }
 
 .answer {

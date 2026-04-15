@@ -66,6 +66,46 @@ HELP_BLOCK_TYPES = {"help", "hilfe"}
 DOCUMENT_MODES = {"ws", "test"}
 
 
+def _normalize_help_key(options):
+    """Normalize optional help key and return None when it is blank."""
+    if not isinstance(options, dict):
+        return None
+    raw_value = options.get("key")
+    if raw_value is None:
+        return None
+    normalized = str(raw_value).strip()
+    return normalized or None
+
+
+def _dedupe_preserve_order(values):
+    """Return values without duplicates while preserving first-seen order."""
+    unique_values = []
+    seen = set()
+    for value in values:
+        if value in seen:
+            continue
+        seen.add(value)
+        unique_values.append(value)
+    return unique_values
+
+
+def _format_help_reference_text(help_keys):
+    """Build compact right-aligned task hint text for linked help blocks."""
+    normalized_keys = _dedupe_preserve_order(
+        [str(value).strip() for value in (help_keys or []) if str(value).strip()]
+    )
+
+    if len(help_keys or []) <= 1:
+        if normalized_keys:
+            return f"-> Lernhilfe {normalized_keys[0]}"
+        return "-> Lernhilfe"
+
+    if normalized_keys and len(normalized_keys) == len(help_keys or []):
+        return f"-> Lernhilfen {', '.join(normalized_keys)}"
+
+    return "-> Lernhilfen"
+
+
 def _normalize_keyword(value, default=""):
     """Normalisiert Optionswerte für Lookup-Tabellen."""
     return (value or default).strip().lower()
@@ -407,6 +447,53 @@ def annotate_standalone_subtasks(blocks):
             if total > 1:
                 updated_options["_subtask_letter"] = chr(ord("a") + seen)
 
+            annotated_blocks.append((block_type, updated_options, content))
+            continue
+
+        annotated_blocks.append((block_type, options, content))
+
+    return annotated_blocks
+
+
+def annotate_task_help_references(blocks, include_solutions=False):
+    """Annotate task/subtask blocks with rendered help-reference hint text."""
+    references_by_block_index = {}
+
+    for current_index, (block_type, options, _content) in enumerate(blocks):
+        if block_type not in HELP_BLOCK_TYPES:
+            continue
+        if not should_render_block(block_type, options, include_solutions):
+            continue
+
+        target_index = None
+        for previous_index in range(current_index - 1, -1, -1):
+            previous_type, previous_options, _previous_content = blocks[previous_index]
+            if previous_type not in {"task", "subtask"}:
+                continue
+            if not should_render_block(
+                previous_type, previous_options, include_solutions
+            ):
+                continue
+            target_index = previous_index
+            break
+
+        if target_index is None:
+            continue
+
+        references_by_block_index.setdefault(target_index, []).append(
+            _normalize_help_key(options)
+        )
+
+    if not references_by_block_index:
+        return list(blocks)
+
+    annotated_blocks = []
+    for index, (block_type, options, content) in enumerate(blocks):
+        if index in references_by_block_index and block_type in {"task", "subtask"}:
+            updated_options = dict(options)
+            updated_options["_help_reference_text"] = _format_help_reference_text(
+                references_by_block_index[index]
+            )
             annotated_blocks.append((block_type, updated_options, content))
             continue
 

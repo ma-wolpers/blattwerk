@@ -8,6 +8,8 @@ The format is based on Keep a Changelog.
 
 ### Changed
 
+- Worksheet rendering now adds right-aligned Lernhilfe references on the preceding `task`/`subtask` block (for example `-> Lernhilfe A1` or `-> Lernhilfen A1, A2`), based on nearby `help`/`hilfe` blocks.
+- `help`/`hilfe` blocks now support `key=...`; the validator enforces `key` as mandatory when more than one visible Lernhilfe exists and reports duplicate keys as errors.
 - Preview zoom now allows stronger zoom-out down to 10% (previously 40%), making full-page overviews easier on dense worksheets.
 - `task`- und `subtask`-Inhalte unterstuetzen jetzt ebenfalls Marker-Visibility mit `§/%/&` auf Zeilenebene; ohne Marker bleiben Inhalte standardmaessig in Arbeitsblatt und Loesung sichtbar.
 - Validator now reports `BL005` when section separators (`---` or `--`) are used inside an open `:::` block; separators are only allowed at top level.

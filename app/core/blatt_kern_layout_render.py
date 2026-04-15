@@ -9,6 +9,7 @@ from .answer_special import estimate_matching_weight, estimate_wordsearch_weight
 from ..styles.blatt_styles import build_stylesheet
 from .blatt_kern_shared import (
     _safe_int,
+    annotate_task_help_references,
     annotate_standalone_subtasks,
     assign_task_numbers,
     format_meta_line,
@@ -340,6 +341,9 @@ def render_html(
     document_mode = normalize_document_mode((meta or {}).get("mode"), default="ws")
     numbered_blocks = assign_task_numbers(blocks)
     enriched_blocks = annotate_standalone_subtasks(numbered_blocks)
+    enriched_blocks = annotate_task_help_references(
+        enriched_blocks, include_solutions=include_solutions
+    )
     body = render_body_with_columns(
         enriched_blocks,
         include_solutions=include_solutions,

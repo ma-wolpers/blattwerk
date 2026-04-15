@@ -321,3 +321,41 @@ def test_type_option_is_forbidden_on_dedicated_answer_blocks():
     diagnostics = inspect_markdown_text(text).diagnostics
     codes = {d.code for d in diagnostics}
     assert "AN009" in codes
+
+
+def test_help_key_option_is_allowed_without_op001():
+    text = _build_document(":::help key=A1\nHinweis\n:::")
+    diagnostics = inspect_markdown_text(text).diagnostics
+    codes = {d.code for d in diagnostics}
+
+    assert "OP001" not in codes
+
+
+def test_multiple_visible_help_blocks_require_key_hp001():
+    text = _build_document(
+        ":::help\nHinweis 1\n:::\n"
+        ":::hilfe\nHinweis 2\n:::"
+    )
+    diagnostics = inspect_markdown_text(text).diagnostics
+    codes = {d.code for d in diagnostics}
+
+    assert "HP001" in codes
+
+
+def test_duplicate_help_keys_emit_hp002():
+    text = _build_document(
+        ":::help key=A1\nHinweis 1\n:::\n"
+        ":::hilfe key=A1\nHinweis 2\n:::"
+    )
+    diagnostics = inspect_markdown_text(text).diagnostics
+    codes = {d.code for d in diagnostics}
+
+    assert "HP002" in codes
+
+
+def test_single_help_without_key_does_not_emit_hp001():
+    text = _build_document(":::help\nNur eine Hilfe\n:::")
+    diagnostics = inspect_markdown_text(text).diagnostics
+    codes = {d.code for d in diagnostics}
+
+    assert "HP001" not in codes

@@ -159,6 +159,8 @@ def _render_subtask_block(
         if candidate_action_info and candidate_action_info != parent_action_info:
             subtask_action_info = candidate_action_info
 
+    help_reference_text = (options.get("_help_reference_text") or "").strip()
+
     prefix_html = ""
     if total_subtasks > 1:
         prefix_html = (
@@ -179,7 +181,16 @@ def _render_subtask_block(
         default_show="both",
     )
     body_html = md.convert(normalize_markdown(filtered_content)) if filtered_content.strip() else ""
-    return f"<div class='subtask'>{prefix_html}{symbols_html}<div class='subtask-content'>{body_html}</div></div>"
+    help_reference_html = ""
+    if help_reference_text:
+        help_reference_html = (
+            f"<span class='task-help-reference subtask-help-reference'>{help_reference_text}</span>"
+        )
+
+    return (
+        f"<div class='subtask'>{prefix_html}{symbols_html}<div class='subtask-content'>{body_html}</div>"
+        f"{help_reference_html}</div>"
+    )
 
 
 def _render_task_content(
@@ -213,6 +224,7 @@ def _render_task_block(
     work_icon, work_label, work_css_class = task_work_info
     task_action_info = get_task_action_info(options.get("action"))
     task_hint_info = get_task_hint_info(options.get("hint"))
+    help_reference_text = (options.get("_help_reference_text") or "").strip()
 
     header = "<div class='task-header'>"
     header += "<div class='task-header-left'>"
@@ -227,8 +239,17 @@ def _render_task_block(
         header += f"<span class='task-work-symbol {work_css_class}' title='{work_label}'>{work_icon}</span>"
         header += f"<span class='task-work-hint'>- {work_label}</span>"
     header += "</div>"
+
+    header_right_parts = []
+    if help_reference_text:
+        header_right_parts.append(
+            f"<span class='task-help-reference'>{help_reference_text}</span>"
+        )
     if points:
-        header += f"<span class='task-points'>{points} P</span>"
+        header_right_parts.append(f"<span class='task-points'>{points} P</span>")
+    if header_right_parts:
+        header += f"<div class='task-header-right'>{''.join(header_right_parts)}</div>"
+
     header += "</div>"
     task_body = _render_task_content(
         md,

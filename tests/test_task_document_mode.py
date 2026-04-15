@@ -142,3 +142,42 @@ def test_subtask_content_supports_marker_visibility_by_output_mode():
     assert "Nur Arbeitsblatt" not in solution_html
     assert "Nur Loesung" in solution_html
     assert "In beiden" in solution_html
+
+
+def test_render_html_shows_single_help_reference_without_key():
+    meta = {"Titel": "T", "Fach": "M", "Thema": "X", "mode": "ws"}
+    blocks = [
+        ("task", {"work": "single"}, "Bearbeite die Aufgabe."),
+        ("help", {"title": "Starthilfe"}, "Denke an die Regel."),
+    ]
+
+    worksheet_html = render_html(meta, blocks, include_solutions=False)
+
+    assert "-> Lernhilfe" in worksheet_html
+
+
+def test_render_html_shows_multiple_help_keys_for_same_task():
+    meta = {"Titel": "T", "Fach": "M", "Thema": "X", "mode": "ws"}
+    blocks = [
+        ("task", {"work": "single"}, "Aufgabe 1"),
+        ("help", {"title": "H1", "key": "A1"}, "Hinweis 1"),
+        ("help", {"title": "H2", "key": "A2"}, "Hinweis 2"),
+    ]
+
+    worksheet_html = render_html(meta, blocks, include_solutions=False)
+
+    assert "-> Lernhilfen A1, A2" in worksheet_html
+
+
+def test_render_html_shows_help_reference_on_subtask():
+    meta = {"Titel": "T", "Fach": "M", "Thema": "X", "mode": "ws"}
+    blocks = [
+        ("task", {"work": "single"}, "Oberaufgabe"),
+        ("subtask", {}, "Teilaufgabe"),
+        ("help", {"title": "Hilfe", "key": "C5"}, "Zusatz"),
+    ]
+
+    worksheet_html = render_html(meta, blocks, include_solutions=False)
+
+    assert "subtask-help-reference" in worksheet_html
+    assert "-> Lernhilfe C5" in worksheet_html

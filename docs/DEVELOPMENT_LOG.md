@@ -9,6 +9,9 @@ Regel:
 ## [Unreleased]
 
 ### Changed
+- Task-/Subtask-Header erweitert: sichtbare `help`/`hilfe`-Bloecke werden jetzt dem jeweils letzten vorangehenden `task`/`subtask` zugeordnet und als rechtsbuendiger Verweis (`-> Lernhilfe ...` / `-> Lernhilfen ...`) im Arbeitsblatt-Rendering angezeigt.
+- Lernhilfe-Optionen erweitert: `help`/`hilfe` unterstuetzen jetzt `key=...`; der Validator erzwingt bei mehr als einer sichtbaren Lernhilfe verpflichtende Keys (`HP001`) und eindeutige Keys (`HP002`).
+- VSCode-Grammatik synchronisiert: neuer Blockoptions-Key `key` fuer Lernhilfen ist in der Option-Highlighting-RegEx enthalten.
 - Preview-Zoombereich erweitert: minimale Zoomstufe auf 10% gesenkt (zuvor 40%), damit in der Vorschau ein staerkeres Herauszoomen moeglich ist.
 - Task-/Subtask-Rendering erweitert: Inhalte in `:::task` und `:::subtask` werden jetzt markerbasiert (`§/%/&`) nach Ausgabeziel (Arbeitsblatt vs. Loesung) gefiltert; ohne Marker bleibt der Default `both` (sichtbar in beiden Modi).
 - Validator-Syntaxregel erweitert: Abschnittstrenner `---` und `--` innerhalb offener `:::`-Bloecke werden jetzt als Fehler `BL005` diagnostiziert (Trenner nur auf Top-Level erlaubt).
