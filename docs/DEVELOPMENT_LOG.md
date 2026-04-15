@@ -9,6 +9,7 @@ Regel:
 ## [Unreleased]
 
 ### Changed
+- Lernhilfen-Kartenkopf erweitert: die sichtbare Kartenueberschrift verwendet jetzt dieselbe Labelableitung wie die Task-Verweise und rendert Tags als `Tag - Titel`, inklusive lokaler `help tag=...`-Overrides.
 - Task-Header erweitert: `:::task` unterstuetzt jetzt `title=...`; die Kopfzeile rendert `Aufgabe N - Titel` und zeigt den Titel links vor dem Arbeitsmodus-Hinweis.
 - Validator-Katalog fuer Task-Optionen erweitert: `title` ist als gueltiger Task-Key freigeschaltet (kein `OP001` mehr fuer `task title=...`).
 - Task-/Subtask-Header erweitert: sichtbare `help`/`hilfe`-Bloecke werden jetzt dem jeweils letzten vorangehenden `task`/`subtask` zugeordnet und als rechtsbuendiger Verweis dargestellt; Labelableitung erfolgt automatisch aus der globalen Lernhilfe-Reihenfolge und optionalem Frontmatter-`tag`.

@@ -1,4 +1,5 @@
 from app.core.blatt_kern_layout_render import render_html
+from app.core.blatt_kern_help_render import render_help_cards_html
 from app.core.blatt_kern_task_render import render_block
 
 
@@ -165,7 +166,7 @@ def test_render_html_shows_single_help_reference_with_tag_only():
 
     worksheet_html = render_html(meta, blocks, include_solutions=False)
 
-    assert "→ A" in worksheet_html
+    assert "→ Lernhilfe A" in worksheet_html
 
 
 def test_render_html_shows_multiple_help_labels_for_numeric_tag():
@@ -246,7 +247,7 @@ def test_render_html_shows_help_reference_on_subtask():
     worksheet_html = render_html(meta, blocks, include_solutions=False)
 
     assert "subtask-help-reference" in worksheet_html
-    assert "→ X" in worksheet_html
+    assert "→ Lernhilfe X" in worksheet_html
 
 
 def test_task_title_is_rendered_in_task_label_before_work_mode():
@@ -267,3 +268,29 @@ def test_task_title_is_rendered_in_task_label_before_work_mode():
 
     assert "Aufgabe 1 - Titel hier" in worksheet_html
     assert worksheet_html.index("Aufgabe 1 - Titel hier") < worksheet_html.index("Einzelarbeit")
+
+
+def test_render_help_cards_html_prefixes_card_titles_with_global_tag_labels():
+    meta = {"Titel": "T", "Fach": "M", "Thema": "X", "tag": "1"}
+    blocks = [
+        ("help", {"title": "Erster Schritt"}, "Hinweis 1"),
+        ("help", {"title": "Zweiter Schritt"}, "Hinweis 2"),
+    ]
+
+    html = render_help_cards_html(meta, blocks, include_solutions=False)
+
+    assert "<h2>1A - Erster Schritt</h2>" in html
+    assert "<h2>1B - Zweiter Schritt</h2>" in html
+
+
+def test_render_help_cards_html_uses_local_tag_in_card_title():
+    meta = {"Titel": "T", "Fach": "M", "Thema": "X", "tag": "1"}
+    blocks = [
+        ("help", {"title": "Starthilfe", "tag": "LOKAL"}, "Hinweis 1"),
+        ("help", {"title": "Weiterdenken"}, "Hinweis 2"),
+    ]
+
+    html = render_help_cards_html(meta, blocks, include_solutions=False)
+
+    assert "<h2>LOKAL - Starthilfe</h2>" in html
+    assert "<h2>1 - Weiterdenken</h2>" in html

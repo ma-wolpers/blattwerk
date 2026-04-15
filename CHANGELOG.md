@@ -8,6 +8,7 @@ The format is based on Keep a Changelog.
 
 ### Changed
 
+- Lernhilfen rendern ihren abgeleiteten oder lokal gesetzten Tag jetzt auch direkt in der Kartenueberschrift als `Tag - Titel`.
 - `task` blocks now support `title=...`; worksheet headers render this as `Aufgabe N - Titel` before the work-mode hint (ea/pa/...).
 - Worksheet rendering now adds right-aligned Lernhilfe references on the preceding `task`/`subtask` block and derives labels automatically from an optional frontmatter `tag` (for example `→ 1A`, `→ Lernhilfen 1A, 1B`, or `→ Lernhilfen TAG1, TAG2`).
 - `help`/`hilfe` now support a local `tag=...` override per block; locally tagged help blocks are excluded from global auto-suffix counting.

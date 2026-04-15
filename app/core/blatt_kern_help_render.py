@@ -8,6 +8,8 @@ from ..styles.blatt_styles import build_stylesheet
 from .blatt_kern_shared import (
     HELP_BLOCK_TYPES,
     _new_markdown_converter,
+    _help_labels_for_tag,
+    _normalize_help_tag,
     _resolve_help_level,
     is_hole_punch_layout_enabled,
     normalize_markdown,
@@ -36,6 +38,35 @@ def collect_help_blocks(blocks, include_solutions=False):
     return collected
 
 
+def _annotate_help_block_labels(help_blocks, help_tag):
+    """Assigns deterministic visible labels to help cards based on global/local tags."""
+
+    normalized_help_tag = _normalize_help_tag(help_tag)
+    auto_tag_entries = [block for block in help_blocks if not _normalize_help_tag(block["options"].get("tag"))]
+    auto_labels = _help_labels_for_tag(len(auto_tag_entries), normalized_help_tag)
+    auto_label_index = 0
+
+    annotated_blocks = []
+    for block in help_blocks:
+        block_options = block["options"]
+        local_tag = _normalize_help_tag(block_options.get("tag"))
+        if local_tag:
+            help_label = local_tag
+        else:
+            help_label = (
+                auto_labels[auto_label_index]
+                if auto_label_index < len(auto_labels)
+                else None
+            )
+            auto_label_index += 1
+
+        annotated_block = dict(block)
+        annotated_block["label"] = help_label
+        annotated_blocks.append(annotated_block)
+
+    return annotated_blocks
+
+
 def render_help_cards_html(
     meta,
     blocks,
@@ -51,6 +82,8 @@ def render_help_cards_html(
     help_blocks = collect_help_blocks(blocks, include_solutions=include_solutions)
     if not help_blocks:
         return ""
+
+    help_blocks = _annotate_help_block_labels(help_blocks, (meta or {}).get("tag"))
 
     stylesheet = build_stylesheet(
         page_format,
@@ -75,6 +108,8 @@ def render_help_cards_html(
         )
 
         title_text = (block_options.get("title") or "Hilfe").strip() or "Hilfe"
+        label_text = (block.get("label") or "").strip()
+        header_title = f"{label_text} - {title_text}" if label_text else title_text
         level_badge = (
             f"<span class='help-card-level'>Stufe {level}</span>"
             if level is not None
@@ -85,7 +120,7 @@ def render_help_cards_html(
             f"""
 <section class="help-card" data-help-index="{index}">
 <header class="help-card-header">
-<h2>{escape(title_text)}</h2>
+<h2>{escape(header_title)}</h2>
 {level_badge}
 </header>
 <div class="help-card-body">{body_html}</div>
