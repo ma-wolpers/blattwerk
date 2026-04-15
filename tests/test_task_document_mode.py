@@ -181,3 +181,23 @@ def test_render_html_shows_help_reference_on_subtask():
 
     assert "subtask-help-reference" in worksheet_html
     assert "-> Lernhilfe C5" in worksheet_html
+
+
+def test_task_title_is_rendered_in_task_label_before_work_mode():
+    options = {
+        "work": "single",
+        "title": "Titel hier",
+        "_show_task_label": "1",
+        "_auto_number": "1",
+    }
+
+    worksheet_html = render_block(
+        "task",
+        options,
+        "Rechne aus.",
+        include_solutions=False,
+        document_mode="ws",
+    )
+
+    assert "Aufgabe 1 - Titel hier" in worksheet_html
+    assert worksheet_html.index("Aufgabe 1 - Titel hier") < worksheet_html.index("Einzelarbeit")

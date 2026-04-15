@@ -105,6 +105,13 @@ def test_lines_height_option_is_allowed_without_op001():
     assert "OP001" not in codes
 
 
+def test_task_title_option_is_allowed_without_op001():
+    text = _build_document(":::task title='Titel hier'\nRechne aus.\n:::")
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+    assert "OP001" not in codes
+
+
 def test_matching_with_single_item_side_emits_ma001_warning():
     text = _build_document(
         ":::matching\n"

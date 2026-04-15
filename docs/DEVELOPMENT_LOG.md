@@ -9,6 +9,8 @@ Regel:
 ## [Unreleased]
 
 ### Changed
+- Task-Header erweitert: `:::task` unterstuetzt jetzt `title=...`; die Kopfzeile rendert `Aufgabe N - Titel` und zeigt den Titel links vor dem Arbeitsmodus-Hinweis.
+- Validator-Katalog fuer Task-Optionen erweitert: `title` ist als gueltiger Task-Key freigeschaltet (kein `OP001` mehr fuer `task title=...`).
 - Task-/Subtask-Header erweitert: sichtbare `help`/`hilfe`-Bloecke werden jetzt dem jeweils letzten vorangehenden `task`/`subtask` zugeordnet und als rechtsbuendiger Verweis (`-> Lernhilfe ...` / `-> Lernhilfen ...`) im Arbeitsblatt-Rendering angezeigt.
 - Lernhilfe-Optionen erweitert: `help`/`hilfe` unterstuetzen jetzt `key=...`; der Validator erzwingt bei mehr als einer sichtbaren Lernhilfe verpflichtende Keys (`HP001`) und eindeutige Keys (`HP002`).
 - VSCode-Grammatik synchronisiert: neuer Blockoptions-Key `key` fuer Lernhilfen ist in der Option-Highlighting-RegEx enthalten.

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from html import escape
+
 from .blatt_kern_shared import (
     HELP_BLOCK_TYPES,
     _new_markdown_converter,
@@ -225,6 +227,7 @@ def _render_task_block(
     task_action_info = get_task_action_info(options.get("action"))
     task_hint_info = get_task_hint_info(options.get("hint"))
     help_reference_text = (options.get("_help_reference_text") or "").strip()
+    task_title = (options.get("title") or "").strip()
 
     header = "<div class='task-header'>"
     header += "<div class='task-header-left'>"
@@ -234,7 +237,9 @@ def _render_task_block(
         task_label = "Aufgabe"
         if task_id:
             task_label = f"Aufgabe {task_id}"
-        header += f"<span class='task-id'>{task_label}</span>"
+        if task_title:
+            task_label = f"{task_label} - {task_title}"
+        header += f"<span class='task-id'>{escape(task_label)}</span>"
     if _should_show_work_hints(document_mode):
         header += f"<span class='task-work-symbol {work_css_class}' title='{work_label}'>{work_icon}</span>"
         header += f"<span class='task-work-hint'>- {work_label}</span>"
