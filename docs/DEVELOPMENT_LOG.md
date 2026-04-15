@@ -9,6 +9,7 @@ Regel:
 ## [Unreleased]
 
 ### Changed
+- Grid-Semantik hart getrennt: `grid_field` dient jetzt als textbasiertes Kaestchen-/Schreibfeld mit Marker-Overlay, waehrend `grid_system` das bisherige YAML-basierte Raster/Koordinatensystem (`points`, `pairs`, `functions`, `axis`, `origin`, `step_x`, `step_y`) uebernimmt; `AN004` gilt damit nur noch fuer echte YAML-Pflichttypen.
 - Validator und Blattwerker-Guardrails erweitert: markerbasierte Inhalte mit explizitem `§` ohne sichtbares Loesungs-Gegenstueck erzeugen jetzt `AN010`; zusaetzlich ist die Pruefregel in den Blattwerker-Agentvorgaben und im lokalen/CI-Guardrail verankert.
 - Lernhilfen-Kartenkopf erweitert: die sichtbare Kartenueberschrift verwendet jetzt dieselbe Labelableitung wie die Task-Verweise und rendert Tags als `Tag - Titel`, inklusive lokaler `help tag=...`-Overrides.
 - Task-Header erweitert: `:::task` unterstuetzt jetzt `title=...`; die Kopfzeile rendert `Aufgabe N - Titel` und zeigt den Titel links vor dem Arbeitsmodus-Hinweis.
@@ -23,7 +24,7 @@ Regel:
 - Guardrail-Check erweitert: `tools/ci/check_ai_guardrails.py` prueft jetzt die Synchronitaet zwischen Core-Validator (`KNOWN_BLOCK_TYPES`/`BLOCK_ALLOWED_OPTIONS`) und VSCode-Extension-RegExen (Blocktypen + Option-Keys).
 - VSCode-Extension-Grammatik synchronisiert: fehlende Option-Keys aus dem Core (u. a. `axis_label_x`, `height_mode`, `words_multi`, `worksheet_matches`, `show_guides`) werden jetzt als Blockparameter hervorgehoben.
 - `lines`-Antwortblock erweitert: neue Option `height=<css-laenge>` steuert die konkrete Zeilenhoehe (Pitch) im Linienraster; Validator-Optionen, Renderer-Ausgabe und Tests wurden synchron angepasst.
-- Answer-Syntax hart umgestellt: statt `:::answer type=...` gelten jetzt dedizierte Blocktypen (`:::lines`, `:::grid`, `:::dots`, `:::space`, `:::table`, `:::numberline`, `:::mc`, `:::cloze`, `:::matching`, `:::wordsearch`); Legacy-Syntax wird als Fehler diagnostiziert.
+- Answer-Syntax hart umgestellt: statt `:::answer type=...` gelten jetzt dedizierte Blocktypen (`:::lines`, `:::grid_field`, `:::grid_system`, `:::dots`, `:::space`, `:::table`, `:::numberline`, `:::mc`, `:::cloze`, `:::matching`, `:::wordsearch`); Legacy-Syntax wird als Fehler diagnostiziert.
 - Escape-Verhalten fuer Antwortzeilen erweitert: Escaped-Leerzeichen (`\ `) bleiben beim Rendering als sichtbare Platzhalter erhalten (HTML als Non-Breaking-Spaces), damit Muster wie `(\ \ \ \ )` nicht kollabieren.
 - Marker-Highlighting konsolidiert: Editor und VSCode-Extension verwenden jetzt konsistent `§/%/&` (statt veralteter `$`-Erkennung); Guardrail-Check prueft zusaetzlich auf Marker-Drift in den relevanten Dateien.
 - Validator auf blocktyp-spezifische Key-Mengen umgestellt; `type=` ist in dedizierten Antwort-Blocktypen unzulaessig und wird als Fehler diagnostiziert.

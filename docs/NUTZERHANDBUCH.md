@@ -132,12 +132,12 @@ Installation/Setup steht bewusst in `README.md`.
 	- direkt nach `key=` in Blockoptionen
 - Vorschläge orientieren sich am Cursor-Kontext:
 	- Blocktyp nach `:::`
-	- Blockoptionen nach Blocktyp (z. B. direkt nach `:::grid `)
+	- Blockoptionen nach Blocktyp (z. B. direkt nach `:::grid_field ` oder `:::grid_system `)
 	- Frontmatter-Feldnamen
 - Bei Eingaben mit gedrückter `Shift`-Taste bleibt die geöffnete Vorschlagsliste stabil (kein sofortiges Schließen beim Loslassen von `Shift`).
 - Nach `key=` in Blockoptionen erscheinen Vorschläge auch automatisch (nicht nur per `Strg+Leertaste`).
 - Wert-Vorschläge nach `key=` nutzen dieselbe lokale Gewichtungsmechanik wie Blocktyp-Vorschläge.
-- In Blockkopfzeilen wird nur ergänzend eingefügt (z. B. Key nach `:::grid `), kein zusätzlicher Block-Wrapper.
+- In Blockkopfzeilen wird nur ergänzend eingefügt (z. B. Key nach `:::grid_field `), kein zusätzlicher Block-Wrapper.
 - Auf einer reinen `:::`-Zeile im bereits offenen Block (typischer Blockabschluss) öffnet kein Auto-Popup.
 - Blocktyp-Vorschläge werden lokal pro Installation gewichtet (häufiger und zuletzt genutzt zuerst).
 - Gleichstand bei Blocktypen wird über die feste Blattwerk-Standardreihenfolge aufgelöst.

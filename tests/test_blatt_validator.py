@@ -157,9 +157,9 @@ def test_matching_with_single_item_side_emits_ma001_warning():
     assert "MA001" in codes
 
 
-def test_grid_yaml_marker_show_values_are_accepted():
+def test_grid_system_yaml_marker_show_values_are_accepted():
     text = _build_document(
-        ":::grid rows=4 cols=4\n"
+        ":::grid_system rows=4 cols=4\n"
         "points:\n"
         "  - {col: 1, row: 1, show: '§'}\n"
         "pairs:\n"
@@ -173,9 +173,9 @@ def test_grid_yaml_marker_show_values_are_accepted():
     assert "AN007" not in codes
 
 
-def test_grid_yaml_legacy_show_values_emit_an007_error():
+def test_grid_system_yaml_legacy_show_values_emit_an007_error():
     text = _build_document(
-        ":::grid rows=4 cols=4\n"
+        ":::grid_system rows=4 cols=4\n"
         "points:\n"
         "  - {col: 1, row: 1, show: 'both'}\n"
         ":::"
@@ -184,6 +184,27 @@ def test_grid_yaml_legacy_show_values_emit_an007_error():
     an007 = [d for d in inspected.diagnostics if d.code == "AN007"]
     assert an007
     assert an007[0].severity == "error"
+
+
+def test_grid_field_plain_marker_text_does_not_emit_an004():
+    text = _build_document(":::grid_field rows=2\n§\n% Muster\n:::")
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+    assert "AN004" not in codes
+
+
+def test_grid_system_scalar_content_emits_an004():
+    text = _build_document(":::grid_system rows=2\nNur Text\n:::")
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+    assert "AN004" in codes
+
+
+def test_grid_system_list_root_emits_an004():
+    text = _build_document(":::grid_system rows=2\n- 1\n- 2\n:::")
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+    assert "AN004" in codes
 
 
 def test_numberline_yaml_marker_show_values_are_accepted():
@@ -352,7 +373,7 @@ def test_legacy_answer_block_emits_an008_error():
 
 
 def test_type_option_is_forbidden_on_dedicated_answer_blocks():
-    text = _build_document(":::grid type=grid rows=3 cols=3\n:::")
+    text = _build_document(":::grid_field type=grid_field rows=3 cols=3\n:::")
     diagnostics = inspect_markdown_text(text).diagnostics
     codes = {d.code for d in diagnostics}
     assert "AN009" in codes

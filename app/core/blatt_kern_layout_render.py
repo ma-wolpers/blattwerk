@@ -105,7 +105,8 @@ def estimate_block_weight(block_type, options, content, include_solutions):
 
     if block_type in {
         "lines",
-        "grid",
+        "grid_field",
+        "grid_system",
         "dots",
         "space",
         "table",
@@ -137,9 +138,13 @@ def estimate_block_weight(block_type, options, content, include_solutions):
             if block_type == "lines":
                 rows = max(1, _safe_int(options.get("rows", 3), 3))
                 return max(1.0, rows * 0.7)
-            if block_type == "grid":
+            if block_type == "grid_field":
                 rows = max(1, _safe_int(options.get("rows", 5), 5))
                 return max(1.4, rows * 0.85 + (text_length / 260.0))
+            if block_type == "grid_system":
+                rows = max(1, _safe_int(options.get("rows", 5), 5))
+                cols = _safe_int(options.get("cols", 20), 20) if options.get("cols") else 20
+                return max(1.6, (rows * cols) / 52.0 + (text_length / 320.0))
             if block_type == "dots":
                 return max(
                     1.2,
@@ -163,10 +168,14 @@ def estimate_block_weight(block_type, options, content, include_solutions):
 
         if block_type == "lines":
             return max(0.8, _safe_int(options.get("rows", 3), 3) * 0.7)
-        if block_type == "grid":
+        if block_type == "grid_field":
             rows = _safe_int(options.get("rows", 5), 5)
             cols = _safe_int(options.get("cols", 20), 20) if options.get("cols") else 20
             return max(1.2, (rows * cols) / 55.0)
+        if block_type == "grid_system":
+            rows = _safe_int(options.get("rows", 5), 5)
+            cols = _safe_int(options.get("cols", 20), 20) if options.get("cols") else 20
+            return max(1.4, (rows * cols) / 48.0)
         if block_type == "dots":
             return max(1.0, parse_height_cm(options.get("height", "4cm")) * 1.1)
         if block_type == "space":

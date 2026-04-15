@@ -1,7 +1,7 @@
 ---
 Titel: Antwortformate – Erweiterte Beispiele
 Fach: Mathematik
-Thema: Grid, Dots, Table mit Lösungsausgabe
+Thema: Grid-Feld, Grid-System, Dots, Table mit Loesungsausgabe
 Stufe: 8
 show_student_header: true
 show_document_header: true
@@ -18,9 +18,9 @@ Empfohlener Testlauf in der UI:
 
 Achte dabei besonders auf:
 
-- Overlay-Verhalten bei `lines`, `dots`, `grid`
+- Overlay-Verhalten bei `lines`, `dots`, `grid_field`
 - `%{...}`-Markierungen in `table`-Zellen
-- markerbasierte Sichtbarkeit bei Grid- und Numberline-Elementen (`show: "§"|"%"|"&"`)
+- markerbasierte Sichtbarkeit bei `grid_system`- und Numberline-Elementen (`show: "§"|"%"|"&"`)
 - Zahlengeraden mit `labels` und `answers`
 :::
 
@@ -52,7 +52,7 @@ Die x-Achse verläuft waagerecht. $
 Markiere im Raster die angegebenen **Rasterpunkte** (ohne Koordinatensystem).
 :::
 
-:::grid rows=12 cols=18
+:::grid_system rows=12 cols=18
 points:
   - {col: 2, row: 2, label: "R1"}
   - {col: 10, row: 4, label: "R2"}
@@ -73,7 +73,7 @@ Arbeite mit dem Koordinatensystem:
 3. Zeichne den Graphen von $y = x^2 - 2$ im angegebenen Bereich.
 :::
 
-:::grid rows=20 cols=20 axis=true origin="10,10" step_x=0.5 step_y=1
+:::grid_system rows=20 cols=20 axis=true origin="10,10" step_x=0.5 step_y=1
 points:
   - {x: -3, y: 4, label: "A", show: "&"}
   - {x: 2, y: 3, label: "B", show: "&"}
@@ -92,7 +92,7 @@ functions:
 :::
 
 :::info
-Hier gilt wegen `axis=true`:
+Hier gilt wegen `axis=true` im `grid_system`:
 
 - `points` und `pairs` nutzen Koordinaten (`x`, `y`)
 - `functions` werden nur bei vorhandenem Koordinatensystem gezeichnet

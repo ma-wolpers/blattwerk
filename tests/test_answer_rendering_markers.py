@@ -159,8 +159,8 @@ def test_table_cells_use_inline_visibility_tokens():
     assert "Text mit Escape %{ bleibt" in worksheet_html
 
 
-def test_grid_yaml_uses_marker_visibility_symbols():
-    options = {"type": "grid", "rows": "6", "cols": "6"}
+def test_grid_system_yaml_uses_marker_visibility_symbols():
+    options = {"type": "grid_system", "rows": "6", "cols": "6"}
     content = (
         "points:\n"
         "  - {col: 1, row: 1, label: 'W', show: '§'}\n"
@@ -180,8 +180,8 @@ def test_grid_yaml_uses_marker_visibility_symbols():
     assert "B" in solution_html
 
 
-def test_grid_yaml_legacy_word_show_values_are_not_rendered():
-    options = {"type": "grid", "rows": "4", "cols": "4"}
+def test_grid_system_yaml_legacy_word_show_values_are_not_rendered():
+    options = {"type": "grid_system", "rows": "4", "cols": "4"}
     content = "points:\n  - {col: 1, row: 1, label: 'ALT', show: 'both'}\n"
 
     worksheet_html = _render_answer_block(options, content, include_solutions=False)
@@ -223,8 +223,8 @@ def test_numberline_yaml_legacy_word_show_values_are_not_rendered():
     assert "ALT" not in solution_html
 
 
-def test_grid_fallback_solution_text_is_only_rendered_in_solution_mode():
-    options = {"type": "grid", "rows": "4", "cols": "4"}
+def test_grid_system_fallback_solution_text_is_only_rendered_in_solution_mode():
+    options = {"type": "grid_system", "rows": "4", "cols": "4"}
     content = "solution_text: 'Nur Loesungstext'\n"
 
     worksheet_html = _render_answer_block(options, content, include_solutions=False)
@@ -234,8 +234,8 @@ def test_grid_fallback_solution_text_is_only_rendered_in_solution_mode():
     assert "Nur Loesungstext" in solution_html
 
 
-def test_grid_plain_marker_text_renders_in_worksheet_mode():
-    options = {"type": "grid", "rows": "4", "cols": "4"}
+def test_grid_field_plain_marker_text_renders_in_worksheet_mode():
+    options = {"type": "grid_field", "rows": "4", "cols": "4"}
     content = "§ Starthilfe\n% Nur Loesung\n"
 
     worksheet_html = _render_answer_block(options, content, include_solutions=False)
@@ -247,8 +247,8 @@ def test_grid_plain_marker_text_renders_in_worksheet_mode():
     assert "Nur Loesung" in solution_html
 
 
-def test_grid_plain_unmarked_text_renders_in_both_modes():
-    options = {"type": "grid", "rows": "4", "cols": "4"}
+def test_grid_field_plain_unmarked_text_renders_in_both_modes():
+    options = {"type": "grid_field", "rows": "4", "cols": "4"}
     content = "Leitfrage"
 
     worksheet_html = _render_answer_block(options, content, include_solutions=False)

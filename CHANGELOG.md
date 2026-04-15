@@ -6,8 +6,11 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-04-15
+
 ### Changed
 
+- `grid` was split into `grid_field` and `grid_system`: writing grids now accept marker-based plain text without YAML diagnostics, while coordinate/raster systems keep strict YAML mapping validation via `AN004`.
 - Blattwerker prueft jetzt auch auf Aufgaben-/Antwortinhalte mit explizitem `§` ohne sichtbares Loesungs-Gegenstueck; solche Stellen werden als Validator-Warnung `AN010` markiert und in den Agent-Regeln abgesichert.
 - Lernhilfen rendern ihren abgeleiteten oder lokal gesetzten Tag jetzt auch direkt in der Kartenueberschrift als `Tag - Titel`.
 - `task` blocks now support `title=...`; worksheet headers render this as `Aufgabe N - Titel` before the work-mode hint (ea/pa/...).
@@ -29,7 +32,7 @@ The format is based on Keep a Changelog.
 
 ### Changed
 - Answer blocks now use dedicated block types instead of `:::answer type=...`.
-	Supported forms are `:::lines`, `:::grid`, `:::dots`, `:::space`, `:::table`, `:::numberline`, `:::mc`, `:::cloze`, `:::matching`, and `:::wordsearch`.
+	Supported forms are `:::lines`, `:::grid_field`, `:::grid_system`, `:::dots`, `:::space`, `:::table`, `:::numberline`, `:::mc`, `:::cloze`, `:::matching`, and `:::wordsearch`.
 - Legacy syntax `:::answer type=...` is now rejected with explicit diagnostics.
 - Option validation for answer blocks is now type-specific; `type=` inside dedicated answer blocks is invalid.
 - Example markdown files were migrated to the new dedicated answer block syntax.

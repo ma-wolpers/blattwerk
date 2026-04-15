@@ -160,7 +160,8 @@ Zweck: Antwortbereich oder interaktiver Antworttyp.
 
 Unterstützte dedizierte Blocktypen:
 - `lines`
-- `grid`
+- `grid_field`
+- `grid_system`
 - `dots`
 - `space`
 - `table`
@@ -172,7 +173,8 @@ Unterstützte dedizierte Blocktypen:
 
 Regeln:
 - Legacy-Syntax `:::answer type=...` ist nicht erlaubt.
-- Strukturierte Inhalte sind YAML.
+- `grid_field` ist textbasiert und dient als Kaestchen-/Schreibfeld mit Marker-Text.
+- Strukturierte Inhalte sind YAML fuer `grid_system`, `numberline`, `table` und `matching`.
 - `matching` ist YAML-only (kein alternatives [section]-Format).
 
 #### Lines-Optionen und Renderingverhalten
@@ -196,13 +198,26 @@ Markdown auf Linien:
 - Zeilenabstaende und Linienraster sind auf denselben vertikalen Takt gekoppelt, damit explizite Newlines und Soft-Wraps geometrisch konsistent bleiben.
 - Escaped-Leerzeichen (`\ `) bleiben als sichtbare Platzhalter erhalten (z. B. `(\ \ \ \ )` fuer Klammer-Luecken).
 
-#### Grid-Optionen
+#### Grid-Field-Optionen
 
-Für `grid` gilt zusätzlich:
+Fuer `grid_field` gilt zusaetzlich:
 
 - `scale=<css-laenge>`
     - Standard: `0.5cm`
-    - Steuert die Zellgröße des Rasters (Maßstab).
+    - Steuert die Zellgroesse des Rasters (Massstab).
+    - Beispiel: `scale=0.4cm`, `scale=6mm`.
+
+Textinhalt in `grid_field`:
+- Marker-/Inline-Text wird wie bei `lines` nach Arbeitsblatt/Loesung gefiltert und als Overlay im Kaestchenfeld gerendert.
+- Unmarkierter Text ist in beiden Modi sichtbar.
+
+#### Grid-System-Optionen
+
+Fuer `grid_system` gilt zusaetzlich:
+
+- `scale=<css-laenge>`
+    - Standard: `0.5cm`
+    - Steuert die Zellgroesse des Rasters (Massstab).
     - Beispiel: `scale=0.4cm`, `scale=6mm`.
 - `axis=true|false`
     - Aktiviert ein mathematisches Koordinatensystem mit x-/y-Achse.
@@ -215,12 +230,12 @@ Für `grid` gilt zusätzlich:
     - Optionale Achsenbezeichnungen am positiven Achsenende.
     - Standard: `x` und `y`.
 
-Grid-YAML-Sichtbarkeit auf Elementebene (`points`, `pairs`, `functions`):
+Grid-System-YAML-Sichtbarkeit auf Elementebene (`points`, `pairs`, `functions`):
 - `show: "§"` = nur Arbeitsblatt
 - `show: "%"` = nur Lösung
 - `show: "&"` = Arbeitsblatt und Lösung
 - Ohne `show` gilt standardmäßig `"&"`.
-- Werte wie `show: worksheet|solution|both` sind für Grid-Elemente ungültig.
+- Werte wie `show: worksheet|solution|both` sind fuer Grid-System-Elemente ungueltig.
 
 Numberline-YAML-Sichtbarkeit auf Elementebene (`labels`, `answers`, `arcs`):
 - `show: "§"` = nur Arbeitsblatt

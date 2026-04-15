@@ -7,7 +7,11 @@ from html import escape
 
 from .answer_special import render_matching_answer, render_wordsearch_answer
 from .blatt_kern_shared import _new_markdown_converter, _safe_int
-from .answer_grid_plot import render_dots_answer, render_grid_answer
+from .answer_grid_plot import (
+    render_dots_answer,
+    render_grid_field_answer,
+    render_grid_system_answer,
+)
 from .answer_numberline import render_number_line_answer
 from .answer_table_content import parse_table_content_payload, render_solution_marked_cell_text
 from .answer_line_markers import (
@@ -297,7 +301,7 @@ def _wrap_answer_with_solution(base_answer_html, solution_text_html):
     return f"<div class='answer-with-solution'>{solution_text_html}{base_answer_html}</div>"
 
 def _render_answer_block(block_type, options=None, content=None, include_solutions=False):
-    """Rendert dedizierte Antwort-Blocktypen (lines/grid/numberline/dots/space etc.)."""
+    """Rendert dedizierte Antwort-Blocktypen (lines/grid_field/grid_system/...)."""
     if isinstance(block_type, dict) and isinstance(options, str):
         # Legacy helper-Aufruf aus Unit-Tests: _render_answer_block(options, content, ...)
         legacy_options = block_type
@@ -390,8 +394,15 @@ def _render_answer_block(block_type, options=None, content=None, include_solutio
 
         return f"<div class='answer lines'{lines_style_attr}>{lines}</div>"
 
-    if normalized_block_type == "grid":
-        return render_grid_answer(options, content, include_solutions, _render_answer_solution_text)
+    if normalized_block_type == "grid_field":
+        return render_grid_field_answer(
+            options, content, include_solutions, _render_answer_solution_text
+        )
+
+    if normalized_block_type == "grid_system":
+        return render_grid_system_answer(
+            options, content, include_solutions, _render_answer_solution_text
+        )
 
     if normalized_block_type == "numberline":
         return render_number_line_answer(options, content, include_solutions, _render_answer_solution_text)

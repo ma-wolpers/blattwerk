@@ -45,7 +45,8 @@ KNOWN_BLOCK_TYPES = {
     "task",
     "subtask",
     "lines",
-    "grid",
+    "grid_field",
+    "grid_system",
     "dots",
     "space",
     "table",
@@ -66,7 +67,7 @@ KNOWN_DOCUMENT_MODES = {"ws", "test"}
 GRID_MARKER_SHOW_VALUES = {"&", "§", "%"}
 NUMBERLINE_ANSWER_TYPES = {"numberline"}
 MARKER_SHOW_SECTIONS_BY_ANSWER_TYPE = {
-    "grid": ("points", "pairs", "functions"),
+    "grid_system": ("points", "pairs", "functions"),
     "numberline": ("labels", "answers", "arcs", "jumps", "arrows", "boxes", "blanks"),
 }
 KNOWN_WORK_VALUES = {
@@ -118,7 +119,8 @@ KNOWN_HINT_VALUES = {
 }
 ANSWER_BLOCK_TYPES = {
     "lines",
-    "grid",
+    "grid_field",
+    "grid_system",
     "dots",
     "space",
     "table",
@@ -130,7 +132,7 @@ ANSWER_BLOCK_TYPES = {
 }
 KNOWN_ANSWER_TYPES = ANSWER_BLOCK_TYPES
 YAML_ANSWER_TYPES = {
-    "grid",
+    "grid_system",
     "numberline",
     "table",
     "matching",
@@ -146,7 +148,13 @@ BLOCK_ALLOWED_OPTIONS = {
         "rows",
         "height",
     },
-    "grid": {
+    "grid_field": {
+        "show",
+        "rows",
+        "cols",
+        "scale",
+    },
+    "grid_system": {
         "show",
         "rows",
         "cols",
@@ -659,7 +667,7 @@ def _collect_document_diagnostics(meta, blocks, content_text, content_base_line=
                     code="AN008",
                     message=(
                         "Legacy-Syntax `:::answer type=...` ist nicht mehr erlaubt. "
-                        "Bitte dedizierten Blocktyp nutzen, z. B. `:::grid` oder `:::lines`."
+                        "Bitte dedizierten Blocktyp nutzen, z. B. `:::grid_field` oder `:::lines`."
                     ),
                     severity="error",
                     block_index=index,

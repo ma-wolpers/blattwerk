@@ -40,7 +40,8 @@ block_name        = "material"
                   | "task"
                   | "subtask"
                   | "lines"
-                  | "grid"
+                  | "grid_field"
+                  | "grid_system"
                   | "dots"
                   | "space"
                   | "table"
@@ -64,8 +65,9 @@ block_name        = "material"
 - `subtask` ist nur als Folgeblock zu einem vorherigen `task` gueltig (nicht geschachtelt).
 - Sichtbarkeit ist nur ueber `show=worksheet|solution|both` definiert.
 - Legacy-Syntax `:::answer type=...` ist ungueltig; Antwortflaechen werden nur noch ueber dedizierte Blocktypen beschrieben.
-- YAML-basierte Antwort-Blocktypen (`grid`, `numberline`, `table`, `matching`) erwarten Mapping-YAML als Inhalt.
-- In Grid-YAML (`points`, `pairs`, `functions`) ist Element-Sichtbarkeit nur als `show: "§"|"%"|"&"` erlaubt.
+- `grid_field` ist textbasiert und nutzt normale Marker-/Inline-Sichtbarkeit wie andere textbasierte Antwortbloecke.
+- YAML-basierte Antwort-Blocktypen (`grid_system`, `numberline`, `table`, `matching`) erwarten Mapping-YAML als Inhalt.
+- In Grid-System-YAML (`points`, `pairs`, `functions`) ist Element-Sichtbarkeit nur als `show: "§"|"%"|"&"` erlaubt.
 - In Numberline-YAML (`labels`, `answers`, `arcs`) ist Element-Sichtbarkeit nur als `show: "§"|"%"|"&"` erlaubt.
 - In textbasierten Antwort-Blockinhalten sind zwei Marker-Varianten erlaubt:
     - Legacy-Zeilenmarker als eigenes Token am Zeilenanfang/-ende:
@@ -86,7 +88,7 @@ block_name        = "material"
 - `action`: `exchange|decide|experiment|reflect|read|calculate|match|write|draw` (+ dokumentierte Aliase)
 - `hint`: `tip|definition|remember|term|expert` (+ dokumentierte Aliase)
 - `show` (Blockoption): `worksheet|solution|both`
-- Grid-/Numberline-Elemente in YAML: `show: "§"|"%"|"&"`
+- Grid-System-/Numberline-Elemente in YAML: `show: "§"|"%"|"&"`
 
 Die vollstaendige Optionsmatrix und Aliasliste steht in `docs/MD_FORMAT.md`.
 

@@ -5,7 +5,7 @@ from app.core.blatt_kern_answer_table import _render_answer_block
 
 def test_grid_scale_option_sets_cell_size_variable():
     html = _render_answer_block(
-        {"type": "grid", "rows": "2", "cols": "2", "scale": "0.4cm"},
+        {"type": "grid_field", "rows": "2", "cols": "2", "scale": "0.4cm"},
         "",
         include_solutions=False,
     )
@@ -15,7 +15,7 @@ def test_grid_scale_option_sets_cell_size_variable():
 
 def test_grid_scale_defaults_to_half_centimeter():
     html = _render_answer_block(
-        {"type": "grid", "rows": "2", "cols": "2"},
+        {"type": "grid_field", "rows": "2", "cols": "2"},
         "",
         include_solutions=False,
     )
@@ -25,7 +25,7 @@ def test_grid_scale_defaults_to_half_centimeter():
 
 def test_grid_scale_invalid_value_falls_back_to_default():
     html = _render_answer_block(
-        {"type": "grid", "rows": "2", "cols": "2", "scale": "gross"},
+        {"type": "grid_field", "rows": "2", "cols": "2", "scale": "gross"},
         "",
         include_solutions=False,
     )
@@ -36,7 +36,7 @@ def test_grid_scale_invalid_value_falls_back_to_default():
 def test_grid_axis_renders_ticks_and_labels_by_default():
     html = _render_answer_block(
         {
-            "type": "grid",
+            "type": "grid_system",
             "rows": "10",
             "cols": "10",
             "axis": "true",
@@ -56,7 +56,7 @@ def test_grid_axis_renders_ticks_and_labels_by_default():
 def test_grid_axis_label_density_is_reduced_for_large_grids():
     html = _render_answer_block(
         {
-            "type": "grid",
+            "type": "grid_system",
             "rows": "40",
             "cols": "40",
             "axis": "true",
@@ -80,7 +80,7 @@ def test_grid_axis_label_density_is_reduced_for_large_grids():
 def test_grid_axis_origin_outside_grid_clamps_visual_axis_only():
     html = _render_answer_block(
         {
-            "type": "grid",
+            "type": "grid_system",
             "rows": "10",
             "cols": "10",
             "axis": "true",
@@ -101,7 +101,7 @@ def test_grid_axis_origin_outside_grid_clamps_visual_axis_only():
 def test_grid_axis_positive_y_points_upward():
     html = _render_answer_block(
         {
-            "type": "grid",
+            "type": "grid_system",
             "rows": "10",
             "cols": "10",
             "axis": "true",

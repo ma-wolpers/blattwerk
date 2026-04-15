@@ -1,4 +1,4 @@
-"""Grid and dotted answer renderers with optional coordinate overlays."""
+"""Grid answer renderers for writing fields and coordinate systems."""
 
 from __future__ import annotations
 
@@ -35,8 +35,40 @@ def render_dots_answer(options, content, include_solutions, render_solution_text
     return f"<div class='answer dots' style='height:{height}'></div>"
 
 
-def render_grid_answer(options, content, include_solutions, render_solution_text):
-    """Render a grid answer with optional axis, points, value pairs, and functions."""
+def render_grid_field_answer(options, content, include_solutions, render_solution_text):
+    """Render a writing grid with optional marker-based overlay text."""
+    rows = max(1, _safe_int(options.get("rows", 5), 5))
+    scale = _parse_grid_scale(options.get("scale"))
+    cols_option = options.get("cols")
+    has_explicit_cols = cols_option is not None and str(cols_option).strip() != ""
+    cols = max(1, _safe_int(cols_option, 20)) if has_explicit_cols else 20
+
+    grid_classes = ["answer", "grid"]
+    style_parts = [f"--rows:{rows}", f"--cell-size:{scale}"]
+    if has_explicit_cols:
+        style_parts.append(f"--cols:{cols}")
+    else:
+        grid_classes.append("grid-auto-width")
+
+    solution_text_html = render_solution_text(content, include_solutions)
+
+    overlay_parts = []
+    if solution_text_html:
+        overlay_parts.append(
+            f"<div class='answer-overlay-text'>{solution_text_html}</div>"
+        )
+
+    classes_html = " ".join(grid_classes)
+    style_html = "; ".join(style_parts)
+    if overlay_parts:
+        classes_html = f"{classes_html} answer-overlay-container"
+        return f"<div class='{classes_html}' style='{style_html}'>{''.join(overlay_parts)}</div>"
+
+    return f"<div class='{classes_html}' style='{style_html}'></div>"
+
+
+def render_grid_system_answer(options, content, include_solutions, render_solution_text):
+    """Render a coordinate/raster system with optional YAML-defined overlays."""
     rows = max(1, _safe_int(options.get("rows", 5), 5))
     scale = _parse_grid_scale(options.get("scale"))
     cols_option = options.get("cols")
@@ -55,15 +87,9 @@ def render_grid_answer(options, content, include_solutions, render_solution_text
     else:
         grid_classes.append("grid-auto-width")
 
+    solution_text_html = ""
     if include_solutions and fallback_solution_text.strip():
         solution_text_html = render_solution_text(fallback_solution_text)
-    else:
-        solution_text_html = ""
-
-    # Plain marker text inside `:::grid` should still render as overlay text.
-    # Structured YAML payloads (points/functions/...) stay source-only and are not echoed.
-    if not solution_text_html and not payload and (content or "").strip():
-        solution_text_html = render_solution_text(content, include_solutions)
 
     overlay_parts = []
     if primitives_svg:
