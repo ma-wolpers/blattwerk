@@ -6,6 +6,12 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-04-15
+
+### Fixed
+
+- Quality-Guardrails-CI now installs the validator import dependencies (`markdown`, `PyYAML`) before running `tools/ci/check_ai_guardrails.py`, so the workflow no longer fails on a fresh GitHub runner.
+
 ## [0.3.0] - 2026-04-15
 
 ### Changed
