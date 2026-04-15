@@ -12,7 +12,7 @@ from .answer_line_markers import (
     collect_answer_marker_conflict_lines,
     is_effectively_empty_answer_content,
 )
-from .blatt_kern_shared import parse_blocks, should_render_block, split_front_matter
+from .blatt_kern_shared import parse_blocks, split_front_matter
 
 
 @dataclass(frozen=True)
@@ -245,8 +245,8 @@ BLOCK_ALLOWED_OPTIONS = {
     "columns": {"cols", "widths", "ratio", "gap"},
     "nextcol": set(),
     "endcolumns": set(),
-    "help": {"title", "level", "show", "key"},
-    "hilfe": {"title", "level", "show", "key"},
+    "help": {"title", "level", "show", "tag"},
+    "hilfe": {"title", "level", "show", "tag"},
 }
 
 CRITICAL_DIAGNOSTIC_CODES = {
@@ -572,65 +572,6 @@ def _validate_payload_show_markers(diagnostics, block_index, answer_type, parsed
                 )
 
 
-def _normalized_help_key(options):
-    if not isinstance(options, dict):
-        return ""
-    return str(options.get("key", "")).strip()
-
-
-def _collect_help_key_diagnostics(blocks, include_solutions):
-    """Validate help-key requirements for the currently visible output mode."""
-    diagnostics = []
-    visible_help_blocks = []
-
-    for index, (block_type, options, _content) in enumerate(blocks):
-        if block_type not in {"help", "hilfe"}:
-            continue
-        if not should_render_block(block_type, options, include_solutions):
-            continue
-        visible_help_blocks.append((index, block_type, _normalized_help_key(options)))
-
-    if len(visible_help_blocks) <= 1:
-        return diagnostics
-
-    seen_keys = {}
-    for block_index, block_type, key in visible_help_blocks:
-        if not key:
-            diagnostics.append(
-                BuildDiagnostic(
-                    code="HP001",
-                    message=(
-                        "Mehr als eine sichtbare Lernhilfe vorhanden: `key` ist dann "
-                        f"in Block `{block_type}` verpflichtend (z. B. `key=A1`)."
-                    ),
-                    severity="error",
-                    block_index=block_index,
-                    block_type=block_type,
-                )
-            )
-            continue
-
-        normalized_key = key.lower()
-        if normalized_key in seen_keys:
-            diagnostics.append(
-                BuildDiagnostic(
-                    code="HP002",
-                    message=(
-                        f"Lernhilfe-Key `{key}` ist nicht eindeutig. "
-                        "Jede sichtbare Lernhilfe braucht einen einzigartigen `key`."
-                    ),
-                    severity="error",
-                    block_index=block_index,
-                    block_type=block_type,
-                )
-            )
-            continue
-
-        seen_keys[normalized_key] = block_index
-
-    return diagnostics
-
-
 def _collect_document_diagnostics(meta, blocks, content_text, content_base_line=1):
     diagnostics = _collect_block_marker_syntax_diagnostics(
         content_text, base_line=content_base_line
@@ -656,6 +597,30 @@ def _collect_document_diagnostics(meta, blocks, content_text, content_base_line=
                         "Ungueltiger Frontmatter-Wert fuer `mode`: "
                         f"`{meta.get('mode')}`. Erlaubt: ws, test."
                     ),
+                )
+            )
+
+    if isinstance(meta, dict) and "tag" in meta:
+        tag_value = meta.get("tag")
+        if isinstance(tag_value, (dict, list)):
+            diagnostics.append(
+                BuildDiagnostic(
+                    code="FM003",
+                    message=(
+                        "Ungueltiger Frontmatter-Wert fuer `tag`: "
+                        "Erlaubt ist ein einfacher Textwert (z. B. `1`, `A`, `TAG`)."
+                    ),
+                    severity="error",
+                )
+            )
+        elif not str(tag_value).strip():
+            diagnostics.append(
+                BuildDiagnostic(
+                    code="FM003",
+                    message=(
+                        "Ungueltiger Frontmatter-Wert fuer `tag`: leerer Wert ist nicht erlaubt."
+                    ),
+                    severity="error",
                 )
             )
 
@@ -855,22 +820,6 @@ def _collect_document_diagnostics(meta, blocks, content_text, content_base_line=
                         block_type=block_type,
                     )
                 )
-
-    help_key_diagnostics = _collect_help_key_diagnostics(blocks, include_solutions=False)
-    diagnostic_signatures = {
-        (d.code, d.block_index, d.line_number, d.message) for d in diagnostics
-    }
-    for diagnostic in help_key_diagnostics:
-        signature = (
-            diagnostic.code,
-            diagnostic.block_index,
-            diagnostic.line_number,
-            diagnostic.message,
-        )
-        if signature in diagnostic_signatures:
-            continue
-        diagnostics.append(diagnostic)
-        diagnostic_signatures.add(signature)
 
     return diagnostics
 

@@ -18,7 +18,7 @@
       },
       "patterns": [
         {
-          "match": "\\b(show|type|work|action|hint|points|rows|cols|height|width|widths|alignment|row_height|headers|header_columns|header_cols|row_labels|axis|axis_label_x|axis_label_y|origin|step_x|step_y|min|max|minimum|maximum|tick_step|ticks|tick_spacing_mm|tick_spacing_cm|tick_spacing|major_every|max_width_mm|max_width_cm|full_width|positive_sign|signed_positive|inline|tf|true_false|correct|options|gap|gap_length|words|words_multi|layout|orientation|left|right|top|bottom|matches|worksheet_matches|links|min_size|min_rows|min_cols|diagonal|horizontal|vertical|title|level|label|ratio|scale|align|height_mode|lane_align|show_guides|key)\\b(?==)",
+          "match": "\\b(show|type|work|action|hint|points|rows|cols|height|width|widths|alignment|row_height|headers|header_columns|header_cols|row_labels|axis|axis_label_x|axis_label_y|origin|step_x|step_y|min|max|minimum|maximum|tick_step|ticks|tick_spacing_mm|tick_spacing_cm|tick_spacing|major_every|max_width_mm|max_width_cm|full_width|positive_sign|signed_positive|inline|tf|true_false|correct|options|gap|gap_length|words|words_multi|layout|orientation|left|right|top|bottom|matches|worksheet_matches|links|min_size|min_rows|min_cols|diagonal|horizontal|vertical|title|level|label|ratio|scale|align|height_mode|lane_align|show_guides|tag)\\b(?==)",
           "name": "variable.parameter.blattwerk"
         },
         {

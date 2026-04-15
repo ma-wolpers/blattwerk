@@ -66,17 +66,6 @@ HELP_BLOCK_TYPES = {"help", "hilfe"}
 DOCUMENT_MODES = {"ws", "test"}
 
 
-def _normalize_help_key(options):
-    """Normalize optional help key and return None when it is blank."""
-    if not isinstance(options, dict):
-        return None
-    raw_value = options.get("key")
-    if raw_value is None:
-        return None
-    normalized = str(raw_value).strip()
-    return normalized or None
-
-
 def _dedupe_preserve_order(values):
     """Return values without duplicates while preserving first-seen order."""
     unique_values = []
@@ -89,21 +78,77 @@ def _dedupe_preserve_order(values):
     return unique_values
 
 
+def _alpha_label(index):
+    """Return spreadsheet-like labels: 1→A, 26→Z, 27→AA."""
+    value = max(1, int(index))
+    chars = []
+    while value > 0:
+        value -= 1
+        chars.append(chr(ord("A") + (value % 26)))
+        value //= 26
+    return "".join(reversed(chars))
+
+
+def _help_labels_for_tag(help_count, tag_text):
+    """Build deterministic help labels based on global count and optional tag."""
+    if help_count <= 0:
+        return []
+
+    normalized_tag = str(tag_text or "").strip()
+    if help_count == 1:
+        return [normalized_tag or None]
+
+    if not normalized_tag:
+        return [_alpha_label(index) for index in range(1, help_count + 1)]
+
+    if normalized_tag.isdigit():
+        return [
+            f"{normalized_tag}{_alpha_label(index)}"
+            for index in range(1, help_count + 1)
+        ]
+
+    if len(normalized_tag) == 1 and normalized_tag.isalpha():
+        return [f"{index}{normalized_tag}" for index in range(1, help_count + 1)]
+
+    if normalized_tag[-1].isdigit():
+        return [
+            f"{normalized_tag}{_alpha_label(index)}"
+            for index in range(1, help_count + 1)
+        ]
+
+    if normalized_tag[-1].isalpha():
+        return [f"{normalized_tag}{index}" for index in range(1, help_count + 1)]
+
+    return [_alpha_label(index) for index in range(1, help_count + 1)]
+
+
 def _format_help_reference_text(help_keys):
     """Build compact right-aligned task hint text for linked help blocks."""
     normalized_keys = _dedupe_preserve_order(
-        [str(value).strip() for value in (help_keys or []) if str(value).strip()]
+        [
+            str(value).strip()
+            for value in (help_keys or [])
+            if value is not None and str(value).strip()
+        ]
     )
 
     if len(help_keys or []) <= 1:
         if normalized_keys:
-            return f"-> Lernhilfe {normalized_keys[0]}"
-        return "-> Lernhilfe"
+            return f"→ Lernhilfe {normalized_keys[0]}"
+        return "→ Lernhilfe"
 
     if normalized_keys and len(normalized_keys) == len(help_keys or []):
-        return f"-> Lernhilfen {', '.join(normalized_keys)}"
+        return f"→ Lernhilfen {', '.join(normalized_keys)}"
 
-    return "-> Lernhilfen"
+    if normalized_keys:
+        return f"→ Lernhilfen {', '.join(normalized_keys)}"
+
+    return "→ Lernhilfen"
+
+
+def _normalize_help_tag(value):
+    normalized = str(value or "").strip()
+    return normalized or None
 
 
 def _normalize_keyword(value, default=""):
@@ -455,9 +500,10 @@ def annotate_standalone_subtasks(blocks):
     return annotated_blocks
 
 
-def annotate_task_help_references(blocks, include_solutions=False):
+def annotate_task_help_references(blocks, include_solutions=False, help_tag=None):
     """Annotate task/subtask blocks with rendered help-reference hint text."""
     references_by_block_index = {}
+    visible_help_entries = []
 
     for current_index, (block_type, options, _content) in enumerate(blocks):
         if block_type not in HELP_BLOCK_TYPES:
@@ -480,9 +526,30 @@ def annotate_task_help_references(blocks, include_solutions=False):
         if target_index is None:
             continue
 
-        references_by_block_index.setdefault(target_index, []).append(
-            _normalize_help_key(options)
+        local_tag = _normalize_help_tag((options or {}).get("tag"))
+        visible_help_entries.append(
+            {
+                "target_index": target_index,
+                "local_tag": local_tag,
+            }
         )
+
+    auto_tag_entries = [entry for entry in visible_help_entries if not entry["local_tag"]]
+    auto_labels = _help_labels_for_tag(len(auto_tag_entries), help_tag)
+    auto_label_index = 0
+
+    for entry in visible_help_entries:
+        target_index = entry["target_index"]
+        if entry["local_tag"]:
+            help_label = entry["local_tag"]
+        else:
+            help_label = (
+                auto_labels[auto_label_index]
+                if auto_label_index < len(auto_labels)
+                else None
+            )
+            auto_label_index += 1
+        references_by_block_index.setdefault(target_index, []).append(help_label)
 
     if not references_by_block_index:
         return list(blocks)

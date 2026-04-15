@@ -9,8 +9,9 @@ The format is based on Keep a Changelog.
 ### Changed
 
 - `task` blocks now support `title=...`; worksheet headers render this as `Aufgabe N - Titel` before the work-mode hint (ea/pa/...).
-- Worksheet rendering now adds right-aligned Lernhilfe references on the preceding `task`/`subtask` block (for example `-> Lernhilfe A1` or `-> Lernhilfen A1, A2`), based on nearby `help`/`hilfe` blocks.
-- `help`/`hilfe` blocks now support `key=...`; the validator enforces `key` as mandatory when more than one visible Lernhilfe exists and reports duplicate keys as errors.
+- Worksheet rendering now adds right-aligned Lernhilfe references on the preceding `task`/`subtask` block and derives labels automatically from an optional frontmatter `tag` (for example `→ 1A`, `→ Lernhilfen 1A, 1B`, or `→ Lernhilfen TAG1, TAG2`).
+- `help`/`hilfe` now support a local `tag=...` override per block; locally tagged help blocks are excluded from global auto-suffix counting.
+- `help`/`hilfe` block option `key=...` is now flagged as unknown.
 - Preview zoom now allows stronger zoom-out down to 10% (previously 40%), making full-page overviews easier on dense worksheets.
 - `task`- und `subtask`-Inhalte unterstuetzen jetzt ebenfalls Marker-Visibility mit `§/%/&` auf Zeilenebene; ohne Marker bleiben Inhalte standardmaessig in Arbeitsblatt und Loesung sichtbar.
 - Validator now reports `BL005` when section separators (`---` or `--`) are used inside an open `:::` block; separators are only allowed at top level.
@@ -18,7 +19,7 @@ The format is based on Keep a Changelog.
 - CI/local guardrails now enforce sync between core validator block/option catalogs and VS Code extension regex catalogs to prevent future drift.
 - `lines` answer blocks now support `height=<css-length>` to control concrete line pitch per response row (for example `height=2.1em` or `height=8mm`).
 - Validator now rejects nested `:::` blocks: markers must strictly alternate between opening and closing, so constructs like `:::table` inside `:::material` are flagged as errors.
-- BL004 validator messages now explain the actual marker flow error (new block started before closing the current one) and give a dedicated hint for `task` -> `subtask` as top-level follow blocks.
+- BL004 validator messages now explain the actual marker flow error (new block started before closing the current one) and give a dedicated hint for `task` → `subtask` as top-level follow blocks.
 - Escaped spaces in answer-line content (written as `\ `) are now preserved as visible placeholders in rendered output, so patterns like `(\ \ \ \ )` stay visibly spaced.
 - Marker highlighting now consistently uses `§/%/&` in both the built-in Blattwerk editor and the VS Code language extension; legacy `$` marker highlighting was removed.
 

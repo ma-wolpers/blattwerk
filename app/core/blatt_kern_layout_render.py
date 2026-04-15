@@ -342,7 +342,9 @@ def render_html(
     numbered_blocks = assign_task_numbers(blocks)
     enriched_blocks = annotate_standalone_subtasks(numbered_blocks)
     enriched_blocks = annotate_task_help_references(
-        enriched_blocks, include_solutions=include_solutions
+        enriched_blocks,
+        include_solutions=include_solutions,
+        help_tag=(meta or {}).get("tag"),
     )
     body = render_body_with_columns(
         enriched_blocks,

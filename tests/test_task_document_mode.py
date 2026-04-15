@@ -153,34 +153,100 @@ def test_render_html_shows_single_help_reference_without_key():
 
     worksheet_html = render_html(meta, blocks, include_solutions=False)
 
-    assert "-> Lernhilfe" in worksheet_html
+    assert "→ Lernhilfe" in worksheet_html
 
 
-def test_render_html_shows_multiple_help_keys_for_same_task():
-    meta = {"Titel": "T", "Fach": "M", "Thema": "X", "mode": "ws"}
+def test_render_html_shows_single_help_reference_with_tag_only():
+    meta = {"Titel": "T", "Fach": "M", "Thema": "X", "mode": "ws", "tag": "A"}
     blocks = [
         ("task", {"work": "single"}, "Aufgabe 1"),
-        ("help", {"title": "H1", "key": "A1"}, "Hinweis 1"),
-        ("help", {"title": "H2", "key": "A2"}, "Hinweis 2"),
+        ("help", {"title": "H1"}, "Hinweis 1"),
     ]
 
     worksheet_html = render_html(meta, blocks, include_solutions=False)
 
-    assert "-> Lernhilfen A1, A2" in worksheet_html
+    assert "→ A" in worksheet_html
+
+
+def test_render_html_shows_multiple_help_labels_for_numeric_tag():
+    meta = {"Titel": "T", "Fach": "M", "Thema": "X", "mode": "ws", "tag": "1"}
+    blocks = [
+        ("task", {"work": "single"}, "Aufgabe 1"),
+        ("help", {"title": "H1"}, "Hinweis 1"),
+        ("help", {"title": "H2"}, "Hinweis 2"),
+    ]
+
+    worksheet_html = render_html(meta, blocks, include_solutions=False)
+
+    assert "→ Lernhilfen 1A, 1B" in worksheet_html
+
+
+def test_render_html_shows_multiple_help_labels_for_letter_tag():
+    meta = {"Titel": "T", "Fach": "M", "Thema": "X", "mode": "ws", "tag": "A"}
+    blocks = [
+        ("task", {"work": "single"}, "Aufgabe 1"),
+        ("help", {"title": "H1"}, "Hinweis 1"),
+        ("help", {"title": "H2"}, "Hinweis 2"),
+    ]
+
+    worksheet_html = render_html(meta, blocks, include_solutions=False)
+
+    assert "→ Lernhilfen 1A, 2A" in worksheet_html
+
+
+def test_render_html_shows_multiple_help_labels_for_text_tag_ending_with_letter():
+    meta = {"Titel": "T", "Fach": "M", "Thema": "X", "mode": "ws", "tag": "TAG"}
+    blocks = [
+        ("task", {"work": "single"}, "Aufgabe 1"),
+        ("help", {"title": "H1"}, "Hinweis 1"),
+        ("help", {"title": "H2"}, "Hinweis 2"),
+        ("help", {"title": "H3"}, "Hinweis 3"),
+    ]
+
+    worksheet_html = render_html(meta, blocks, include_solutions=False)
+
+    assert "→ Lernhilfen TAG1, TAG2, TAG3" in worksheet_html
+
+
+def test_render_html_help_local_tag_overrides_global_tag_for_that_help():
+    meta = {"Titel": "T", "Fach": "M", "Thema": "X", "mode": "ws", "tag": "1"}
+    blocks = [
+        ("task", {"work": "single"}, "Aufgabe 1"),
+        ("help", {"title": "H1", "tag": "LOKAL"}, "Hinweis 1"),
+        ("help", {"title": "H2"}, "Hinweis 2"),
+    ]
+
+    worksheet_html = render_html(meta, blocks, include_solutions=False)
+
+    assert "→ Lernhilfen LOKAL, 1" in worksheet_html
+
+
+def test_render_html_local_help_tags_are_not_counted_for_auto_suffixes():
+    meta = {"Titel": "T", "Fach": "M", "Thema": "X", "mode": "ws", "tag": "1"}
+    blocks = [
+        ("task", {"work": "single"}, "Aufgabe 1"),
+        ("help", {"title": "H1", "tag": "X"}, "Hinweis 1"),
+        ("help", {"title": "H2"}, "Hinweis 2"),
+        ("help", {"title": "H3"}, "Hinweis 3"),
+    ]
+
+    worksheet_html = render_html(meta, blocks, include_solutions=False)
+
+    assert "→ Lernhilfen X, 1A, 1B" in worksheet_html
 
 
 def test_render_html_shows_help_reference_on_subtask():
-    meta = {"Titel": "T", "Fach": "M", "Thema": "X", "mode": "ws"}
+    meta = {"Titel": "T", "Fach": "M", "Thema": "X", "mode": "ws", "tag": "X"}
     blocks = [
         ("task", {"work": "single"}, "Oberaufgabe"),
         ("subtask", {}, "Teilaufgabe"),
-        ("help", {"title": "Hilfe", "key": "C5"}, "Zusatz"),
+        ("help", {"title": "Hilfe"}, "Zusatz"),
     ]
 
     worksheet_html = render_html(meta, blocks, include_solutions=False)
 
     assert "subtask-help-reference" in worksheet_html
-    assert "-> Lernhilfe C5" in worksheet_html
+    assert "→ X" in worksheet_html
 
 
 def test_task_title_is_rendered_in_task_label_before_work_mode():
