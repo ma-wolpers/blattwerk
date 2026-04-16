@@ -779,7 +779,7 @@ h1 {
 .grid-segment {
     fill: none;
     stroke: var(--theme-accent-main);
-    stroke-width: 1.5;
+    stroke-width: 2.5;
     stroke-dasharray: 2 2;
     vector-effect: non-scaling-stroke;
 }
