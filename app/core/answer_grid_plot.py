@@ -345,9 +345,9 @@ def _render_grid_primitives_svg(options, payload, rows, cols, include_solutions,
                 f"<polyline class='grid-sequence-line grid-mode-{seq_mode}' points='{points_attr}' />"
             )
 
-    for gx1, gy1, gx2, gy2, mode in segment_entries:
+    for gx1, gy1, gx2, gy2, mode, line_style in segment_entries:
         lines.append(
-            f"<line class='grid-segment grid-mode-{mode}' x1='{gx1:.4f}' y1='{gy1:.4f}' x2='{gx2:.4f}' y2='{gy2:.4f}' />"
+            f"<line class='grid-segment grid-segment-{line_style} grid-mode-{mode}' x1='{gx1:.4f}' y1='{gy1:.4f}' x2='{gx2:.4f}' y2='{gy2:.4f}' />"
         )
 
     for expr, x_min, x_max, mode in fn_entries:
@@ -479,11 +479,13 @@ def _parse_pairs(raw_pairs, axis_enabled, origin, step_x, step_y, include_soluti
         y2 = _as_float(item.get("y2"))
         if x1 is None or y1 is None or x2 is None or y2 is None:
             continue
+        raw_line = str(item.get("line", "dashed")).strip().lower()
+        line_style = raw_line if raw_line in ("solid", "dashed") else "dashed"
         gx1 = origin[0] + (x1 / step_x)
         gy1 = origin[1] - (y1 / step_y)
         gx2 = origin[0] + (x2 / step_x)
         gy2 = origin[1] - (y2 / step_y)
-        parsed.append((gx1, gy1, gx2, gy2, mode))
+        parsed.append((gx1, gy1, gx2, gy2, mode, line_style))
     return parsed
 
 

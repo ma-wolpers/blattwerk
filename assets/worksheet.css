@@ -780,7 +780,16 @@ h1 {
     fill: none;
     stroke: var(--theme-accent-main);
     stroke-width: 1.5;
+    stroke-dasharray: 2 2;
     vector-effect: non-scaling-stroke;
+}
+
+.grid-segment.grid-segment-solid {
+    stroke-dasharray: none;
+}
+
+.grid-segment.grid-segment-dashed {
+    stroke-dasharray: 2 2;
 }
 
 .grid-segment.grid-mode-worksheet {

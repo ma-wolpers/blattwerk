@@ -9,6 +9,8 @@ Regel:
 ## [Unreleased]
 
 ### Changed
+- Grid-System-Linienlogik geschärft: bisherige `pairs`-Polylinien wurden in `sequence` umbenannt (sortierte Wertefolge als zusammenhängende Linie), während `pairs` nun echte Segmentpaare über explizite Endpunkte (`x1`, `y1`, `x2`, `y2`) rendert.
+- Grid-System-Segmentstil erweitert: `pairs` unterstützt optional `line=solid|dashed` (Standard `dashed`) für segmentweise Linientyp-Steuerung.
 - Grid-Raster fuer `grid_field` und `grid_system` auf SVG umgestellt: Hintergrundraster und Overlays teilen jetzt dieselbe SVG-Koordinatenbasis (inkl. identischem Bleed/ViewBox beim Koordinatensystem), wodurch sichtbare Subpixel-Versaetze zwischen CSS-Raster und SVG-Linien entfallen.
 - Grid-System-Achsen am Rand nachgeschaerft: Tick-Werte und Achsennamen bleiben bei Randlage sichtbar (Label-Position kippt bei Randachsen nach innen), und Achsenpfeile duerfen den Rahmen ueberragen statt abgeschnitten zu werden.
 - Grid-Semantik hart getrennt: `grid_field` dient jetzt als textbasiertes Kaestchen-/Schreibfeld mit Marker-Overlay, waehrend `grid_system` das bisherige YAML-basierte Raster/Koordinatensystem (`points`, `pairs`, `functions`, `axis`, `origin`, `step_x`, `step_y`) uebernimmt; `AN004` gilt damit nur noch fuer echte YAML-Pflichttypen.

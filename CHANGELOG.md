@@ -6,6 +6,11 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Changed
+
+- `grid_system` uses clearer overlay semantics: `sequence` now represents ordered value sequences (polyline), while `pairs` now represents explicit line segments via endpoint pairs (`x1`, `y1`, `x2`, `y2`).
+- `grid_system` `pairs` entries now support optional `line=solid|dashed` (default: `dashed`) to control segment stroke style per segment.
+
 ### Fixed
 
 - `grid_system` clips no longer hide axis labels and axis arrowheads when an axis lies on the grid border; tick values and axis names now stay visible even when they extend beyond the frame.
