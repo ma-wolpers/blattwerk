@@ -541,7 +541,7 @@ def _render_axis_ticks_and_labels(
             gx, cols
         ):
             tick_markup.append(
-                f"<text class='grid-axis-label' x='{gx:.4f}' y='{axis_origin_y + 0.58:.4f}'>{_format_axis_label(logical_x)}</text>"
+                f"<text class='grid-axis-label' x='{gx:.4f}' y='{axis_origin_y + 0.1:.4f}'>{_format_axis_label(logical_x)}</text>"
             )
 
     for gy, logical_y in y_positions:
@@ -604,10 +604,10 @@ def _render_axis_arrowheads_and_names(origin_x, origin_y, cols, rows, axis_label
             f"{origin_x:.4f},{y_tip:.4f} {y_left:.4f},{y_base:.4f} {y_right:.4f},{y_base:.4f}' />"
         )
     if axis_label_y:
-        y_name_x = origin_x + 0.36
-        y_name_y = y_tip - 0.08
+        y_name_x = origin_x - 0.1
+        y_name_y = y_tip - 0.9
         markup.append(
-            f"<text class='grid-axis-label grid-axis-name' x='{y_name_x:.4f}' y='{y_name_y:.4f}'>{escape(axis_label_y)}</text>"
+            f"<text class='grid-axis-label grid-axis-name' x='{y_name_x:.4f}' y='{y_name_y:.4f}' text-anchor='end'>{escape(axis_label_y)}</text>"
         )
 
     return markup
@@ -640,10 +640,10 @@ def _estimate_grid_system_bleed_units(
     axis_label_y,
 ):
     """Estimate per-side bleed padding in grid units for axis labels and names."""
-    base_top = 0.35
-    base_right = 0.35
-    base_bottom = 0.35
-    base_left = 0.35
+    base_top = 0.55
+    base_right = 0.55
+    base_bottom = 0.55
+    base_left = 0.55
 
     if not axis_enabled or logical_origin is None:
         return base_top, base_right, base_bottom, base_left
@@ -675,16 +675,18 @@ def _estimate_grid_system_bleed_units(
     text_h = 0.78
 
     y_tick_left_overhang = 0.28 + (char_w * max_y_chars) + 0.14
+    y_name_left_overhang = 0.12 + (char_w * max(1, len(axis_label_y or ""))) + 0.12
     x_label_bottom_overhang = max(0.0, (axis_origin_y + 0.58) - float(rows)) + text_h
     x_name_right_overhang = max(0.0, (float(cols) + 0.34 + 0.16 + (char_w * max(1, len(axis_label_x or "")))) - float(cols)) + 0.12
     y_arrow_top_overhang = 0.34 + 0.08
     y_name_top_overhang = 0.42 + text_h
     x_name_top_overhang = max(0.0, 0.28 - axis_origin_y) + text_h
 
-    top = max(base_top, y_arrow_top_overhang, y_name_top_overhang, x_name_top_overhang)
-    right = max(base_right, x_name_right_overhang)
-    bottom = max(base_bottom, x_label_bottom_overhang, 0.56 + (0.02 * max_x_chars))
-    left = max(base_left, y_tick_left_overhang)
+    safety = 0.18
+    top = max(base_top, y_arrow_top_overhang, y_name_top_overhang, x_name_top_overhang) + safety
+    right = max(base_right, x_name_right_overhang) + safety
+    bottom = max(base_bottom, x_label_bottom_overhang, 0.56 + (0.02 * max_x_chars)) + safety
+    left = max(base_left, y_tick_left_overhang, y_name_left_overhang) + safety
 
     return top, right, bottom, left
 
