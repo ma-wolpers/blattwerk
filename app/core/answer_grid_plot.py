@@ -303,7 +303,10 @@ def _render_grid_primitives_svg(options, payload, rows, cols, include_solutions,
     point_entries = _parse_points(
         payload.get("points"), axis_enabled, origin, step_x, step_y, include_solutions
     )
-    pair_entries = _parse_pairs(
+    sequence_entries = _parse_sequence(
+        payload.get("sequence"), axis_enabled, origin, step_x, step_y, include_solutions
+    )
+    segment_entries = _parse_pairs(
         payload.get("pairs"), axis_enabled, origin, step_x, step_y, include_solutions
     )
     fn_entries = _parse_functions(
@@ -311,7 +314,7 @@ def _render_grid_primitives_svg(options, payload, rows, cols, include_solutions,
     )
 
     point_markup = []
-    for px, py, label, mode in point_entries + pair_entries:
+    for px, py, label, mode in point_entries + sequence_entries:
         if not _inside_grid(px, py, cols, rows):
             continue
         cross_half = 0.18
@@ -326,21 +329,26 @@ def _render_grid_primitives_svg(options, payload, rows, cols, include_solutions,
                 f"<text class='grid-point-label grid-mode-{mode}' x='{px + 0.24:.4f}' y='{py - 0.24:.4f}'>{escape(label)}</text>"
             )
 
-    if pair_entries:
+    if sequence_entries:
         filtered = [
             (x, y, mode)
-            for x, y, _label, mode in pair_entries
+            for x, y, _label, mode in sequence_entries
             if _inside_grid(x, y, cols, rows)
         ]
         if len(filtered) >= 2:
-            pairs_mode = filtered[0][2]
+            seq_mode = filtered[0][2]
             points_attr = " ".join(
                 f"{x:.4f},{y:.4f}"
                 for x, y, _mode in sorted(filtered, key=lambda item: item[0])
             )
             lines.append(
-                f"<polyline class='grid-pairs-line grid-mode-{pairs_mode}' points='{points_attr}' />"
+                f"<polyline class='grid-sequence-line grid-mode-{seq_mode}' points='{points_attr}' />"
             )
+
+    for gx1, gy1, gx2, gy2, mode in segment_entries:
+        lines.append(
+            f"<line class='grid-segment grid-mode-{mode}' x1='{gx1:.4f}' y1='{gy1:.4f}' x2='{gx2:.4f}' y2='{gy2:.4f}' />"
+        )
 
     for expr, x_min, x_max, mode in fn_entries:
         poly_points = _sample_function_points(
@@ -430,13 +438,13 @@ def _parse_points(raw_points, axis_enabled, origin, step_x, step_y, include_solu
     return parsed
 
 
-def _parse_pairs(raw_pairs, axis_enabled, origin, step_x, step_y, include_solutions):
-    """Parse function value pairs, only when axis mode is enabled."""
-    if not axis_enabled or origin is None or not isinstance(raw_pairs, list):
+def _parse_sequence(raw_sequence, axis_enabled, origin, step_x, step_y, include_solutions):
+    """Parse a sequence of (x, y) values into a sorted polyline, only in axis mode."""
+    if not axis_enabled or origin is None or not isinstance(raw_sequence, list):
         return []
 
     parsed = []
-    for item in raw_pairs:
+    for item in raw_sequence:
         if not isinstance(item, dict):
             continue
         mode = _normalize_show_mode(item.get("show"))
@@ -450,6 +458,32 @@ def _parse_pairs(raw_pairs, axis_enabled, origin, step_x, step_y, include_soluti
         gy = origin[1] - (y / step_y)
         label = str(item.get("label", "")).strip()
         parsed.append((gx, gy, label, mode))
+    return parsed
+
+
+def _parse_pairs(raw_pairs, axis_enabled, origin, step_x, step_y, include_solutions):
+    """Parse line segments as (x1, y1, x2, y2) entries, only in axis mode."""
+    if not axis_enabled or origin is None or not isinstance(raw_pairs, list):
+        return []
+
+    parsed = []
+    for item in raw_pairs:
+        if not isinstance(item, dict):
+            continue
+        mode = _normalize_show_mode(item.get("show"))
+        if not _is_visible(mode, include_solutions):
+            continue
+        x1 = _as_float(item.get("x1"))
+        y1 = _as_float(item.get("y1"))
+        x2 = _as_float(item.get("x2"))
+        y2 = _as_float(item.get("y2"))
+        if x1 is None or y1 is None or x2 is None or y2 is None:
+            continue
+        gx1 = origin[0] + (x1 / step_x)
+        gy1 = origin[1] - (y1 / step_y)
+        gx2 = origin[0] + (x2 / step_x)
+        gy2 = origin[1] - (y2 / step_y)
+        parsed.append((gx1, gy1, gx2, gy2, mode))
     return parsed
 
 

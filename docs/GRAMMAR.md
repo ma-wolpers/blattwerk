@@ -67,7 +67,9 @@ block_name        = "material"
 - Legacy-Syntax `:::answer type=...` ist ungueltig; Antwortflaechen werden nur noch ueber dedizierte Blocktypen beschrieben.
 - `grid_field` ist textbasiert und nutzt normale Marker-/Inline-Sichtbarkeit wie andere textbasierte Antwortbloecke.
 - YAML-basierte Antwort-Blocktypen (`grid_system`, `numberline`, `table`, `matching`) erwarten Mapping-YAML als Inhalt.
-- In Grid-System-YAML (`points`, `pairs`, `functions`) ist Element-Sichtbarkeit nur als `show: "§"|"%"|"&"` erlaubt.
+- In Grid-System-YAML (`points`, `sequence`, `pairs`, `functions`) ist Element-Sichtbarkeit nur als `show: "§"|"%"|"&"` erlaubt.
+- `sequence`-Einträge haben `x`, `y` (und optional `label`); alle Einträge werden als sortierte Polylinie verbunden.
+- `pairs`-Einträge haben `x1`, `y1`, `x2`, `y2`; jeder Eintrag wird als eigene Strecke gerendert.
 - In Numberline-YAML (`labels`, `answers`, `arcs`) ist Element-Sichtbarkeit nur als `show: "§"|"%"|"&"` erlaubt.
 - In textbasierten Antwort-Blockinhalten sind zwei Marker-Varianten erlaubt:
     - Legacy-Zeilenmarker als eigenes Token am Zeilenanfang/-ende:

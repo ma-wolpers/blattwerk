@@ -162,7 +162,7 @@ def test_grid_system_yaml_marker_show_values_are_accepted():
         ":::grid_system rows=4 cols=4\n"
         "points:\n"
         "  - {col: 1, row: 1, show: '§'}\n"
-        "pairs:\n"
+        "sequence:\n"
         "  - {x: 0, y: 0, show: '&'}\n"
         "functions:\n"
         "  - {expr: 'x', domain: '-1:1', show: '%'}\n"

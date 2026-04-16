@@ -79,7 +79,7 @@ points:
   - {x: 2, y: 3, label: "B", show: "&"}
   - {x: 4, y: -1, label: "C", show: "%"}
 
-pairs:
+sequence:
   - {x: -2, y: 2, label: "P1", show: "§"}
   - {x: -1, y: -1, label: "P2", show: "§"}
   - {x: 0, y: -2, label: "P3", show: "§"}
@@ -94,7 +94,8 @@ functions:
 :::info
 Hier gilt wegen `axis=true` im `grid_system`:
 
-- `points` und `pairs` nutzen Koordinaten (`x`, `y`)
+- `points` und `sequence` nutzen Koordinaten (`x`, `y`)
+- `pairs` verbindet zwei Endpunkte als Strecke: `{x1, y1, x2, y2}`
 - `functions` werden nur bei vorhandenem Koordinatensystem gezeichnet
 - `x^2` und `x**2` sind beide möglich
 :::

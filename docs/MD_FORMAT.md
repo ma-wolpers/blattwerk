@@ -230,12 +230,16 @@ Fuer `grid_system` gilt zusaetzlich:
     - Optionale Achsenbezeichnungen am positiven Achsenende.
     - Standard: `x` und `y`.
 
-Grid-System-YAML-Sichtbarkeit auf Elementebene (`points`, `pairs`, `functions`):
+Grid-System-YAML-Sichtbarkeit auf Elementebene (`points`, `sequence`, `pairs`, `functions`):
 - `show: "§"` = nur Arbeitsblatt
 - `show: "%"` = nur Lösung
 - `show: "&"` = Arbeitsblatt und Lösung
 - Ohne `show` gilt standardmäßig `"&"`.
-- Werte wie `show: worksheet|solution|both` sind fuer Grid-System-Elemente ungueltig.
+- Werte wie `show: worksheet|solution|both` sind für Grid-Elemente ungültig.
+
+`sequence`-Einträge (`x`, `y`, optional `label`): alle sichtbaren Punkte werden nach x-Wert sortiert als Polylinie verbunden.
+
+`pairs`-Einträge (`x1`, `y1`, `x2`, `y2`): jeder Eintrag wird als unabhängige Strecke von Endpunkt 1 nach Endpunkt 2 gerendert.
 
 Numberline-YAML-Sichtbarkeit auf Elementebene (`labels`, `answers`, `arcs`):
 - `show: "§"` = nur Arbeitsblatt
