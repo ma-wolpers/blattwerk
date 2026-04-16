@@ -129,3 +129,27 @@ points:
     assert p_match is not None
     assert n_match is not None
     assert float(p_match.group(1)) < float(n_match.group(1))
+
+
+def test_grid_axis_border_keeps_labels_and_arrowheads_visible():
+    html = _render_answer_block(
+        {
+            "type": "grid_system",
+            "rows": "10",
+            "cols": "10",
+            "axis": "true",
+            "origin": "0,10",
+            "step_x": "1",
+            "step_y": "1",
+            "axis_label_x": "t",
+            "axis_label_y": "Amplitude",
+        },
+        "",
+        include_solutions=False,
+    )
+
+    assert "class='grid-axis-label' x='1.0000' y='10.5800'>1</text>" in html
+    assert "class='grid-axis-label grid-axis-label-y' x='-0.2800' y='9.0400'>1</text>" in html
+    assert "10.3400,10.0000" in html
+    assert "0.0000,-0.3400" in html
+    assert ">Amplitude</text>" in html

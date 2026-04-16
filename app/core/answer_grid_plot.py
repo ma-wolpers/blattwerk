@@ -408,7 +408,7 @@ def _render_axis_arrowheads_and_names(origin_x, origin_y, cols, rows, axis_label
     """Render arrowheads at positive axis ends and textual axis names."""
     markup = []
 
-    x_tip = float(cols) - 0.02
+    x_tip = float(cols) + 0.34
     x_base = max(origin_x + 0.24, x_tip - 0.44)
     x_top = max(0.04, origin_y - 0.18)
     x_bottom = min(float(rows) - 0.04, origin_y + 0.18)
@@ -418,13 +418,13 @@ def _render_axis_arrowheads_and_names(origin_x, origin_y, cols, rows, axis_label
             f"{x_tip:.4f},{origin_y:.4f} {x_base:.4f},{x_top:.4f} {x_base:.4f},{x_bottom:.4f}' />"
         )
     if axis_label_x:
-        x_name_y = max(0.32, min(float(rows) - 0.12, origin_y - 0.28))
-        x_name_x = min(float(cols) - 0.14, x_tip - 0.52)
+        x_name_y = origin_y - 0.28
+        x_name_x = x_tip + 0.16
         markup.append(
-            f"<text class='grid-axis-label grid-axis-name' x='{x_name_x:.4f}' y='{x_name_y:.4f}' text-anchor='end'>{escape(axis_label_x)}</text>"
+            f"<text class='grid-axis-label grid-axis-name' x='{x_name_x:.4f}' y='{x_name_y:.4f}' text-anchor='start'>{escape(axis_label_x)}</text>"
         )
 
-    y_tip = 0.02
+    y_tip = -0.34
     y_base = min(origin_y - 0.24, y_tip + 0.44)
     y_left = max(0.04, origin_x - 0.18)
     y_right = min(float(cols) - 0.04, origin_x + 0.18)
@@ -434,8 +434,8 @@ def _render_axis_arrowheads_and_names(origin_x, origin_y, cols, rows, axis_label
             f"{origin_x:.4f},{y_tip:.4f} {y_left:.4f},{y_base:.4f} {y_right:.4f},{y_base:.4f}' />"
         )
     if axis_label_y:
-        y_name_x = min(float(cols) - 0.14, max(0.20, origin_x + 0.38))
-        y_name_y = max(0.34, y_tip + 0.30)
+        y_name_x = origin_x + 0.36
+        y_name_y = y_tip - 0.08
         markup.append(
             f"<text class='grid-axis-label grid-axis-name' x='{y_name_x:.4f}' y='{y_name_y:.4f}'>{escape(axis_label_y)}</text>"
         )

@@ -6,6 +6,10 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Fixed
+
+- `grid_system` clips no longer hide axis labels and axis arrowheads when an axis lies on the grid border; tick values and axis names now stay visible even when they extend beyond the frame.
+
 ## [0.3.1] - 2026-04-15
 
 ### Fixed
