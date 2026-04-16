@@ -80,6 +80,25 @@ def render_grid_system_answer(options, content, include_solutions, render_soluti
         options, payload, rows, cols, include_solutions
     )
 
+    axis_enabled = _option_is_enabled(options.get("axis"), default=False)
+    logical_origin = _parse_origin(options.get("origin"), cols, rows) if axis_enabled else None
+    if axis_enabled and logical_origin is None:
+        axis_enabled = False
+    step_x = _parse_positive_float(options.get("step_x"), 1.0)
+    step_y = _parse_positive_float(options.get("step_y"), 1.0)
+    axis_label_x = _resolve_axis_name(
+        options,
+        "axis_label_x",
+        aliases=("x_label", "axis_x_label"),
+        default="x",
+    )
+    axis_label_y = _resolve_axis_name(
+        options,
+        "axis_label_y",
+        aliases=("y_label", "axis_y_label"),
+        default="y",
+    )
+
     grid_classes = ["answer", "grid"]
     style_parts = [f"--rows:{rows}", f"--cell-size:{scale}"]
     if has_explicit_cols or primitives_svg:
@@ -103,7 +122,28 @@ def render_grid_system_answer(options, content, include_solutions, render_soluti
     style_html = "; ".join(style_parts)
     if overlay_parts:
         classes_html = f"{classes_html} answer-overlay-container"
-        return f"<div class='{classes_html}' style='{style_html}'>{''.join(overlay_parts)}</div>"
+        grid_html = (
+            f"<div class='{classes_html}' style='{style_html}'>{''.join(overlay_parts)}</div>"
+        )
+        if primitives_svg:
+            bleed_top, bleed_right, bleed_bottom, bleed_left = _estimate_grid_system_bleed_cm(
+                logical_origin,
+                cols,
+                rows,
+                step_x,
+                step_y,
+                axis_enabled,
+                axis_label_x,
+                axis_label_y,
+            )
+            bleed_style = (
+                f"--grid-bleed-top:{bleed_top:.3f}cm;"
+                f"--grid-bleed-right:{bleed_right:.3f}cm;"
+                f"--grid-bleed-bottom:{bleed_bottom:.3f}cm;"
+                f"--grid-bleed-left:{bleed_left:.3f}cm"
+            )
+            return f"<div class='grid-system-bleed' style='{bleed_style}'>{grid_html}</div>"
+        return grid_html
 
     return f"<div class='{classes_html}' style='{style_html}'></div>"
 
@@ -408,7 +448,7 @@ def _render_axis_arrowheads_and_names(origin_x, origin_y, cols, rows, axis_label
     """Render arrowheads at positive axis ends and textual axis names."""
     markup = []
 
-    x_tip = float(cols) + 0.34
+    x_tip = float(cols) - 0.10
     x_base = max(origin_x + 0.24, x_tip - 0.44)
     x_top = max(0.04, origin_y - 0.18)
     x_bottom = min(float(rows) - 0.04, origin_y + 0.18)
@@ -424,7 +464,7 @@ def _render_axis_arrowheads_and_names(origin_x, origin_y, cols, rows, axis_label
             f"<text class='grid-axis-label grid-axis-name' x='{x_name_x:.4f}' y='{x_name_y:.4f}' text-anchor='start'>{escape(axis_label_x)}</text>"
         )
 
-    y_tip = -0.34
+    y_tip = 0.10
     y_base = min(origin_y - 0.24, y_tip + 0.44)
     y_left = max(0.04, origin_x - 0.18)
     y_right = min(float(cols) - 0.04, origin_x + 0.18)
@@ -453,12 +493,66 @@ def _choose_axis_label_stride(tick_count):
 
 def _should_render_axis_label(logical_value, stride):
     """Return True when a tick should receive a textual axis label."""
-    if abs(logical_value) < 1e-9:
-        return False
     rounded = int(round(logical_value))
     if abs(logical_value - rounded) > 1e-9:
         return False
     return rounded % max(1, stride) == 0
+
+
+def _estimate_grid_system_bleed_cm(
+    logical_origin,
+    cols,
+    rows,
+    step_x,
+    step_y,
+    axis_enabled,
+    axis_label_x,
+    axis_label_y,
+):
+    """Estimate per-side bleed padding for axis labels and names in centimeters."""
+    base_top = 0.24
+    base_right = 0.24
+    base_bottom = 0.24
+    base_left = 0.24
+
+    if not axis_enabled or logical_origin is None:
+        return base_top, base_right, base_bottom, base_left
+
+    origin_x, origin_y = logical_origin
+
+    x_ticks = _iter_axis_tick_positions(origin_x, cols, step_x)
+    y_ticks = _iter_axis_tick_positions(origin_y, rows, step_y)
+
+    x_stride = _choose_axis_label_stride(len(x_ticks))
+    y_stride = _choose_axis_label_stride(len(y_ticks))
+
+    x_labels = [
+        _format_axis_label(logical_x)
+        for _gx, logical_x in x_ticks
+        if _should_render_axis_label(logical_x, x_stride)
+    ]
+    y_labels = [
+        _format_axis_label(-logical_y)
+        for _gy, logical_y in y_ticks
+        if _should_render_axis_label(logical_y, y_stride)
+    ]
+
+    max_x_chars = max((len(text) for text in x_labels), default=1)
+    max_y_chars = max((len(text) for text in y_labels), default=1)
+
+    # Conservative width/height factors tuned for print font metrics.
+    char_w = 0.085
+    char_h = 0.12
+
+    top = max(base_top, 0.34 + (char_h * 1.0) + (0.02 if axis_label_y else 0.0))
+    right = max(base_right, 0.34 + (char_w * max(1, len(axis_label_x or ""))))
+    bottom = max(base_bottom, 0.34 + (char_h * 1.0) + (0.01 * max_x_chars))
+    left = max(base_left, 0.34 + (char_w * max_y_chars))
+
+    if axis_label_y:
+        left = max(left, 0.34 + (char_w * max(1, len(axis_label_y))))
+
+    return top, right, bottom, left
 
 
 def _is_inside_axis_label_safe_area(position, limit):

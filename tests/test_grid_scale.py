@@ -148,8 +148,11 @@ def test_grid_axis_border_keeps_labels_and_arrowheads_visible():
         include_solutions=False,
     )
 
+    assert "class='grid-system-bleed' style='--grid-bleed-top:" in html
+    assert "class='grid-axis-label' x='0.0000' y='10.5800'>0</text>" in html
+    assert "class='grid-axis-label grid-axis-label-y' x='-0.2800' y='10.0400'>0</text>" in html
     assert "class='grid-axis-label' x='1.0000' y='10.5800'>1</text>" in html
     assert "class='grid-axis-label grid-axis-label-y' x='-0.2800' y='9.0400'>1</text>" in html
-    assert "10.3400,10.0000" in html
-    assert "0.0000,-0.3400" in html
-    assert ">Amplitude</text>" in html
+    assert "9.9000,10.0000" in html
+    assert "0.0000,0.1000" in html
+    assert "class='grid-axis-label grid-axis-name' x='0.3600' y='0.0200'>Amplitude</text>" in html
