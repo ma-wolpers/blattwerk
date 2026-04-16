@@ -22,6 +22,29 @@ def _parse_grid_scale(raw_value):
     return "0.5cm"
 
 
+def _grid_cell_size_to_cm(scale_value):
+    """Convert parsed grid cell size to cm for deterministic bleed padding."""
+    text = str(scale_value or "").strip().lower()
+    match = re.fullmatch(r"(\d+(?:\.\d+)?)(cm|mm|px|pt|em|rem|%)", text)
+    if not match:
+        return 0.5
+
+    value = float(match.group(1))
+    unit = match.group(2)
+
+    if unit == "cm":
+        return value
+    if unit == "mm":
+        return value / 10.0
+    if unit == "px":
+        return value * (2.54 / 96.0)
+    if unit == "pt":
+        return value * (2.54 / 72.0)
+
+    # em/rem/% are context-dependent; keep a stable fallback.
+    return 0.5
+
+
 def render_dots_answer(options, content, include_solutions, render_solution_text):
     """Render a dotted answer field with optional in-field solution overlay text."""
     height = options.get("height", "4cm")
@@ -71,14 +94,10 @@ def render_grid_system_answer(options, content, include_solutions, render_soluti
     """Render a coordinate/raster system with optional YAML-defined overlays."""
     rows = max(1, _safe_int(options.get("rows", 5), 5))
     scale = _parse_grid_scale(options.get("scale"))
+    cell_size_cm = _grid_cell_size_to_cm(scale)
     cols_option = options.get("cols")
     has_explicit_cols = cols_option is not None and str(cols_option).strip() != ""
     cols = max(1, _safe_int(cols_option, 20)) if has_explicit_cols else 20
-
-    payload, fallback_solution_text = _parse_grid_payload(content)
-    primitives_svg = _render_grid_primitives_svg(
-        options, payload, rows, cols, include_solutions
-    )
 
     axis_enabled = _option_is_enabled(options.get("axis"), default=False)
     logical_origin = _parse_origin(options.get("origin"), cols, rows) if axis_enabled else None
@@ -97,6 +116,32 @@ def render_grid_system_answer(options, content, include_solutions, render_soluti
         "axis_label_y",
         aliases=("y_label", "axis_y_label"),
         default="y",
+    )
+
+    bleed_top_units, bleed_right_units, bleed_bottom_units, bleed_left_units = _estimate_grid_system_bleed_units(
+        logical_origin,
+        cols,
+        rows,
+        step_x,
+        step_y,
+        axis_enabled,
+        axis_label_x,
+        axis_label_y,
+    )
+
+    payload, fallback_solution_text = _parse_grid_payload(content)
+    primitives_svg = _render_grid_primitives_svg(
+        options,
+        payload,
+        rows,
+        cols,
+        include_solutions,
+        bleed_units=(
+            bleed_top_units,
+            bleed_right_units,
+            bleed_bottom_units,
+            bleed_left_units,
+        ),
     )
 
     grid_classes = ["answer", "grid"]
@@ -126,21 +171,15 @@ def render_grid_system_answer(options, content, include_solutions, render_soluti
             f"<div class='{classes_html}' style='{style_html}'>{''.join(overlay_parts)}</div>"
         )
         if primitives_svg:
-            bleed_top, bleed_right, bleed_bottom, bleed_left = _estimate_grid_system_bleed_cm(
-                logical_origin,
-                cols,
-                rows,
-                step_x,
-                step_y,
-                axis_enabled,
-                axis_label_x,
-                axis_label_y,
-            )
+            bleed_top_cm = bleed_top_units * cell_size_cm
+            bleed_right_cm = bleed_right_units * cell_size_cm
+            bleed_bottom_cm = bleed_bottom_units * cell_size_cm
+            bleed_left_cm = bleed_left_units * cell_size_cm
             bleed_style = (
-                f"--grid-bleed-top:{bleed_top:.3f}cm;"
-                f"--grid-bleed-right:{bleed_right:.3f}cm;"
-                f"--grid-bleed-bottom:{bleed_bottom:.3f}cm;"
-                f"--grid-bleed-left:{bleed_left:.3f}cm"
+                f"--grid-bleed-top:{bleed_top_cm:.4f}cm;"
+                f"--grid-bleed-right:{bleed_right_cm:.4f}cm;"
+                f"--grid-bleed-bottom:{bleed_bottom_cm:.4f}cm;"
+                f"--grid-bleed-left:{bleed_left_cm:.4f}cm"
             )
             return f"<div class='grid-system-bleed' style='{bleed_style}'>{grid_html}</div>"
         return grid_html
@@ -153,7 +192,7 @@ def _parse_grid_payload(content):
     return parse_yaml_answer_payload_with_solution(content)
 
 
-def _render_grid_primitives_svg(options, payload, rows, cols, include_solutions):
+def _render_grid_primitives_svg(options, payload, rows, cols, include_solutions, bleed_units=(0.0, 0.0, 0.0, 0.0)):
     """Render optional geometric primitives inside the grid as SVG."""
     axis_enabled = _option_is_enabled(options.get("axis"), default=False)
     origin = _parse_origin(options.get("origin"), cols, rows) if axis_enabled else None
@@ -265,8 +304,20 @@ def _render_grid_primitives_svg(options, payload, rows, cols, include_solutions)
     if not all_markup:
         return ""
 
+    bleed_top, bleed_right, bleed_bottom, bleed_left = bleed_units
+    view_x = -bleed_left
+    view_y = -bleed_top
+    view_w = float(cols) + bleed_left + bleed_right
+    view_h = float(rows) + bleed_top + bleed_bottom
+
+    left_pct = -(bleed_left / float(cols)) * 100.0 if cols else 0.0
+    top_pct = -(bleed_top / float(rows)) * 100.0 if rows else 0.0
+    width_pct = (view_w / float(cols)) * 100.0 if cols else 100.0
+    height_pct = (view_h / float(rows)) * 100.0 if rows else 100.0
+
     return (
-        f"<svg class='grid-overlay' viewBox='0 0 {cols} {rows}' preserveAspectRatio='none' aria-hidden='true'>"
+        f"<svg class='grid-overlay' viewBox='{view_x:.4f} {view_y:.4f} {view_w:.4f} {view_h:.4f}' preserveAspectRatio='none' aria-hidden='true' "
+        f"style='left:{left_pct:.4f}%; top:{top_pct:.4f}%; width:{width_pct:.4f}%; height:{height_pct:.4f}%'>"
         f"{''.join(all_markup)}"
         "</svg>"
     )
@@ -448,7 +499,7 @@ def _render_axis_arrowheads_and_names(origin_x, origin_y, cols, rows, axis_label
     """Render arrowheads at positive axis ends and textual axis names."""
     markup = []
 
-    x_tip = float(cols) - 0.10
+    x_tip = float(cols) + 0.34
     x_base = max(origin_x + 0.24, x_tip - 0.44)
     x_top = max(0.04, origin_y - 0.18)
     x_bottom = min(float(rows) - 0.04, origin_y + 0.18)
@@ -464,7 +515,7 @@ def _render_axis_arrowheads_and_names(origin_x, origin_y, cols, rows, axis_label
             f"<text class='grid-axis-label grid-axis-name' x='{x_name_x:.4f}' y='{x_name_y:.4f}' text-anchor='start'>{escape(axis_label_x)}</text>"
         )
 
-    y_tip = 0.10
+    y_tip = -0.34
     y_base = min(origin_y - 0.24, y_tip + 0.44)
     y_left = max(0.04, origin_x - 0.18)
     y_right = min(float(cols) - 0.04, origin_x + 0.18)
@@ -499,7 +550,7 @@ def _should_render_axis_label(logical_value, stride):
     return rounded % max(1, stride) == 0
 
 
-def _estimate_grid_system_bleed_cm(
+def _estimate_grid_system_bleed_units(
     logical_origin,
     cols,
     rows,
@@ -509,19 +560,19 @@ def _estimate_grid_system_bleed_cm(
     axis_label_x,
     axis_label_y,
 ):
-    """Estimate per-side bleed padding for axis labels and names in centimeters."""
-    base_top = 0.24
-    base_right = 0.24
-    base_bottom = 0.24
-    base_left = 0.24
+    """Estimate per-side bleed padding in grid units for axis labels and names."""
+    base_top = 0.35
+    base_right = 0.35
+    base_bottom = 0.35
+    base_left = 0.35
 
     if not axis_enabled or logical_origin is None:
         return base_top, base_right, base_bottom, base_left
 
-    origin_x, origin_y = logical_origin
+    axis_origin_x, axis_origin_y = _clamp_axis_origin(logical_origin[0], logical_origin[1], cols, rows)
 
-    x_ticks = _iter_axis_tick_positions(origin_x, cols, step_x)
-    y_ticks = _iter_axis_tick_positions(origin_y, rows, step_y)
+    x_ticks = _iter_axis_tick_positions(logical_origin[0], cols, step_x)
+    y_ticks = _iter_axis_tick_positions(logical_origin[1], rows, step_y)
 
     x_stride = _choose_axis_label_stride(len(x_ticks))
     y_stride = _choose_axis_label_stride(len(y_ticks))
@@ -540,17 +591,21 @@ def _estimate_grid_system_bleed_cm(
     max_x_chars = max((len(text) for text in x_labels), default=1)
     max_y_chars = max((len(text) for text in y_labels), default=1)
 
-    # Conservative width/height factors tuned for print font metrics.
-    char_w = 0.085
-    char_h = 0.12
+    # Approximate text box metrics in grid units.
+    char_w = 0.26
+    text_h = 0.78
 
-    top = max(base_top, 0.34 + (char_h * 1.0) + (0.02 if axis_label_y else 0.0))
-    right = max(base_right, 0.34 + (char_w * max(1, len(axis_label_x or ""))))
-    bottom = max(base_bottom, 0.34 + (char_h * 1.0) + (0.01 * max_x_chars))
-    left = max(base_left, 0.34 + (char_w * max_y_chars))
+    y_tick_left_overhang = 0.28 + (char_w * max_y_chars) + 0.14
+    x_label_bottom_overhang = max(0.0, (axis_origin_y + 0.58) - float(rows)) + text_h
+    x_name_right_overhang = max(0.0, (float(cols) + 0.34 + 0.16 + (char_w * max(1, len(axis_label_x or "")))) - float(cols)) + 0.12
+    y_arrow_top_overhang = 0.34 + 0.08
+    y_name_top_overhang = 0.42 + text_h
+    x_name_top_overhang = max(0.0, 0.28 - axis_origin_y) + text_h
 
-    if axis_label_y:
-        left = max(left, 0.34 + (char_w * max(1, len(axis_label_y))))
+    top = max(base_top, y_arrow_top_overhang, y_name_top_overhang, x_name_top_overhang)
+    right = max(base_right, x_name_right_overhang)
+    bottom = max(base_bottom, x_label_bottom_overhang, 0.56 + (0.02 * max_x_chars))
+    left = max(base_left, y_tick_left_overhang)
 
     return top, right, bottom, left
 
