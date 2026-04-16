@@ -757,7 +757,8 @@ h1 {
     stroke: none;
 }
 
-.grid-pairs-line {
+.grid-pairs-line,
+.grid-sequence-line {
     fill: none;
     stroke: var(--theme-accent-main);
     stroke-width: 1.5;
@@ -765,11 +766,28 @@ h1 {
     vector-effect: non-scaling-stroke;
 }
 
-.grid-pairs-line.grid-mode-worksheet {
+.grid-pairs-line.grid-mode-worksheet,
+.grid-sequence-line.grid-mode-worksheet {
     stroke: var(--theme-accent-secondary);
 }
 
-.grid-pairs-line.grid-mode-solution {
+.grid-pairs-line.grid-mode-solution,
+.grid-sequence-line.grid-mode-solution {
+    stroke: var(--solution-accent-strong, #205840);
+}
+
+.grid-segment {
+    fill: none;
+    stroke: var(--theme-accent-main);
+    stroke-width: 1.5;
+    vector-effect: non-scaling-stroke;
+}
+
+.grid-segment.grid-mode-worksheet {
+    stroke: var(--theme-accent-secondary);
+}
+
+.grid-segment.grid-mode-solution {
     stroke: var(--solution-accent-strong, #205840);
 }
 
