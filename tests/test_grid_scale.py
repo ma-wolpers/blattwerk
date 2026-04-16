@@ -11,6 +11,7 @@ def test_grid_scale_option_sets_cell_size_variable():
     )
 
     assert "--cell-size:0.4cm" in html
+    assert "class='grid-overlay-bg'" in html
 
 
 def test_grid_scale_defaults_to_half_centimeter():
@@ -51,6 +52,7 @@ def test_grid_axis_renders_ticks_and_labels_by_default():
     assert "grid-axis" in html
     assert "grid-axis-tick" in html
     assert "grid-axis-label" in html
+    assert "class='grid-overlay-bg'" in html
 
 
 def test_grid_axis_label_density_is_reduced_for_large_grids():

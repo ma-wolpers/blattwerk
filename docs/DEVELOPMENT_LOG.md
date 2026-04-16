@@ -9,6 +9,7 @@ Regel:
 ## [Unreleased]
 
 ### Changed
+- Grid-Raster fuer `grid_field` und `grid_system` auf SVG umgestellt: Hintergrundraster und Overlays teilen jetzt dieselbe SVG-Koordinatenbasis (inkl. identischem Bleed/ViewBox beim Koordinatensystem), wodurch sichtbare Subpixel-Versaetze zwischen CSS-Raster und SVG-Linien entfallen.
 - Grid-System-Achsen am Rand nachgeschaerft: Tick-Werte und Achsennamen bleiben bei Randlage sichtbar (Label-Position kippt bei Randachsen nach innen), und Achsenpfeile duerfen den Rahmen ueberragen statt abgeschnitten zu werden.
 - Grid-Semantik hart getrennt: `grid_field` dient jetzt als textbasiertes Kaestchen-/Schreibfeld mit Marker-Overlay, waehrend `grid_system` das bisherige YAML-basierte Raster/Koordinatensystem (`points`, `pairs`, `functions`, `axis`, `origin`, `step_x`, `step_y`) uebernimmt; `AN004` gilt damit nur noch fuer echte YAML-Pflichttypen.
 - Validator und Blattwerker-Guardrails erweitert: markerbasierte Inhalte mit explizitem `§` ohne sichtbares Loesungs-Gegenstueck erzeugen jetzt `AN010`; zusaetzlich ist die Pruefregel in den Blattwerker-Agentvorgaben und im lokalen/CI-Guardrail verankert.

@@ -74,8 +74,9 @@ def render_grid_field_answer(options, content, include_solutions, render_solutio
         grid_classes.append("grid-auto-width")
 
     solution_text_html = render_solution_text(content, include_solutions)
+    grid_svg = _render_grid_background_svg(cols, rows)
 
-    overlay_parts = []
+    overlay_parts = [grid_svg]
     if solution_text_html:
         overlay_parts.append(
             f"<div class='answer-overlay-text'>{solution_text_html}</div>"
@@ -130,6 +131,16 @@ def render_grid_system_answer(options, content, include_solutions, render_soluti
     )
 
     payload, fallback_solution_text = _parse_grid_payload(content)
+    grid_background_svg = _render_grid_background_svg(
+        cols,
+        rows,
+        bleed_units=(
+            bleed_top_units,
+            bleed_right_units,
+            bleed_bottom_units,
+            bleed_left_units,
+        ),
+    )
     primitives_svg = _render_grid_primitives_svg(
         options,
         payload,
@@ -155,7 +166,7 @@ def render_grid_system_answer(options, content, include_solutions, render_soluti
     if include_solutions and fallback_solution_text.strip():
         solution_text_html = render_solution_text(fallback_solution_text)
 
-    overlay_parts = []
+    overlay_parts = [grid_background_svg]
     if primitives_svg:
         overlay_parts.append(primitives_svg)
     if solution_text_html:
@@ -190,6 +201,48 @@ def render_grid_system_answer(options, content, include_solutions, render_soluti
 def _parse_grid_payload(content):
     """Parse YAML payload for grid overlays and return `(payload, fallback_solution_text)`."""
     return parse_yaml_answer_payload_with_solution(content)
+
+
+def _svg_viewport_frame(cols, rows, bleed_units=(0.0, 0.0, 0.0, 0.0)):
+    """Build shared SVG viewport geometry for grid background and overlays."""
+    bleed_top, bleed_right, bleed_bottom, bleed_left = bleed_units
+    view_x = -bleed_left
+    view_y = -bleed_top
+    view_w = float(cols) + bleed_left + bleed_right
+    view_h = float(rows) + bleed_top + bleed_bottom
+
+    left_pct = -(bleed_left / float(cols)) * 100.0 if cols else 0.0
+    top_pct = -(bleed_top / float(rows)) * 100.0 if rows else 0.0
+    width_pct = (view_w / float(cols)) * 100.0 if cols else 100.0
+    height_pct = (view_h / float(rows)) * 100.0 if rows else 100.0
+
+    style = (
+        f"left:{left_pct:.4f}%; top:{top_pct:.4f}%; "
+        f"width:{width_pct:.4f}%; height:{height_pct:.4f}%"
+    )
+    view_box = f"{view_x:.4f} {view_y:.4f} {view_w:.4f} {view_h:.4f}"
+    return view_box, style
+
+
+def _render_grid_background_svg(cols, rows, bleed_units=(0.0, 0.0, 0.0, 0.0)):
+    """Render the grid raster as SVG so it shares the exact coordinate system with overlays."""
+    view_box, frame_style = _svg_viewport_frame(cols, rows, bleed_units)
+    grid_lines = []
+
+    for x in range(0, int(cols) + 1):
+        grid_lines.append(
+            f"<line class='grid-background-line' x1='{x:.4f}' y1='0' x2='{x:.4f}' y2='{rows:.4f}' />"
+        )
+    for y in range(0, int(rows) + 1):
+        grid_lines.append(
+            f"<line class='grid-background-line' x1='0' y1='{y:.4f}' x2='{cols:.4f}' y2='{y:.4f}' />"
+        )
+
+    return (
+        f"<svg class='grid-overlay-bg' viewBox='{view_box}' preserveAspectRatio='none' aria-hidden='true' style='{frame_style}'>"
+        f"{''.join(grid_lines)}"
+        "</svg>"
+    )
 
 
 def _render_grid_primitives_svg(options, payload, rows, cols, include_solutions, bleed_units=(0.0, 0.0, 0.0, 0.0)):
@@ -304,20 +357,10 @@ def _render_grid_primitives_svg(options, payload, rows, cols, include_solutions,
     if not all_markup:
         return ""
 
-    bleed_top, bleed_right, bleed_bottom, bleed_left = bleed_units
-    view_x = -bleed_left
-    view_y = -bleed_top
-    view_w = float(cols) + bleed_left + bleed_right
-    view_h = float(rows) + bleed_top + bleed_bottom
-
-    left_pct = -(bleed_left / float(cols)) * 100.0 if cols else 0.0
-    top_pct = -(bleed_top / float(rows)) * 100.0 if rows else 0.0
-    width_pct = (view_w / float(cols)) * 100.0 if cols else 100.0
-    height_pct = (view_h / float(rows)) * 100.0 if rows else 100.0
+    view_box, frame_style = _svg_viewport_frame(cols, rows, bleed_units)
 
     return (
-        f"<svg class='grid-overlay' viewBox='{view_x:.4f} {view_y:.4f} {view_w:.4f} {view_h:.4f}' preserveAspectRatio='none' aria-hidden='true' "
-        f"style='left:{left_pct:.4f}%; top:{top_pct:.4f}%; width:{width_pct:.4f}%; height:{height_pct:.4f}%'>"
+        f"<svg class='grid-overlay' viewBox='{view_box}' preserveAspectRatio='none' aria-hidden='true' style='{frame_style}'>"
         f"{''.join(all_markup)}"
         "</svg>"
     )

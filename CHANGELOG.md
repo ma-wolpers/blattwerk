@@ -9,6 +9,7 @@ The format is based on Keep a Changelog.
 ### Fixed
 
 - `grid_system` clips no longer hide axis labels and axis arrowheads when an axis lies on the grid border; tick values and axis names now stay visible even when they extend beyond the frame.
+- Grid raster rendering now uses SVG for both `grid_field` and `grid_system`, aligning background grid lines and plotted overlays in one shared coordinate system to avoid slight visual offsets.
 
 ## [0.3.1] - 2026-04-15
 
