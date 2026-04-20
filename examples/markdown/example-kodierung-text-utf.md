@@ -29,7 +29,7 @@ Mini-Merkhilfe:
 Ordne die Begriffe zu.
 :::
 
-:::grid_field rows=3
+:::grid rows=3
 ::: 
 
 :::solution

@@ -10,6 +10,7 @@ Dieses Modul kapselt:
 from __future__ import annotations
 
 from pathlib import Path
+import re
 
 from .worksheet_design import build_design_css
 
@@ -155,6 +156,12 @@ PAGE_LAYOUTS = {
 }
 
 
+_PAGE_DIMENSIONS_CM = {
+    "a4": (21.0, 29.7),
+    "a5": (14.8, 21.0),
+}
+
+
 STYLESHEET_TEMPLATE_PATH = (
     Path(__file__).resolve().parents[2] / "assets" / "worksheet.css"
 )
@@ -273,6 +280,59 @@ def build_page_layout_css(page_format, hole_punch_enabled=False):
     --solution-badge-size: {layout["solution_badge_size"]};
 }}
 """
+
+
+def _css_length_to_cm(raw_value, default_cm):
+    """Convert a simple CSS length (`cm|mm|px|pt`) to centimeters."""
+    text = str(raw_value or "").strip().lower()
+    match = re.fullmatch(r"(\d+(?:\.\d+)?)(cm|mm|px|pt)", text)
+    if not match:
+        return default_cm
+
+    value = float(match.group(1))
+    unit = match.group(2)
+    if unit == "cm":
+        return value
+    if unit == "mm":
+        return value / 10.0
+    if unit == "px":
+        return value * (2.54 / 96.0)
+    if unit == "pt":
+        return value * (2.54 / 72.0)
+    return default_cm
+
+
+def _layout_page_width_cm(layout):
+    """Resolve physical page width in centimeters from a layout preset."""
+    size_text = str((layout or {}).get("page_size_css", "A4 portrait") or "").strip().lower()
+    parts = [part for part in size_text.split() if part]
+    paper_key = parts[0] if parts else "a4"
+    paper_dimensions = _PAGE_DIMENSIONS_CM.get(paper_key, _PAGE_DIMENSIONS_CM["a4"])
+
+    if "landscape" in parts:
+        return max(paper_dimensions)
+    return min(paper_dimensions)
+
+
+def resolve_printable_width_cm(page_format, hole_punch_enabled=False):
+    """Resolve printable content width from page format and active margins."""
+    layout = PAGE_LAYOUTS.get(page_format, PAGE_LAYOUTS["a4_portrait"])
+    page_width_cm = _layout_page_width_cm(layout)
+
+    if hole_punch_enabled:
+        margin_left_raw = layout.get(
+            "page_margin_left_hole_punch_css", layout["page_margin_left_css"]
+        )
+        margin_right_raw = layout.get(
+            "page_margin_right_hole_punch_css", layout["page_margin_right_css"]
+        )
+    else:
+        margin_left_raw = layout["page_margin_left_css"]
+        margin_right_raw = layout["page_margin_right_css"]
+
+    margin_left_cm = _css_length_to_cm(margin_left_raw, 1.5)
+    margin_right_cm = _css_length_to_cm(margin_right_raw, 1.5)
+    return max(0.5, page_width_cm - margin_left_cm - margin_right_cm)
 
 
 def _load_stylesheet_template_text():

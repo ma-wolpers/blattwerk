@@ -11,6 +11,10 @@ from .answer_special_shared import _option_is_enabled, _safe_int
 from .answer_yaml_payload import parse_yaml_answer_payload_with_solution
 
 
+_DEFAULT_GEOMETRY_COLS = 20
+_DEFAULT_PRINTABLE_WIDTH_CM = 18.0
+
+
 def _parse_grid_scale(raw_value):
     """Parst den Grid-Maßstab als sichere CSS-Länge."""
     if raw_value is None:
@@ -45,6 +49,21 @@ def _grid_cell_size_to_cm(scale_value):
     return 0.5
 
 
+def _resolve_runtime_printable_width_cm(options):
+    """Resolve printable width from runtime layout context passed by layout rendering."""
+    raw_value = (options or {}).get("_printable_width_cm")
+    parsed = _as_float(raw_value)
+    if parsed is None or parsed <= 0:
+        return _DEFAULT_PRINTABLE_WIDTH_CM
+    return parsed
+
+
+def _estimate_grid_auto_cols(scale_value, printable_width_cm):
+    """Estimate default grid columns from runtime printable width and cell size."""
+    cell_size_cm = max(0.01, _grid_cell_size_to_cm(scale_value))
+    return max(1, int(math.floor(printable_width_cm / cell_size_cm)))
+
+
 def render_dots_answer(options, content, include_solutions, render_solution_text):
     """Render a dotted answer field with optional in-field solution overlay text."""
     height = options.get("height", "4cm")
@@ -58,20 +77,21 @@ def render_dots_answer(options, content, include_solutions, render_solution_text
     return f"<div class='answer dots' style='height:{height}'></div>"
 
 
-def render_grid_field_answer(options, content, include_solutions, render_solution_text):
+def render_grid_answer(options, content, include_solutions, render_solution_text):
     """Render a writing grid with optional marker-based overlay text."""
     rows = max(1, _safe_int(options.get("rows", 5), 5))
     scale = _parse_grid_scale(options.get("scale"))
+    printable_width_cm = _resolve_runtime_printable_width_cm(options)
     cols_option = options.get("cols")
     has_explicit_cols = cols_option is not None and str(cols_option).strip() != ""
-    cols = max(1, _safe_int(cols_option, 20)) if has_explicit_cols else 20
+    cols = (
+        max(1, _safe_int(cols_option, _DEFAULT_GEOMETRY_COLS))
+        if has_explicit_cols
+        else _estimate_grid_auto_cols(scale, printable_width_cm)
+    )
 
     grid_classes = ["answer", "grid"]
-    style_parts = [f"--rows:{rows}", f"--cell-size:{scale}"]
-    if has_explicit_cols:
-        style_parts.append(f"--cols:{cols}")
-    else:
-        grid_classes.append("grid-auto-width")
+    style_parts = [f"--rows:{rows}", f"--cell-size:{scale}", f"--cols:{cols}"]
 
     solution_text_html = render_solution_text(content, include_solutions)
     grid_svg = _render_grid_background_svg(cols, rows)
@@ -91,14 +111,14 @@ def render_grid_field_answer(options, content, include_solutions, render_solutio
     return f"<div class='{classes_html}' style='{style_html}'></div>"
 
 
-def render_grid_system_answer(options, content, include_solutions, render_solution_text):
+def render_geometry_answer(options, content, include_solutions, render_solution_text):
     """Render a coordinate/raster system with optional YAML-defined overlays."""
     rows = max(1, _safe_int(options.get("rows", 5), 5))
     scale = _parse_grid_scale(options.get("scale"))
     cell_size_cm = _grid_cell_size_to_cm(scale)
     cols_option = options.get("cols")
     has_explicit_cols = cols_option is not None and str(cols_option).strip() != ""
-    cols = max(1, _safe_int(cols_option, 20)) if has_explicit_cols else 20
+    cols = max(1, _safe_int(cols_option, _DEFAULT_GEOMETRY_COLS)) if has_explicit_cols else _DEFAULT_GEOMETRY_COLS
 
     axis_enabled = _option_is_enabled(options.get("axis"), default=False)
     logical_origin = _parse_origin(options.get("origin"), cols, rows) if axis_enabled else None
@@ -119,7 +139,7 @@ def render_grid_system_answer(options, content, include_solutions, render_soluti
         default="y",
     )
 
-    bleed_top_units, bleed_right_units, bleed_bottom_units, bleed_left_units = _estimate_grid_system_bleed_units(
+    bleed_top_units, bleed_right_units, bleed_bottom_units, bleed_left_units = _estimate_geometry_bleed_units(
         logical_origin,
         cols,
         rows,
@@ -156,11 +176,7 @@ def render_grid_system_answer(options, content, include_solutions, render_soluti
     )
 
     grid_classes = ["answer", "grid"]
-    style_parts = [f"--rows:{rows}", f"--cell-size:{scale}"]
-    if has_explicit_cols or primitives_svg:
-        style_parts.append(f"--cols:{cols}")
-    else:
-        grid_classes.append("grid-auto-width")
+    style_parts = [f"--rows:{rows}", f"--cell-size:{scale}", f"--cols:{cols}"]
 
     solution_text_html = ""
     if include_solutions and fallback_solution_text.strip():
@@ -629,7 +645,7 @@ def _should_render_axis_label(logical_value, stride):
     return rounded % max(1, stride) == 0
 
 
-def _estimate_grid_system_bleed_units(
+def _estimate_geometry_bleed_units(
     logical_origin,
     cols,
     rows,

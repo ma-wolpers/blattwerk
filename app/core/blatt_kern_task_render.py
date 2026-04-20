@@ -21,8 +21,8 @@ from .blatt_kern_answer_table import _render_answer_block
 
 ANSWER_BLOCK_TYPES = {
     "lines",
-    "grid_field",
-    "grid_system",
+    "grid",
+    "geometry",
     "dots",
     "space",
     "table",

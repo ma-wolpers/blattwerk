@@ -61,7 +61,7 @@ Ordne den Potenzen passende Binärstellen zu.
 Kreuze an, welche der folgenden Aussagen richtig sind.
 :::
 
-:::grid_field rows=4
+:::grid rows=4
 :::
 
 :::solution

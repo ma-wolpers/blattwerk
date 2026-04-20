@@ -160,8 +160,8 @@ Zweck: Antwortbereich oder interaktiver Antworttyp.
 
 Unterstützte dedizierte Blocktypen:
 - `lines`
-- `grid_field`
-- `grid_system`
+- `grid`
+- `geometry`
 - `dots`
 - `space`
 - `table`
@@ -173,8 +173,8 @@ Unterstützte dedizierte Blocktypen:
 
 Regeln:
 - Legacy-Syntax `:::answer type=...` ist nicht erlaubt.
-- `grid_field` ist textbasiert und dient als Kaestchen-/Schreibfeld mit Marker-Text.
-- Strukturierte Inhalte sind YAML fuer `grid_system`, `numberline`, `table` und `matching`.
+- `grid` ist textbasiert und dient als Kaestchen-/Schreibfeld mit Marker-Text.
+- Strukturierte Inhalte sind YAML fuer `geometry`, `numberline`, `table` und `matching`.
 - `matching` ist YAML-only (kein alternatives [section]-Format).
 
 #### Lines-Optionen und Renderingverhalten
@@ -198,22 +198,28 @@ Markdown auf Linien:
 - Zeilenabstaende und Linienraster sind auf denselben vertikalen Takt gekoppelt, damit explizite Newlines und Soft-Wraps geometrisch konsistent bleiben.
 - Escaped-Leerzeichen (`\ `) bleiben als sichtbare Platzhalter erhalten (z. B. `(\ \ \ \ )` fuer Klammer-Luecken).
 
-#### Grid-Field-Optionen
+#### Grid-Optionen
 
-Fuer `grid_field` gilt zusaetzlich:
+Fuer `grid` gilt zusaetzlich:
 
 - `scale=<css-laenge>`
     - Standard: `0.5cm`
     - Steuert die Zellgroesse des Rasters (Massstab).
     - Beispiel: `scale=0.4cm`, `scale=6mm`.
 
-Textinhalt in `grid_field`:
+Automatische Spaltenzahl in `grid` ohne `cols`:
+- Ohne explizites `cols` wird `cols` deterministisch aus aktiver Druck-Inhaltsbreite (Seitenformat + aktive Seitenraender) und `scale` berechnet.
+- Regel: `cols = floor(verfuegbare_breite / cell_size)` mit Mindestwert `1`.
+- Das beruecksichtigt auch den Frontmatter-Schalter `lochen` fuer vergroesserten linken Rand.
+- Ziel: Zellen werden nicht schmaler als `scale`.
+
+Textinhalt in `grid`:
 - Marker-/Inline-Text wird wie bei `lines` nach Arbeitsblatt/Loesung gefiltert und als Overlay im Kaestchenfeld gerendert.
 - Unmarkierter Text ist in beiden Modi sichtbar.
 
-#### Grid-System-Optionen
+#### Geometry-Optionen
 
-Fuer `grid_system` gilt zusaetzlich:
+Fuer `geometry` gilt zusaetzlich:
 
 - `scale=<css-laenge>`
     - Standard: `0.5cm`
@@ -230,7 +236,7 @@ Fuer `grid_system` gilt zusaetzlich:
     - Optionale Achsenbezeichnungen am positiven Achsenende.
     - Standard: `x` und `y`.
 
-Grid-System-YAML-Sichtbarkeit auf Elementebene (`points`, `sequence`, `pairs`, `functions`):
+Geometry-YAML-Sichtbarkeit auf Elementebene (`points`, `sequence`, `pairs`, `functions`):
 - `show: "§"` = nur Arbeitsblatt
 - `show: "%"` = nur Lösung
 - `show: "&"` = Arbeitsblatt und Lösung

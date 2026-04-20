@@ -9,6 +9,8 @@ Regel:
 ## [Unreleased]
 
 ### Changed
+- Antwort-Blocknamen hart umgestellt: `grid_field` -> `grid` und `grid_system` -> `geometry` ohne Rueckwaertskompatibilitaet; Core-Validator, Renderer-Dispatch, Layout-/Task-Wiring, Tests und VSCode-Extension-Regex wurden im selben Zyklus synchronisiert.
+- Grid-Breitenlogik korrigiert: `grid` ohne explizites `cols` berechnet die Spaltenzahl jetzt deterministisch aus Druck-Inhaltsbreite und `scale` (`floor(width/scale)`, min 1), wodurch Zellen nicht mehr auf Containerbreite gestreckt werden und die Zellgroesse konsistent bleibt.
 - Grid-System-Linienlogik geschärft: bisherige `pairs`-Polylinien wurden in `sequence` umbenannt (sortierte Wertefolge als zusammenhängende Linie), während `pairs` nun echte Segmentpaare über explizite Endpunkte (`x1`, `y1`, `x2`, `y2`) rendert.
 - Grid-System-Segmentstil erweitert: `pairs` unterstützt optional `line=solid|dashed` (Standard `dashed`) für segmentweise Linientyp-Steuerung.
 - Grid-Raster fuer `grid_field` und `grid_system` auf SVG umgestellt: Hintergrundraster und Overlays teilen jetzt dieselbe SVG-Koordinatenbasis (inkl. identischem Bleed/ViewBox beim Koordinatensystem), wodurch sichtbare Subpixel-Versaetze zwischen CSS-Raster und SVG-Linien entfallen.

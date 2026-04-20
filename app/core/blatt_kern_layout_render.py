@@ -6,7 +6,7 @@ import re
 from html import escape
 
 from .answer_special import estimate_matching_weight, estimate_wordsearch_weight
-from ..styles.blatt_styles import build_stylesheet
+from ..styles.blatt_styles import build_stylesheet, resolve_printable_width_cm
 from .blatt_kern_shared import (
     _safe_int,
     annotate_task_help_references,
@@ -21,6 +21,13 @@ from .blatt_kern_shared import (
     split_sections,
 )
 from .blatt_kern_task_render import render_block
+
+
+def _with_runtime_layout_options(options, printable_width_cm):
+    """Attach render-time layout context for answer blocks."""
+    merged = dict(options or {})
+    merged["_printable_width_cm"] = float(printable_width_cm)
+    return merged
 
 
 def parse_columns_template(options, fallback_count):
@@ -105,8 +112,8 @@ def estimate_block_weight(block_type, options, content, include_solutions):
 
     if block_type in {
         "lines",
-        "grid_field",
-        "grid_system",
+        "grid",
+        "geometry",
         "dots",
         "space",
         "table",
@@ -138,10 +145,10 @@ def estimate_block_weight(block_type, options, content, include_solutions):
             if block_type == "lines":
                 rows = max(1, _safe_int(options.get("rows", 3), 3))
                 return max(1.0, rows * 0.7)
-            if block_type == "grid_field":
+            if block_type == "grid":
                 rows = max(1, _safe_int(options.get("rows", 5), 5))
                 return max(1.4, rows * 0.85 + (text_length / 260.0))
-            if block_type == "grid_system":
+            if block_type == "geometry":
                 rows = max(1, _safe_int(options.get("rows", 5), 5))
                 cols = _safe_int(options.get("cols", 20), 20) if options.get("cols") else 20
                 return max(1.6, (rows * cols) / 52.0 + (text_length / 320.0))
@@ -168,11 +175,11 @@ def estimate_block_weight(block_type, options, content, include_solutions):
 
         if block_type == "lines":
             return max(0.8, _safe_int(options.get("rows", 3), 3) * 0.7)
-        if block_type == "grid_field":
+        if block_type == "grid":
             rows = _safe_int(options.get("rows", 5), 5)
             cols = _safe_int(options.get("cols", 20), 20) if options.get("cols") else 20
             return max(1.2, (rows * cols) / 55.0)
-        if block_type == "grid_system":
+        if block_type == "geometry":
             rows = _safe_int(options.get("rows", 5), 5)
             cols = _safe_int(options.get("cols", 20), 20) if options.get("cols") else 20
             return max(1.4, (rows * cols) / 48.0)
@@ -208,6 +215,7 @@ def render_columns_container(
     options,
     include_solutions,
     document_mode="ws",
+    printable_width_cm=18.0,
 ):
     """Rendert einen `columns`-Container inklusive automatischer Breitenlogik."""
     if not columns_blocks:
@@ -232,9 +240,13 @@ def render_columns_container(
     for column_blocks in columns_blocks:
         rendered_parts = []
         for block_type, block_options, content in column_blocks:
+            runtime_options = _with_runtime_layout_options(
+                block_options,
+                printable_width_cm,
+            )
             rendered = render_block(
                 block_type,
-                block_options,
+                runtime_options,
                 content,
                 include_solutions=include_solutions,
                 document_mode=document_mode,
@@ -251,7 +263,12 @@ def render_columns_container(
     return f"<div class='columns columns-custom' style='{escape(inline_style)}'>{''.join(column_html)}</div>"
 
 
-def render_body_with_columns(blocks, include_solutions, document_mode="ws"):
+def render_body_with_columns(
+    blocks,
+    include_solutions,
+    document_mode="ws",
+    printable_width_cm=18.0,
+):
     """Rendert den Body und behandelt `columns`/`nextcol`/`endcolumns` Zustände."""
     html_parts = []
     in_columns = False
@@ -299,6 +316,7 @@ def render_body_with_columns(blocks, include_solutions, document_mode="ws"):
                     columns_options,
                     include_solutions,
                     document_mode=document_mode,
+                    printable_width_cm=printable_width_cm,
                 )
             )
             in_columns = False
@@ -313,9 +331,13 @@ def render_body_with_columns(blocks, include_solutions, document_mode="ws"):
             columns_blocks[current_column_index].append((block_type, options, content))
             continue
 
+        runtime_options = _with_runtime_layout_options(
+            options,
+            printable_width_cm,
+        )
         rendered = render_block(
             block_type,
-            options,
+            runtime_options,
             content,
             include_solutions=include_solutions,
             document_mode=document_mode,
@@ -330,6 +352,7 @@ def render_body_with_columns(blocks, include_solutions, document_mode="ws"):
                 columns_options,
                 include_solutions,
                 document_mode=document_mode,
+                printable_width_cm=printable_width_cm,
             )
         )
 
@@ -355,10 +378,16 @@ def render_html(
         include_solutions=include_solutions,
         help_tag=(meta or {}).get("tag"),
     )
+    hole_punch_enabled = is_hole_punch_layout_enabled(meta)
+    printable_width_cm = resolve_printable_width_cm(
+        page_format,
+        hole_punch_enabled=hole_punch_enabled,
+    )
     body = render_body_with_columns(
         enriched_blocks,
         include_solutions=include_solutions,
         document_mode=document_mode,
+        printable_width_cm=printable_width_cm,
     )
     sectioned_body = split_sections(body)
     meta_line = format_meta_line(meta)
@@ -405,7 +434,7 @@ def render_html(
     stylesheet = build_stylesheet(
         page_format,
         print_profile,
-        hole_punch_enabled=is_hole_punch_layout_enabled(meta),
+        hole_punch_enabled=hole_punch_enabled,
         color_profile=color_profile,
         font_profile=font_profile,
         font_size_profile=font_size_profile,

@@ -8,13 +8,15 @@ The format is based on Keep a Changelog.
 
 ### Changed
 
-- `grid_system` uses clearer overlay semantics: `sequence` now represents ordered value sequences (polyline), while `pairs` now represents explicit line segments via endpoint pairs (`x1`, `y1`, `x2`, `y2`).
-- `grid_system` `pairs` entries now support optional `line=solid|dashed` (default: `dashed`) to control segment stroke style per segment.
+- Block names were hard-renamed: `grid_field` is now `grid`, and `grid_system` is now `geometry` (no legacy aliases).
+- `geometry` uses clearer overlay semantics: `sequence` now represents ordered value sequences (polyline), while `pairs` now represents explicit line segments via endpoint pairs (`x1`, `y1`, `x2`, `y2`).
+- `geometry` `pairs` entries now support optional `line=solid|dashed` (default: `dashed`) to control segment stroke style per segment.
 
 ### Fixed
 
-- `grid_system` clips no longer hide axis labels and axis arrowheads when an axis lies on the grid border; tick values and axis names now stay visible even when they extend beyond the frame.
-- Grid raster rendering now uses SVG for both `grid_field` and `grid_system`, aligning background grid lines and plotted overlays in one shared coordinate system to avoid slight visual offsets.
+- `geometry` clips no longer hide axis labels and axis arrowheads when an axis lies on the grid border; tick values and axis names now stay visible even when they extend beyond the frame.
+- Grid raster rendering now uses SVG for both `grid` and `geometry`, aligning background grid lines and plotted overlays in one shared coordinate system to avoid slight visual offsets.
+- `grid` without explicit `cols` now derives columns from printable width and `scale` (`floor(width/scale)`), so cells are no longer stretched wider than the configured cell size.
 
 ## [0.3.1] - 2026-04-15
 

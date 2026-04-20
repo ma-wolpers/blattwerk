@@ -631,19 +631,12 @@ h1 {
     box-sizing: border-box;
     position: relative;
     overflow: visible;
+    width: calc(var(--cols) * var(--cell-size));
     height: calc(var(--rows) * var(--cell-size));
     background: transparent;
     border: var(--grid-border-width) solid var(--grid-border-color);
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
-}
-
-.answer.grid.grid-auto-width {
-    width: 100%;
-}
-
-.answer.grid:not(.grid-auto-width) {
-    width: calc(var(--cols) * var(--cell-size));
 }
 
 .grid-system-bleed {
