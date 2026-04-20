@@ -6,6 +6,8 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-04-20
+
 ### Changed
 
 - Block names were hard-renamed: `grid_field` is now `grid`, and `grid_system` is now `geometry` (no legacy aliases).
