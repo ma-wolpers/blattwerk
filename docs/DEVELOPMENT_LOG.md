@@ -78,6 +78,7 @@ Regel:
 - Completion stabilisiert bei Modifier-Key-Releases: Loslassen von `Shift` schließt geöffnete Vorschlagslisten nicht mehr sofort.
 - Auto-Completion nach `key=` im Blockkopf/Optionsfluss ergänzt (nicht mehr nur manuell via `Ctrl+Space`).
 - Wert-Vorschläge nach `key=` nutzen jetzt dieselbe lokale Decay-Gewichtung wie Blocktyp-Vorschläge.
+- Scrollbar-Styling vereinheitlicht: zentrale ttk-Styles (`TScrollbar`, `Horizontal.TScrollbar`, `Vertical.TScrollbar`) nutzen jetzt in allen Blattwerk-Themes neutrale Surface-/Panel-Farben statt systemabhängiger Legacy-Defaults.
 - Snippet-Fallback im Header-/Optionsfluss stärker begrenzt; `Answer-Lines` wird dort nicht mehr als störender Auto-Vorschlag angeboten.
 - Completion-Hotfix für Blockkopf-Kontext abgeschlossen: nach `:::blocktyp ` erscheinen Key-Vorschläge sofort und werden nur ergänzend eingefügt.
 - Auto-Completion unterdrückt auf reiner `:::`-Zeile im bereits offenen Block (typischer Blockabschluss), um unerwünschte Vorschläge beim Schließen zu vermeiden.

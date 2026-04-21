@@ -278,11 +278,11 @@ def configure_ttk_theme(root: tk.Misc, theme_key: str | None = None):
     root.option_add("*TCombobox*Listbox.selectBackground", theme["accent_soft"])
     root.option_add("*TCombobox*Listbox.selectForeground", theme["fg_primary"])
 
-    scroll_bg = _mix_hex(theme["border"], theme["bg_surface"], 0.35)
+    scroll_bg = theme.get("panel_strong", _mix_hex(theme["border"], theme["bg_surface"], 0.35))
     scroll_active_bg = _mix_hex(theme["accent_soft"], theme["bg_surface"], 0.52)
     style.configure(
         "TScrollbar",
-        troughcolor=theme["bg_main"],
+        troughcolor=theme["bg_surface"],
         background=scroll_bg,
         arrowcolor=theme["fg_primary"],
         bordercolor=ui_border,
@@ -292,6 +292,36 @@ def configure_ttk_theme(root: tk.Misc, theme_key: str | None = None):
     )
     style.map(
         "TScrollbar",
+        background=[("active", scroll_active_bg), ("pressed", scroll_active_bg)],
+        arrowcolor=[("disabled", theme["fg_muted"])],
+    )
+    style.configure(
+        "Horizontal.TScrollbar",
+        troughcolor=theme["bg_surface"],
+        background=scroll_bg,
+        arrowcolor=theme["fg_primary"],
+        bordercolor=ui_border,
+        lightcolor=ui_border,
+        darkcolor=ui_border,
+        gripcount=0,
+    )
+    style.map(
+        "Horizontal.TScrollbar",
+        background=[("active", scroll_active_bg), ("pressed", scroll_active_bg)],
+        arrowcolor=[("disabled", theme["fg_muted"])],
+    )
+    style.configure(
+        "Vertical.TScrollbar",
+        troughcolor=theme["bg_surface"],
+        background=scroll_bg,
+        arrowcolor=theme["fg_primary"],
+        bordercolor=ui_border,
+        lightcolor=ui_border,
+        darkcolor=ui_border,
+        gripcount=0,
+    )
+    style.map(
+        "Vertical.TScrollbar",
         background=[("active", scroll_active_bg), ("pressed", scroll_active_bg)],
         arrowcolor=[("disabled", theme["fg_muted"])],
     )
