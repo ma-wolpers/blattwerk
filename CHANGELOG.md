@@ -6,6 +6,8 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-04-22
+
 ### Changed
 
 - Scrollbars in der UI verwenden jetzt einen konsistenten, modernen Theme-Style (horizontal/vertikal) statt uneinheitlicher systemnaher Standardoptik.
