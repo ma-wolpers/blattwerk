@@ -18,6 +18,7 @@ The format is based on Keep a Changelog.
 - Presentation preview/export now supports black-screen insertion (`none`, `before`, `after`, `both`) with a quick shortcut for `both`.
 - Block visibility supports explicit `mode=worksheet|solution`; presentation output hides solution-only blocks.
 - Markdown `---` is now treated as a regular horizontal rule again (no spacer semantics); vertical spacing uses `-=<css-length>`.
+- Legacy block option `show` is now explicitly deprecated by validator warning `OP003` (migrate to `mode`).
 
 ## [0.4.1] - 2026-04-22
 

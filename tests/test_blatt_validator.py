@@ -140,6 +140,13 @@ def test_task_title_option_is_allowed_without_op001():
     assert "OP001" not in codes
 
 
+def test_show_option_emits_deprecation_warning_op003():
+    text = _build_document(":::task show=worksheet\nRechne aus.\n:::")
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+    assert "OP003" in codes
+
+
 def test_matching_with_single_item_side_emits_ma001_warning():
     text = _build_document(
         ":::matching\n"

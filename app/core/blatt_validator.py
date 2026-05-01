@@ -767,6 +767,18 @@ def _collect_document_diagnostics(meta, blocks, content_text, content_base_line=
                     option_value,
                     KNOWN_SHOW_VALUES,
                 )
+            elif option_key == "show":
+                diagnostics.append(
+                    BuildDiagnostic(
+                        code="OP003",
+                        message=(
+                            f"Option `show` in Block `{block_type}` ist veraltet. "
+                            "Bitte `mode=worksheet|solution` verwenden."
+                        ),
+                        block_index=index,
+                        block_type=block_type,
+                    )
+                )
             elif option_key == "mode" and normalized_value not in KNOWN_BLOCK_MODE_VALUES:
                 _append_invalid_option_value(
                     diagnostics,

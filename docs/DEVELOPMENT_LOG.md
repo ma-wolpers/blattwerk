@@ -9,6 +9,7 @@ Regel:
 ## [Unreleased]
 
 ### Changed
+- Validator markiert Legacy-Blockoption `show` jetzt explizit als deprecated (`OP003`), waehrend die Auswertung fuer Bestandsdokumente weiter kompatibel bleibt.
 - `---` ist nicht mehr als Layout-Sonderfall behandelt: die Markdown-HR bleibt regulaer als Linie im Inhalt; vertikaler Leerraum erfolgt ueber `-=<css-laenge>`.
 - Neuer Dokumentmodus `presentation` eingefuehrt: Rendering laeuft jetzt folienbasiert mit Mini-Header auf jeder Folie, kleinem `Folie X/Y`-Zaehler und Abschnitts-Footer (alle Abschnittsnamen, aktiver Abschnitt hervorgehoben).
 - Neue Marker-Syntax erweitert und parserseitig verdrahtet: `--!` (harter Seiten/Folienumbruch), `-+` (Frame-Fortschritt fuer Praesentationen), `--# Abschnitt` (Abschnittsstart) und `-=<css-laenge>` (vertikaler Abstand).

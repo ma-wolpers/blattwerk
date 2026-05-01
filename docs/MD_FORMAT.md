@@ -17,7 +17,7 @@ Semantik hat Vorrang, aber Layout-Steuerung ist ausdrücklich Teil der Sprache, 
 4. Lokale Steuerung in Blockoptionen.
 5. Inhalt bleibt Markdown; strukturierte Antwortinhalte sind YAML.
 6. Antworttyp bestimmt Inhaltsschema; `answer` ohne `type` ist ungültig.
-7. Blocksichtbarkeit erfolgt über `mode=worksheet|solution`; ohne `mode` ist der Block in Arbeitsblatt und Lösung sichtbar.
+7. Blocksichtbarkeit erfolgt über `mode=worksheet|solution`; ohne `mode` ist der Block in Arbeitsblatt und Lösung sichtbar. Der alte Key `show` ist deprecated.
 8. Teilaufgaben sind Folgeblöcke (`subtask`) nach `task`, nie geschachtelt.
 
 ## 3. Dokumentstruktur
