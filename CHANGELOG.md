@@ -11,6 +11,7 @@ The format is based on Keep a Changelog.
 - New document mode `presentation` with slide rendering, mini-header, small `Folie X/Y` counters, and section footer navigation.
 - New markdown control markers: `--!` (hard page/slide break), `-+` (presentation frame step), `--# Section` (section marker), and `-=<css-length>` (vertical spacer).
 - Presentation-friendly page presets `16:9`, `16:10`, and `4:3` for preview/export.
+- New systematic presentation sample markdowns for feature coverage: `example-presentation-systematic.md` and `example-presentation-variants.md`.
 
 ### Changed
 

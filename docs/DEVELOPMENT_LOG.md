@@ -9,6 +9,7 @@ Regel:
 ## [Unreleased]
 
 ### Changed
+- Systematische Test-Praesentationen als Beispiel-Markdowns ergänzt (`example-presentation-systematic.md`, `example-presentation-variants.md`), damit neue Praesentationsfeatures reproduzierbar pruefbar sind.
 - Exportdialog-Shortcut-Hilfe ist jetzt kontextsensitiv: `A/L/B` wird nur noch angezeigt, wenn die Inhaltsauswahl sichtbar ist (nicht im Dokumentmodus `presentation`).
 - Vorschau-Controls im Dokumentmodus `presentation` zeigen keine Aufgaben/Loesung-Auswahl mehr; stattdessen erscheint ein statischer Modus-Hinweis `Praesentation`.
 - Vorschau-Statuszeile im Dokumentmodus `presentation` verwendet jetzt `Folie X/Y` statt `Seite X/Y`.
