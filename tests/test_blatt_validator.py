@@ -271,6 +271,57 @@ def test_frontmatter_invalid_mode_emits_fm002():
     assert fm002
 
 
+def test_frontmatter_invalid_presentation_layout_emits_fm004():
+    doc = (
+        "---\n"
+        "Titel: T\n"
+        "Fach: M\n"
+        "Thema: X\n"
+        "mode: presentation\n"
+        "presentation_layout: widescreen\n"
+        "---\n"
+        "Text\n"
+    )
+    diagnostics = inspect_markdown_text(doc).diagnostics
+
+    fm004 = [d for d in diagnostics if d.code == "FM004"]
+    assert fm004
+    assert fm004[0].severity == "error"
+
+
+def test_frontmatter_valid_presentation_layout_has_no_fm004():
+    doc = (
+        "---\n"
+        "Titel: T\n"
+        "Fach: M\n"
+        "Thema: X\n"
+        "mode: presentation\n"
+        "presentation_layout: presentation_16_9\n"
+        "---\n"
+        "Text\n"
+    )
+    codes = {d.code for d in inspect_markdown_text(doc).diagnostics}
+    assert "FM004" not in codes
+
+
+def test_frontmatter_invalid_presentation_bool_emits_fm005():
+    doc = (
+        "---\n"
+        "Titel: T\n"
+        "Fach: M\n"
+        "Thema: X\n"
+        "mode: presentation\n"
+        "presentation_show_mini_header: maybe\n"
+        "---\n"
+        "Text\n"
+    )
+    diagnostics = inspect_markdown_text(doc).diagnostics
+
+    fm005 = [d for d in diagnostics if d.code == "FM005"]
+    assert fm005
+    assert fm005[0].severity == "error"
+
+
 def test_absolute_markdown_image_path_emits_pt001():
     text = _build_document(
         ":::task\n"

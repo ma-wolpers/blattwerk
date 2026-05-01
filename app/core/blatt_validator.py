@@ -69,6 +69,11 @@ KNOWN_BLOCK_TYPES = {
 KNOWN_SHOW_VALUES = {"worksheet", "solution", "both"}
 KNOWN_BLOCK_MODE_VALUES = {"worksheet", "solution"}
 KNOWN_DOCUMENT_MODES = {"ws", "test", "worksheet", "solution", "presentation"}
+KNOWN_PRESENTATION_LAYOUTS = {
+    "presentation_16_9",
+    "presentation_16_10",
+    "presentation_4_3",
+}
 GRID_MARKER_SHOW_VALUES = {"&", "§", "%"}
 NUMBERLINE_ANSWER_TYPES = {"numberline"}
 MARKER_SHOW_SECTIONS_BY_ANSWER_TYPE = {
@@ -299,6 +304,27 @@ _VALID_VSPACER_MARK_PATTERN = re.compile(
 
 def _normalize_value(value):
     return (value or "").strip().lower()
+
+
+def _is_truthy_meta_bool(value):
+    if isinstance(value, bool):
+        return True
+
+    normalized = _normalize_value(str(value or ""))
+    return normalized in {
+        "1",
+        "0",
+        "true",
+        "false",
+        "yes",
+        "no",
+        "on",
+        "off",
+        "ja",
+        "nein",
+        "j",
+        "n",
+    }
 
 
 def _as_matching_list(value):
@@ -715,6 +741,38 @@ def _collect_document_diagnostics(meta, blocks, content_text, content_base_line=
                     severity="error",
                 )
             )
+
+    if isinstance(meta, dict):
+        if "presentation_layout" in meta:
+            layout_value = str(meta.get("presentation_layout") or "").strip()
+            if layout_value and layout_value not in KNOWN_PRESENTATION_LAYOUTS:
+                diagnostics.append(
+                    BuildDiagnostic(
+                        code="FM004",
+                        message=(
+                            "Ungueltiger Frontmatter-Wert fuer `presentation_layout`: "
+                            f"`{layout_value}`. Erlaubt: "
+                            f"{', '.join(sorted(KNOWN_PRESENTATION_LAYOUTS))}."
+                        ),
+                        severity="error",
+                    )
+                )
+
+        for bool_key in (
+            "presentation_show_mini_header",
+            "presentation_show_section_footer",
+        ):
+            if bool_key in meta and not _is_truthy_meta_bool(meta.get(bool_key)):
+                diagnostics.append(
+                    BuildDiagnostic(
+                        code="FM005",
+                        message=(
+                            f"Ungueltiger Frontmatter-Wert fuer `{bool_key}`. "
+                            "Erlaubt sind boolesche Werte (z. B. true/false, ja/nein, 1/0)."
+                        ),
+                        severity="error",
+                    )
+                )
 
     for index, (block_type, options, content) in enumerate(blocks):
         if block_type == "answer":

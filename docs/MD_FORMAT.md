@@ -39,6 +39,9 @@ worksheet_type: Arbeitsblatt     # optional
 show_student_header: true|false
 show_document_header: true|false
 mode: worksheet|solution|presentation|test  # optional, Standard: worksheet
+presentation_layout: presentation_16_9|presentation_16_10|presentation_4_3  # optional (bei mode: presentation)
+presentation_show_mini_header: true|false  # optional (default true)
+presentation_show_section_footer: true|false  # optional (default true)
 lochen: ja|nein                  # optional
 copyright: "Text"               # optional
 font_profile: segoe              # optional
@@ -52,6 +55,9 @@ Pflichtfelder:
 
 Optionales Dokumentfeld:
 - `mode`: `worksheet`, `solution`, `presentation` oder `test` (`ws` bleibt Alias fuer `worksheet`).
+- `presentation_layout`: Layout-Preset fuer Folien (`presentation_16_9`, `presentation_16_10`, `presentation_4_3`).
+- `presentation_show_mini_header`: blendet Mini-Header pro Folie ein/aus.
+- `presentation_show_section_footer`: blendet Abschnittsfooter pro Folie ein/aus.
 
 Wirkung von `mode`:
 - `worksheet` (Standard): normales Arbeitsblatt-Verhalten.

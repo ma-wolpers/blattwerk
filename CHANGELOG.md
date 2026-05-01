@@ -20,6 +20,7 @@ The format is based on Keep a Changelog.
 - Markdown `---` is now treated as a regular horizontal rule again (no spacer semantics); vertical spacing uses `-=<css-length>`.
 - Legacy block option `show` is now explicitly deprecated by validator warning `OP003` (migrate to `mode`).
 - Malformed control markers now fail validation (`BL006`), including invalid `--#` (missing section title) and invalid `-=` spacer values.
+- Presentation frontmatter now validates `presentation_layout` presets and boolean presentation flags.
 
 ## [0.4.1] - 2026-04-22
 
