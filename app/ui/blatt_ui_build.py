@@ -141,20 +141,22 @@ class BlattwerkAppBuildMixin:
         format_section.pack(fill="x", pady=(0, 8))
         format_group_main = ttk.Frame(format_section)
         ttk.Label(format_group_main, text="Format:", width=16).pack(side="left")
-        ttk.Radiobutton(
+        self.preview_mode_btn_worksheet = ttk.Radiobutton(
             format_group_main,
             text="Aufgabe",
             value="worksheet",
             variable=self.preview_mode_var,
             command=self.refresh_preview,
-        ).pack(side="left")
-        ttk.Radiobutton(
+        )
+        self.preview_mode_btn_worksheet.pack(side="left")
+        self.preview_mode_btn_solution = ttk.Radiobutton(
             format_group_main,
             text="Lösung",
             value="solution",
             variable=self.preview_mode_var,
             command=self.refresh_preview,
-        ).pack(side="left", padx=(10, 0))
+        )
+        self.preview_mode_btn_solution.pack(side="left", padx=(10, 0))
 
         format_group_dina = ttk.Frame(format_section)
         ttk.Separator(format_group_dina, orient="vertical").pack(side="left", fill="y", padx=(0, 12))

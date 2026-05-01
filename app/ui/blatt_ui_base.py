@@ -125,6 +125,8 @@ class BlattwerkAppBase:
         self._active_lernhilfen_available = False
         self.lernhilfen_action_btn = None
         self._last_diagnostics_signature = None
+        self.preview_mode_btn_worksheet = None
+        self.preview_mode_btn_solution = None
 
         self._load_ui_settings()
         self._load_recent_files()
@@ -171,6 +173,15 @@ class BlattwerkAppBase:
 
     def _toggle_preview_mode(self):
         """Toggle preview mode."""
+        if hasattr(self, "_read_document_mode"):
+            input_text = self._clean_path_text(self.input_var.get())
+            if input_text:
+                path_obj = Path(input_text)
+                if path_obj.exists():
+                    document_mode = self._read_document_mode(path_obj)
+                    if document_mode == "presentation":
+                        return
+
         new_mode = "solution" if self.preview_mode_var.get() == "worksheet" else "worksheet"
         self.preview_mode_var.set(new_mode)
         self.refresh_preview()

@@ -36,6 +36,25 @@ from ..core.diagnostic_warnings import build_warning_payload
 from ..styles.blatt_styles import invalidate_stylesheet_template_cache
 
 class BlattwerkAppPreviewMixin:
+        def _apply_preview_mode_controls_for_document_mode(self, document_mode: str):
+                """Enable/disable worksheet-solution controls based on document mode."""
+                controls = [
+                    getattr(self, "preview_mode_btn_worksheet", None),
+                    getattr(self, "preview_mode_btn_solution", None),
+                ]
+
+                if document_mode == "presentation":
+                    for control in controls:
+                        if control is None:
+                            continue
+                        control.configure(state="disabled")
+                    return
+
+                for control in controls:
+                    if control is None:
+                        continue
+                    control.configure(state="normal")
+
     """Rendert, skaliert und navigiert die Arbeitsblatt-Vorschau."""
 
     def _build_preview_cache_key(self, input_path: Path, include_solutions: bool, page_format: str, contrast_profile: str):
@@ -346,6 +365,7 @@ class BlattwerkAppPreviewMixin:
             page_format = self.preview_page_format_var.get()
             contrast_profile = self.preview_contrast_var.get()
             document_mode = self._read_document_mode(input_path)
+            self._apply_preview_mode_controls_for_document_mode(document_mode)
 
             if document_mode == "presentation":
                 include_solutions = False
