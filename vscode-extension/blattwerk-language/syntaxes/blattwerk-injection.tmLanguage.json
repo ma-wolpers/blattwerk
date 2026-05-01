@@ -3,7 +3,7 @@
   "injectionSelector": "L:text.html.markdown",
   "patterns": [
     {
-      "match": "^(\\s*)(--!|-\\+|-=\\s*\\d+(?:\\.\\d+)?(?:cm|mm|px|pt|em|rem|vh|vw|%)?|--#\\s+.+?)\\s*$",
+      "match": "^(\\s*)(--!|-\\+|-=\\s*\\d+(?:\\.\\d+)?(?:cm|mm|px|pt|em|rem|vh|vw|%)|--#\\s+.+?)\\s*$",
       "captures": {
         "2": {
           "name": "keyword.control.blattwerk"
