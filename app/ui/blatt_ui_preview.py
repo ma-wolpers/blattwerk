@@ -38,6 +38,35 @@ from ..styles.blatt_styles import invalidate_stylesheet_template_cache
 class BlattwerkAppPreviewMixin:
     """Rendert, skaliert und navigiert die Arbeitsblatt-Vorschau."""
 
+    def _resolve_preview_page_format_for_document_mode(self, page_format: str, document_mode: str) -> str:
+            """Resolves a valid page format and remembers last used format per mode family."""
+            worksheet_formats = {"a4_portrait", "a5_landscape"}
+            presentation_formats = {
+                "presentation_16_9",
+                "presentation_16_10",
+                "presentation_4_3",
+            }
+            mode_key = "presentation" if document_mode == "presentation" else "worksheet"
+            allowed_formats = presentation_formats if mode_key == "presentation" else worksheet_formats
+            default_format = "presentation_16_9" if mode_key == "presentation" else "a4_portrait"
+
+            remembered = getattr(self, "_last_preview_page_format_by_mode", None)
+            if not isinstance(remembered, dict):
+                remembered = {}
+
+            candidate = str(page_format or "").strip()
+            remembered_value = str(remembered.get(mode_key, "") or "").strip()
+            if candidate in allowed_formats:
+                resolved = candidate
+            elif remembered_value in allowed_formats:
+                resolved = remembered_value
+            else:
+                resolved = default_format
+
+            remembered[mode_key] = resolved
+            self._last_preview_page_format_by_mode = remembered
+            return resolved
+
     def _toggle_preview_page_format_button(self, button, visible: bool, *, padx=(10, 0)):
             """Shows or hides a page-format radiobutton without breaking pack order."""
             if button is None:
@@ -434,17 +463,14 @@ class BlattwerkAppPreviewMixin:
                     include_solutions = False
                     if self.preview_mode_var.get() != "worksheet":
                         self.preview_mode_var.set("worksheet")
-                    if page_format not in {
-                        "presentation_16_9",
-                        "presentation_16_10",
-                        "presentation_4_3",
-                    }:
-                        page_format = "presentation_16_9"
-                        self.preview_page_format_var.set(page_format)
-                else:
-                    if page_format not in {"a4_portrait", "a5_landscape"}:
-                        page_format = "a4_portrait"
-                        self.preview_page_format_var.set(page_format)
+
+                resolved_page_format = self._resolve_preview_page_format_for_document_mode(
+                    page_format,
+                    document_mode,
+                )
+                if page_format != resolved_page_format:
+                    page_format = resolved_page_format
+                    self.preview_page_format_var.set(page_format)
 
                 tab_state = self._active_document_tab_state()
 

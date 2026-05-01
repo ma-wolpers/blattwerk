@@ -135,6 +135,10 @@ class BlattwerkAppBase:
         self.preview_page_format_btn_4_3 = None
         self._current_preview_document_mode = "worksheet"
         self._preview_refresh_in_progress = False
+        self._last_preview_page_format_by_mode = {
+            "worksheet": "a4_portrait",
+            "presentation": "presentation_16_9",
+        }
 
         self._load_ui_settings()
         self._load_recent_files()
