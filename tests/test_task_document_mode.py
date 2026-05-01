@@ -1,6 +1,9 @@
+import re
+
 from app.core.blatt_kern_layout_render import render_html
 from app.core.blatt_kern_help_render import render_help_cards_html
 from app.core.blatt_kern_task_render import render_block
+from app.core.blatt_kern_shared import parse_blocks
 
 
 def test_task_work_hint_is_hidden_in_test_mode():
@@ -119,6 +122,39 @@ def test_render_html_presentation_black_screen_before_and_after_is_inserted():
     html = render_html(meta, blocks, include_solutions=False, black_screen_mode="both")
 
     assert html.count("class='ab-slide ab-slide-black'") == 2
+
+
+def test_render_html_presentation_framebreak_builds_incremental_frames():
+    meta = {
+        "Titel": "T",
+        "Fach": "M",
+        "Thema": "X",
+        "mode": "presentation",
+    }
+    blocks = parse_blocks(
+        ":::task\n"
+        "Alpha\n"
+        ":::\n"
+        "-+\n"
+        ":::task\n"
+        "Beta\n"
+        ":::\n"
+    )
+
+    html = render_html(meta, blocks, include_solutions=False)
+    slide_bodies = re.findall(
+        r"<section class='ab-slide'>(.*?)</section>",
+        html,
+        flags=re.DOTALL,
+    )
+
+    assert len(slide_bodies) == 2
+    assert "Folie 1/2" in html
+    assert "Folie 2/2" in html
+    assert "Alpha" in slide_bodies[0]
+    assert "Beta" not in slide_bodies[0]
+    assert "Alpha" in slide_bodies[1]
+    assert "Beta" in slide_bodies[1]
 
 
 def test_task_content_supports_marker_visibility_by_output_mode():
