@@ -577,11 +577,17 @@ def render_html(
     )
 
     if document_mode == "presentation":
-        presentation_format = str(
-            (meta or {}).get("presentation_layout")
-            or (meta or {}).get("presentation_format")
-            or page_format
-        ).strip()
+        presentation_format = str(page_format or "").strip()
+        if not presentation_format or presentation_format not in {
+            "presentation_16_9",
+            "presentation_16_10",
+            "presentation_4_3",
+        }:
+            presentation_format = str(
+                (meta or {}).get("presentation_layout")
+                or (meta or {}).get("presentation_format")
+                or "presentation_16_9"
+            ).strip()
         return _render_presentation_html(
             meta,
             blocks,
