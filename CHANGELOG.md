@@ -6,33 +6,9 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
-### Added
-
-- New document mode `presentation` with slide rendering, mini-header, small `Folie X/Y` counters, and section footer navigation.
-- New markdown control markers: `--!` (hard page/slide break), `-+` (presentation frame step), `--# Section` (section marker), and `-=<css-length>` (vertical spacer).
-- Presentation-friendly page presets `16:9`, `16:10`, and `4:3` for preview/export.
-- New systematic presentation sample markdowns for feature coverage: `example-presentation-systematic.md` and `example-presentation-variants.md`.
-
-### Changed
-
-- Export and preview now treat presentation documents as a dedicated flow: no worksheet/solution selection in presentation export dialogs.
-- Presentation preview/export now supports black-screen insertion (`none`, `before`, `after`, `both`) with a quick shortcut for `both`.
-- Presentation preview now only shows presentation page formats (`16:9`, `16:10`, `4:3`) and hides A4/A5 options while in `mode: presentation`.
-- Preview now remembers the last used page format per mode family (worksheet vs presentation) and restores a matching format automatically when switching documents.
-- Worksheet export dialog now preselects options from the active preview state for overlapping controls (content mode and black-screen).
-- Block visibility supports explicit `mode=worksheet|solution`; presentation output hides solution-only blocks.
-- Markdown `---` is now treated as a regular horizontal rule again (no spacer semantics); vertical spacing uses `-=<css-length>`.
-- Legacy block option `show` is now explicitly deprecated by validator warning `OP003` (migrate to `mode`).
-- Malformed control markers now fail validation (`BL006`), including invalid `--#` (missing section title) and invalid `-=` spacer values.
-- Presentation frontmatter now validates `presentation_layout` presets and boolean presentation flags.
-- Preview status now uses `Folie X/Y` for presentation documents instead of `Seite X/Y`.
-- Presentation preview hides the worksheet/solution chooser entirely and shows a fixed `Praesentation` mode hint.
-- Export dialog shortcut help is now context-aware and no longer shows `A/L/B` when content mode selection is unavailable (e.g. `presentation`).
-
 ### Fixed
 
-- Startup crash after recent preview control changes was fixed by repairing indentation in the preview mixin import path.
-- Presentation pages now render with true full-page black screens (no white frame) and use full slide area more consistently.
+- Preview format switching now correctly updates the rendered preview when changing between different slide formats (16:9 → 16:10 → 4:3) or worksheet formats (A4 → A5).
 
 ## [0.4.1] - 2026-04-22
 

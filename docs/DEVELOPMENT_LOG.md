@@ -8,6 +8,9 @@ Regel:
 
 ## [Unreleased]
 
+### Fixed
+- Format-Switching in der Vorschau: Wenn der Benutzer das Seitenformat wechselt (z. B. 16:9 → 16:10 oder A4 → A5), wird jetzt korrekt ein neuer Render angestoßen und der Cache wird invalidiert. Zuvor blieb die Vorschau-Darstellung trotz Format-Änderung gleich.
+
 ### Changed
 - Preview merkt sich das zuletzt verwendete Seitenformat getrennt fuer Arbeitsblatt- und Praesentationsmodus und stellt beim Dokumentwechsel automatisch das passende Format wieder her.
 - Presentation-Preview zeigt jetzt nur gueltige Seitenformate (`16:9`, `16:10`, `4:3`); Arbeitsblatt-Modi zeigen nur `DIN A4/A5`, und Formatwechsel triggern stabil einen echten Rebuild ohne Reentrancy-Schleife.

@@ -482,8 +482,13 @@ class BlattwerkAppPreviewMixin:
                         cache_key = None
 
                 cached_images = tab_state.get("preview_images") if isinstance(tab_state, dict) else None
+                
+                last_cached_page_format = tab_state.get("_preview_page_format") if tab_state else None
+                page_format_changed = page_format != last_cached_page_format
+                
                 if (
                     not force_rebuild
+                    and not page_format_changed
                     and tab_state is not None
                     and cache_key is not None
                     and tab_state.get("preview_cache_key") == cache_key
@@ -540,6 +545,7 @@ class BlattwerkAppPreviewMixin:
                     if tab_state is not None and cache_key is not None:
                         tab_state["preview_cache_key"] = cache_key
                         tab_state["preview_images"] = list(self.preview_images)
+                        tab_state["_preview_page_format"] = page_format
 
                     if self.preview_images:
                         self.current_page_index = min(previous_page_index, len(self.preview_images) - 1) if preserve_position else 0
