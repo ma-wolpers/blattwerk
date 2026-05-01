@@ -9,6 +9,7 @@ Regel:
 ## [Unreleased]
 
 ### Changed
+- Vorschau-Statuszeile im Dokumentmodus `presentation` verwendet jetzt `Folie X/Y` statt `Seite X/Y`.
 - Frontmatter-Validierung fuer Praesentationen erweitert: `presentation_layout` akzeptiert nur bekannte Presets (`presentation_16_9|presentation_16_10|presentation_4_3`), und `presentation_show_mini_header`/`presentation_show_section_footer` werden als Bool-Werte validiert.
 - Neue Syntaxdiagnostik `BL006`: missformte Top-Level-Marker `--#` (ohne Abschnittstitel) und `-=` (ohne gueltige CSS-Einheit) werden jetzt als Fehler gemeldet.
 - Validator markiert Legacy-Blockoption `show` jetzt explizit als deprecated (`OP003`), waehrend die Auswertung fuer Bestandsdokumente weiter kompatibel bleibt.

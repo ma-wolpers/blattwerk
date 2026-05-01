@@ -365,6 +365,7 @@ class BlattwerkAppPreviewMixin:
             page_format = self.preview_page_format_var.get()
             contrast_profile = self.preview_contrast_var.get()
             document_mode = self._read_document_mode(input_path)
+            self._current_preview_document_mode = document_mode
             self._apply_preview_mode_controls_for_document_mode(document_mode)
 
             if document_mode == "presentation":
@@ -457,7 +458,12 @@ class BlattwerkAppPreviewMixin:
                     self.preview_canvas.itemconfig(self.preview_text_item, text="Keine Seiten erzeugt.")
                     self.preview_canvas.coords(self.preview_text_item, 20, 20)
                     self.preview_canvas.config(scrollregion=(0, 0, 600, 400))
-                    self.page_info_var.set("Seite 0/0")
+                    page_label = (
+                        "Folie"
+                        if getattr(self, "_current_preview_document_mode", "worksheet") == "presentation"
+                        else "Seite"
+                    )
+                    self.page_info_var.set(f"{page_label} 0/0")
                 else:
                     self._show_current_page(
                         reset_scroll=not preserve_position,
@@ -549,7 +555,12 @@ class BlattwerkAppPreviewMixin:
                 self.preview_canvas.yview_moveto(max(0.0, min(y_view_start, 1.0)))
 
             self._update_current_page_from_viewport_center()
-            self.page_info_var.set(f"Seite {self.current_page_index + 1}/{len(self.preview_images)}")
+            page_label = (
+                "Folie"
+                if getattr(self, "_current_preview_document_mode", "worksheet") == "presentation"
+                else "Seite"
+            )
+            self.page_info_var.set(f"{page_label} {self.current_page_index + 1}/{len(self.preview_images)}")
             self._refresh_zoom_label()
 
     def _clear_preview_image_items(self):

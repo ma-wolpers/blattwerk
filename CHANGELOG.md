@@ -21,6 +21,7 @@ The format is based on Keep a Changelog.
 - Legacy block option `show` is now explicitly deprecated by validator warning `OP003` (migrate to `mode`).
 - Malformed control markers now fail validation (`BL006`), including invalid `--#` (missing section title) and invalid `-=` spacer values.
 - Presentation frontmatter now validates `presentation_layout` presets and boolean presentation flags.
+- Preview status now uses `Folie X/Y` for presentation documents instead of `Seite X/Y`.
 
 ## [0.4.1] - 2026-04-22
 
