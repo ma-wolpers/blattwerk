@@ -356,13 +356,12 @@ def test_subtask_after_unclosed_task_gets_follow_block_hint():
     assert "zuerst `task` mit `:::` schliessen" in bl004[0].message
 
 
-def test_section_break_triple_dash_inside_open_block_emits_bl005_error():
+def test_section_break_triple_dash_inside_open_block_is_allowed_as_markdown_hr():
     text = _build_document(":::task\nInhalt\n---\n:::")
     diagnostics = inspect_markdown_text(text).diagnostics
     bl005 = [d for d in diagnostics if d.code == "BL005"]
 
-    assert bl005
-    assert bl005[0].severity == "error"
+    assert not bl005
 
 
 def test_section_break_double_dash_inside_open_block_emits_bl005_error():

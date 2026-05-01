@@ -17,6 +17,7 @@ The format is based on Keep a Changelog.
 - Export and preview now treat presentation documents as a dedicated flow: no worksheet/solution selection in presentation export dialogs.
 - Presentation preview/export now supports black-screen insertion (`none`, `before`, `after`, `both`) with a quick shortcut for `both`.
 - Block visibility supports explicit `mode=worksheet|solution`; presentation output hides solution-only blocks.
+- Markdown `---` is now treated as a regular horizontal rule again (no spacer semantics); vertical spacing uses `-=<css-length>`.
 
 ## [0.4.1] - 2026-04-22
 

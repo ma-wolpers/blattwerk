@@ -74,7 +74,7 @@ DOCUMENT_MODE_ALIASES = {
 
 PRESENTATION_SECTION_MARK_PATTERN = re.compile(r"^--#\s+(.+)$")
 PRESENTATION_SPACER_MARK_PATTERN = re.compile(
-    r"^-=\s*(\d+(?:\.\d+)?(?:cm|mm|px|pt|em|rem|vh|vw|%)?)\s*$",
+    r"^-=\s*(\d+(?:\.\d+)?(?:cm|mm|px|pt|em|rem|vh|vw|%))\s*$",
     flags=re.IGNORECASE,
 )
 
@@ -664,11 +664,11 @@ def split_sections(body_html):
     """Teilt den Body an Solltrennstellen in druckstabile Abschnittscontainer.
 
     Regeln:
-    - `---` (Markdown-HR) trennt Abschnitte und fuegt zusaetzlich 1cm Vertikalabstand ein.
+    - `---` bleibt normale Markdown-HR und wird hier nicht als Layoutsteuerung behandelt.
     - `--` wird vorher als `<!--BLATTWERK_SECTION_BREAK-->` markiert und trennt ohne Zusatzabstand.
     """
     split_pattern = re.compile(
-        r"(<hr\s*/?>|<!--BLATTWERK_SECTION_BREAK-->)", flags=re.IGNORECASE
+        r"(<!--BLATTWERK_SECTION_BREAK-->)", flags=re.IGNORECASE
     )
     tokens = split_pattern.split(body_html)
     section_parts = []
@@ -684,25 +684,20 @@ def split_sections(body_html):
             current.append(token)
             continue
 
-        is_hard_break = bool(re.fullmatch(r"<hr\s*/?>", stripped, flags=re.IGNORECASE))
         is_soft_break = stripped.lower() == "<!--blattwerk_section_break-->"
 
-        if is_hard_break or is_soft_break:
+        if is_soft_break:
             part = "".join(current).strip()
             current = []
             if part:
                 section_parts.append(("section", part))
-                pending_breaks.append("hard" if is_hard_break else "soft")
+                pending_breaks.append("soft")
             continue
 
         current.append(token)
 
     tail = "".join(current).strip()
     if tail:
-        if section_parts and pending_breaks:
-            for break_kind in pending_breaks:
-                if break_kind == "hard":
-                    section_parts.append(("gap", ""))
         section_parts.append(("section", tail))
 
     if not section_parts and body_html.strip():

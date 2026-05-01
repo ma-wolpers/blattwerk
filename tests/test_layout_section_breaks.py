@@ -11,11 +11,12 @@ def test_parse_blocks_maps_double_dash_to_soft_section_break_marker():
     assert "<!--BLATTWERK_SECTION_BREAK-->" in content
 
 
-def test_split_sections_inserts_gap_for_hr_breaks():
+def test_split_sections_keeps_hr_as_regular_markdown_content():
     html = split_sections("<p>A</p><hr><p>B</p>")
 
-    assert html.count("<section class='ab-section'>") == 2
-    assert "ab-section-gap" in html
+    assert html.count("<section class='ab-section'>") == 1
+    assert "<hr>" in html
+    assert "ab-section-gap" not in html
 
 
 def test_split_sections_uses_soft_break_without_extra_gap():

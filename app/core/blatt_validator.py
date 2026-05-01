@@ -418,7 +418,11 @@ def _collect_block_marker_syntax_diagnostics(content_text, base_line=1):
         absolute_line_no = max(1, int(base_line) + line_no - 1)
         stripped_line = raw_line.strip()
 
-        if block_stack and stripped_line in {"---", "--"}:
+        if block_stack and (
+            stripped_line in {"--", "--!", "-+"}
+            or stripped_line.startswith("--#")
+            or stripped_line.startswith("-=")
+        ):
             diagnostics.append(
                 BuildDiagnostic(
                     code="BL005",

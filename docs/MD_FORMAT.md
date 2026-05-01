@@ -75,7 +75,7 @@ document = frontmatter, newline*, block_or_raw* ;
 frontmatter = "---", newline, yaml_lines, "---", newline* ;
 
 block_or_raw = block | section_break | raw_markdown ;
-section_break = ("---" | "--" | "--!" | "-+" | "--#" section_title | "-=" css_length), newline ;
+section_break = ("--" | "--!" | "-+" | "--#" section_title | "-=" css_length), newline ;
 
 block = open_block, block_content, close_block | self_closing_block ;
 open_block = ":::", block_name, (space, options)?, newline ;

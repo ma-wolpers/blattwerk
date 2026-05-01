@@ -9,6 +9,7 @@ Regel:
 ## [Unreleased]
 
 ### Changed
+- `---` ist nicht mehr als Layout-Sonderfall behandelt: die Markdown-HR bleibt regulaer als Linie im Inhalt; vertikaler Leerraum erfolgt ueber `-=<css-laenge>`.
 - Neuer Dokumentmodus `presentation` eingefuehrt: Rendering laeuft jetzt folienbasiert mit Mini-Header auf jeder Folie, kleinem `Folie X/Y`-Zaehler und Abschnitts-Footer (alle Abschnittsnamen, aktiver Abschnitt hervorgehoben).
 - Neue Marker-Syntax erweitert und parserseitig verdrahtet: `--!` (harter Seiten/Folienumbruch), `-+` (Frame-Fortschritt fuer Praesentationen), `--# Abschnitt` (Abschnittsstart) und `-=<css-laenge>` (vertikaler Abstand).
 - Semantik fuer Blocksichtbarkeit erweitert: zusaetzlicher Block-Key `mode=worksheet|solution`; im Praesentationsmodus werden `solution`-only-Bloecke ausgeblendet.
