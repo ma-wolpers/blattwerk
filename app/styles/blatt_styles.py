@@ -288,24 +288,31 @@ def build_font_size_profile_css(font_size_profile):
 """
 
 
-def build_page_layout_css(page_format, hole_punch_enabled=False):
+def build_page_layout_css(page_format, hole_punch_enabled=False, document_mode="worksheet"):
     """Erzeugt CSS für das gewählte Seitenlayout."""
     layout = PAGE_LAYOUTS.get(page_format, PAGE_LAYOUTS["a4_portrait"])
-    if hole_punch_enabled:
-        margin_right = layout.get(
-            "page_margin_right_hole_punch_css", layout["page_margin_right_css"]
-        )
-        margin_left = layout.get(
-            "page_margin_left_hole_punch_css", layout["page_margin_left_css"]
-        )
+    if str(document_mode or "").strip().lower() == "presentation":
+        margin_css = "0"
     else:
-        margin_right = layout["page_margin_right_css"]
-        margin_left = layout["page_margin_left_css"]
+        if hole_punch_enabled:
+            margin_right = layout.get(
+                "page_margin_right_hole_punch_css", layout["page_margin_right_css"]
+            )
+            margin_left = layout.get(
+                "page_margin_left_hole_punch_css", layout["page_margin_left_css"]
+            )
+        else:
+            margin_right = layout["page_margin_right_css"]
+            margin_left = layout["page_margin_left_css"]
+        margin_css = (
+            f"{layout['page_margin_top_css']} {margin_right} "
+            f"{layout['page_margin_bottom_css']} {margin_left}"
+        )
 
     return f"""
 @page {{
     size: {layout["page_size_css"]};
-    margin: {layout["page_margin_top_css"]} {margin_right} {layout["page_margin_bottom_css"]} {margin_left};
+    margin: {margin_css};
 }}
 
 :root {{
@@ -397,13 +404,16 @@ def build_stylesheet(
     color_profile="indigo",
     font_profile=DEFAULT_FONT_PROFILE,
     font_size_profile=DEFAULT_FONT_SIZE_PROFILE,
+    document_mode="worksheet",
 ):
     """Erzeugt das finale Stylesheet aus Basis-CSS + dynamischen Overrides."""
     base_stylesheet = _load_stylesheet_template_text().strip()
     overrides = "\n\n".join(
         [
             build_page_layout_css(
-                page_format, hole_punch_enabled=hole_punch_enabled
+                page_format,
+                hole_punch_enabled=hole_punch_enabled,
+                document_mode=document_mode,
             ).strip(),
             build_print_profile_css(print_profile).strip(),
             build_font_profile_css(font_profile).strip(),

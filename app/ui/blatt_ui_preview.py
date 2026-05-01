@@ -38,6 +38,49 @@ from ..styles.blatt_styles import invalidate_stylesheet_template_cache
 class BlattwerkAppPreviewMixin:
     """Rendert, skaliert und navigiert die Arbeitsblatt-Vorschau."""
 
+    def _toggle_preview_page_format_button(self, button, visible: bool, *, padx=(10, 0)):
+            """Shows or hides a page-format radiobutton without breaking pack order."""
+            if button is None:
+                return
+
+            if visible:
+                if not button.winfo_manager():
+                    button.pack(side="left", padx=padx)
+                return
+
+            if button.winfo_manager():
+                button.pack_forget()
+
+    def _apply_preview_page_format_controls_for_document_mode(self, document_mode: str):
+            """Shows only valid page-format options for the active document mode."""
+            is_presentation = document_mode == "presentation"
+
+            self._toggle_preview_page_format_button(
+                getattr(self, "preview_page_format_btn_a4", None),
+                not is_presentation,
+                padx=(0, 0),
+            )
+            self._toggle_preview_page_format_button(
+                getattr(self, "preview_page_format_btn_a5", None),
+                not is_presentation,
+                padx=(10, 0),
+            )
+            self._toggle_preview_page_format_button(
+                getattr(self, "preview_page_format_btn_16_9", None),
+                is_presentation,
+                padx=(10, 0),
+            )
+            self._toggle_preview_page_format_button(
+                getattr(self, "preview_page_format_btn_16_10", None),
+                is_presentation,
+                padx=(10, 0),
+            )
+            self._toggle_preview_page_format_button(
+                getattr(self, "preview_page_format_btn_4_3", None),
+                is_presentation,
+                padx=(10, 0),
+            )
+
     def _apply_preview_mode_controls_for_document_mode(self, document_mode: str):
             """Enable/disable worksheet-solution controls based on document mode."""
             worksheet_btn = getattr(self, "preview_mode_btn_worksheet", None)
@@ -370,145 +413,157 @@ class BlattwerkAppPreviewMixin:
     def refresh_preview(self, force_rebuild=False):
             """Lädt die Vorschau neu, z. B. nach Änderungen an der Markdown-Datei."""
 
-            input_path = self._validate_input()
-            if not input_path:
+            if getattr(self, "_preview_refresh_in_progress", False):
                 return
-
-            include_solutions = self.preview_mode_var.get() == "solution"
-            page_format = self.preview_page_format_var.get()
-            contrast_profile = self.preview_contrast_var.get()
-            document_mode = self._read_document_mode(input_path)
-            self._current_preview_document_mode = document_mode
-            self._apply_preview_mode_controls_for_document_mode(document_mode)
-
-            if document_mode == "presentation":
-                include_solutions = False
-                if self.preview_mode_var.get() != "worksheet":
-                    self.preview_mode_var.set("worksheet")
-                if page_format not in {
-                    "presentation_16_9",
-                    "presentation_16_10",
-                    "presentation_4_3",
-                }:
-                    page_format = "presentation_16_9"
-                    self.preview_page_format_var.set(page_format)
-
-            tab_state = self._active_document_tab_state()
-
-            cache_key = None
-            if tab_state is not None:
-                try:
-                    cache_key = self._build_preview_cache_key(input_path, include_solutions, page_format, contrast_profile)
-                except Exception:
-                    cache_key = None
-
-            cached_images = tab_state.get("preview_images") if isinstance(tab_state, dict) else None
-            if (
-                not force_rebuild
-                and tab_state is not None
-                and cache_key is not None
-                and tab_state.get("preview_cache_key") == cache_key
-                and isinstance(cached_images, list)
-                and bool(cached_images)
-            ):
-                self.preview_images = cached_images
-                self._last_preview_input_path = input_path
-                self.current_page_index = max(
-                    0,
-                    min(int(tab_state.get("current_page_index", 0)), len(self.preview_images) - 1),
-                )
-                self.zoom_percent = int(str(tab_state.get("zoom_percent", self.zoom_percent) or self.zoom_percent))
-                x_view_start = float(tab_state.get("x_view_start", 0.0) or 0.0)
-                y_view_start = float(tab_state.get("y_view_start", 0.0) or 0.0)
-
-                self._show_current_page(
-                    reset_scroll=False,
-                    x_view_start=x_view_start,
-                    y_view_start=y_view_start,
-                )
-                if hasattr(self, "_update_lernhilfen_action_state"):
-                    self._update_lernhilfen_action_state(
-                        input_path=input_path,
-                        include_solutions=include_solutions,
-                    )
-                if (
-                    self.help_preview_window is not None
-                    and self.help_preview_window.winfo_exists()
-                ):
-                    self._refresh_help_preview(
-                        input_path,
-                        include_solutions,
-                        page_format,
-                        contrast_profile,
-                    )
-                self._refresh_zoom_label()
-                self.status_var.set("Vorschau aus Cache geladen")
-                self._update_nav_buttons()
-                return
-
-            preserve_position = self._last_preview_input_path == input_path and bool(self.preview_images)
-            previous_page_index = self.current_page_index
-            x_view_start = self.preview_canvas.xview()[0] if preserve_position else 0.0
-            y_view_start = self.preview_canvas.yview()[0] if preserve_position else 0.0
+            self._preview_refresh_in_progress = True
 
             try:
-                self.status_var.set("Erstelle Vorschau…")
-                self.root.update_idletasks()
-                self._show_document_diagnostics(input_path, "Vorschau")
-                self.preview_images = self._render_pdf_pages(input_path, include_solutions, page_format, contrast_profile)
-                self._last_preview_input_path = input_path
+                input_path = self._validate_input()
+                if not input_path:
+                    return
 
-                if tab_state is not None and cache_key is not None:
-                    tab_state["preview_cache_key"] = cache_key
-                    tab_state["preview_images"] = list(self.preview_images)
+                include_solutions = self.preview_mode_var.get() == "solution"
+                page_format = self.preview_page_format_var.get()
+                contrast_profile = self.preview_contrast_var.get()
+                document_mode = self._read_document_mode(input_path)
+                self._current_preview_document_mode = document_mode
+                self._apply_preview_mode_controls_for_document_mode(document_mode)
+                self._apply_preview_page_format_controls_for_document_mode(document_mode)
 
-                if self.preview_images:
-                    self.current_page_index = min(previous_page_index, len(self.preview_images) - 1) if preserve_position else 0
+                if document_mode == "presentation":
+                    include_solutions = False
+                    if self.preview_mode_var.get() != "worksheet":
+                        self.preview_mode_var.set("worksheet")
+                    if page_format not in {
+                        "presentation_16_9",
+                        "presentation_16_10",
+                        "presentation_4_3",
+                    }:
+                        page_format = "presentation_16_9"
+                        self.preview_page_format_var.set(page_format)
                 else:
-                    self.current_page_index = 0
+                    if page_format not in {"a4_portrait", "a5_landscape"}:
+                        page_format = "a4_portrait"
+                        self.preview_page_format_var.set(page_format)
 
-                if not self.preview_images:
-                    self.preview_canvas.itemconfig(self.preview_text_item, text="Keine Seiten erzeugt.")
-                    self.preview_canvas.coords(self.preview_text_item, 20, 20)
-                    self.preview_canvas.config(scrollregion=(0, 0, 600, 400))
-                    page_label = (
-                        "Folie"
-                        if getattr(self, "_current_preview_document_mode", "worksheet") == "presentation"
-                        else "Seite"
+                tab_state = self._active_document_tab_state()
+
+                cache_key = None
+                if tab_state is not None:
+                    try:
+                        cache_key = self._build_preview_cache_key(input_path, include_solutions, page_format, contrast_profile)
+                    except Exception:
+                        cache_key = None
+
+                cached_images = tab_state.get("preview_images") if isinstance(tab_state, dict) else None
+                if (
+                    not force_rebuild
+                    and tab_state is not None
+                    and cache_key is not None
+                    and tab_state.get("preview_cache_key") == cache_key
+                    and isinstance(cached_images, list)
+                    and bool(cached_images)
+                ):
+                    self.preview_images = cached_images
+                    self._last_preview_input_path = input_path
+                    self.current_page_index = max(
+                        0,
+                        min(int(tab_state.get("current_page_index", 0)), len(self.preview_images) - 1),
                     )
-                    self.page_info_var.set(f"{page_label} 0/0")
-                else:
+                    self.zoom_percent = int(str(tab_state.get("zoom_percent", self.zoom_percent) or self.zoom_percent))
+                    x_view_start = float(tab_state.get("x_view_start", 0.0) or 0.0)
+                    y_view_start = float(tab_state.get("y_view_start", 0.0) or 0.0)
+
                     self._show_current_page(
-                        reset_scroll=not preserve_position,
+                        reset_scroll=False,
                         x_view_start=x_view_start,
                         y_view_start=y_view_start,
                     )
+                    if hasattr(self, "_update_lernhilfen_action_state"):
+                        self._update_lernhilfen_action_state(
+                            input_path=input_path,
+                            include_solutions=include_solutions,
+                        )
+                    if (
+                        self.help_preview_window is not None
+                        and self.help_preview_window.winfo_exists()
+                    ):
+                        self._refresh_help_preview(
+                            input_path,
+                            include_solutions,
+                            page_format,
+                            contrast_profile,
+                        )
+                    self._refresh_zoom_label()
+                    self.status_var.set("Vorschau aus Cache geladen")
+                    self._update_nav_buttons()
+                    return
 
-                if hasattr(self, "_update_lernhilfen_action_state"):
-                    self._update_lernhilfen_action_state(
-                        input_path=input_path,
-                        include_solutions=include_solutions,
-                    )
+                preserve_position = self._last_preview_input_path == input_path and bool(self.preview_images)
+                previous_page_index = self.current_page_index
+                x_view_start = self.preview_canvas.xview()[0] if preserve_position else 0.0
+                y_view_start = self.preview_canvas.yview()[0] if preserve_position else 0.0
 
-                if (
-                    self.help_preview_window is not None
-                    and self.help_preview_window.winfo_exists()
-                ):
-                    self._refresh_help_preview(
-                        input_path,
-                        include_solutions,
-                        page_format,
-                        contrast_profile,
-                    )
+                try:
+                    self.status_var.set("Erstelle Vorschau…")
+                    self.root.update_idletasks()
+                    self._show_document_diagnostics(input_path, "Vorschau")
+                    self.preview_images = self._render_pdf_pages(input_path, include_solutions, page_format, contrast_profile)
+                    self._last_preview_input_path = input_path
 
-                self.status_var.set("Vorschau aktualisiert")
-            except Exception as error:
-                self.status_var.set("Fehler in der Vorschau")
-                messagebox.showerror("Fehler", f"Vorschau konnte nicht erstellt werden:\n{error}")
+                    if tab_state is not None and cache_key is not None:
+                        tab_state["preview_cache_key"] = cache_key
+                        tab_state["preview_images"] = list(self.preview_images)
 
-            if hasattr(self, "_persist_active_document_tab_state"):
-                self._persist_active_document_tab_state()
-            self._update_nav_buttons()
+                    if self.preview_images:
+                        self.current_page_index = min(previous_page_index, len(self.preview_images) - 1) if preserve_position else 0
+                    else:
+                        self.current_page_index = 0
+
+                    if not self.preview_images:
+                        self.preview_canvas.itemconfig(self.preview_text_item, text="Keine Seiten erzeugt.")
+                        self.preview_canvas.coords(self.preview_text_item, 20, 20)
+                        self.preview_canvas.config(scrollregion=(0, 0, 600, 400))
+                        page_label = (
+                            "Folie"
+                            if getattr(self, "_current_preview_document_mode", "worksheet") == "presentation"
+                            else "Seite"
+                        )
+                        self.page_info_var.set(f"{page_label} 0/0")
+                    else:
+                        self._show_current_page(
+                            reset_scroll=not preserve_position,
+                            x_view_start=x_view_start,
+                            y_view_start=y_view_start,
+                        )
+
+                    if hasattr(self, "_update_lernhilfen_action_state"):
+                        self._update_lernhilfen_action_state(
+                            input_path=input_path,
+                            include_solutions=include_solutions,
+                        )
+
+                    if (
+                        self.help_preview_window is not None
+                        and self.help_preview_window.winfo_exists()
+                    ):
+                        self._refresh_help_preview(
+                            input_path,
+                            include_solutions,
+                            page_format,
+                            contrast_profile,
+                        )
+
+                    self.status_var.set("Vorschau aktualisiert")
+                except Exception as error:
+                    self.status_var.set("Fehler in der Vorschau")
+                    messagebox.showerror("Fehler", f"Vorschau konnte nicht erstellt werden:\n{error}")
+
+                if hasattr(self, "_persist_active_document_tab_state"):
+                    self._persist_active_document_tab_state()
+                self._update_nav_buttons()
+            finally:
+                self._preview_refresh_in_progress = False
 
     def _get_preview_frame_size(self):
             """Liefert nutzbare Canvas-Maße mit robusten Mindestwerten."""

@@ -527,6 +527,7 @@ def _render_presentation_html(
         color_profile=color_profile,
         font_profile=font_profile,
         font_size_profile=font_size_profile,
+        document_mode="presentation",
     )
 
     return f"""<!DOCTYPE html>
@@ -661,6 +662,7 @@ def render_html(
         color_profile=color_profile,
         font_profile=font_profile,
         font_size_profile=font_size_profile,
+        document_mode=document_mode,
     )
 
     copyright_text = get_copyright_text(meta)

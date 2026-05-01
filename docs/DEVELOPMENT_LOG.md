@@ -9,6 +9,9 @@ Regel:
 ## [Unreleased]
 
 ### Changed
+- Presentation-Preview zeigt jetzt nur gueltige Seitenformate (`16:9`, `16:10`, `4:3`); Arbeitsblatt-Modi zeigen nur `DIN A4/A5`, und Formatwechsel triggern stabil einen echten Rebuild ohne Reentrancy-Schleife.
+- Exportdialog uebernimmt fuer Arbeitsblatt-Exporte die im Preview aktiven Optionen als Vorauswahl (insb. Inhalt/Black-Screen) statt eines entkoppelten Default-Mix.
+- Presentation-Layout nutzt jetzt randlose Seitenmargen (`@page margin: 0`) und vollflaechige Slide-/Black-Screen-Container, damit Black-Screens wirklich vollschwarz ohne weissen Rahmen rendern und Folien den verfuegbaren Raum ausnutzen.
 - Systematische Test-Praesentationen als Beispiel-Markdowns ergänzt (`example-presentation-systematic.md`, `example-presentation-variants.md`), damit neue Praesentationsfeatures reproduzierbar pruefbar sind.
 - Exportdialog-Shortcut-Hilfe ist jetzt kontextsensitiv: `A/L/B` wird nur noch angezeigt, wenn die Inhaltsauswahl sichtbar ist (nicht im Dokumentmodus `presentation`).
 - Vorschau-Controls im Dokumentmodus `presentation` zeigen keine Aufgaben/Loesung-Auswahl mehr; stattdessen erscheint ein statischer Modus-Hinweis `Praesentation`.

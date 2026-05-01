@@ -17,6 +17,8 @@ The format is based on Keep a Changelog.
 
 - Export and preview now treat presentation documents as a dedicated flow: no worksheet/solution selection in presentation export dialogs.
 - Presentation preview/export now supports black-screen insertion (`none`, `before`, `after`, `both`) with a quick shortcut for `both`.
+- Presentation preview now only shows presentation page formats (`16:9`, `16:10`, `4:3`) and hides A4/A5 options while in `mode: presentation`.
+- Worksheet export dialog now preselects options from the active preview state for overlapping controls (content mode and black-screen).
 - Block visibility supports explicit `mode=worksheet|solution`; presentation output hides solution-only blocks.
 - Markdown `---` is now treated as a regular horizontal rule again (no spacer semantics); vertical spacing uses `-=<css-length>`.
 - Legacy block option `show` is now explicitly deprecated by validator warning `OP003` (migrate to `mode`).
@@ -29,6 +31,7 @@ The format is based on Keep a Changelog.
 ### Fixed
 
 - Startup crash after recent preview control changes was fixed by repairing indentation in the preview mixin import path.
+- Presentation pages now render with true full-page black screens (no white frame) and use full slide area more consistently.
 
 ## [0.4.1] - 2026-04-22
 

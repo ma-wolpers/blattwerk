@@ -164,41 +164,46 @@ class BlattwerkAppBuildMixin:
 
         format_group_dina = ttk.Frame(format_section)
         ttk.Separator(format_group_dina, orient="vertical").pack(side="left", fill="y", padx=(0, 12))
-        ttk.Radiobutton(
+        self.preview_page_format_btn_a4 = ttk.Radiobutton(
             format_group_dina,
             text="DIN A4",
             value="a4_portrait",
             variable=self.preview_page_format_var,
             command=self.refresh_preview,
-        ).pack(side="left")
-        ttk.Radiobutton(
+        )
+        self.preview_page_format_btn_a4.pack(side="left")
+        self.preview_page_format_btn_a5 = ttk.Radiobutton(
             format_group_dina,
             text="DIN A5",
             value="a5_landscape",
             variable=self.preview_page_format_var,
             command=self.refresh_preview,
-        ).pack(side="left", padx=(10, 0))
-        ttk.Radiobutton(
+        )
+        self.preview_page_format_btn_a5.pack(side="left", padx=(10, 0))
+        self.preview_page_format_btn_16_9 = ttk.Radiobutton(
             format_group_dina,
             text="16:9",
             value="presentation_16_9",
             variable=self.preview_page_format_var,
             command=self.refresh_preview,
-        ).pack(side="left", padx=(10, 0))
-        ttk.Radiobutton(
+        )
+        self.preview_page_format_btn_16_9.pack(side="left", padx=(10, 0))
+        self.preview_page_format_btn_16_10 = ttk.Radiobutton(
             format_group_dina,
             text="16:10",
             value="presentation_16_10",
             variable=self.preview_page_format_var,
             command=self.refresh_preview,
-        ).pack(side="left", padx=(10, 0))
-        ttk.Radiobutton(
+        )
+        self.preview_page_format_btn_16_10.pack(side="left", padx=(10, 0))
+        self.preview_page_format_btn_4_3 = ttk.Radiobutton(
             format_group_dina,
             text="4:3",
             value="presentation_4_3",
             variable=self.preview_page_format_var,
             command=self.refresh_preview,
-        ).pack(side="left", padx=(10, 0))
+        )
+        self.preview_page_format_btn_4_3.pack(side="left", padx=(10, 0))
 
         format_group_black = ttk.Frame(format_section)
         ttk.Separator(format_group_black, orient="vertical").pack(side="left", fill="y", padx=(0, 12))

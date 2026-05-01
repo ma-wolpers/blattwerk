@@ -122,6 +122,9 @@ def test_render_html_presentation_black_screen_before_and_after_is_inserted():
     html = render_html(meta, blocks, include_solutions=False, black_screen_mode="both")
 
     assert html.count("class='ab-slide ab-slide-black'") == 2
+    assert "margin: 0;" in html
+    assert ".presentation-document .ab-slide-black" in html
+    assert "min-height: 100vh;" in html
 
 
 def test_render_html_presentation_framebreak_builds_incremental_frames():

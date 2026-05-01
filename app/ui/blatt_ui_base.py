@@ -128,7 +128,13 @@ class BlattwerkAppBase:
         self.preview_mode_btn_worksheet = None
         self.preview_mode_btn_solution = None
         self.preview_mode_static_label = None
+        self.preview_page_format_btn_a4 = None
+        self.preview_page_format_btn_a5 = None
+        self.preview_page_format_btn_16_9 = None
+        self.preview_page_format_btn_16_10 = None
+        self.preview_page_format_btn_4_3 = None
         self._current_preview_document_mode = "worksheet"
+        self._preview_refresh_in_progress = False
 
         self._load_ui_settings()
         self._load_recent_files()

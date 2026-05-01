@@ -52,10 +52,11 @@ hr {
 
 .presentation-document {
     margin: 0;
+    padding: 0;
 }
 
 .ab-slide {
-    min-height: 90vh;
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
@@ -69,6 +70,21 @@ hr {
 }
 
 .ab-slide-black {
+    background: #000;
+}
+
+.presentation-document .ab-slide {
+    width: 100%;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+}
+
+.presentation-document .ab-slide-black {
+    width: 100%;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
     background: #000;
 }
 
@@ -93,6 +109,17 @@ hr {
     flex: 1;
 }
 
+.presentation-document .presentation-mini-header {
+    margin: 0;
+    padding: 0.75cm 0.85cm 0.45cm 0.85cm;
+}
+
+.presentation-document .ab-slide-body {
+    flex: 1 1 auto;
+    margin: 0;
+    padding: 0 0.85cm 0.55cm 0.85cm;
+}
+
 .presentation-section-footer {
     margin-top: 0.45cm;
     font-size: 0.78em;
@@ -107,11 +134,21 @@ hr {
     font-weight: 600;
 }
 
+.presentation-document .presentation-section-footer {
+    margin: 0;
+    padding: 0 0.85cm;
+}
+
 .presentation-slide-counter {
     margin-top: 0.22cm;
     font-size: 0.78em;
     color: #4a4a4a;
     text-align: right;
+}
+
+.presentation-document .presentation-slide-counter {
+    margin: 0;
+    padding: 0.18cm 0.85cm 0.45cm 0.85cm;
 }
 
 .document-header {
