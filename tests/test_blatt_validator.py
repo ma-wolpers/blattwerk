@@ -380,6 +380,24 @@ def test_section_break_double_dash_inside_open_block_emits_bl005_error():
     assert bl005[0].severity == "error"
 
 
+def test_invalid_section_marker_without_title_emits_bl006_error():
+    text = _build_document("--#\n:::task\nInhalt\n:::")
+    diagnostics = inspect_markdown_text(text).diagnostics
+    bl006 = [d for d in diagnostics if d.code == "BL006"]
+
+    assert bl006
+    assert bl006[0].severity == "error"
+
+
+def test_invalid_vspacer_marker_without_unit_emits_bl006_error():
+    text = _build_document("-=2\n:::task\nInhalt\n:::")
+    diagnostics = inspect_markdown_text(text).diagnostics
+    bl006 = [d for d in diagnostics if d.code == "BL006"]
+
+    assert bl006
+    assert bl006[0].severity == "error"
+
+
 def test_legacy_answer_block_emits_an008_error():
     text = _build_document(":::answer type=lines\nText\n:::")
     diagnostics = inspect_markdown_text(text).diagnostics

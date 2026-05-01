@@ -290,6 +290,11 @@ _POSIX_ABSOLUTE_PATH_RE = re.compile(r"^/")
 _BLOCK_START_PATTERN = re.compile(r"^:::(\w+)(.*)$")
 _SELF_CLOSING_BLOCK_PATTERN = re.compile(r"^:::(\w+)(.*?):::$")
 _BLOCK_WHITESPACE_AFTER_MARKER_PATTERN = re.compile(r"^:::\s+")
+_VALID_SECTION_MARK_PATTERN = re.compile(r"^--#\s+.+$")
+_VALID_VSPACER_MARK_PATTERN = re.compile(
+    r"^-=\s*\d+(?:\.\d+)?(?:cm|mm|px|pt|em|rem|vh|vw|%)\s*$",
+    flags=re.IGNORECASE,
+)
 
 
 def _normalize_value(value):
@@ -439,6 +444,33 @@ def _collect_block_marker_syntax_diagnostics(content_text, base_line=1):
             )
 
         if not stripped_line.startswith(":::"):
+            if not block_stack:
+                if stripped_line.startswith("--#") and not _VALID_SECTION_MARK_PATTERN.match(stripped_line):
+                    diagnostics.append(
+                        BuildDiagnostic(
+                            code="BL006",
+                            message=(
+                                "Ungueltiger Abschnittsmarker in Zeile "
+                                f"{absolute_line_no}: `{stripped_line}`. "
+                                "Erwartet: `--# <Abschnittsname>`."
+                            ),
+                            severity="error",
+                            line_number=absolute_line_no,
+                        )
+                    )
+                if stripped_line.startswith("-=") and not _VALID_VSPACER_MARK_PATTERN.match(stripped_line):
+                    diagnostics.append(
+                        BuildDiagnostic(
+                            code="BL006",
+                            message=(
+                                "Ungueltiger Vertikalabstands-Marker in Zeile "
+                                f"{absolute_line_no}: `{stripped_line}`. "
+                                "Erwartet: `-=<zahl><einheit>`, z. B. `-=0.2cm`."
+                            ),
+                            severity="error",
+                            line_number=absolute_line_no,
+                        )
+                    )
             continue
 
         if _BLOCK_WHITESPACE_AFTER_MARKER_PATTERN.match(stripped_line):
