@@ -157,14 +157,26 @@ class WorksheetExportDialog(_BaseExportDialog):
             self.shortcuts_frame,
             style="Muted.TLabel",
             justify="left",
-            text=(
-                "Strg+E: Exportieren   Esc: Abbrechen\n"
-                "A/L/B: Inhalt   P: Format wechseln   K: Black-Screen beides   D: Durchsuchen"
-            ),
+            text=self._build_shortcuts_help_text(self.allow_mode_selection),
         ).pack(anchor="w", padx=8, pady=6)
 
         self._set_shortcuts_help_visible(False)
         self.window.configure(bg=theme["bg_main"])
+
+    @staticmethod
+    def _build_shortcuts_help_text(allow_mode_selection: bool) -> str:
+        base = "Strg+E: Exportieren   Esc: Abbrechen"
+        if allow_mode_selection:
+            return (
+                base
+                + "\n"
+                + "A/L/B: Inhalt   P: Format wechseln   K: Black-Screen beides   D: Durchsuchen"
+            )
+        return (
+            base
+            + "\n"
+            + "P: Format wechseln   K: Black-Screen beides   D: Durchsuchen"
+        )
 
     def _bind_shortcuts(self):
         self.window.bind("<Return>", lambda _event: "break")

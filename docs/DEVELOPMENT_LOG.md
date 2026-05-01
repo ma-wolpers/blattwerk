@@ -9,6 +9,7 @@ Regel:
 ## [Unreleased]
 
 ### Changed
+- Exportdialog-Shortcut-Hilfe ist jetzt kontextsensitiv: `A/L/B` wird nur noch angezeigt, wenn die Inhaltsauswahl sichtbar ist (nicht im Dokumentmodus `presentation`).
 - Vorschau-Controls im Dokumentmodus `presentation` zeigen keine Aufgaben/Loesung-Auswahl mehr; stattdessen erscheint ein statischer Modus-Hinweis `Praesentation`.
 - Vorschau-Statuszeile im Dokumentmodus `presentation` verwendet jetzt `Folie X/Y` statt `Seite X/Y`.
 - Frontmatter-Validierung fuer Praesentationen erweitert: `presentation_layout` akzeptiert nur bekannte Presets (`presentation_16_9|presentation_16_10|presentation_4_3`), und `presentation_show_mini_header`/`presentation_show_section_footer` werden als Bool-Werte validiert.

@@ -23,6 +23,7 @@ The format is based on Keep a Changelog.
 - Presentation frontmatter now validates `presentation_layout` presets and boolean presentation flags.
 - Preview status now uses `Folie X/Y` for presentation documents instead of `Seite X/Y`.
 - Presentation preview hides the worksheet/solution chooser entirely and shows a fixed `Praesentation` mode hint.
+- Export dialog shortcut help is now context-aware and no longer shows `A/L/B` when content mode selection is unavailable (e.g. `presentation`).
 
 ## [0.4.1] - 2026-04-22
 

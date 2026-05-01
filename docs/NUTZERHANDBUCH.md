@@ -60,9 +60,9 @@ Installation/Setup steht bewusst in `README.md`.
 - `0 / 1`: Seitenbreite / ganze Seite
 - `E / N / U`: Einzel / nebeneinander / untereinander
 - `- / +`: Zoom
-- `Tab`: Aufgabe/Lösung
+- `Tab`: Aufgabe/Lösung (nur in `worksheet`/`solution`; nicht in `presentation`)
 - `Leertaste`: Vorschau aktualisieren
-- `Enter`: Exportdialog öffnen
+- `Strg+E`: Exportdialog öffnen
 - `O`: Markdown öffnen
 - `Strg+O`: Markdown öffnen
 - `Strg+N`: neue Markdown-Datei
@@ -75,13 +75,11 @@ Installation/Setup steht bewusst in `README.md`.
 
 ## 5) Exportdialog-Shortcuts
 
-- `Enter`: Exportieren
+- `Strg+E`: Exportieren
 - `Esc`: Abbrechen
-- `4 / 5`: DIN A4 / DIN A5
-- `A / L / B`: Aufgaben / Lösung / Beides
+- `A / L / B`: Aufgaben / Lösung / Beides (nur wenn Inhaltsauswahl sichtbar ist; nicht bei `presentation`)
 - `K`: Black-Screen im Exportdialog schnell auf `Beides` setzen
-- `S`: Druckprofil wechseln
-- `P`: PDF/PNG umschalten
+- `P`: Format wechseln (PDF/PNG/PNG-ZIP/HTML)
 - `D`: Durchsuchen öffnen
 - `?`: Shortcut-Hilfe im Dialog ein/ausblenden
 
