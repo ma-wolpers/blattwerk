@@ -103,6 +103,7 @@ FONT_SIZE_PROFILE_PRESETS = {
     "small": {
         "label": "Klein",
         "font_size_base": "10pt",
+        "presentation_font_size_base": "16pt",
         "box_buffer_inline": "0.15cm",
         "box_buffer_block": "0.10cm",
         "box_radius": "0.14em",
@@ -110,6 +111,7 @@ FONT_SIZE_PROFILE_PRESETS = {
     "normal": {
         "label": "Normal",
         "font_size_base": "11pt",
+        "presentation_font_size_base": "20pt",
         "box_buffer_inline": "0.20cm",
         "box_buffer_block": "0.13cm",
         "box_radius": "0.18em",
@@ -117,6 +119,7 @@ FONT_SIZE_PROFILE_PRESETS = {
     "large": {
         "label": "Groß",
         "font_size_base": "12.5pt",
+        "presentation_font_size_base": "24pt",
         "box_buffer_inline": "0.26cm",
         "box_buffer_block": "0.17cm",
         "box_radius": "0.24em",
@@ -274,13 +277,19 @@ def build_font_profile_css(font_profile):
 """
 
 
-def build_font_size_profile_css(font_size_profile):
+def build_font_size_profile_css(font_size_profile, document_mode="worksheet"):
     """Erzeugt CSS-Variablen für Schriftgröße und Antwortbox-Puffer."""
     profile_key = normalize_font_size_profile(font_size_profile)
     profile = FONT_SIZE_PROFILE_PRESETS[profile_key]
+    is_presentation = str(document_mode or "").strip().lower() == "presentation"
+    font_size_base = (
+        profile.get("presentation_font_size_base", profile["font_size_base"])
+        if is_presentation
+        else profile["font_size_base"]
+    )
     return f"""
 :root {{
-    --font-size-base: {profile["font_size_base"]};
+    --font-size-base: {font_size_base};
     --box-buffer-inline: {profile["box_buffer_inline"]};
     --box-buffer-block: {profile["box_buffer_block"]};
     --box-radius: {profile["box_radius"]};
@@ -417,7 +426,7 @@ def build_stylesheet(
             ).strip(),
             build_print_profile_css(print_profile).strip(),
             build_font_profile_css(font_profile).strip(),
-            build_font_size_profile_css(font_size_profile).strip(),
+            build_font_size_profile_css(font_size_profile, document_mode=document_mode).strip(),
             build_design_css(
                 color_profile=color_profile, contrast_profile=print_profile
             ).strip(),
