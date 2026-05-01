@@ -25,6 +25,10 @@ The format is based on Keep a Changelog.
 - Presentation preview hides the worksheet/solution chooser entirely and shows a fixed `Praesentation` mode hint.
 - Export dialog shortcut help is now context-aware and no longer shows `A/L/B` when content mode selection is unavailable (e.g. `presentation`).
 
+### Fixed
+
+- Startup crash after recent preview control changes was fixed by repairing indentation in the preview mixin import path.
+
 ## [0.4.1] - 2026-04-22
 
 ### Changed
