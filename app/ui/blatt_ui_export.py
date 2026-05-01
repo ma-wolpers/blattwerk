@@ -18,6 +18,7 @@ from ..core.build_requests import (
 )
 from ..core.blatt_kern_help_render import collect_help_blocks
 from ..core.blatt_validator import inspect_markdown_text
+from ..core.blatt_kern_shared import normalize_document_mode, split_front_matter
 from ..core.diagnostic_warnings import build_warning_payload
 from ..core.export_path_guardrails import validate_export_output_path
 from .help_card_image_trim import trim_lernhilfe_image
@@ -25,6 +26,15 @@ from .help_card_image_trim import trim_lernhilfe_image
 
 class BlattwerkAppExportMixin:
     """Stellt Export-Workflows für PDF/HTML/PNG/ZIP bereit."""
+
+    def _detect_document_mode(self, input_path: Path) -> str:
+        """Resolve document mode from frontmatter with robust fallback."""
+        try:
+            text = input_path.read_text(encoding="utf-8")
+            meta, _content = split_front_matter(text)
+        except Exception:
+            return "worksheet"
+        return normalize_document_mode((meta or {}).get("mode"), default="worksheet")
 
     def _count_visible_lernhilfen(self, input_path: Path, include_solutions: bool) -> int:
         """Counts currently visible lernhilfen blocks for a given document and mode."""
@@ -147,6 +157,7 @@ class BlattwerkAppExportMixin:
         include_solutions: bool,
         page_format: str,
         contrast_profile: str,
+        black_screen_mode: str = "none",
     ):
         return WorksheetBuildRequest(
             input_path=input_path,
@@ -157,6 +168,7 @@ class BlattwerkAppExportMixin:
             design=self._worksheet_design_options(),
             metadata_defaults=self._metadata_defaults_from_preferences(),
             copyright_text_override=self._copyright_text_from_preferences() or None,
+            black_screen_mode=black_screen_mode,
         )
 
     def _help_cards_build_request(
@@ -188,6 +200,7 @@ class BlattwerkAppExportMixin:
         page_format: str,
         mode: str,
         contrast_profile: str,
+        black_screen_mode: str = "none",
     ):
         """Export pdf."""
         if mode == "both":
@@ -201,6 +214,7 @@ class BlattwerkAppExportMixin:
                     include_solutions=False,
                     page_format=page_format,
                     contrast_profile=contrast_profile,
+                    black_screen_mode=black_screen_mode,
                 )
             )
             out_solution = build_worksheet_from_request(
@@ -210,6 +224,7 @@ class BlattwerkAppExportMixin:
                     include_solutions=True,
                     page_format=page_format,
                     contrast_profile=contrast_profile,
+                    black_screen_mode=black_screen_mode,
                 )
             )
             return [out_worksheet, out_solution]
@@ -226,6 +241,7 @@ class BlattwerkAppExportMixin:
                 include_solutions=include_solutions,
                 page_format=page_format,
                 contrast_profile=contrast_profile,
+                black_screen_mode=black_screen_mode,
             )
         )
         return [out_file]
@@ -237,6 +253,7 @@ class BlattwerkAppExportMixin:
         page_format: str,
         mode: str,
         contrast_profile: str,
+        black_screen_mode: str = "none",
     ):
         """Export html."""
         if mode == "both":
@@ -250,6 +267,7 @@ class BlattwerkAppExportMixin:
                     include_solutions=False,
                     page_format=page_format,
                     contrast_profile=contrast_profile,
+                    black_screen_mode=black_screen_mode,
                 )
             )
             out_solution = build_worksheet_from_request(
@@ -259,6 +277,7 @@ class BlattwerkAppExportMixin:
                     include_solutions=True,
                     page_format=page_format,
                     contrast_profile=contrast_profile,
+                    black_screen_mode=black_screen_mode,
                 )
             )
             return [out_worksheet, out_solution]
@@ -275,6 +294,7 @@ class BlattwerkAppExportMixin:
                 include_solutions=include_solutions,
                 page_format=page_format,
                 contrast_profile=contrast_profile,
+                black_screen_mode=black_screen_mode,
             )
         )
         return [out_file]
@@ -287,6 +307,7 @@ class BlattwerkAppExportMixin:
         page_format: str,
         contrast_profile: str,
         worksheet_design,
+        black_screen_mode: str = "none",
     ):
         """Exports one worksheet variant as PNG files inside a ZIP archive."""
         output_zip_path = validate_export_output_path(
@@ -306,6 +327,7 @@ class BlattwerkAppExportMixin:
                     design=worksheet_design,
                     metadata_defaults=self._metadata_defaults_from_preferences(),
                     copyright_text_override=self._copyright_text_from_preferences() or None,
+                    black_screen_mode=black_screen_mode,
                 )
             )
 
@@ -330,6 +352,7 @@ class BlattwerkAppExportMixin:
         page_format: str,
         mode: str,
         contrast_profile: str,
+        black_screen_mode: str = "none",
     ):
         """Export png zip."""
         worksheet_design = self._worksheet_design_options()
@@ -344,6 +367,7 @@ class BlattwerkAppExportMixin:
                 page_format=page_format,
                 contrast_profile=contrast_profile,
                 worksheet_design=worksheet_design,
+                black_screen_mode=black_screen_mode,
             )
             self._export_png_zip_single(
                 input_path,
@@ -352,6 +376,7 @@ class BlattwerkAppExportMixin:
                 page_format=page_format,
                 contrast_profile=contrast_profile,
                 worksheet_design=worksheet_design,
+                black_screen_mode=black_screen_mode,
             )
             return [worksheet_path, solution_path]
 
@@ -367,6 +392,7 @@ class BlattwerkAppExportMixin:
             page_format=page_format,
             contrast_profile=contrast_profile,
             worksheet_design=worksheet_design,
+            black_screen_mode=black_screen_mode,
         )
         return [target]
 
@@ -509,6 +535,16 @@ class BlattwerkAppExportMixin:
         default_mode = str(preferences.get("default_export_mode", default_mode) or default_mode)
         if default_mode not in {"worksheet", "solution", "both"}:
             default_mode = "both"
+        document_mode = self._detect_document_mode(input_path)
+        allow_mode_selection = document_mode != "presentation"
+        if not allow_mode_selection:
+            default_mode = "worksheet"
+
+        default_black_screen = str(
+            preferences.get("default_export_black_screen", "none") or "none"
+        ).strip().lower()
+        if default_black_screen not in {"none", "before", "after", "both"}:
+            default_black_screen = "none"
         default_format = str(preferences.get("default_export_format", preferences.get("default_export_page_format", "pdf")) or "pdf")
         if default_format not in {"pdf", "html", "png", "pngzip"}:
             default_format = "pdf"
@@ -523,18 +559,38 @@ class BlattwerkAppExportMixin:
             worksheet_label=str(preferences.get("worksheet_label", "Aufgaben") or "Aufgaben"),
             solution_label=str(preferences.get("solution_label", "Loesung") or "Loesung"),
             solution_suffix=str(preferences.get("solution_suffix", "_loesung") or "_loesung"),
+            allow_mode_selection=allow_mode_selection,
+            black_screen_default=default_black_screen,
         )
         if not dialog.result:
             return
 
         fmt = dialog.result["format"]
         mode = dialog.result["mode"]
+        black_screen_mode = str(dialog.result.get("black_screen", "none") or "none").strip().lower()
+        if black_screen_mode not in {"none", "before", "after", "both"}:
+            black_screen_mode = "none"
         preferences = getattr(self, "user_preferences", {})
         preferred_page_format = str(preferences.get("default_export_page_format", "") or "").strip()
-        if preferred_page_format in {"a4_portrait", "a5_landscape"}:
+        if preferred_page_format in {
+            "a4_portrait",
+            "a5_landscape",
+            "presentation_16_9",
+            "presentation_16_10",
+            "presentation_4_3",
+        }:
             page_format = preferred_page_format
         else:
             page_format = self.preview_page_format_var.get()
+
+        if document_mode == "presentation":
+            mode = "worksheet"
+            if page_format not in {
+                "presentation_16_9",
+                "presentation_16_10",
+                "presentation_4_3",
+            }:
+                page_format = "presentation_16_9"
         contrast_profile = self.preview_contrast_var.get()
         output_path = Path(dialog.result["output_path"])
         self._set_last_dialog_dir("export_output", output_path)
@@ -546,15 +602,30 @@ class BlattwerkAppExportMixin:
 
             if fmt == "pdf":
                 out_files = self._export_pdf(
-                    input_path, output_path, page_format, mode, contrast_profile
+                    input_path,
+                    output_path,
+                    page_format,
+                    mode,
+                    contrast_profile,
+                    black_screen_mode=black_screen_mode,
                 )
             elif fmt == "html":
                 out_files = self._export_html(
-                    input_path, output_path, page_format, mode, contrast_profile
+                    input_path,
+                    output_path,
+                    page_format,
+                    mode,
+                    contrast_profile,
+                    black_screen_mode=black_screen_mode,
                 )
             else:
                 out_files = self._export_png_zip(
-                    input_path, output_path, page_format, mode, contrast_profile
+                    input_path,
+                    output_path,
+                    page_format,
+                    mode,
+                    contrast_profile,
+                    black_screen_mode=black_screen_mode,
                 )
 
             self.status_var.set("Export abgeschlossen")

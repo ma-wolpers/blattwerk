@@ -9,6 +9,12 @@ Regel:
 ## [Unreleased]
 
 ### Changed
+- Neuer Dokumentmodus `presentation` eingefuehrt: Rendering laeuft jetzt folienbasiert mit Mini-Header auf jeder Folie, kleinem `Folie X/Y`-Zaehler und Abschnitts-Footer (alle Abschnittsnamen, aktiver Abschnitt hervorgehoben).
+- Neue Marker-Syntax erweitert und parserseitig verdrahtet: `--!` (harter Seiten/Folienumbruch), `-+` (Frame-Fortschritt fuer Praesentationen), `--# Abschnitt` (Abschnittsstart) und `-=<css-laenge>` (vertikaler Abstand).
+- Semantik fuer Blocksichtbarkeit erweitert: zusaetzlicher Block-Key `mode=worksheet|solution`; im Praesentationsmodus werden `solution`-only-Bloecke ausgeblendet.
+- Export-/Preview-Flows praesentationssensitiv gemacht: im Praesentationsmodus kein Aufgaben/Loesung-Umschalten im Exportdialog; stattdessen Black-Screen-Option (`aus|vorher|nachher|beides`) inkl. Shortcut fuer `beides`.
+- Seitenformat-Presets um praesentationsgeeignete Formate erweitert (`16:9`, `16:10`, `4:3`) inklusive druckbarer Breitenberechnung fuer benutzerdefinierte @page-Groessen.
+- VSCode-Extension-Grammatik synchronisiert: neuer Blockoptions-Key `mode` und neue Markerzeilen (`--!`, `-+`, `--#`, `-=...`) werden hervorgehoben.
 - Antwort-Blocknamen hart umgestellt: `grid_field` -> `grid` und `grid_system` -> `geometry` ohne Rueckwaertskompatibilitaet; Core-Validator, Renderer-Dispatch, Layout-/Task-Wiring, Tests und VSCode-Extension-Regex wurden im selben Zyklus synchronisiert.
 - Grid-Breitenlogik korrigiert: `grid` ohne explizites `cols` berechnet die Spaltenzahl jetzt deterministisch aus Druck-Inhaltsbreite und `scale` (`floor(width/scale)`, min 1), wodurch Zellen nicht mehr auf Containerbreite gestreckt werden und die Zellgroesse konsistent bleibt.
 - Grid-System-Linienlogik geschärft: bisherige `pairs`-Polylinien wurden in `sequence` umbenannt (sortierte Wertefolge als zusammenhängende Linie), während `pairs` nun echte Segmentpaare über explizite Endpunkte (`x1`, `y1`, `x2`, `y2`) rendert.

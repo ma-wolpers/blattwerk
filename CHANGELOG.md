@@ -6,6 +6,18 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added
+
+- New document mode `presentation` with slide rendering, mini-header, small `Folie X/Y` counters, and section footer navigation.
+- New markdown control markers: `--!` (hard page/slide break), `-+` (presentation frame step), `--# Section` (section marker), and `-=<css-length>` (vertical spacer).
+- Presentation-friendly page presets `16:9`, `16:10`, and `4:3` for preview/export.
+
+### Changed
+
+- Export and preview now treat presentation documents as a dedicated flow: no worksheet/solution selection in presentation export dialogs.
+- Presentation preview/export now supports black-screen insertion (`none`, `before`, `after`, `both`) with a quick shortcut for `both`.
+- Block visibility supports explicit `mode=worksheet|solution`; presentation output hides solution-only blocks.
+
 ## [0.4.1] - 2026-04-22
 
 ### Changed

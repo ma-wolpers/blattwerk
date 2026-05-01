@@ -17,14 +17,19 @@ from .blatt_kern_shared import (
 )
 
 
-def collect_help_blocks(blocks, include_solutions=False):
+def collect_help_blocks(blocks, include_solutions=False, document_mode="worksheet"):
     """Extrahiert sichtbare Hilfeblöcke inkl. Metadaten in Dokumentreihenfolge."""
 
     collected = []
     for block_type, options, content in blocks:
         if block_type not in HELP_BLOCK_TYPES:
             continue
-        if not should_render_block(block_type, options, include_solutions):
+        if not should_render_block(
+            block_type,
+            options,
+            include_solutions,
+            document_mode=document_mode,
+        ):
             continue
 
         collected.append(
@@ -79,7 +84,11 @@ def render_help_cards_html(
 ):
     """Rendert ausschließlich Hilfeblöcke als kartenseitige HTML-Ausgabe."""
 
-    help_blocks = collect_help_blocks(blocks, include_solutions=include_solutions)
+    help_blocks = collect_help_blocks(
+        blocks,
+        include_solutions=include_solutions,
+        document_mode="worksheet",
+    )
     if not help_blocks:
         return ""
 

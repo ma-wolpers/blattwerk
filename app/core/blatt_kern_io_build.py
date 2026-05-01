@@ -9,7 +9,7 @@ from .blatt_kern_io_html import absolutize_local_image_sources, apply_image_size
 from .blatt_kern_io_pdf import annotate_pdf_running_elements_with_retry, write_pdf_from_html
 from .blatt_kern_help_render import collect_help_blocks, render_help_cards_html
 from .blatt_kern_layout_render import render_html
-from .blatt_kern_shared import get_copyright_text
+from .blatt_kern_shared import get_copyright_text, normalize_document_mode
 from .blatt_validator import (
     BuildDiagnostic,
     InspectedDocument,
@@ -57,12 +57,16 @@ def build_worksheet(
     block_on_critical=True,
     metadata_defaults=None,
     copyright_text_override=None,
+    black_screen_mode="none",
 ):
     """Erstellt aus einer Markdown-Datei eine HTML- oder PDF-Ausgabe."""
     md_file = Path(md_path)
     text = md_file.read_text(encoding="utf-8")
     inspected = inspect_markdown_text(text)
     meta = _merge_metadata_defaults(inspected.meta, metadata_defaults)
+    document_mode = normalize_document_mode((meta or {}).get("mode"), default="worksheet")
+    if document_mode == "presentation":
+        include_solutions = False
     blocks = inspected.blocks
     if block_on_critical:
         _raise_on_blocking_diagnostics(inspected.diagnostics)
@@ -77,6 +81,7 @@ def build_worksheet(
         color_profile=color_profile,
         font_profile=font_profile,
         font_size_profile=font_size_profile,
+        black_screen_mode=black_screen_mode,
     )
     html = absolutize_local_image_sources(html, md_file.parent)
     html = apply_image_size_options(html)
@@ -94,13 +99,14 @@ def build_worksheet(
 
     if suffix == ".pdf":
         pdf_file = write_pdf_from_html(html, out_file)
-        annotate_pdf_running_elements_with_retry(
-            pdf_file,
-            meta.get("Titel", "").strip(),
-            str(copyright_text_override or get_copyright_text(meta)),
-            print_profile=print_profile,
-            include_solutions=include_solutions,
-        )
+        if document_mode != "presentation":
+            annotate_pdf_running_elements_with_retry(
+                pdf_file,
+                meta.get("Titel", "").strip(),
+                str(copyright_text_override or get_copyright_text(meta)),
+                print_profile=print_profile,
+                include_solutions=include_solutions,
+            )
         return pdf_file
 
     raise ValueError("Ausgabedatei muss auf .pdf oder .html enden.")

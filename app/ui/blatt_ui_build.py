@@ -172,11 +172,64 @@ class BlattwerkAppBuildMixin:
             variable=self.preview_page_format_var,
             command=self.refresh_preview,
         ).pack(side="left", padx=(10, 0))
+        ttk.Radiobutton(
+            format_group_dina,
+            text="16:9",
+            value="presentation_16_9",
+            variable=self.preview_page_format_var,
+            command=self.refresh_preview,
+        ).pack(side="left", padx=(10, 0))
+        ttk.Radiobutton(
+            format_group_dina,
+            text="16:10",
+            value="presentation_16_10",
+            variable=self.preview_page_format_var,
+            command=self.refresh_preview,
+        ).pack(side="left", padx=(10, 0))
+        ttk.Radiobutton(
+            format_group_dina,
+            text="4:3",
+            value="presentation_4_3",
+            variable=self.preview_page_format_var,
+            command=self.refresh_preview,
+        ).pack(side="left", padx=(10, 0))
+
+        format_group_black = ttk.Frame(format_section)
+        ttk.Separator(format_group_black, orient="vertical").pack(side="left", fill="y", padx=(0, 12))
+        ttk.Label(format_group_black, text="Black-Screen:").pack(side="left")
+        ttk.Radiobutton(
+            format_group_black,
+            text="Aus",
+            value="none",
+            variable=self.preview_black_screen_var,
+            command=self.refresh_preview,
+        ).pack(side="left", padx=(6, 0))
+        ttk.Radiobutton(
+            format_group_black,
+            text="Vorher",
+            value="before",
+            variable=self.preview_black_screen_var,
+            command=self.refresh_preview,
+        ).pack(side="left", padx=(6, 0))
+        ttk.Radiobutton(
+            format_group_black,
+            text="Nachher",
+            value="after",
+            variable=self.preview_black_screen_var,
+            command=self.refresh_preview,
+        ).pack(side="left", padx=(6, 0))
+        ttk.Radiobutton(
+            format_group_black,
+            text="Beides",
+            value="both",
+            variable=self.preview_black_screen_var,
+            command=self.refresh_preview,
+        ).pack(side="left", padx=(6, 0))
 
         self._register_responsive_section(
             container=format_section,
             main_group=format_group_main,
-            optional_groups=[format_group_dina],
+            optional_groups=[format_group_dina, format_group_black],
             indent_px=16,
             gap_px=12,
         )

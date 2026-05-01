@@ -63,7 +63,20 @@ TASK_HINT_MAP = {
 }
 
 HELP_BLOCK_TYPES = {"help", "hilfe"}
-DOCUMENT_MODES = {"ws", "test"}
+DOCUMENT_MODES = {"worksheet", "solution", "presentation", "test"}
+DOCUMENT_MODE_ALIASES = {
+    "ws": "worksheet",
+    "worksheet": "worksheet",
+    "solution": "solution",
+    "presentation": "presentation",
+    "test": "test",
+}
+
+PRESENTATION_SECTION_MARK_PATTERN = re.compile(r"^--#\s+(.+)$")
+PRESENTATION_SPACER_MARK_PATTERN = re.compile(
+    r"^-=\s*(\d+(?:\.\d+)?(?:cm|mm|px|pt|em|rem|vh|vw|%)?)\s*$",
+    flags=re.IGNORECASE,
+)
 
 
 def _dedupe_preserve_order(values):
@@ -158,10 +171,29 @@ def _normalize_keyword(value, default=""):
 
 def normalize_document_mode(mode_raw, default="ws"):
     """Normalize document output mode from frontmatter metadata."""
-    mode = _normalize_keyword(mode_raw, default=default)
-    if mode in DOCUMENT_MODES:
-        return mode
-    return default
+    normalized_default = DOCUMENT_MODE_ALIASES.get(
+        _normalize_keyword(default, default="worksheet"),
+        "worksheet",
+    )
+    mode = _normalize_keyword(mode_raw, default=normalized_default)
+    return DOCUMENT_MODE_ALIASES.get(mode, normalized_default)
+
+
+def _parse_inline_control_marker(stripped_line):
+    if stripped_line == "--!":
+        return ("pagebreak", {}, "")
+    if stripped_line == "-+":
+        return ("framebreak", {}, "")
+
+    section_match = PRESENTATION_SECTION_MARK_PATTERN.match(stripped_line)
+    if section_match:
+        return ("sectionmark", {"title": section_match.group(1).strip()}, "")
+
+    spacer_match = PRESENTATION_SPACER_MARK_PATTERN.match(stripped_line)
+    if spacer_match:
+        return ("vspacer", {"height": spacer_match.group(1).strip()}, "")
+
+    return None
 
 
 def _safe_int(value, default):
@@ -274,6 +306,14 @@ def parse_blocks(text):
     for line in lines:
         if block_type is None:
             stripped_line = line.strip()
+            inline_marker_block = _parse_inline_control_marker(stripped_line)
+            if inline_marker_block is not None:
+                if raw_buffer:
+                    blocks.append(("raw", {}, "".join(raw_buffer)))
+                    raw_buffer = []
+                blocks.append(inline_marker_block)
+                continue
+
             # Selbstschließende Kurzform wie :::space::: direkt übernehmen.
             self_closing_match = self_closing_pattern.match(stripped_line)
             if self_closing_match:
@@ -348,6 +388,15 @@ def build_block_index_line_map(text):
     for line_no, raw_line in enumerate(lines, start=1):
         stripped = raw_line.strip()
         if not in_block:
+            if _parse_inline_control_marker(stripped) is not None:
+                if raw_buffer_start_line is not None:
+                    index_to_line[block_index] = raw_buffer_start_line
+                    block_index += 1
+                    raw_buffer_start_line = None
+                index_to_line[block_index] = line_no
+                block_index += 1
+                continue
+
             if self_closing_pattern.match(stripped):
                 if raw_buffer_start_line is not None:
                     index_to_line[block_index] = raw_buffer_start_line
@@ -500,7 +549,12 @@ def annotate_standalone_subtasks(blocks):
     return annotated_blocks
 
 
-def annotate_task_help_references(blocks, include_solutions=False, help_tag=None):
+def annotate_task_help_references(
+    blocks,
+    include_solutions=False,
+    help_tag=None,
+    document_mode="worksheet",
+):
     """Annotate task/subtask blocks with rendered help-reference hint text."""
     references_by_block_index = {}
     visible_help_entries = []
@@ -508,7 +562,12 @@ def annotate_task_help_references(blocks, include_solutions=False, help_tag=None
     for current_index, (block_type, options, _content) in enumerate(blocks):
         if block_type not in HELP_BLOCK_TYPES:
             continue
-        if not should_render_block(block_type, options, include_solutions):
+        if not should_render_block(
+            block_type,
+            options,
+            include_solutions,
+            document_mode=document_mode,
+        ):
             continue
 
         target_index = None
@@ -517,7 +576,10 @@ def annotate_task_help_references(blocks, include_solutions=False, help_tag=None
             if previous_type not in {"task", "subtask"}:
                 continue
             if not should_render_block(
-                previous_type, previous_options, include_solutions
+                previous_type,
+                previous_options,
+                include_solutions,
+                document_mode=document_mode,
             ):
                 continue
             target_index = previous_index
@@ -569,13 +631,23 @@ def annotate_task_help_references(blocks, include_solutions=False, help_tag=None
     return annotated_blocks
 
 
-def should_render_block(block_type, options, include_solutions):
+def should_render_block(block_type, options, include_solutions, document_mode="worksheet"):
     """Entscheidet, ob ein Block in der aktuellen Ausgabe sichtbar sein soll."""
-    show_mode_raw = (options.get("show") or "").strip().lower()
-    if show_mode_raw in {"worksheet", "solution", "both"}:
-        show_mode = show_mode_raw
+    mode_raw = (options.get("mode") or "").strip().lower()
+    if mode_raw in {"worksheet", "solution"}:
+        show_mode = mode_raw
     else:
-        show_mode = "both"
+        # Legacy-Fallback for existing documents.
+        show_mode_raw = (options.get("show") or "").strip().lower()
+        if show_mode_raw in {"worksheet", "solution", "both"}:
+            show_mode = show_mode_raw
+        else:
+            show_mode = "both"
+
+    normalized_mode = normalize_document_mode(document_mode, default="worksheet")
+
+    if normalized_mode == "presentation" and show_mode == "solution":
+        return False
 
     if show_mode == "worksheet" and include_solutions:
         return False

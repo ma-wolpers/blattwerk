@@ -84,6 +84,43 @@ def test_render_html_respects_frontmatter_mode_in_both_output_modes():
     assert "title='lesen'" in solution_html
 
 
+def test_render_html_presentation_uses_slide_counter_and_hides_solution_only_blocks():
+    meta = {
+        "Titel": "T",
+        "Fach": "M",
+        "Thema": "X",
+        "mode": "presentation",
+    }
+    blocks = [
+        ("sectionmark", {"title": "Einstieg"}, ""),
+        ("task", {"mode": "solution"}, "Nur Loesung"),
+        ("task", {}, "Visible"),
+        ("pagebreak", {}, ""),
+        ("task", {}, "Zweite Folie"),
+    ]
+
+    html = render_html(meta, blocks, include_solutions=False)
+
+    assert "Folie 1/2" in html
+    assert "Folie 2/2" in html
+    assert "Nur Loesung" not in html
+    assert "presentation-section-item active" in html
+
+
+def test_render_html_presentation_black_screen_before_and_after_is_inserted():
+    meta = {
+        "Titel": "T",
+        "Fach": "M",
+        "Thema": "X",
+        "mode": "presentation",
+    }
+    blocks = [("task", {}, "Inhalt")]
+
+    html = render_html(meta, blocks, include_solutions=False, black_screen_mode="both")
+
+    assert html.count("class='ab-slide ab-slide-black'") == 2
+
+
 def test_task_content_supports_marker_visibility_by_output_mode():
     content = "§ Nur Arbeitsblatt\n% Nur Loesung\nIn beiden"
     options = {"work": "single", "_show_task_label": "1"}

@@ -87,14 +87,18 @@ class WorksheetExportDialog(_BaseExportDialog):
         worksheet_label: str = "Aufgaben",
         solution_label: str = "Loesung",
         solution_suffix: str = "_loesung",
+        allow_mode_selection: bool = True,
+        black_screen_default: str = "none",
     ):
         super().__init__(parent, input_path, theme_key, initial_output_dir=initial_output_dir)
         self.worksheet_label = str(worksheet_label or "Aufgaben")
         self.solution_label = str(solution_label or "Loesung")
         self.solution_suffix = str(solution_suffix or "_loesung")
+        self.allow_mode_selection = bool(allow_mode_selection)
 
         self.format_var = tk.StringVar(value=default_format)
         self.mode_var = tk.StringVar(value=default_mode)
+        self.black_screen_var = tk.StringVar(value=black_screen_default)
 
         self.window.title("Arbeitsblatt exportieren")
         self._build_ui()
@@ -118,12 +122,23 @@ class WorksheetExportDialog(_BaseExportDialog):
         ttk.Radiobutton(fmt_row, text="PNG (ZIP)", value="pngzip", variable=self.format_var, command=self._refresh_output_suggestion).pack(side="left", padx=(12, 0))
         ttk.Radiobutton(fmt_row, text="HTML", value="html", variable=self.format_var, command=self._refresh_output_suggestion).pack(side="left", padx=(12, 0))
 
-        mode_row = ttk.Frame(outer)
-        mode_row.pack(fill="x", pady=(4, 4))
-        ttk.Label(mode_row, text="Inhalt:", width=15).pack(side="left")
-        ttk.Radiobutton(mode_row, text=self.worksheet_label, value="worksheet", variable=self.mode_var, command=self._refresh_output_suggestion).pack(side="left")
-        ttk.Radiobutton(mode_row, text=self.solution_label, value="solution", variable=self.mode_var, command=self._refresh_output_suggestion).pack(side="left", padx=(12, 0))
-        ttk.Radiobutton(mode_row, text="Beides", value="both", variable=self.mode_var, command=self._refresh_output_suggestion).pack(side="left", padx=(12, 0))
+        if self.allow_mode_selection:
+            mode_row = ttk.Frame(outer)
+            mode_row.pack(fill="x", pady=(4, 4))
+            ttk.Label(mode_row, text="Inhalt:", width=15).pack(side="left")
+            ttk.Radiobutton(mode_row, text=self.worksheet_label, value="worksheet", variable=self.mode_var, command=self._refresh_output_suggestion).pack(side="left")
+            ttk.Radiobutton(mode_row, text=self.solution_label, value="solution", variable=self.mode_var, command=self._refresh_output_suggestion).pack(side="left", padx=(12, 0))
+            ttk.Radiobutton(mode_row, text="Beides", value="both", variable=self.mode_var, command=self._refresh_output_suggestion).pack(side="left", padx=(12, 0))
+        else:
+            self.mode_var.set("worksheet")
+
+        black_row = ttk.Frame(outer)
+        black_row.pack(fill="x", pady=(4, 4))
+        ttk.Label(black_row, text="Black-Screen:", width=15).pack(side="left")
+        ttk.Radiobutton(black_row, text="Aus", value="none", variable=self.black_screen_var).pack(side="left")
+        ttk.Radiobutton(black_row, text="Vorher", value="before", variable=self.black_screen_var).pack(side="left", padx=(12, 0))
+        ttk.Radiobutton(black_row, text="Nachher", value="after", variable=self.black_screen_var).pack(side="left", padx=(12, 0))
+        ttk.Radiobutton(black_row, text="Beides", value="both", variable=self.black_screen_var).pack(side="left", padx=(12, 0))
 
         out_row = ttk.Frame(outer)
         out_row.pack(fill="x", pady=(10, 4))
@@ -144,7 +159,7 @@ class WorksheetExportDialog(_BaseExportDialog):
             justify="left",
             text=(
                 "Strg+E: Exportieren   Esc: Abbrechen\n"
-                "A/L/B: Inhalt   P: Format wechseln   D: Durchsuchen"
+                "A/L/B: Inhalt   P: Format wechseln   K: Black-Screen beides   D: Durchsuchen"
             ),
         ).pack(anchor="w", padx=8, pady=6)
 
@@ -158,20 +173,31 @@ class WorksheetExportDialog(_BaseExportDialog):
         self.window.bind("<Escape>", lambda _event: self._cancel())
         self.window.bind("<KeyPress-question>", lambda _event: self._toggle_shortcuts_help_shortcut())
 
-        self.window.bind("<KeyPress-a>", lambda _event: self._set_mode("worksheet"))
-        self.window.bind("<KeyPress-l>", lambda _event: self._set_mode("solution"))
-        self.window.bind("<KeyPress-b>", lambda _event: self._set_mode("both"))
+        if self.allow_mode_selection:
+            self.window.bind("<KeyPress-a>", lambda _event: self._set_mode("worksheet"))
+            self.window.bind("<KeyPress-l>", lambda _event: self._set_mode("solution"))
+            self.window.bind("<KeyPress-b>", lambda _event: self._set_mode("both"))
 
         self.window.bind("<KeyPress-d>", lambda _event: self._browse_output_shortcut())
         self.window.bind("<KeyPress-p>", lambda _event: self._toggle_export_format())
+        self.window.bind("<KeyPress-k>", lambda _event: self._set_black_screen_both())
 
     def _set_mode(self, mode):
+        if not self.allow_mode_selection:
+            return "break"
         if not self._can_handle_char_shortcut():
             return "break"
 
         if self.mode_var.get() != mode:
             self.mode_var.set(mode)
         self._refresh_output_suggestion(force=True)
+        return "break"
+
+    def _set_black_screen_both(self):
+        if not self._can_handle_char_shortcut():
+            return "break"
+
+        self.black_screen_var.set("both")
         return "break"
 
     def _browse_output_shortcut(self):
@@ -248,6 +274,7 @@ class WorksheetExportDialog(_BaseExportDialog):
         self.result = {
             "format": self.format_var.get(),
             "mode": self.mode_var.get(),
+            "black_screen": self.black_screen_var.get(),
             "output_path": out_path,
         }
         self.window.destroy()

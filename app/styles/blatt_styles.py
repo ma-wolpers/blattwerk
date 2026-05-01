@@ -153,6 +153,39 @@ PAGE_LAYOUTS = {
         "document_header_size": "0.85em",
         "solution_badge_size": "0.9em",
     },
+    "presentation_16_9": {
+        "page_size_css": "33.867cm 19.05cm",
+        "page_margin_top_css": "1.0cm",
+        "page_margin_right_css": "1.0cm",
+        "page_margin_bottom_css": "1.0cm",
+        "page_margin_left_css": "1.0cm",
+        "page_margin_right_hole_punch_css": "1.0cm",
+        "page_margin_left_hole_punch_css": "1.0cm",
+        "document_header_size": "0.78em",
+        "solution_badge_size": "0.84em",
+    },
+    "presentation_16_10": {
+        "page_size_css": "30.48cm 19.05cm",
+        "page_margin_top_css": "1.0cm",
+        "page_margin_right_css": "1.0cm",
+        "page_margin_bottom_css": "1.0cm",
+        "page_margin_left_css": "1.0cm",
+        "page_margin_right_hole_punch_css": "1.0cm",
+        "page_margin_left_hole_punch_css": "1.0cm",
+        "document_header_size": "0.78em",
+        "solution_badge_size": "0.84em",
+    },
+    "presentation_4_3": {
+        "page_size_css": "25.4cm 19.05cm",
+        "page_margin_top_css": "1.0cm",
+        "page_margin_right_css": "1.0cm",
+        "page_margin_bottom_css": "1.0cm",
+        "page_margin_left_css": "1.0cm",
+        "page_margin_right_hole_punch_css": "1.0cm",
+        "page_margin_left_hole_punch_css": "1.0cm",
+        "document_header_size": "0.78em",
+        "solution_badge_size": "0.84em",
+    },
 }
 
 
@@ -305,6 +338,15 @@ def _css_length_to_cm(raw_value, default_cm):
 def _layout_page_width_cm(layout):
     """Resolve physical page width in centimeters from a layout preset."""
     size_text = str((layout or {}).get("page_size_css", "A4 portrait") or "").strip().lower()
+
+    custom_size_match = re.fullmatch(
+        r"(\d+(?:\.\d+)?)cm\s+(\d+(?:\.\d+)?)cm",
+        size_text,
+    )
+    if custom_size_match:
+        width = float(custom_size_match.group(1))
+        return width
+
     parts = [part for part in size_text.split() if part]
     paper_key = parts[0] if parts else "a4"
     paper_dimensions = _PAGE_DIMENSIONS_CM.get(paper_key, _PAGE_DIMENSIONS_CM["a4"])

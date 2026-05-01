@@ -61,9 +61,14 @@ KNOWN_BLOCK_TYPES = {
     "endcolumns",
     "help",
     "hilfe",
+    "pagebreak",
+    "framebreak",
+    "sectionmark",
+    "vspacer",
 }
 KNOWN_SHOW_VALUES = {"worksheet", "solution", "both"}
-KNOWN_DOCUMENT_MODES = {"ws", "test"}
+KNOWN_BLOCK_MODE_VALUES = {"worksheet", "solution"}
+KNOWN_DOCUMENT_MODES = {"ws", "test", "worksheet", "solution", "presentation"}
 GRID_MARKER_SHOW_VALUES = {"&", "§", "%"}
 NUMBERLINE_ANSWER_TYPES = {"numberline"}
 MARKER_SHOW_SECTIONS_BY_ANSWER_TYPE = {
@@ -139,23 +144,26 @@ YAML_ANSWER_TYPES = {
 }
 
 BLOCK_ALLOWED_OPTIONS = {
-    "material": {"title", "show"},
-    "info": {"type", "show"},
-    "task": {"points", "work", "action", "hint", "show", "title"},
-    "subtask": {"work", "action", "show"},
+    "material": {"title", "show", "mode"},
+    "info": {"type", "show", "mode"},
+    "task": {"points", "work", "action", "hint", "show", "mode", "title"},
+    "subtask": {"work", "action", "show", "mode"},
     "lines": {
         "show",
+        "mode",
         "rows",
         "height",
     },
     "grid": {
         "show",
+        "mode",
         "rows",
         "cols",
         "scale",
     },
     "geometry": {
         "show",
+        "mode",
         "rows",
         "cols",
         "scale",
@@ -168,14 +176,17 @@ BLOCK_ALLOWED_OPTIONS = {
     },
     "dots": {
         "show",
+        "mode",
         "height",
     },
     "space": {
         "show",
+        "mode",
         "height",
     },
     "table": {
         "show",
+        "mode",
         "rows",
         "cols",
         "width",
@@ -189,6 +200,7 @@ BLOCK_ALLOWED_OPTIONS = {
     },
     "numberline": {
         "show",
+        "mode",
         "height",
         "min",
         "max",
@@ -208,6 +220,7 @@ BLOCK_ALLOWED_OPTIONS = {
     },
     "mc": {
         "show",
+        "mode",
         "inline",
         "tf",
         "true_false",
@@ -217,6 +230,7 @@ BLOCK_ALLOWED_OPTIONS = {
     },
     "cloze": {
         "show",
+        "mode",
         "gap",
         "gap_length",
         "words",
@@ -225,6 +239,7 @@ BLOCK_ALLOWED_OPTIONS = {
     },
     "matching": {
         "show",
+        "mode",
         "scale",
         "layout",
         "orientation",
@@ -242,6 +257,7 @@ BLOCK_ALLOWED_OPTIONS = {
     },
     "wordsearch": {
         "show",
+        "mode",
         "min_size",
         "min_rows",
         "min_cols",
@@ -250,12 +266,16 @@ BLOCK_ALLOWED_OPTIONS = {
         "vertical",
         "words",
     },
-    "solution": {"label", "show"},
+    "solution": {"label", "show", "mode"},
     "columns": {"cols", "widths", "ratio", "gap"},
     "nextcol": set(),
     "endcolumns": set(),
-    "help": {"title", "level", "show", "tag"},
-    "hilfe": {"title", "level", "show", "tag"},
+    "help": {"title", "level", "show", "mode", "tag"},
+    "hilfe": {"title", "level", "show", "mode", "tag"},
+    "pagebreak": set(),
+    "framebreak": set(),
+    "sectionmark": {"title"},
+    "vspacer": {"height"},
 }
 
 CRITICAL_DIAGNOSTIC_CODES = {
@@ -631,7 +651,7 @@ def _collect_document_diagnostics(meta, blocks, content_text, content_base_line=
                     code="FM002",
                     message=(
                         "Ungueltiger Frontmatter-Wert fuer `mode`: "
-                        f"`{meta.get('mode')}`. Erlaubt: ws, test."
+                        f"`{meta.get('mode')}`. Erlaubt: worksheet, solution, presentation, ws, test."
                     ),
                 )
             )
@@ -742,6 +762,15 @@ def _collect_document_diagnostics(meta, blocks, content_text, content_base_line=
                     option_key,
                     option_value,
                     KNOWN_SHOW_VALUES,
+                )
+            elif option_key == "mode" and normalized_value not in KNOWN_BLOCK_MODE_VALUES:
+                _append_invalid_option_value(
+                    diagnostics,
+                    index,
+                    block_type,
+                    option_key,
+                    option_value,
+                    KNOWN_BLOCK_MODE_VALUES,
                 )
             elif option_key == "work" and normalized_value not in KNOWN_WORK_VALUES:
                 _append_invalid_option_value(

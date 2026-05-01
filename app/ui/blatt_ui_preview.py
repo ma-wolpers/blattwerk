@@ -31,6 +31,7 @@ from .preview_geometry import (
     parse_scrollregion,
 )
 from ..core.build_requests import WorksheetBuildRequest, build_worksheet_from_request
+from ..core.blatt_kern_shared import normalize_document_mode, split_front_matter
 from ..core.diagnostic_warnings import build_warning_payload
 from ..styles.blatt_styles import invalidate_stylesheet_template_cache
 
@@ -46,12 +47,22 @@ class BlattwerkAppPreviewMixin:
                 int(getattr(stats, "st_mtime_ns", int(stats.st_mtime * 1_000_000_000))),
                 int(stats.st_size),
                 bool(include_solutions),
+                str(self.preview_black_screen_var.get()),
                 str(page_format),
                 str(contrast_profile),
                 str(self.design_color_profile_var.get()),
                 str(self.design_font_profile_var.get()),
                 str(self.design_font_size_profile_var.get()),
             )
+
+    def _read_document_mode(self, input_path: Path) -> str:
+            """Reads current document mode from frontmatter."""
+            try:
+                text = input_path.read_text(encoding="utf-8")
+                meta, _content = split_front_matter(text)
+            except Exception:
+                return "worksheet"
+            return normalize_document_mode((meta or {}).get("mode"), default="worksheet")
 
     def _active_document_tab_state(self):
             """Returns mutable state dict for the currently active tab when available."""
@@ -287,6 +298,7 @@ class BlattwerkAppPreviewMixin:
                 temp_pdf_path = Path(tmp.name)
 
             worksheet_design = self._worksheet_design_options()
+            black_screen_mode = str(self.preview_black_screen_var.get() or "none").strip().lower()
             metadata_defaults = {}
             if hasattr(self, "_metadata_defaults_from_preferences"):
                 metadata_defaults = self._metadata_defaults_from_preferences()
@@ -305,6 +317,7 @@ class BlattwerkAppPreviewMixin:
                         design=worksheet_design,
                         metadata_defaults=metadata_defaults,
                         copyright_text_override=copyright_override,
+                        black_screen_mode=black_screen_mode,
                     )
                 )
 
@@ -332,6 +345,20 @@ class BlattwerkAppPreviewMixin:
             include_solutions = self.preview_mode_var.get() == "solution"
             page_format = self.preview_page_format_var.get()
             contrast_profile = self.preview_contrast_var.get()
+            document_mode = self._read_document_mode(input_path)
+
+            if document_mode == "presentation":
+                include_solutions = False
+                if self.preview_mode_var.get() != "worksheet":
+                    self.preview_mode_var.set("worksheet")
+                if page_format not in {
+                    "presentation_16_9",
+                    "presentation_16_10",
+                    "presentation_4_3",
+                }:
+                    page_format = "presentation_16_9"
+                    self.preview_page_format_var.set(page_format)
+
             tab_state = self._active_document_tab_state()
 
             cache_key = None

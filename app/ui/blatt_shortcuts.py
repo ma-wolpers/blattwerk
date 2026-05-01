@@ -32,6 +32,11 @@ def build_preview_shortcuts(app):
             "F   Farbprofil wechseln",
         ),
         ShortcutBinding(
+            "<KeyPress-k>",
+            app._set_preview_black_screen_both,
+            "K   Black-Screen beides",
+        ),
+        ShortcutBinding(
             "<KeyPress-4>",
             lambda: app._set_page_format("a4_portrait"),
             "4 / 5   Seitenformat A4 / A5",

@@ -42,7 +42,12 @@ def render_block(
     document_mode="ws",
 ):
     """Rendert einen einzelnen Blocktyp nach HTML."""
-    if not should_render_block(block_type, options, include_solutions):
+    if not should_render_block(
+        block_type,
+        options,
+        include_solutions,
+        document_mode=document_mode,
+    ):
         return ""
 
     md = _new_markdown_converter()
@@ -50,6 +55,20 @@ def render_block(
 
     if block_type == "raw":
         return md.convert(normalized_content)
+
+    if block_type == "pagebreak":
+        return "<div class='ab-pagebreak' aria-hidden='true'></div>"
+
+    if block_type == "vspacer":
+        raw_height = (options or {}).get("height") or "1cm"
+        height_value = escape(str(raw_height).strip() or "1cm")
+        return (
+            "<div class='ab-vertical-space' aria-hidden='true' "
+            f"style='height:{height_value};'></div>"
+        )
+
+    if block_type in {"framebreak", "sectionmark"}:
+        return ""
 
     if block_type == "material":
         return _render_material_block(md, options, normalized_content)

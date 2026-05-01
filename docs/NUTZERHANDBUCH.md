@@ -33,15 +33,19 @@ Installation/Setup steht bewusst in `README.md`.
 
 ## 3) Vorschau – was passiert bei welcher Einstellung?
 
-- **Seitenformat** (`DIN A4` / `DIN A5`) steuert die Seitengröße im späteren Export.
-- **Modus** (`Aufgabe` / `Lösung`) steuert, welche Inhalte in der Vorschau gerendert werden.
+- **Seitenformat** (`DIN A4` / `DIN A5` / `16:9` / `16:10` / `4:3`) steuert die Seitengröße im späteren Export.
+- **Modus** (`Aufgabe` / `Lösung`) steuert bei Arbeitsblättern, welche Inhalte in der Vorschau gerendert werden.
+- Im Dokumentmodus `presentation` wird die Vorschau immer als Folienausgabe gerendert (kein Aufgaben/Lösung-Toggle).
+- **Black-Screen** (`Aus` / `Vorher` / `Nachher` / `Beides`) fügt bei Präsentationen schwarze Folien vor und/oder nach dem Deck ein.
 - **Druckprofil** (`Standard` / `Stärker`) erhöht bzw. reduziert den Kontrast für den Ausdruck.
 - **Schrift** steuert die Schriftfamilie für das gesamte Arbeitsblatt.
 - **Größe** steuert die Grundschriftgröße (`Klein` / `Normal` / `Groß`). Dabei passen sich die Puffer von Antwortboxen automatisch an (kleiner = enger, größer = luftiger).
 - **Ansicht** (`Seitenbreite` / `Ganze Seite`) setzt Fit-Presets; bei manuellem Zoom wird auf Custom gewechselt.
 - **Layout** (`Einzelseite` / `Nebeneinander` / `Untereinander`) betrifft nur die Vorschau-Darstellung.
 - **AB-YAML Dokumentmodus** (`mode` im Frontmatter):
-	- `mode: ws` (Standard) zeigt normale Arbeitsform-Hinweise.
+	- `mode: worksheet` (Standard, Alias `ws`) zeigt normale Arbeitsform-Hinweise.
+	- `mode: presentation` rendert Folien mit Mini-Header, `Folie X/Y` und Abschnitts-Footer.
+	- `mode: solution` rendert globale Loesungsausgabe.
 	- `mode: test` blendet `work`-Emoji und `work`-Label in Aufgaben/Teilaufgaben aus (auch in der Loesungsausgabe).
 	- `action`- und `hint`-Symbole bleiben sichtbar.
 
@@ -52,6 +56,7 @@ Installation/Setup steht bewusst in `README.md`.
 - `S`: Druckprofil wechseln
 - `F`: Farbprofil wechseln
 - `4 / 5`: DIN A4 / DIN A5
+- `K`: Black-Screen schnell auf `Beides` setzen
 - `0 / 1`: Seitenbreite / ganze Seite
 - `E / N / U`: Einzel / nebeneinander / untereinander
 - `- / +`: Zoom
@@ -74,6 +79,7 @@ Installation/Setup steht bewusst in `README.md`.
 - `Esc`: Abbrechen
 - `4 / 5`: DIN A4 / DIN A5
 - `A / L / B`: Aufgaben / Lösung / Beides
+- `K`: Black-Screen im Exportdialog schnell auf `Beides` setzen
 - `S`: Druckprofil wechseln
 - `P`: PDF/PNG umschalten
 - `D`: Durchsuchen öffnen

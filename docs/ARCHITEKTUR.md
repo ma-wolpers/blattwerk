@@ -43,6 +43,7 @@ UI-Zuschnitt im Hauptfenster:
 - Oberhalb des Paned-Layouts fuehrt die UI eine dokumentorientierte Tab-Leiste; jedes geoeffnete Markdown wird als eigener Tab verwaltet.
 - Bereichsauswahl (Vorschau/Beides/Schreibbereich) und Tab-Leiste teilen eine gemeinsame Control-Strip-Zeile in `app/ui`; visuelle Segment-/Tab-Stile sind themeseitig zentral in `app/ui/ui_theme.py` definiert.
 - Der tab-lokale View-State (u. a. Aufgabe/Loesung, DIN A4/A5, Kontrast/Farbprofil/Schrift, Layout/Fit) liegt in `app/ui` und wird beim Tab-Wechsel explizit geladen/gesichert.
+- Der tab-lokale View-State umfasst zusaetzlich Praesentationsoptionen (z. B. Black-Screen-Modus und Folienformat-Presets).
 - Der tab-lokale View-State umfasst ebenfalls Zoom, aktive Seite und Canvas-Scrollposition (x/y), damit der Ansichtskontext pro Dokument erhalten bleibt.
 - Alle Oeffnungspfade (Dateidialog, Recent-Menue, Shortcut `Z`) laufen ueber einen zentralen Open-Dispatcher in `app/ui`; bei bereits offenen Dateien fokussiert die UI den vorhandenen Tab statt eine zweite Instanz zu erstellen.
 - Tab-Schließen ist als Tab-spezifische Interaktion im Notebook selbst umgesetzt (Klick auf `×` im Tabtitel) und bleibt in `app/ui` als reine View-State-Operation ohne Kernlogik.
@@ -54,6 +55,7 @@ UI-Zuschnitt im Hauptfenster:
 - Completion-Kataloge werden zentral aus `app/core/completion_catalogs.py` abgefragt; `app/ui` darf diese Kataloge nicht als statische Listen duplizieren.
 - Ein Folding-Äquivalent wird in `app/ui` als Outline-Navigation umgesetzt (Struktur lesen, Einträge anspringen), ohne den Parser im Kern zu duplizieren.
 - Die Vorschau bleibt weiterhin explizit manuell aktualisiert und bezieht ihren Inhalt wie bisher ausschließlich aus dem aktuellen Dateisystemstand.
+- `app/core` rendert dokumentmodusabhaengig: Arbeitsblatt-/Loesungsseiten im Worksheet-Pfad, folienbasiertes Rendering im Praesentationspfad (`mode: presentation`) mit Marker-gesteuerten Frame-/Abschnittsregeln.
 
 ## Ablauf-Invarianten
 

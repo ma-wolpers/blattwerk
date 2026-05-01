@@ -17,7 +17,7 @@ Semantik hat Vorrang, aber Layout-Steuerung ist ausdrücklich Teil der Sprache, 
 4. Lokale Steuerung in Blockoptionen.
 5. Inhalt bleibt Markdown; strukturierte Antwortinhalte sind YAML.
 6. Antworttyp bestimmt Inhaltsschema; `answer` ohne `type` ist ungültig.
-7. Blocksichtbarkeit über `show=worksheet|solution|both`; innerhalb von `answer` optional über Zeilenmarker.
+7. Blocksichtbarkeit erfolgt über `mode=worksheet|solution`; ohne `mode` ist der Block in Arbeitsblatt und Lösung sichtbar.
 8. Teilaufgaben sind Folgeblöcke (`subtask`) nach `task`, nie geschachtelt.
 
 ## 3. Dokumentstruktur
@@ -25,7 +25,7 @@ Semantik hat Vorrang, aber Layout-Steuerung ist ausdrücklich Teil der Sprache, 
 Ein Dokument besteht aus:
 1. YAML-Frontmatter (Pflicht)
 2. einer Folge semantischer Blöcke
-3. optionalen Abschnittstrennern `---`
+3. optionalen Abschnittstrennern (`---`, `--!`, `-+`, `--# ...`, `-=...`)
 
 ### 3.1 Frontmatter
 
@@ -38,7 +38,7 @@ Stufe: Jahrgangsstufe            # optional
 worksheet_type: Arbeitsblatt     # optional
 show_student_header: true|false
 show_document_header: true|false
-mode: ws|test                  # optional, Standard: ws
+mode: worksheet|solution|presentation|test  # optional, Standard: worksheet
 lochen: ja|nein                  # optional
 copyright: "Text"               # optional
 font_profile: segoe              # optional
@@ -51,10 +51,12 @@ Pflichtfelder:
 - `Thema`
 
 Optionales Dokumentfeld:
-- `mode`: `ws` oder `test`
+- `mode`: `worksheet`, `solution`, `presentation` oder `test` (`ws` bleibt Alias fuer `worksheet`).
 
 Wirkung von `mode`:
-- `ws` (Standard): normales Arbeitsblatt-Verhalten.
+- `worksheet` (Standard): normales Arbeitsblatt-Verhalten.
+- `solution`: globale Loesungsansicht (z. B. fuer direkte Loesungsdokumente).
+- `presentation`: Folienausgabe mit Mini-Header, Folienzaehlung und Abschnittsfooter.
 - `test`: blendet in `task` und `subtask` die Arbeitsform-Hinweise aus (`work`-Emoji und `work`-Label).
 - `action`- und `hint`-Symbole bleiben unverändert sichtbar.
 
@@ -73,7 +75,7 @@ document = frontmatter, newline*, block_or_raw* ;
 frontmatter = "---", newline, yaml_lines, "---", newline* ;
 
 block_or_raw = block | section_break | raw_markdown ;
-section_break = ("---" | "--"), newline ;
+section_break = ("---" | "--" | "--!" | "-+" | "--#" section_title | "-=" css_length), newline ;
 
 block = open_block, block_content, close_block | self_closing_block ;
 open_block = ":::", block_name, (space, options)?, newline ;
@@ -91,6 +93,11 @@ option = key, "=", value ;
 Zusatzregeln:
 - `subtask` darf nur nach einem `task` stehen (bis zum nächsten `task`).
 - Geschachtelte `subtask`-Blöcke in `task`-Inhalten sind nicht Teil der Sprache.
+- `--!` erzwingt einen harten Seiten-/Folienumbruch.
+- `-+` erzeugt im Praesentationsmodus einen neuen Frame mit dem bisherigen Inhalt plus folgendem Inhalt.
+- `--# Abschnitt` setzt den aktuellen Abschnittsnamen fuer Footer-Navigation in Praesentationen.
+- `-=<css-laenge>` erzeugt vertikalen Abstand mit voller Seiten-/Spaltenbreite.
+- `---` ist wieder normale Markdown-Linie und dient nicht mehr als Spacer.
 
 Die ausführliche formale Definition (inklusive Lexer-Hinweisen und Stabilitätsregeln für Diagnosecodes) steht in `docs/GRAMMAR.md`.
 

@@ -39,6 +39,81 @@ hr {
     margin: var(--block-gap-regular) 0;
 }
 
+.ab-pagebreak {
+    break-after: page;
+    page-break-after: always;
+    height: 0;
+}
+
+.ab-vertical-space {
+    width: 100%;
+    display: block;
+}
+
+.presentation-document {
+    margin: 0;
+}
+
+.ab-slide {
+    min-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    page-break-after: always;
+    break-after: page;
+}
+
+.ab-slide:last-child {
+    page-break-after: auto;
+    break-after: auto;
+}
+
+.ab-slide-black {
+    background: #000;
+}
+
+.presentation-mini-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 0.8em;
+    color: var(--header-color);
+    margin: 0 0 0.45cm 0;
+}
+
+.presentation-mini-title {
+    font-weight: 600;
+}
+
+.presentation-mini-meta {
+    opacity: 0.9;
+}
+
+.ab-slide-body {
+    flex: 1;
+}
+
+.presentation-section-footer {
+    margin-top: 0.45cm;
+    font-size: 0.78em;
+    color: #7a7a7a;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6em;
+}
+
+.presentation-section-item.active {
+    color: #222;
+    font-weight: 600;
+}
+
+.presentation-slide-counter {
+    margin-top: 0.22cm;
+    font-size: 0.78em;
+    color: #4a4a4a;
+    text-align: right;
+}
+
 .document-header {
     position: relative;
     display: flex;

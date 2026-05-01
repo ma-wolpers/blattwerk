@@ -29,6 +29,7 @@ So vermeiden wir Klebercode und Verwirrung.
   - Geoeffnete Markdown-Dateien laufen als Tabs in einer Dokumentleiste; jedes Blatt bleibt als eigener UI-Zustand erhalten.
   - Bereichsauswahl und Tabs sitzen in einer gemeinsamen modernen Steuerleiste; Segment- und Tab-Stile kommen zentral aus `app/ui/ui_theme.py`.
   - Beim Tab-Wechsel stellt die UI dokumentbezogene Vorschau-Einstellungen wieder her (z. B. Aufgabe/Loesung, DIN A4/A5, Kontrast und Gestaltung).
+  - Dazu gehoeren auch Praesentationsoptionen wie Folienformat und Black-Screen-Modus.
   - Beim Tab-Wechsel werden auch Zoom, aktive Seite und Scrollposition des jeweiligen Blatts wiederhergestellt.
   - Vorschauseiten werden pro Tab zwischengespeichert und bei unveraenderten Dateien/Optionen ohne erneutes Kompilieren wiederverwendet.
   - Tabs werden direkt im Tabtitel per `×` geschlossen; die UI fuehrt das als reine Oberflaechenaktion aus.
@@ -59,6 +60,10 @@ Im Kern läuft immer dieselbe Reihenfolge:
 2. Dokument prüfen (validieren)
 3. Dokument rendern
 4. Ausgabe bauen (HTML/PDF)
+
+Der Render-Schritt ist dokumentmodusabhaengig:
+- Arbeitsblatt-/Loesungspfad fuer normale Blaetter
+- Folienpfad fuer `mode: presentation` mit Markersteuerung (z. B. Folienwechsel/Frame/Abschnitt)
 
 Zusatz im Kern:
 - Warntexte aufbereiten (`diagnostic_warnings.py`)

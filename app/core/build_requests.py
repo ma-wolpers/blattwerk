@@ -40,6 +40,7 @@ class WorksheetBuildRequest:
     )
     metadata_defaults: dict[str, str] | None = None
     copyright_text_override: str | None = None
+    black_screen_mode: str = "none"
 
 
 @dataclass(frozen=True)
@@ -73,6 +74,7 @@ def build_worksheet_from_request(request: WorksheetBuildRequest):
         print_profile=request.print_profile,
         metadata_defaults=request.metadata_defaults,
         copyright_text_override=request.copyright_text_override,
+        black_screen_mode=request.black_screen_mode,
         **request.design.as_kwargs(),
     )
 

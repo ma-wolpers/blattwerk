@@ -239,16 +239,25 @@ def test_numberline_yaml_legacy_show_values_emit_an007_error():
 def test_frontmatter_mode_ws_and_test_are_accepted():
     ws_doc = _build_document_with_mode("ws")
     test_doc = _build_document_with_mode("test")
+    worksheet_doc = _build_document_with_mode("worksheet")
+    solution_doc = _build_document_with_mode("solution")
+    presentation_doc = _build_document_with_mode("presentation")
 
     ws_codes = {d.code for d in inspect_markdown_text(ws_doc).diagnostics}
     test_codes = {d.code for d in inspect_markdown_text(test_doc).diagnostics}
+    worksheet_codes = {d.code for d in inspect_markdown_text(worksheet_doc).diagnostics}
+    solution_codes = {d.code for d in inspect_markdown_text(solution_doc).diagnostics}
+    presentation_codes = {d.code for d in inspect_markdown_text(presentation_doc).diagnostics}
 
     assert "FM002" not in ws_codes
     assert "FM002" not in test_codes
+    assert "FM002" not in worksheet_codes
+    assert "FM002" not in solution_codes
+    assert "FM002" not in presentation_codes
 
 
 def test_frontmatter_invalid_mode_emits_fm002():
-    doc = _build_document_with_mode("worksheet")
+    doc = _build_document_with_mode("foobar")
     diagnostics = inspect_markdown_text(doc).diagnostics
 
     fm002 = [d for d in diagnostics if d.code == "FM002"]

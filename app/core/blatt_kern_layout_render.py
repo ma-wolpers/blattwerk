@@ -83,9 +83,20 @@ def parse_height_cm(height_value, default_cm=4.0):
     return default_cm
 
 
-def estimate_block_weight(block_type, options, content, include_solutions):
+def estimate_block_weight(
+    block_type,
+    options,
+    content,
+    include_solutions,
+    document_mode="worksheet",
+):
     """Schätzt den Platzbedarf eines Blocks für automatische Spaltenbreiten."""
-    if not should_render_block(block_type, options, include_solutions):
+    if not should_render_block(
+        block_type,
+        options,
+        include_solutions,
+        document_mode=document_mode,
+    ):
         return 0.0
 
     cleaned = re.sub(r"[`*_#>\-\|\[\]\(\)]", " ", content or "")
@@ -193,14 +204,18 @@ def estimate_block_weight(block_type, options, content, include_solutions):
     return max(0.6, text_length / 180.0)
 
 
-def auto_columns_template(columns_blocks, include_solutions):
+def auto_columns_template(columns_blocks, include_solutions, document_mode="worksheet"):
     """Erzeugt ein Verhältnis-Template basierend auf geschätzten Spaltengewichten."""
     weights = []
     for column_blocks in columns_blocks:
         column_weight = 0.0
         for block_type, options, content in column_blocks:
             column_weight += estimate_block_weight(
-                block_type, options, content, include_solutions
+                block_type,
+                options,
+                content,
+                include_solutions,
+                document_mode=document_mode,
             )
         weights.append(max(0.8, min(column_weight, 7.0)))
 
@@ -229,7 +244,11 @@ def render_columns_container(
         columns_blocks = columns_blocks[:columns_count]
         template = explicit_template
     else:
-        template = auto_columns_template(columns_blocks, include_solutions)
+        template = auto_columns_template(
+            columns_blocks,
+            include_solutions,
+            document_mode=document_mode,
+        )
 
     if not template:
         template = " ".join("1fr" for _ in columns_blocks)
@@ -359,6 +378,186 @@ def render_body_with_columns(
     return "".join(html_parts)
 
 
+def _is_layout_control_block(block_type):
+    return block_type in {"pagebreak", "framebreak", "sectionmark"}
+
+
+def _build_presentation_slides(
+    blocks,
+    include_solutions,
+    document_mode,
+    printable_width_cm,
+):
+    """Build slide payloads from block stream, including frame-duplication markers."""
+    slides = []
+    current_blocks = []
+    current_section = ""
+
+    def _flush_slide(clear_blocks=True):
+        if not current_blocks:
+            return
+        body_html = render_body_with_columns(
+            list(current_blocks),
+            include_solutions=include_solutions,
+            document_mode=document_mode,
+            printable_width_cm=printable_width_cm,
+        )
+        if not body_html.strip():
+            return
+        slides.append({"section": current_section, "body": body_html})
+        if clear_blocks:
+            current_blocks.clear()
+
+    for block_type, options, content in blocks:
+        if block_type == "sectionmark":
+            title = str((options or {}).get("title") or "").strip()
+            if title:
+                current_section = title
+            continue
+
+        if block_type == "pagebreak":
+            _flush_slide(clear_blocks=True)
+            continue
+
+        if block_type == "framebreak":
+            _flush_slide(clear_blocks=False)
+            continue
+
+        current_blocks.append((block_type, options, content))
+
+    _flush_slide(clear_blocks=True)
+    return slides
+
+
+def _render_presentation_html(
+    meta,
+    blocks,
+    include_solutions,
+    page_format,
+    print_profile,
+    color_profile,
+    font_profile,
+    font_size_profile,
+    black_screen_mode,
+):
+    hole_punch_enabled = is_hole_punch_layout_enabled(meta)
+    printable_width_cm = resolve_printable_width_cm(
+        page_format,
+        hole_punch_enabled=hole_punch_enabled,
+    )
+    slides = _build_presentation_slides(
+        blocks,
+        include_solutions=include_solutions,
+        document_mode="presentation",
+        printable_width_cm=printable_width_cm,
+    )
+
+    if not slides:
+        slides = [{"section": "", "body": "<p>Keine Folieninhalte gefunden.</p>"}]
+
+    section_names = []
+    seen = set()
+    for slide in slides:
+        label = str(slide.get("section") or "").strip()
+        if not label or label in seen:
+            continue
+        seen.add(label)
+        section_names.append(label)
+
+    title_text = escape(str((meta or {}).get("Titel") or "Präsentation"))
+    meta_line = escape(format_meta_line(meta))
+    show_mini_header = bool((meta or {}).get("presentation_show_mini_header", True))
+    show_section_footer = bool(
+        (meta or {}).get("presentation_show_section_footer", True)
+    )
+
+    slide_count = len(slides)
+    slide_html_parts = []
+    black_screen_mode = str(black_screen_mode or "none").strip().lower()
+
+    if black_screen_mode in {"before", "both"}:
+        slide_html_parts.append("<section class='ab-slide ab-slide-black'></section>")
+
+    for index, slide in enumerate(slides, start=1):
+        section_label = str(slide.get("section") or "").strip()
+        mini_header_html = ""
+        if show_mini_header:
+            mini_header_html = (
+                "<div class='presentation-mini-header'>"
+                f"<span class='presentation-mini-title'>{title_text}</span>"
+                f"<span class='presentation-mini-meta'>{meta_line}</span>"
+                "</div>"
+            )
+
+        section_footer_html = ""
+        if show_section_footer and section_names:
+            section_parts = []
+            for section_name in section_names:
+                css_class = "active" if section_name == section_label else ""
+                section_parts.append(
+                    f"<span class='presentation-section-item {css_class}'>{escape(section_name)}</span>"
+                )
+            section_footer_html = (
+                "<div class='presentation-section-footer'>"
+                f"{''.join(section_parts)}"
+                "</div>"
+            )
+
+        slide_counter_html = (
+            "<div class='presentation-slide-counter'>"
+            f"Folie {index}/{slide_count}"
+            "</div>"
+        )
+        slide_html_parts.append(
+            "<section class='ab-slide'>"
+            f"{mini_header_html}"
+            f"<div class='ab-slide-body'>{slide.get('body', '')}</div>"
+            f"{section_footer_html}"
+            f"{slide_counter_html}"
+            "</section>"
+        )
+
+    if black_screen_mode in {"after", "both"}:
+        slide_html_parts.append("<section class='ab-slide ab-slide-black'></section>")
+
+    stylesheet = build_stylesheet(
+        page_format,
+        print_profile,
+        hole_punch_enabled=hole_punch_enabled,
+        color_profile=color_profile,
+        font_profile=font_profile,
+        font_size_profile=font_size_profile,
+    )
+
+    return f"""<!DOCTYPE html>
+<html lang=\"de\">
+<head>
+<meta charset=\"utf-8\">
+<title>{title_text}</title>
+<script>
+window.MathJax = {{
+    tex: {{
+        inlineMath: [['$', '$']],
+        displayMath: [['$$', '$$']],
+        processEscapes: true,
+    }},
+    svg: {{
+        fontCache: 'none'
+    }}
+}};
+</script>
+<script defer src=\"https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js\"></script>
+<style>
+{stylesheet}
+</style>
+</head>
+<body class=\"presentation-document\">
+{''.join(slide_html_parts)}
+</body>
+</html>
+"""
+
+
 def render_html(
     meta,
     blocks,
@@ -368,15 +567,39 @@ def render_html(
     color_profile="indigo",
     font_profile="segoe",
     font_size_profile="normal",
+    black_screen_mode="none",
 ):
     """Baut das vollständige HTML-Dokument inklusive Styles und Header/Footer."""
-    document_mode = normalize_document_mode((meta or {}).get("mode"), default="ws")
+    document_mode = normalize_document_mode(
+        (meta or {}).get("mode"),
+        default="worksheet",
+    )
+
+    if document_mode == "presentation":
+        presentation_format = str(
+            (meta or {}).get("presentation_layout")
+            or (meta or {}).get("presentation_format")
+            or page_format
+        ).strip()
+        return _render_presentation_html(
+            meta,
+            blocks,
+            include_solutions=False,
+            page_format=presentation_format,
+            print_profile=print_profile,
+            color_profile=color_profile,
+            font_profile=font_profile,
+            font_size_profile=font_size_profile,
+            black_screen_mode=black_screen_mode,
+        )
+
     numbered_blocks = assign_task_numbers(blocks)
     enriched_blocks = annotate_standalone_subtasks(numbered_blocks)
     enriched_blocks = annotate_task_help_references(
         enriched_blocks,
         include_solutions=include_solutions,
         help_tag=(meta or {}).get("tag"),
+        document_mode=document_mode,
     )
     hole_punch_enabled = is_hole_punch_layout_enabled(meta)
     printable_width_cm = resolve_printable_width_cm(

@@ -34,6 +34,7 @@ class BlattwerkAppBase:
 
         self.input_var = tk.StringVar()
         self.preview_mode_var = tk.StringVar(value="worksheet")
+        self.preview_black_screen_var = tk.StringVar(value="none")
         self.preview_page_format_var = tk.StringVar(value="a4_portrait")
         self.preview_contrast_var = tk.StringVar(value="standard")
         self.preview_fit_mode_var = tk.StringVar(value=VIEW_FIT_WIDTH)
@@ -172,6 +173,12 @@ class BlattwerkAppBase:
         """Toggle preview mode."""
         new_mode = "solution" if self.preview_mode_var.get() == "worksheet" else "worksheet"
         self.preview_mode_var.set(new_mode)
+        self.refresh_preview()
+
+    def _set_preview_black_screen_both(self):
+        """Enable black-screen insertion before and after for preview/export parity."""
+        if self.preview_black_screen_var.get() != "both":
+            self.preview_black_screen_var.set("both")
         self.refresh_preview()
 
     def _open_last_markdown(self):
