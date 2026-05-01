@@ -435,7 +435,7 @@ class BlattwerkAppExportMixin:
             for target, include_sol in [(worksheet_path, False), (solution_path, True)]:
                 if target.suffix.lower() != ".pptx":
                     target = target.with_suffix(".pptx")
-                validate_export_output_path(target)
+                validate_export_output_path(target, allowed_suffixes={".pptx"})
                 build_presentation_pptx(
                     input_path=input_path,
                     output_path=target,
@@ -455,7 +455,7 @@ class BlattwerkAppExportMixin:
             target = self._with_solution_suffix(target)
         if target.suffix.lower() != ".pptx":
             target = target.with_suffix(".pptx")
-        validate_export_output_path(target)
+        validate_export_output_path(target, allowed_suffixes={".pptx"})
         build_presentation_pptx(
             input_path=input_path,
             output_path=target,
