@@ -8,6 +8,9 @@ Regel:
 
 ## [Unreleased]
 
+### Added
+- PPTX-Export: Neues Exportformat `pptx` in `WorksheetExportDialog` und `BlattwerkAppExportMixin`. Core-Funktion `build_presentation_pptx()` in `app/core/blatt_kern_pptx_export.py` rendert per PyMuPDF jede Seite als Bild und erzeugt über `python-pptx` eine Präsentation mit exakt passenden Folienmaßen. `python-pptx` in `requirements.txt` ergänzt.
+
 ### Fixed
 - Format-Switching in der Vorschau: Wenn der Benutzer das Seitenformat wechselt (z. B. 16:9 → 16:10 oder A4 → A5), wird jetzt korrekt ein neuer Render angestoßen und der Cache wird invalidiert. Zuvor blieb die Vorschau-Darstellung trotz Format-Änderung gleich.
 

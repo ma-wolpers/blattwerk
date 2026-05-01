@@ -21,10 +21,11 @@ from ..core.blatt_validator import inspect_markdown_text
 from ..core.blatt_kern_shared import normalize_document_mode, split_front_matter
 from ..core.diagnostic_warnings import build_warning_payload
 from ..core.export_path_guardrails import validate_export_output_path
+from ..core.blatt_kern_pptx_export import build_presentation_pptx
 from .help_card_image_trim import trim_lernhilfe_image
 
 
-_ALLOWED_WORKSHEET_EXPORT_FORMATS = {"pdf", "html", "png", "pngzip"}
+_ALLOWED_WORKSHEET_EXPORT_FORMATS = {"pdf", "html", "png", "pngzip", "pptx"}
 _ALLOWED_LERNHILFEN_EXPORT_FORMATS = {"pdf", "png", "pngzip"}
 _ALLOWED_EXPORT_MODES = {"worksheet", "solution", "both"}
 _ALLOWED_BLACK_SCREEN_MODES = {"none", "before", "after", "both"}
@@ -410,6 +411,64 @@ class BlattwerkAppExportMixin:
         )
         return [target]
 
+    def _export_pptx(
+        self,
+        input_path: Path,
+        output_path: Path,
+        page_format: str,
+        mode: str,
+        contrast_profile: str,
+        black_screen_mode: str = "none",
+    ):
+        """Export as PPTX (one slide per page/slide, rendered at 200 DPI)."""
+        worksheet_design = self._worksheet_design_options()
+        metadata_defaults = {}
+        if hasattr(self, "_metadata_defaults_from_preferences"):
+            metadata_defaults = self._metadata_defaults_from_preferences()
+        copyright_override = None
+        if hasattr(self, "_copyright_text_from_preferences"):
+            copyright_override = self._copyright_text_from_preferences() or None
+
+        if mode == "both":
+            worksheet_path = self._without_solution_suffix(output_path)
+            solution_path = self._with_solution_suffix(worksheet_path)
+            for target, include_sol in [(worksheet_path, False), (solution_path, True)]:
+                if target.suffix.lower() != ".pptx":
+                    target = target.with_suffix(".pptx")
+                validate_export_output_path(target)
+                build_presentation_pptx(
+                    input_path=input_path,
+                    output_path=target,
+                    page_format=page_format,
+                    print_profile=contrast_profile,
+                    design=worksheet_design,
+                    include_solutions=include_sol,
+                    black_screen_mode=black_screen_mode,
+                    metadata_defaults=metadata_defaults,
+                    copyright_text_override=copyright_override,
+                )
+            return [worksheet_path, solution_path]
+
+        include_solutions = mode == "solution"
+        target = output_path
+        if include_solutions:
+            target = self._with_solution_suffix(target)
+        if target.suffix.lower() != ".pptx":
+            target = target.with_suffix(".pptx")
+        validate_export_output_path(target)
+        build_presentation_pptx(
+            input_path=input_path,
+            output_path=target,
+            page_format=page_format,
+            print_profile=contrast_profile,
+            design=worksheet_design,
+            include_solutions=include_solutions,
+            black_screen_mode=black_screen_mode,
+            metadata_defaults=metadata_defaults,
+            copyright_text_override=copyright_override,
+        )
+        return [target]
+
     def _export_help_cards_png(
         self,
         input_path: Path,
@@ -640,6 +699,15 @@ class BlattwerkAppExportMixin:
                 )
             elif fmt == "html":
                 out_files = self._export_html(
+                    input_path,
+                    output_path,
+                    page_format,
+                    mode,
+                    contrast_profile,
+                    black_screen_mode=black_screen_mode,
+                )
+            elif fmt == "pptx":
+                out_files = self._export_pptx(
                     input_path,
                     output_path,
                     page_format,

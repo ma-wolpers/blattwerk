@@ -118,6 +118,7 @@ class WorksheetExportDialog(_BaseExportDialog):
         fmt_row.pack(fill="x", pady=(10, 4))
         ttk.Label(fmt_row, text="Format:", width=15).pack(side="left")
         ttk.Radiobutton(fmt_row, text="PDF", value="pdf", variable=self.format_var, command=self._refresh_output_suggestion).pack(side="left")
+        ttk.Radiobutton(fmt_row, text="PPTX", value="pptx", variable=self.format_var, command=self._refresh_output_suggestion).pack(side="left", padx=(12, 0))
         ttk.Radiobutton(fmt_row, text="PNG", value="png", variable=self.format_var, command=self._refresh_output_suggestion).pack(side="left", padx=(12, 0))
         ttk.Radiobutton(fmt_row, text="PNG (ZIP)", value="pngzip", variable=self.format_var, command=self._refresh_output_suggestion).pack(side="left", padx=(12, 0))
         ttk.Radiobutton(fmt_row, text="HTML", value="html", variable=self.format_var, command=self._refresh_output_suggestion).pack(side="left", padx=(12, 0))
@@ -223,7 +224,7 @@ class WorksheetExportDialog(_BaseExportDialog):
         if not self._can_handle_char_shortcut():
             return "break"
 
-        export_formats = ["pdf", "png", "pngzip", "html"]
+        export_formats = ["pdf", "pptx", "png", "pngzip", "html"]
         current = self.format_var.get()
         try:
             index = export_formats.index(current)
@@ -246,6 +247,8 @@ class WorksheetExportDialog(_BaseExportDialog):
             return ".html"
         if selected_format == "png":
             return ".png"
+        if selected_format == "pptx":
+            return ".pptx"
         return ".zip"
 
     def _refresh_output_suggestion(self, force=False):
@@ -259,7 +262,13 @@ class WorksheetExportDialog(_BaseExportDialog):
 
     def _pick_output(self):
         ext = self._extension()
-        fmt_label = "PDF" if ext == ".pdf" else "HTML" if ext == ".html" else "PNG" if ext == ".png" else "ZIP"
+        fmt_label = (
+            "PDF" if ext == ".pdf"
+            else "PPTX" if ext == ".pptx"
+            else "HTML" if ext == ".html"
+            else "PNG" if ext == ".png"
+            else "ZIP"
+        )
         dialog_kwargs = {
             "title": "Ausgabe speichern unter",
             "defaultextension": ext,

@@ -6,9 +6,14 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added
+
+- PPTX-Export: Präsentationen (und Arbeitsblätter) können jetzt als `.pptx`-Datei exportiert werden. Jede Seite/Folie wird als hochauflösendes Bild (200 DPI) gerendert und in eine PowerPoint-Präsentation mit korrekten Folienmaßen (16:9 / 16:10 / 4:3 / A4 / A5) eingebettet.
+
 ### Fixed
 
 - Preview format switching now correctly updates the rendered preview when changing between different slide formats (16:9 → 16:10 → 4:3) or worksheet formats (A4 → A5).
+- Larger font sizes for presentations: Normal-Profil rendert jetzt mit 20 pt (statt 11 pt), damit Text auf Projektionsflächen lesbar bleibt.
 
 ## [0.4.1] - 2026-04-22
 
