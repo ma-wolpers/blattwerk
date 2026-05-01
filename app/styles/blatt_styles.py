@@ -103,7 +103,7 @@ FONT_SIZE_PROFILE_PRESETS = {
     "small": {
         "label": "Klein",
         "font_size_base": "10pt",
-        "presentation_font_size_base": "16pt",
+        "presentation_font_size_base": "12pt",
         "box_buffer_inline": "0.15cm",
         "box_buffer_block": "0.10cm",
         "box_radius": "0.14em",
@@ -111,7 +111,7 @@ FONT_SIZE_PROFILE_PRESETS = {
     "normal": {
         "label": "Normal",
         "font_size_base": "11pt",
-        "presentation_font_size_base": "20pt",
+        "presentation_font_size_base": "16pt",
         "box_buffer_inline": "0.20cm",
         "box_buffer_block": "0.13cm",
         "box_radius": "0.18em",
@@ -119,7 +119,7 @@ FONT_SIZE_PROFILE_PRESETS = {
     "large": {
         "label": "Groß",
         "font_size_base": "12.5pt",
-        "presentation_font_size_base": "24pt",
+        "presentation_font_size_base": "20pt",
         "box_buffer_inline": "0.26cm",
         "box_buffer_block": "0.17cm",
         "box_radius": "0.24em",
