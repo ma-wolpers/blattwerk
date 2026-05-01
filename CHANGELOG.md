@@ -22,6 +22,7 @@ The format is based on Keep a Changelog.
 - Malformed control markers now fail validation (`BL006`), including invalid `--#` (missing section title) and invalid `-=` spacer values.
 - Presentation frontmatter now validates `presentation_layout` presets and boolean presentation flags.
 - Preview status now uses `Folie X/Y` for presentation documents instead of `Seite X/Y`.
+- Presentation preview hides the worksheet/solution chooser entirely and shows a fixed `Praesentation` mode hint.
 
 ## [0.4.1] - 2026-04-22
 

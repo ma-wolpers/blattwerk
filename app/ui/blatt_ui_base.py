@@ -127,6 +127,7 @@ class BlattwerkAppBase:
         self._last_diagnostics_signature = None
         self.preview_mode_btn_worksheet = None
         self.preview_mode_btn_solution = None
+        self.preview_mode_static_label = None
         self._current_preview_document_mode = "worksheet"
 
         self._load_ui_settings()

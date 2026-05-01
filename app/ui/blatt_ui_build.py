@@ -157,6 +157,10 @@ class BlattwerkAppBuildMixin:
             command=self.refresh_preview,
         )
         self.preview_mode_btn_solution.pack(side="left", padx=(10, 0))
+        self.preview_mode_static_label = ttk.Label(
+            format_group_main,
+            text="Präsentation",
+        )
 
         format_group_dina = ttk.Frame(format_section)
         ttk.Separator(format_group_dina, orient="vertical").pack(side="left", fill="y", padx=(0, 12))

@@ -38,17 +38,30 @@ from ..styles.blatt_styles import invalidate_stylesheet_template_cache
 class BlattwerkAppPreviewMixin:
         def _apply_preview_mode_controls_for_document_mode(self, document_mode: str):
                 """Enable/disable worksheet-solution controls based on document mode."""
-                controls = [
-                    getattr(self, "preview_mode_btn_worksheet", None),
-                    getattr(self, "preview_mode_btn_solution", None),
-                ]
+                worksheet_btn = getattr(self, "preview_mode_btn_worksheet", None)
+                solution_btn = getattr(self, "preview_mode_btn_solution", None)
+                static_label = getattr(self, "preview_mode_static_label", None)
+                controls = [worksheet_btn, solution_btn]
 
                 if document_mode == "presentation":
                     for control in controls:
                         if control is None:
                             continue
                         control.configure(state="disabled")
+                        if control.winfo_manager():
+                            control.pack_forget()
+
+                    if static_label is not None and not static_label.winfo_manager():
+                        static_label.pack(side="left")
                     return
+
+                if static_label is not None and static_label.winfo_manager():
+                    static_label.pack_forget()
+
+                if worksheet_btn is not None and not worksheet_btn.winfo_manager():
+                    worksheet_btn.pack(side="left")
+                if solution_btn is not None and not solution_btn.winfo_manager():
+                    solution_btn.pack(side="left", padx=(10, 0))
 
                 for control in controls:
                     if control is None:
