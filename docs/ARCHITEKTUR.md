@@ -1,4 +1,4 @@
-# Architekturübersicht Blattwerk
+﻿# Architekturübersicht Blattwerk
 
 Ziel: klare Schichtung ohne Klebercode. Jede fachliche Entscheidung hat genau einen Ort.
 
@@ -39,9 +39,9 @@ Zusätzliche Kern-Usecases:
 | `app/cli` | Adapter auf Kern-API | Regelduplikation | `blatt_diagnostics_cli.py` |
 
 UI-Zuschnitt im Hauptfenster:
-- KeyBindings werden zentral ueber `app/ui/keybinding_registry.py` modelliert und modebasiert nachvollziehbar gehalten.
-- Pop-up-Verhalten wird zentral ueber `app/ui/popup_policy.py` mit einheitlicher Lifecycle-/Fokus-Policy gefuehrt.
-- HSM-Vertragslogik fuer Intent-Katalog, Escape-Prioritaet und Transition-Validierung liegt zentral in `app/ui/hsm_contract.py`; Shortcut-Semantik nutzt den zentralen Intent-Katalog aus `app/ui/ui_intents.py`.
+- KeyBindings werden zentral ueber `bw_libs/ui_contract/keybinding.py` modelliert und modebasiert nachvollziehbar gehalten.
+- Pop-up-Verhalten wird zentral ueber `bw_libs/ui_contract/popup.py` mit einheitlicher Lifecycle-/Fokus-Policy gefuehrt.
+- HSM-Vertragslogik fuer Intent-Katalog, Escape-Prioritaet und Transition-Validierung liegt zentral in `bw_libs/ui_contract/hsm.py`; Shortcut-Semantik nutzt den zentralen Intent-Katalog aus `app/ui/ui_intents.py`.
 - Die Hauptansicht verwendet ein horizontales Paned-Layout mit zwei Bereichen: links Schreibbereich, rechts Vorschau.
 - Oberhalb des Paned-Layouts fuehrt die UI eine dokumentorientierte Tab-Leiste; jedes geoeffnete Markdown wird als eigener Tab verwaltet.
 - Bereichsauswahl (Vorschau/Beides/Schreibbereich) und Tab-Leiste teilen eine gemeinsame Control-Strip-Zeile in `app/ui`; visuelle Segment-/Tab-Stile sind themeseitig zentral in `app/ui/ui_theme.py` definiert.

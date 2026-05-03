@@ -1,4 +1,4 @@
-# Blattwerk Architektur (einfach)
+﻿# Blattwerk Architektur (einfach)
 
 Diese Datei erklärt die Architektur in einfacher Sprache.
 
@@ -26,9 +26,9 @@ So vermeiden wir Klebercode und Verwirrung.
   - Hier ist die Oberfläche.
   - Sie nimmt Eingaben an und zeigt Ergebnisse.
   - Sie soll keine Fachregeln erfinden.
-  - KeyBindings liegen zentral in `app/ui/keybinding_registry.py`.
-  - Pop-up-Verhalten liegt zentral in `app/ui/popup_policy.py`.
-  - HSM-Vertragslogik (Intent-Katalog, Escape-Prioritaet, Transition-Regeln) liegt zentral in `app/ui/hsm_contract.py` und `app/ui/ui_intents.py`.
+  - KeyBindings liegen zentral in `bw_libs/ui_contract/keybinding.py`.
+  - Pop-up-Verhalten liegt zentral in `bw_libs/ui_contract/popup.py`.
+  - HSM-Vertragslogik (Intent-Katalog, Escape-Prioritaet, Transition-Regeln) liegt zentral in `bw_libs/ui_contract/hsm.py` und `app/ui/ui_intents.py`.
   - Geoeffnete Markdown-Dateien laufen als Tabs in einer Dokumentleiste; jedes Blatt bleibt als eigener UI-Zustand erhalten.
   - Bereichsauswahl und Tabs sitzen in einer gemeinsamen modernen Steuerleiste; Segment- und Tab-Stile kommen zentral aus `app/ui/ui_theme.py`.
   - Beim Tab-Wechsel stellt die UI dokumentbezogene Vorschau-Einstellungen wieder her (z. B. Aufgabe/Loesung, DIN A4/A5, Kontrast und Gestaltung).

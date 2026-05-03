@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from .keybinding_registry import (
+from bw_libs.ui_contract.keybinding import (
     UI_MODE_DIALOG,
     UI_MODE_GLOBAL,
     UI_MODE_PREVIEW,

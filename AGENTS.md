@@ -1,4 +1,4 @@
-# Agent Guardrails (blattwerk)
+﻿# Agent Guardrails (blattwerk)
 
 Dieses Repository hat verbindliche Leitplanken fuer KI-Programmierer.
 
@@ -30,8 +30,8 @@ Verbindliche Regeln:
 - Nach solchen Aenderungen sind mindestens `pytest-verify` und `guardrails-verify` verpflichtend.
 
 6. Zentrale UI-Steuerung
-- KeyBindings werden zentral in `app/ui/keybinding_registry.py` verwaltet (inkl. Modus-Sicht auf aktive Bindings).
-- Pop-up-Verhalten wird zentral in `app/ui/popup_policy.py` verwaltet.
+- KeyBindings werden zentral in `bw_libs/ui_contract/keybinding.py` verwaltet (inkl. Modus-Sicht auf aktive Bindings).
+- Pop-up-Verhalten wird zentral in `bw_libs/ui_contract/popup.py` verwaltet.
 - Neue Shortcuts und neue Pop-ups werden nicht mehr verteilt implementiert, sondern zuerst in diesen Zentralmodulen registriert und dann angebunden.
 
 7. Feature-Commit und Push-Disziplin
