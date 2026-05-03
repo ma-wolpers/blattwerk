@@ -23,11 +23,17 @@ GUARDRAIL_RELEVANT_PATHS = {
     "docs/VALIDATOR.md",
     "CHANGELOG.md",
     "tools/ci/check_ai_guardrails.py",
+    "app/ui/keybinding_registry.py",
+    "app/ui/popup_policy.py",
 }
 
 BLAETTWERKER_SOLUTION_RULE = (
     "auch eine sichtbare Loesung vorhanden ist"
 )
+PROCESS_GUIDANCE_RULES = {
+    "feature_commit": "Feature-Aenderungen werden in eigenstaendigen Commits",
+    "manual_push": "Push erfolgt manuell",
+}
 
 
 def _repo_root() -> Path:
@@ -320,6 +326,23 @@ def _check_blattwerker_solution_rule(errors: list[str]) -> None:
     _require_substring(validator_doc, "AN010", "docs/VALIDATOR.md", errors)
 
 
+def _collect_process_guidance_warnings() -> list[str]:
+    """Collect non-blocking warnings for process guidance consistency."""
+    warnings: list[str] = []
+    sources = {
+        "AGENTS.md": _read("AGENTS.md"),
+        ".github/copilot-instructions.md": _read(".github/copilot-instructions.md"),
+        ".github/pull_request_template.md": _read(".github/pull_request_template.md"),
+    }
+
+    for label, needle in PROCESS_GUIDANCE_RULES.items():
+        if not any(needle in text for text in sources.values()):
+            warnings.append(
+                f"process-guidance ({label}) not found in governance docs/templates"
+            )
+    return warnings
+
+
 def main() -> int:
     repo_root = _repo_root()
     staged = _staged_files(repo_root)
@@ -333,6 +356,8 @@ def main() -> int:
     _read(".github/copilot-instructions.md")
     _read("CHANGELOG.md")
     _read("docs/DEVELOPMENT_LOG.md")
+    _read("app/ui/keybinding_registry.py")
+    _read("app/ui/popup_policy.py")
 
     arch_doc = _read("docs/ARCHITEKTUR.md")
     _require_substring(
@@ -366,12 +391,18 @@ def main() -> int:
     _check_marker_token_consistency(errors)
     _check_extension_validator_sync(errors)
     _check_blattwerker_solution_rule(errors)
+    warnings = _collect_process_guidance_warnings()
 
     if errors:
         print("AI guardrail check failed:")
         for item in errors:
             print(f" - {item}")
         return 2
+
+    if warnings:
+        print("AI guardrail process warnings (non-blocking):")
+        for item in warnings:
+            print(f" - {item}")
 
     print("AI guardrail check passed.")
     return 0

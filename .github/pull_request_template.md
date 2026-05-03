@@ -8,6 +8,10 @@ Describe what changed and why.
 - [ ] `docs/DEVELOPMENT_LOG.md` updated (required for feature/architecture changes)
 - [ ] `docs/ARCHITEKTUR.md` and `docs/ARCHITEKTUR_EINFACH.md` updated together (if architecture changed)
 - [ ] `CHANGELOG.md` updated (if user-facing behavior changed)
+- [ ] New shortcuts are registered centrally in `app/ui/keybinding_registry.py`
+- [ ] New popups follow central policy in `app/ui/popup_policy.py`
+- [ ] Feature work is grouped in dedicated commit(s)
+- [ ] No auto-push required; push stays manual
 - [ ] Tests or validation run and documented
 
 ## Validation

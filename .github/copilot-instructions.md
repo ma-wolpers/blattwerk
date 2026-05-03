@@ -24,3 +24,12 @@ Pflichtregeln:
 6. Marker-/Tokenizer-Aenderungen immer synchron halten
 - Bei Aenderungen an Markierungen/Token (z. B. `§/%/&`, Regex, Syntax-Highlighting, Validator-Diagnostik) muessen Core-Parser/Validator, Blattwerk-Editor und VSCode-Extension im selben Zyklus angepasst werden.
 - Nach solchen Aenderungen immer mindestens `pytest-verify` und `guardrails-verify` ausfuehren.
+
+7. Zentrale UI-Module
+- KeyBindings in `app/ui/keybinding_registry.py` zentral halten und modebasiert dokumentieren.
+- Pop-up-Regeln in `app/ui/popup_policy.py` zentral halten.
+- Neue Shortcut-/Popup-Features zuerst in den Zentralmodulen definieren, danach in Views anbinden.
+
+8. Commit-/Push-Workflow
+- Feature-Aenderungen als eigene Commits strukturieren.
+- Kein automatisches Pushen; Push bleibt bewusst manuell.

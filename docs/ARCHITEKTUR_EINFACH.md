@@ -26,6 +26,8 @@ So vermeiden wir Klebercode und Verwirrung.
   - Hier ist die Oberfläche.
   - Sie nimmt Eingaben an und zeigt Ergebnisse.
   - Sie soll keine Fachregeln erfinden.
+  - KeyBindings liegen zentral in `app/ui/keybinding_registry.py`.
+  - Pop-up-Verhalten liegt zentral in `app/ui/popup_policy.py`.
   - Geoeffnete Markdown-Dateien laufen als Tabs in einer Dokumentleiste; jedes Blatt bleibt als eigener UI-Zustand erhalten.
   - Bereichsauswahl und Tabs sitzen in einer gemeinsamen modernen Steuerleiste; Segment- und Tab-Stile kommen zentral aus `app/ui/ui_theme.py`.
   - Beim Tab-Wechsel stellt die UI dokumentbezogene Vorschau-Einstellungen wieder her (z. B. Aufgabe/Loesung, DIN A4/A5, Kontrast und Gestaltung).

@@ -28,3 +28,12 @@ Verbindliche Regeln:
 5. Marker-/Tokenizer-Konsistenz
 - Bei Aenderungen an Marker-/Tokenlogik (z. B. `§/%/&`, Regexe, Syntax-Highlighting, Validator-Diagnostik) muessen Core/Validator, Blattwerk-Editor und VSCode-Extension im selben Zyklus synchron angepasst werden.
 - Nach solchen Aenderungen sind mindestens `pytest-verify` und `guardrails-verify` verpflichtend.
+
+6. Zentrale UI-Steuerung
+- KeyBindings werden zentral in `app/ui/keybinding_registry.py` verwaltet (inkl. Modus-Sicht auf aktive Bindings).
+- Pop-up-Verhalten wird zentral in `app/ui/popup_policy.py` verwaltet.
+- Neue Shortcuts und neue Pop-ups werden nicht mehr verteilt implementiert, sondern zuerst in diesen Zentralmodulen registriert und dann angebunden.
+
+7. Feature-Commit und Push-Disziplin
+- Feature-Aenderungen werden in eigenstaendigen Commits gebuendelt (ein Feature = ein klarer Commit-Block).
+- Push erfolgt manuell durch den Nutzer nach eigener Freigabe; kein Auto-Push.
