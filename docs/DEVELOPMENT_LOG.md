@@ -15,6 +15,9 @@ Regel:
 - Format-Switching in der Vorschau: Wenn der Benutzer das Seitenformat wechselt (z. B. 16:9 → 16:10 oder A4 → A5), wird jetzt korrekt ein neuer Render angestoßen und der Cache wird invalidiert. Zuvor blieb die Vorschau-Darstellung trotz Format-Änderung gleich.
 
 ### Changed
+- Blattwerk-Pilot fuer das Hybrid-Input-Modell gestartet: Shortcut-Dispatch nutzt jetzt eine zentrale Laufzeitpruefung mit Prioritaetskontext (global/editor/preview/dialog/offline), statt Bindings nur statisch zu registrieren.
+- Debug-Overlay fuer Shortcuts in der Preview-UI eingefuehrt: sichtbarer aktiver Modus, aktive/deaktivierte Bindings pro Modus und Disabled-Gruende (u. a. Offline-Simulation, Textfokus, Moduskontext).
+- Neue Debug-Shortcuts hinzugefuegt: `Strg+Shift+D` schaltet das Overlay, `Strg+Shift+O` toggelt Offline-Simulation fuer die Kontextdiagnostik.
 - Shortcut-Modifier-Steuerung in der zentralen Keybinding-Registry explizit gemacht: `allow_modifiers` wird jetzt pro Shortcut gesetzt statt heuristisch aus der Sequenz abgeleitet.
 - Guardrails praezisiert: `CHANGELOG.md` wird nun bei nutzer- oder coentwicklerrelevanten Aenderungen erzwungen; Prozesswarnungen (Commit-/Push-Guidance) werden nur noch lokal und nicht in CI ausgegeben.
 - Zentrale UI-Governance gestartet: neue Zentralmodule `app/ui/keybinding_registry.py` (modusbasierte Shortcut-Registry inkl. Konflikt- und Manifest-Sicht) und `app/ui/popup_policy.py` (einheitliche Popup-Policy mit Fokus-/Lifecycle-Stack) eingefuehrt.

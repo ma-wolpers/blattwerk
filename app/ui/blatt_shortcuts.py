@@ -22,7 +22,7 @@ from .ui_constants import (
 )
 
 
-def _to_shortcut_binding(definition: KeyBindingDefinition) -> ShortcutBinding:
+def _to_shortcut_binding(app, definition: KeyBindingDefinition) -> ShortcutBinding:
     """Convert central keybinding definitions to Tkinter shortcut bindings."""
     return ShortcutBinding(
         definition.sequence,
@@ -30,6 +30,8 @@ def _to_shortcut_binding(definition: KeyBindingDefinition) -> ShortcutBinding:
         definition.description or None,
         ignore_when_text_input=not definition.allow_when_text_input,
         allow_modifiers=definition.allow_modifiers,
+        binding_id=definition.binding_id,
+        can_execute=lambda definition=definition: app._evaluate_keybinding_runtime(definition),
     )
 
 
@@ -71,16 +73,18 @@ def build_preview_keybinding_registry(app) -> KeybindingRegistry:
             KeyBindingDefinition("global.cycle_theme", "<Control-t>", "global.cycle_theme", (UI_MODE_GLOBAL, UI_MODE_DIALOG), "Strg+T   Theme wechseln", allow_modifiers=True, allow_when_text_input=True, handler=app._cycle_theme),
             KeyBindingDefinition("global.cycle_font", "<Control-f>", "global.cycle_font", (UI_MODE_GLOBAL, UI_MODE_DIALOG), "Strg+F   Schriftprofil wechseln", allow_modifiers=True, allow_when_text_input=True, handler=app._cycle_font_profile),
             KeyBindingDefinition("global.open_recent", "<KeyPress-z>", "global.open_recent", (UI_MODE_GLOBAL,), "Z   zuletzt geladenes Markdown", handler=app._open_last_markdown),
+            KeyBindingDefinition("global.debug_overlay", "<Control-Shift-d>", "global.debug_overlay", (UI_MODE_GLOBAL, UI_MODE_DIALOG), "Strg+Shift+D   Shortcut-Debug-Overlay", allow_modifiers=True, allow_when_text_input=True, handler=app._toggle_shortcut_debug_overlay),
+            KeyBindingDefinition("global.debug_offline", "<Control-Shift-o>", "global.debug_offline", (UI_MODE_GLOBAL, UI_MODE_DIALOG), "Strg+Shift+O   Offline simulieren", allow_modifiers=True, allow_when_text_input=True, handler=app._toggle_shortcut_debug_offline),
             KeyBindingDefinition("global.exit", "<Escape>", "global.exit", (UI_MODE_GLOBAL, UI_MODE_DIALOG), "Esc   Beenden", handler=app.root.destroy),
         ]
     )
     return registry
 
 
-def build_preview_shortcuts(app):
+def build_preview_shortcuts(app, registry: KeybindingRegistry | None = None):
     """Return main-window shortcuts derived from the central registry."""
-    registry = build_preview_keybinding_registry(app)
-    return [_to_shortcut_binding(definition) for definition in registry.all()]
+    active_registry = registry or build_preview_keybinding_registry(app)
+    return [_to_shortcut_binding(app, definition) for definition in active_registry.all()]
 
 
 def get_preview_shortcut_mode_manifest(app) -> dict[str, list[str]]:

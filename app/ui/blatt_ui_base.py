@@ -5,12 +5,22 @@ from __future__ import annotations
 import tkinter as tk
 from pathlib import Path
 
-from .blatt_shortcuts import build_preview_shortcuts
+from .blatt_shortcuts import build_preview_keybinding_registry, build_preview_shortcuts
 from .shortcut_manager import ShortcutManager
 from .ui_constants import (
+    EDITOR_VIEW_BOTH,
+    EDITOR_VIEW_EDITOR_ONLY,
     EDITOR_VIEW_PREVIEW_ONLY,
     VIEW_FIT_WIDTH,
     VIEW_LAYOUT_SINGLE,
+)
+from .keybinding_registry import (
+    UI_MODE_DIALOG,
+    UI_MODE_EDITOR,
+    UI_MODE_GLOBAL,
+    UI_MODE_OFFLINE,
+    UI_MODE_PREVIEW,
+    KeyBindingDefinition,
 )
 from .ui_theme import DEFAULT_THEME
 from ..styles.blatt_styles import DEFAULT_FONT_PROFILE, DEFAULT_FONT_SIZE_PROFILE
@@ -93,7 +103,13 @@ class BlattwerkAppBase:
         self.recent_menu = None
         self.ui_settings = {}
         self.shortcut_manager = ShortcutManager(self.root)
-        self.shortcut_bindings = build_preview_shortcuts(self)
+        self.keybinding_registry = build_preview_keybinding_registry(self)
+        self.shortcut_bindings = build_preview_shortcuts(self, registry=self.keybinding_registry)
+        self.shortcut_debug_enabled_var = tk.BooleanVar(value=False)
+        self.shortcut_debug_offline_var = tk.BooleanVar(value=False)
+        self.shortcut_debug_frame = None
+        self.shortcut_debug_text = None
+        self._shortcut_debug_refresh_after_id = None
         self._color_profile_swatches = {}
         self._hovered_color_profile = None
         self._swatch_tooltip = None
@@ -174,6 +190,202 @@ class BlattwerkAppBase:
             return
 
         self.shortcut_manager.bind_all(self.shortcut_bindings)
+
+    @staticmethod
+    def _is_widget_descendant_of(widget: tk.Misc | None, parent: tk.Misc | None) -> bool:
+        """Return whether widget is nested below parent in the widget tree."""
+
+        if widget is None or parent is None:
+            return False
+
+        current = widget
+        while current is not None:
+            if current == parent:
+                return True
+            current = getattr(current, "master", None)
+        return False
+
+    def _has_dialog_context(self) -> bool:
+        """Return whether a dialog-like context currently has focus priority."""
+
+        if bool(getattr(self, "_menu_popup_stack", [])):
+            return True
+
+        for child in self.root.winfo_children():
+            if not isinstance(child, tk.Toplevel):
+                continue
+            try:
+                if int(child.winfo_exists()) and str(child.state()).lower() != "withdrawn":
+                    return True
+            except Exception:
+                continue
+        return False
+
+    def _collect_shortcut_runtime_context(self) -> dict[str, object]:
+        """Collect current runtime context used by shortcut resolver and diagnostics."""
+
+        focused_widget = self.root.focus_get()
+        text_input_focused = self.shortcut_manager._is_text_input_widget(focused_widget)
+        dialog_open = self._has_dialog_context()
+        offline = bool(self.shortcut_debug_offline_var.get())
+
+        if offline:
+            active_mode = UI_MODE_OFFLINE
+        elif dialog_open:
+            active_mode = UI_MODE_DIALOG
+        elif text_input_focused:
+            active_mode = UI_MODE_EDITOR
+        elif self._is_widget_descendant_of(focused_widget, getattr(self, "preview_container", None)):
+            active_mode = UI_MODE_PREVIEW
+        elif self.editor_view_mode_var.get() in {EDITOR_VIEW_BOTH, EDITOR_VIEW_EDITOR_ONLY}:
+            active_mode = UI_MODE_EDITOR
+        else:
+            active_mode = UI_MODE_GLOBAL
+
+        return {
+            "active_mode": active_mode,
+            "offline": offline,
+            "dialog_open": dialog_open,
+            "text_input_focused": text_input_focused,
+            "focused_widget_class": focused_widget.winfo_class() if focused_widget is not None else "none",
+        }
+
+    def _evaluate_keybinding_runtime(
+        self,
+        definition: KeyBindingDefinition,
+        *,
+        active_mode_override: str | None = None,
+    ) -> tuple[bool, str]:
+        """Evaluate whether one keybinding is executable in current runtime context."""
+
+        context = self._collect_shortcut_runtime_context()
+        active_mode = active_mode_override or str(context["active_mode"])
+        offline = bool(context["offline"])
+        text_input_focused = bool(context["text_input_focused"])
+        dialog_open = bool(context["dialog_open"])
+
+        if active_mode not in definition.modes and UI_MODE_GLOBAL not in definition.modes:
+            return False, f"mode={active_mode}"
+
+        if offline and not definition.allow_when_offline:
+            return False, "offline-disabled"
+
+        if text_input_focused and not definition.allow_when_text_input:
+            return False, "text-input-focus"
+
+        if dialog_open and UI_MODE_DIALOG not in definition.modes and UI_MODE_GLOBAL not in definition.modes:
+            return False, "dialog-priority"
+
+        return True, "active"
+
+    def _build_shortcut_debug_overlay_text(self) -> str:
+        """Build human-readable diagnostics text for shortcut runtime state."""
+
+        context = self._collect_shortcut_runtime_context()
+        lines = [
+            "Blattwerk Shortcut Debug",
+            "",
+            f"active_mode: {context['active_mode']}",
+            f"offline: {context['offline']}",
+            f"dialog_open: {context['dialog_open']}",
+            f"text_input_focused: {context['text_input_focused']}",
+            f"focused_widget: {context['focused_widget_class']}",
+            "",
+            "Modes (active/disabled)",
+        ]
+
+        for mode in (UI_MODE_GLOBAL, UI_MODE_EDITOR, UI_MODE_PREVIEW, UI_MODE_DIALOG, UI_MODE_OFFLINE):
+            active_items: list[str] = []
+            disabled_items: list[str] = []
+            for definition in self.keybinding_registry.all():
+                if mode not in definition.modes and UI_MODE_GLOBAL not in definition.modes:
+                    continue
+                can_execute, reason = self._evaluate_keybinding_runtime(
+                    definition,
+                    active_mode_override=mode,
+                )
+                target = active_items if can_execute else disabled_items
+                label = definition.binding_id
+                if not can_execute:
+                    label = f"{label} ({reason})"
+                target.append(label)
+
+            lines.append(f"- {mode}: {len(active_items)} active, {len(disabled_items)} disabled")
+            if active_items:
+                lines.append(f"  active: {', '.join(active_items)}")
+            if disabled_items:
+                lines.append(f"  disabled: {', '.join(disabled_items)}")
+
+        return "\n".join(lines)
+
+    def _refresh_shortcut_debug_overlay(self) -> None:
+        """Refresh shortcut debug overlay text when overlay is visible."""
+
+        if not bool(self.shortcut_debug_enabled_var.get()):
+            return
+
+        if self.shortcut_debug_text is None:
+            return
+
+        text = self._build_shortcut_debug_overlay_text()
+        self.shortcut_debug_text.configure(state="normal")
+        self.shortcut_debug_text.delete("1.0", "end")
+        self.shortcut_debug_text.insert("1.0", text)
+        self.shortcut_debug_text.configure(state="disabled")
+
+    def _schedule_shortcut_debug_overlay_refresh(self) -> None:
+        """Schedule recurring refresh while debug overlay is visible."""
+
+        if self._shortcut_debug_refresh_after_id is not None:
+            try:
+                self.root.after_cancel(self._shortcut_debug_refresh_after_id)
+            except Exception:
+                pass
+            self._shortcut_debug_refresh_after_id = None
+
+        if not bool(self.shortcut_debug_enabled_var.get()):
+            return
+
+        self._refresh_shortcut_debug_overlay()
+        self._shortcut_debug_refresh_after_id = self.root.after(500, self._schedule_shortcut_debug_overlay_refresh)
+
+    def _set_shortcut_debug_overlay_visible(self, visible: bool) -> None:
+        """Show or hide the shortcut debug overlay frame."""
+
+        if self.shortcut_debug_frame is None:
+            return
+
+        self.shortcut_debug_enabled_var.set(bool(visible))
+        if visible:
+            self.shortcut_debug_frame.pack(fill="both", expand=False, pady=(0, 8))
+            self._schedule_shortcut_debug_overlay_refresh()
+            self.status_var.set("Shortcut-Debug-Overlay aktiv")
+            return
+
+        self.shortcut_debug_frame.pack_forget()
+        if self._shortcut_debug_refresh_after_id is not None:
+            try:
+                self.root.after_cancel(self._shortcut_debug_refresh_after_id)
+            except Exception:
+                pass
+            self._shortcut_debug_refresh_after_id = None
+        self.status_var.set("Shortcut-Debug-Overlay ausgeblendet")
+
+    def _toggle_shortcut_debug_overlay(self) -> None:
+        """Toggle shortcut debug overlay visibility."""
+
+        self._set_shortcut_debug_overlay_visible(not bool(self.shortcut_debug_enabled_var.get()))
+
+    def _toggle_shortcut_debug_offline(self) -> None:
+        """Toggle simulated offline context for shortcut diagnostics."""
+
+        self.shortcut_debug_offline_var.set(not bool(self.shortcut_debug_offline_var.get()))
+        self._refresh_shortcut_debug_overlay()
+
+    def _on_shortcut_debug_offline_changed(self) -> None:
+        """Handle offline simulation checkbox updates in debug overlay."""
+
+        self._refresh_shortcut_debug_overlay()
 
     def _set_page_format(self, page_format):
         """Set page format."""

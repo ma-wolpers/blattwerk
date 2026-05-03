@@ -354,8 +354,46 @@ class BlattwerkAppBuildMixin:
         info_row.pack(fill="x", pady=(0, 8))
         ttk.Label(info_row, textvariable=self.page_info_var).pack(side="left")
         ttk.Label(info_row, textvariable=self.zoom_info_var).pack(side="left", padx=(14, 0))
+        ttk.Button(
+            info_row,
+            text="Debug Shortcuts",
+            style="SecondaryAction.TButton",
+            command=self._toggle_shortcut_debug_overlay,
+        ).pack(side="left", padx=(14, 0))
         self.status_label = ttk.Label(info_row, textvariable=self.status_var, style="Muted.TLabel")
         self.status_label.pack(side="right")
+
+        self.shortcut_debug_frame = ttk.LabelFrame(preview_controls, text="Shortcut-Kontext (Debug)")
+        debug_toolbar = ttk.Frame(self.shortcut_debug_frame)
+        debug_toolbar.pack(fill="x", padx=8, pady=(8, 6))
+        ttk.Checkbutton(
+            debug_toolbar,
+            text="Offline simulieren",
+            variable=self.shortcut_debug_offline_var,
+            command=self._on_shortcut_debug_offline_changed,
+        ).pack(side="left")
+        ttk.Button(
+            debug_toolbar,
+            text="Ausblenden",
+            style="SecondaryAction.TButton",
+            command=lambda: self._set_shortcut_debug_overlay_visible(False),
+        ).pack(side="right")
+
+        debug_body = ttk.Frame(self.shortcut_debug_frame)
+        debug_body.pack(fill="both", expand=True, padx=8, pady=(0, 8))
+        self.shortcut_debug_text = tk.Text(
+            debug_body,
+            wrap="word",
+            height=12,
+            borderwidth=0,
+            highlightthickness=0,
+            font=("Consolas", 9),
+        )
+        self.shortcut_debug_text.pack(side="left", fill="both", expand=True)
+        debug_scrollbar = ttk.Scrollbar(debug_body, orient="vertical", command=self.shortcut_debug_text.yview)
+        debug_scrollbar.pack(side="right", fill="y")
+        self.shortcut_debug_text.configure(yscrollcommand=debug_scrollbar.set, state="disabled")
+        self.shortcut_debug_frame.pack_forget()
 
         ttk.Separator(self.preview_container, orient="horizontal").pack(fill="x")
 

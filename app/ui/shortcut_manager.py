@@ -16,6 +16,8 @@ class ShortcutBinding:
     menu_label: str | None = None
     ignore_when_text_input: bool = True
     allow_modifiers: bool = False
+    binding_id: str = ""
+    can_execute: Callable[[], tuple[bool, str]] | None = None
 
 
 class ShortcutManager:
@@ -49,6 +51,11 @@ class ShortcutManager:
             getattr(event, "widget", None)
         ):
             return None
+
+        if binding.can_execute is not None:
+            can_execute, _reason = binding.can_execute()
+            if not can_execute:
+                return None
 
         binding.action()
         return "break"
