@@ -16,7 +16,8 @@ Regel:
 
 ### Changed
 - Blattwerk-Pilot fuer das Hybrid-Input-Modell gestartet: Shortcut-Dispatch nutzt jetzt eine zentrale Laufzeitpruefung mit Prioritaetskontext (global/editor/preview/dialog/offline), statt Bindings nur statisch zu registrieren.
-- Debug-Overlay fuer Shortcuts in der Preview-UI eingefuehrt: sichtbarer aktiver Modus, aktive/deaktivierte Bindings pro Modus und Disabled-Gruende (u. a. Offline-Simulation, Textfokus, Moduskontext).
+- Dialogkontext in der Runtime-Aufloesung auf `PopupPolicyRegistry` umgestellt: aktive Toplevel-Fenster werden in den Popup-Stack gespiegelt und als Dialog-Prioritaet im Resolver genutzt.
+- Debug-Overlay fuer Shortcuts in der Preview-UI auf kompakte Tabellenansicht umgebaut: sichtbarer aktiver Modus, aktive/deaktivierte Bindings pro Modus und Disabled-Gruende (u. a. Offline-Simulation, Textfokus, Moduskontext).
 - Neue Debug-Shortcuts hinzugefuegt: `Strg+Shift+D` schaltet das Overlay, `Strg+Shift+O` toggelt Offline-Simulation fuer die Kontextdiagnostik.
 - Shortcut-Modifier-Steuerung in der zentralen Keybinding-Registry explizit gemacht: `allow_modifiers` wird jetzt pro Shortcut gesetzt statt heuristisch aus der Sequenz abgeleitet.
 - Guardrails praezisiert: `CHANGELOG.md` wird nun bei nutzer- oder coentwicklerrelevanten Aenderungen erzwungen; Prozesswarnungen (Commit-/Push-Guidance) werden nur noch lokal und nicht in CI ausgegeben.

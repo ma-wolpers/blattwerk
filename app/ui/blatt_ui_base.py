@@ -22,6 +22,7 @@ from .keybinding_registry import (
     UI_MODE_PREVIEW,
     KeyBindingDefinition,
 )
+from .popup_policy import POPUP_KIND_MODAL, PopupPolicy, PopupPolicyRegistry
 from .ui_theme import DEFAULT_THEME
 from ..styles.blatt_styles import DEFAULT_FONT_PROFILE, DEFAULT_FONT_SIZE_PROFILE
 from ..styles.worksheet_design import (
@@ -107,9 +108,14 @@ class BlattwerkAppBase:
         self.shortcut_bindings = build_preview_shortcuts(self, registry=self.keybinding_registry)
         self.shortcut_debug_enabled_var = tk.BooleanVar(value=False)
         self.shortcut_debug_offline_var = tk.BooleanVar(value=False)
+        self.shortcut_debug_context_var = tk.StringVar(value="")
         self.shortcut_debug_frame = None
-        self.shortcut_debug_text = None
+        self.shortcut_debug_table = None
+        self.shortcut_debug_summary_var = tk.StringVar(value="")
         self._shortcut_debug_refresh_after_id = None
+        self.popup_policy_registry = PopupPolicyRegistry()
+        self.popup_policy_registry.register_policy(PopupPolicy(policy_id="dialog.modal", kind=POPUP_KIND_MODAL))
+        self._tracked_popup_ids: set[str] = set()
         self._color_profile_swatches = {}
         self._hovered_color_profile = None
         self._swatch_tooltip = None
@@ -208,18 +214,54 @@ class BlattwerkAppBase:
     def _has_dialog_context(self) -> bool:
         """Return whether a dialog-like context currently has focus priority."""
 
+        self._sync_popup_sessions_from_windows()
+
         if bool(getattr(self, "_menu_popup_stack", [])):
             return True
+
+        if self.popup_policy_registry.has_active_popup():
+            return True
+
+        return False
+
+    def _sync_popup_sessions_from_windows(self) -> None:
+        """Synchronize popup policy stack from currently visible Tk toplevel windows."""
+
+        visible_popup_ids: set[str] = set()
 
         for child in self.root.winfo_children():
             if not isinstance(child, tk.Toplevel):
                 continue
             try:
-                if int(child.winfo_exists()) and str(child.state()).lower() != "withdrawn":
-                    return True
+                if not int(child.winfo_exists()):
+                    continue
+                if str(child.state()).lower() == "withdrawn":
+                    continue
             except Exception:
                 continue
-        return False
+
+            popup_id = str(child)
+            visible_popup_ids.add(popup_id)
+            if popup_id in self._tracked_popup_ids:
+                continue
+
+            popup_title = ""
+            try:
+                popup_title = str(child.title() or "")
+            except Exception:
+                popup_title = ""
+
+            self.popup_policy_registry.open_popup(
+                popup_id=popup_id,
+                title=popup_title,
+                policy_id="dialog.modal",
+            )
+            self._tracked_popup_ids.add(popup_id)
+
+        stale_popup_ids = self._tracked_popup_ids - visible_popup_ids
+        for popup_id in tuple(stale_popup_ids):
+            self.popup_policy_registry.close_popup(popup_id)
+            self._tracked_popup_ids.discard(popup_id)
 
     def _collect_shortcut_runtime_context(self) -> dict[str, object]:
         """Collect current runtime context used by shortcut resolver and diagnostics."""
@@ -248,6 +290,11 @@ class BlattwerkAppBase:
             "dialog_open": dialog_open,
             "text_input_focused": text_input_focused,
             "focused_widget_class": focused_widget.winfo_class() if focused_widget is not None else "none",
+            "active_popup": (
+                self.popup_policy_registry.active_popup().popup_id
+                if self.popup_policy_registry.active_popup() is not None
+                else "none"
+            ),
         }
 
     def _evaluate_keybinding_runtime(
@@ -278,45 +325,30 @@ class BlattwerkAppBase:
 
         return True, "active"
 
-    def _build_shortcut_debug_overlay_text(self) -> str:
-        """Build human-readable diagnostics text for shortcut runtime state."""
+    def _build_shortcut_debug_overlay_rows(self) -> list[tuple[str, str, str, str, str]]:
+        """Build compact diagnostics rows for the shortcut debug table."""
 
-        context = self._collect_shortcut_runtime_context()
-        lines = [
-            "Blattwerk Shortcut Debug",
-            "",
-            f"active_mode: {context['active_mode']}",
-            f"offline: {context['offline']}",
-            f"dialog_open: {context['dialog_open']}",
-            f"text_input_focused: {context['text_input_focused']}",
-            f"focused_widget: {context['focused_widget_class']}",
-            "",
-            "Modes (active/disabled)",
-        ]
-
+        rows: list[tuple[str, str, str, str, str]] = []
         for mode in (UI_MODE_GLOBAL, UI_MODE_EDITOR, UI_MODE_PREVIEW, UI_MODE_DIALOG, UI_MODE_OFFLINE):
-            active_items: list[str] = []
-            disabled_items: list[str] = []
             for definition in self.keybinding_registry.all():
                 if mode not in definition.modes and UI_MODE_GLOBAL not in definition.modes:
                     continue
+
                 can_execute, reason = self._evaluate_keybinding_runtime(
                     definition,
                     active_mode_override=mode,
                 )
-                target = active_items if can_execute else disabled_items
-                label = definition.binding_id
-                if not can_execute:
-                    label = f"{label} ({reason})"
-                target.append(label)
+                rows.append(
+                    (
+                        mode,
+                        definition.sequence,
+                        definition.binding_id,
+                        "active" if can_execute else "disabled",
+                        "" if can_execute else reason,
+                    )
+                )
 
-            lines.append(f"- {mode}: {len(active_items)} active, {len(disabled_items)} disabled")
-            if active_items:
-                lines.append(f"  active: {', '.join(active_items)}")
-            if disabled_items:
-                lines.append(f"  disabled: {', '.join(disabled_items)}")
-
-        return "\n".join(lines)
+        return rows
 
     def _refresh_shortcut_debug_overlay(self) -> None:
         """Refresh shortcut debug overlay text when overlay is visible."""
@@ -324,14 +356,44 @@ class BlattwerkAppBase:
         if not bool(self.shortcut_debug_enabled_var.get()):
             return
 
-        if self.shortcut_debug_text is None:
+        if self.shortcut_debug_table is None:
             return
 
-        text = self._build_shortcut_debug_overlay_text()
-        self.shortcut_debug_text.configure(state="normal")
-        self.shortcut_debug_text.delete("1.0", "end")
-        self.shortcut_debug_text.insert("1.0", text)
-        self.shortcut_debug_text.configure(state="disabled")
+        context = self._collect_shortcut_runtime_context()
+        self.shortcut_debug_context_var.set(
+            " | ".join(
+                [
+                    f"mode={context['active_mode']}",
+                    f"offline={context['offline']}",
+                    f"dialog={context['dialog_open']}",
+                    f"focus={context['focused_widget_class']}",
+                    f"popup={context['active_popup']}",
+                ]
+            )
+        )
+
+        for item_id in self.shortcut_debug_table.get_children(""):
+            self.shortcut_debug_table.delete(item_id)
+
+        rows = self._build_shortcut_debug_overlay_rows()
+        active_count = 0
+        disabled_count = 0
+        for mode, sequence, binding_id, status, reason in rows:
+            tags = ("row_active",) if status == "active" else ("row_disabled",)
+            if status == "active":
+                active_count += 1
+            else:
+                disabled_count += 1
+            self.shortcut_debug_table.insert(
+                "",
+                "end",
+                values=(mode, sequence, binding_id, status, reason),
+                tags=tags,
+            )
+
+        self.shortcut_debug_summary_var.set(
+            f"Bindings: {len(rows)} total | {active_count} active | {disabled_count} disabled"
+        )
 
     def _schedule_shortcut_debug_overlay_refresh(self) -> None:
         """Schedule recurring refresh while debug overlay is visible."""
