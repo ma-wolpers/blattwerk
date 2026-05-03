@@ -22,6 +22,13 @@ from .keybinding_registry import (
     UI_MODE_OFFLINE,
     UI_MODE_PREVIEW,
     KeyBindingDefinition,
+    KeybindingRuntimeContext,
+)
+from .hsm_contract import (
+    ESCAPE_CLOSE_POPUP,
+    ESCAPE_EXIT_INLINE_EDITOR,
+    ESCAPE_POP_PARENT,
+    build_ui_hsm_contract,
 )
 from .popup_policy import POPUP_KIND_MODAL, POPUP_KIND_NON_MODAL, PopupPolicy, PopupPolicyRegistry
 from .ui_theme import DEFAULT_THEME
@@ -106,6 +113,9 @@ class BlattwerkAppBase:
         self.ui_settings = {}
         self.shortcut_manager = ShortcutManager(self.root)
         self.keybinding_registry = build_preview_keybinding_registry(self)
+        self.hsm_contract = build_ui_hsm_contract(
+            intents=[definition.intent for definition in self.keybinding_registry.all()]
+        )
         self.shortcut_bindings = build_preview_shortcuts(self, registry=self.keybinding_registry)
         self.shortcut_debug_enabled_var = tk.BooleanVar(value=False)
         self.shortcut_debug_offline_var = tk.BooleanVar(value=False)
@@ -320,6 +330,59 @@ class BlattwerkAppBase:
             ),
         }
 
+    def _close_active_popup_on_escape(self) -> bool:
+        """Close top-most escape-closable popup and return success."""
+
+        self._sync_popup_sessions_from_windows()
+        active_popup = self.popup_policy_registry.active_popup()
+        if active_popup is None:
+            return False
+
+        try:
+            policy = self.popup_policy_registry.policy(active_popup.policy_id)
+        except Exception:
+            policy = None
+        if policy is not None and not policy.close_on_escape:
+            return False
+
+        popup_id = active_popup.popup_id
+        for child in self.root.winfo_children():
+            if not isinstance(child, tk.Toplevel):
+                continue
+            if str(child) != popup_id:
+                continue
+            try:
+                child.destroy()
+            except Exception:
+                pass
+            break
+
+        self.popup_policy_registry.close_popup(popup_id)
+        self._tracked_popup_ids.discard(popup_id)
+        return True
+
+    def _handle_global_escape(self, _event=None):
+        """Resolve escape action via centralized HSM priority rules."""
+
+        has_popup = self.popup_policy_registry.has_active_popup()
+        has_inline_editor = bool(getattr(self, "_editor_completion_popup", None))
+        has_parent_state = self.editor_view_mode_var.get() != EDITOR_VIEW_PREVIEW_ONLY
+
+        action = self.hsm_contract.resolve_escape_action(
+            has_popup=has_popup,
+            has_inline_editor=has_inline_editor,
+            has_parent_state=has_parent_state,
+        )
+        if action == ESCAPE_CLOSE_POPUP and self._close_active_popup_on_escape():
+            return "break"
+        if action == ESCAPE_EXIT_INLINE_EDITOR:
+            self._close_editor_completion()
+            return "break"
+        if action == ESCAPE_POP_PARENT:
+            self._set_editor_view_mode(EDITOR_VIEW_PREVIEW_ONLY)
+            return "break"
+        return "break"
+
     def _evaluate_keybinding_runtime(
         self,
         definition: KeyBindingDefinition,
@@ -329,24 +392,21 @@ class BlattwerkAppBase:
         """Evaluate whether one keybinding is executable in current runtime context."""
 
         context = self._collect_shortcut_runtime_context()
-        active_mode = active_mode_override or str(context["active_mode"])
-        offline = bool(context["offline"])
-        text_input_focused = bool(context["text_input_focused"])
-        dialog_open = bool(context["dialog_open"])
+        intent_ok, intent_reason = self.hsm_contract.validate_intent(definition.intent)
+        if not intent_ok:
+            return False, intent_reason
 
-        if active_mode not in definition.modes and UI_MODE_GLOBAL not in definition.modes:
-            return False, f"mode={active_mode}"
-
-        if offline and not definition.allow_when_offline:
-            return False, "offline-disabled"
-
-        if text_input_focused and not definition.allow_when_text_input:
-            return False, "text-input-focus"
-
-        if dialog_open and UI_MODE_DIALOG not in definition.modes and UI_MODE_GLOBAL not in definition.modes:
-            return False, "dialog-priority"
-
-        return True, "active"
+        runtime_context = KeybindingRuntimeContext(
+            active_mode=str(context["active_mode"]),
+            offline=bool(context["offline"]),
+            text_input_focused=bool(context["text_input_focused"]),
+            dialog_open=bool(context["dialog_open"]),
+        )
+        return self.keybinding_registry.evaluate_runtime(
+            definition,
+            runtime_context,
+            active_mode_override=active_mode_override,
+        )
 
     def _build_shortcut_debug_overlay_rows(self) -> list[tuple[str, str, str, str, str]]:
         """Build compact diagnostics rows for the shortcut debug table."""

@@ -18,6 +18,9 @@ The format is based on Keep a Changelog.
 
 ### Changed
 
+- Escape now follows a centralized back-navigation order: close active popup first, then leave inline editor context, then return to parent view state.
+- Shortcut intents are now validated against a central HSM contract before runtime execution, improving cross-mode consistency.
+- Shortcut semantics are now sourced from a central intent catalog, while key assignments remain UI-configurable.
 - The shortcut runtime debug popup now runs as a non-blocking parallel popup and no longer forces dialog mode while the main window remains interactive.
 - Shortcut handling now keeps modifier-policy explicit in the central keybinding layer instead of deriving it heuristically from key-sequence text.
 - Governance checks now enforce changelog updates only for user- or co-developer-relevant changes, while commit/push process hints are shown locally but no longer in CI output.

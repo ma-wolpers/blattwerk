@@ -10,11 +10,16 @@ Regel:
 
 ### Added
 - PPTX-Export: Neues Exportformat `pptx` in `WorksheetExportDialog` und `BlattwerkAppExportMixin`. Core-Funktion `build_presentation_pptx()` in `app/core/blatt_kern_pptx_export.py` rendert per PyMuPDF jede Seite als Bild und erzeugt über `python-pptx` eine Präsentation mit exakt passenden Folienmaßen. `python-pptx` in `requirements.txt` ergänzt.
+- Zentralen UI-Intent-Katalog in `app/ui/ui_intents.py` eingefuehrt und Shortcut-Definitionen im Preview-Registry-Aufbau darauf umgestellt.
+- HSM-Contract-Modul `app/ui/hsm_contract.py` eingefuehrt (Intent-/Payload-Validierung, Transition-Regeln, Escape-Resolver).
+- Neue Tests `tests/test_hsm_contract.py` fuer Intent-Contract, Transition-Gates und Escape-Prioritaetskette.
 
 ### Fixed
 - Format-Switching in der Vorschau: Wenn der Benutzer das Seitenformat wechselt (z. B. 16:9 → 16:10 oder A4 → A5), wird jetzt korrekt ein neuer Render angestoßen und der Cache wird invalidiert. Zuvor blieb die Vorschau-Darstellung trotz Format-Änderung gleich.
 
 ### Changed
+- Globale Escape-Behandlung laeuft jetzt ueber einen zentralen Resolver: Esc schliesst zuerst escapefaehige Popups, beendet dann Inline-Editor-Kontext und poppt danach den Parent-View-State.
+- Runtime-Shortcut-Evaluation validiert Intents jetzt gegen den zentralen HSM-Contract, bevor modebasierte Aktivierungsregeln ausgefuehrt werden.
 - Shortcut-Runtime-Debug-Popup ist jetzt als explizit nicht mode-blockierendes Parallel-Popup registriert (`dialog.non_blocking`), und die Runtime-Aufloesung wechselt nur noch bei mode-blockierenden Popups in den Dialog-Kontext.
 - Blattwerk-Pilot fuer das Hybrid-Input-Modell gestartet: Shortcut-Dispatch nutzt jetzt eine zentrale Laufzeitpruefung mit Prioritaetskontext (global/editor/preview/dialog/offline), statt Bindings nur statisch zu registrieren.
 - Dialogkontext in der Runtime-Aufloesung auf `PopupPolicyRegistry` umgestellt: aktive Toplevel-Fenster werden in den Popup-Stack gespiegelt und als Dialog-Prioritaet im Resolver genutzt.
