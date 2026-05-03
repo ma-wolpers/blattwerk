@@ -18,6 +18,7 @@ The format is based on Keep a Changelog.
 
 ### Changed
 
+- The shortcut runtime debug popup now runs as a non-blocking parallel popup and no longer forces dialog mode while the main window remains interactive.
 - Shortcut handling now keeps modifier-policy explicit in the central keybinding layer instead of deriving it heuristically from key-sequence text.
 - Governance checks now enforce changelog updates only for user- or co-developer-relevant changes, while commit/push process hints are shown locally but no longer in CI output.
 - Shortcut dispatch in the main UI now applies mode-aware runtime checks (global/editor/preview/dialog/offline) before executing actions.

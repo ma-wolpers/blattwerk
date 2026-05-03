@@ -23,7 +23,7 @@ from .keybinding_registry import (
     UI_MODE_PREVIEW,
     KeyBindingDefinition,
 )
-from .popup_policy import POPUP_KIND_MODAL, PopupPolicy, PopupPolicyRegistry
+from .popup_policy import POPUP_KIND_MODAL, POPUP_KIND_NON_MODAL, PopupPolicy, PopupPolicyRegistry
 from .ui_theme import DEFAULT_THEME
 from ..styles.blatt_styles import DEFAULT_FONT_PROFILE, DEFAULT_FONT_SIZE_PROFILE
 from ..styles.worksheet_design import (
@@ -116,6 +116,14 @@ class BlattwerkAppBase:
         self._shortcut_debug_refresh_after_id = None
         self.popup_policy_registry = PopupPolicyRegistry()
         self.popup_policy_registry.register_policy(PopupPolicy(policy_id="dialog.modal", kind=POPUP_KIND_MODAL))
+        self.popup_policy_registry.register_policy(
+            PopupPolicy(
+                policy_id="dialog.non_blocking",
+                kind=POPUP_KIND_NON_MODAL,
+                trap_focus=False,
+                affects_mode=False,
+            )
+        )
         self._tracked_popup_ids: set[str] = set()
         self._color_profile_swatches = {}
         self._hovered_color_profile = None
@@ -220,7 +228,7 @@ class BlattwerkAppBase:
         if bool(getattr(self, "_menu_popup_stack", [])):
             return True
 
-        if self.popup_policy_registry.has_active_popup():
+        if self.popup_policy_registry.has_mode_blocking_popup():
             return True
 
         return False
@@ -263,6 +271,20 @@ class BlattwerkAppBase:
         for popup_id in tuple(stale_popup_ids):
             self.popup_policy_registry.close_popup(popup_id)
             self._tracked_popup_ids.discard(popup_id)
+
+    def _track_popup_window(self, window: tk.Toplevel, *, policy_id: str = "dialog.modal") -> None:
+        """Register a popup immediately in the popup policy registry."""
+
+        popup_id = str(window)
+        if popup_id in self._tracked_popup_ids:
+            return
+        popup_title = ""
+        try:
+            popup_title = str(window.title() or "")
+        except Exception:
+            popup_title = ""
+        self.popup_policy_registry.open_popup(popup_id=popup_id, title=popup_title, policy_id=policy_id)
+        self._tracked_popup_ids.add(popup_id)
 
     def _collect_shortcut_runtime_context(self) -> dict[str, object]:
         """Collect current runtime context used by shortcut resolver and diagnostics."""
@@ -457,6 +479,7 @@ class BlattwerkAppBase:
         window.title("Shortcut-Runtime-Debug")
         window.geometry("980x540")
         window.minsize(820, 420)
+        self._track_popup_window(window, policy_id="dialog.non_blocking")
 
         toolbar = ttk.Frame(window, padding=(10, 8))
         toolbar.pack(fill="x")

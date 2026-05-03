@@ -15,6 +15,7 @@ Regel:
 - Format-Switching in der Vorschau: Wenn der Benutzer das Seitenformat wechselt (z. B. 16:9 → 16:10 oder A4 → A5), wird jetzt korrekt ein neuer Render angestoßen und der Cache wird invalidiert. Zuvor blieb die Vorschau-Darstellung trotz Format-Änderung gleich.
 
 ### Changed
+- Shortcut-Runtime-Debug-Popup ist jetzt als explizit nicht mode-blockierendes Parallel-Popup registriert (`dialog.non_blocking`), und die Runtime-Aufloesung wechselt nur noch bei mode-blockierenden Popups in den Dialog-Kontext.
 - Blattwerk-Pilot fuer das Hybrid-Input-Modell gestartet: Shortcut-Dispatch nutzt jetzt eine zentrale Laufzeitpruefung mit Prioritaetskontext (global/editor/preview/dialog/offline), statt Bindings nur statisch zu registrieren.
 - Dialogkontext in der Runtime-Aufloesung auf `PopupPolicyRegistry` umgestellt: aktive Toplevel-Fenster werden in den Popup-Stack gespiegelt und als Dialog-Prioritaet im Resolver genutzt.
 - Debug-Overlay fuer Shortcuts auf kompakte Tabellenansicht als eigenes Popup-Fenster umgebaut (nicht mehr als Widget im Vorschaubereich); Einstieg liegt jetzt in der Menuezeile unter `Einstellungen direkt`.
