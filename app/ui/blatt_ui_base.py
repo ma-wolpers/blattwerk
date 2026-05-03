@@ -6,6 +6,7 @@ import tkinter as tk
 from tkinter import ttk
 from pathlib import Path
 
+from app.bootstrap.wiring import AppDependencies
 from .blatt_shortcuts import build_preview_keybinding_registry, build_preview_shortcuts
 from .shortcut_manager import ShortcutManager
 from .ui_constants import (
@@ -31,6 +32,7 @@ from bw_libs.ui_contract.hsm import (
     build_ui_hsm_contract,
 )
 from bw_libs.ui_contract.popup import POPUP_KIND_MODAL, POPUP_KIND_NON_MODAL, PopupPolicy, PopupPolicyRegistry
+from bw_libs.app_shell import AppShellConfig, TkinterAppShell
 from .ui_theme import DEFAULT_THEME
 from ..styles.blatt_styles import DEFAULT_FONT_PROFILE, DEFAULT_FONT_SIZE_PROFILE
 from ..styles.worksheet_design import (
@@ -40,12 +42,17 @@ from ..styles.worksheet_design import (
 
 class BlattwerkAppBase:
     """Basisklasse für gemeinsamen GUI-Zustand und globale Shortcuts."""
-    def __init__(self, root):
+
+    def __init__(self, root, deps: AppDependencies | None = None):
         """Init."""
         self.root = root
-        self.root.title("Blattwerk")
-        self.root.geometry("980x860")
-        self.root.minsize(760, 640)
+        self.dependencies = deps
+        shell_config = (
+            deps.shell_config
+            if deps is not None
+            else AppShellConfig(title="Blattwerk", geometry="980x860", min_width=760, min_height=640)
+        )
+        self.app_shell = TkinterAppShell(self.root, shell_config, on_close=self._on_shell_close)
         try:
             self._default_tk_scaling = float(self.root.tk.call("tk", "scaling"))
         except Exception:
@@ -200,6 +207,29 @@ class BlattwerkAppBase:
         self.editor_view_mode_var.set(EDITOR_VIEW_PREVIEW_ONLY)
         if hasattr(self, "_apply_editor_view_mode"):
             self._apply_editor_view_mode()
+
+    def _on_shell_close(self) -> bool:
+        """Persist lightweight UI state before the root window closes."""
+
+        try:
+            if hasattr(self, "_close_help_preview_window"):
+                self._close_help_preview_window()
+        except Exception:
+            pass
+
+        try:
+            if hasattr(self, "_set_shortcut_debug_overlay_visible"):
+                self._set_shortcut_debug_overlay_visible(False)
+        except Exception:
+            pass
+
+        try:
+            if hasattr(self, "_save_ui_settings"):
+                self._save_ui_settings()
+        except Exception:
+            pass
+
+        return True
 
     @staticmethod
     def _clean_path_text(value):

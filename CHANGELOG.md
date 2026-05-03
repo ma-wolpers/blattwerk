@@ -18,6 +18,7 @@ The format is based on Keep a Changelog.
 
 ### Changed
 
+- GUI startup now follows a centralized dependency bootstrap (`build_gui_dependencies`) and applies a shared Tk shell configuration/lifecycle (`bw_libs/app_shell.py`) for more consistent window behavior.
 - UI settings persistence now uses the centralized atomic JSON writer from `bw_libs/app_paths.py`.
 - Shared app path/atomic-write foundation introduced via `bw_libs/app_paths.py`, and local config persistence now uses the centralized atomic JSON writer.
 - Central UI contracts for keybindings, popup policy, and HSM semantics now live in shared `bw_libs/ui_contract` modules to avoid duplicate maintenance.

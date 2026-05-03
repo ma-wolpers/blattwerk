@@ -18,6 +18,7 @@ Regel:
 - Format-Switching in der Vorschau: Wenn der Benutzer das Seitenformat wechselt (z. B. 16:9 → 16:10 oder A4 → A5), wird jetzt korrekt ein neuer Render angestoßen und der Cache wird invalidiert. Zuvor blieb die Vorschau-Darstellung trotz Format-Änderung gleich.
 
 ### Changed
+- G3/G4 gestartet: GUI-Startup folgt jetzt einem expliziten Composition-Root (`app/bootstrap/wiring.py` mit `build_gui_dependencies()`/`AppDependencies`), und das Hauptfenster wird ueber die neue Shared-Shell-Basis `bw_libs/app_shell.py` initialisiert.
 - G2.2 erweitert: `app/storage/ui_settings_store.py` nutzt jetzt die zentrale `atomic_write_json`-API aus `bw_libs/app_paths.py`.
 - G2.1 gestartet: Shared-Modul `bw_libs/app_paths.py` eingefuehrt (AppPaths-Discovery sowie atomische JSON/Text-Write-Helfer).
 - Persistenz-Pilot: `app/storage/local_config_store.py` nutzt jetzt die zentrale `atomic_write_json`-API aus `bw_libs/app_paths.py`.

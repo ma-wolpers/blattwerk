@@ -11,6 +11,7 @@ from .blatt_ui_persistence import BlattwerkAppPersistenceMixin
 from .blatt_ui_preview import BlattwerkAppPreviewMixin
 from .blatt_ui_style import BlattwerkAppStyleMixin
 import tkinter as tk
+from app.bootstrap.wiring import AppDependencies, build_gui_dependencies
 from .window_identity import apply_window_icon, configure_windows_process_identity
 
 
@@ -27,11 +28,12 @@ class BlattwerkApp(
     """Vorschau-zentrierte GUI für Blattwerk."""
 
 
-def run_gui():
+def run_gui(dependencies: AppDependencies | None = None):
     """Startet die Tkinter-Anwendung."""
 
+    resolved_dependencies = dependencies or build_gui_dependencies()
     configure_windows_process_identity()
     root = tk.Tk()
     apply_window_icon(root)
-    BlattwerkApp(root)
+    BlattwerkApp(root, deps=resolved_dependencies)
     root.mainloop()
