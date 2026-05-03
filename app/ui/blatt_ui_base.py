@@ -6,6 +6,7 @@ import tkinter as tk
 from tkinter import ttk
 from pathlib import Path
 
+from app.app_info import APP_INFO
 from app.bootstrap.wiring import AppDependencies
 from .blatt_shortcuts import build_preview_keybinding_registry, build_preview_shortcuts
 from .shortcut_manager import ShortcutManager
@@ -50,7 +51,12 @@ class BlattwerkAppBase:
         shell_config = (
             deps.shell_config
             if deps is not None
-            else AppShellConfig(title="Blattwerk", geometry="980x860", min_width=760, min_height=640)
+            else AppShellConfig(
+                title=APP_INFO.window_title,
+                geometry="980x860",
+                min_width=760,
+                min_height=640,
+            )
         )
         self.app_shell = TkinterAppShell(self.root, shell_config, on_close=self._on_shell_close)
         try:

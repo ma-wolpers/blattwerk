@@ -18,6 +18,7 @@ The format is based on Keep a Changelog.
 
 ### Changed
 
+- App identity metadata is now centralized in `app/app_info.py` and used as the single source for GUI bootstrap window identity settings.
 - GUI startup now follows a centralized dependency bootstrap (`build_gui_dependencies`) and applies a shared Tk shell configuration/lifecycle (`bw_libs/app_shell.py`) for more consistent window behavior.
 - UI settings persistence now uses the centralized atomic JSON writer from `bw_libs/app_paths.py`.
 - Shared app path/atomic-write foundation introduced via `bw_libs/app_paths.py`, and local config persistence now uses the centralized atomic JSON writer.
