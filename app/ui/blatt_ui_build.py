@@ -354,69 +354,8 @@ class BlattwerkAppBuildMixin:
         info_row.pack(fill="x", pady=(0, 8))
         ttk.Label(info_row, textvariable=self.page_info_var).pack(side="left")
         ttk.Label(info_row, textvariable=self.zoom_info_var).pack(side="left", padx=(14, 0))
-        ttk.Button(
-            info_row,
-            text="Debug Shortcuts",
-            style="SecondaryAction.TButton",
-            command=self._toggle_shortcut_debug_overlay,
-        ).pack(side="left", padx=(14, 0))
         self.status_label = ttk.Label(info_row, textvariable=self.status_var, style="Muted.TLabel")
         self.status_label.pack(side="right")
-
-        self.shortcut_debug_frame = ttk.LabelFrame(preview_controls, text="Shortcut-Kontext (Debug)")
-        debug_toolbar = ttk.Frame(self.shortcut_debug_frame)
-        debug_toolbar.pack(fill="x", padx=8, pady=(8, 6))
-        ttk.Label(debug_toolbar, textvariable=self.shortcut_debug_context_var, style="Muted.TLabel").pack(
-            side="left",
-            fill="x",
-            expand=True,
-        )
-        ttk.Checkbutton(
-            debug_toolbar,
-            text="Offline simulieren",
-            variable=self.shortcut_debug_offline_var,
-            command=self._on_shortcut_debug_offline_changed,
-        ).pack(side="left", padx=(12, 0))
-        ttk.Button(
-            debug_toolbar,
-            text="Ausblenden",
-            style="SecondaryAction.TButton",
-            command=lambda: self._set_shortcut_debug_overlay_visible(False),
-        ).pack(side="right")
-
-        debug_body = ttk.Frame(self.shortcut_debug_frame)
-        debug_body.pack(fill="both", expand=True, padx=8, pady=(0, 8))
-        columns = ("mode", "sequence", "binding", "status", "reason")
-        self.shortcut_debug_table = ttk.Treeview(
-            debug_body,
-            columns=columns,
-            show="headings",
-            height=10,
-        )
-        self.shortcut_debug_table.heading("mode", text="Mode")
-        self.shortcut_debug_table.heading("sequence", text="Key")
-        self.shortcut_debug_table.heading("binding", text="Binding")
-        self.shortcut_debug_table.heading("status", text="Status")
-        self.shortcut_debug_table.heading("reason", text="Reason")
-        self.shortcut_debug_table.column("mode", width=90, anchor="center", stretch=False)
-        self.shortcut_debug_table.column("sequence", width=130, anchor="center", stretch=False)
-        self.shortcut_debug_table.column("binding", width=280, anchor="w", stretch=True)
-        self.shortcut_debug_table.column("status", width=90, anchor="center", stretch=False)
-        self.shortcut_debug_table.column("reason", width=180, anchor="w", stretch=True)
-        self.shortcut_debug_table.pack(side="left", fill="both", expand=True)
-        self.shortcut_debug_table.tag_configure("row_active")
-        self.shortcut_debug_table.tag_configure("row_disabled")
-
-        debug_scrollbar = ttk.Scrollbar(debug_body, orient="vertical", command=self.shortcut_debug_table.yview)
-        debug_scrollbar.pack(side="right", fill="y")
-        self.shortcut_debug_table.configure(yscrollcommand=debug_scrollbar.set)
-
-        ttk.Label(
-            self.shortcut_debug_frame,
-            textvariable=self.shortcut_debug_summary_var,
-            style="Muted.TLabel",
-        ).pack(fill="x", padx=8, pady=(0, 8))
-        self.shortcut_debug_frame.pack_forget()
 
         ttk.Separator(self.preview_container, orient="horizontal").pack(fill="x")
 

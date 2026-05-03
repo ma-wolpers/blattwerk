@@ -109,7 +109,7 @@ class BlattwerkAppBase:
         self.shortcut_debug_enabled_var = tk.BooleanVar(value=False)
         self.shortcut_debug_offline_var = tk.BooleanVar(value=False)
         self.shortcut_debug_context_var = tk.StringVar(value="")
-        self.shortcut_debug_frame = None
+        self.shortcut_debug_window = None
         self.shortcut_debug_table = None
         self.shortcut_debug_summary_var = tk.StringVar(value="")
         self._shortcut_debug_refresh_after_id = None
@@ -412,26 +412,110 @@ class BlattwerkAppBase:
         self._shortcut_debug_refresh_after_id = self.root.after(500, self._schedule_shortcut_debug_overlay_refresh)
 
     def _set_shortcut_debug_overlay_visible(self, visible: bool) -> None:
-        """Show or hide the shortcut debug overlay frame."""
+        """Show or hide the shortcut debug popup window."""
 
-        if self.shortcut_debug_frame is None:
-            return
-
-        self.shortcut_debug_enabled_var.set(bool(visible))
         if visible:
-            self.shortcut_debug_frame.pack(fill="both", expand=False, pady=(0, 8))
+            self._open_shortcut_debug_popup()
+            self.shortcut_debug_enabled_var.set(True)
             self._schedule_shortcut_debug_overlay_refresh()
-            self.status_var.set("Shortcut-Debug-Overlay aktiv")
+            self.status_var.set("Shortcut-Runtime-Debug aktiv")
             return
 
-        self.shortcut_debug_frame.pack_forget()
+        self.shortcut_debug_enabled_var.set(False)
         if self._shortcut_debug_refresh_after_id is not None:
             try:
                 self.root.after_cancel(self._shortcut_debug_refresh_after_id)
             except Exception:
                 pass
             self._shortcut_debug_refresh_after_id = None
-        self.status_var.set("Shortcut-Debug-Overlay ausgeblendet")
+
+        if self.shortcut_debug_window is not None:
+            try:
+                if int(self.shortcut_debug_window.winfo_exists()):
+                    self.shortcut_debug_window.destroy()
+            except Exception:
+                pass
+        self.shortcut_debug_window = None
+        self.shortcut_debug_table = None
+        self.status_var.set("Shortcut-Runtime-Debug ausgeblendet")
+
+    def _open_shortcut_debug_popup(self) -> None:
+        """Open (or focus) shortcut runtime debug popup."""
+
+        if self.shortcut_debug_window is not None:
+            try:
+                if int(self.shortcut_debug_window.winfo_exists()):
+                    self.shortcut_debug_window.deiconify()
+                    self.shortcut_debug_window.lift()
+                    self.shortcut_debug_window.focus_force()
+                    return
+            except Exception:
+                self.shortcut_debug_window = None
+
+        window = tk.Toplevel(self.root)
+        window.title("Shortcut-Runtime-Debug")
+        window.geometry("980x540")
+        window.minsize(820, 420)
+
+        toolbar = ttk.Frame(window, padding=(10, 8))
+        toolbar.pack(fill="x")
+        ttk.Label(toolbar, textvariable=self.shortcut_debug_context_var, style="Muted.TLabel").pack(
+            side="left",
+            fill="x",
+            expand=True,
+        )
+        ttk.Checkbutton(
+            toolbar,
+            text="Offline simulieren",
+            variable=self.shortcut_debug_offline_var,
+            command=self._on_shortcut_debug_offline_changed,
+        ).pack(side="left", padx=(12, 0))
+        ttk.Button(
+            toolbar,
+            text="Aktualisieren",
+            style="SecondaryAction.TButton",
+            command=self._refresh_shortcut_debug_overlay,
+        ).pack(side="left", padx=(8, 0))
+        ttk.Button(
+            toolbar,
+            text="Schliessen",
+            style="SecondaryAction.TButton",
+            command=lambda: self._set_shortcut_debug_overlay_visible(False),
+        ).pack(side="right")
+
+        debug_body = ttk.Frame(window, padding=(10, 0, 10, 8))
+        debug_body.pack(fill="both", expand=True)
+        columns = ("mode", "sequence", "binding", "status", "reason")
+        self.shortcut_debug_table = ttk.Treeview(
+            debug_body,
+            columns=columns,
+            show="headings",
+            height=10,
+        )
+        self.shortcut_debug_table.heading("mode", text="Mode")
+        self.shortcut_debug_table.heading("sequence", text="Key")
+        self.shortcut_debug_table.heading("binding", text="Binding")
+        self.shortcut_debug_table.heading("status", text="Status")
+        self.shortcut_debug_table.heading("reason", text="Reason")
+        self.shortcut_debug_table.column("mode", width=90, anchor="center", stretch=False)
+        self.shortcut_debug_table.column("sequence", width=130, anchor="center", stretch=False)
+        self.shortcut_debug_table.column("binding", width=280, anchor="w", stretch=True)
+        self.shortcut_debug_table.column("status", width=90, anchor="center", stretch=False)
+        self.shortcut_debug_table.column("reason", width=180, anchor="w", stretch=True)
+        self.shortcut_debug_table.pack(side="left", fill="both", expand=True)
+
+        debug_scrollbar = ttk.Scrollbar(debug_body, orient="vertical", command=self.shortcut_debug_table.yview)
+        debug_scrollbar.pack(side="right", fill="y")
+        self.shortcut_debug_table.configure(yscrollcommand=debug_scrollbar.set)
+
+        ttk.Label(
+            window,
+            textvariable=self.shortcut_debug_summary_var,
+            style="Muted.TLabel",
+        ).pack(fill="x", padx=10, pady=(0, 8))
+
+        window.protocol("WM_DELETE_WINDOW", lambda: self._set_shortcut_debug_overlay_visible(False))
+        self.shortcut_debug_window = window
 
     def _toggle_shortcut_debug_overlay(self) -> None:
         """Toggle shortcut debug overlay visibility."""

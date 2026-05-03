@@ -565,6 +565,7 @@ class BlattwerkAppStyleMixin:
                 {"type": "command", "label": "Design und Theme", "command": lambda: self._open_local_settings_dialog("design_theme")},
                 {"type": "command", "label": "Export", "command": lambda: self._open_local_settings_dialog("export")},
                 {"type": "command", "label": "Shortcuts", "command": lambda: self._open_local_settings_dialog("shortcuts")},
+                {"type": "command", "label": "Shortcut-Runtime-Debug", "command": self._toggle_shortcut_debug_overlay},
                 {"type": "command", "label": "Identitaet und Copyright", "command": lambda: self._open_local_settings_dialog("identity")},
                 {"type": "command", "label": "Dokument Defaults", "command": lambda: self._open_local_settings_dialog("document_defaults")},
                 {"type": "command", "label": "Accessibility", "command": lambda: self._open_local_settings_dialog("accessibility")},

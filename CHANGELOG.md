@@ -21,12 +21,14 @@ The format is based on Keep a Changelog.
 - Governance checks now enforce changelog updates only for user- or co-developer-relevant changes, while commit/push process hints are shown locally but no longer in CI output.
 - Shortcut dispatch in the main UI now applies mode-aware runtime checks (global/editor/preview/dialog/offline) before executing actions.
 - Dialog-priority detection in shortcut runtime checks is now driven by the central popup policy stack (PopupPolicyRegistry-backed) instead of generic toplevel heuristics.
+- Shortcut runtime debug is now opened as a dedicated popup window and no longer embedded in the preview area.
 
 ### Added
 
 - New shortcut debug overlay in the preview area (`Debug Shortcuts` button, `Ctrl+Shift+D`) showing active mode, active/disabled bindings per mode, and disable reasons.
 - Offline simulation toggle for shortcut diagnostics (`Ctrl+Shift+O` and overlay checkbox) to inspect offline-context behavior without disconnecting the system.
 - Shortcut debug overlay now includes a compact table view with per-binding mode, key sequence, status, and disabled reason for faster diagnostics.
+- New menu entry under `Datei -> Einstellungen direkt`: `Shortcut-Runtime-Debug` opens the diagnostics popup without needing a preview-area button.
 
 ## [0.4.1] - 2026-04-22
 
