@@ -18,6 +18,8 @@ The format is based on Keep a Changelog.
 
 ### Changed
 
+- UI settings persistence now uses the centralized atomic JSON writer from `bw_libs/app_paths.py`.
+- Shared app path/atomic-write foundation introduced via `bw_libs/app_paths.py`, and local config persistence now uses the centralized atomic JSON writer.
 - Central UI contracts for keybindings, popup policy, and HSM semantics now live in shared `bw_libs/ui_contract` modules to avoid duplicate maintenance.
 - Escape now follows a centralized back-navigation order: close active popup first, then leave inline editor context, then return to parent view state.
 - Shortcut intents are now validated against a central HSM contract before runtime execution, improving cross-mode consistency.

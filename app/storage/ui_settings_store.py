@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import json
 
+from bw_libs.app_paths import atomic_write_json
+
 
 def load_ui_settings(store_path):
     """Lädt UI-Einstellungen aus JSON oder liefert Defaults."""
@@ -21,6 +23,4 @@ def load_ui_settings(store_path):
 def save_ui_settings(store_path, settings):
     """Speichert UI-Einstellungen als JSON."""
     payload = settings if isinstance(settings, dict) else {}
-    store_path.write_text(
-        json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8"
-    )
+    atomic_write_json(store_path, payload)

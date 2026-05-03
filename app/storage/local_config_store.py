@@ -7,7 +7,8 @@ import math
 import time
 from copy import deepcopy
 from pathlib import Path
-from tempfile import NamedTemporaryFile
+
+from bw_libs.app_paths import atomic_write_json
 
 DEFAULT_MAX_RECENT_FILES = 5
 MIN_MAX_RECENT_FILES = 1
@@ -55,14 +56,6 @@ DEFAULT_LOCAL_CONFIG = {
     },
     USER_PREFERENCES_KEY: {},
 }
-
-
-def _atomic_write_json(path: Path, payload: dict[str, object]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with NamedTemporaryFile("w", delete=False, encoding="utf-8", dir=str(path.parent), suffix=".tmp") as handle:
-        handle.write(json.dumps(payload, ensure_ascii=False, indent=2))
-        temp_path = Path(handle.name)
-    temp_path.replace(path)
 
 
 def _normalize_system_settings(raw: object) -> dict[str, object]:
@@ -194,7 +187,7 @@ def load_local_config() -> dict[str, object]:
 
 def save_local_config(config: dict[str, object]) -> dict[str, object]:
     normalized = normalize_local_config(config)
-    _atomic_write_json(LOCAL_CONFIG_PATH, normalized)
+    atomic_write_json(LOCAL_CONFIG_PATH, normalized)
     return normalized
 
 
