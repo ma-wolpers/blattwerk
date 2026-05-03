@@ -18,6 +18,8 @@ Regel:
 - Format-Switching in der Vorschau: Wenn der Benutzer das Seitenformat wechselt (z. B. 16:9 → 16:10 oder A4 → A5), wird jetzt korrekt ein neuer Render angestoßen und der Cache wird invalidiert. Zuvor blieb die Vorschau-Darstellung trotz Format-Änderung gleich.
 
 ### Changed
+- UI-Contract-Module fuer KeyBindings, Popup-Policies und HSM wurden in das Shared-Paket `bw_libs/ui_contract/` ueberfuehrt; GUI und Tests importieren die Vertraege jetzt zentral statt aus lokalen Duplikatdateien.
+- Guardrails/Governance auf `bw_libs/ui_contract` ausgerichtet; `bw_libs/` wird bei Development-Log- und Changelog-Relevanz mitbewertet.
 - Globale Escape-Behandlung laeuft jetzt ueber einen zentralen Resolver: Esc schliesst zuerst escapefaehige Popups, beendet dann Inline-Editor-Kontext und poppt danach den Parent-View-State.
 - Runtime-Shortcut-Evaluation validiert Intents jetzt gegen den zentralen HSM-Contract, bevor modebasierte Aktivierungsregeln ausgefuehrt werden.
 - Shortcut-Runtime-Debug-Popup ist jetzt als explizit nicht mode-blockierendes Parallel-Popup registriert (`dialog.non_blocking`), und die Runtime-Aufloesung wechselt nur noch bei mode-blockierenden Popups in den Dialog-Kontext.

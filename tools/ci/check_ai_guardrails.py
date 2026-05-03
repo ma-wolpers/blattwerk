@@ -24,8 +24,9 @@ GUARDRAIL_RELEVANT_PATHS = {
     "docs/VALIDATOR.md",
     "CHANGELOG.md",
     "tools/ci/check_ai_guardrails.py",
-    "app/ui/keybinding_registry.py",
-    "app/ui/popup_policy.py",
+    "bw_libs/ui_contract/keybinding.py",
+    "bw_libs/ui_contract/popup.py",
+    "bw_libs/ui_contract/hsm.py",
 }
 
 BLAETTWERKER_SOLUTION_RULE = (
@@ -38,14 +39,16 @@ PROCESS_GUIDANCE_RULES = {
 CHANGELOG_RELEVANT_PREFIXES = (
     "app/ui/",
     "app/core/",
+    "bw_libs/",
 )
 CHANGELOG_CODEV_RELEVANT_PATHS = {
     "AGENTS.md",
     ".github/copilot-instructions.md",
     ".github/pull_request_template.md",
     "tools/ci/check_ai_guardrails.py",
-    "app/ui/keybinding_registry.py",
-    "app/ui/popup_policy.py",
+    "bw_libs/ui_contract/keybinding.py",
+    "bw_libs/ui_contract/popup.py",
+    "bw_libs/ui_contract/hsm.py",
 }
 
 
@@ -121,6 +124,7 @@ def _check_development_log_updated(staged: set[str], errors: list[str]) -> None:
 
     requires_log = any(
         path.startswith("app/")
+        or path.startswith("bw_libs/")
         or path == "docs/ARCHITEKTUR.md"
         or path == "docs/ARCHITEKTUR_EINFACH.md"
         for path in normalized
@@ -393,8 +397,9 @@ def main() -> int:
     _read(".github/copilot-instructions.md")
     _read("CHANGELOG.md")
     _read("docs/DEVELOPMENT_LOG.md")
-    _read("app/ui/keybinding_registry.py")
-    _read("app/ui/popup_policy.py")
+    _read("bw_libs/ui_contract/keybinding.py")
+    _read("bw_libs/ui_contract/popup.py")
+    _read("bw_libs/ui_contract/hsm.py")
 
     arch_doc = _read("docs/ARCHITEKTUR.md")
     _require_substring(

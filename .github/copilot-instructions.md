@@ -1,4 +1,4 @@
-# Copilot Instructions (blattwerk)
+﻿# Copilot Instructions (blattwerk)
 
 Arbeite in klarer Dokumenttrennung und halte Guardrails strikt ein.
 
@@ -26,8 +26,8 @@ Pflichtregeln:
 - Nach solchen Aenderungen immer mindestens `pytest-verify` und `guardrails-verify` ausfuehren.
 
 7. Zentrale UI-Module
-- KeyBindings in `app/ui/keybinding_registry.py` zentral halten und modebasiert dokumentieren.
-- Pop-up-Regeln in `app/ui/popup_policy.py` zentral halten.
+- KeyBindings in `bw_libs/ui_contract/keybinding.py` zentral halten und modebasiert dokumentieren.
+- Pop-up-Regeln in `bw_libs/ui_contract/popup.py` zentral halten.
 - Neue Shortcut-/Popup-Features zuerst in den Zentralmodulen definieren, danach in Views anbinden.
 
 8. Commit-/Push-Workflow
