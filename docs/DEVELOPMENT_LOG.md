@@ -15,6 +15,8 @@ Regel:
 - Format-Switching in der Vorschau: Wenn der Benutzer das Seitenformat wechselt (z. B. 16:9 → 16:10 oder A4 → A5), wird jetzt korrekt ein neuer Render angestoßen und der Cache wird invalidiert. Zuvor blieb die Vorschau-Darstellung trotz Format-Änderung gleich.
 
 ### Changed
+- Shortcut-Modifier-Steuerung in der zentralen Keybinding-Registry explizit gemacht: `allow_modifiers` wird jetzt pro Shortcut gesetzt statt heuristisch aus der Sequenz abgeleitet.
+- Guardrails praezisiert: `CHANGELOG.md` wird nun bei nutzer- oder coentwicklerrelevanten Aenderungen erzwungen; Prozesswarnungen (Commit-/Push-Guidance) werden nur noch lokal und nicht in CI ausgegeben.
 - Zentrale UI-Governance gestartet: neue Zentralmodule `app/ui/keybinding_registry.py` (modusbasierte Shortcut-Registry inkl. Konflikt- und Manifest-Sicht) und `app/ui/popup_policy.py` (einheitliche Popup-Policy mit Fokus-/Lifecycle-Stack) eingefuehrt.
 - Guardrail-Regeln erweitert: AGENTS/Copilot/PR-Template fordern jetzt zentrale Shortcut-/Popup-Registrierung sowie Feature-Commit-Disziplin bei manuellem Push.
 - `tools/ci/check_ai_guardrails.py` prueft die Existenz der neuen Zentralmodule und meldet Commit-/Push-Prozessdrift als non-blocking Warnung.

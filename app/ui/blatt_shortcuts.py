@@ -24,14 +24,12 @@ from .ui_constants import (
 
 def _to_shortcut_binding(definition: KeyBindingDefinition) -> ShortcutBinding:
     """Convert central keybinding definitions to Tkinter shortcut bindings."""
-    sequence = definition.sequence.lower()
-    allow_modifiers = "control" in sequence or "alt" in sequence
     return ShortcutBinding(
         definition.sequence,
         definition.handler or (lambda: None),
         definition.description or None,
         ignore_when_text_input=not definition.allow_when_text_input,
-        allow_modifiers=allow_modifiers,
+        allow_modifiers=definition.allow_modifiers,
     )
 
 
@@ -60,18 +58,18 @@ def build_preview_keybinding_registry(app) -> KeybindingRegistry:
             KeyBindingDefinition("preview.zoom_in_numpad", "<KP_Add>", "preview.zoom_in_numpad", (UI_MODE_PREVIEW,), handler=lambda: app.change_zoom(10)),
             KeyBindingDefinition("preview.toggle_mode", "<Tab>", "preview.toggle_mode", (UI_MODE_PREVIEW,), "Tab   Aufgabe / Lösung", handler=app._toggle_preview_mode),
             KeyBindingDefinition("preview.refresh", "<space>", "preview.refresh", (UI_MODE_PREVIEW,), "Leertaste   Vorschau aktualisieren", handler=app.refresh_preview),
-            KeyBindingDefinition("global.export", "<Control-e>", "global.export", (UI_MODE_GLOBAL, UI_MODE_DIALOG), "Strg+E   Exportieren", allow_when_text_input=True, handler=app.open_worksheet_export_dialog),
-            KeyBindingDefinition("global.help_preview", "<Control-h>", "global.help_preview", (UI_MODE_GLOBAL, UI_MODE_DIALOG), "Strg+H   Lernhilfenansicht", allow_when_text_input=True, handler=app.open_help_preview_window),
+            KeyBindingDefinition("global.export", "<Control-e>", "global.export", (UI_MODE_GLOBAL, UI_MODE_DIALOG), "Strg+E   Exportieren", allow_modifiers=True, allow_when_text_input=True, handler=app.open_worksheet_export_dialog),
+            KeyBindingDefinition("global.help_preview", "<Control-h>", "global.help_preview", (UI_MODE_GLOBAL, UI_MODE_DIALOG), "Strg+H   Lernhilfenansicht", allow_modifiers=True, allow_when_text_input=True, handler=app.open_help_preview_window),
             KeyBindingDefinition("global.open_file", "<KeyPress-o>", "global.open_file", (UI_MODE_GLOBAL,), "O   Markdown öffnen", handler=app.pick_input),
-            KeyBindingDefinition("global.new_file", "<Control-n>", "global.new_file", (UI_MODE_GLOBAL, UI_MODE_DIALOG), "Strg+N   neue Markdown-Datei", allow_when_text_input=True, handler=app.create_new_markdown_file),
-            KeyBindingDefinition("global.open_file_ctrl", "<Control-o>", "global.open_file_ctrl", (UI_MODE_GLOBAL, UI_MODE_DIALOG), "Strg+O   Markdown öffnen", allow_when_text_input=True, handler=app.pick_input),
-            KeyBindingDefinition("global.save_as", "<Control-Shift-s>", "global.save_as", (UI_MODE_GLOBAL, UI_MODE_DIALOG), "Strg+Shift+S   Speichern unter", allow_when_text_input=True, handler=app.save_markdown_file_as),
-            KeyBindingDefinition("global.settings", "<Control-comma>", "global.settings", (UI_MODE_GLOBAL, UI_MODE_DIALOG), "Strg+,   Einstellungen", allow_when_text_input=True, handler=app._open_local_settings_dialog),
-            KeyBindingDefinition("global.view_preview", "<Control-Key-1>", "global.view_preview", (UI_MODE_GLOBAL, UI_MODE_DIALOG), "Strg+1/2/3   Vorschau / beides / Editor", allow_when_text_input=True, handler=lambda: app._set_editor_view_mode(EDITOR_VIEW_PREVIEW_ONLY)),
-            KeyBindingDefinition("global.view_both", "<Control-Key-2>", "global.view_both", (UI_MODE_GLOBAL, UI_MODE_DIALOG), allow_when_text_input=True, handler=lambda: app._set_editor_view_mode(EDITOR_VIEW_BOTH)),
-            KeyBindingDefinition("global.view_editor", "<Control-Key-3>", "global.view_editor", (UI_MODE_GLOBAL, UI_MODE_DIALOG), allow_when_text_input=True, handler=lambda: app._set_editor_view_mode(EDITOR_VIEW_EDITOR_ONLY)),
-            KeyBindingDefinition("global.cycle_theme", "<Control-t>", "global.cycle_theme", (UI_MODE_GLOBAL, UI_MODE_DIALOG), "Strg+T   Theme wechseln", allow_when_text_input=True, handler=app._cycle_theme),
-            KeyBindingDefinition("global.cycle_font", "<Control-f>", "global.cycle_font", (UI_MODE_GLOBAL, UI_MODE_DIALOG), "Strg+F   Schriftprofil wechseln", allow_when_text_input=True, handler=app._cycle_font_profile),
+            KeyBindingDefinition("global.new_file", "<Control-n>", "global.new_file", (UI_MODE_GLOBAL, UI_MODE_DIALOG), "Strg+N   neue Markdown-Datei", allow_modifiers=True, allow_when_text_input=True, handler=app.create_new_markdown_file),
+            KeyBindingDefinition("global.open_file_ctrl", "<Control-o>", "global.open_file_ctrl", (UI_MODE_GLOBAL, UI_MODE_DIALOG), "Strg+O   Markdown öffnen", allow_modifiers=True, allow_when_text_input=True, handler=app.pick_input),
+            KeyBindingDefinition("global.save_as", "<Control-Shift-s>", "global.save_as", (UI_MODE_GLOBAL, UI_MODE_DIALOG), "Strg+Shift+S   Speichern unter", allow_modifiers=True, allow_when_text_input=True, handler=app.save_markdown_file_as),
+            KeyBindingDefinition("global.settings", "<Control-comma>", "global.settings", (UI_MODE_GLOBAL, UI_MODE_DIALOG), "Strg+,   Einstellungen", allow_modifiers=True, allow_when_text_input=True, handler=app._open_local_settings_dialog),
+            KeyBindingDefinition("global.view_preview", "<Control-Key-1>", "global.view_preview", (UI_MODE_GLOBAL, UI_MODE_DIALOG), "Strg+1/2/3   Vorschau / beides / Editor", allow_modifiers=True, allow_when_text_input=True, handler=lambda: app._set_editor_view_mode(EDITOR_VIEW_PREVIEW_ONLY)),
+            KeyBindingDefinition("global.view_both", "<Control-Key-2>", "global.view_both", (UI_MODE_GLOBAL, UI_MODE_DIALOG), allow_modifiers=True, allow_when_text_input=True, handler=lambda: app._set_editor_view_mode(EDITOR_VIEW_BOTH)),
+            KeyBindingDefinition("global.view_editor", "<Control-Key-3>", "global.view_editor", (UI_MODE_GLOBAL, UI_MODE_DIALOG), allow_modifiers=True, allow_when_text_input=True, handler=lambda: app._set_editor_view_mode(EDITOR_VIEW_EDITOR_ONLY)),
+            KeyBindingDefinition("global.cycle_theme", "<Control-t>", "global.cycle_theme", (UI_MODE_GLOBAL, UI_MODE_DIALOG), "Strg+T   Theme wechseln", allow_modifiers=True, allow_when_text_input=True, handler=app._cycle_theme),
+            KeyBindingDefinition("global.cycle_font", "<Control-f>", "global.cycle_font", (UI_MODE_GLOBAL, UI_MODE_DIALOG), "Strg+F   Schriftprofil wechseln", allow_modifiers=True, allow_when_text_input=True, handler=app._cycle_font_profile),
             KeyBindingDefinition("global.open_recent", "<KeyPress-z>", "global.open_recent", (UI_MODE_GLOBAL,), "Z   zuletzt geladenes Markdown", handler=app._open_last_markdown),
             KeyBindingDefinition("global.exit", "<Escape>", "global.exit", (UI_MODE_GLOBAL, UI_MODE_DIALOG), "Esc   Beenden", handler=app.root.destroy),
         ]

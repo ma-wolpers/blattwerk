@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -33,6 +34,18 @@ BLAETTWERKER_SOLUTION_RULE = (
 PROCESS_GUIDANCE_RULES = {
     "feature_commit": "Feature-Aenderungen werden in eigenstaendigen Commits",
     "manual_push": "Push erfolgt manuell",
+}
+CHANGELOG_RELEVANT_PREFIXES = (
+    "app/ui/",
+    "app/core/",
+)
+CHANGELOG_CODEV_RELEVANT_PATHS = {
+    "AGENTS.md",
+    ".github/copilot-instructions.md",
+    ".github/pull_request_template.md",
+    "tools/ci/check_ai_guardrails.py",
+    "app/ui/keybinding_registry.py",
+    "app/ui/popup_policy.py",
 }
 
 
@@ -116,6 +129,25 @@ def _check_development_log_updated(staged: set[str], errors: list[str]) -> None:
     if requires_log and not log_touched:
         errors.append(
             "docs/DEVELOPMENT_LOG.md missing update: relevant feature/architecture changes require a same-cycle log entry"
+        )
+
+
+def _check_changelog_updated(staged: set[str], errors: list[str]) -> None:
+    """Require changelog updates for user- or co-developer-relevant changes."""
+    normalized = {path.replace("\\", "/") for path in staged}
+    if not normalized:
+        return
+
+    if "CHANGELOG.md" in normalized:
+        return
+
+    requires_changelog = any(
+        path.startswith(prefix) for path in normalized for prefix in CHANGELOG_RELEVANT_PREFIXES
+    ) or any(path in CHANGELOG_CODEV_RELEVANT_PATHS for path in normalized)
+
+    if requires_changelog:
+        errors.append(
+            "CHANGELOG.md missing update: user- or co-developer-relevant changes require a changelog entry"
         )
 
 
@@ -343,6 +375,11 @@ def _collect_process_guidance_warnings() -> list[str]:
     return warnings
 
 
+def _is_ci_environment() -> bool:
+    """Return whether the check runs in a CI environment."""
+    return bool(os.environ.get("CI") or os.environ.get("GITHUB_ACTIONS"))
+
+
 def main() -> int:
     repo_root = _repo_root()
     staged = _staged_files(repo_root)
@@ -388,6 +425,7 @@ def main() -> int:
     )
 
     _check_development_log_updated(staged, errors)
+    _check_changelog_updated(staged, errors)
     _check_marker_token_consistency(errors)
     _check_extension_validator_sync(errors)
     _check_blattwerker_solution_rule(errors)
@@ -399,7 +437,7 @@ def main() -> int:
             print(f" - {item}")
         return 2
 
-    if warnings:
+    if warnings and not _is_ci_environment():
         print("AI guardrail process warnings (non-blocking):")
         for item in warnings:
             print(f" - {item}")

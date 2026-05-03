@@ -15,6 +15,11 @@ The format is based on Keep a Changelog.
 - Preview format switching now correctly updates the rendered preview when changing between different slide formats (16:9 → 16:10 → 4:3) or worksheet formats (A4 → A5).
 - Larger font sizes for presentations: Normal-Profil rendert jetzt mit 20 pt (statt 11 pt), damit Text auf Projektionsflächen lesbar bleibt.
 
+### Changed
+
+- Shortcut handling now keeps modifier-policy explicit in the central keybinding layer instead of deriving it heuristically from key-sequence text.
+- Governance checks now enforce changelog updates only for user- or co-developer-relevant changes, while commit/push process hints are shown locally but no longer in CI output.
+
 ## [0.4.1] - 2026-04-22
 
 ### Changed
