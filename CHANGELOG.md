@@ -14,6 +14,7 @@ The format is based on Keep a Changelog.
 
 - Preview format switching now correctly updates the rendered preview when changing between different slide formats (16:9 → 16:10 → 4:3) or worksheet formats (A4 → A5).
 - Larger font sizes for presentations: Normal-Profil rendert jetzt mit 20 pt (statt 11 pt), damit Text auf Projektionsflächen lesbar bleibt.
+- Shortcut runtime debug popup no longer opens as an empty window; runtime table controls now render correctly.
 
 ### Changed
 
