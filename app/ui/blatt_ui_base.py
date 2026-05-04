@@ -67,6 +67,8 @@ class BlattwerkAppBase:
         self.input_var = tk.StringVar()
         self.preview_mode_var = tk.StringVar(value="worksheet")
         self.preview_black_screen_var = tk.StringVar(value="none")
+        self.preview_section_separator_var = tk.StringVar(value="dot")
+        self.preview_hide_future_sections_var = tk.BooleanVar(value=False)
         self.preview_page_format_var = tk.StringVar(value="a4_portrait")
         self.preview_contrast_var = tk.StringVar(value="standard")
         self.preview_fit_mode_var = tk.StringVar(value=VIEW_FIT_WIDTH)
@@ -182,6 +184,9 @@ class BlattwerkAppBase:
         self.preview_mode_btn_worksheet = None
         self.preview_mode_btn_solution = None
         self.preview_mode_static_label = None
+        self.preview_phase_separator_btn_dot = None
+        self.preview_phase_separator_btn_arrow = None
+        self.preview_phase_hide_future_check = None
         self.preview_page_format_btn_a4 = None
         self.preview_page_format_btn_a5 = None
         self.preview_page_format_btn_16_9 = None
@@ -711,6 +716,8 @@ class BlattwerkAppBase:
             "path": normalized_path,
             "preview_mode": self.preview_mode_var.get(),
             "page_format": self.preview_page_format_var.get(),
+            "section_separator": self.preview_section_separator_var.get(),
+            "hide_future_sections": bool(self.preview_hide_future_sections_var.get()),
             "contrast": self.preview_contrast_var.get(),
             "color_profile": self.design_color_profile_var.get(),
             "font_profile": self.design_font_profile_var.get(),
@@ -744,6 +751,8 @@ class BlattwerkAppBase:
                 pass
         tab_state["preview_mode"] = self.preview_mode_var.get()
         tab_state["page_format"] = self.preview_page_format_var.get()
+        tab_state["section_separator"] = self.preview_section_separator_var.get()
+        tab_state["hide_future_sections"] = bool(self.preview_hide_future_sections_var.get())
         tab_state["contrast"] = self.preview_contrast_var.get()
         tab_state["color_profile"] = self.design_color_profile_var.get()
         tab_state["font_profile"] = self.design_font_profile_var.get()
@@ -779,9 +788,33 @@ class BlattwerkAppBase:
 
         self._tab_switch_in_progress = True
         try:
+            separator_value = str(
+                tab_state.get(
+                    "section_separator",
+                    self.preview_section_separator_var.get(),
+                )
+                or "dot"
+            ).strip().lower()
+            if separator_value not in {"dot", "arrow"}:
+                separator_value = "dot"
+            hide_future_value = tab_state.get(
+                "hide_future_sections",
+                self.preview_hide_future_sections_var.get(),
+            )
+            if isinstance(hide_future_value, str):
+                hide_future_value = hide_future_value.strip().lower() in {
+                    "1",
+                    "true",
+                    "yes",
+                    "ja",
+                    "on",
+                }
+
             self.input_var.set(str(input_path))
             self.preview_mode_var.set(tab_state.get("preview_mode", self.preview_mode_var.get()))
             self.preview_page_format_var.set(tab_state.get("page_format", self.preview_page_format_var.get()))
+            self.preview_section_separator_var.set(separator_value)
+            self.preview_hide_future_sections_var.set(bool(hide_future_value))
             self.preview_contrast_var.set(tab_state.get("contrast", self.preview_contrast_var.get()))
             self.design_color_profile_var.set(tab_state.get("color_profile", self.design_color_profile_var.get()))
             self.design_font_profile_var.set(tab_state.get("font_profile", self.design_font_profile_var.get()))

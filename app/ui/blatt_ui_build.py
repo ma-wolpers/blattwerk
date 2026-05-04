@@ -237,10 +237,37 @@ class BlattwerkAppBuildMixin:
             command=self.refresh_preview,
         ).pack(side="left", padx=(6, 0))
 
+        format_group_phase = ttk.Frame(format_section)
+        ttk.Separator(format_group_phase, orient="vertical").pack(side="left", fill="y", padx=(0, 12))
+        ttk.Label(format_group_phase, text="Phasen:").pack(side="left")
+        self.preview_phase_separator_btn_dot = ttk.Radiobutton(
+            format_group_phase,
+            text="Punkte",
+            value="dot",
+            variable=self.preview_section_separator_var,
+            command=self.refresh_preview,
+        )
+        self.preview_phase_separator_btn_dot.pack(side="left", padx=(6, 0))
+        self.preview_phase_separator_btn_arrow = ttk.Radiobutton(
+            format_group_phase,
+            text="Pfeile",
+            value="arrow",
+            variable=self.preview_section_separator_var,
+            command=self.refresh_preview,
+        )
+        self.preview_phase_separator_btn_arrow.pack(side="left", padx=(6, 0))
+        self.preview_phase_hide_future_check = ttk.Checkbutton(
+            format_group_phase,
+            text="Zukunft ausblenden",
+            variable=self.preview_hide_future_sections_var,
+            command=self.refresh_preview,
+        )
+        self.preview_phase_hide_future_check.pack(side="left", padx=(10, 0))
+
         self._register_responsive_section(
             container=format_section,
             main_group=format_group_main,
-            optional_groups=[format_group_dina, format_group_black],
+            optional_groups=[format_group_dina, format_group_black, format_group_phase],
             indent_px=16,
             gap_px=12,
         )

@@ -38,6 +38,8 @@ def build_presentation_pptx(
     design=None,
     include_solutions: bool = False,
     black_screen_mode: str = "none",
+    presentation_section_separator: str = "dot",
+    presentation_hide_future_sections: bool = False,
     metadata_defaults: dict | None = None,
     copyright_text_override: str | None = None,
     render_dpi: int = 200,
@@ -72,6 +74,8 @@ def build_presentation_pptx(
                 metadata_defaults=metadata_defaults or {},
                 copyright_text_override=copyright_text_override,
                 black_screen_mode=black_screen_mode,
+                presentation_section_separator=presentation_section_separator,
+                presentation_hide_future_sections=presentation_hide_future_sections,
             )
         )
 

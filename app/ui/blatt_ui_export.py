@@ -30,6 +30,7 @@ _ALLOWED_WORKSHEET_EXPORT_FORMATS = {"pdf", "html", "png", "pngzip", "pptx"}
 _ALLOWED_LERNHILFEN_EXPORT_FORMATS = {"pdf", "png", "pngzip"}
 _ALLOWED_EXPORT_MODES = {"worksheet", "solution", "both"}
 _ALLOWED_BLACK_SCREEN_MODES = {"none", "before", "after", "both"}
+_ALLOWED_SECTION_SEPARATOR_MODES = {"dot", "arrow"}
 
 
 def _normalize_choice(value, allowed_values, default):
@@ -42,6 +43,33 @@ def _normalize_choice(value, allowed_values, default):
 
 class BlattwerkAppExportMixin:
     """Stellt Export-Workflows für PDF/HTML/PNG/ZIP bereit."""
+
+    def _current_presentation_footer_export_options(self):
+        """Returns normalized presentation footer options from current preview controls."""
+
+        separator_value = str(
+            getattr(self, "preview_section_separator_var", None).get()
+            if getattr(self, "preview_section_separator_var", None) is not None
+            else "dot"
+        ).strip().lower()
+        separator_value = _normalize_choice(
+            separator_value,
+            _ALLOWED_SECTION_SEPARATOR_MODES,
+            "dot",
+        )
+
+        hide_future_var = getattr(self, "preview_hide_future_sections_var", None)
+        hide_future_value = hide_future_var.get() if hide_future_var is not None else False
+        if isinstance(hide_future_value, str):
+            hide_future_value = hide_future_value.strip().lower() in {
+                "1",
+                "true",
+                "yes",
+                "ja",
+                "on",
+            }
+
+        return separator_value, bool(hide_future_value)
 
     def _detect_document_mode(self, input_path: Path) -> str:
         """Resolve document mode from frontmatter with robust fallback."""
@@ -174,7 +202,12 @@ class BlattwerkAppExportMixin:
         page_format: str,
         contrast_profile: str,
         black_screen_mode: str = "none",
+        presentation_section_separator: str | None = None,
+        presentation_hide_future_sections: bool | None = None,
     ):
+        default_separator, default_hide_future = (
+            self._current_presentation_footer_export_options()
+        )
         return WorksheetBuildRequest(
             input_path=input_path,
             output_path=output_path,
@@ -185,6 +218,16 @@ class BlattwerkAppExportMixin:
             metadata_defaults=self._metadata_defaults_from_preferences(),
             copyright_text_override=self._copyright_text_from_preferences() or None,
             black_screen_mode=black_screen_mode,
+            presentation_section_separator=(
+                presentation_section_separator
+                if presentation_section_separator is not None
+                else default_separator
+            ),
+            presentation_hide_future_sections=(
+                bool(presentation_hide_future_sections)
+                if presentation_hide_future_sections is not None
+                else default_hide_future
+            ),
         )
 
     def _help_cards_build_request(
@@ -326,6 +369,9 @@ class BlattwerkAppExportMixin:
         black_screen_mode: str = "none",
     ):
         """Exports one worksheet variant as PNG files inside a ZIP archive."""
+        section_separator, hide_future_sections = (
+            self._current_presentation_footer_export_options()
+        )
         output_zip_path = validate_export_output_path(
             output_zip_path,
             allowed_suffixes={".zip"},
@@ -344,6 +390,8 @@ class BlattwerkAppExportMixin:
                     metadata_defaults=self._metadata_defaults_from_preferences(),
                     copyright_text_override=self._copyright_text_from_preferences() or None,
                     black_screen_mode=black_screen_mode,
+                    presentation_section_separator=section_separator,
+                    presentation_hide_future_sections=hide_future_sections,
                 )
             )
 
@@ -423,6 +471,9 @@ class BlattwerkAppExportMixin:
     ):
         """Export as PPTX (one slide per page/slide, rendered at 200 DPI)."""
         worksheet_design = self._worksheet_design_options()
+        section_separator, hide_future_sections = (
+            self._current_presentation_footer_export_options()
+        )
         metadata_defaults = {}
         if hasattr(self, "_metadata_defaults_from_preferences"):
             metadata_defaults = self._metadata_defaults_from_preferences()
@@ -445,6 +496,8 @@ class BlattwerkAppExportMixin:
                     design=worksheet_design,
                     include_solutions=include_sol,
                     black_screen_mode=black_screen_mode,
+                    presentation_section_separator=section_separator,
+                    presentation_hide_future_sections=hide_future_sections,
                     metadata_defaults=metadata_defaults,
                     copyright_text_override=copyright_override,
                 )
@@ -465,6 +518,8 @@ class BlattwerkAppExportMixin:
             design=worksheet_design,
             include_solutions=include_solutions,
             black_screen_mode=black_screen_mode,
+            presentation_section_separator=section_separator,
+            presentation_hide_future_sections=hide_future_sections,
             metadata_defaults=metadata_defaults,
             copyright_text_override=copyright_override,
         )
