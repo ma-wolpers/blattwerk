@@ -348,6 +348,45 @@ def test_subtask_content_supports_marker_visibility_by_output_mode():
     assert "In beiden" in solution_html
 
 
+def test_task_time_is_rendered_as_minutes_in_header_right():
+    options = {
+        "work": "single",
+        "time": "3",
+        "_show_task_label": "1",
+    }
+
+    html = render_block(
+        "task",
+        options,
+        "Rechne aus.",
+        include_solutions=False,
+        document_mode="ws",
+    )
+
+    assert "task-header-right" in html
+    assert "<span class='task-time'>3 min</span>" in html
+
+
+def test_subtask_time_is_rendered_as_minutes_on_right_meta():
+    options = {
+        "time": "2",
+        "_parent_work": "single",
+        "_subtask_index": "0",
+        "_subtask_total": "1",
+    }
+
+    html = render_block(
+        "subtask",
+        options,
+        "Teilaufgabe",
+        include_solutions=False,
+        document_mode="ws",
+    )
+
+    assert "subtask-meta" in html
+    assert "<span class='subtask-time'>2 min</span>" in html
+
+
 def test_render_html_shows_single_help_reference_without_key():
     meta = {"Titel": "T", "Fach": "M", "Thema": "X", "mode": "ws"}
     blocks = [
@@ -471,6 +510,26 @@ def test_task_title_is_rendered_in_task_label_before_work_mode():
 
     assert "Aufgabe 1 - Titel hier" in worksheet_html
     assert worksheet_html.index("Aufgabe 1 - Titel hier") < worksheet_html.index("Einzelarbeit")
+
+
+def test_task_points_and_time_render_together_in_header_right():
+    options = {
+        "work": "single",
+        "points": "4",
+        "time": "7",
+        "_show_task_label": "1",
+    }
+
+    html = render_block(
+        "task",
+        options,
+        "Rechne aus.",
+        include_solutions=False,
+        document_mode="ws",
+    )
+
+    assert "<span class='task-points'>4 P</span>" in html
+    assert "<span class='task-time'>7 min</span>" in html
 
 
 def test_render_help_cards_html_prefixes_card_titles_with_global_tag_labels():

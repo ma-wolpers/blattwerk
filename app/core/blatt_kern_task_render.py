@@ -182,6 +182,7 @@ def _render_subtask_block(
             subtask_action_info = candidate_action_info
 
     help_reference_text = (options.get("_help_reference_text") or "").strip()
+    time_minutes = (options.get("time") or "").strip()
 
     prefix_html = ""
     if total_subtasks > 1:
@@ -203,15 +204,23 @@ def _render_subtask_block(
         default_show="both",
     )
     body_html = md.convert(normalize_markdown(filtered_content)) if filtered_content.strip() else ""
-    help_reference_html = ""
+    subtask_meta_parts = []
     if help_reference_text:
-        help_reference_html = (
+        subtask_meta_parts.append(
             f"<span class='task-help-reference subtask-help-reference'>{help_reference_text}</span>"
         )
+    if time_minutes:
+        subtask_meta_parts.append(
+            f"<span class='subtask-time'>{time_minutes} min</span>"
+        )
+
+    subtask_meta_html = ""
+    if subtask_meta_parts:
+        subtask_meta_html = f"<span class='subtask-meta'>{''.join(subtask_meta_parts)}</span>"
 
     return (
         f"<div class='subtask'>{prefix_html}{symbols_html}<div class='subtask-content'>{body_html}</div>"
-        f"{help_reference_html}</div>"
+        f"{subtask_meta_html}</div>"
     )
 
 
@@ -242,6 +251,7 @@ def _render_task_block(
     """Rendert Aufgabenkopf und Aufgabeninhalt."""
     task_id = options.get("_auto_number")
     points = options.get("points")
+    time_minutes = (options.get("time") or "").strip()
     task_work_info = get_work_info(options.get("work", "single"))
     work_icon, work_label, work_css_class = task_work_info
     task_action_info = get_task_action_info(options.get("action"))
@@ -272,6 +282,8 @@ def _render_task_block(
         )
     if points:
         header_right_parts.append(f"<span class='task-points'>{points} P</span>")
+    if time_minutes:
+        header_right_parts.append(f"<span class='task-time'>{time_minutes} min</span>")
     if header_right_parts:
         header += f"<div class='task-header-right'>{''.join(header_right_parts)}</div>"
 

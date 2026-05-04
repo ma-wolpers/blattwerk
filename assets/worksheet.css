@@ -427,6 +427,12 @@ h1 {
     font-weight: bold;
 }
 
+.task-time {
+    white-space: nowrap;
+    flex-shrink: 0;
+    font-weight: bold;
+}
+
 .task > *:last-child {
     margin-bottom: 0;
 }
@@ -463,9 +469,20 @@ h1 {
     margin-bottom: 0;
 }
 
-.subtask-help-reference {
+.subtask-meta {
+    display: inline-flex;
     justify-self: end;
     align-self: start;
+    gap: 0.45em;
+    white-space: nowrap;
+}
+
+.subtask-time {
+    white-space: nowrap;
+    font-weight: bold;
+}
+
+.subtask-help-reference {
     margin-top: 0.05em;
 }
 

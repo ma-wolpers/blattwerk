@@ -121,6 +121,7 @@ Optionen: `type=default|warning|note`, `show` (optional)
 Zweck: Hauptaufgabe.
 Optionen:
 - `points` (optional)
+- `time` (optional, Minutenangabe; Ausgabe als `X min`)
 - `work` (optional)
 - `action` (optional)
 - `hint` (optional)
@@ -165,7 +166,7 @@ Dokumentierte DE-Aliase:
 
 ### 5.4 subtask
 Zweck: Teilaufgabe zu vorherigem `task`.
-Optionen: `work`, `action`, `show` (alle optional)
+Optionen: `time`, `work`, `action`, `show` (alle optional)
 Regel: Nur als Folgeblock auf Top-Level.
 
 ### 5.5 Antwort-Blocktypen

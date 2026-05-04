@@ -359,7 +359,8 @@ h1 {{
 }}
 
 .task-header-left,
-.task-points {{
+.task-points,
+.task-time {{
     color: #111111;
     background: transparent;
     padding: 0;

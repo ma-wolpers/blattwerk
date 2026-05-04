@@ -89,6 +89,7 @@ block_name        = "material"
 - `work`: `single|partner|group` (+ dokumentierte Aliase)
 - `action`: `exchange|decide|experiment|reflect|read|calculate|match|write|draw` (+ dokumentierte Aliase)
 - `hint`: `tip|definition|remember|term|expert` (+ dokumentierte Aliase)
+- `time` (task/subtask): freie Minutenangabe, gerendert als `X min`
 - `show` (Blockoption): `worksheet|solution|both`
 - Grid-System-/Numberline-Elemente in YAML: `show: "§"|"%"|"&"`
 

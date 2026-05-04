@@ -140,6 +140,23 @@ def test_task_title_option_is_allowed_without_op001():
     assert "OP001" not in codes
 
 
+def test_task_time_option_is_allowed_without_op001():
+    text = _build_document(":::task time=3\nRechne aus.\n:::")
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+    assert "OP001" not in codes
+
+
+def test_subtask_time_option_is_allowed_without_op001():
+    text = _build_document(
+        ":::task\nOberaufgabe\n:::\n"
+        ":::subtask time=2\nTeilaufgabe\n:::"
+    )
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+    assert "OP001" not in codes
+
+
 def test_show_option_emits_deprecation_warning_op003():
     text = _build_document(":::task show=worksheet\nRechne aus.\n:::")
     inspected = inspect_markdown_text(text)

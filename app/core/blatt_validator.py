@@ -151,8 +151,8 @@ YAML_ANSWER_TYPES = {
 BLOCK_ALLOWED_OPTIONS = {
     "material": {"title", "show", "mode"},
     "info": {"type", "show", "mode"},
-    "task": {"points", "work", "action", "hint", "show", "mode", "title"},
-    "subtask": {"work", "action", "show", "mode"},
+    "task": {"points", "time", "work", "action", "hint", "show", "mode", "title"},
+    "subtask": {"time", "work", "action", "show", "mode"},
     "lines": {
         "show",
         "mode",

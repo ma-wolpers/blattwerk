@@ -18,6 +18,7 @@ Regel:
 - Format-Switching in der Vorschau: Wenn der Benutzer das Seitenformat wechselt (z. B. 16:9 → 16:10 oder A4 → A5), wird jetzt korrekt ein neuer Render angestoßen und der Cache wird invalidiert. Zuvor blieb die Vorschau-Darstellung trotz Format-Änderung gleich.
 
 ### Changed
+- Task-/Subtask-Metadaten erweitert: neue Option `time=...` in Validator und Renderer verdrahtet; Ausgabe erfolgt analog zu Punkten als Minutenlabel (`X min`) rechts im Header/Meta-Bereich. Zusaetzlich wurden CSS-Styles, VSCode-Option-Highlighting und Tests fuer Validator/Rendering synchronisiert.
 - Tk-Runtime-Pilotmigration erweitert: `app/ui/blatt_ui.py` nutzt jetzt `bw_gui.runtime.ui` fuer den Root-Window-Start statt direktem `tkinter`-Import.
 - Tk/ttk-Runtime-Pilotmigration gestartet: `app/ui/blatt_ui_build.py` nutzt jetzt zentrale Runtime-Aliases aus `bw_gui.runtime` (`ui`/`widgets`) statt direkter `tkinter`-/`ttk`-Imports, als erster Schritt zur vollstaendigen Entkopplung direkter Tk-Aufrufe aus App-Modulen.
 - Praesentations-Phasenfooter erweitert: Renderer unterstuetzt jetzt waehlbare Trenner (`dot` / `arrow`) und einen optionalen Future-Maskierungsmodus (zeigt nur vergangene/aktive Phasen plus `...` fuer kommende Phasen).
