@@ -394,6 +394,22 @@ def _build_presentation_slides(
     current_section = ""
     logical_slide_number = 1
 
+    def _append_slide_block(block_type, options, content):
+        if (
+            block_type == "raw"
+            and current_blocks
+            and current_blocks[-1][0] == "raw"
+        ):
+            prev_type, prev_options, prev_content = current_blocks[-1]
+            if prev_content.endswith(("\n", "\r")):
+                merged_content = f"{prev_content}{content}"
+            else:
+                merged_content = f"{prev_content}\n{content}"
+            current_blocks[-1] = (prev_type, prev_options, merged_content)
+            return
+
+        current_blocks.append((block_type, options, content))
+
     def _flush_slide(clear_blocks=True):
         nonlocal logical_slide_number
         if not current_blocks:
@@ -432,7 +448,7 @@ def _build_presentation_slides(
             _flush_slide(clear_blocks=False)
             continue
 
-        current_blocks.append((block_type, options, content))
+        _append_slide_block(block_type, options, content)
 
     _flush_slide(clear_blocks=True)
     return slides

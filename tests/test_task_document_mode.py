@@ -259,6 +259,34 @@ def test_render_html_presentation_framebreak_builds_incremental_frames():
     assert "Beta" in slide_bodies[1]
 
 
+def test_render_html_presentation_framebreak_keeps_raw_markdown_line_spacing():
+    meta = {
+        "Titel": "T",
+        "Fach": "M",
+        "Thema": "X",
+        "mode": "presentation",
+    }
+    blocks = parse_blocks(
+        "> A\n"
+        "-+\n"
+        "> B\n"
+    )
+
+    html = render_html(meta, blocks, include_solutions=False)
+    slide_bodies = re.findall(
+        r"<section class='ab-slide'>(.*?)</section>",
+        html,
+        flags=re.DOTALL,
+    )
+
+    assert len(slide_bodies) == 2
+    assert "A" in slide_bodies[0]
+    assert "B" not in slide_bodies[0]
+    assert "A" in slide_bodies[1]
+    assert "B" in slide_bodies[1]
+    assert slide_bodies[1].count("<blockquote>") == 1
+
+
 def test_task_content_supports_marker_visibility_by_output_mode():
     content = "§ Nur Arbeitsblatt\n% Nur Loesung\nIn beiden"
     options = {"work": "single", "_show_task_label": "1"}

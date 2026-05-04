@@ -19,6 +19,7 @@ The format is based on Keep a Changelog.
 - Presentation rendering now keeps task headers complete (`Aufgabe N - Titel`) and no longer drops task titles in slide mode.
 - Presentation phase footer now uses clearer spacing plus centered-dot separators and keeps repeated phases visible in sequence order.
 - Presentation slide counter now excludes `-+` frame steps from the total slide count (frame variants share one logical folio number).
+- Presentation frame steps (`-+`) no longer introduce extra paragraph spacing in adjacent raw Markdown lines; quote/list flow now matches rendering without the marker split.
 
 ### Changed
 
