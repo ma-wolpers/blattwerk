@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+import re
 import shutil
 import subprocess
 import tempfile
 import time
 from pathlib import Path
+from urllib.parse import unquote, urlparse
+from urllib.request import url2pathname
 
 from ..styles.blatt_styles import resolve_pdf_running_colors
 from .blatt_kern_shared import get_current_school_year_label
@@ -24,6 +27,93 @@ CHROMIUM_PATH_CANDIDATES = [
     Path("C:/Program Files (x86)/Google/Chrome/Application/chrome.exe"),
     Path("C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe"),
 ]
+_HEIC_EXTENSIONS = {".heic", ".heif"}
+_IMG_SRC_PATTERN = re.compile(
+    r'(<img\b[^>]*\bsrc\s*=\s*)(["\'])(.*?)(\2)',
+    flags=re.IGNORECASE,
+)
+
+
+def _file_uri_to_local_path(uri_text):
+    parsed = urlparse(str(uri_text or "").strip())
+    if parsed.scheme.lower() != "file":
+        return None
+
+    raw_path = unquote(parsed.path or "")
+    if parsed.netloc and parsed.netloc not in {"", "localhost"}:
+        raw_path = f"//{parsed.netloc}{raw_path}"
+
+    local_text = url2pathname(raw_path)
+    if (
+        len(local_text) >= 3
+        and local_text[0] in {"/", "\\"}
+        and local_text[2] == ":"
+    ):
+        local_text = local_text[1:]
+
+    return Path(local_text)
+
+
+def _open_image_with_heic_support(image_path):
+    try:
+        from PIL import Image
+    except Exception:
+        return None
+
+    def _open_copy():
+        with Image.open(image_path) as opened:
+            opened.load()
+            image = opened.copy()
+        if image.mode not in {"1", "L", "LA", "P", "RGB", "RGBA"}:
+            image = image.convert("RGB")
+        return image
+
+    try:
+        return _open_copy()
+    except Exception:
+        pass
+
+    try:
+        from pillow_heif import register_heif_opener
+
+        register_heif_opener()
+    except Exception:
+        return None
+
+    try:
+        return _open_copy()
+    except Exception:
+        return None
+
+
+def _rewrite_heic_sources_for_browser_pdf(html, temp_dir):
+    source_map = {}
+    next_index = 1
+
+    def _replace(match):
+        nonlocal next_index
+        source_uri = match.group(3).strip()
+        local_path = _file_uri_to_local_path(source_uri)
+        if local_path is None or local_path.suffix.lower() not in _HEIC_EXTENSIONS:
+            return match.group(0)
+        if not local_path.exists():
+            return match.group(0)
+
+        converted_uri = source_map.get(source_uri)
+        if converted_uri is None:
+            image = _open_image_with_heic_support(local_path)
+            if image is None:
+                return match.group(0)
+
+            converted_path = Path(temp_dir) / f"heic_fallback_{next_index:03d}.png"
+            next_index += 1
+            image.save(converted_path, format="PNG")
+            converted_uri = converted_path.resolve().as_uri()
+            source_map[source_uri] = converted_uri
+
+        return f"{match.group(1)}{match.group(2)}{converted_uri}{match.group(4)}"
+
+    return _IMG_SRC_PATTERN.sub(_replace, html)
 
 
 def find_chromium_executable():
@@ -51,13 +141,12 @@ def write_pdf_from_html(html, out_pdf_path):
     out_pdf_path = Path(out_pdf_path)
     out_pdf_path.parent.mkdir(parents=True, exist_ok=True)
 
-    with tempfile.NamedTemporaryFile(
-        "w", suffix=".html", delete=False, encoding="utf-8"
-    ) as temp_file:
-        temp_file.write(html)
-        temp_html_path = Path(temp_file.name)
+    with tempfile.TemporaryDirectory() as temp_dir_name:
+        temp_dir = Path(temp_dir_name)
+        html_with_fallbacks = _rewrite_heic_sources_for_browser_pdf(html, temp_dir)
+        temp_html_path = temp_dir / "blattwerk-render.html"
+        temp_html_path.write_text(html_with_fallbacks, encoding="utf-8")
 
-    try:
         # Headless-Druck via Chromium/Edge; erzeugt reproduzierbare PDFs ohne GUI-Interaktion.
         html_uri = temp_html_path.resolve().as_uri()
         command = [
@@ -90,11 +179,6 @@ def write_pdf_from_html(html, out_pdf_path):
         wait_for_file_stable(out_pdf_path)
 
         return out_pdf_path
-    finally:
-        try:
-            temp_html_path.unlink(missing_ok=True)
-        except Exception:
-            pass
 
 
 def wait_for_file_stable(path, checks=8, delay_seconds=0.15):

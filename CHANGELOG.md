@@ -20,6 +20,7 @@ The format is based on Keep a Changelog.
 - Presentation phase footer now uses clearer spacing plus centered-dot separators and keeps repeated phases visible in sequence order.
 - Presentation slide counter now excludes `-+` frame steps from the total slide count (frame variants share one logical folio number).
 - Presentation frame steps (`-+`) no longer introduce extra paragraph spacing in adjacent raw Markdown lines; quote/list flow now matches rendering without the marker split.
+- HEIC/HEIF image references now use a PDF-render fallback: when Chromium cannot decode the source directly, Blattwerk rewrites local HEIC sources to temporary PNG assets for preview/PDF/PPTX pipelines.
 
 ### Changed
 
