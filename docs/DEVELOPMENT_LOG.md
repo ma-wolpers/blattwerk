@@ -18,6 +18,7 @@ Regel:
 - Format-Switching in der Vorschau: Wenn der Benutzer das Seitenformat wechselt (z. B. 16:9 → 16:10 oder A4 → A5), wird jetzt korrekt ein neuer Render angestoßen und der Cache wird invalidiert. Zuvor blieb die Vorschau-Darstellung trotz Format-Änderung gleich.
 
 ### Changed
+- Tk/ttk-Runtime-Pilotmigration gestartet: `app/ui/blatt_ui_build.py` nutzt jetzt zentrale Runtime-Aliases aus `bw_gui.runtime` (`ui`/`widgets`) statt direkter `tkinter`-/`ttk`-Imports, als erster Schritt zur vollstaendigen Entkopplung direkter Tk-Aufrufe aus App-Modulen.
 - Praesentations-Phasenfooter erweitert: Renderer unterstuetzt jetzt waehlbare Trenner (`dot` / `arrow`) und einen optionalen Future-Maskierungsmodus (zeigt nur vergangene/aktive Phasen plus `...` fuer kommende Phasen).
 - UI-Steuerleiste in der Vorschau um Phasenfooter-Kontrollen erweitert (`Punkte`/`Pfeile`, `Zukunft ausblenden`); Optionen sind tab-lokal persistiert und werden in Preview, PDF/HTML/PNG-ZIP sowie PPTX-Export durchgereicht.
 - Shared-Dialogmigration gestartet: zentrale Bridge `app/ui/dialog_services.py` auf `bw_gui.dialogs` eingefuehrt; die UI-Module `blatt_ui_export.py`, `blatt_ui_preview.py`, `blatt_ui_style.py`, `blatt_ui_editor.py`, `blatt_ui_help_preview.py`, `blatt_ui_persistence.py` und `export_dialog.py` nutzen jetzt Shared `messagebox`/`filedialog`-Services statt direkter `tkinter`-Dialogimports.

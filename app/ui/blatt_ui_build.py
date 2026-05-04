@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
-import tkinter as tk
-from tkinter import ttk
+from bw_libs.shared_gui_core import ensure_bw_gui_on_path
+
+ensure_bw_gui_on_path()
+from bw_gui.runtime import ui, widgets
 
 from .ui_constants import (
     EDITOR_VIEW_BOTH,
@@ -50,19 +52,19 @@ class BlattwerkAppBuildMixin:
 
     def _build_ui(self):
         """Build ui."""
-        outer = ttk.Frame(self.root, padding=12)
+        outer = widgets.Frame(self.root, padding=12)
         outer.pack(fill="both", expand=True)
 
-        file_row = ttk.Frame(outer)
+        file_row = widgets.Frame(outer)
         file_row.pack(fill="x", pady=(0, 8))
-        ttk.Label(file_row, text="Markdown-Datei:", width=16).pack(side="left")
-        ttk.Entry(file_row, textvariable=self.input_var).pack(side="left", fill="x", expand=True, padx=(0, 8))
-        ttk.Button(file_row, text="Durchsuchen…", command=self.pick_input, style="SecondaryAction.TButton").pack(side="left")
+        widgets.Label(file_row, text="Markdown-Datei:", width=16).pack(side="left")
+        widgets.Entry(file_row, textvariable=self.input_var).pack(side="left", fill="x", expand=True, padx=(0, 8))
+        widgets.Button(file_row, text="Durchsuchen…", command=self.pick_input, style="SecondaryAction.TButton").pack(side="left")
 
-        file_row_actions = ttk.Frame(file_row)
+        file_row_actions = widgets.Frame(file_row)
         file_row_actions.pack(side="right")
-        ttk.Button(file_row_actions, text="Beenden", command=self.root.destroy, style="UtilityAction.TButton").pack(side="right")
-        self.export_btn = ttk.Button(
+        widgets.Button(file_row_actions, text="Beenden", command=self.root.destroy, style="UtilityAction.TButton").pack(side="right")
+        self.export_btn = widgets.Button(
             file_row_actions,
             text="Exportieren…",
             style="PrimaryAction.TButton",
@@ -70,26 +72,26 @@ class BlattwerkAppBuildMixin:
         )
         self.export_btn.pack(side="right", padx=(0, 8))
 
-        area_row = ttk.Frame(outer, style="ControlStrip.TFrame", padding=(8, 6))
+        area_row = widgets.Frame(outer, style="ControlStrip.TFrame", padding=(8, 6))
         area_row.pack(fill="x", pady=(0, 8))
-        ttk.Label(area_row, text="Bereich:", width=10, style="ControlStripLabel.TLabel").pack(side="left", padx=(0, 8))
+        widgets.Label(area_row, text="Bereich:", width=10, style="ControlStripLabel.TLabel").pack(side="left", padx=(0, 8))
 
-        segment_group = ttk.Frame(area_row, style="ControlStrip.TFrame")
+        segment_group = widgets.Frame(area_row, style="ControlStrip.TFrame")
         segment_group.pack(side="left")
         self._editor_mode_segment_buttons = {
-            EDITOR_VIEW_PREVIEW_ONLY: ttk.Button(
+            EDITOR_VIEW_PREVIEW_ONLY: widgets.Button(
                 segment_group,
                 text="Vorschau",
                 style="Segmented.TButton",
                 command=lambda: self._set_editor_view_mode(EDITOR_VIEW_PREVIEW_ONLY),
             ),
-            EDITOR_VIEW_BOTH: ttk.Button(
+            EDITOR_VIEW_BOTH: widgets.Button(
                 segment_group,
                 text="Beides",
                 style="Segmented.TButton",
                 command=lambda: self._set_editor_view_mode(EDITOR_VIEW_BOTH),
             ),
-            EDITOR_VIEW_EDITOR_ONLY: ttk.Button(
+            EDITOR_VIEW_EDITOR_ONLY: widgets.Button(
                 segment_group,
                 text="Schreibbereich",
                 style="Segmented.TButton",
@@ -99,14 +101,14 @@ class BlattwerkAppBuildMixin:
         for button in self._editor_mode_segment_buttons.values():
             button.pack(side="left", padx=(0, 6))
 
-        ttk.Separator(area_row, orient="vertical", style="ControlStrip.TSeparator").pack(side="left", fill="y", padx=(10, 10))
-        ttk.Label(area_row, text="Dokumente:", width=10, style="ControlStripLabel.TLabel").pack(side="left", padx=(0, 8))
+        widgets.Separator(area_row, orient="vertical", style="ControlStrip.TSeparator").pack(side="left", fill="y", padx=(10, 10))
+        widgets.Label(area_row, text="Dokumente:", width=10, style="ControlStripLabel.TLabel").pack(side="left", padx=(0, 8))
 
-        self.document_notebook = ttk.Notebook(area_row, style="ControlStrip.TNotebook")
+        self.document_notebook = widgets.Notebook(area_row, style="ControlStrip.TNotebook")
         self.document_notebook.pack(side="left", fill="x", expand=True)
         self.document_notebook.bind("<<NotebookTabChanged>>", self._on_document_tab_changed)
 
-        ttk.Button(
+        widgets.Button(
             area_row,
             text="×",
             width=3,
@@ -117,7 +119,7 @@ class BlattwerkAppBuildMixin:
         self._refresh_editor_mode_segmented_buttons()
         self.editor_view_mode_var.trace_add("write", lambda *_args: self._refresh_editor_mode_segmented_buttons())
 
-        self.editor_preview_paned = tk.PanedWindow(
+        self.editor_preview_paned = ui.PanedWindow(
             outer,
             orient="horizontal",
             sashwidth=6,
@@ -127,21 +129,21 @@ class BlattwerkAppBuildMixin:
         )
         self.editor_preview_paned.pack(fill="both", expand=True)
 
-        self.editor_container = ttk.Frame(self.editor_preview_paned, relief="solid", borderwidth=1)
-        self.preview_container = ttk.Frame(self.editor_preview_paned, relief="solid", borderwidth=1)
+        self.editor_container = widgets.Frame(self.editor_preview_paned, relief="solid", borderwidth=1)
+        self.preview_container = widgets.Frame(self.editor_preview_paned, relief="solid", borderwidth=1)
 
         self._build_editor_panel(self.editor_container)
 
-        preview_controls = ttk.Frame(self.preview_container, padding=8)
+        preview_controls = widgets.Frame(self.preview_container, padding=8)
         preview_controls.pack(fill="x")
 
         self._responsive_sections = []
 
-        format_section = ttk.Frame(preview_controls)
+        format_section = widgets.Frame(preview_controls)
         format_section.pack(fill="x", pady=(0, 8))
-        format_group_main = ttk.Frame(format_section)
-        ttk.Label(format_group_main, text="Format:", width=16).pack(side="left")
-        self.preview_mode_btn_worksheet = ttk.Radiobutton(
+        format_group_main = widgets.Frame(format_section)
+        widgets.Label(format_group_main, text="Format:", width=16).pack(side="left")
+        self.preview_mode_btn_worksheet = widgets.Radiobutton(
             format_group_main,
             text="Aufgabe",
             value="worksheet",
@@ -149,7 +151,7 @@ class BlattwerkAppBuildMixin:
             command=self.refresh_preview,
         )
         self.preview_mode_btn_worksheet.pack(side="left")
-        self.preview_mode_btn_solution = ttk.Radiobutton(
+        self.preview_mode_btn_solution = widgets.Radiobutton(
             format_group_main,
             text="Lösung",
             value="solution",
@@ -157,14 +159,14 @@ class BlattwerkAppBuildMixin:
             command=self.refresh_preview,
         )
         self.preview_mode_btn_solution.pack(side="left", padx=(10, 0))
-        self.preview_mode_static_label = ttk.Label(
+        self.preview_mode_static_label = widgets.Label(
             format_group_main,
             text="Präsentation",
         )
 
-        format_group_dina = ttk.Frame(format_section)
-        ttk.Separator(format_group_dina, orient="vertical").pack(side="left", fill="y", padx=(0, 12))
-        self.preview_page_format_btn_a4 = ttk.Radiobutton(
+        format_group_dina = widgets.Frame(format_section)
+        widgets.Separator(format_group_dina, orient="vertical").pack(side="left", fill="y", padx=(0, 12))
+        self.preview_page_format_btn_a4 = widgets.Radiobutton(
             format_group_dina,
             text="DIN A4",
             value="a4_portrait",
@@ -172,7 +174,7 @@ class BlattwerkAppBuildMixin:
             command=self.refresh_preview,
         )
         self.preview_page_format_btn_a4.pack(side="left")
-        self.preview_page_format_btn_a5 = ttk.Radiobutton(
+        self.preview_page_format_btn_a5 = widgets.Radiobutton(
             format_group_dina,
             text="DIN A5",
             value="a5_landscape",
@@ -180,7 +182,7 @@ class BlattwerkAppBuildMixin:
             command=self.refresh_preview,
         )
         self.preview_page_format_btn_a5.pack(side="left", padx=(10, 0))
-        self.preview_page_format_btn_16_9 = ttk.Radiobutton(
+        self.preview_page_format_btn_16_9 = widgets.Radiobutton(
             format_group_dina,
             text="16:9",
             value="presentation_16_9",
@@ -188,7 +190,7 @@ class BlattwerkAppBuildMixin:
             command=self.refresh_preview,
         )
         self.preview_page_format_btn_16_9.pack(side="left", padx=(10, 0))
-        self.preview_page_format_btn_16_10 = ttk.Radiobutton(
+        self.preview_page_format_btn_16_10 = widgets.Radiobutton(
             format_group_dina,
             text="16:10",
             value="presentation_16_10",
@@ -196,7 +198,7 @@ class BlattwerkAppBuildMixin:
             command=self.refresh_preview,
         )
         self.preview_page_format_btn_16_10.pack(side="left", padx=(10, 0))
-        self.preview_page_format_btn_4_3 = ttk.Radiobutton(
+        self.preview_page_format_btn_4_3 = widgets.Radiobutton(
             format_group_dina,
             text="4:3",
             value="presentation_4_3",
@@ -205,31 +207,31 @@ class BlattwerkAppBuildMixin:
         )
         self.preview_page_format_btn_4_3.pack(side="left", padx=(10, 0))
 
-        format_group_black = ttk.Frame(format_section)
-        ttk.Separator(format_group_black, orient="vertical").pack(side="left", fill="y", padx=(0, 12))
-        ttk.Label(format_group_black, text="Black-Screen:").pack(side="left")
-        ttk.Radiobutton(
+        format_group_black = widgets.Frame(format_section)
+        widgets.Separator(format_group_black, orient="vertical").pack(side="left", fill="y", padx=(0, 12))
+        widgets.Label(format_group_black, text="Black-Screen:").pack(side="left")
+        widgets.Radiobutton(
             format_group_black,
             text="Aus",
             value="none",
             variable=self.preview_black_screen_var,
             command=self.refresh_preview,
         ).pack(side="left", padx=(6, 0))
-        ttk.Radiobutton(
+        widgets.Radiobutton(
             format_group_black,
             text="Vorher",
             value="before",
             variable=self.preview_black_screen_var,
             command=self.refresh_preview,
         ).pack(side="left", padx=(6, 0))
-        ttk.Radiobutton(
+        widgets.Radiobutton(
             format_group_black,
             text="Nachher",
             value="after",
             variable=self.preview_black_screen_var,
             command=self.refresh_preview,
         ).pack(side="left", padx=(6, 0))
-        ttk.Radiobutton(
+        widgets.Radiobutton(
             format_group_black,
             text="Beides",
             value="both",
@@ -237,10 +239,10 @@ class BlattwerkAppBuildMixin:
             command=self.refresh_preview,
         ).pack(side="left", padx=(6, 0))
 
-        format_group_phase = ttk.Frame(format_section)
-        ttk.Separator(format_group_phase, orient="vertical").pack(side="left", fill="y", padx=(0, 12))
-        ttk.Label(format_group_phase, text="Phasen:").pack(side="left")
-        self.preview_phase_separator_btn_dot = ttk.Radiobutton(
+        format_group_phase = widgets.Frame(format_section)
+        widgets.Separator(format_group_phase, orient="vertical").pack(side="left", fill="y", padx=(0, 12))
+        widgets.Label(format_group_phase, text="Phasen:").pack(side="left")
+        self.preview_phase_separator_btn_dot = widgets.Radiobutton(
             format_group_phase,
             text="Punkte",
             value="dot",
@@ -248,7 +250,7 @@ class BlattwerkAppBuildMixin:
             command=self.refresh_preview,
         )
         self.preview_phase_separator_btn_dot.pack(side="left", padx=(6, 0))
-        self.preview_phase_separator_btn_arrow = ttk.Radiobutton(
+        self.preview_phase_separator_btn_arrow = widgets.Radiobutton(
             format_group_phase,
             text="Pfeile",
             value="arrow",
@@ -256,7 +258,7 @@ class BlattwerkAppBuildMixin:
             command=self.refresh_preview,
         )
         self.preview_phase_separator_btn_arrow.pack(side="left", padx=(6, 0))
-        self.preview_phase_hide_future_check = ttk.Checkbutton(
+        self.preview_phase_hide_future_check = widgets.Checkbutton(
             format_group_phase,
             text="Zukunft ausblenden",
             variable=self.preview_hide_future_sections_var,
@@ -272,13 +274,13 @@ class BlattwerkAppBuildMixin:
             gap_px=12,
         )
 
-        design_section = ttk.Frame(preview_controls)
+        design_section = widgets.Frame(preview_controls)
         design_section.pack(fill="x", pady=(0, 8))
-        design_group_main = ttk.Frame(design_section)
-        ttk.Label(design_group_main, text="Gestaltung:", width=16).pack(side="left")
-        ttk.Label(design_group_main, text="Kontrast:").pack(side="left")
+        design_group_main = widgets.Frame(design_section)
+        widgets.Label(design_group_main, text="Gestaltung:", width=16).pack(side="left")
+        widgets.Label(design_group_main, text="Kontrast:").pack(side="left")
         for contrast_key in CONTRAST_PROFILE_ORDER:
-            ttk.Radiobutton(
+            widgets.Radiobutton(
                 design_group_main,
                 text=CONTRAST_PROFILE_LABELS[contrast_key],
                 value=contrast_key,
@@ -286,11 +288,11 @@ class BlattwerkAppBuildMixin:
                 command=self.refresh_preview,
             ).pack(side="left", padx=(8, 0))
 
-        design_group_color = ttk.Frame(design_section)
-        ttk.Separator(design_group_color, orient="vertical").pack(side="left", fill="y", padx=(0, 12))
-        ttk.Label(design_group_color, text="Farbprofil:").pack(side="left")
+        design_group_color = widgets.Frame(design_section)
+        widgets.Separator(design_group_color, orient="vertical").pack(side="left", fill="y", padx=(0, 12))
+        widgets.Label(design_group_color, text="Farbprofil:").pack(side="left")
         for profile_key in COLOR_PROFILE_ORDER:
-            swatch = tk.Canvas(
+            swatch = ui.Canvas(
                 design_group_color,
                 width=28,
                 height=20,
@@ -306,10 +308,10 @@ class BlattwerkAppBuildMixin:
 
         self._refresh_color_profile_swatches()
 
-        design_group_font = ttk.Frame(design_section)
-        ttk.Separator(design_group_font, orient="vertical").pack(side="left", fill="y", padx=(0, 12))
-        ttk.Label(design_group_font, text="Schrift: ").pack(side="left")
-        self.font_profile_combo = ttk.Combobox(
+        design_group_font = widgets.Frame(design_section)
+        widgets.Separator(design_group_font, orient="vertical").pack(side="left", fill="y", padx=(0, 12))
+        widgets.Label(design_group_font, text="Schrift: ").pack(side="left")
+        self.font_profile_combo = widgets.Combobox(
             design_group_font,
             state="readonly",
             width=14,
@@ -319,8 +321,8 @@ class BlattwerkAppBuildMixin:
         self._sync_font_profile_combo()
         self.font_profile_combo.bind("<<ComboboxSelected>>", self._on_font_profile_selected)
 
-        ttk.Label(design_group_font, text="Größe:").pack(side="left", padx=(12, 0))
-        self.font_size_profile_combo = ttk.Combobox(
+        widgets.Label(design_group_font, text="Größe:").pack(side="left", padx=(12, 0))
+        self.font_size_profile_combo = widgets.Combobox(
             design_group_font,
             state="readonly",
             width=10,
@@ -338,29 +340,29 @@ class BlattwerkAppBuildMixin:
             gap_px=12,
         )
 
-        actions_section = ttk.Frame(preview_controls)
+        actions_section = widgets.Frame(preview_controls)
         actions_section.pack(fill="x", pady=(0, 8))
 
-        actions_group_main = ttk.Frame(actions_section)
-        ttk.Label(actions_group_main, text="Vorschau:", width=16).pack(side="left")
-        self.prev_btn = ttk.Button(actions_group_main, text="◀", command=self.prev_page, width=5, style="NavAction.TButton")
+        actions_group_main = widgets.Frame(actions_section)
+        widgets.Label(actions_group_main, text="Vorschau:", width=16).pack(side="left")
+        self.prev_btn = widgets.Button(actions_group_main, text="◀", command=self.prev_page, width=5, style="NavAction.TButton")
         self.prev_btn.pack(side="left")
-        self.next_btn = ttk.Button(actions_group_main, text="▶", command=self.next_page, width=5, style="NavAction.TButton")
+        self.next_btn = widgets.Button(actions_group_main, text="▶", command=self.next_page, width=5, style="NavAction.TButton")
         self.next_btn.pack(side="left", padx=(8, 0))
 
-        actions_group_zoom = ttk.Frame(actions_section)
-        ttk.Separator(actions_group_zoom, orient="vertical").pack(side="left", fill="y", padx=(0, 12))
-        ttk.Button(actions_group_zoom, text="-", command=lambda: self.change_zoom(-10), width=3, style="SecondaryAction.TButton").pack(side="left")
-        ttk.Button(actions_group_zoom, text="+", command=lambda: self.change_zoom(10), width=3, style="SecondaryAction.TButton").pack(side="left", padx=(8, 0))
-        ttk.Button(actions_group_zoom, text="100%", command=self.reset_zoom, style="SecondaryAction.TButton").pack(side="left", padx=(8, 0))
+        actions_group_zoom = widgets.Frame(actions_section)
+        widgets.Separator(actions_group_zoom, orient="vertical").pack(side="left", fill="y", padx=(0, 12))
+        widgets.Button(actions_group_zoom, text="-", command=lambda: self.change_zoom(-10), width=3, style="SecondaryAction.TButton").pack(side="left")
+        widgets.Button(actions_group_zoom, text="+", command=lambda: self.change_zoom(10), width=3, style="SecondaryAction.TButton").pack(side="left", padx=(8, 0))
+        widgets.Button(actions_group_zoom, text="100%", command=self.reset_zoom, style="SecondaryAction.TButton").pack(side="left", padx=(8, 0))
 
-        actions_group_refresh = ttk.Frame(actions_section)
-        ttk.Separator(actions_group_refresh, orient="vertical").pack(side="left", fill="y", padx=(0, 12))
-        ttk.Button(actions_group_refresh, text="Aktualisieren", command=self.refresh_preview, style="UtilityAction.TButton").pack(side="left")
+        actions_group_refresh = widgets.Frame(actions_section)
+        widgets.Separator(actions_group_refresh, orient="vertical").pack(side="left", fill="y", padx=(0, 12))
+        widgets.Button(actions_group_refresh, text="Aktualisieren", command=self.refresh_preview, style="UtilityAction.TButton").pack(side="left")
 
-        actions_group_lernhilfen = ttk.Frame(actions_section)
-        ttk.Separator(actions_group_lernhilfen, orient="vertical").pack(side="left", fill="y", padx=(0, 12))
-        self.lernhilfen_action_btn = ttk.Button(
+        actions_group_lernhilfen = widgets.Frame(actions_section)
+        widgets.Separator(actions_group_lernhilfen, orient="vertical").pack(side="left", fill="y", padx=(0, 12))
+        self.lernhilfen_action_btn = widgets.Button(
             actions_group_lernhilfen,
             text="Lernhilfen",
             command=self.open_help_preview_window,
@@ -377,25 +379,25 @@ class BlattwerkAppBuildMixin:
             gap_px=12,
         )
 
-        info_row = ttk.Frame(preview_controls)
+        info_row = widgets.Frame(preview_controls)
         info_row.pack(fill="x", pady=(0, 8))
-        ttk.Label(info_row, textvariable=self.page_info_var).pack(side="left")
-        ttk.Label(info_row, textvariable=self.zoom_info_var).pack(side="left", padx=(14, 0))
-        self.status_label = ttk.Label(info_row, textvariable=self.status_var, style="Muted.TLabel")
+        widgets.Label(info_row, textvariable=self.page_info_var).pack(side="left")
+        widgets.Label(info_row, textvariable=self.zoom_info_var).pack(side="left", padx=(14, 0))
+        self.status_label = widgets.Label(info_row, textvariable=self.status_var, style="Muted.TLabel")
         self.status_label.pack(side="right")
 
-        ttk.Separator(self.preview_container, orient="horizontal").pack(fill="x")
+        widgets.Separator(self.preview_container, orient="horizontal").pack(fill="x")
 
-        preview_canvas_frame = ttk.Frame(self.preview_container)
+        preview_canvas_frame = widgets.Frame(self.preview_container)
         preview_canvas_frame.pack(fill="both", expand=True)
 
         theme = get_theme(self.theme_var.get())
-        self.preview_canvas = tk.Canvas(preview_canvas_frame, background=theme["bg_main"], highlightthickness=0)
+        self.preview_canvas = ui.Canvas(preview_canvas_frame, background=theme["bg_main"], highlightthickness=0)
         self.preview_canvas.pack(side="left", fill="both", expand=True)
 
-        v_scroll = ttk.Scrollbar(preview_canvas_frame, orient="vertical", command=self.preview_canvas.yview)
+        v_scroll = widgets.Scrollbar(preview_canvas_frame, orient="vertical", command=self.preview_canvas.yview)
         v_scroll.pack(side="right", fill="y")
-        self.preview_h_scroll = ttk.Scrollbar(self.preview_container, orient="horizontal", command=self.preview_canvas.xview)
+        self.preview_h_scroll = widgets.Scrollbar(self.preview_container, orient="horizontal", command=self.preview_canvas.xview)
         self.preview_h_scroll.pack(fill="x")
 
         self.preview_canvas.configure(yscrollcommand=v_scroll.set, xscrollcommand=self.preview_h_scroll.set)
@@ -520,3 +522,5 @@ class BlattwerkAppBuildMixin:
                 x_view_start=x_view_start,
                 y_view_start=y_view_start,
             )
+
+
