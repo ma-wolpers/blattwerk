@@ -58,6 +58,8 @@ def build_worksheet(
     metadata_defaults=None,
     copyright_text_override=None,
     black_screen_mode="none",
+    presentation_section_separator="dot",
+    presentation_hide_future_sections=False,
 ):
     """Erstellt aus einer Markdown-Datei eine HTML- oder PDF-Ausgabe."""
     md_file = Path(md_path)
@@ -82,6 +84,8 @@ def build_worksheet(
         font_profile=font_profile,
         font_size_profile=font_size_profile,
         black_screen_mode=black_screen_mode,
+        presentation_section_separator=presentation_section_separator,
+        presentation_hide_future_sections=presentation_hide_future_sections,
     )
     html = absolutize_local_image_sources(html, md_file.parent)
     html = apply_image_size_options(html)

@@ -97,9 +97,9 @@ def test_render_html_presentation_uses_slide_counter_and_hides_solution_only_blo
     blocks = [
         ("sectionmark", {"title": "Einstieg"}, ""),
         ("task", {"mode": "solution"}, "Nur Loesung"),
-        ("task", {}, "Visible"),
+        ("task", {"title": "Visible"}, "Task body"),
         ("pagebreak", {}, ""),
-        ("task", {}, "Zweite Folie"),
+        ("task", {"title": "Zweite"}, "Folie zwei body"),
     ]
 
     html = render_html(meta, blocks, include_solutions=False)
@@ -107,7 +107,107 @@ def test_render_html_presentation_uses_slide_counter_and_hides_solution_only_blo
     assert "Folie 1/2" in html
     assert "Folie 2/2" in html
     assert "Nur Loesung" not in html
+    assert re.search(r"Aufgabe\s+\d+\s+-\s+Visible", html)
+    assert re.search(r"Aufgabe\s+\d+\s+-\s+Zweite", html)
     assert "presentation-section-item active" in html
+
+
+def test_render_html_presentation_footer_keeps_repeated_sections_in_order():
+    meta = {
+        "Titel": "T",
+        "Fach": "M",
+        "Thema": "X",
+        "mode": "presentation",
+    }
+    blocks = [
+        ("sectionmark", {"title": "Einstieg"}, ""),
+        ("task", {}, "A"),
+        ("pagebreak", {}, ""),
+        ("sectionmark", {"title": "Sicherung"}, ""),
+        ("task", {}, "B"),
+        ("pagebreak", {}, ""),
+        ("sectionmark", {"title": "Einstieg"}, ""),
+        ("task", {}, "C"),
+    ]
+
+    html = render_html(meta, blocks, include_solutions=False)
+
+    footer_match = re.search(
+        r"<div class='presentation-section-footer'>(.*?)</div>",
+        html,
+        flags=re.DOTALL,
+    )
+
+    assert footer_match is not None
+    footer_html = footer_match.group(1)
+    assert footer_html.count(">Einstieg</span>") == 2
+    assert footer_html.count(">Sicherung</span>") == 1
+    assert "presentation-section-separator' aria-hidden='true'>·</span>" in html
+
+
+def test_render_html_presentation_footer_can_use_arrow_separators():
+    meta = {
+        "Titel": "T",
+        "Fach": "M",
+        "Thema": "X",
+        "mode": "presentation",
+    }
+    blocks = [
+        ("sectionmark", {"title": "A"}, ""),
+        ("task", {}, "One"),
+        ("pagebreak", {}, ""),
+        ("sectionmark", {"title": "B"}, ""),
+        ("task", {}, "Two"),
+    ]
+
+    html = render_html(
+        meta,
+        blocks,
+        include_solutions=False,
+        presentation_section_separator="arrow",
+    )
+
+    assert "presentation-section-separator' aria-hidden='true'>-&gt;</span>" in html
+
+
+def test_render_html_presentation_footer_can_hide_future_sections():
+    meta = {
+        "Titel": "T",
+        "Fach": "M",
+        "Thema": "X",
+        "mode": "presentation",
+    }
+    blocks = [
+        ("sectionmark", {"title": "A"}, ""),
+        ("task", {}, "One"),
+        ("pagebreak", {}, ""),
+        ("sectionmark", {"title": "B"}, ""),
+        ("task", {}, "Two"),
+        ("pagebreak", {}, ""),
+        ("sectionmark", {"title": "C"}, ""),
+        ("task", {}, "Three"),
+    ]
+
+    html = render_html(
+        meta,
+        blocks,
+        include_solutions=False,
+        presentation_section_separator="arrow",
+        presentation_hide_future_sections=True,
+    )
+    slide_bodies = re.findall(
+        r"<section class='ab-slide'>(.*?)</section>",
+        html,
+        flags=re.DOTALL,
+    )
+
+    assert "A</span><span class='presentation-section-separator' aria-hidden='true'>-&gt;</span>" in slide_bodies[0]
+    assert "presentation-section-item presentation-section-item-ellipsis" in slide_bodies[0]
+    assert ">C</span>" not in slide_bodies[0]
+    assert "A</span><span class='presentation-section-separator' aria-hidden='true'>-&gt;</span>" in slide_bodies[1]
+    assert "B</span><span class='presentation-section-separator' aria-hidden='true'>-&gt;</span>" in slide_bodies[1]
+    assert "presentation-section-item presentation-section-item-ellipsis" in slide_bodies[1]
+    assert "presentation-section-item presentation-section-item-ellipsis" not in slide_bodies[2]
 
 
 def test_render_html_presentation_black_screen_before_and_after_is_inserted():

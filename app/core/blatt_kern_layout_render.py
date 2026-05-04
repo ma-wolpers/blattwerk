@@ -439,14 +439,24 @@ def _render_presentation_html(
     font_profile,
     font_size_profile,
     black_screen_mode,
+    presentation_section_separator,
+    presentation_hide_future_sections,
 ):
     hole_punch_enabled = is_hole_punch_layout_enabled(meta)
     printable_width_cm = resolve_printable_width_cm(
         page_format,
         hole_punch_enabled=hole_punch_enabled,
     )
+    numbered_blocks = assign_task_numbers(blocks)
+    enriched_blocks = annotate_standalone_subtasks(numbered_blocks)
+    enriched_blocks = annotate_task_help_references(
+        enriched_blocks,
+        include_solutions=False,
+        help_tag=(meta or {}).get("tag"),
+        document_mode="presentation",
+    )
     slides = _build_presentation_slides(
-        blocks,
+        enriched_blocks,
         include_solutions=include_solutions,
         document_mode="presentation",
         printable_width_cm=printable_width_cm,
@@ -456,13 +466,19 @@ def _render_presentation_html(
         slides = [{"section": "", "body": "<p>Keine Folieninhalte gefunden.</p>"}]
 
     section_names = []
-    seen = set()
+    slide_section_indices = []
+    last_section_name = ""
+    active_section_index = None
     for slide in slides:
         label = str(slide.get("section") or "").strip()
-        if not label or label in seen:
+        if not label:
+            slide_section_indices.append(None)
             continue
-        seen.add(label)
-        section_names.append(label)
+        if label != last_section_name:
+            section_names.append(label)
+            active_section_index = len(section_names) - 1
+            last_section_name = label
+        slide_section_indices.append(active_section_index)
 
     title_text = escape(str((meta or {}).get("Titel") or "Präsentation"))
     meta_line = escape(format_meta_line(meta))
@@ -470,6 +486,11 @@ def _render_presentation_html(
     show_section_footer = bool(
         (meta or {}).get("presentation_show_section_footer", True)
     )
+    section_separator_key = str(presentation_section_separator or "dot").strip().lower()
+    if section_separator_key not in {"dot", "arrow"}:
+        section_separator_key = "dot"
+    section_separator_text = "·" if section_separator_key == "dot" else "->"
+    hide_future_sections = bool(presentation_hide_future_sections)
 
     slide_count = len(slides)
     slide_html_parts = []
@@ -479,7 +500,7 @@ def _render_presentation_html(
         slide_html_parts.append("<section class='ab-slide ab-slide-black'></section>")
 
     for index, slide in enumerate(slides, start=1):
-        section_label = str(slide.get("section") or "").strip()
+        current_section_index = slide_section_indices[index - 1]
         mini_header_html = ""
         if show_mini_header:
             mini_header_html = (
@@ -491,12 +512,36 @@ def _render_presentation_html(
 
         section_footer_html = ""
         if show_section_footer and section_names:
+            visible_indices = list(range(len(section_names)))
+            append_ellipsis = False
+            if hide_future_sections and current_section_index is not None:
+                visible_indices = [
+                    section_idx
+                    for section_idx in range(len(section_names))
+                    if section_idx <= current_section_index
+                ]
+                append_ellipsis = current_section_index < (len(section_names) - 1)
+
             section_parts = []
-            for section_name in section_names:
-                css_class = "active" if section_name == section_label else ""
+            for visible_pos, section_idx in enumerate(visible_indices):
+                section_name = section_names[section_idx]
+                css_class = "active" if section_idx == current_section_index else ""
                 section_parts.append(
                     f"<span class='presentation-section-item {css_class}'>{escape(section_name)}</span>"
                 )
+                has_next_visible = visible_pos < len(visible_indices) - 1
+                if has_next_visible or append_ellipsis:
+                    section_parts.append(
+                        "<span class='presentation-section-separator' aria-hidden='true'>"
+                        f"{escape(section_separator_text)}"
+                        "</span>"
+                    )
+
+            if append_ellipsis:
+                section_parts.append(
+                    "<span class='presentation-section-item presentation-section-item-ellipsis' aria-hidden='true'>...</span>"
+                )
+
             section_footer_html = (
                 "<div class='presentation-section-footer'>"
                 f"{''.join(section_parts)}"
@@ -569,6 +614,8 @@ def render_html(
     font_profile="segoe",
     font_size_profile="normal",
     black_screen_mode="none",
+    presentation_section_separator="dot",
+    presentation_hide_future_sections=False,
 ):
     """Baut das vollständige HTML-Dokument inklusive Styles und Header/Footer."""
     document_mode = normalize_document_mode(
@@ -598,6 +645,8 @@ def render_html(
             font_profile=font_profile,
             font_size_profile=font_size_profile,
             black_screen_mode=black_screen_mode,
+            presentation_section_separator=presentation_section_separator,
+            presentation_hide_future_sections=presentation_hide_future_sections,
         )
 
     numbered_blocks = assign_task_numbers(blocks)

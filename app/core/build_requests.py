@@ -41,6 +41,8 @@ class WorksheetBuildRequest:
     metadata_defaults: dict[str, str] | None = None
     copyright_text_override: str | None = None
     black_screen_mode: str = "none"
+    presentation_section_separator: str = "dot"
+    presentation_hide_future_sections: bool = False
 
 
 @dataclass(frozen=True)
@@ -75,6 +77,8 @@ def build_worksheet_from_request(request: WorksheetBuildRequest):
         metadata_defaults=request.metadata_defaults,
         copyright_text_override=request.copyright_text_override,
         black_screen_mode=request.black_screen_mode,
+        presentation_section_separator=request.presentation_section_separator,
+        presentation_hide_future_sections=request.presentation_hide_future_sections,
         **request.design.as_kwargs(),
     )
 
