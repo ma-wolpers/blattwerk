@@ -1,8 +1,10 @@
 """Modal export dialogs for worksheet and lernhilfen flows."""
 
 from pathlib import Path
-import tkinter as tk
-from tkinter import ttk
+from bw_libs.shared_gui_core import ensure_bw_gui_on_path
+
+ensure_bw_gui_on_path()
+from bw_gui.runtime import ui, widgets
 
 from .dialog_services import filedialog, messagebox
 from .ui_theme import apply_window_theme, configure_ttk_theme, get_theme
@@ -17,10 +19,10 @@ class _BaseExportDialog:
         self.theme_key = theme_key
         self.initial_output_dir = initial_output_dir
         self.result = None
-        self.output_var = tk.StringVar()
+        self.output_var = ui.StringVar()
         self.shortcuts_visible = False
 
-        self.window = tk.Toplevel(parent)
+        self.window = ui.Toplevel(parent)
         self.window.resizable(False, False)
         self.window.transient(parent)
         self.window.protocol("WM_DELETE_WINDOW", self._cancel)
@@ -97,9 +99,9 @@ class WorksheetExportDialog(_BaseExportDialog):
         self.solution_suffix = str(solution_suffix or "_loesung")
         self.allow_mode_selection = bool(allow_mode_selection)
 
-        self.format_var = tk.StringVar(value=default_format)
-        self.mode_var = tk.StringVar(value=default_mode)
-        self.black_screen_var = tk.StringVar(value=black_screen_default)
+        self.format_var = ui.StringVar(value=default_format)
+        self.mode_var = ui.StringVar(value=default_mode)
+        self.black_screen_var = ui.StringVar(value=black_screen_default)
 
         self.window.title("Arbeitsblatt exportieren")
         self._build_ui()
@@ -110,52 +112,52 @@ class WorksheetExportDialog(_BaseExportDialog):
     def _build_ui(self):
         theme = get_theme(self.theme_key)
 
-        outer = ttk.Frame(self.window, padding=14)
+        outer = widgets.Frame(self.window, padding=14)
         outer.pack(fill="both", expand=True)
 
-        ttk.Label(outer, text="Exportoptionen", font=("Segoe UI", 11, "bold")).pack(anchor="w")
+        widgets.Label(outer, text="Exportoptionen", font=("Segoe UI", 11, "bold")).pack(anchor="w")
 
-        fmt_row = ttk.Frame(outer)
+        fmt_row = widgets.Frame(outer)
         fmt_row.pack(fill="x", pady=(10, 4))
-        ttk.Label(fmt_row, text="Format:", width=15).pack(side="left")
-        ttk.Radiobutton(fmt_row, text="PDF", value="pdf", variable=self.format_var, command=self._refresh_output_suggestion).pack(side="left")
-        ttk.Radiobutton(fmt_row, text="PPTX", value="pptx", variable=self.format_var, command=self._refresh_output_suggestion).pack(side="left", padx=(12, 0))
-        ttk.Radiobutton(fmt_row, text="PNG", value="png", variable=self.format_var, command=self._refresh_output_suggestion).pack(side="left", padx=(12, 0))
-        ttk.Radiobutton(fmt_row, text="PNG (ZIP)", value="pngzip", variable=self.format_var, command=self._refresh_output_suggestion).pack(side="left", padx=(12, 0))
-        ttk.Radiobutton(fmt_row, text="HTML", value="html", variable=self.format_var, command=self._refresh_output_suggestion).pack(side="left", padx=(12, 0))
+        widgets.Label(fmt_row, text="Format:", width=15).pack(side="left")
+        widgets.Radiobutton(fmt_row, text="PDF", value="pdf", variable=self.format_var, command=self._refresh_output_suggestion).pack(side="left")
+        widgets.Radiobutton(fmt_row, text="PPTX", value="pptx", variable=self.format_var, command=self._refresh_output_suggestion).pack(side="left", padx=(12, 0))
+        widgets.Radiobutton(fmt_row, text="PNG", value="png", variable=self.format_var, command=self._refresh_output_suggestion).pack(side="left", padx=(12, 0))
+        widgets.Radiobutton(fmt_row, text="PNG (ZIP)", value="pngzip", variable=self.format_var, command=self._refresh_output_suggestion).pack(side="left", padx=(12, 0))
+        widgets.Radiobutton(fmt_row, text="HTML", value="html", variable=self.format_var, command=self._refresh_output_suggestion).pack(side="left", padx=(12, 0))
 
         if self.allow_mode_selection:
-            mode_row = ttk.Frame(outer)
+            mode_row = widgets.Frame(outer)
             mode_row.pack(fill="x", pady=(4, 4))
-            ttk.Label(mode_row, text="Inhalt:", width=15).pack(side="left")
-            ttk.Radiobutton(mode_row, text=self.worksheet_label, value="worksheet", variable=self.mode_var, command=self._refresh_output_suggestion).pack(side="left")
-            ttk.Radiobutton(mode_row, text=self.solution_label, value="solution", variable=self.mode_var, command=self._refresh_output_suggestion).pack(side="left", padx=(12, 0))
-            ttk.Radiobutton(mode_row, text="Beides", value="both", variable=self.mode_var, command=self._refresh_output_suggestion).pack(side="left", padx=(12, 0))
+            widgets.Label(mode_row, text="Inhalt:", width=15).pack(side="left")
+            widgets.Radiobutton(mode_row, text=self.worksheet_label, value="worksheet", variable=self.mode_var, command=self._refresh_output_suggestion).pack(side="left")
+            widgets.Radiobutton(mode_row, text=self.solution_label, value="solution", variable=self.mode_var, command=self._refresh_output_suggestion).pack(side="left", padx=(12, 0))
+            widgets.Radiobutton(mode_row, text="Beides", value="both", variable=self.mode_var, command=self._refresh_output_suggestion).pack(side="left", padx=(12, 0))
         else:
             self.mode_var.set("worksheet")
 
-        black_row = ttk.Frame(outer)
+        black_row = widgets.Frame(outer)
         black_row.pack(fill="x", pady=(4, 4))
-        ttk.Label(black_row, text="Black-Screen:", width=15).pack(side="left")
-        ttk.Radiobutton(black_row, text="Aus", value="none", variable=self.black_screen_var).pack(side="left")
-        ttk.Radiobutton(black_row, text="Vorher", value="before", variable=self.black_screen_var).pack(side="left", padx=(12, 0))
-        ttk.Radiobutton(black_row, text="Nachher", value="after", variable=self.black_screen_var).pack(side="left", padx=(12, 0))
-        ttk.Radiobutton(black_row, text="Beides", value="both", variable=self.black_screen_var).pack(side="left", padx=(12, 0))
+        widgets.Label(black_row, text="Black-Screen:", width=15).pack(side="left")
+        widgets.Radiobutton(black_row, text="Aus", value="none", variable=self.black_screen_var).pack(side="left")
+        widgets.Radiobutton(black_row, text="Vorher", value="before", variable=self.black_screen_var).pack(side="left", padx=(12, 0))
+        widgets.Radiobutton(black_row, text="Nachher", value="after", variable=self.black_screen_var).pack(side="left", padx=(12, 0))
+        widgets.Radiobutton(black_row, text="Beides", value="both", variable=self.black_screen_var).pack(side="left", padx=(12, 0))
 
-        out_row = ttk.Frame(outer)
+        out_row = widgets.Frame(outer)
         out_row.pack(fill="x", pady=(10, 4))
-        ttk.Label(out_row, text="Ausgabe:", width=15).pack(side="left")
-        ttk.Entry(out_row, textvariable=self.output_var).pack(side="left", fill="x", expand=True, padx=(0, 8))
-        ttk.Button(out_row, text="Durchsuchen…", style="SecondaryAction.TButton", command=self._pick_output).pack(side="left")
+        widgets.Label(out_row, text="Ausgabe:", width=15).pack(side="left")
+        widgets.Entry(out_row, textvariable=self.output_var).pack(side="left", fill="x", expand=True, padx=(0, 8))
+        widgets.Button(out_row, text="Durchsuchen…", style="SecondaryAction.TButton", command=self._pick_output).pack(side="left")
 
-        actions = ttk.Frame(outer)
+        actions = widgets.Frame(outer)
         actions.pack(fill="x", pady=(12, 0))
-        ttk.Button(actions, text="?", width=3, style="SecondaryAction.TButton", command=self._toggle_shortcuts_help).pack(side="right")
-        ttk.Button(actions, text="Exportieren", style="PrimaryAction.TButton", command=self._confirm).pack(side="left")
-        ttk.Button(actions, text="Abbrechen", style="SecondaryAction.TButton", command=self._cancel).pack(side="left", padx=(8, 0))
+        widgets.Button(actions, text="?", width=3, style="SecondaryAction.TButton", command=self._toggle_shortcuts_help).pack(side="right")
+        widgets.Button(actions, text="Exportieren", style="PrimaryAction.TButton", command=self._confirm).pack(side="left")
+        widgets.Button(actions, text="Abbrechen", style="SecondaryAction.TButton", command=self._cancel).pack(side="left", padx=(8, 0))
 
-        self.shortcuts_frame = ttk.LabelFrame(outer, text="Shortcuts")
-        ttk.Label(
+        self.shortcuts_frame = widgets.LabelFrame(outer, text="Shortcuts")
+        widgets.Label(
             self.shortcuts_frame,
             style="Muted.TLabel",
             justify="left",
@@ -314,7 +316,7 @@ class LernhilfenExportDialog(_BaseExportDialog):
         initial_output_dir: str | None = None,
     ):
         super().__init__(parent, input_path, theme_key, initial_output_dir=initial_output_dir)
-        self.format_var = tk.StringVar(value=default_format)
+        self.format_var = ui.StringVar(value=default_format)
 
         self.window.title("Lernhilfen exportieren")
         self._build_ui()
@@ -325,32 +327,32 @@ class LernhilfenExportDialog(_BaseExportDialog):
     def _build_ui(self):
         theme = get_theme(self.theme_key)
 
-        outer = ttk.Frame(self.window, padding=14)
+        outer = widgets.Frame(self.window, padding=14)
         outer.pack(fill="both", expand=True)
 
-        ttk.Label(outer, text="Lernhilfen-Export", font=("Segoe UI", 11, "bold")).pack(anchor="w")
+        widgets.Label(outer, text="Lernhilfen-Export", font=("Segoe UI", 11, "bold")).pack(anchor="w")
 
-        fmt_row = ttk.Frame(outer)
+        fmt_row = widgets.Frame(outer)
         fmt_row.pack(fill="x", pady=(10, 4))
-        ttk.Label(fmt_row, text="Format:", width=15).pack(side="left")
-        ttk.Radiobutton(fmt_row, text="PDF", value="pdf", variable=self.format_var, command=self._refresh_output_suggestion).pack(side="left")
-        ttk.Radiobutton(fmt_row, text="PNG", value="png", variable=self.format_var, command=self._refresh_output_suggestion).pack(side="left", padx=(12, 0))
-        ttk.Radiobutton(fmt_row, text="PNG (ZIP)", value="pngzip", variable=self.format_var, command=self._refresh_output_suggestion).pack(side="left", padx=(12, 0))
+        widgets.Label(fmt_row, text="Format:", width=15).pack(side="left")
+        widgets.Radiobutton(fmt_row, text="PDF", value="pdf", variable=self.format_var, command=self._refresh_output_suggestion).pack(side="left")
+        widgets.Radiobutton(fmt_row, text="PNG", value="png", variable=self.format_var, command=self._refresh_output_suggestion).pack(side="left", padx=(12, 0))
+        widgets.Radiobutton(fmt_row, text="PNG (ZIP)", value="pngzip", variable=self.format_var, command=self._refresh_output_suggestion).pack(side="left", padx=(12, 0))
 
-        out_row = ttk.Frame(outer)
+        out_row = widgets.Frame(outer)
         out_row.pack(fill="x", pady=(10, 4))
-        ttk.Label(out_row, text="Ausgabe:", width=15).pack(side="left")
-        ttk.Entry(out_row, textvariable=self.output_var).pack(side="left", fill="x", expand=True, padx=(0, 8))
-        ttk.Button(out_row, text="Durchsuchen…", style="SecondaryAction.TButton", command=self._pick_output).pack(side="left")
+        widgets.Label(out_row, text="Ausgabe:", width=15).pack(side="left")
+        widgets.Entry(out_row, textvariable=self.output_var).pack(side="left", fill="x", expand=True, padx=(0, 8))
+        widgets.Button(out_row, text="Durchsuchen…", style="SecondaryAction.TButton", command=self._pick_output).pack(side="left")
 
-        actions = ttk.Frame(outer)
+        actions = widgets.Frame(outer)
         actions.pack(fill="x", pady=(12, 0))
-        ttk.Button(actions, text="?", width=3, style="SecondaryAction.TButton", command=self._toggle_shortcuts_help).pack(side="right")
-        ttk.Button(actions, text="Exportieren", style="PrimaryAction.TButton", command=self._confirm).pack(side="left")
-        ttk.Button(actions, text="Abbrechen", style="SecondaryAction.TButton", command=self._cancel).pack(side="left", padx=(8, 0))
+        widgets.Button(actions, text="?", width=3, style="SecondaryAction.TButton", command=self._toggle_shortcuts_help).pack(side="right")
+        widgets.Button(actions, text="Exportieren", style="PrimaryAction.TButton", command=self._confirm).pack(side="left")
+        widgets.Button(actions, text="Abbrechen", style="SecondaryAction.TButton", command=self._cancel).pack(side="left", padx=(8, 0))
 
-        self.shortcuts_frame = ttk.LabelFrame(outer, text="Shortcuts")
-        ttk.Label(
+        self.shortcuts_frame = widgets.LabelFrame(outer, text="Shortcuts")
+        widgets.Label(
             self.shortcuts_frame,
             style="Muted.TLabel",
             justify="left",
@@ -458,4 +460,5 @@ class LernhilfenExportDialog(_BaseExportDialog):
             "output_path": out_path,
         }
         self.window.destroy()
+
 

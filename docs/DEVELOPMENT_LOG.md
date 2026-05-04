@@ -25,6 +25,7 @@ Regel:
 - Tk/ttk-Runtime-Pilotmigration erweitert: `app/ui/blatt_ui_editor.py` nutzt jetzt zentrale Runtime-Aliases aus `bw_gui.runtime` (`ui`/`widgets`) statt direkter `tkinter`-/`ttk`-Imports.
 - Tk/ttk-Runtime-Pilotmigration erweitert: `app/ui/blatt_ui_help_preview.py` nutzt jetzt zentrale Runtime-Aliases aus `bw_gui.runtime` (`ui`/`widgets`) statt direkter `tkinter`-/`ttk`-Imports.
 - Tk/ttk-Runtime-Pilotmigration erweitert: `app/ui/blatt_ui_style.py` nutzt jetzt zentrale Runtime-Aliases aus `bw_gui.runtime` (`ui`/`widgets`) statt direkter `tkinter`-/`ttk`-Imports.
+- Tk/ttk-Runtime-Pilotmigration erweitert: `app/ui/export_dialog.py` nutzt jetzt zentrale Runtime-Aliases aus `bw_gui.runtime` (`ui`/`widgets`) statt direkter `tkinter`-/`ttk`-Imports.
 - Tk-Runtime-Pilotmigration erweitert: `app/ui/window_identity.py` nutzt jetzt `bw_gui.runtime.ui`-Typen/Exceptions statt direktem `tkinter`-Import.
 - Tk-Runtime-Pilotmigration erweitert: `app/ui/blatt_ui.py` nutzt jetzt `bw_gui.runtime.ui` fuer den Root-Window-Start statt direktem `tkinter`-Import.
 - Tk/ttk-Runtime-Pilotmigration gestartet: `app/ui/blatt_ui_build.py` nutzt jetzt zentrale Runtime-Aliases aus `bw_gui.runtime` (`ui`/`widgets`) statt direkter `tkinter`-/`ttk`-Imports, als erster Schritt zur vollstaendigen Entkopplung direkter Tk-Aufrufe aus App-Modulen.
