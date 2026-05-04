@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
-import tkinter as tk
-from tkinter import ttk
+from bw_libs.shared_gui_core import ensure_bw_gui_on_path
+
+ensure_bw_gui_on_path()
+from bw_gui.runtime import ui, widgets
+
 from pathlib import Path
 
 from app.app_info import APP_INFO
@@ -64,24 +67,24 @@ class BlattwerkAppBase:
         except Exception:
             self._default_tk_scaling = 1.0
 
-        self.input_var = tk.StringVar()
-        self.preview_mode_var = tk.StringVar(value="worksheet")
-        self.preview_black_screen_var = tk.StringVar(value="none")
-        self.preview_section_separator_var = tk.StringVar(value="dot")
-        self.preview_hide_future_sections_var = tk.BooleanVar(value=False)
-        self.preview_page_format_var = tk.StringVar(value="a4_portrait")
-        self.preview_contrast_var = tk.StringVar(value="standard")
-        self.preview_fit_mode_var = tk.StringVar(value=VIEW_FIT_WIDTH)
-        self.preview_layout_mode_var = tk.StringVar(value=VIEW_LAYOUT_SINGLE)
-        self.editor_view_mode_var = tk.StringVar(value=EDITOR_VIEW_PREVIEW_ONLY)
-        self.design_color_profile_var = tk.StringVar(value=DEFAULT_COLOR_PROFILE)
-        self.design_font_profile_var = tk.StringVar(value=DEFAULT_FONT_PROFILE)
-        self.design_font_size_profile_var = tk.StringVar(value=DEFAULT_FONT_SIZE_PROFILE)
-        self.theme_var = tk.StringVar(value=DEFAULT_THEME)
+        self.input_var = ui.StringVar()
+        self.preview_mode_var = ui.StringVar(value="worksheet")
+        self.preview_black_screen_var = ui.StringVar(value="none")
+        self.preview_section_separator_var = ui.StringVar(value="dot")
+        self.preview_hide_future_sections_var = ui.BooleanVar(value=False)
+        self.preview_page_format_var = ui.StringVar(value="a4_portrait")
+        self.preview_contrast_var = ui.StringVar(value="standard")
+        self.preview_fit_mode_var = ui.StringVar(value=VIEW_FIT_WIDTH)
+        self.preview_layout_mode_var = ui.StringVar(value=VIEW_LAYOUT_SINGLE)
+        self.editor_view_mode_var = ui.StringVar(value=EDITOR_VIEW_PREVIEW_ONLY)
+        self.design_color_profile_var = ui.StringVar(value=DEFAULT_COLOR_PROFILE)
+        self.design_font_profile_var = ui.StringVar(value=DEFAULT_FONT_PROFILE)
+        self.design_font_size_profile_var = ui.StringVar(value=DEFAULT_FONT_SIZE_PROFILE)
+        self.theme_var = ui.StringVar(value=DEFAULT_THEME)
 
-        self.status_var = tk.StringVar(value="Bereit")
-        self.page_info_var = tk.StringVar(value="Seite 0/0")
-        self.zoom_info_var = tk.StringVar(value="Zoom: 100%")
+        self.status_var = ui.StringVar(value="Bereit")
+        self.page_info_var = ui.StringVar(value="Seite 0/0")
+        self.zoom_info_var = ui.StringVar(value="Zoom: 100%")
 
         self.preview_images = []
         self.current_page_index = 0
@@ -132,12 +135,12 @@ class BlattwerkAppBase:
             intents=[definition.intent for definition in self.keybinding_registry.all()]
         )
         self.shortcut_bindings = build_preview_shortcuts(self, registry=self.keybinding_registry)
-        self.shortcut_debug_enabled_var = tk.BooleanVar(value=False)
-        self.shortcut_debug_offline_var = tk.BooleanVar(value=False)
-        self.shortcut_debug_context_var = tk.StringVar(value="")
+        self.shortcut_debug_enabled_var = ui.BooleanVar(value=False)
+        self.shortcut_debug_offline_var = ui.BooleanVar(value=False)
+        self.shortcut_debug_context_var = ui.StringVar(value="")
         self.shortcut_debug_window = None
         self.shortcut_debug_table = None
-        self.shortcut_debug_summary_var = tk.StringVar(value="")
+        self.shortcut_debug_summary_var = ui.StringVar(value="")
         self._shortcut_debug_refresh_after_id = None
         self.popup_policy_registry = PopupPolicyRegistry()
         self.popup_policy_registry.register_policy(PopupPolicy(policy_id="dialog.modal", kind=POPUP_KIND_MODAL))
@@ -175,8 +178,8 @@ class BlattwerkAppBase:
         self._help_preview_image_items = []
         self._help_card_y_offsets = []
         self._help_stacked_image_size = (0, 0)
-        self.help_page_info_var = tk.StringVar(value="Hilfe 0/0")
-        self.help_zoom_info_var = tk.StringVar(value="Zoom: 100%")
+        self.help_page_info_var = ui.StringVar(value="Hilfe 0/0")
+        self.help_zoom_info_var = ui.StringVar(value="Zoom: 100%")
         self._help_last_preview_input_path = None
         self._active_lernhilfen_available = False
         self.lernhilfen_action_btn = None
@@ -258,7 +261,7 @@ class BlattwerkAppBase:
         self.shortcut_manager.bind_all(self.shortcut_bindings)
 
     @staticmethod
-    def _is_widget_descendant_of(widget: tk.Misc | None, parent: tk.Misc | None) -> bool:
+    def _is_widget_descendant_of(widget: ui.Misc | None, parent: ui.Misc | None) -> bool:
         """Return whether widget is nested below parent in the widget tree."""
 
         if widget is None or parent is None:
@@ -294,7 +297,7 @@ class BlattwerkAppBase:
         visible_popup_ids: set[str] = set()
 
         for child in self.root.winfo_children():
-            if not isinstance(child, tk.Toplevel):
+            if not isinstance(child, ui.Toplevel):
                 continue
             try:
                 if not int(child.winfo_exists()):
@@ -327,7 +330,7 @@ class BlattwerkAppBase:
             self.popup_policy_registry.close_popup(popup_id)
             self._tracked_popup_ids.discard(popup_id)
 
-    def _track_popup_window(self, window: tk.Toplevel, *, policy_id: str = "dialog.modal") -> None:
+    def _track_popup_window(self, window: ui.Toplevel, *, policy_id: str = "dialog.modal") -> None:
         """Register a popup immediately in the popup policy registry."""
 
         popup_id = str(window)
@@ -392,7 +395,7 @@ class BlattwerkAppBase:
 
         popup_id = active_popup.popup_id
         for child in self.root.winfo_children():
-            if not isinstance(child, tk.Toplevel):
+            if not isinstance(child, ui.Toplevel):
                 continue
             if str(child) != popup_id:
                 continue
@@ -580,42 +583,42 @@ class BlattwerkAppBase:
             except Exception:
                 self.shortcut_debug_window = None
 
-        window = tk.Toplevel(self.root)
+        window = ui.Toplevel(self.root)
         window.title("Shortcut-Runtime-Debug")
         window.geometry("980x540")
         window.minsize(820, 420)
         self._track_popup_window(window, policy_id="dialog.non_blocking")
 
-        toolbar = ttk.Frame(window, padding=(10, 8))
+        toolbar = widgets.Frame(window, padding=(10, 8))
         toolbar.pack(fill="x")
-        ttk.Label(toolbar, textvariable=self.shortcut_debug_context_var, style="Muted.TLabel").pack(
+        widgets.Label(toolbar, textvariable=self.shortcut_debug_context_var, style="Muted.TLabel").pack(
             side="left",
             fill="x",
             expand=True,
         )
-        ttk.Checkbutton(
+        widgets.Checkbutton(
             toolbar,
             text="Offline simulieren",
             variable=self.shortcut_debug_offline_var,
             command=self._on_shortcut_debug_offline_changed,
         ).pack(side="left", padx=(12, 0))
-        ttk.Button(
+        widgets.Button(
             toolbar,
             text="Aktualisieren",
             style="SecondaryAction.TButton",
             command=self._refresh_shortcut_debug_overlay,
         ).pack(side="left", padx=(8, 0))
-        ttk.Button(
+        widgets.Button(
             toolbar,
             text="Schliessen",
             style="SecondaryAction.TButton",
             command=lambda: self._set_shortcut_debug_overlay_visible(False),
         ).pack(side="right")
 
-        debug_body = ttk.Frame(window, padding=(10, 0, 10, 8))
+        debug_body = widgets.Frame(window, padding=(10, 0, 10, 8))
         debug_body.pack(fill="both", expand=True)
         columns = ("mode", "sequence", "binding", "status", "reason")
-        self.shortcut_debug_table = ttk.Treeview(
+        self.shortcut_debug_table = widgets.Treeview(
             debug_body,
             columns=columns,
             show="headings",
@@ -633,11 +636,11 @@ class BlattwerkAppBase:
         self.shortcut_debug_table.column("reason", width=180, anchor="w", stretch=True)
         self.shortcut_debug_table.pack(side="left", fill="both", expand=True)
 
-        debug_scrollbar = ttk.Scrollbar(debug_body, orient="vertical", command=self.shortcut_debug_table.yview)
+        debug_scrollbar = widgets.Scrollbar(debug_body, orient="vertical", command=self.shortcut_debug_table.yview)
         debug_scrollbar.pack(side="right", fill="y")
         self.shortcut_debug_table.configure(yscrollcommand=debug_scrollbar.set)
 
-        ttk.Label(
+        widgets.Label(
             window,
             textvariable=self.shortcut_debug_summary_var,
             style="Muted.TLabel",
@@ -896,7 +899,7 @@ class BlattwerkAppBase:
         self._cycle_contrast(step=1)
 
     @staticmethod
-    def _cycle_option(var: tk.StringVar, options: list[str], step: int = 1):
+    def _cycle_option(var: ui.StringVar, options: list[str], step: int = 1):
         """Cycle option."""
         current = var.get()
         try:
@@ -905,3 +908,4 @@ class BlattwerkAppBase:
             current_index = 0
         next_index = (current_index + step) % len(options)
         var.set(options[next_index])
+
