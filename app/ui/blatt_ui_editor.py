@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+from bw_libs.shared_gui_core import ensure_bw_gui_on_path
+
+ensure_bw_gui_on_path()
+from bw_gui.runtime import ui, widgets
+
 from pathlib import Path
 from datetime import datetime
 import re
 import shutil
-import tkinter as tk
-from tkinter import ttk
 
 from .dialog_services import messagebox
 
@@ -65,14 +68,14 @@ class BlattwerkAppEditorMixin:
     def _build_editor_panel(self, parent):
         """Creates the editor widget and wires change events for live save."""
 
-        editor_toolbar = ttk.Frame(parent)
+        editor_toolbar = widgets.Frame(parent)
         editor_toolbar.pack(fill="x", padx=8, pady=(8, 4))
-        ttk.Label(editor_toolbar, text="Schreibbereich").pack(side="left")
+        widgets.Label(editor_toolbar, text="Schreibbereich").pack(side="left")
 
-        editor_body = ttk.Frame(parent)
+        editor_body = widgets.Frame(parent)
         editor_body.pack(fill="both", expand=True, padx=8, pady=(0, 8))
 
-        self.editor_widget = tk.Text(
+        self.editor_widget = ui.Text(
             editor_body,
             wrap="word",
             undo=True,
@@ -81,7 +84,7 @@ class BlattwerkAppEditorMixin:
         )
         self.editor_widget.pack(side="left", fill="both", expand=True)
 
-        self.editor_vertical_scrollbar = ttk.Scrollbar(
+        self.editor_vertical_scrollbar = widgets.Scrollbar(
             editor_body,
             orient="vertical",
             command=self.editor_widget.yview,
@@ -106,15 +109,15 @@ class BlattwerkAppEditorMixin:
             self.editor_widget.bind("<Down>", self._on_editor_completion_move_down)
             self.editor_widget.bind("<Return>", self._on_editor_completion_enter)
 
-        diagnostics_frame = ttk.LabelFrame(parent, text="Diagnostik")
+        diagnostics_frame = widgets.LabelFrame(parent, text="Diagnostik")
         diagnostics_frame.pack(fill="x", padx=8, pady=(0, 8))
         diagnostics_frame.columnconfigure(2, weight=1)
 
-        ttk.Label(diagnostics_frame, text="Zeile").grid(row=0, column=0, sticky="w", padx=(8, 6), pady=(6, 4))
-        ttk.Label(diagnostics_frame, text="Code").grid(row=0, column=1, sticky="w", padx=(0, 6), pady=(6, 4))
-        ttk.Label(diagnostics_frame, text="Hinweis").grid(row=0, column=2, sticky="w", padx=(0, 8), pady=(6, 4))
+        widgets.Label(diagnostics_frame, text="Zeile").grid(row=0, column=0, sticky="w", padx=(8, 6), pady=(6, 4))
+        widgets.Label(diagnostics_frame, text="Code").grid(row=0, column=1, sticky="w", padx=(0, 6), pady=(6, 4))
+        widgets.Label(diagnostics_frame, text="Hinweis").grid(row=0, column=2, sticky="w", padx=(0, 8), pady=(6, 4))
 
-        self.editor_diagnostics_listbox = tk.Listbox(
+        self.editor_diagnostics_listbox = ui.Listbox(
             diagnostics_frame,
             activestyle="none",
             borderwidth=0,
@@ -125,7 +128,7 @@ class BlattwerkAppEditorMixin:
         self.editor_diagnostics_listbox.bind("<<ListboxSelect>>", self._on_editor_diagnostic_selected)
         self.editor_diagnostics_listbox.bind("<ButtonRelease-1>", self._on_editor_diagnostic_click)
 
-        diagnostics_scrollbar = ttk.Scrollbar(
+        diagnostics_scrollbar = widgets.Scrollbar(
             diagnostics_frame,
             orient="vertical",
             command=self.editor_diagnostics_listbox.yview,
@@ -134,13 +137,13 @@ class BlattwerkAppEditorMixin:
         self.editor_diagnostics_listbox.configure(yscrollcommand=diagnostics_scrollbar.set)
         diagnostics_frame.rowconfigure(1, weight=1)
 
-        outline_frame = ttk.LabelFrame(parent, text="Struktur")
+        outline_frame = widgets.LabelFrame(parent, text="Struktur")
         outline_frame.pack(fill="x", padx=8, pady=(0, 8))
         outline_frame.columnconfigure(0, weight=1)
         if not bool(preferences.get("outline_visible_on_start", True)):
             outline_frame.pack_forget()
 
-        self.editor_outline_listbox = tk.Listbox(
+        self.editor_outline_listbox = ui.Listbox(
             outline_frame,
             activestyle="none",
             borderwidth=0,
@@ -151,7 +154,7 @@ class BlattwerkAppEditorMixin:
         self.editor_outline_listbox.bind("<<ListboxSelect>>", self._on_editor_outline_selected)
         self.editor_outline_listbox.bind("<ButtonRelease-1>", self._on_editor_outline_click)
 
-        outline_scrollbar = ttk.Scrollbar(
+        outline_scrollbar = widgets.Scrollbar(
             outline_frame,
             orient="vertical",
             command=self.editor_outline_listbox.yview,
@@ -222,7 +225,7 @@ class BlattwerkAppEditorMixin:
     def _show_editor_source_conflict_dialog(self, *, input_path: Path, age_text: str) -> str:
         """Shows a modal conflict dialog and returns discard, overwrite, or cancel."""
 
-        dialog = tk.Toplevel(self.root)
+        dialog = ui.Toplevel(self.root)
         dialog.title("Externe Änderung erkannt")
         dialog.transient(self.root)
         dialog.resizable(False, False)
@@ -231,10 +234,10 @@ class BlattwerkAppEditorMixin:
         except Exception:
             pass
 
-        body = ttk.Frame(dialog, padding=12)
+        body = widgets.Frame(dialog, padding=12)
         body.pack(fill="both", expand=True)
 
-        ttk.Label(
+        widgets.Label(
             body,
             text=(
                 "Die Quelldatei wurde extern geändert.\n"
@@ -245,7 +248,7 @@ class BlattwerkAppEditorMixin:
             justify="left",
         ).pack(anchor="w")
 
-        button_row = ttk.Frame(body)
+        button_row = widgets.Frame(body)
         button_row.pack(fill="x", pady=(12, 0))
 
         result = {"value": "cancel"}
@@ -254,9 +257,9 @@ class BlattwerkAppEditorMixin:
             result["value"] = value
             dialog.destroy()
 
-        ttk.Button(button_row, text="Verwerfen", command=lambda: choose("discard")).pack(side="left")
-        ttk.Button(button_row, text="Überschreiben", command=lambda: choose("overwrite")).pack(side="left", padx=(8, 0))
-        ttk.Button(button_row, text="Abbrechen", command=lambda: choose("cancel")).pack(side="right")
+        widgets.Button(button_row, text="Verwerfen", command=lambda: choose("discard")).pack(side="left")
+        widgets.Button(button_row, text="Überschreiben", command=lambda: choose("overwrite")).pack(side="left", padx=(8, 0))
+        widgets.Button(button_row, text="Abbrechen", command=lambda: choose("cancel")).pack(side="right")
 
         dialog.protocol("WM_DELETE_WINDOW", lambda: choose("cancel"))
         dialog.wait_window()
@@ -477,7 +480,7 @@ class BlattwerkAppEditorMixin:
                     highlightthickness=1,
                     highlightbackground=border_hex,
                 )
-            except tk.TclError:
+            except ui.TclError:
                 pass
 
     def _queue_editor_highlighting(self, immediate: bool = False):
@@ -1034,12 +1037,12 @@ class BlattwerkAppEditorMixin:
         self._editor_completion_context_meta = completion_meta
 
         if self._editor_completion_popup is None or not self._editor_completion_popup.winfo_exists():
-            popup = tk.Toplevel(self.root)
+            popup = ui.Toplevel(self.root)
             popup.withdraw()
             popup.overrideredirect(True)
             popup.transient(self.root)
 
-            listbox = tk.Listbox(
+            listbox = ui.Listbox(
                 popup,
                 activestyle="none",
                 height=min(8, len(suggestions)),
@@ -1863,9 +1866,10 @@ class BlattwerkAppEditorMixin:
             else:
                 self.editor_preview_paned.sash_place(0, split_x, 1)
             self._equal_split_attempts = 0
-        except tk.TclError:
+        except ui.TclError:
             if bool(getattr(self, "_reduce_motion", False)):
                 return
             if self._equal_split_attempts < 10:
                 self._equal_split_attempts += 1
                 self.root.after(30, self._set_equal_split)
+

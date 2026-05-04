@@ -28,6 +28,7 @@ The format is based on Keep a Changelog.
 - GUI startup now initializes the root window through shared `bw_gui.runtime.ui` aliases in `app/ui/blatt_ui.py` instead of importing `tkinter` directly.
 - Window identity/theme helpers now use shared `bw_gui.runtime.ui` aliases in `app/ui/window_identity.py` instead of importing `tkinter` directly.
 - Base GUI state/runtime wiring now uses shared `bw_gui.runtime` aliases (`ui`, `widgets`) in `app/ui/blatt_ui_base.py` instead of direct `tkinter`/`ttk` imports.
+- Editor UI wiring now uses shared `bw_gui.runtime` aliases (`ui`, `widgets`) in `app/ui/blatt_ui_editor.py` instead of direct `tkinter`/`ttk` imports.
 - UI runtime import pilot started: `app/ui/blatt_ui_build.py` now consumes shared `bw_gui.runtime` aliases (`ui`/`widgets`) instead of direct `tkinter`/`ttk` imports, establishing the migration path toward zero direct Tk imports in app modules.
 - Pilot integration for the shared GUI core started: Blattwerk now resolves keybinding, popup, and HSM contracts through the new shared `bw-gui` core (via submodule bridge), and applies a shared theme baseline before Blattwerk-specific style overlays.
 - The top menu bar now runs on the shared `bw-gui` custom menu component, unifying popup behavior and theme rendering with the common GUI core.
