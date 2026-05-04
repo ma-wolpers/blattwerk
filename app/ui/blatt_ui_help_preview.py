@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+from bw_libs.shared_gui_core import ensure_bw_gui_on_path
+
+ensure_bw_gui_on_path()
+from bw_gui.runtime import ui, widgets
+
 from pathlib import Path
 import tempfile
 import fitz
 from PIL import Image, ImageTk
-from tkinter import ttk
-import tkinter as tk
 
 from .dialog_services import messagebox
 from .ui_constants import (
@@ -78,24 +81,24 @@ class BlattwerkAppHelpPreviewMixin:
         ):
             return
 
-        window = tk.Toplevel(self.root)
+        window = ui.Toplevel(self.root)
         window.title("Lernhilfen Vorschau")
         window.geometry("700x560")
         window.minsize(460, 360)
         window.transient(self.root)
         window.protocol("WM_DELETE_WINDOW", self._close_help_preview_window)
 
-        outer = ttk.Frame(window, padding=10)
+        outer = widgets.Frame(window, padding=10)
         outer.pack(fill="both", expand=True)
 
-        ttk.Label(outer, text="Lernhilfen", font=("Segoe UI", 11, "bold")).pack(
+        widgets.Label(outer, text="Lernhilfen", font=("Segoe UI", 11, "bold")).pack(
             anchor="w"
         )
 
-        actions = ttk.Frame(outer)
+        actions = widgets.Frame(outer)
         actions.pack(fill="x", pady=(8, 6))
 
-        self.help_prev_btn = ttk.Button(
+        self.help_prev_btn = widgets.Button(
             actions,
             text="◀",
             command=self._help_prev_page,
@@ -103,7 +106,7 @@ class BlattwerkAppHelpPreviewMixin:
             style="NavAction.TButton",
         )
         self.help_prev_btn.pack(side="left")
-        self.help_next_btn = ttk.Button(
+        self.help_next_btn = widgets.Button(
             actions,
             text="▶",
             command=self._help_next_page,
@@ -112,31 +115,31 @@ class BlattwerkAppHelpPreviewMixin:
         )
         self.help_next_btn.pack(side="left", padx=(8, 0))
 
-        ttk.Separator(actions, orient="vertical").pack(side="left", fill="y", padx=12)
+        widgets.Separator(actions, orient="vertical").pack(side="left", fill="y", padx=12)
 
-        ttk.Button(
+        widgets.Button(
             actions,
             text="-",
             command=lambda: self._help_change_zoom(-10),
             width=3,
             style="SecondaryAction.TButton",
         ).pack(side="left")
-        ttk.Button(
+        widgets.Button(
             actions,
             text="+",
             command=lambda: self._help_change_zoom(10),
             width=3,
             style="SecondaryAction.TButton",
         ).pack(side="left", padx=(8, 0))
-        ttk.Button(
+        widgets.Button(
             actions,
             text="100%",
             command=self._help_reset_zoom,
             style="SecondaryAction.TButton",
         ).pack(side="left", padx=(8, 0))
 
-        ttk.Separator(actions, orient="vertical").pack(side="left", fill="y", padx=12)
-        self.help_export_btn = ttk.Button(
+        widgets.Separator(actions, orient="vertical").pack(side="left", fill="y", padx=12)
+        self.help_export_btn = widgets.Button(
             actions,
             text="Exportieren",
             command=self.open_lernhilfen_export_dialog,
@@ -144,25 +147,25 @@ class BlattwerkAppHelpPreviewMixin:
         )
         self.help_export_btn.pack(side="left")
 
-        info_row = ttk.Frame(outer)
+        info_row = widgets.Frame(outer)
         info_row.pack(fill="x", pady=(0, 6))
-        ttk.Label(info_row, textvariable=self.help_page_info_var).pack(side="left")
-        ttk.Label(info_row, textvariable=self.help_zoom_info_var).pack(
+        widgets.Label(info_row, textvariable=self.help_page_info_var).pack(side="left")
+        widgets.Label(info_row, textvariable=self.help_zoom_info_var).pack(
             side="left", padx=(14, 0)
         )
 
-        preview_frame = ttk.Frame(outer, relief="solid", borderwidth=1)
+        preview_frame = widgets.Frame(outer, relief="solid", borderwidth=1)
         preview_frame.pack(fill="both", expand=True)
 
         theme = get_theme(self.theme_var.get())
-        canvas = tk.Canvas(
+        canvas = ui.Canvas(
             preview_frame, background=theme["bg_main"], highlightthickness=0
         )
         canvas.pack(side="left", fill="both", expand=True)
 
-        v_scroll = ttk.Scrollbar(preview_frame, orient="vertical", command=canvas.yview)
+        v_scroll = widgets.Scrollbar(preview_frame, orient="vertical", command=canvas.yview)
         v_scroll.pack(side="right", fill="y")
-        h_scroll = ttk.Scrollbar(window, orient="horizontal", command=canvas.xview)
+        h_scroll = widgets.Scrollbar(window, orient="horizontal", command=canvas.xview)
         h_scroll.pack(fill="x", padx=10, pady=(0, 10))
 
         canvas.configure(yscrollcommand=v_scroll.set, xscrollcommand=h_scroll.set)
@@ -552,4 +555,5 @@ class BlattwerkAppHelpPreviewMixin:
             and self.help_preview_window.winfo_exists()
         ):
             self.help_preview_window.deiconify()
+
 
