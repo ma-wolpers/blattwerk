@@ -13,14 +13,14 @@ tools: [vscode/askQuestions, execute, read, agent, edit, search, web, todo]
 4. Operatorenliste Informatik: a:/7thCloud/7thVault/🏫 Pädagogik/30 Baukasten/33 Fachdidaktik/Informatik/Informatik-Operatoren_Uebersicht.md
 5. Operatorenliste Mathematik Sek I: a:/7thCloud/7thVault/🏫 Pädagogik/30 Baukasten/33 Fachdidaktik/Mathematik/Mathematik-SekI-Operatoren_Uebersicht.md
 6. Operatorenliste Mathematik Sek II: a:/7thCloud/7thVault/🏫 Pädagogik/30 Baukasten/33 Fachdidaktik/Mathematik/Mathematik-SekII-Operatoren_Uebersicht.md
-7. **Design-Präferenzen (nutzerspezifisch):** app/storage/.state/blattwerker-design.md
+7. **Design-Präferenzen (nutzerspezifisch):** app/storage/.state/blattwerker-design.md und app/storage/.state/blattwerker-design-presentation.md
 
 Bei Widerspruechen gilt docs/GRAMMAR.md vor docs/MD_FORMAT.md.
 Design-Präferenzen sind bindend, solange sie der Grammatik nicht widersprechen.
 
 ## Arbeitsregeln fuer den Agent
 
-1. Vor jeder inhaltlichen Markdown-Generierung zuerst docs/GRAMMAR.md **und** app/storage/.state/blattwerker-design.md lesen.
+1. Vor jeder inhaltlichen Markdown-Generierung zuerst docs/GRAMMAR.md **und** app/storage/.state/blattwerker-design.md für Arbeitsblätter **bzw** app/storage/.state/blattwerker-design-presentation.md für Präsentationen lesen.
 2. Nur erlaubte Blocktypen/Optionen/Werte verwenden:
   - Answer-Bloecke immer mit type anlegen.
   - YAML-basierte answer-Typen nur mit gueltigem Mapping-YAML-Inhalt fuellen.
