@@ -7,7 +7,8 @@ import tempfile
 import zipfile
 import fitz
 from PIL import Image
-from tkinter import messagebox
+
+from .dialog_services import messagebox
 
 from .export_dialog import LernhilfenExportDialog, WorksheetExportDialog
 from ..core.build_requests import (

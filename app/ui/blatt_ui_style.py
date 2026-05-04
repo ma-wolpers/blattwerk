@@ -5,9 +5,10 @@ from __future__ import annotations
 from pathlib import Path
 from PIL import Image
 import tkinter as tk
-from tkinter import messagebox, ttk
+from tkinter import ttk
 
 from bw_libs.shared_gui_core import ensure_bw_gui_on_path
+from .dialog_services import messagebox
 from ..core.color_mentions import detect_bw_mode_color_warning_mentions
 from ..core.build_requests import WorksheetDesignOptions
 from ..styles.blatt_styles import (

@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 from pathlib import Path
-from tkinter import messagebox, ttk
+from tkinter import ttk
 
+from .dialog_services import messagebox
 from .ui_theme import normalize_theme_key
 from ..storage.local_config_store import (
     add_recent_file,

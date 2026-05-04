@@ -15,9 +15,12 @@ The format is based on Keep a Changelog.
 - Preview format switching now correctly updates the rendered preview when changing between different slide formats (16:9 → 16:10 → 4:3) or worksheet formats (A4 → A5).
 - Larger font sizes for presentations: Normal-Profil rendert jetzt mit 20 pt (statt 11 pt), damit Text auf Projektionsflächen lesbar bleibt.
 - Shortcut runtime debug popup no longer opens as an empty window; runtime table controls now render correctly.
+- Presentation rendering now keeps task headers complete (`Aufgabe N - Titel`) and no longer drops task titles in slide mode.
+- Presentation phase footer now uses clearer spacing plus centered-dot separators and keeps repeated phases visible in sequence order.
 
 ### Changed
 
+- Export, preview, and editor-adjacent dialog flows now use shared `bw_gui.dialogs` services, reducing direct tkinter dialog coupling in the Blattwerk UI layer.
 - Pilot integration for the shared GUI core started: Blattwerk now resolves keybinding, popup, and HSM contracts through the new shared `bw-gui` core (via submodule bridge), and applies a shared theme baseline before Blattwerk-specific style overlays.
 - The top menu bar now runs on the shared `bw-gui` custom menu component, unifying popup behavior and theme rendering with the common GUI core.
 

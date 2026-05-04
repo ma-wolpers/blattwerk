@@ -2,8 +2,9 @@
 
 from pathlib import Path
 import tkinter as tk
-from tkinter import filedialog, messagebox, ttk
+from tkinter import ttk
 
+from .dialog_services import filedialog, messagebox
 from .ui_theme import apply_window_theme, configure_ttk_theme, get_theme
 
 

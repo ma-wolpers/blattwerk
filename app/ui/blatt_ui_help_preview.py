@@ -6,9 +6,10 @@ from pathlib import Path
 import tempfile
 import fitz
 from PIL import Image, ImageTk
-from tkinter import messagebox, ttk
+from tkinter import ttk
 import tkinter as tk
 
+from .dialog_services import messagebox
 from .ui_constants import (
     PREVIEW_CANVAS_PADDING_PX,
     PREVIEW_MIN_FRAME_PX,

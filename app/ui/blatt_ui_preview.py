@@ -6,7 +6,8 @@ from pathlib import Path
 import tempfile
 import fitz
 from PIL import Image, ImageTk
-from tkinter import filedialog, messagebox
+
+from .dialog_services import filedialog, messagebox
 
 from .ui_constants import (
     CUSTOM_FIT_MODE,
@@ -37,6 +38,21 @@ from ..styles.blatt_styles import invalidate_stylesheet_template_cache
 
 class BlattwerkAppPreviewMixin:
     """Rendert, skaliert und navigiert die Arbeitsblatt-Vorschau."""
+
+    @staticmethod
+    def _normalize_presentation_section_separator(value) -> str:
+            candidate = str(value or "dot").strip().lower()
+            if candidate in {"dot", "arrow"}:
+                return candidate
+            return "dot"
+
+    @staticmethod
+    def _parse_bool_setting(value) -> bool:
+            if isinstance(value, bool):
+                return value
+            if isinstance(value, str):
+                return value.strip().lower() in {"1", "true", "yes", "ja", "on"}
+            return bool(value)
 
     def _resolve_preview_page_format_for_document_mode(self, page_format: str, document_mode: str) -> str:
             """Resolves a valid page format and remembers last used format per mode family."""
@@ -115,6 +131,11 @@ class BlattwerkAppPreviewMixin:
             worksheet_btn = getattr(self, "preview_mode_btn_worksheet", None)
             solution_btn = getattr(self, "preview_mode_btn_solution", None)
             static_label = getattr(self, "preview_mode_static_label", None)
+            phase_controls = [
+                getattr(self, "preview_phase_separator_btn_dot", None),
+                getattr(self, "preview_phase_separator_btn_arrow", None),
+                getattr(self, "preview_phase_hide_future_check", None),
+            ]
             controls = [worksheet_btn, solution_btn]
 
             if document_mode == "presentation":
@@ -127,6 +148,11 @@ class BlattwerkAppPreviewMixin:
 
                 if static_label is not None and not static_label.winfo_manager():
                     static_label.pack(side="left")
+
+                for control in phase_controls:
+                    if control is None:
+                        continue
+                    control.configure(state="normal")
                 return
 
             if static_label is not None and static_label.winfo_manager():
@@ -142,6 +168,11 @@ class BlattwerkAppPreviewMixin:
                     continue
                 control.configure(state="normal")
 
+            for control in phase_controls:
+                if control is None:
+                    continue
+                control.configure(state="disabled")
+
     def _build_preview_cache_key(self, input_path: Path, include_solutions: bool, page_format: str, contrast_profile: str):
             """Builds a deterministic cache key for rendered preview pages."""
 
@@ -152,6 +183,8 @@ class BlattwerkAppPreviewMixin:
                 int(stats.st_size),
                 bool(include_solutions),
                 str(self.preview_black_screen_var.get()),
+                self._normalize_presentation_section_separator(self.preview_section_separator_var.get()),
+                self._parse_bool_setting(self.preview_hide_future_sections_var.get()),
                 str(page_format),
                 str(contrast_profile),
                 str(self.design_color_profile_var.get()),
@@ -403,6 +436,12 @@ class BlattwerkAppPreviewMixin:
 
             worksheet_design = self._worksheet_design_options()
             black_screen_mode = str(self.preview_black_screen_var.get() or "none").strip().lower()
+            section_separator = self._normalize_presentation_section_separator(
+                self.preview_section_separator_var.get()
+            )
+            hide_future_sections = self._parse_bool_setting(
+                self.preview_hide_future_sections_var.get()
+            )
             metadata_defaults = {}
             if hasattr(self, "_metadata_defaults_from_preferences"):
                 metadata_defaults = self._metadata_defaults_from_preferences()
@@ -422,6 +461,8 @@ class BlattwerkAppPreviewMixin:
                         metadata_defaults=metadata_defaults,
                         copyright_text_override=copyright_override,
                         black_screen_mode=black_screen_mode,
+                        presentation_section_separator=section_separator,
+                        presentation_hide_future_sections=hide_future_sections,
                     )
                 )
 

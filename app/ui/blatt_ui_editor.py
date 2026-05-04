@@ -7,7 +7,9 @@ from datetime import datetime
 import re
 import shutil
 import tkinter as tk
-from tkinter import messagebox, ttk
+from tkinter import ttk
+
+from .dialog_services import messagebox
 
 from ..core.blatt_kern_shared import build_block_index_line_map
 from ..core.completion_catalogs import (

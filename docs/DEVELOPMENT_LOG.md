@@ -18,6 +18,7 @@ Regel:
 - Format-Switching in der Vorschau: Wenn der Benutzer das Seitenformat wechselt (z. B. 16:9 → 16:10 oder A4 → A5), wird jetzt korrekt ein neuer Render angestoßen und der Cache wird invalidiert. Zuvor blieb die Vorschau-Darstellung trotz Format-Änderung gleich.
 
 ### Changed
+- Shared-Dialogmigration gestartet: zentrale Bridge `app/ui/dialog_services.py` auf `bw_gui.dialogs` eingefuehrt; die UI-Module `blatt_ui_export.py`, `blatt_ui_preview.py`, `blatt_ui_style.py`, `blatt_ui_editor.py`, `blatt_ui_help_preview.py`, `blatt_ui_persistence.py` und `export_dialog.py` nutzen jetzt Shared `messagebox`/`filedialog`-Services statt direkter `tkinter`-Dialogimports.
 - Pilotmigration zum gemeinsamen GUI-Core gestartet: `bw-gui` als Git-Submodule eingebunden und `bw_libs/ui_contract/*` via Bridge auf `bw_gui.contracts.*` umgestellt, sodass Keybinding-/Popup-/HSM-Vertraege aus der gemeinsamen Quelle geladen werden.
 - Theme-Pipeline auf Shared-Baseline erweitert: `app/ui/ui_theme.py` ruft jetzt zuerst den gemeinsamen `bw_gui.theming`-Style-Baseline-Aufbau auf und behaelt danach Blattwerk-spezifische Styles als Overlay.
 - Menueleisten-Migration gestartet: `app/ui/blatt_ui_style.py` nutzt fuer Top-Menu/Popup-Lifecycle jetzt die gemeinsame `bw_gui.menu.CustomMenuBar` inklusive Shared-MenuItem-Adapter und synchroner Dialogkontext-Erkennung in `app/ui/blatt_ui_base.py`.
