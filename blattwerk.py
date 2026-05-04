@@ -3,13 +3,18 @@
 from __future__ import annotations
 
 import sys
-from tkinter import messagebox
+
+from bw_libs.shared_gui_core import ensure_bw_gui_on_path
+
+ensure_bw_gui_on_path()
 
 
 def _show_start_error(message: str) -> None:
     """Zeigt Startfehler im Dialog (pythonw) und in der Konsole an."""
     try:
-        messagebox.showerror("Blattwerk Startfehler", message)
+        from bw_gui.dialogs import MessageDialogService
+
+        MessageDialogService().showerror("Blattwerk Startfehler", message)
     except Exception:
         pass
     print(message, file=sys.stderr)
