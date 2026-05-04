@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from pathlib import Path
 from PIL import Image
-import tkinter as tk
-from tkinter import ttk
 
 from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 from .dialog_services import messagebox
@@ -54,6 +52,7 @@ from .ui_theme import (
 )
 
 ensure_bw_gui_on_path()
+from bw_gui.runtime import ui, widgets
 try:
     from bw_gui.menu import CustomMenuBar as SharedCustomMenuBar
     from bw_gui.menu import MenuDefinition as SharedMenuDefinition
@@ -261,11 +260,11 @@ class BlattwerkAppStyleMixin:
             if not bool(preferences.get("tooltips_enabled", True)):
                 return
 
-            tooltip = tk.Toplevel(self.root)
+            tooltip = ui.Toplevel(self.root)
             tooltip.overrideredirect(True)
             tooltip.attributes("-topmost", True)
 
-            label = ttk.Label(
+            label = widgets.Label(
                 tooltip,
                 text=COLOR_PROFILE_LABELS.get(profile_key, profile_key),
                 style="Muted.TLabel",
@@ -285,7 +284,7 @@ class BlattwerkAppStyleMixin:
 
             try:
                 self._swatch_tooltip.destroy()
-            except tk.TclError:
+            except ui.TclError:
                 pass
             self._swatch_tooltip = None
 
@@ -436,7 +435,7 @@ class BlattwerkAppStyleMixin:
                 try:
                     if popup is not None and popup.winfo_exists():
                         popup.destroy()
-                except tk.TclError:
+                except ui.TclError:
                     pass
 
             self._menu_popup_stack = []
@@ -452,7 +451,7 @@ class BlattwerkAppStyleMixin:
                 try:
                     if popup is not None and popup.winfo_exists():
                         popup.destroy()
-                except tk.TclError:
+                except ui.TclError:
                     pass
             self._menu_popup_stack = stack
 
@@ -742,13 +741,13 @@ class BlattwerkAppStyleMixin:
             self._close_menu_popups_from_level(level)
 
             style = self._menu_popup_style()
-            popup = tk.Toplevel(self.root)
+            popup = ui.Toplevel(self.root)
             popup.overrideredirect(True)
             popup.transient(self.root)
             popup.attributes("-topmost", True)
             popup.configure(bg=style["popup_border"], bd=1, highlightthickness=0)
 
-            body = tk.Frame(popup, bg=style["popup_bg"], bd=0, highlightthickness=0)
+            body = ui.Frame(popup, bg=style["popup_bg"], bd=0, highlightthickness=0)
             body.pack(fill="both", expand=True, padx=1, pady=1)
             popup._menu_body = body
             popup._menu_anchor_widget = anchor_widget
@@ -772,7 +771,7 @@ class BlattwerkAppStyleMixin:
             for row_index, item in enumerate(items):
                 row_type = item.get("type", "command")
                 if row_type == "separator":
-                    separator = tk.Frame(body, height=1, bg=style["separator"], bd=0, highlightthickness=0)
+                    separator = ui.Frame(body, height=1, bg=style["separator"], bd=0, highlightthickness=0)
                     separator.pack(fill="x", padx=8, pady=4)
                     continue
 
@@ -788,7 +787,7 @@ class BlattwerkAppStyleMixin:
                 if row_type == "disabled":
                     fg = style["muted_fg"]
 
-                row = tk.Label(
+                row = ui.Label(
                     body,
                     text=f"{prefix}{text}{suffix}",
                     anchor="w",
@@ -808,7 +807,7 @@ class BlattwerkAppStyleMixin:
                     try:
                         if widget.winfo_exists():
                             widget.configure(bg=hover_bg if active else default_bg, fg=hover_fg if active else fg)
-                    except tk.TclError:
+                    except ui.TclError:
                         pass
 
                 if row_type == "submenu":
@@ -915,14 +914,14 @@ class BlattwerkAppStyleMixin:
             if old_strip is not None and old_strip.winfo_exists():
                 try:
                     old_strip.destroy()
-                except tk.TclError:
+                except ui.TclError:
                     pass
 
             self._close_all_menu_popups()
             self._menu_top_buttons = {}
 
             theme = get_theme(self.theme_var.get())
-            strip = tk.Frame(self.root, bg=theme["bg_surface"], highlightthickness=1, highlightbackground=theme["border"], bd=0)
+            strip = ui.Frame(self.root, bg=theme["bg_surface"], highlightthickness=1, highlightbackground=theme["border"], bd=0)
             root_children = [child for child in self.root.winfo_children() if child is not strip]
             if root_children:
                 strip.pack(fill="x", side="top", before=root_children[0])
@@ -935,7 +934,7 @@ class BlattwerkAppStyleMixin:
 
             for definition in definitions:
                 key = definition["key"]
-                button = tk.Button(
+                button = ui.Button(
                     strip,
                     text=definition["label"],
                     underline=int(definition.get("underline", 0)),
@@ -1081,3 +1080,4 @@ class BlattwerkAppStyleMixin:
                 self._show_current_page(reset_scroll=True)
             if hasattr(self, "_persist_active_document_tab_state"):
                 self._persist_active_document_tab_state()
+
