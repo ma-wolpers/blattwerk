@@ -18,6 +18,7 @@ The format is based on Keep a Changelog.
 - Shortcut runtime debug popup no longer opens as an empty window; runtime table controls now render correctly.
 - Presentation rendering now keeps task headers complete (`Aufgabe N - Titel`) and no longer drops task titles in slide mode.
 - Presentation phase footer now uses clearer spacing plus centered-dot separators and keeps repeated phases visible in sequence order.
+- Presentation slide counter now excludes `-+` frame steps from the total slide count (frame variants share one logical folio number).
 
 ### Changed
 

@@ -252,8 +252,7 @@ def test_render_html_presentation_framebreak_builds_incremental_frames():
     )
 
     assert len(slide_bodies) == 2
-    assert "Folie 1/2" in html
-    assert "Folie 2/2" in html
+    assert html.count("Folie 1/1") == 2
     assert "Alpha" in slide_bodies[0]
     assert "Beta" not in slide_bodies[0]
     assert "Alpha" in slide_bodies[1]

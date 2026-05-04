@@ -392,8 +392,10 @@ def _build_presentation_slides(
     slides = []
     current_blocks = []
     current_section = ""
+    logical_slide_number = 1
 
     def _flush_slide(clear_blocks=True):
+        nonlocal logical_slide_number
         if not current_blocks:
             return
         body_html = render_body_with_columns(
@@ -404,9 +406,16 @@ def _build_presentation_slides(
         )
         if not body_html.strip():
             return
-        slides.append({"section": current_section, "body": body_html})
+        slides.append(
+            {
+                "section": current_section,
+                "body": body_html,
+                "logical_slide_number": logical_slide_number,
+            }
+        )
         if clear_blocks:
             current_blocks.clear()
+            logical_slide_number += 1
 
     for block_type, options, content in blocks:
         if block_type == "sectionmark":
@@ -492,7 +501,10 @@ def _render_presentation_html(
     section_separator_text = "·" if section_separator_key == "dot" else "->"
     hide_future_sections = bool(presentation_hide_future_sections)
 
-    slide_count = len(slides)
+    logical_slide_total = max(
+        int(slide.get("logical_slide_number") or 1)
+        for slide in slides
+    )
     slide_html_parts = []
     black_screen_mode = str(black_screen_mode or "none").strip().lower()
 
@@ -501,6 +513,7 @@ def _render_presentation_html(
 
     for index, slide in enumerate(slides, start=1):
         current_section_index = slide_section_indices[index - 1]
+        logical_slide_number = int(slide.get("logical_slide_number") or index)
         mini_header_html = ""
         if show_mini_header:
             mini_header_html = (
@@ -550,7 +563,7 @@ def _render_presentation_html(
 
         slide_counter_html = (
             "<div class='presentation-slide-counter'>"
-            f"Folie {index}/{slide_count}"
+            f"Folie {logical_slide_number}/{logical_slide_total}"
             "</div>"
         )
         slide_html_parts.append(
