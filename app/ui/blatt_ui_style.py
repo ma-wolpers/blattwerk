@@ -7,6 +7,7 @@ from PIL import Image
 import tkinter as tk
 from tkinter import messagebox, ttk
 
+from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 from ..core.color_mentions import detect_bw_mode_color_warning_mentions
 from ..core.build_requests import WorksheetDesignOptions
 from ..styles.blatt_styles import (
@@ -50,6 +51,16 @@ from .ui_theme import (
     style_canvas,
     style_preview_placeholder,
 )
+
+ensure_bw_gui_on_path()
+try:
+    from bw_gui.menu import CustomMenuBar as SharedCustomMenuBar
+    from bw_gui.menu import MenuDefinition as SharedMenuDefinition
+    from bw_gui.menu import MenuItem as SharedMenuItem
+except ModuleNotFoundError:
+    SharedCustomMenuBar = None
+    SharedMenuDefinition = None
+    SharedMenuItem = None
 
 BW_COLOR_PROFILE_KEYS = {"bw"}
 
@@ -331,8 +342,41 @@ class BlattwerkAppStyleMixin:
                     fill=colors["secondary_border"],
                 )
 
+    def _to_shared_menu_items(self, items: list[dict]):
+            """Convert local dict-based menu rows into shared menu item objects."""
+
+            if SharedMenuItem is None:
+                return tuple()
+
+            converted = []
+            for item in items:
+                item_type = str(item.get("type", "command"))
+                sub_items = tuple()
+                if item_type == "submenu":
+                    sub_items = self._to_shared_menu_items(list(item.get("items", [])))
+
+                converted.append(
+                    SharedMenuItem(
+                        type=item_type,
+                        label=str(item.get("label", "")),
+                        command=item.get("command"),
+                        checked=bool(item.get("checked", False)),
+                        items=sub_items,
+                    )
+                )
+
+            return tuple(converted)
+
     def _refresh_custom_menu_theme(self):
             """Applies current theme colors to custom top menu strip and open popups."""
+
+            shared_menu_bar = getattr(self, "_shared_menu_bar", None)
+            if shared_menu_bar is not None:
+                shared_menu_bar.refresh_theme(self.theme_var.get())
+                self._custom_menu_strip = shared_menu_bar.strip
+                self._menu_popup_stack = list(getattr(shared_menu_bar, "_popup_stack", []))
+                self._active_menu_key = getattr(shared_menu_bar, "_active_key", None)
+                return
 
             menu_strip = getattr(self, "_custom_menu_strip", None)
             if menu_strip is None or not menu_strip.winfo_exists():
@@ -370,6 +414,14 @@ class BlattwerkAppStyleMixin:
 
     def _close_all_menu_popups(self):
             """Closes all open custom menu popups and resets active menu state."""
+
+            shared_menu_bar = getattr(self, "_shared_menu_bar", None)
+            if shared_menu_bar is not None:
+                shared_menu_bar.close_all_popups()
+                self._menu_popup_stack = list(getattr(shared_menu_bar, "_popup_stack", []))
+                self._active_menu_key = getattr(shared_menu_bar, "_active_key", None)
+                self._refresh_custom_menu_theme()
+                return
 
             focus_guard_id = getattr(self, "_menu_focus_guard_after_id", None)
             if focus_guard_id is not None:
@@ -782,6 +834,15 @@ class BlattwerkAppStyleMixin:
     def _open_top_menu(self, menu_definition: dict):
             """Opens one top-level menu popup below its strip button."""
 
+            shared_menu_bar = getattr(self, "_shared_menu_bar", None)
+            if shared_menu_bar is not None:
+                target_key = menu_definition.get("key")
+                for shared_definition in getattr(shared_menu_bar, "definitions", ()): 
+                    if getattr(shared_definition, "key", None) == target_key:
+                        shared_menu_bar.open_top_menu(shared_definition)
+                        self._refresh_custom_menu_theme()
+                        return
+
             key = menu_definition.get("key")
             button = getattr(self, "_menu_top_buttons", {}).get(key)
             if button is None or not button.winfo_exists():
@@ -797,6 +858,14 @@ class BlattwerkAppStyleMixin:
     def _open_top_menu_by_key(self, key: str):
             """Opens top-level menu by mnemonic key."""
 
+            shared_menu_bar = getattr(self, "_shared_menu_bar", None)
+            if shared_menu_bar is not None:
+                for shared_definition in getattr(shared_menu_bar, "definitions", ()): 
+                    if getattr(shared_definition, "key", None) == key:
+                        shared_menu_bar.open_top_menu(shared_definition)
+                        self._refresh_custom_menu_theme()
+                        return
+
             for definition in getattr(self, "_menu_top_definitions_cache", []):
                 if definition.get("key") == key:
                     self._open_top_menu(definition)
@@ -804,6 +873,42 @@ class BlattwerkAppStyleMixin:
 
     def _build_custom_menu_strip(self):
             """Builds themed custom menu strip with top-level buttons and mnemonics."""
+
+            if SharedCustomMenuBar is not None and SharedMenuDefinition is not None:
+                old_shared = getattr(self, "_shared_menu_bar", None)
+                if old_shared is not None:
+                    old_shared.destroy()
+
+                definitions = self._menu_top_definitions()
+                self._menu_top_definitions_cache = definitions
+
+                shared_definitions = []
+                for definition in definitions:
+                    items_fn = definition.get("items_fn", lambda: [])
+
+                    def _provider(func=items_fn):
+                        return self._to_shared_menu_items(list(func()))
+
+                    shared_definitions.append(
+                        SharedMenuDefinition(
+                            key=str(definition.get("key", "")),
+                            label=str(definition.get("label", "")),
+                            alt=str(definition.get("alt", "")),
+                            items_provider=_provider,
+                        )
+                    )
+
+                self._shared_menu_bar = SharedCustomMenuBar(
+                    self.root,
+                    shared_definitions,
+                    theme_key=self.theme_var.get(),
+                )
+                self._shared_menu_bar.build()
+                self._custom_menu_strip = self._shared_menu_bar.strip
+                self._menu_top_buttons = {}
+                self._menu_popup_stack = list(getattr(self._shared_menu_bar, "_popup_stack", []))
+                self._active_menu_key = getattr(self._shared_menu_bar, "_active_key", None)
+                return
 
             old_strip = getattr(self, "_custom_menu_strip", None)
             if old_strip is not None and old_strip.winfo_exists():
@@ -851,6 +956,14 @@ class BlattwerkAppStyleMixin:
 
     def _refresh_custom_menu_model(self):
             """Refresh hook used by persistence when recent files change."""
+
+            shared_menu_bar = getattr(self, "_shared_menu_bar", None)
+            if shared_menu_bar is not None:
+                shared_menu_bar.build()
+                self._custom_menu_strip = shared_menu_bar.strip
+                self._menu_popup_stack = list(getattr(shared_menu_bar, "_popup_stack", []))
+                self._active_menu_key = getattr(shared_menu_bar, "_active_key", None)
+                return
 
             active_key = getattr(self, "_active_menu_key", None)
             has_open_popups = bool(getattr(self, "_menu_popup_stack", []))

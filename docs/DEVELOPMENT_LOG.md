@@ -18,6 +18,9 @@ Regel:
 - Format-Switching in der Vorschau: Wenn der Benutzer das Seitenformat wechselt (z. B. 16:9 → 16:10 oder A4 → A5), wird jetzt korrekt ein neuer Render angestoßen und der Cache wird invalidiert. Zuvor blieb die Vorschau-Darstellung trotz Format-Änderung gleich.
 
 ### Changed
+- Pilotmigration zum gemeinsamen GUI-Core gestartet: `bw-gui` als Git-Submodule eingebunden und `bw_libs/ui_contract/*` via Bridge auf `bw_gui.contracts.*` umgestellt, sodass Keybinding-/Popup-/HSM-Vertraege aus der gemeinsamen Quelle geladen werden.
+- Theme-Pipeline auf Shared-Baseline erweitert: `app/ui/ui_theme.py` ruft jetzt zuerst den gemeinsamen `bw_gui.theming`-Style-Baseline-Aufbau auf und behaelt danach Blattwerk-spezifische Styles als Overlay.
+- Menueleisten-Migration gestartet: `app/ui/blatt_ui_style.py` nutzt fuer Top-Menu/Popup-Lifecycle jetzt die gemeinsame `bw_gui.menu.CustomMenuBar` inklusive Shared-MenuItem-Adapter und synchroner Dialogkontext-Erkennung in `app/ui/blatt_ui_base.py`.
 - G5 abgeschlossen: zentrales AppIdentity-Manifest `app/app_info.py` eingefuehrt (`name`, `version`, `appdata_folder`, `window_title`) und im GUI-Bootstrap/Window-Shell als Single-Source verdrahtet.
 - G3/G4 gestartet: GUI-Startup folgt jetzt einem expliziten Composition-Root (`app/bootstrap/wiring.py` mit `build_gui_dependencies()`/`AppDependencies`), und das Hauptfenster wird ueber die neue Shared-Shell-Basis `bw_libs/app_shell.py` initialisiert.
 - G2.2 erweitert: `app/storage/ui_settings_store.py` nutzt jetzt die zentrale `atomic_write_json`-API aus `bw_libs/app_paths.py`.

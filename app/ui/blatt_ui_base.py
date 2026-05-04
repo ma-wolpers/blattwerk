@@ -271,6 +271,10 @@ class BlattwerkAppBase:
 
         self._sync_popup_sessions_from_windows()
 
+        shared_menu_bar = getattr(self, "_shared_menu_bar", None)
+        if shared_menu_bar is not None and bool(getattr(shared_menu_bar, "_popup_stack", [])):
+            return True
+
         if bool(getattr(self, "_menu_popup_stack", [])):
             return True
 

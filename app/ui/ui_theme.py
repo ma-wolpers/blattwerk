@@ -5,7 +5,15 @@ from __future__ import annotations
 import tkinter as tk
 from tkinter import ttk
 
+from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 from .window_identity import apply_window_chrome_theme
+
+
+ensure_bw_gui_on_path()
+try:
+    from bw_gui.theming.theme_manager import configure_ttk_theme as configure_shared_ttk_theme
+except ModuleNotFoundError:
+    configure_shared_ttk_theme = None
 
 
 THEMES = {
@@ -184,6 +192,11 @@ def configure_ttk_theme(root: tk.Misc, theme_key: str | None = None):
 
     theme = get_theme(theme_key)
     dark_theme = is_dark_theme(theme_key)
+
+    # Shared baseline first, local styles override where Blattwerk needs custom behavior.
+    if configure_shared_ttk_theme is not None:
+        configure_shared_ttk_theme(root, normalize_theme_key(theme_key))
+
     style = ttk.Style(root)
     ui_border = theme["border"]
     primary_bg = theme["accent"]
