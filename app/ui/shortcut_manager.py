@@ -4,7 +4,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Callable, Iterable
-import tkinter as tk
+
+from bw_libs.shared_gui_core import ensure_bw_gui_on_path
+
+
+ensure_bw_gui_on_path()
+from bw_gui.runtime import ui
 
 
 @dataclass(frozen=True)
@@ -23,7 +28,7 @@ class ShortcutBinding:
 class ShortcutManager:
     """Bindet Shortcuts robust und liefert deduplizierte Menülabels."""
 
-    def __init__(self, root: tk.Misc):
+    def __init__(self, root: ui.Misc):
         self.root = root
 
     def bind_all(self, bindings: Iterable[ShortcutBinding]):

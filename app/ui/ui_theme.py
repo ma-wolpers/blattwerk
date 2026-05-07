@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
-import tkinter as tk
-from tkinter import ttk
-
 from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 from .window_identity import apply_window_chrome_theme
 
 
 ensure_bw_gui_on_path()
+from bw_gui.runtime import ui, widgets
+
 try:
     from bw_gui.theming.theme_manager import configure_ttk_theme as configure_shared_ttk_theme
 except ModuleNotFoundError:
@@ -173,7 +172,7 @@ def _mix_hex(base_hex: str, target_hex: str, ratio: float) -> str:
     return f"#{out_r:02X}{out_g:02X}{out_b:02X}"
 
 
-def apply_window_theme(window: tk.Misc, theme_key: str | None = None):
+def apply_window_theme(window: ui.Misc, theme_key: str | None = None):
     """Wendet die Grundhintergrundfarbe auf ein Tk-Fenster an."""
     theme = get_theme(theme_key)
     window.configure({"bg": theme["bg_main"]})
@@ -187,7 +186,7 @@ def is_dark_theme(theme_key: str | None = None) -> bool:
     return _relative_luminance(theme["bg_main"]) < 0.20
 
 
-def configure_ttk_theme(root: tk.Misc, theme_key: str | None = None):
+def configure_ttk_theme(root: ui.Misc, theme_key: str | None = None):
     """Konfiguriert zentrale ttk-Styles auf Basis des gewählten Themes."""
 
     theme = get_theme(theme_key)
@@ -197,7 +196,7 @@ def configure_ttk_theme(root: tk.Misc, theme_key: str | None = None):
     if configure_shared_ttk_theme is not None:
         configure_shared_ttk_theme(root, normalize_theme_key(theme_key))
 
-    style = ttk.Style(root)
+    style = widgets.Style(root)
     ui_border = theme["border"]
     primary_bg = theme["accent"]
     primary_hover_bg = theme["accent_hover"]
@@ -218,7 +217,7 @@ def configure_ttk_theme(root: tk.Misc, theme_key: str | None = None):
     util_hover_fg = _contrast_text_color(util_hover_bg)
     try:
         style.theme_use("clam")
-    except tk.TclError:
+    except ui.TclError:
         pass
 
     style.configure("TFrame", background=theme["bg_main"])
@@ -510,21 +509,21 @@ def configure_ttk_theme(root: tk.Misc, theme_key: str | None = None):
     )
 
 
-def style_canvas(canvas: tk.Canvas, theme_key: str | None = None):
+def style_canvas(canvas: ui.Canvas, theme_key: str | None = None):
     """Wendet Canvas-Themefarben für die Vorschau an."""
     theme = get_theme(theme_key)
     canvas.configure(background=theme["bg_main"], highlightthickness=0)
 
 
 def style_preview_placeholder(
-    canvas: tk.Canvas, text_item_id: int, theme_key: str | None = None
+    canvas: ui.Canvas, text_item_id: int, theme_key: str | None = None
 ):
     """Setzt die Platzhalter-Farbe im Preview-Canvas."""
     theme = get_theme(theme_key)
     canvas.itemconfig(text_item_id, fill=theme["fg_muted"])
 
 
-def populate_theme_menu(view_menu: tk.Menu, theme_var: tk.StringVar, on_theme_changed):
+def populate_theme_menu(view_menu: ui.Menu, theme_var: ui.StringVar, on_theme_changed):
     """Befüllt ein Tkinter-Menu mit einheitlichen Theme-Radiobuttons."""
 
     for theme_key in THEME_ORDER:

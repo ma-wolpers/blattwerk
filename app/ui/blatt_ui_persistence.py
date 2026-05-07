@@ -3,7 +3,12 @@
 from __future__ import annotations
 
 from pathlib import Path
-from tkinter import ttk
+
+from bw_libs.shared_gui_core import ensure_bw_gui_on_path
+
+
+ensure_bw_gui_on_path()
+from bw_gui.runtime import widgets
 
 from .dialog_services import messagebox
 from .ui_theme import normalize_theme_key
@@ -84,7 +89,7 @@ class BlattwerkAppPersistenceMixin:
 
             normalized_path = self._normalize_document_path(input_path)
             tab_title = self._format_document_tab_title(normalized_path)
-            container = ttk.Frame(self.document_notebook)
+            container = widgets.Frame(self.document_notebook)
             self.document_notebook.add(container, text=tab_title)
             tab_id = self.document_notebook.tabs()[-1]
 
@@ -247,9 +252,7 @@ class BlattwerkAppPersistenceMixin:
                 pass
 
             try:
-                import tkinter.ttk as ttk
-
-                style = ttk.Style(self.root)
+                style = widgets.Style(self.root)
                 compact = self._ui_density == "compact"
                 button_padding = (8, 3) if compact else (12, 6)
                 option_padding = (2, 1) if compact else (6, 2)

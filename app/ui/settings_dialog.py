@@ -1,15 +1,18 @@
-"""Tabbasierter Einstellungsdialog mit linker Tabnavigation."""
+﻿"""Tabbasierter Einstellungsdialog mit linker Tabnavigation."""
 
 from __future__ import annotations
 
-import tkinter as tk
-from tkinter import ttk
+from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 
 from ..storage.user_preferences_adapter import (
     get_tab_specs,
     normalize_user_preferences,
 )
 from .ui_theme import apply_window_theme, configure_ttk_theme, get_theme
+
+
+ensure_bw_gui_on_path()
+from bw_gui.runtime import ui, widgets
 
 
 class SettingsDialog:
@@ -31,12 +34,12 @@ class SettingsDialog:
         self._on_commit = on_commit
         self._last_committed = normalize_user_preferences(preferences)
         self._tab_specs = get_tab_specs()
-        self._field_vars: dict[str, tk.Variable] = {}
+        self._field_vars: dict[str, ui.Variable] = {}
         self._active_tab_key: str = self._tab_specs[0][0] if self._tab_specs else ""
         self._theme = get_theme(theme_key)
         self._toggle_widgets: dict[str, dict[str, object]] = {}
 
-        self.window = tk.Toplevel(parent)
+        self.window = ui.Toplevel(parent)
         self.window.title("Einstellungen")
         self.window.transient(parent)
         self.window.geometry("980x700")
@@ -46,7 +49,7 @@ class SettingsDialog:
         apply_window_theme(self.window, theme_key)
         configure_ttk_theme(self.window, theme_key)
 
-        root = ttk.Frame(self.window, padding=10)
+        root = widgets.Frame(self.window, padding=10)
         root.grid(row=0, column=0, sticky="nsew")
         root.rowconfigure(0, weight=1)
         root.columnconfigure(1, weight=1)
@@ -98,14 +101,14 @@ class SettingsDialog:
                 refresh_cb()
 
     def _build_tab_list(self, root):
-        side = ttk.Frame(root)
+        side = widgets.Frame(root)
         side.grid(row=0, column=0, sticky="nsw", padx=(0, 10))
         side.rowconfigure(0, weight=1)
 
-        self.tab_listbox = tk.Listbox(side, exportselection=False, height=24)
+        self.tab_listbox = ui.Listbox(side, exportselection=False, height=24)
         self.tab_listbox.grid(row=0, column=0, sticky="ns")
 
-        tab_scroll = ttk.Scrollbar(side, orient="vertical", command=self.tab_listbox.yview)
+        tab_scroll = widgets.Scrollbar(side, orient="vertical", command=self.tab_listbox.yview)
         tab_scroll.grid(row=0, column=1, sticky="ns")
         self.tab_listbox.configure(yscrollcommand=tab_scroll.set)
 
@@ -115,19 +118,19 @@ class SettingsDialog:
         self.tab_listbox.bind("<<ListboxSelect>>", self._on_tab_select)
 
     def _build_content_area(self, root):
-        content = ttk.Frame(root)
+        content = widgets.Frame(root)
         content.grid(row=0, column=1, sticky="nsew")
         content.rowconfigure(0, weight=1)
         content.columnconfigure(0, weight=1)
 
-        self.content_canvas = tk.Canvas(content, highlightthickness=0)
+        self.content_canvas = ui.Canvas(content, highlightthickness=0)
         self.content_canvas.grid(row=0, column=0, sticky="nsew")
 
-        content_scroll = ttk.Scrollbar(content, orient="vertical", command=self.content_canvas.yview)
+        content_scroll = widgets.Scrollbar(content, orient="vertical", command=self.content_canvas.yview)
         content_scroll.grid(row=0, column=1, sticky="ns")
         self.content_canvas.configure(yscrollcommand=content_scroll.set)
 
-        self.content_frame = ttk.Frame(self.content_canvas, padding=(6, 2, 10, 10))
+        self.content_frame = widgets.Frame(self.content_canvas, padding=(6, 2, 10, 10))
         self.content_window_id = self.content_canvas.create_window((0, 0), window=self.content_frame, anchor="nw")
 
         self.content_frame.bind("<Configure>", self._on_content_configure)
@@ -135,15 +138,15 @@ class SettingsDialog:
         self.content_canvas.bind("<MouseWheel>", self._on_mouse_wheel)
 
     def _build_buttons(self, root):
-        buttons = ttk.Frame(root)
+        buttons = widgets.Frame(root)
         buttons.grid(row=1, column=0, columnspan=2, sticky="ew", pady=(10, 0))
         buttons.columnconfigure(0, weight=1)
 
-        ttk.Button(buttons, text="Tab-Standard", command=self._reset_tab_defaults).grid(row=0, column=0, sticky="w")
-        ttk.Button(buttons, text="Alle Standard", command=self._reset_all_defaults).grid(row=0, column=1, sticky="w", padx=(8, 0))
-        ttk.Button(buttons, text="Abbrechen", command=self._on_cancel).grid(row=0, column=2, sticky="e")
-        ttk.Button(buttons, text="Anwenden", command=self._on_apply).grid(row=0, column=3, sticky="e", padx=(8, 0))
-        ttk.Button(buttons, text="Speichern", command=self._on_save).grid(row=0, column=4, sticky="e", padx=(8, 0))
+        widgets.Button(buttons, text="Tab-Standard", command=self._reset_tab_defaults).grid(row=0, column=0, sticky="w")
+        widgets.Button(buttons, text="Alle Standard", command=self._reset_all_defaults).grid(row=0, column=1, sticky="w", padx=(8, 0))
+        widgets.Button(buttons, text="Abbrechen", command=self._on_cancel).grid(row=0, column=2, sticky="e")
+        widgets.Button(buttons, text="Anwenden", command=self._on_apply).grid(row=0, column=3, sticky="e", padx=(8, 0))
+        widgets.Button(buttons, text="Speichern", command=self._on_save).grid(row=0, column=4, sticky="e", padx=(8, 0))
 
     def _tab_exists(self, tab_key: str | None) -> bool:
         if not tab_key:
@@ -161,11 +164,11 @@ class SettingsDialog:
                 value = normalized.get(pref_key)
 
                 if pref_type == "bool":
-                    var = tk.BooleanVar(value=bool(value))
+                    var = ui.BooleanVar(value=bool(value))
                 elif pref_type in {"int", "float"}:
-                    var = tk.StringVar(value=str(value))
+                    var = ui.StringVar(value=str(value))
                 else:
-                    var = tk.StringVar(value=str(value))
+                    var = ui.StringVar(value=str(value))
 
                 self._field_vars[pref_key] = var
                 if bool(spec.get("live_apply")):
@@ -192,7 +195,7 @@ class SettingsDialog:
             child.destroy()
         self._toggle_widgets = {}
 
-        header = ttk.Label(self.content_frame, text=self._get_tab_label(tab_key), style="SectionTitle.TLabel")
+        header = widgets.Label(self.content_frame, text=self._get_tab_label(tab_key), style="SectionTitle.TLabel")
         header.grid(row=0, column=0, sticky="w", pady=(0, 8))
 
         row = 1
@@ -215,7 +218,7 @@ class SettingsDialog:
                 yield from tab_items
 
     def _render_field(self, row_index: int, pref_key: str, spec: dict[str, object]) -> int:
-        label = ttk.Label(self.content_frame, text=str(spec.get("label", pref_key)))
+        label = widgets.Label(self.content_frame, text=str(spec.get("label", pref_key)))
         label.grid(row=row_index, column=0, sticky="w", padx=(0, 12), pady=5)
 
         pref_type = spec.get("type")
@@ -227,11 +230,11 @@ class SettingsDialog:
 
         if pref_type == "enum":
             values = list(spec.get("values", []))
-            widget = ttk.Combobox(self.content_frame, textvariable=var, values=values, state="readonly", width=34)
+            widget = widgets.Combobox(self.content_frame, textvariable=var, values=values, state="readonly", width=34)
             widget.grid(row=row_index, column=1, sticky="w", pady=5)
             return row_index + 1
 
-        widget = ttk.Entry(self.content_frame, textvariable=var, width=38)
+        widget = widgets.Entry(self.content_frame, textvariable=var, width=38)
         widget.grid(row=row_index, column=1, sticky="w", pady=5)
 
         hint_parts: list[str] = []
@@ -243,7 +246,7 @@ class SettingsDialog:
             hint_parts.append(f"min={spec.get('min')} max={spec.get('max')}")
 
         if hint_parts:
-            hint = ttk.Label(self.content_frame, text=" | ".join(hint_parts), style="Muted.TLabel")
+            hint = widgets.Label(self.content_frame, text=" | ".join(hint_parts), style="Muted.TLabel")
             hint.grid(row=row_index + 1, column=1, sticky="w", pady=(0, 6))
             return row_index + 2
 
@@ -260,13 +263,13 @@ class SettingsDialog:
             return
         self._on_live_apply(self._collect_preferences())
 
-    def _render_boolean_toggle(self, row_index: int, pref_key: str, var: tk.Variable):
+    def _render_boolean_toggle(self, row_index: int, pref_key: str, var: ui.Variable):
         """Rendert boolesche Einstellungen als modernisierten Toggle-Switch."""
 
-        container = tk.Frame(self.content_frame, bd=0, highlightthickness=0)
+        container = ui.Frame(self.content_frame, bd=0, highlightthickness=0)
         container.grid(row=row_index, column=1, sticky="w", pady=5)
 
-        canvas = tk.Canvas(
+        canvas = ui.Canvas(
             container,
             width=44,
             height=24,
@@ -277,7 +280,7 @@ class SettingsDialog:
         )
         canvas.pack(side="left")
 
-        state_label = ttk.Label(container, text="", style="Muted.TLabel")
+        state_label = widgets.Label(container, text="", style="Muted.TLabel")
         state_label.pack(side="left", padx=(8, 0))
 
         def _toggle_state(_event=None):
@@ -331,14 +334,14 @@ class SettingsDialog:
         defaults = normalize_user_preferences({})
         for pref_key, _ in self._iter_tab_items(self._active_tab_key):
             var = self._field_vars[pref_key]
-            var.set(str(defaults[pref_key]) if not isinstance(var, tk.BooleanVar) else bool(defaults[pref_key]))
+            var.set(str(defaults[pref_key]) if not isinstance(var, ui.BooleanVar) else bool(defaults[pref_key]))
         self._refresh_visible_toggles()
 
     def _reset_all_defaults(self):
         defaults = normalize_user_preferences({})
         for pref_key, var in self._field_vars.items():
             value = defaults[pref_key]
-            if isinstance(var, tk.BooleanVar):
+            if isinstance(var, ui.BooleanVar):
                 var.set(bool(value))
             else:
                 var.set(str(value))
@@ -380,3 +383,4 @@ class SettingsDialog:
         delta = -1 * int(event.delta / 120) if event.delta else 0
         if delta != 0:
             self.content_canvas.yview_scroll(delta, "units")
+
