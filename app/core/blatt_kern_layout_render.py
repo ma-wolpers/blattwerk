@@ -121,6 +121,16 @@ def estimate_block_weight(
             base = 0.25
         return base + (text_complexity * type_factor)
 
+    if block_type == "qrcode":
+        size_hint = (
+            options.get("h")
+            or options.get("height")
+            or options.get("w")
+            or options.get("width")
+            or "3cm"
+        )
+        return max(1.0, parse_height_cm(size_hint, default_cm=3.0) * 0.85)
+
     if block_type in {
         "lines",
         "grid",

@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 import re
+from urllib.parse import urlparse
 
 import yaml
 
@@ -61,6 +62,7 @@ KNOWN_BLOCK_TYPES = {
     "endcolumns",
     "help",
     "hilfe",
+    "qrcode",
     "pagebreak",
     "framebreak",
     "sectionmark",
@@ -277,11 +279,24 @@ BLOCK_ALLOWED_OPTIONS = {
     "endcolumns": set(),
     "help": {"title", "level", "show", "mode", "tag"},
     "hilfe": {"title", "level", "show", "mode", "tag"},
+    "qrcode": {
+        "url",
+        "w",
+        "h",
+        "maxw",
+        "width",
+        "height",
+        "max-width",
+        "show",
+        "mode",
+    },
     "pagebreak": set(),
     "framebreak": set(),
     "sectionmark": {"title"},
     "vspacer": {"height"},
 }
+
+QRCODE_SIZE_OPTION_KEYS = {"w", "h", "maxw", "width", "height", "max-width"}
 
 CRITICAL_DIAGNOSTIC_CODES = {
     "AN003",  # Invalid YAML in schema-driven answer blocks.
@@ -298,6 +313,10 @@ _BLOCK_WHITESPACE_AFTER_MARKER_PATTERN = re.compile(r"^:::\s+")
 _VALID_SECTION_MARK_PATTERN = re.compile(r"^--#\s+.+$")
 _VALID_VSPACER_MARK_PATTERN = re.compile(
     r"^-=\s*\d+(?:\.\d+)?(?:cm|mm|px|pt|em|rem|vh|vw|%)\s*$",
+    flags=re.IGNORECASE,
+)
+_QRCODE_CSS_SIZE_PATTERN = re.compile(
+    r"(?:\d+(?:\.\d+)?(?:px|%|cm|mm|in|pt|em|rem|vw|vh|vmin|vmax)?|auto)",
     flags=re.IGNORECASE,
 )
 
@@ -415,6 +434,28 @@ def _collect_absolute_image_paths(block_content):
             paths.append(candidate)
 
     return paths
+
+
+def _is_valid_qrcode_css_size(value):
+    text = str(value or "").strip()
+    if not text:
+        return False
+    return bool(_QRCODE_CSS_SIZE_PATTERN.fullmatch(text))
+
+
+def _is_valid_qrcode_url(value):
+    text = str(value or "").strip()
+    if not text or any(character.isspace() for character in text):
+        return False
+
+    parsed = urlparse(text)
+    if parsed.scheme in {"http", "https"}:
+        return bool(parsed.netloc)
+
+    if parsed.scheme:
+        return False
+
+    return not text.startswith("//")
 
 
 def _extract_validation_content_and_base_line(markdown_text):
@@ -819,6 +860,7 @@ def _collect_document_diagnostics(meta, blocks, content_text, content_base_line=
             )
             continue
 
+        qrcode_url_value = ""
         allowed_options = BLOCK_ALLOWED_OPTIONS.get(block_type, set())
         for option_key, option_value in _option_items(options):
             if option_key == "type" and block_type in ANSWER_BLOCK_TYPES:
@@ -908,6 +950,46 @@ def _collect_document_diagnostics(meta, blocks, content_text, content_base_line=
                     option_value,
                     KNOWN_HINT_VALUES,
                 )
+            elif block_type == "qrcode" and option_key in QRCODE_SIZE_OPTION_KEYS:
+                if not _is_valid_qrcode_css_size(option_value):
+                    diagnostics.append(
+                        BuildDiagnostic(
+                            code="OP002",
+                            message=(
+                                "Ungueltiger Wert fuer "
+                                f"`{option_key}` in Block `qrcode`: `{option_value}`. "
+                                "Erlaubt ist eine CSS-Groesse wie `3cm`, `120px`, `60%` oder `auto`."
+                            ),
+                            block_index=index,
+                            block_type=block_type,
+                        )
+                    )
+            elif block_type == "qrcode" and option_key == "url":
+                qrcode_url_value = str(option_value or "").strip()
+                if qrcode_url_value and not _is_valid_qrcode_url(qrcode_url_value):
+                    diagnostics.append(
+                        BuildDiagnostic(
+                            code="QR002",
+                            message=(
+                                "Ungueltiger QR-Link in Block `qrcode`. "
+                                "Erlaubt sind http/https-Links oder relative Pfade ohne Leerzeichen."
+                            ),
+                            severity="error",
+                            block_index=index,
+                            block_type=block_type,
+                        )
+                    )
+
+        if block_type == "qrcode" and not qrcode_url_value:
+            diagnostics.append(
+                BuildDiagnostic(
+                    code="QR001",
+                    message="Block `qrcode` benoetigt die Pflichtoption `url=...`.",
+                    severity="error",
+                    block_index=index,
+                    block_type=block_type,
+                )
+            )
 
         if block_type in {"task", "subtask"} and _has_explicit_worksheet_marker_without_solution(
             content

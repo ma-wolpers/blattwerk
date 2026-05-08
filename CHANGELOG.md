@@ -8,6 +8,8 @@ The format is based on Keep a Changelog.
 
 ### Added
 
+- New `qrcode` block for worksheets/presentations: `:::qrcode url=... w=... h=... maxw=... :::` renders a QR image with image-like sizing options; QR links are clickable in HTML and PDF exports.
+- New systematic QR examples: `examples/markdown/example-qrcode-links.md` (worksheet) and `examples/markdown/example-presentation-qrcode-links.md` (presentation).
 - PPTX-Export: Präsentationen (und Arbeitsblätter) können jetzt als `.pptx`-Datei exportiert werden. Jede Seite/Folie wird als hochauflösendes Bild (200 DPI) gerendert und in eine PowerPoint-Präsentation mit korrekten Folienmaßen (16:9 / 16:10 / 4:3 / A4 / A5) eingebettet.
 - Vorschau-/Export-Steuerleiste bietet jetzt direkte Präsentationsoptionen für die Phasenübersicht: Trennerstil (`Punkte` oder `Pfeile`) und optionales Ausblenden zukünftiger Phasen (`...`).
 

@@ -89,7 +89,7 @@ close_block = ":::", newline? ;
 self_closing_block = ":::", block_name, (space, options)?, space?, ":::", newline? ;
 
 block_name = "material" | "info" | "task" | "subtask"
-           | "answer" | "solution" | "columns" | "nextcol" | "endcolumns"
+           | "answer" | "qrcode" | "solution" | "columns" | "nextcol" | "endcolumns"
            | "help" | "hilfe" ;
 
 options = option, (space, option)* ;
@@ -341,11 +341,33 @@ Table-Optionen (zusaetzlich zu `rows`/`cols`):
     - Auch als Kurzform pro Spalte moeglich, z. B. `alignment="l r c c"`.
     - Unterstuetzte Kurzformen: `l`, `r`, `c`, `j`.
 
-### 5.6 solution
+### 5.6 qrcode
+Zweck: Klickbarer Link als QR-Code (fuer Arbeitsblatt und Praesentation).
+
+Optionen:
+- `url` (pflicht, z. B. `url=https://example.org`)
+- `w` oder `width` (optional)
+- `h` oder `height` (optional)
+- `maxw` oder `max-width` (optional)
+- `show` (optional)
+
+Groessenwerte folgen derselben Logik wie Bildgroessen in Markdown-Bildern.
+Gueltige Werte sind CSS-Laengen wie `3cm`, `120px`, `60%` oder `auto`.
+
+Beispiel:
+```markdown
+:::qrcode url=https://example.org w=3cm h=3cm maxw=45%
+:::
+```
+
+Hinweis:
+- In HTML- und PDF-Ausgaben ist der QR-Code klickbar; der Klick oeffnet den hinterlegten Link.
+
+### 5.7 solution
 Zweck: Musterlösungstext.
 Optionen: `label=true|false` (optional, Standard `true`), `show` (optional)
 
-### 5.7 columns / nextcol / endcolumns
+### 5.8 columns / nextcol / endcolumns
 Zweck: Spaltenlayout.
 `columns` Optionen: `cols=2..6` (optional, Standard `2`), `widths` oder `ratio` (optional), `gap` (optional)
 
@@ -354,7 +376,7 @@ Zweck: Spaltenlayout.
 - Unterstuetzte Einheiten: `px`, `pt`, `cm`, `mm`, `em`, `rem`, `%`.
 - Beispiel: `:::columns cols=2 widths="2 1" gap=1cm :::`
 
-### 5.8 help / hilfe
+### 5.9 help / hilfe
 Zweck: Hilfekartenblock (separate Hilfekarten-Ausgabe).
 Kanonischer Name: `help`
 Dokumentierter Alias: `hilfe`

@@ -39,6 +39,8 @@ Der Validator prueft Blattwerk-Markdown vor dem Build und liefert stabile Diagno
 - `AN006`: Marker-Konflikt/Syntaxfehler in textbasierten `answer`-Inhalten (Legacy-Marker am Zeilenanfang und -ende gleichzeitig oder ungeschlossene Inline-Tokens wie `%{...`).
 - `AN010`: Ein `task`-/`subtask`- oder textbasierter `answer`-Block nutzt explizite `§`-Marker ohne sichtbares Loesungs-Gegenstueck; pruefe die Paarung von Arbeitsblatt- und Loesungsinhalt.
 - `PT001`: Absolute lokale Bildpfade in Markdown/HTML-Bildquellen gefunden (Portabilitätswarnung).
+- `QR001`: `qrcode`-Block ohne Pflichtoption `url`.
+- `QR002`: `qrcode`-Block mit ungueltiger `url` (erlaubt: http/https oder relativer Pfad ohne Leerzeichen).
 
 ## Blocking-Regel
 

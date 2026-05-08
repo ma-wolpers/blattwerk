@@ -133,6 +133,41 @@ def test_lines_height_option_is_allowed_without_op001():
     assert "OP001" not in codes
 
 
+def test_qrcode_options_are_allowed_without_op001():
+    text = _build_document(":::qrcode url=https://example.org w=3cm h=2.5cm maxw=60%\n:::")
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+    assert "OP001" not in codes
+    assert "QR001" not in codes
+    assert "QR002" not in codes
+
+
+def test_qrcode_without_url_emits_qr001_error():
+    text = _build_document(":::qrcode w=3cm\n:::")
+    inspected = inspect_markdown_text(text)
+    qr001 = [d for d in inspected.diagnostics if d.code == "QR001"]
+
+    assert qr001
+    assert qr001[0].severity == "error"
+
+
+def test_qrcode_with_invalid_url_emits_qr002_error():
+    text = _build_document(":::qrcode url=javascript:alert(1)\n:::")
+    inspected = inspect_markdown_text(text)
+    qr002 = [d for d in inspected.diagnostics if d.code == "QR002"]
+
+    assert qr002
+    assert qr002[0].severity == "error"
+
+
+def test_qrcode_with_invalid_size_emits_op002():
+    text = _build_document(":::qrcode url=https://example.org w=riesig\n:::")
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+
+    assert "OP002" in codes
+
+
 def test_task_title_option_is_allowed_without_op001():
     text = _build_document(":::task title='Titel hier'\nRechne aus.\n:::")
     inspected = inspect_markdown_text(text)

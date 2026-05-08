@@ -9,6 +9,8 @@ Regel:
 ## [Unreleased]
 
 ### Added
+- Neuer Blocktyp `qrcode` eingefuehrt: rendert QR-Codes aus `url=...`, unterstuetzt Groessenoptionen `w/h/maxw` (inkl. `width/height/max-width`) analog zur vorhandenen Bildgroessenlogik und erzeugt in HTML/PDF klickbare Linkziele.
+- Systematische Beispiel-Markdowns fuer QR-Links ergaenzt: `examples/markdown/example-qrcode-links.md` (Arbeitsblatt) und `examples/markdown/example-presentation-qrcode-links.md` (Praesentation).
 - PPTX-Export: Neues Exportformat `pptx` in `WorksheetExportDialog` und `BlattwerkAppExportMixin`. Core-Funktion `build_presentation_pptx()` in `app/core/blatt_kern_pptx_export.py` rendert per PyMuPDF jede Seite als Bild und erzeugt über `python-pptx` eine Präsentation mit exakt passenden Folienmaßen. `python-pptx` in `requirements.txt` ergänzt.
 - Zentralen UI-Intent-Katalog in `app/ui/ui_intents.py` eingefuehrt und Shortcut-Definitionen im Preview-Registry-Aufbau darauf umgestellt.
 - HSM-Contract-Modul `app/ui/hsm_contract.py` eingefuehrt (Intent-/Payload-Validierung, Transition-Regeln, Escape-Resolver).

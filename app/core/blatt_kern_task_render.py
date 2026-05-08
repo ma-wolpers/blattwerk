@@ -17,6 +17,7 @@ from .blatt_kern_shared import (
 )
 from .answer_line_markers import filter_answer_content_for_mode
 from .blatt_kern_answer_table import _render_answer_block
+from .qrcode_block import render_qrcode_block
 
 
 ANSWER_BLOCK_TYPES = {
@@ -118,6 +119,9 @@ def render_block(
         return (
             f"<div class='solution'>{label_html}{md.convert(normalized_content)}</div>"
         )
+
+    if block_type == "qrcode":
+        return render_qrcode_block(options)
 
     if block_type in ANSWER_BLOCK_TYPES:
         return _render_answer_block(
