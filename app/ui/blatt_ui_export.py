@@ -10,7 +10,11 @@ from PIL import Image
 
 from .dialog_services import messagebox
 
-from .export_dialog import LernhilfenExportDialog, WorksheetExportDialog
+from .export_dialog import (
+    LernhilfenExportDialog,
+    PresentationExportDialog,
+    WorksheetExportDialog,
+)
 from ..core.build_requests import (
     HelpCardsBuildRequest,
     WorksheetBuildRequest,
@@ -26,11 +30,18 @@ from ..core.blatt_kern_pptx_export import build_presentation_pptx
 from .help_card_image_trim import trim_lernhilfe_image
 
 
-_ALLOWED_WORKSHEET_EXPORT_FORMATS = {"pdf", "html", "png", "pngzip", "pptx"}
+_ALLOWED_WORKSHEET_EXPORT_FORMATS = {"pdf", "html", "png", "pngzip"}
+_ALLOWED_PRESENTATION_EXPORT_FORMATS = {"pdf", "html", "png", "pngzip", "pptx"}
 _ALLOWED_LERNHILFEN_EXPORT_FORMATS = {"pdf", "png", "pngzip"}
 _ALLOWED_EXPORT_MODES = {"worksheet", "solution", "both"}
 _ALLOWED_BLACK_SCREEN_MODES = {"none", "before", "after", "both"}
 _ALLOWED_SECTION_SEPARATOR_MODES = {"dot", "arrow"}
+_ALLOWED_WORKSHEET_PAGE_FORMATS = {"a4_portrait", "a5_landscape"}
+_ALLOWED_PRESENTATION_PAGE_FORMATS = {
+    "presentation_16_9",
+    "presentation_16_10",
+    "presentation_4_3",
+}
 
 
 def _normalize_choice(value, allowed_values, default):
@@ -39,6 +50,38 @@ def _normalize_choice(value, allowed_values, default):
     if normalized in allowed_values:
         return normalized
     return default
+
+
+def _resolve_export_default_format(preferences, document_mode):
+    """Return the preferred export format for worksheet vs presentation documents."""
+    if document_mode == "presentation":
+        preferred = preferences.get(
+            "default_export_format_presentation",
+            preferences.get("default_export_format", "pptx"),
+        )
+        return _normalize_choice(preferred, _ALLOWED_PRESENTATION_EXPORT_FORMATS, "pptx")
+
+    preferred = preferences.get(
+        "default_export_format_worksheet",
+        preferences.get("default_export_format", "pdf"),
+    )
+    return _normalize_choice(preferred, _ALLOWED_WORKSHEET_EXPORT_FORMATS, "pdf")
+
+
+def _resolve_export_default_page_format(preferences, document_mode):
+    """Return the preferred page format for worksheet vs presentation documents."""
+    if document_mode == "presentation":
+        preferred = preferences.get(
+            "default_export_page_format_presentation",
+            preferences.get("default_export_page_format", "presentation_16_9"),
+        )
+        return _normalize_choice(preferred, _ALLOWED_PRESENTATION_PAGE_FORMATS, "presentation_16_9")
+
+    preferred = preferences.get(
+        "default_export_page_format_worksheet",
+        preferences.get("default_export_page_format", "a4_portrait"),
+    )
+    return _normalize_choice(preferred, _ALLOWED_WORKSHEET_PAGE_FORMATS, "a4_portrait")
 
 
 class BlattwerkAppExportMixin:
@@ -648,40 +691,35 @@ class BlattwerkAppExportMixin:
         return [output_zip_path]
 
     def open_export_dialog(self):
-        """Compatibility wrapper that opens worksheet export dialog."""
-
-        self.open_worksheet_export_dialog()
-
-    def open_worksheet_export_dialog(self):
-        """Öffnet den dedizierten Arbeitsblatt-Exportdialog."""
+        """Open worksheet or presentation export dialog based on document mode."""
 
         input_path = self._validate_input()
         if not input_path:
             return
 
+        if self._detect_document_mode(input_path) == "presentation":
+            self.open_presentation_export_dialog(input_path=input_path)
+            return
+
+        self.open_worksheet_export_dialog(input_path=input_path)
+
+    def open_worksheet_export_dialog(self, input_path: Path | None = None):
+        """Öffnet den dedizierten Arbeitsblatt-Exportdialog."""
+
+        input_path = input_path if input_path is not None else self._validate_input()
+        if not input_path:
+            return
+
         preferences = getattr(self, "user_preferences", {})
-        document_mode = self._detect_document_mode(input_path)
-        allow_mode_selection = document_mode != "presentation"
 
         preview_mode = _normalize_choice(
             self.preview_mode_var.get(),
             _ALLOWED_EXPORT_MODES,
             "worksheet",
         )
-        default_mode = preview_mode if allow_mode_selection else "worksheet"
-        if not allow_mode_selection:
-            default_mode = "worksheet"
-
-        default_black_screen = _normalize_choice(
-            self.preview_black_screen_var.get(),
-            _ALLOWED_BLACK_SCREEN_MODES,
-            "none",
-        )
-        default_format = _normalize_choice(
-            preferences.get("default_export_format", "pdf"),
-            _ALLOWED_WORKSHEET_EXPORT_FORMATS,
-            "pdf",
-        )
+        default_mode = preview_mode
+        default_format = _resolve_export_default_format(preferences, "worksheet")
+        default_page_format = _resolve_export_default_page_format(preferences, "worksheet")
 
         dialog = WorksheetExportDialog(
             self.root,
@@ -693,14 +731,92 @@ class BlattwerkAppExportMixin:
             worksheet_label=str(preferences.get("worksheet_label", "Aufgaben") or "Aufgaben"),
             solution_label=str(preferences.get("solution_label", "Loesung") or "Loesung"),
             solution_suffix=str(preferences.get("solution_suffix", "_loesung") or "_loesung"),
-            allow_mode_selection=allow_mode_selection,
-            black_screen_default=default_black_screen,
+            allow_mode_selection=True,
         )
         if not dialog.result:
             return
 
         fmt = dialog.result["format"]
         mode = dialog.result["mode"]
+        black_screen_mode = "none"
+        page_format = str(self.preview_page_format_var.get() or "").strip()
+        if page_format not in _ALLOWED_WORKSHEET_PAGE_FORMATS:
+            page_format = default_page_format
+        contrast_profile = self.preview_contrast_var.get()
+        output_path = Path(dialog.result["output_path"])
+        self._set_last_dialog_dir("export_output", output_path)
+
+        try:
+            self.status_var.set("Export läuft…")
+            self.root.update_idletasks()
+            self._show_export_diagnostics(input_path)
+
+            if fmt == "pdf":
+                out_files = self._export_pdf(
+                    input_path,
+                    output_path,
+                    page_format,
+                    mode,
+                    contrast_profile,
+                    black_screen_mode=black_screen_mode,
+                )
+            elif fmt == "html":
+                out_files = self._export_html(
+                    input_path,
+                    output_path,
+                    page_format,
+                    mode,
+                    contrast_profile,
+                    black_screen_mode=black_screen_mode,
+                )
+            else:
+                out_files = self._export_png_zip(
+                    input_path,
+                    output_path,
+                    page_format,
+                    mode,
+                    contrast_profile,
+                    black_screen_mode=black_screen_mode,
+                )
+
+            self.status_var.set("Export abgeschlossen")
+            messagebox.showinfo(
+                "Export erfolgreich",
+                "Erstellt:\n" + "\n".join(str(path) for path in out_files),
+            )
+        except Exception as error:
+            self.status_var.set("Export fehlgeschlagen")
+            messagebox.showerror("Fehler", f"Export fehlgeschlagen:\n{error}")
+
+    def open_presentation_export_dialog(self, input_path: Path | None = None):
+        """Oeffnet den dedizierten Praesentations-Exportdialog."""
+
+        input_path = input_path if input_path is not None else self._validate_input()
+        if not input_path:
+            return
+
+        preferences = getattr(self, "user_preferences", {})
+        default_black_screen = _normalize_choice(
+            self.preview_black_screen_var.get(),
+            _ALLOWED_BLACK_SCREEN_MODES,
+            "none",
+        )
+        default_format = _resolve_export_default_format(preferences, "presentation")
+        default_page_format = _resolve_export_default_page_format(preferences, "presentation")
+
+        dialog = PresentationExportDialog(
+            self.root,
+            input_path=input_path,
+            default_format=default_format,
+            black_screen_default=default_black_screen,
+            theme_key=self.theme_var.get(),
+            initial_output_dir=self._get_initial_dialog_dir("export_output"),
+        )
+        if not dialog.result:
+            return
+
+        fmt = dialog.result["format"]
+        mode = "worksheet"
         black_screen_mode = str(dialog.result.get("black_screen", "none") or "none").strip().lower()
         black_screen_mode = _normalize_choice(
             black_screen_mode,
@@ -708,33 +824,8 @@ class BlattwerkAppExportMixin:
             "none",
         )
         page_format = str(self.preview_page_format_var.get() or "").strip()
-        if page_format not in {
-            "a4_portrait",
-            "a5_landscape",
-            "presentation_16_9",
-            "presentation_16_10",
-            "presentation_4_3",
-        }:
-            preferences = getattr(self, "user_preferences", {})
-            preferred_page_format = str(
-                preferences.get("default_export_page_format", "") or ""
-            ).strip()
-            page_format = preferred_page_format if preferred_page_format in {
-                "a4_portrait",
-                "a5_landscape",
-                "presentation_16_9",
-                "presentation_16_10",
-                "presentation_4_3",
-            } else "a4_portrait"
-
-        if document_mode == "presentation":
-            mode = "worksheet"
-            if page_format not in {
-                "presentation_16_9",
-                "presentation_16_10",
-                "presentation_4_3",
-            }:
-                page_format = "presentation_16_9"
+        if page_format not in _ALLOWED_PRESENTATION_PAGE_FORMATS:
+            page_format = default_page_format
         contrast_profile = self.preview_contrast_var.get()
         output_path = Path(dialog.result["output_path"])
         self._set_last_dialog_dir("export_output", output_path)
@@ -802,7 +893,7 @@ class BlattwerkAppExportMixin:
 
         preferences = getattr(self, "user_preferences", {})
         default_format = _normalize_choice(
-            preferences.get("default_export_format", "pdf"),
+            preferences.get("default_export_format_worksheet", preferences.get("default_export_format", "pdf")),
             _ALLOWED_LERNHILFEN_EXPORT_FORMATS,
             "pdf",
         )
@@ -819,8 +910,14 @@ class BlattwerkAppExportMixin:
 
         fmt = dialog.result["format"]
         preferences = getattr(self, "user_preferences", {})
-        preferred_page_format = str(preferences.get("default_export_page_format", "") or "").strip()
-        if preferred_page_format in {"a4_portrait", "a5_landscape"}:
+        preferred_page_format = str(
+            preferences.get(
+                "default_export_page_format_worksheet",
+                preferences.get("default_export_page_format", ""),
+            )
+            or ""
+        ).strip()
+        if preferred_page_format in _ALLOWED_WORKSHEET_PAGE_FORMATS:
             page_format = preferred_page_format
         else:
             page_format = self.preview_page_format_var.get()

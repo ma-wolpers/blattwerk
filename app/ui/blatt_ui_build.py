@@ -68,7 +68,7 @@ class BlattwerkAppBuildMixin:
             file_row_actions,
             text="Exportieren…",
             style="PrimaryAction.TButton",
-            command=self.open_worksheet_export_dialog,
+            command=self.open_export_dialog,
         )
         self.export_btn.pack(side="right", padx=(0, 8))
 

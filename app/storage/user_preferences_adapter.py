@@ -230,19 +230,33 @@ PREFERENCE_SPECS = {
         "live_apply": True,
     },
     # Export
-    "default_export_page_format": {
+    "default_export_page_format_worksheet": {
         "tab": "export",
-        "label": "Export Seitenformat",
+        "label": "Export Seitenformat (Arbeitsblatt)",
         "type": "enum",
         "default": "a4_portrait",
         "values": ["a4_portrait", "a5_landscape"],
     },
-    "default_export_format": {
+    "default_export_page_format_presentation": {
         "tab": "export",
-        "label": "Export Dateiformat",
+        "label": "Export Seitenformat (Praesentation)",
+        "type": "enum",
+        "default": "presentation_16_9",
+        "values": ["presentation_16_9", "presentation_16_10", "presentation_4_3"],
+    },
+    "default_export_format_worksheet": {
+        "tab": "export",
+        "label": "Export Dateiformat (Arbeitsblatt)",
         "type": "enum",
         "default": "pdf",
         "values": ["pdf", "html", "png", "pngzip"],
+    },
+    "default_export_format_presentation": {
+        "tab": "export",
+        "label": "Export Dateiformat (Praesentation)",
+        "type": "enum",
+        "default": "pptx",
+        "values": ["pdf", "pptx", "png", "pngzip", "html"],
     },
     "default_export_mode": {
         "tab": "export",
@@ -482,10 +496,22 @@ def normalize_user_preferences(raw: object) -> dict[str, object]:
     if not isinstance(raw, dict):
         return defaults
 
+    # Backward compatibility for pre-split export defaults.
+    raw_payload = dict(raw)
+    if "default_export_format_worksheet" not in raw_payload and "default_export_format" in raw_payload:
+        raw_payload["default_export_format_worksheet"] = raw_payload["default_export_format"]
+    if "default_export_format_presentation" not in raw_payload and "default_export_format" in raw_payload:
+        raw_payload["default_export_format_presentation"] = raw_payload["default_export_format"]
+
+    if "default_export_page_format_worksheet" not in raw_payload and "default_export_page_format" in raw_payload:
+        raw_payload["default_export_page_format_worksheet"] = raw_payload["default_export_page_format"]
+    if "default_export_page_format_presentation" not in raw_payload and "default_export_page_format" in raw_payload:
+        raw_payload["default_export_page_format_presentation"] = raw_payload["default_export_page_format"]
+
     normalized = defaults
     for key, spec in PREFERENCE_SPECS.items():
         default_value = defaults[key]
-        raw_value = raw.get(key, default_value)
+        raw_value = raw_payload.get(key, default_value)
         pref_type = spec.get("type")
 
         if pref_type == "bool":

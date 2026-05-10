@@ -61,7 +61,7 @@ def build_preview_keybinding_registry(app) -> KeybindingRegistry:
             KeyBindingDefinition("preview.zoom_in_numpad", "<KP_Add>", UiIntent.PREVIEW_ZOOM_IN_NUMPAD, (UI_MODE_PREVIEW,), handler=lambda: app.change_zoom(10)),
             KeyBindingDefinition("preview.toggle_mode", "<Tab>", UiIntent.PREVIEW_TOGGLE_MODE, (UI_MODE_PREVIEW,), "Tab   Aufgabe / Lösung", handler=app._toggle_preview_mode),
             KeyBindingDefinition("preview.refresh", "<space>", UiIntent.PREVIEW_REFRESH, (UI_MODE_PREVIEW,), "Leertaste   Vorschau aktualisieren", handler=app.refresh_preview),
-            KeyBindingDefinition("global.export", "<Control-e>", UiIntent.GLOBAL_EXPORT, (UI_MODE_GLOBAL, UI_MODE_DIALOG), "Strg+E   Exportieren", allow_modifiers=True, allow_when_text_input=True, handler=app.open_worksheet_export_dialog),
+            KeyBindingDefinition("global.export", "<Control-e>", UiIntent.GLOBAL_EXPORT, (UI_MODE_GLOBAL, UI_MODE_DIALOG), "Strg+E   Exportieren", allow_modifiers=True, allow_when_text_input=True, handler=app.open_export_dialog),
             KeyBindingDefinition("global.help_preview", "<Control-h>", UiIntent.GLOBAL_HELP_PREVIEW, (UI_MODE_GLOBAL, UI_MODE_DIALOG), "Strg+H   Lernhilfenansicht", allow_modifiers=True, allow_when_text_input=True, handler=app.open_help_preview_window),
             KeyBindingDefinition("global.open_file", "<KeyPress-o>", UiIntent.GLOBAL_OPEN_FILE, (UI_MODE_GLOBAL,), "O   Markdown öffnen", handler=app.pick_input),
             KeyBindingDefinition("global.new_file", "<Control-n>", UiIntent.GLOBAL_NEW_FILE, (UI_MODE_GLOBAL, UI_MODE_DIALOG), "Strg+N   neue Markdown-Datei", allow_modifiers=True, allow_when_text_input=True, handler=app.create_new_markdown_file),
