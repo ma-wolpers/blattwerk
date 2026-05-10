@@ -5,11 +5,7 @@ from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 
 ensure_bw_gui_on_path()
 from bw_gui.runtime import ui, widgets
-
-try:
-    from bw_gui.shortcuts import compose_hover_text as compose_shared_hover_text
-except ModuleNotFoundError:
-    compose_shared_hover_text = None
+from bw_gui.shortcuts import compose_hover_text as compose_shared_hover_text
 
 from .dialog_services import filedialog, messagebox
 from .ui_theme import apply_window_theme, configure_ttk_theme, get_theme
@@ -26,14 +22,6 @@ def _shortcut_help_entry(description: str, sequence: str | None) -> str:
     """Build one compact shortcut help entry via the shared formatter."""
 
     desc = str(description or "").strip()
-    if compose_shared_hover_text is None:
-        shortcut = _localize_shortcut_label(str(sequence or "").strip())
-        if not shortcut:
-            return desc
-        if not desc:
-            return shortcut
-        return f"{shortcut}: {desc}"
-
     merged = compose_shared_hover_text(desc, sequence)
     marker = "\nShortcut: "
     if marker not in merged:

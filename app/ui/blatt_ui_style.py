@@ -53,14 +53,9 @@ from .ui_theme import (
 
 ensure_bw_gui_on_path()
 from bw_gui.runtime import ui, widgets
-try:
-    from bw_gui.menu import CustomMenuBar as SharedCustomMenuBar
-    from bw_gui.menu import MenuDefinition as SharedMenuDefinition
-    from bw_gui.menu import MenuItem as SharedMenuItem
-except ModuleNotFoundError:
-    SharedCustomMenuBar = None
-    SharedMenuDefinition = None
-    SharedMenuItem = None
+from bw_gui.menu import CustomMenuBar as SharedCustomMenuBar
+from bw_gui.menu import MenuDefinition as SharedMenuDefinition
+from bw_gui.menu import MenuItem as SharedMenuItem
 
 BW_COLOR_PROFILE_KEYS = {"bw"}
 
@@ -359,9 +354,6 @@ class BlattwerkAppStyleMixin:
 
     def _to_shared_menu_items(self, items: list[dict]):
             """Convert local dict-based menu rows into shared menu item objects."""
-
-            if SharedMenuItem is None:
-                return tuple()
 
             converted = []
             for item in items:
@@ -889,85 +881,39 @@ class BlattwerkAppStyleMixin:
     def _build_custom_menu_strip(self):
             """Builds themed custom menu strip with top-level buttons and mnemonics."""
 
-            if SharedCustomMenuBar is not None and SharedMenuDefinition is not None:
-                old_shared = getattr(self, "_shared_menu_bar", None)
-                if old_shared is not None:
-                    old_shared.destroy()
-
-                definitions = self._menu_top_definitions()
-                self._menu_top_definitions_cache = definitions
-
-                shared_definitions = []
-                for definition in definitions:
-                    items_fn = definition.get("items_fn", lambda: [])
-
-                    def _provider(func=items_fn):
-                        return self._to_shared_menu_items(list(func()))
-
-                    shared_definitions.append(
-                        SharedMenuDefinition(
-                            key=str(definition.get("key", "")),
-                            label=str(definition.get("label", "")),
-                            alt=str(definition.get("alt", "")),
-                            items_provider=_provider,
-                        )
-                    )
-
-                self._shared_menu_bar = SharedCustomMenuBar(
-                    self.root,
-                    shared_definitions,
-                    theme_key=self.theme_var.get(),
-                )
-                self._shared_menu_bar.build()
-                self._custom_menu_strip = self._shared_menu_bar.strip
-                self._menu_top_buttons = {}
-                self._menu_popup_stack = list(getattr(self._shared_menu_bar, "_popup_stack", []))
-                self._active_menu_key = getattr(self._shared_menu_bar, "_active_key", None)
-                return
-
-            old_strip = getattr(self, "_custom_menu_strip", None)
-            if old_strip is not None and old_strip.winfo_exists():
-                try:
-                    old_strip.destroy()
-                except ui.TclError:
-                    pass
-
-            self._close_all_menu_popups()
-            self._menu_top_buttons = {}
-
-            theme = get_theme(self.theme_var.get())
-            strip = ui.Frame(self.root, bg=theme["bg_surface"], highlightthickness=1, highlightbackground=theme["border"], bd=0)
-            root_children = [child for child in self.root.winfo_children() if child is not strip]
-            if root_children:
-                strip.pack(fill="x", side="top", before=root_children[0])
-            else:
-                strip.pack(fill="x", side="top")
-            self._custom_menu_strip = strip
+            old_shared = getattr(self, "_shared_menu_bar", None)
+            if old_shared is not None:
+                old_shared.destroy()
 
             definitions = self._menu_top_definitions()
             self._menu_top_definitions_cache = definitions
 
+            shared_definitions = []
             for definition in definitions:
-                key = definition["key"]
-                button = ui.Button(
-                    strip,
-                    text=definition["label"],
-                    underline=int(definition.get("underline", 0)),
-                    relief="flat",
-                    bd=0,
-                    padx=10,
-                    pady=5,
-                    bg=theme["bg_surface"],
-                    fg=theme["fg_primary"],
-                    activebackground=theme["accent_soft"],
-                    activeforeground=theme["fg_primary"],
-                    highlightthickness=0,
-                    command=lambda d=definition: self._open_top_menu(d),
-                )
-                button.pack(side="left", padx=(0, 2))
-                self._menu_top_buttons[key] = button
+                items_fn = definition.get("items_fn", lambda: [])
 
-            self._bind_custom_menu_global_handlers()
+                def _provider(func=items_fn):
+                    return self._to_shared_menu_items(list(func()))
+
+                shared_definitions.append(
+                    SharedMenuDefinition(
+                        key=str(definition.get("key", "")),
+                        label=str(definition.get("label", "")),
+                        alt=str(definition.get("alt", "")),
+                        items_provider=_provider,
+                    )
+                )
+
+            self._shared_menu_bar = SharedCustomMenuBar(
+                self.root,
+                shared_definitions,
+                theme_key=self.theme_var.get(),
+            )
+            self._shared_menu_bar.build()
+            self._custom_menu_strip = self._shared_menu_bar.strip
+            self._menu_top_buttons = {}
+            self._menu_popup_stack = list(getattr(self._shared_menu_bar, "_popup_stack", []))
+            self._active_menu_key = getattr(self._shared_menu_bar, "_active_key", None)
 
     def _refresh_custom_menu_model(self):
             """Refresh hook used by persistence when recent files change."""
