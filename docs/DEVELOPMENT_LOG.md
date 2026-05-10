@@ -20,6 +20,7 @@ Regel:
 - Format-Switching in der Vorschau: Wenn der Benutzer das Seitenformat wechselt (z. B. 16:9 → 16:10 oder A4 → A5), wird jetzt korrekt ein neuer Render angestoßen und der Cache wird invalidiert. Zuvor blieb die Vorschau-Darstellung trotz Format-Änderung gleich.
 
 ### Changed
+- Step-5-Rollout fortgesetzt: `bw-gui`-Submodule auf den neuen Shared-Stand mit `TkRootHost`, `ScrollablePopupWindow` und `WrappedTextField` aktualisiert, sodass die zentralen Host-/Popup-/Form-Bausteine fuer Folge-Migrationen im Repo verfuegbar sind.
 - Step-2-Guardrail-Scope abgeschlossen: die repo-weite GUI-Vertragspruefung in `tools/ci/check_ai_guardrails.py` umfasst jetzt zusaetzlich `bw_libs/`, sodass direkte `tkinter`/`ttk`-Imports und neue lokale `ui`/`widgets`/`tui`-Basisklassen auch in Shared-Library-Pfaden blockiert werden.
 - Step-3-Exemption-Abbau fortgesetzt: Future-Entrypoint-Baseline fuer `app/ui/blatt_ui.py` entfernt; der Exemption-Backlog ist fuer Blattwerk jetzt leer (nur `none`-Marker).
 - Step-3-Exemption-Governance aktiviert: `docs/GUI_MIGRATION_BACKLOG.md` ist jetzt verbindliche Referenz fuer aktive GUI-Baselines/Exemptions inkl. `remove_by`-Datum; Guardrails validieren die Backlog-Referenzen explizit.
