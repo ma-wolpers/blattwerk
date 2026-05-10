@@ -6,8 +6,54 @@ from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 ensure_bw_gui_on_path()
 from bw_gui.runtime import ui, widgets
 
+try:
+    from bw_gui.shortcuts import compose_hover_text as compose_shared_hover_text
+except ModuleNotFoundError:
+    compose_shared_hover_text = None
+
 from .dialog_services import filedialog, messagebox
 from .ui_theme import apply_window_theme, configure_ttk_theme, get_theme
+
+
+def _localize_shortcut_label(shortcut_label: str) -> str:
+    """Map shared shortcut wording to existing German UI labels."""
+
+    text = str(shortcut_label or "")
+    return text.replace("Ctrl", "Strg").replace("Escape", "Esc")
+
+
+def _shortcut_help_entry(description: str, sequence: str | None) -> str:
+    """Build one compact shortcut help entry via the shared formatter."""
+
+    desc = str(description or "").strip()
+    if compose_shared_hover_text is None:
+        shortcut = _localize_shortcut_label(str(sequence or "").strip())
+        if not shortcut:
+            return desc
+        if not desc:
+            return shortcut
+        return f"{shortcut}: {desc}"
+
+    merged = compose_shared_hover_text(desc, sequence)
+    marker = "\nShortcut: "
+    if marker not in merged:
+        return merged
+
+    resolved_desc, resolved_shortcut = merged.split(marker, 1)
+    shortcut = _localize_shortcut_label(resolved_shortcut.strip())
+    if not resolved_desc:
+        return shortcut
+    return f"{shortcut}: {resolved_desc}"
+
+
+def _build_shortcuts_help_text(*rows: tuple[tuple[str, str | None], ...]) -> str:
+    """Compose multi-line shortcuts help text from action/sequence rows."""
+
+    lines: list[str] = []
+    for row in rows:
+        entries = [_shortcut_help_entry(description, sequence) for description, sequence in row]
+        lines.append("   ".join(item for item in entries if item.strip()))
+    return "\n".join(line for line in lines if line.strip())
 
 
 class _BaseExportDialog:
@@ -158,17 +204,26 @@ class WorksheetExportDialog(_BaseExportDialog):
 
     @staticmethod
     def _build_shortcuts_help_text(allow_mode_selection: bool) -> str:
-        base = "Strg+E: Exportieren   Esc: Abbrechen"
+        first_row = (
+            ("Exportieren", "<Control-e>"),
+            ("Abbrechen", "<Escape>"),
+        )
         if allow_mode_selection:
-            return (
-                base
-                + "\n"
-                + "A/L/B: Inhalt   P: Format wechseln   D: Durchsuchen"
+            first_line = _build_shortcuts_help_text(first_row)
+            second_line = "   ".join(
+                (
+                    "A/L/B: Inhalt",
+                    _shortcut_help_entry("Format wechseln", "P"),
+                    _shortcut_help_entry("Durchsuchen", "D"),
+                )
             )
-        return (
-            base
-            + "\n"
-            + "P: Format wechseln   D: Durchsuchen"
+            return f"{first_line}\n{second_line}"
+        return _build_shortcuts_help_text(
+            first_row,
+            (
+                ("Format wechseln", "P"),
+                ("Durchsuchen", "D"),
+            ),
         )
 
     def _bind_shortcuts(self):
@@ -357,9 +412,16 @@ class PresentationExportDialog(_BaseExportDialog):
 
     @staticmethod
     def _build_shortcuts_help_text() -> str:
-        return (
-            "Strg+E: Exportieren   Esc: Abbrechen\n"
-            "P: Format wechseln   K: Black-Screen beides   D: Durchsuchen"
+        return _build_shortcuts_help_text(
+            (
+                ("Exportieren", "<Control-e>"),
+                ("Abbrechen", "<Escape>"),
+            ),
+            (
+                ("Format wechseln", "P"),
+                ("Black-Screen beides", "K"),
+                ("Durchsuchen", "D"),
+            ),
         )
 
     def _bind_shortcuts(self):
@@ -522,9 +584,15 @@ class LernhilfenExportDialog(_BaseExportDialog):
             self.shortcuts_frame,
             style="Muted.TLabel",
             justify="left",
-            text=(
-                "Strg+E: Exportieren   Esc: Abbrechen\n"
-                "P: Format wechseln   D: Durchsuchen"
+            text=_build_shortcuts_help_text(
+                (
+                    ("Exportieren", "<Control-e>"),
+                    ("Abbrechen", "<Escape>"),
+                ),
+                (
+                    ("Format wechseln", "P"),
+                    ("Durchsuchen", "D"),
+                ),
             ),
         ).pack(anchor="w", padx=8, pady=6)
 

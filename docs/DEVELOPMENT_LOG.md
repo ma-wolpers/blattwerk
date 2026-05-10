@@ -20,6 +20,7 @@ Regel:
 - Format-Switching in der Vorschau: Wenn der Benutzer das Seitenformat wechselt (z. B. 16:9 → 16:10 oder A4 → A5), wird jetzt korrekt ein neuer Render angestoßen und der Cache wird invalidiert. Zuvor blieb die Vorschau-Darstellung trotz Format-Änderung gleich.
 
 ### Changed
+- Export-Dialog-Shortcut-Hilfe harmonisiert: `app/ui/export_dialog.py` baut die Shortcut-Hilfetexte jetzt ueber den Shared-Formatter `bw_gui.shortcuts.compose_hover_text(...)` auf (inkl. konsistenter Labelableitung fuer mehrzeilige Hilfezeilen).
 - Swatch-Tooltip-Overlay in `app/ui/blatt_ui_style.py` gehaertet: kein erzwungenes `-topmost` mehr und neue Bildschirm-Clamping-Logik fuer Positionierung nahe Fenster-/Bildschirmraendern.
 - Shared-Tooltip-Polish uebernommen: `bw_gui.widgets.HoverTooltip` nutzt jetzt verzoegertes Anzeigen, Theme-Ableitung aus dem aktiven Fensterkontext und Bildschirm-Clamping fuer stabile Hover-Overlays.
 - Shared-Theme-Feinschliff uebernommen: gemeinsame Settings-/Sidebar-Stile sowie verfeinerte Scrollbar-Kontraste kommen jetzt aus dem aktualisierten `bw-gui`-Submodule-Stand.
