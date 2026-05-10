@@ -20,6 +20,7 @@ Regel:
 - Format-Switching in der Vorschau: Wenn der Benutzer das Seitenformat wechselt (z. B. 16:9 → 16:10 oder A4 → A5), wird jetzt korrekt ein neuer Render angestoßen und der Cache wird invalidiert. Zuvor blieb die Vorschau-Darstellung trotz Format-Änderung gleich.
 
 ### Changed
+- Theme-Sonderpfade entfernt: `app/ui/ui_theme.py` bindet die Shared-Theme-Baseline (`bw_gui.theming.theme_manager.configure_ttk_theme`) jetzt verpflichtend und ohne optionalen Fallback-Branch ein.
 - Welle-9-Migration umgesetzt: `app/ui/settings_dialog.py` verwendet jetzt den zentralen `bw_gui.dialogs.TabbedSettingsDialog` als technische Basis (inkl. Mapping der Blattwerk-Tabspecs auf `SettingsDialogSpec`).
 - Blattwerk-spezifisches Verhalten bleibt erhalten: Reset-Aktionen (`Tab-Standard`, `Alle Standard`) und Live-Apply-Rollback bei `Abbrechen` sind auf dem Shared-Dialog-Wrapper weiter aktiv.
 - Export-Dialog-Shortcut-Hilfe harmonisiert: `app/ui/export_dialog.py` baut die Shortcut-Hilfetexte jetzt ueber den Shared-Formatter `bw_gui.shortcuts.compose_hover_text(...)` auf (inkl. konsistenter Labelableitung fuer mehrzeilige Hilfezeilen).
