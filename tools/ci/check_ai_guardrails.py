@@ -31,6 +31,26 @@ GUARDRAIL_RELEVANT_PATHS = {
     "bw_libs/ui_contract/hsm.py",
     "bw_libs/app_paths.py",
 }
+FUTURE_GUI_SEARCH_ROOTS = (
+    "app/ui",
+)
+FUTURE_GUI_ENTRY_FILE_NAMES = {
+    "main_window.py",
+    "ui.py",
+    "blatt_ui.py",
+    "screen_builder.py",
+}
+FUTURE_GUI_ENTRY_BASELINES = {
+    "app/ui/blatt_ui.py",
+}
+FUTURE_GUI_REQUIRED_SHARED_SNIPPETS = (
+    "ensure_bw_gui_on_path()",
+    "from bw_gui.runtime import",
+    "from bw_gui.menu import",
+    "open_tabbed_settings_dialog",
+    "compose_hover_text",
+    "HoverTooltip",
+)
 
 BLAETTWERKER_SOLUTION_RULE = (
     "auch eine sichtbare Loesung vorhanden ist"
@@ -102,7 +122,8 @@ def _has_relevant_staged_changes(staged: set[str], repo_root: Path) -> bool:
             normalized_relevant.add(f"{root_rel_to_repo}/{rel_norm}")
 
     for staged_path in staged:
-        if staged_path.replace("\\", "/") in normalized_relevant:
+        normalized = staged_path.replace("\\", "/")
+        if normalized in normalized_relevant or _is_future_gui_entry_path(normalized):
             return True
     return False
 
@@ -122,6 +143,27 @@ def _require_substring(text: str, needle: str, source: str, errors: list[str]) -
 def _forbid_substring(text: str, needle: str, source: str, errors: list[str]) -> None:
     if needle in text:
         errors.append(f"{source}: forbidden fallback text present -> {needle}")
+
+
+def _is_future_gui_entry_path(rel_path: str) -> bool:
+    normalized = rel_path.replace("\\", "/")
+    file_name = normalized.rsplit("/", 1)[-1]
+    if file_name not in FUTURE_GUI_ENTRY_FILE_NAMES:
+        return False
+    return any(normalized.startswith(f"{root}/") for root in FUTURE_GUI_SEARCH_ROOTS)
+
+
+def _iter_future_gui_entry_candidates() -> list[str]:
+    candidates: set[str] = set()
+    for rel_root in FUTURE_GUI_SEARCH_ROOTS:
+        root_path = ROOT / rel_root
+        if not root_path.exists():
+            continue
+        for file_path in root_path.rglob("*.py"):
+            if file_path.name not in FUTURE_GUI_ENTRY_FILE_NAMES:
+                continue
+            candidates.add(file_path.relative_to(ROOT).as_posix())
+    return sorted(candidates)
 
 
 def _check_development_log_updated(staged: set[str], errors: list[str]) -> None:
@@ -398,6 +440,21 @@ def _check_shared_ui_contract_hardening(errors: list[str]) -> None:
     _forbid_substring(export_module, "except ModuleNotFoundError", "app/ui/export_dialog.py", errors)
 
 
+def _check_future_gui_entry_contracts(errors: list[str]) -> None:
+    """Require shared GUI bootstrap contracts for newly added entrypoint files."""
+
+    for rel_path in _iter_future_gui_entry_candidates():
+        if rel_path in FUTURE_GUI_ENTRY_BASELINES:
+            continue
+
+        text = _read(rel_path)
+        for snippet in FUTURE_GUI_REQUIRED_SHARED_SNIPPETS:
+            _require_substring(text, snippet, rel_path, errors)
+
+        _forbid_substring(text, "import tkinter", rel_path, errors)
+        _forbid_substring(text, "from tkinter import", rel_path, errors)
+
+
 def _collect_process_guidance_warnings() -> list[str]:
     """Collect non-blocking warnings for process guidance consistency."""
     warnings: list[str] = []
@@ -472,6 +529,7 @@ def main() -> int:
     _check_extension_validator_sync(errors)
     _check_blattwerker_solution_rule(errors)
     _check_shared_ui_contract_hardening(errors)
+    _check_future_gui_entry_contracts(errors)
     warnings = _collect_process_guidance_warnings()
 
     if errors:
