@@ -26,6 +26,7 @@ The format is based on Keep a Changelog.
 
 ### Changed
 
+- AI guardrails now also block local redefinitions of reserved shared primitives (`TkRootHost`, `ScrollablePopupWindow`, `WrappedTextField`) so these runtime/dialog/widget foundations must be consumed from `bw-gui` instead of being rebuilt in-repo.
 - `bw-gui` submodule was updated to the latest shared runtime/dialog/widget baseline so the new central primitives (`TkRootHost`, `ScrollablePopupWindow`, `WrappedTextField`) are available for further migration steps.
 - AI guardrails now include `bw_libs/` in the repo-wide GUI contract scan scope, so direct `tkinter`/`ttk` imports and new local `ui`/`widgets`/`tui` baseclass patterns are also blocked in shared-library paths.
 - AI guardrails no longer keep a future-entrypoint baseline exemption for `app/ui/blatt_ui.py`; Blattwerk now runs this entrypoint under strict shared-GUI contract checks.
