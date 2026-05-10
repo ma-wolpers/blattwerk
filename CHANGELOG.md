@@ -26,6 +26,7 @@ The format is based on Keep a Changelog.
 
 ### Changed
 
+- AI guardrails now include `bw_libs/` in the repo-wide GUI contract scan scope, so direct `tkinter`/`ttk` imports and new local `ui`/`widgets`/`tui` baseclass patterns are also blocked in shared-library paths.
 - AI guardrails no longer keep a future-entrypoint baseline exemption for `app/ui/blatt_ui.py`; Blattwerk now runs this entrypoint under strict shared-GUI contract checks.
 - AI guardrails now require an explicit GUI migration backlog (`docs/GUI_MIGRATION_BACKLOG.md`) for active GUI baselines/exemptions, including time-bound `remove_by` tracking.
 - Governance policy now explicitly requires strict bw-gui-only usage: no local tkinter/ttk widget implementations in repo modules, and reusable GUI building blocks must be implemented in bw-gui first.
