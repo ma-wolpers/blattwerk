@@ -27,6 +27,7 @@ Installation/Setup steht bewusst in `README.md`.
 	- Allgemein (z. B. maximale Zahl zuletzt geöffneter Dateien, Startverhalten)
 	- Editor (Snippets, Diagnostik, Outline)
 	- Ansicht/Layout, Design/Theme, Export
+	- Export-Defaults sind nach Dokumentfamilie getrennt: Arbeitsblatt und Praesentation haben jeweils eigene Standardwerte fuer Dateiformat und Seitenformat.
 	- Identität/Copyright und Dokument-Defaults
 	- Accessibility, Backup, Shortcut-Gruppen
 - Der frühere `Root-Anker (Verlauf)` existiert nicht mehr. Zuletzt geöffnete Dateien werden direkt als normale Dateipfade verwaltet.
@@ -75,11 +76,12 @@ Installation/Setup steht bewusst in `README.md`.
 
 ## 5) Exportdialog-Shortcuts
 
+- Es gibt zwei Dialoge: Arbeitsblatt-Export und Praesentations-Export (automatisch je nach Dokumentmodus).
 - `Strg+E`: Exportieren
 - `Esc`: Abbrechen
-- `A / L / B`: Aufgaben / Lösung / Beides (nur wenn Inhaltsauswahl sichtbar ist; nicht bei `presentation`)
-- `K`: Black-Screen im Exportdialog schnell auf `Beides` setzen
-- `P`: Format wechseln (PDF/PNG/PNG-ZIP/HTML)
+- `A / L / B`: Aufgaben / Lösung / Beides (nur im Arbeitsblatt-Dialog)
+- `K`: Black-Screen im Exportdialog schnell auf `Beides` setzen (nur im Praesentations-Dialog)
+- `P`: Format wechseln (Arbeitsblatt: PDF/PNG/PNG-ZIP/HTML, Praesentation: zusaetzlich PPTX)
 - `D`: Durchsuchen öffnen
 - `?`: Shortcut-Hilfe im Dialog ein/ausblenden
 

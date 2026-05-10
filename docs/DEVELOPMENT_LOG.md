@@ -20,6 +20,8 @@ Regel:
 - Format-Switching in der Vorschau: Wenn der Benutzer das Seitenformat wechselt (z. B. 16:9 → 16:10 oder A4 → A5), wird jetzt korrekt ein neuer Render angestoßen und der Cache wird invalidiert. Zuvor blieb die Vorschau-Darstellung trotz Format-Änderung gleich.
 
 ### Changed
+- Export-Einstellungen im Settings-Tab wurden nach Dokumentfamilie getrennt: getrennte Defaults fuer Dateiformat und Seitenformat fuer Arbeitsblatt vs. Praesentation; der Exportdialog uebernimmt jetzt modusspezifische Defaults statt eines gemeinsamen Schluessels.
+- Exportdialoge wurden nach Dokumentmodus getrennt: eigener Arbeitsblatt-Dialog (ohne Black-Screen) und eigener Praesentations-Dialog (mit Black-Screen-Option), aufgerufen ueber einen zentralen Export-Dispatcher fuer Button und Strg+E.
 - PDF-Render-Pipeline um HEIC-Fallback erweitert: lokale `file://`-Referenzen auf `.heic/.heif` werden vor dem Headless-Chromium-Druck bei Bedarf temporaer nach PNG umgeschrieben (inkl. optionalem `pillow-heif`-Open-Path), sodass Vorschau/Export auch ohne nativen Browser-Codec robuster rendern.
 - Neue Regressionstests fuer HEIC-Umschreibung in `tests/test_blatt_kern_io_pdf_heic.py` sichern die Pfadumschreibung (HEIC -> PNG) sowie unveraendertes Verhalten fuer Nicht-HEIC-Bilder.
 - Task-/Subtask-Metadaten erweitert: neue Option `time=...` in Validator und Renderer verdrahtet; Ausgabe erfolgt analog zu Punkten als Minutenlabel (`X min`) rechts im Header/Meta-Bereich. Zusaetzlich wurden CSS-Styles, VSCode-Option-Highlighting und Tests fuer Validator/Rendering synchronisiert.

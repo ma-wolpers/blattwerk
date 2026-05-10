@@ -26,6 +26,9 @@ The format is based on Keep a Changelog.
 
 ### Changed
 
+- Export settings now distinguish worksheet vs presentation defaults: format and page-format defaults are configured separately and applied by document mode when opening the export dialog.
+- Export dialogs are now split by document mode: worksheet exports use a dedicated worksheet dialog, while presentation exports use a dedicated presentation dialog with Black-Screen options.
+
 - `task`- und `subtask`-Bloecke unterstuetzen jetzt `time=...` als Minutenangabe; die Zeit wird analog zu Punkten als rechte Metainformation gerendert (z. B. `time=3` -> `3 min`).
 - Export, preview, and editor-adjacent dialog flows now use shared `bw_gui.dialogs` services, reducing direct tkinter dialog coupling in the Blattwerk UI layer.
 - GUI startup now initializes the root window through shared `bw_gui.runtime.ui` aliases in `app/ui/blatt_ui.py` instead of importing `tkinter` directly.
