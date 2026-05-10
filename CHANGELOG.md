@@ -26,6 +26,8 @@ The format is based on Keep a Changelog.
 
 ### Changed
 
+- AI guardrails were hardened to enforce mandatory shared UI contracts in `app/ui/blatt_ui_style.py` and `app/ui/export_dialog.py` and fail fast on legacy fallback branches.
+
 - Shared UI fallback branches were removed from `app/ui/blatt_ui_style.py` and `app/ui/export_dialog.py`: the shared custom menu bar and shared shortcut hover formatter are now mandatory runtime paths.
 - Theme special paths were removed from `app/ui/ui_theme.py`: the shared `bw_gui.theming` baseline is now required, and optional fallback branches for missing shared theming were deleted.
 - The Blattwerk settings window now runs on the shared tabbed settings renderer from `bw_gui.dialogs`, keeping section navigation and save/apply flow aligned with the common GUI core.

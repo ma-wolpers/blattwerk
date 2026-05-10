@@ -24,6 +24,8 @@ GUARDRAIL_RELEVANT_PATHS = {
     "docs/VALIDATOR.md",
     "CHANGELOG.md",
     "tools/ci/check_ai_guardrails.py",
+    "app/ui/blatt_ui_style.py",
+    "app/ui/export_dialog.py",
     "bw_libs/ui_contract/keybinding.py",
     "bw_libs/ui_contract/popup.py",
     "bw_libs/ui_contract/hsm.py",
@@ -115,6 +117,11 @@ def _read(rel_path: str) -> str:
 def _require_substring(text: str, needle: str, source: str, errors: list[str]) -> None:
     if needle not in text:
         errors.append(f"{source}: missing required text -> {needle}")
+
+
+def _forbid_substring(text: str, needle: str, source: str, errors: list[str]) -> None:
+    if needle in text:
+        errors.append(f"{source}: forbidden fallback text present -> {needle}")
 
 
 def _check_development_log_updated(staged: set[str], errors: list[str]) -> None:
@@ -364,6 +371,33 @@ def _check_blattwerker_solution_rule(errors: list[str]) -> None:
     _require_substring(validator_doc, "AN010", "docs/VALIDATOR.md", errors)
 
 
+def _check_shared_ui_contract_hardening(errors: list[str]) -> None:
+    """Require shared menu/shortcut contracts in Blattwerk UI modules."""
+
+    style_module = _read("app/ui/blatt_ui_style.py")
+    for snippet in (
+        "from bw_gui.menu import CustomMenuBar as SharedCustomMenuBar",
+        "def _build_custom_menu_strip(self):",
+        "self._shared_menu_bar = SharedCustomMenuBar(",
+    ):
+        _require_substring(style_module, snippet, "app/ui/blatt_ui_style.py", errors)
+
+    for snippet in (
+        "except ModuleNotFoundError",
+        "if SharedCustomMenuBar is None",
+    ):
+        _forbid_substring(style_module, snippet, "app/ui/blatt_ui_style.py", errors)
+
+    export_module = _read("app/ui/export_dialog.py")
+    for snippet in (
+        "from bw_gui.shortcuts import compose_hover_text as compose_shared_hover_text",
+        "merged = compose_shared_hover_text(desc, sequence)",
+    ):
+        _require_substring(export_module, snippet, "app/ui/export_dialog.py", errors)
+
+    _forbid_substring(export_module, "except ModuleNotFoundError", "app/ui/export_dialog.py", errors)
+
+
 def _collect_process_guidance_warnings() -> list[str]:
     """Collect non-blocking warnings for process guidance consistency."""
     warnings: list[str] = []
@@ -437,6 +471,7 @@ def main() -> int:
     _check_marker_token_consistency(errors)
     _check_extension_validator_sync(errors)
     _check_blattwerker_solution_rule(errors)
+    _check_shared_ui_contract_hardening(errors)
     warnings = _collect_process_guidance_warnings()
 
     if errors:
