@@ -26,6 +26,9 @@ The format is based on Keep a Changelog.
 
 ### Changed
 
+- Hover tooltips now appear with smoother delayed behavior, pick up the active app theme automatically, and stay fully visible on-screen.
+- Shared settings/sidebar and scrollbar theming received a visual polish via the updated `bw-gui` baseline styles.
+
 - Export settings now distinguish worksheet vs presentation defaults: format and page-format defaults are configured separately and applied by document mode when opening the export dialog.
 - Export dialogs are now split by document mode: worksheet exports use a dedicated worksheet dialog, while presentation exports use a dedicated presentation dialog with Black-Screen options.
 
