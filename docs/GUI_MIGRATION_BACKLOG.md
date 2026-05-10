@@ -1,9 +1,9 @@
 # GUI Migration Backlog
 
 ## Active Exemptions
-- app/ui/blatt_ui.py
-  remove_by: 2026-12-31
-  reason: Existing primary UI entrypoint remains baseline while strict shared-contract and repo-wide GUI checks are active.
+- none
+  remove_by: n/a
+  reason: No active GUI baseline/class allowlist exemptions remain in this repository.
 
 ## Notes
 - This backlog tracks all currently allowed baseline/exemption entries referenced by guardrails.
