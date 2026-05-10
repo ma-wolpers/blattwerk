@@ -262,7 +262,6 @@ class BlattwerkAppStyleMixin:
 
             tooltip = ui.Toplevel(self.root)
             tooltip.overrideredirect(True)
-            tooltip.attributes("-topmost", True)
 
             label = widgets.Label(
                 tooltip,
@@ -271,9 +270,25 @@ class BlattwerkAppStyleMixin:
                 padding=(6, 3),
             )
             label.pack()
+            tooltip.update_idletasks()
 
             x_pos = int(getattr(event, "x_root", self.root.winfo_rootx()) + 10)
             y_pos = int(getattr(event, "y_root", self.root.winfo_rooty()) + 12)
+
+            screen_width = max(1, int(self.root.winfo_screenwidth()))
+            screen_height = max(1, int(self.root.winfo_screenheight()))
+            tip_width = max(1, int(tooltip.winfo_reqwidth()))
+            tip_height = max(1, int(tooltip.winfo_reqheight()))
+            margin = 8
+
+            if y_pos + tip_height + margin > screen_height:
+                y_pos = int(getattr(event, "y_root", self.root.winfo_rooty()) - tip_height - 10)
+
+            max_x = max(margin, screen_width - tip_width - margin)
+            max_y = max(margin, screen_height - tip_height - margin)
+            x_pos = max(margin, min(x_pos, max_x))
+            y_pos = max(margin, min(y_pos, max_y))
+
             tooltip.geometry(f"+{x_pos}+{y_pos}")
             self._swatch_tooltip = tooltip
 

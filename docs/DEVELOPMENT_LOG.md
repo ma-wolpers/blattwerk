@@ -20,6 +20,7 @@ Regel:
 - Format-Switching in der Vorschau: Wenn der Benutzer das Seitenformat wechselt (z. B. 16:9 → 16:10 oder A4 → A5), wird jetzt korrekt ein neuer Render angestoßen und der Cache wird invalidiert. Zuvor blieb die Vorschau-Darstellung trotz Format-Änderung gleich.
 
 ### Changed
+- Swatch-Tooltip-Overlay in `app/ui/blatt_ui_style.py` gehaertet: kein erzwungenes `-topmost` mehr und neue Bildschirm-Clamping-Logik fuer Positionierung nahe Fenster-/Bildschirmraendern.
 - Shared-Tooltip-Polish uebernommen: `bw_gui.widgets.HoverTooltip` nutzt jetzt verzoegertes Anzeigen, Theme-Ableitung aus dem aktiven Fensterkontext und Bildschirm-Clamping fuer stabile Hover-Overlays.
 - Shared-Theme-Feinschliff uebernommen: gemeinsame Settings-/Sidebar-Stile sowie verfeinerte Scrollbar-Kontraste kommen jetzt aus dem aktualisierten `bw-gui`-Submodule-Stand.
 - Export-Einstellungen im Settings-Tab wurden nach Dokumentfamilie getrennt: getrennte Defaults fuer Dateiformat und Seitenformat fuer Arbeitsblatt vs. Praesentation; der Exportdialog uebernimmt jetzt modusspezifische Defaults statt eines gemeinsamen Schluessels.
