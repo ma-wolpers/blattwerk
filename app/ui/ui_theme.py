@@ -10,9 +10,9 @@ ensure_bw_gui_on_path()
 from bw_gui.runtime import ui, widgets
 
 try:
-    from bw_gui.theming.theme_manager import configure_ttk_theme as configure_shared_ttk_theme
+    from bw_gui.theming.theme_manager import configure_ttk_theme as configure_ttk_theme_base
 except ModuleNotFoundError:
-    configure_shared_ttk_theme = None
+    configure_ttk_theme_base = None
 
 
 THEMES = {
@@ -193,8 +193,8 @@ def configure_ttk_theme(root: ui.Misc, theme_key: str | None = None):
     dark_theme = is_dark_theme(theme_key)
 
     # Shared baseline first, local styles override where Blattwerk needs custom behavior.
-    if configure_shared_ttk_theme is not None:
-        configure_shared_ttk_theme(root, normalize_theme_key(theme_key))
+    if configure_ttk_theme_base is not None:
+        configure_ttk_theme_base(root, normalize_theme_key(theme_key))
 
     style = widgets.Style(root)
     ui_border = theme["border"]
