@@ -34,6 +34,7 @@ def collect_help_blocks(blocks, include_solutions=False, document_mode="workshee
 
         collected.append(
             {
+                "block_type": block_type,
                 "options": dict(options),
                 "content": (content or "").strip(),
                 "level": _resolve_help_level(options),
@@ -41,6 +42,25 @@ def collect_help_blocks(blocks, include_solutions=False, document_mode="workshee
         )
 
     return collected
+
+
+def collect_labeled_help_blocks(
+    meta,
+    blocks,
+    include_solutions=False,
+    document_mode="worksheet",
+):
+    """Extract visible help blocks and attach deterministic visible labels."""
+
+    help_blocks = collect_help_blocks(
+        blocks,
+        include_solutions=include_solutions,
+        document_mode=document_mode,
+    )
+    if not help_blocks:
+        return []
+
+    return _annotate_help_block_labels(help_blocks, (meta or {}).get("tag"))
 
 
 def _annotate_help_block_labels(help_blocks, help_tag):
@@ -84,15 +104,14 @@ def render_help_cards_html(
 ):
     """Rendert ausschließlich Hilfeblöcke als kartenseitige HTML-Ausgabe."""
 
-    help_blocks = collect_help_blocks(
+    help_blocks = collect_labeled_help_blocks(
+        meta,
         blocks,
         include_solutions=include_solutions,
         document_mode="worksheet",
     )
     if not help_blocks:
         return ""
-
-    help_blocks = _annotate_help_block_labels(help_blocks, (meta or {}).get("tag"))
 
     stylesheet = build_stylesheet(
         page_format,

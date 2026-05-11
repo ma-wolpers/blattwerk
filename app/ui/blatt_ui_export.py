@@ -21,9 +21,11 @@ from ..core.build_requests import (
     build_help_cards_from_request,
     build_worksheet_from_request,
 )
-from ..core.blatt_kern_help_render import collect_help_blocks
+from ..core.blatt_kern_help_render import collect_help_blocks, collect_labeled_help_blocks, render_help_cards_html
 from ..core.blatt_validator import inspect_markdown_text
 from ..core.blatt_kern_shared import normalize_document_mode, split_front_matter
+from ..core.blatt_kern_io_html import absolutize_local_image_sources, apply_image_size_options
+from ..core.blatt_kern_io_pdf import write_pdf_from_html
 from ..core.diagnostic_warnings import build_warning_payload
 from ..core.export_path_guardrails import validate_export_output_path
 from ..core.blatt_kern_pptx_export import build_presentation_pptx
@@ -619,36 +621,25 @@ class BlattwerkAppExportMixin:
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             tmp_dir_path = Path(tmp_dir)
-            temp_pdf = tmp_dir_path / "help_cards.pdf"
-            build_help_cards_from_request(
-                self._help_cards_build_request(
-                    input_path=input_path,
-                    output_path=temp_pdf,
-                    include_solutions=False,
-                    page_format=page_format,
-                    contrast_profile=contrast_profile,
-                    add_running_elements=False,
-                )
+            card_images = self._render_lernhilfe_card_images(
+                input_path=input_path,
+                page_format=page_format,
+                contrast_profile=contrast_profile,
+                tmp_dir_path=tmp_dir_path,
             )
 
             created_files = []
-            with fitz.open(temp_pdf) as doc:
-                page_count = len(doc)
-                for index in range(page_count):
-                    page = doc.load_page(index)
-                    pix = page.get_pixmap(dpi=200, alpha=False)
-                    image = Image.frombytes("RGB", (pix.width, pix.height), pix.samples)
-                    image = trim_lernhilfe_image(image)
+            card_count = len(card_images)
+            for index, image in enumerate(card_images, start=1):
+                if card_count == 1:
+                    target_file = output_path
+                else:
+                    target_file = output_path.with_name(
+                        f"{output_path.stem}_{index:02d}{output_path.suffix}"
+                    )
 
-                    if page_count == 1:
-                        target_file = output_path
-                    else:
-                        target_file = output_path.with_name(
-                            f"{output_path.stem}_{index + 1:02d}{output_path.suffix}"
-                        )
-
-                    image.save(target_file)
-                    created_files.append(target_file)
+                image.save(target_file)
+                created_files.append(target_file)
 
         return created_files
 
@@ -695,35 +686,83 @@ class BlattwerkAppExportMixin:
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             tmp_dir_path = Path(tmp_dir)
-            temp_pdf = tmp_dir_path / "help_cards.pdf"
-            build_help_cards_from_request(
-                self._help_cards_build_request(
-                    input_path=input_path,
-                    output_path=temp_pdf,
-                    include_solutions=False,
-                    page_format=page_format,
-                    contrast_profile=contrast_profile,
-                    add_running_elements=False,
-                )
+            card_images = self._render_lernhilfe_card_images(
+                input_path=input_path,
+                page_format=page_format,
+                contrast_profile=contrast_profile,
+                tmp_dir_path=tmp_dir_path,
             )
 
-            with (
-                fitz.open(temp_pdf) as doc,
-                zipfile.ZipFile(
-                    output_zip_path, "w", compression=zipfile.ZIP_DEFLATED
-                ) as archive,
-            ):
-                for idx in range(len(doc)):
-                    page = doc.load_page(idx)
-                    pix = page.get_pixmap(dpi=200, alpha=False)
-                    png_name = f"page_{idx + 1:03d}.png"
+            with zipfile.ZipFile(
+                output_zip_path, "w", compression=zipfile.ZIP_DEFLATED
+            ) as archive:
+                for idx, image in enumerate(card_images, start=1):
+                    png_name = f"lernhilfe_{idx:03d}.png"
                     png_path = tmp_dir_path / png_name
-                    image = Image.frombytes("RGB", (pix.width, pix.height), pix.samples)
-                    image = trim_lernhilfe_image(image)
                     image.save(png_path)
                     archive.write(png_path, arcname=png_name)
 
         return [output_zip_path]
+
+    def _render_lernhilfe_card_images(
+        self,
+        *,
+        input_path: Path,
+        page_format: str,
+        contrast_profile: str,
+        tmp_dir_path: Path,
+    ):
+        """Render each visible lernhilfe card as its own trimmed PNG-ready image."""
+
+        text = input_path.read_text(encoding="utf-8")
+        meta, _content = split_front_matter(text)
+        inspected = inspect_markdown_text(text)
+        help_cards = collect_labeled_help_blocks(
+            meta,
+            inspected.blocks,
+            include_solutions=False,
+            document_mode="worksheet",
+        )
+        if not help_cards:
+            return []
+
+        worksheet_design = self._worksheet_design_options()
+        color_profile = worksheet_design.color_profile
+        font_profile = worksheet_design.font_profile
+        font_size_profile = worksheet_design.font_size_profile
+
+        images = []
+        for index, card in enumerate(help_cards, start=1):
+            options = dict(card.get("options") or {})
+            label = str(card.get("label") or "").strip()
+            if label:
+                options["tag"] = label
+
+            block_type = str(card.get("block_type") or "help").strip() or "help"
+            block_content = str(card.get("content") or "")
+            html = render_help_cards_html(
+                meta,
+                [(block_type, options, block_content)],
+                include_solutions=False,
+                page_format=page_format,
+                print_profile=contrast_profile,
+                color_profile=color_profile,
+                font_profile=font_profile,
+                font_size_profile=font_size_profile,
+            )
+            html = absolutize_local_image_sources(html, input_path.parent)
+            html = apply_image_size_options(html)
+
+            temp_pdf = tmp_dir_path / f"help_card_{index:03d}.pdf"
+            write_pdf_from_html(html, temp_pdf)
+
+            with fitz.open(temp_pdf) as doc:
+                page = doc.load_page(0)
+                pix = page.get_pixmap(dpi=200, alpha=False)
+                image = Image.frombytes("RGB", (pix.width, pix.height), pix.samples)
+                images.append(trim_lernhilfe_image(image))
+
+        return images
 
     def open_export_dialog(self):
         """Open worksheet or presentation export dialog based on document mode."""

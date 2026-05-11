@@ -1,7 +1,7 @@
 import re
 
 from app.core.blatt_kern_layout_render import render_html
-from app.core.blatt_kern_help_render import render_help_cards_html
+from app.core.blatt_kern_help_render import collect_labeled_help_blocks, render_help_cards_html
 from app.core.blatt_kern_task_render import render_block
 from app.core.blatt_kern_shared import parse_blocks
 
@@ -621,3 +621,17 @@ def test_render_help_cards_html_uses_local_tag_in_card_title():
 
     assert "<h2>LOKAL - Starthilfe</h2>" in html
     assert "<h2>1 - Weiterdenken</h2>" in html
+
+
+def test_collect_labeled_help_blocks_assigns_labels_in_visible_order():
+    meta = {"tag": "1"}
+    blocks = [
+        ("help", {"title": "A"}, "Eins"),
+        ("help", {"title": "B", "tag": "LOKAL"}, "Zwei"),
+        ("help", {"title": "C"}, "Drei"),
+    ]
+
+    labeled = collect_labeled_help_blocks(meta, blocks, include_solutions=False)
+
+    assert [entry["label"] for entry in labeled] == ["1A", "LOKAL", "1B"]
+    assert [entry["block_type"] for entry in labeled] == ["help", "help", "help"]
