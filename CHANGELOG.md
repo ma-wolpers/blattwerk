@@ -10,6 +10,7 @@ The format is based on Keep a Changelog.
 
 - New `qrcode` block for worksheets/presentations: `:::qrcode url=... w=... h=... maxw=... :::` renders a QR image with image-like sizing options; QR links are clickable in HTML and PDF exports.
 - New systematic QR examples: `examples/markdown/example-qrcode-links.md` (worksheet) and `examples/markdown/example-presentation-qrcode-links.md` (presentation).
+- New object alignment support (`left|right|center|block`) for markdown images via image title options (for example `"w=70% align=center"`) and for many block objects via `align=...` (including `qrcode`, `task`, `material`, answer blocks).
 - PPTX-Export: Präsentationen (und Arbeitsblätter) können jetzt als `.pptx`-Datei exportiert werden. Jede Seite/Folie wird als hochauflösendes Bild (200 DPI) gerendert und in eine PowerPoint-Präsentation mit korrekten Folienmaßen (16:9 / 16:10 / 4:3 / A4 / A5) eingebettet.
 - Vorschau-/Export-Steuerleiste bietet jetzt direkte Präsentationsoptionen für die Phasenübersicht: Trennerstil (`Punkte` oder `Pfeile`) und optionales Ausblenden zukünftiger Phasen (`...`).
 
@@ -27,6 +28,8 @@ The format is based on Keep a Changelog.
 
 ### Changed
 
+- UI contract bridges are now fully decommissioned to thin shared re-export shims (`bw_libs/ui_contract/keybinding.py`, `bw_libs/ui_contract/popup.py`, `bw_libs/ui_contract/hsm.py`, `bw_libs/ui_contract/laufkern.py`); dead local duplicate implementations were removed.
+- AI guardrails now enforce a Phase-I decommission gate for UI contract bridges: each bridge must keep `ensure_bw_gui_on_path` plus shared `bw_gui` imports and may not reintroduce local contract class/function implementations.
 - AI guardrails now enforce LaufKern fallback sunset Wave-3: local `ModuleNotFoundError` fallback branches were removed from the central contract bridges (`bw_libs/ui_contract/keybinding.py`, `bw_libs/ui_contract/popup.py`, `bw_libs/ui_contract/hsm.py`, `bw_libs/ui_contract/laufkern.py`), and fallback handlers are now forbidden repo-wide in guardrail scan scopes.
 - Blattwerk fuehrt jetzt eine zentrale LaufKern-Bridge (`bw_libs.ui_contract.laufkern`) fuer Manifest-, Reachability- und Tracking-Vertraege, wodurch die Trennung "Programm = Was" und "LaufKern = Wie" in der UI-Contract-Schicht technisch vorbereitet ist.
 - Die Shortcut-Runtime-Debug-Ansicht zeigt jetzt zusaetzlich eine LaufKern-Zusammenfassung zur aktuellen Intent-Erreichbarkeit (erreichbare Intents pro Runtime-Kontext und Manifest-Validierungsstatus).

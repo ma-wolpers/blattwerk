@@ -12,6 +12,7 @@ Regel:
 - LaufKern-Canary-Integration gestartet: neues zentrales Bridge-Modul `bw_libs/ui_contract/laufkern.py` eingefuehrt (Manifest-, Reachability- und Tracking-API inkl. Shared-`bw_gui.laufkern`-Bridge mit lokalem Fallback) und ueber `bw_libs/ui_contract/__init__.py` als zentrale Importoberflaeche exportiert.
 - Neuer Regressionstest `tests/test_laufkern_bridge.py` validiert Manifestaufbau und Shortcut-basierte Reachability ueber die zentrale LaufKern-Schnittstelle.
 - Neuer Blocktyp `qrcode` eingefuehrt: rendert QR-Codes aus `url=...`, unterstuetzt Groessenoptionen `w/h/maxw` (inkl. `width/height/max-width`) analog zur vorhandenen Bildgroessenlogik und erzeugt in HTML/PDF klickbare Linkziele.
+- Objekt-Ausrichtung erweitert: Markdown-Bilder unterstuetzen jetzt zusaetzlich `align/alignment` im Bild-`title` (left/right/center/block), und Blockrenderer koennen viele Blocktypen ueber `align=...` in eine zentrale Ausrichtungs-Huelle (`bw-object-align-*`) setzen.
 - Systematische Beispiel-Markdowns fuer QR-Links ergaenzt: `examples/markdown/example-qrcode-links.md` (Arbeitsblatt) und `examples/markdown/example-presentation-qrcode-links.md` (Praesentation).
 - PPTX-Export: Neues Exportformat `pptx` in `WorksheetExportDialog` und `BlattwerkAppExportMixin`. Core-Funktion `build_presentation_pptx()` in `app/core/blatt_kern_pptx_export.py` rendert per PyMuPDF jede Seite als Bild und erzeugt über `python-pptx` eine Präsentation mit exakt passenden Folienmaßen. `python-pptx` in `requirements.txt` ergänzt.
 - Zentralen UI-Intent-Katalog in `app/ui/ui_intents.py` eingefuehrt und Shortcut-Definitionen im Preview-Registry-Aufbau darauf umgestellt.
@@ -22,6 +23,8 @@ Regel:
 - Format-Switching in der Vorschau: Wenn der Benutzer das Seitenformat wechselt (z. B. 16:9 → 16:10 oder A4 → A5), wird jetzt korrekt ein neuer Render angestoßen und der Cache wird invalidiert. Zuvor blieb die Vorschau-Darstellung trotz Format-Änderung gleich.
 
 ### Changed
+- Phase-I-Decommission abgeschlossen: die zentralen UI-Contract-Bridges (`bw_libs/ui_contract/keybinding.py`, `bw_libs/ui_contract/popup.py`, `bw_libs/ui_contract/hsm.py`, `bw_libs/ui_contract/laufkern.py`) wurden auf schlanke Shared-Re-Exports reduziert; tote lokale Duplikat-Implementierungen sind entfernt.
+- Guardrail-Decommission-Gate aktiviert: `tools/ci/check_ai_guardrails.py` erzwingt jetzt in allen vier Bridge-Modulen `ensure_bw_gui_on_path` + Shared-Import und blockiert lokale Re-Implementierungsmarker der Contract-Klassen/Funktionen.
 - Wave-3-Sunset abgeschlossen: lokale `ModuleNotFoundError`-Fallback-Zweige wurden aus den zentralen UI-Contract-Bridges (`bw_libs/ui_contract/keybinding.py`, `bw_libs/ui_contract/popup.py`, `bw_libs/ui_contract/hsm.py`, `bw_libs/ui_contract/laufkern.py`) entfernt; Shared-Imports sind jetzt verpflichtend.
 - Guardrail-Sunset auf Wave-3 umgestellt: `tools/ci/check_ai_guardrails.py` blockiert `except ModuleNotFoundError` jetzt repo-weit in den Scan-Scopes (`app`, `bw_libs`) ohne Bridge-Allowlist.
 - Wave-2-Sunset-Gate aktiviert: `tools/ci/check_ai_guardrails.py` erlaubt `except ModuleNotFoundError` nur noch in den zentralen UI-Contract-Bridges (`bw_libs/ui_contract/keybinding.py`, `bw_libs/ui_contract/popup.py`, `bw_libs/ui_contract/hsm.py`, `bw_libs/ui_contract/laufkern.py`) und blockiert neue lokale Fallback-Zweige ausserhalb dieser Baseline.
