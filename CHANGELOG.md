@@ -30,6 +30,7 @@ The format is based on Keep a Changelog.
 - Die Shortcut-Runtime-Debug-Ansicht zeigt jetzt zusaetzlich eine LaufKern-Zusammenfassung zur aktuellen Intent-Erreichbarkeit (erreichbare Intents pro Runtime-Kontext und Manifest-Validierungsstatus).
 - Der LaufKern-Manifestaufbau wurde in einen dedizierten Provider (`app/ui/laufkern_manifest_provider.py`) ausgelagert, damit Runtime-Integration (Wie) und app-spezifische Deklaration (Was) klar getrennt bleiben.
 - Der produktive Shortcut-Dispatch schreibt jetzt LaufKern-Tracking-Artefakte fuer ausgefuehrte Intents; das Runtime-Debug zeigt dazu einen Completion-Status aus der Artefaktaggregation.
+- AI guardrails now enforce LaufKern fallback sunset Wave-2: `except ModuleNotFoundError` is only allowed in the central contract bridges (`bw_libs/ui_contract/keybinding.py`, `bw_libs/ui_contract/popup.py`, `bw_libs/ui_contract/hsm.py`, `bw_libs/ui_contract/laufkern.py`); new local fallback branches are rejected.
 
 - AI guardrails now also block local redefinitions of reserved shared primitives (`TkRootHost`, `ScrollablePopupWindow`, `WrappedTextField`) so these runtime/dialog/widget foundations must be consumed from `bw-gui` instead of being rebuilt in-repo.
 - `bw-gui` submodule was updated to the latest shared runtime/dialog/widget baseline so the new central primitives (`TkRootHost`, `ScrollablePopupWindow`, `WrappedTextField`) are available for further migration steps.
