@@ -22,6 +22,7 @@ def test_design_options_as_kwargs_has_expected_keys():
 
 
 def test_worksheet_build_request_stores_typed_paths_and_design():
+    diagnostics = []
     request = WorksheetBuildRequest(
         input_path=Path("input.md"),
         output_path=Path("out.pdf"),
@@ -29,12 +30,14 @@ def test_worksheet_build_request_stores_typed_paths_and_design():
         page_format="a5_landscape",
         print_profile="strong",
         design=WorksheetDesignOptions("bw", "segoe", "normal"),
+        diagnostics_out=diagnostics,
     )
 
     assert request.input_path.suffix == ".md"
     assert request.output_path.suffix == ".pdf"
     assert request.include_solutions is True
     assert request.design.color_profile == "bw"
+    assert request.diagnostics_out is diagnostics
 
 
 def test_help_cards_build_request_defaults_are_stable():

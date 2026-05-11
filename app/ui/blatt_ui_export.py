@@ -221,6 +221,22 @@ class BlattwerkAppExportMixin:
             "Export laeuft weiter, aber es gibt Warnungen:\n\n" + warning_payload["message"],
         )
 
+    def _show_compile_overflow_warnings(self, diagnostics, context_label: str = "Export"):
+        """Zeigt PT002-Warnungen aus dem Compile-/Render-Schritt."""
+
+        overflow_warnings = [
+            diag for diag in (diagnostics or [])
+            if str(getattr(diag, "code", "")) == "PT002"
+        ]
+        if not overflow_warnings:
+            return
+
+        lines = [f"- {diag.code}: {diag.message}" for diag in overflow_warnings]
+        messagebox.showwarning(
+            f"Blattwerk-Warnungen ({context_label})",
+            "Export lief weiter, aber es gibt Compile-Warnungen:\n\n" + "\n".join(lines),
+        )
+
     def _with_solution_suffix(self, path_obj: Path):
         """With solution suffix."""
         suffix = str(getattr(self, "user_preferences", {}).get("solution_suffix", "_loesung") or "_loesung")
@@ -247,6 +263,7 @@ class BlattwerkAppExportMixin:
         black_screen_mode: str = "none",
         presentation_section_separator: str | None = None,
         presentation_hide_future_sections: bool | None = None,
+        diagnostics_out=None,
     ):
         default_separator, default_hide_future = (
             self._current_presentation_footer_export_options()
@@ -271,6 +288,7 @@ class BlattwerkAppExportMixin:
                 if presentation_hide_future_sections is not None
                 else default_hide_future
             ),
+            diagnostics_out=diagnostics_out,
         )
 
     def _help_cards_build_request(
@@ -303,6 +321,7 @@ class BlattwerkAppExportMixin:
         mode: str,
         contrast_profile: str,
         black_screen_mode: str = "none",
+        compile_diagnostics=None,
     ):
         """Export pdf."""
         if mode == "both":
@@ -317,6 +336,7 @@ class BlattwerkAppExportMixin:
                     page_format=page_format,
                     contrast_profile=contrast_profile,
                     black_screen_mode=black_screen_mode,
+                    diagnostics_out=compile_diagnostics,
                 )
             )
             out_solution = build_worksheet_from_request(
@@ -327,6 +347,7 @@ class BlattwerkAppExportMixin:
                     page_format=page_format,
                     contrast_profile=contrast_profile,
                     black_screen_mode=black_screen_mode,
+                    diagnostics_out=compile_diagnostics,
                 )
             )
             return [out_worksheet, out_solution]
@@ -344,6 +365,7 @@ class BlattwerkAppExportMixin:
                 page_format=page_format,
                 contrast_profile=contrast_profile,
                 black_screen_mode=black_screen_mode,
+                diagnostics_out=compile_diagnostics,
             )
         )
         return [out_file]
@@ -356,6 +378,7 @@ class BlattwerkAppExportMixin:
         mode: str,
         contrast_profile: str,
         black_screen_mode: str = "none",
+        compile_diagnostics=None,
     ):
         """Export html."""
         if mode == "both":
@@ -370,6 +393,7 @@ class BlattwerkAppExportMixin:
                     page_format=page_format,
                     contrast_profile=contrast_profile,
                     black_screen_mode=black_screen_mode,
+                    diagnostics_out=compile_diagnostics,
                 )
             )
             out_solution = build_worksheet_from_request(
@@ -380,6 +404,7 @@ class BlattwerkAppExportMixin:
                     page_format=page_format,
                     contrast_profile=contrast_profile,
                     black_screen_mode=black_screen_mode,
+                    diagnostics_out=compile_diagnostics,
                 )
             )
             return [out_worksheet, out_solution]
@@ -397,6 +422,7 @@ class BlattwerkAppExportMixin:
                 page_format=page_format,
                 contrast_profile=contrast_profile,
                 black_screen_mode=black_screen_mode,
+                diagnostics_out=compile_diagnostics,
             )
         )
         return [out_file]
@@ -410,6 +436,7 @@ class BlattwerkAppExportMixin:
         contrast_profile: str,
         worksheet_design,
         black_screen_mode: str = "none",
+        compile_diagnostics=None,
     ):
         """Exports one worksheet variant as PNG files inside a ZIP archive."""
         section_separator, hide_future_sections = (
@@ -435,6 +462,7 @@ class BlattwerkAppExportMixin:
                     black_screen_mode=black_screen_mode,
                     presentation_section_separator=section_separator,
                     presentation_hide_future_sections=hide_future_sections,
+                    diagnostics_out=compile_diagnostics,
                 )
             )
 
@@ -460,6 +488,7 @@ class BlattwerkAppExportMixin:
         mode: str,
         contrast_profile: str,
         black_screen_mode: str = "none",
+        compile_diagnostics=None,
     ):
         """Export png zip."""
         worksheet_design = self._worksheet_design_options()
@@ -475,6 +504,7 @@ class BlattwerkAppExportMixin:
                 contrast_profile=contrast_profile,
                 worksheet_design=worksheet_design,
                 black_screen_mode=black_screen_mode,
+                compile_diagnostics=compile_diagnostics,
             )
             self._export_png_zip_single(
                 input_path,
@@ -484,6 +514,7 @@ class BlattwerkAppExportMixin:
                 contrast_profile=contrast_profile,
                 worksheet_design=worksheet_design,
                 black_screen_mode=black_screen_mode,
+                compile_diagnostics=compile_diagnostics,
             )
             return [worksheet_path, solution_path]
 
@@ -500,6 +531,7 @@ class BlattwerkAppExportMixin:
             contrast_profile=contrast_profile,
             worksheet_design=worksheet_design,
             black_screen_mode=black_screen_mode,
+            compile_diagnostics=compile_diagnostics,
         )
         return [target]
 
@@ -511,6 +543,7 @@ class BlattwerkAppExportMixin:
         mode: str,
         contrast_profile: str,
         black_screen_mode: str = "none",
+        compile_diagnostics=None,
     ):
         """Export as PPTX (one slide per page/slide, rendered at 200 DPI)."""
         worksheet_design = self._worksheet_design_options()
@@ -543,6 +576,7 @@ class BlattwerkAppExportMixin:
                     presentation_hide_future_sections=hide_future_sections,
                     metadata_defaults=metadata_defaults,
                     copyright_text_override=copyright_override,
+                    diagnostics_out=compile_diagnostics,
                 )
             return [worksheet_path, solution_path]
 
@@ -565,6 +599,7 @@ class BlattwerkAppExportMixin:
             presentation_hide_future_sections=hide_future_sections,
             metadata_defaults=metadata_defaults,
             copyright_text_override=copyright_override,
+            diagnostics_out=compile_diagnostics,
         )
         return [target]
 
@@ -750,6 +785,7 @@ class BlattwerkAppExportMixin:
             self.status_var.set("Export läuft…")
             self.root.update_idletasks()
             self._show_export_diagnostics(input_path)
+            compile_diagnostics = []
 
             if fmt == "pdf":
                 out_files = self._export_pdf(
@@ -759,6 +795,7 @@ class BlattwerkAppExportMixin:
                     mode,
                     contrast_profile,
                     black_screen_mode=black_screen_mode,
+                    compile_diagnostics=compile_diagnostics,
                 )
             elif fmt == "html":
                 out_files = self._export_html(
@@ -768,6 +805,7 @@ class BlattwerkAppExportMixin:
                     mode,
                     contrast_profile,
                     black_screen_mode=black_screen_mode,
+                    compile_diagnostics=compile_diagnostics,
                 )
             else:
                 out_files = self._export_png_zip(
@@ -777,7 +815,10 @@ class BlattwerkAppExportMixin:
                     mode,
                     contrast_profile,
                     black_screen_mode=black_screen_mode,
+                    compile_diagnostics=compile_diagnostics,
                 )
+
+            self._show_compile_overflow_warnings(compile_diagnostics, "Export")
 
             self.status_var.set("Export abgeschlossen")
             messagebox.showinfo(
@@ -834,6 +875,7 @@ class BlattwerkAppExportMixin:
             self.status_var.set("Export läuft…")
             self.root.update_idletasks()
             self._show_export_diagnostics(input_path)
+            compile_diagnostics = []
 
             if fmt == "pdf":
                 out_files = self._export_pdf(
@@ -843,6 +885,7 @@ class BlattwerkAppExportMixin:
                     mode,
                     contrast_profile,
                     black_screen_mode=black_screen_mode,
+                    compile_diagnostics=compile_diagnostics,
                 )
             elif fmt == "html":
                 out_files = self._export_html(
@@ -852,6 +895,7 @@ class BlattwerkAppExportMixin:
                     mode,
                     contrast_profile,
                     black_screen_mode=black_screen_mode,
+                    compile_diagnostics=compile_diagnostics,
                 )
             elif fmt == "pptx":
                 out_files = self._export_pptx(
@@ -861,6 +905,7 @@ class BlattwerkAppExportMixin:
                     mode,
                     contrast_profile,
                     black_screen_mode=black_screen_mode,
+                    compile_diagnostics=compile_diagnostics,
                 )
             else:
                 out_files = self._export_png_zip(
@@ -870,7 +915,10 @@ class BlattwerkAppExportMixin:
                     mode,
                     contrast_profile,
                     black_screen_mode=black_screen_mode,
+                    compile_diagnostics=compile_diagnostics,
                 )
+
+            self._show_compile_overflow_warnings(compile_diagnostics, "Export")
 
             self.status_var.set("Export abgeschlossen")
             messagebox.showinfo(

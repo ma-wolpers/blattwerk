@@ -117,7 +117,7 @@ hr {
 .presentation-document .ab-slide-body {
     flex: 1 1 auto;
     margin: 0;
-    padding: 0 0.85cm 0.18cm 0.85cm;
+    padding: 0 0.85cm 0 0.85cm;
 }
 
 .presentation-section-footer {
@@ -143,7 +143,7 @@ hr {
 
 .presentation-document .presentation-section-footer {
     margin: 0;
-    padding: 0.04cm 0.85cm 0 0.85cm;
+    padding: 0 0.85cm 0 0.85cm;
 }
 
 .presentation-slide-counter {

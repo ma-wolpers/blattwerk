@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 from pathlib import Path
+import re
+
+import fitz
 
 from .export_path_guardrails import validate_export_output_path
 from .blatt_kern_io_html import absolutize_local_image_sources, apply_image_size_options
@@ -18,6 +21,52 @@ from .blatt_validator import (
     inspect_markdown_text,
     summarize_blocking_diagnostics,
 )
+
+
+_PRESENTATION_SLIDE_SECTION_RE = re.compile(r"<section class='ab-slide(?:\s|')")
+
+
+def _count_expected_presentation_pages_from_html(html: str) -> int:
+    """Count rendered slide sections in presentation HTML."""
+
+    return len(_PRESENTATION_SLIDE_SECTION_RE.findall(str(html or "")))
+
+
+def _append_presentation_overflow_warning(
+    *,
+    diagnostics_out,
+    html: str,
+    pdf_path: Path,
+):
+    """Append PT002 warning when rendered PDF overflows expected presentation pages."""
+
+    if diagnostics_out is None:
+        return
+
+    expected_pages = _count_expected_presentation_pages_from_html(html)
+    if expected_pages <= 0:
+        return
+
+    try:
+        with fitz.open(pdf_path) as doc:
+            rendered_pages = len(doc)
+    except Exception:
+        return
+
+    if rendered_pages <= expected_pages:
+        return
+
+    diagnostics_out.append(
+        BuildDiagnostic(
+            code="PT002",
+            message=(
+                "Praesentations-Overflow erkannt: Die gerenderte PDF hat "
+                f"{rendered_pages} Seite(n), erwartet waren {expected_pages} Folie(n). "
+                "Mindestens eine Folie ist vertikal ueberfuellt."
+            ),
+            severity="warning",
+        )
+    )
 
 
 def _raise_on_blocking_diagnostics(diagnostics):
@@ -110,6 +159,12 @@ def build_worksheet(
                 str(copyright_text_override or get_copyright_text(meta)),
                 print_profile=print_profile,
                 include_solutions=include_solutions,
+            )
+        else:
+            _append_presentation_overflow_warning(
+                diagnostics_out=diagnostics_out,
+                html=html,
+                pdf_path=pdf_file,
             )
         return pdf_file
 

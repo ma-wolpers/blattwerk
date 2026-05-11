@@ -18,6 +18,7 @@ The format is based on Keep a Changelog.
 
 - Preview format switching now correctly updates the rendered preview when changing between different slide formats (16:9 → 16:10 → 4:3) or worksheet formats (A4 → A5).
 - Presentation slides now reserve less vertical minimum spacing between slide content and the phase overview footer, so dense slide content has visibly more usable space.
+- Presentation builds now emit a non-blocking warning (`PT002`) when a rendered PDF has more pages than expected slides, indicating vertical slide overflow during compile/render.
 - Larger font sizes for presentations: Normal-Profil rendert jetzt mit 20 pt (statt 11 pt), damit Text auf Projektionsflächen lesbar bleibt.
 - Shortcut runtime debug popup no longer opens as an empty window; runtime table controls now render correctly.
 - Presentation rendering now keeps task headers complete (`Aufgabe N - Titel`) and no longer drops task titles in slide mode.

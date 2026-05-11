@@ -380,6 +380,34 @@ class BlattwerkAppPreviewMixin:
                 "Das Dokument wurde trotzdem verarbeitet.\n\n" + warning_payload["message"],
             )
 
+    def _show_compile_overflow_warnings(self, diagnostics, context_label: str):
+            """Zeigt PT002-Warnungen aus dem Compile-/Render-Schritt einmalig pro Zustand."""
+
+            overflow_warnings = [
+                diag for diag in (diagnostics or [])
+                if str(getattr(diag, "code", "")) == "PT002"
+            ]
+            if not overflow_warnings:
+                return
+
+            signature = (
+                context_label,
+                tuple(str(getattr(diag, "message", "")) for diag in overflow_warnings),
+            )
+            if signature == getattr(self, "_last_compile_overflow_warning_signature", None):
+                return
+            self._last_compile_overflow_warning_signature = signature
+
+            lines = [
+                f"- {diag.code}: {diag.message}"
+                for diag in overflow_warnings
+            ]
+            messagebox.showwarning(
+                f"Blattwerk-Warnungen ({context_label})",
+                "Rendern lief weiter, aber es gibt Compile-Warnungen:\n\n"
+                + "\n".join(lines),
+            )
+
     def _draw_preview_page(self, x_pos: int, y_pos: int, fitted: Image.Image, tk_image: ImageTk.PhotoImage):
             """Draw preview page image without decorative shadow or frame."""
             image_id = self.preview_canvas.create_image(x_pos, y_pos, anchor="nw", image=tk_image)
@@ -450,6 +478,7 @@ class BlattwerkAppPreviewMixin:
                 copyright_override = self._copyright_text_from_preferences() or None
 
             try:
+                compile_diagnostics = []
                 build_worksheet_from_request(
                     WorksheetBuildRequest(
                         input_path=input_path,
@@ -463,6 +492,7 @@ class BlattwerkAppPreviewMixin:
                         black_screen_mode=black_screen_mode,
                         presentation_section_separator=section_separator,
                         presentation_hide_future_sections=hide_future_sections,
+                        diagnostics_out=compile_diagnostics,
                     )
                 )
 
@@ -473,7 +503,7 @@ class BlattwerkAppPreviewMixin:
                         pix = page.get_pixmap(dpi=150, alpha=False)
                         image = Image.frombytes("RGB", (pix.width, pix.height), pix.samples)
                         pages.append(image)
-                return pages
+                return pages, compile_diagnostics
             finally:
                 try:
                     temp_pdf_path.unlink(missing_ok=True)
@@ -580,7 +610,13 @@ class BlattwerkAppPreviewMixin:
                     self.status_var.set("Erstelle Vorschau…")
                     self.root.update_idletasks()
                     self._show_document_diagnostics(input_path, "Vorschau")
-                    self.preview_images = self._render_pdf_pages(input_path, include_solutions, page_format, contrast_profile)
+                    self.preview_images, compile_diagnostics = self._render_pdf_pages(
+                        input_path,
+                        include_solutions,
+                        page_format,
+                        contrast_profile,
+                    )
+                    self._show_compile_overflow_warnings(compile_diagnostics, "Vorschau")
                     self._last_preview_input_path = input_path
 
                     if tab_state is not None and cache_key is not None:
