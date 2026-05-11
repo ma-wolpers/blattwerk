@@ -22,6 +22,7 @@ Regel:
 - Format-Switching in der Vorschau: Wenn der Benutzer das Seitenformat wechselt (z. B. 16:9 → 16:10 oder A4 → A5), wird jetzt korrekt ein neuer Render angestoßen und der Cache wird invalidiert. Zuvor blieb die Vorschau-Darstellung trotz Format-Änderung gleich.
 
 ### Changed
+- LaufKern-Tracking an produktiven Dispatch-Pfad angebunden: `app/ui/shortcut_manager.py` protokolliert ausgefuehrte Shortcut-Intents jetzt als LaufKern-Tracking-Artefakte (done/failed), und `app/ui/blatt_ui_base.py` zeigt zusaetzlich einen Completion-Status aus der laufenden Artefaktaggregation im Shortcut-Debug an.
 - LaufKern-Manifestaufbau aus der UI-Klasse in einen dedizierten Provider ausgelagert: `app/ui/laufkern_manifest_provider.py` erzeugt jetzt den deklarativen Runtime-Manifestzustand aus der Shortcut-Registry.
 - LaufKern-Runtime-Auswertung an die bestehende Shortcut-Debug-Ansicht angebunden: `app/ui/blatt_ui_base.py` baut jetzt ein deklaratives LaufKern-Manifest aus der zentralen Shortcut-Registry, validiert es und zeigt die aktuelle Intent-Reachability im Debug-Summary an.
 - Step-6-Guardrail-Hardening umgesetzt: `tools/ci/check_ai_guardrails.py` blockiert jetzt zusaetzlich repo-weit lokale Neudefinitionen der reservierten Shared-Primitives `TkRootHost`, `ScrollablePopupWindow` und `WrappedTextField`, damit zentrale bw-gui-Bausteine nicht mehr als lokale Klassen nachgebaut werden.

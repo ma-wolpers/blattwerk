@@ -36,7 +36,7 @@ from bw_libs.ui_contract.hsm import (
     build_ui_hsm_contract,
 )
 from bw_libs.ui_contract.popup import POPUP_KIND_MODAL, POPUP_KIND_NON_MODAL, PopupPolicy, PopupPolicyRegistry
-from bw_libs.ui_contract.laufkern import verify_manifest, verify_reachability
+from bw_libs.ui_contract.laufkern import aggregate_completion, emit_tracking_artifact, verify_manifest, verify_reachability
 from bw_libs.app_shell import AppShellConfig, TkinterAppShell
 from .laufkern_manifest_provider import build_runtime_shortcut_manifest
 from .ui_theme import DEFAULT_THEME
@@ -144,6 +144,10 @@ class BlattwerkAppBase:
         self.shortcut_debug_table = None
         self.shortcut_debug_summary_var = ui.StringVar(value="")
         self._shortcut_debug_refresh_after_id = None
+        self._laufkern_tracking_run_id = "runtime-shortcuts"
+        self._laufkern_tracking_sequence = 0
+        self._laufkern_tracking_step_ids: dict[str, str] = {}
+        self._laufkern_tracking_artifacts = []
         self.popup_policy_registry = PopupPolicyRegistry()
         self.popup_policy_registry.register_policy(PopupPolicy(policy_id="dialog.modal", kind=POPUP_KIND_MODAL))
         self.popup_policy_registry.register_policy(
@@ -479,6 +483,47 @@ class BlattwerkAppBase:
         reachable = sum(1 for result in results if result.reachable)
         return f"LaufKern intents {reachable}/{len(results)} erreichbar"
 
+    def _laufkern_step_id_for_intent(self, intent: str) -> str:
+        """Return stable runtime-tracking step id for one intent during this session."""
+
+        existing = self._laufkern_tracking_step_ids.get(intent)
+        if existing is not None:
+            return existing
+
+        next_index = len(self._laufkern_tracking_step_ids) + 1
+        step_id = f"LK-D-RTC-{next_index:03d}"
+        self._laufkern_tracking_step_ids[intent] = step_id
+        return step_id
+
+    def _record_laufkern_intent_dispatch(self, intent: str, *, success: bool) -> None:
+        """Record runtime intent dispatch result as LaufKern tracking artifact."""
+
+        self._laufkern_tracking_sequence += 1
+        artifact = emit_tracking_artifact(
+            run_id=self._laufkern_tracking_run_id,
+            repo_name="blattwerk",
+            step_id=self._laufkern_step_id_for_intent(intent),
+            phase="D",
+            state="done" if success else "failed",
+            sequence=self._laufkern_tracking_sequence,
+            mandatory=True,
+            producer="laufkern-runtime",
+            evidence_ref=intent,
+        )
+        self._laufkern_tracking_artifacts.append(artifact)
+
+    def _summarize_laufkern_completion(self) -> str:
+        """Return compact completion status summary from tracked runtime artifacts."""
+
+        if not self._laufkern_tracking_artifacts:
+            return "LK completion n/a"
+
+        summary = aggregate_completion(
+            self._laufkern_tracking_artifacts,
+            trusted_producers={"laufkern-runtime"},
+        )
+        return f"LK completion {summary.status} {summary.completed_steps}/{summary.mandatory_steps}"
+
     def _build_shortcut_debug_overlay_rows(self) -> list[tuple[str, str, str, str, str]]:
         """Build compact diagnostics rows for the shortcut debug table."""
 
@@ -558,6 +603,7 @@ class BlattwerkAppBase:
                     f"{active_count} active",
                     f"{disabled_count} disabled",
                     self._summarize_laufkern_reachability(runtime_context=runtime_context),
+                    self._summarize_laufkern_completion(),
                 ]
             )
         )

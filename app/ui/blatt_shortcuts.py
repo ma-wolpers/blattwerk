@@ -32,6 +32,7 @@ def _to_shortcut_binding(app, definition: KeyBindingDefinition) -> ShortcutBindi
         ignore_when_text_input=not definition.allow_when_text_input,
         allow_modifiers=definition.allow_modifiers,
         binding_id=definition.binding_id,
+        intent=definition.intent,
         can_execute=lambda definition=definition: app._evaluate_keybinding_runtime(definition),
     )
 

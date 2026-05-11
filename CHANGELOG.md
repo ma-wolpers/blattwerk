@@ -29,6 +29,7 @@ The format is based on Keep a Changelog.
 - Blattwerk fuehrt jetzt eine zentrale LaufKern-Bridge (`bw_libs.ui_contract.laufkern`) fuer Manifest-, Reachability- und Tracking-Vertraege, wodurch die Trennung "Programm = Was" und "LaufKern = Wie" in der UI-Contract-Schicht technisch vorbereitet ist.
 - Die Shortcut-Runtime-Debug-Ansicht zeigt jetzt zusaetzlich eine LaufKern-Zusammenfassung zur aktuellen Intent-Erreichbarkeit (erreichbare Intents pro Runtime-Kontext und Manifest-Validierungsstatus).
 - Der LaufKern-Manifestaufbau wurde in einen dedizierten Provider (`app/ui/laufkern_manifest_provider.py`) ausgelagert, damit Runtime-Integration (Wie) und app-spezifische Deklaration (Was) klar getrennt bleiben.
+- Der produktive Shortcut-Dispatch schreibt jetzt LaufKern-Tracking-Artefakte fuer ausgefuehrte Intents; das Runtime-Debug zeigt dazu einen Completion-Status aus der Artefaktaggregation.
 
 - AI guardrails now also block local redefinitions of reserved shared primitives (`TkRootHost`, `ScrollablePopupWindow`, `WrappedTextField`) so these runtime/dialog/widget foundations must be consumed from `bw-gui` instead of being rebuilt in-repo.
 - `bw-gui` submodule was updated to the latest shared runtime/dialog/widget baseline so the new central primitives (`TkRootHost`, `ScrollablePopupWindow`, `WrappedTextField`) are available for further migration steps.

@@ -22,6 +22,7 @@ class ShortcutBinding:
     ignore_when_text_input: bool = True
     allow_modifiers: bool = False
     binding_id: str = ""
+    intent: str = ""
     can_execute: Callable[[], tuple[bool, str]] | None = None
 
 
@@ -62,7 +63,17 @@ class ShortcutManager:
             if not can_execute:
                 return None
 
-        binding.action()
+        tracker = getattr(self.root, "_record_laufkern_intent_dispatch", None)
+
+        try:
+            binding.action()
+        except Exception:
+            if callable(tracker) and binding.intent:
+                tracker(binding.intent, success=False)
+            raise
+
+        if callable(tracker) and binding.intent:
+            tracker(binding.intent, success=True)
         return "break"
 
     @staticmethod
