@@ -287,6 +287,55 @@ def test_render_html_presentation_framebreak_keeps_raw_markdown_line_spacing():
     assert slide_bodies[1].count("<blockquote>") == 1
 
 
+def test_parse_blocks_supports_slide_chrome_off_marker():
+    blocks = parse_blocks(
+        "A\n"
+        "--hf\n"
+        "B\n"
+    )
+
+    assert blocks[1] == ("slidechromeoff", {}, "")
+
+
+def test_render_html_presentation_slide_chrome_off_hides_header_and_footer_only_for_current_slide():
+    meta = {
+        "Titel": "T",
+        "Fach": "M",
+        "Thema": "X",
+        "mode": "presentation",
+    }
+    blocks = parse_blocks(
+        "--# Einstieg\n"
+        ":::task\n"
+        "Slide 1\n"
+        ":::\n"
+        "--hf\n"
+        "--!\n"
+        "--# Sicherung\n"
+        ":::task\n"
+        "Slide 2\n"
+        ":::\n"
+    )
+
+    html = render_html(meta, blocks, include_solutions=False)
+    slide_bodies = re.findall(
+        r"<section class='ab-slide'>(.*?)</section>",
+        html,
+        flags=re.DOTALL,
+    )
+
+    assert len(slide_bodies) == 2
+    assert "presentation-mini-header" not in slide_bodies[0]
+    assert "presentation-section-footer" not in slide_bodies[0]
+    assert "presentation-slide-counter" not in slide_bodies[0]
+    assert "Slide 1" in slide_bodies[0]
+
+    assert "presentation-mini-header" in slide_bodies[1]
+    assert "presentation-section-footer" in slide_bodies[1]
+    assert "presentation-slide-counter" in slide_bodies[1]
+    assert "Slide 2" in slide_bodies[1]
+
+
 def test_task_content_supports_marker_visibility_by_output_mode():
     content = "§ Nur Arbeitsblatt\n% Nur Loesung\nIn beiden"
     options = {"work": "single", "_show_task_label": "1"}

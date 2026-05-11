@@ -184,6 +184,8 @@ def _parse_inline_control_marker(stripped_line):
         return ("pagebreak", {}, "")
     if stripped_line == "-+":
         return ("framebreak", {}, "")
+    if stripped_line == "--hf":
+        return ("slidechromeoff", {}, "")
 
     section_match = PRESENTATION_SECTION_MARK_PATTERN.match(stripped_line)
     if section_match:

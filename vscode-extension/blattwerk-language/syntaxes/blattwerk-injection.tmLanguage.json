@@ -3,7 +3,7 @@
   "injectionSelector": "L:text.html.markdown",
   "patterns": [
     {
-      "match": "^(\\s*)(--!|-\\+|-=\\s*\\d+(?:\\.\\d+)?(?:cm|mm|px|pt|em|rem|vh|vw|%)|--#\\s+.+?)\\s*$",
+      "match": "^(\\s*)(--!|-\\+|--hf|-=\\s*\\d+(?:\\.\\d+)?(?:cm|mm|px|pt|em|rem|vh|vw|%)|--#\\s+.+?)\\s*$",
       "captures": {
         "2": {
           "name": "keyword.control.blattwerk"
@@ -12,7 +12,7 @@
     },
     {
       "name": "meta.block.blattwerk",
-      "begin": "^(\\s*)(:::(?:material|info|task|subtask|lines|grid|geometry|dots|space|table|numberline|mc|cloze|matching|wordsearch|solution|columns|nextcol|endcolumns|help|hilfe|qrcode|pagebreak|framebreak|sectionmark|vspacer))(?=\\s|$)",
+      "begin": "^(\\s*)(:::(?:material|info|task|subtask|lines|grid|geometry|dots|space|table|numberline|mc|cloze|matching|wordsearch|solution|columns|nextcol|endcolumns|help|hilfe|qrcode|pagebreak|framebreak|slidechromeoff|sectionmark|vspacer))(?=\\s|$)",
       "beginCaptures": {
         "2": {
           "name": "keyword.control.blattwerk"
@@ -52,7 +52,7 @@
       ]
     },
     {
-      "match": "^(\\s*:::(?:material|info|task|subtask|lines|grid|geometry|dots|space|table|numberline|mc|cloze|matching|wordsearch|solution|columns|nextcol|endcolumns|help|hilfe|qrcode|pagebreak|framebreak|sectionmark|vspacer)[^\\n]*:::)\\s*$",
+      "match": "^(\\s*:::(?:material|info|task|subtask|lines|grid|geometry|dots|space|table|numberline|mc|cloze|matching|wordsearch|solution|columns|nextcol|endcolumns|help|hilfe|qrcode|pagebreak|framebreak|slidechromeoff|sectionmark|vspacer)[^\\n]*:::)\\s*$",
       "name": "keyword.control.blattwerk"
     }
   ]

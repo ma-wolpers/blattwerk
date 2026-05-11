@@ -108,7 +108,7 @@ def render_block(
             f"style='height:{height_value};'></div>"
         )
 
-    if block_type in {"framebreak", "sectionmark"}:
+    if block_type in {"framebreak", "sectionmark", "slidechromeoff"}:
         return ""
 
     if block_type == "material":

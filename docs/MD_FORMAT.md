@@ -25,7 +25,7 @@ Semantik hat Vorrang, aber Layout-Steuerung ist ausdrücklich Teil der Sprache, 
 Ein Dokument besteht aus:
 1. YAML-Frontmatter (Pflicht)
 2. einer Folge semantischer Blöcke
-3. optionalen Abschnittstrennern (`---`, `--!`, `-+`, `--# ...`, `-=...`)
+3. optionalen Abschnittstrennern (`---`, `--!`, `-+`, `--hf`, `--# ...`, `-=...`)
 
 ### 3.1 Frontmatter
 
@@ -81,7 +81,7 @@ document = frontmatter, newline*, block_or_raw* ;
 frontmatter = "---", newline, yaml_lines, "---", newline* ;
 
 block_or_raw = block | section_break | raw_markdown ;
-section_break = ("--" | "--!" | "-+" | "--#" section_title | "-=" css_length), newline ;
+section_break = ("--" | "--!" | "-+" | "--hf" | "--#" section_title | "-=" css_length), newline ;
 
 block = open_block, block_content, close_block | self_closing_block ;
 open_block = ":::", block_name, (space, options)?, newline ;
@@ -101,6 +101,7 @@ Zusatzregeln:
 - Geschachtelte `subtask`-Blöcke in `task`-Inhalten sind nicht Teil der Sprache.
 - `--!` erzwingt einen harten Seiten-/Folienumbruch.
 - `-+` erzeugt im Praesentationsmodus einen neuen Frame mit dem bisherigen Inhalt plus folgendem Inhalt.
+- `--hf` blendet in Praesentationen auf der aktuellen Folie Mini-Header und Footer (Phasenuebersicht + Folienzaehler) aus.
 - `--# Abschnitt` setzt den aktuellen Abschnittsnamen fuer Footer-Navigation in Praesentationen.
 - `-=<css-laenge>` erzeugt vertikalen Abstand mit voller Seiten-/Spaltenbreite.
 - `---` ist wieder normale Markdown-Linie und dient nicht mehr als Spacer.

@@ -546,6 +546,24 @@ def test_invalid_vspacer_marker_without_unit_emits_bl006_error():
     assert bl006[0].severity == "error"
 
 
+def test_slide_chrome_marker_inside_open_block_emits_bl005_error():
+    text = _build_document(":::task\nInhalt\n--hf\n:::")
+    diagnostics = inspect_markdown_text(text).diagnostics
+    bl005 = [d for d in diagnostics if d.code == "BL005"]
+
+    assert bl005
+    assert bl005[0].severity == "error"
+
+
+def test_invalid_slide_chrome_marker_variant_emits_bl006_error():
+    text = _build_document("--hf extra\n:::task\nInhalt\n:::")
+    diagnostics = inspect_markdown_text(text).diagnostics
+    bl006 = [d for d in diagnostics if d.code == "BL006"]
+
+    assert bl006
+    assert bl006[0].severity == "error"
+
+
 def test_legacy_answer_block_emits_an008_error():
     text = _build_document(":::answer type=lines\nText\n:::")
     diagnostics = inspect_markdown_text(text).diagnostics

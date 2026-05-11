@@ -423,7 +423,7 @@ def render_body_with_columns(
 
 
 def _is_layout_control_block(block_type):
-    return block_type in {"pagebreak", "framebreak", "sectionmark"}
+    return block_type in {"pagebreak", "framebreak", "sectionmark", "slidechromeoff"}
 
 
 def _build_presentation_slides(
@@ -437,6 +437,7 @@ def _build_presentation_slides(
     current_blocks = []
     current_section = ""
     logical_slide_number = 1
+    current_hide_slide_chrome = False
 
     def _append_slide_block(block_type, options, content):
         if (
@@ -455,8 +456,10 @@ def _build_presentation_slides(
         current_blocks.append((block_type, options, content))
 
     def _flush_slide(clear_blocks=True):
-        nonlocal logical_slide_number
+        nonlocal logical_slide_number, current_hide_slide_chrome
         if not current_blocks:
+            if clear_blocks:
+                current_hide_slide_chrome = False
             return
         body_html = render_body_with_columns(
             list(current_blocks),
@@ -471,8 +474,10 @@ def _build_presentation_slides(
                 "section": current_section,
                 "body": body_html,
                 "logical_slide_number": logical_slide_number,
+                "hide_slide_chrome": bool(current_hide_slide_chrome),
             }
         )
+        current_hide_slide_chrome = False
         if clear_blocks:
             current_blocks.clear()
             logical_slide_number += 1
@@ -482,6 +487,10 @@ def _build_presentation_slides(
             title = str((options or {}).get("title") or "").strip()
             if title:
                 current_section = title
+            continue
+
+        if block_type == "slidechromeoff":
+            current_hide_slide_chrome = True
             continue
 
         if block_type == "pagebreak":
@@ -574,8 +583,9 @@ def _render_presentation_html(
     for index, slide in enumerate(slides, start=1):
         current_section_index = slide_section_indices[index - 1]
         logical_slide_number = int(slide.get("logical_slide_number") or index)
+        hide_slide_chrome = bool(slide.get("hide_slide_chrome"))
         mini_header_html = ""
-        if show_mini_header:
+        if show_mini_header and not hide_slide_chrome:
             mini_header_html = (
                 "<div class='presentation-mini-header'>"
                 f"<span class='presentation-mini-title'>{title_text}</span>"
@@ -584,7 +594,7 @@ def _render_presentation_html(
             )
 
         section_footer_html = ""
-        if show_section_footer and section_names:
+        if show_section_footer and section_names and not hide_slide_chrome:
             visible_indices = list(range(len(section_names)))
             append_ellipsis = False
             if hide_future_sections and current_section_index is not None:
@@ -621,11 +631,13 @@ def _render_presentation_html(
                 "</div>"
             )
 
-        slide_counter_html = (
-            "<div class='presentation-slide-counter'>"
-            f"Folie {logical_slide_number}/{logical_slide_total}"
-            "</div>"
-        )
+        slide_counter_html = ""
+        if not hide_slide_chrome:
+            slide_counter_html = (
+                "<div class='presentation-slide-counter'>"
+                f"Folie {logical_slide_number}/{logical_slide_total}"
+                "</div>"
+            )
         slide_html_parts.append(
             "<section class='ab-slide'>"
             f"{mini_header_html}"
