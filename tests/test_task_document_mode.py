@@ -532,6 +532,22 @@ def test_task_points_and_time_render_together_in_header_right():
     assert "<span class='task-time'>7 min</span>" in html
 
 
+def test_task_supports_object_alignment_wrapper():
+    html = render_block(
+        "task",
+        {
+            "work": "single",
+            "align": "center",
+            "_show_task_label": "1",
+        },
+        "Inhalt",
+        include_solutions=False,
+        document_mode="ws",
+    )
+
+    assert "bw-object-align bw-object-align-center" in html
+
+
 def test_render_help_cards_html_prefixes_card_titles_with_global_tag_labels():
     meta = {"Titel": "T", "Fach": "M", "Thema": "X", "tag": "1"}
     blocks = [

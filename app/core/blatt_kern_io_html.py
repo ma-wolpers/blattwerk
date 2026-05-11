@@ -46,10 +46,11 @@ def absolutize_local_image_sources(html, base_dir):
 def apply_image_size_options(html):
     """Übernimmt Bildgrößenoptionen aus dem `title`-Attribut in CSS-Styles.
 
-    Unterstützte Schlüssel im title:
+    Unterstuetzte Schluessel im title:
     - `w` / `width`
     - `h` / `height`
     - `maxw` / `max-width`
+    - `align` / `alignment`
     """
     img_pattern = re.compile(r"<img\b[^>]*>", flags=re.IGNORECASE)
     title_pattern = re.compile(r"\btitle\s*=\s*([\"'])(.*?)\1", flags=re.IGNORECASE)
@@ -64,6 +65,59 @@ def apply_image_size_options(html):
             )
         )
 
+    def normalize_alignment(value):
+        normalized = str(value or "").strip().lower()
+        normalized = normalized.replace("\u00fc", "u").replace("\u00df", "ss")
+
+        aliases = {
+            "left": "left",
+            "links": "left",
+            "linksbundig": "left",
+            "linksbuendig": "left",
+            "right": "right",
+            "rechts": "right",
+            "rechtsbundig": "right",
+            "rechtsbuendig": "right",
+            "center": "center",
+            "centre": "center",
+            "middle": "center",
+            "mitte": "center",
+            "zentriert": "center",
+            "justify": "block",
+            "block": "block",
+            "blocksatz": "block",
+        }
+        return aliases.get(normalized, "")
+
+    def alignment_style_map(alignment):
+        if alignment == "left":
+            return {
+                "display": "block",
+                "margin-left": "0",
+                "margin-right": "auto",
+            }
+        if alignment == "right":
+            return {
+                "display": "block",
+                "margin-left": "auto",
+                "margin-right": "0",
+            }
+        if alignment == "center":
+            return {
+                "display": "block",
+                "margin-left": "auto",
+                "margin-right": "auto",
+            }
+        if alignment == "block":
+            return {
+                "display": "block",
+                "width": "100%",
+                "max-width": "100%",
+                "margin-left": "0",
+                "margin-right": "0",
+            }
+        return {}
+
     def parse_title_options(title_text):
         normalized = title_text.replace(";", " ").replace(",", " ")
         tokens = [token for token in normalized.split() if token.strip()]
@@ -77,6 +131,8 @@ def apply_image_size_options(html):
             "height": "height",
             "maxw": "max-width",
             "max-width": "max-width",
+            "align": "alignment",
+            "alignment": "alignment",
         }
 
         styles = {}
@@ -88,9 +144,15 @@ def apply_image_size_options(html):
             if not css_key:
                 return None
             css_value = value.strip()
-            if not valid_css_size(css_value):
-                return None
-            styles[css_key] = css_value
+            if css_key == "alignment":
+                alignment = normalize_alignment(css_value)
+                if not alignment:
+                    return None
+                styles.update(alignment_style_map(alignment))
+            else:
+                if not valid_css_size(css_value):
+                    return None
+                styles[css_key] = css_value
 
         return styles or None
 

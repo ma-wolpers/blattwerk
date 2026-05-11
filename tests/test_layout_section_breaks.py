@@ -50,3 +50,15 @@ def test_render_columns_container_ignores_invalid_gap_option():
 
     assert "--col-template:1fr 1fr" in html
     assert "--col-gap:" not in html
+
+
+def test_render_columns_container_supports_align_option_wrapper():
+    columns_blocks = [[("raw", {}, "Spalte 1")], [("raw", {}, "Spalte 2")]]
+
+    html = render_columns_container(
+        columns_blocks,
+        {"widths": "1 1", "align": "center"},
+        include_solutions=False,
+    )
+
+    assert "bw-object-align bw-object-align-center" in html

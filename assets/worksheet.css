@@ -259,6 +259,26 @@ h1 {
     margin-bottom: 0;
 }
 
+.bw-object-align {
+    width: 100%;
+}
+
+.bw-object-align-left {
+    text-align: left;
+}
+
+.bw-object-align-right {
+    text-align: right;
+}
+
+.bw-object-align-center {
+    text-align: center;
+}
+
+.bw-object-align-block {
+    text-align: justify;
+}
+
 /* Ensure regular markdown tables are always rendered with visible borders. */
 .material table:not(.answer-table),
 .task table:not(.answer-table),

@@ -35,6 +35,45 @@ ANSWER_BLOCK_TYPES = {
 }
 
 
+def _normalize_object_alignment(block_type, options):
+    """Normalisiert optionale Objekt-Ausrichtung auf left/right/center/block."""
+    options = options or {}
+
+    raw_alignment = options.get("align")
+    if block_type == "qrcode" and not raw_alignment:
+        raw_alignment = options.get("alignment")
+
+    normalized = str(raw_alignment or "").strip().lower()
+    normalized = normalized.replace("\u00fc", "u").replace("\u00df", "ss")
+
+    aliases = {
+        "left": "left",
+        "links": "left",
+        "linksbundig": "left",
+        "linksbuendig": "left",
+        "right": "right",
+        "rechts": "right",
+        "rechtsbundig": "right",
+        "rechtsbuendig": "right",
+        "center": "center",
+        "centre": "center",
+        "middle": "center",
+        "mitte": "center",
+        "zentriert": "center",
+        "justify": "block",
+        "block": "block",
+        "blocksatz": "block",
+    }
+    return aliases.get(normalized, "")
+
+
+def _wrap_with_object_alignment(html, alignment):
+    """Wrappt gerendertes HTML optional mit einer Objekt-Ausrichtungs-Huelle."""
+    if not html or not alignment:
+        return html
+    return f"<div class='bw-object-align bw-object-align-{alignment}'>{html}</div>"
+
+
 def render_block(
     block_type,
     options,
@@ -51,11 +90,12 @@ def render_block(
     ):
         return ""
 
+    object_alignment = _normalize_object_alignment(block_type, options)
     md = _new_markdown_converter()
     normalized_content = normalize_markdown(content)
 
     if block_type == "raw":
-        return md.convert(normalized_content)
+        return _wrap_with_object_alignment(md.convert(normalized_content), object_alignment)
 
     if block_type == "pagebreak":
         return "<div class='ab-pagebreak' aria-hidden='true'></div>"
@@ -72,19 +112,28 @@ def render_block(
         return ""
 
     if block_type == "material":
-        return _render_material_block(md, options, normalized_content)
+        return _wrap_with_object_alignment(
+            _render_material_block(md, options, normalized_content),
+            object_alignment,
+        )
 
     if block_type == "info":
         info_type = options.get("type", "default")
-        return f"<div class='info {info_type}'>{md.convert(normalized_content)}</div>"
+        return _wrap_with_object_alignment(
+            f"<div class='info {info_type}'>{md.convert(normalized_content)}</div>",
+            object_alignment,
+        )
 
     if block_type == "task":
-        return _render_task_block(
-            md,
-            options,
-            normalized_content,
-            include_solutions=include_solutions,
-            document_mode=document_mode,
+        return _wrap_with_object_alignment(
+            _render_task_block(
+                md,
+                options,
+                normalized_content,
+                include_solutions=include_solutions,
+                document_mode=document_mode,
+            ),
+            object_alignment,
         )
 
     if block_type == "subtask":
@@ -101,34 +150,41 @@ def render_block(
         except ValueError:
             total_subtasks = 1
 
-        return _render_subtask_block(
-            md,
-            subtask_index,
-            total_subtasks,
-            options,
-            normalized_content,
-            parent_work_info,
-            parent_action_info,
-            document_mode=document_mode,
-            include_solutions=include_solutions,
+        return _wrap_with_object_alignment(
+            _render_subtask_block(
+                md,
+                subtask_index,
+                total_subtasks,
+                options,
+                normalized_content,
+                parent_work_info,
+                parent_action_info,
+                document_mode=document_mode,
+                include_solutions=include_solutions,
+            ),
+            object_alignment,
         )
 
     if block_type == "solution":
         show_label = _option_is_enabled(options.get("label"), default=True)
         label_html = "<div class='solution-label'>Lösung</div>" if show_label else ""
-        return (
-            f"<div class='solution'>{label_html}{md.convert(normalized_content)}</div>"
+        return _wrap_with_object_alignment(
+            f"<div class='solution'>{label_html}{md.convert(normalized_content)}</div>",
+            object_alignment,
         )
 
     if block_type == "qrcode":
-        return render_qrcode_block(options)
+        return _wrap_with_object_alignment(render_qrcode_block(options), object_alignment)
 
     if block_type in ANSWER_BLOCK_TYPES:
-        return _render_answer_block(
-            block_type,
-            options,
-            normalized_content,
-            include_solutions,
+        return _wrap_with_object_alignment(
+            _render_answer_block(
+                block_type,
+                options,
+                normalized_content,
+                include_solutions,
+            ),
+            object_alignment,
         )
 
     if block_type in HELP_BLOCK_TYPES:

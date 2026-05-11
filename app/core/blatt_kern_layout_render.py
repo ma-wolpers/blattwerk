@@ -23,6 +23,31 @@ from .blatt_kern_shared import (
 from .blatt_kern_task_render import render_block
 
 
+def _normalize_object_alignment(raw_value):
+    """Normalisiert align-Werte auf left/right/center/block."""
+    normalized = str(raw_value or "").strip().lower()
+    normalized = normalized.replace("\u00fc", "u").replace("\u00df", "ss")
+    aliases = {
+        "left": "left",
+        "links": "left",
+        "linksbundig": "left",
+        "linksbuendig": "left",
+        "right": "right",
+        "rechts": "right",
+        "rechtsbundig": "right",
+        "rechtsbuendig": "right",
+        "center": "center",
+        "centre": "center",
+        "middle": "center",
+        "mitte": "center",
+        "zentriert": "center",
+        "justify": "block",
+        "block": "block",
+        "blocksatz": "block",
+    }
+    return aliases.get(normalized, "")
+
+
 def _with_runtime_layout_options(options, printable_width_cm):
     """Attach render-time layout context for answer blocks."""
     merged = dict(options or {})
@@ -264,6 +289,7 @@ def render_columns_container(
         template = " ".join("1fr" for _ in columns_blocks)
 
     column_gap = parse_columns_gap(options)
+    container_alignment = _normalize_object_alignment((options or {}).get("align"))
 
     column_html = []
     for column_blocks in columns_blocks:
@@ -289,7 +315,15 @@ def render_columns_container(
         style_parts.append(f"--col-gap:{column_gap}")
     inline_style = ";".join(style_parts)
 
-    return f"<div class='columns columns-custom' style='{escape(inline_style)}'>{''.join(column_html)}</div>"
+    columns_html = (
+        f"<div class='columns columns-custom' style='{escape(inline_style)}'>{''.join(column_html)}</div>"
+    )
+    if container_alignment:
+        return (
+            f"<div class='bw-object-align bw-object-align-{container_alignment}'>"
+            f"{columns_html}</div>"
+        )
+    return columns_html
 
 
 def render_body_with_columns(

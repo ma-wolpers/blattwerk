@@ -50,3 +50,27 @@ def test_qrcode_block_rejects_invalid_url_in_renderer_output():
 
     assert "qrcode-invalid" in html
     assert "qrcode-link" not in html
+
+
+def test_qrcode_block_supports_object_align_wrapper():
+    html = render_block(
+        "qrcode",
+        {"url": "https://example.org", "align": "right"},
+        "",
+        include_solutions=False,
+        document_mode="ws",
+    )
+
+    assert "bw-object-align bw-object-align-right" in html
+
+
+def test_qrcode_block_supports_alignment_alias_wrapper():
+    html = render_block(
+        "qrcode",
+        {"url": "https://example.org", "alignment": "center"},
+        "",
+        include_solutions=False,
+        document_mode="ws",
+    )
+
+    assert "bw-object-align bw-object-align-center" in html

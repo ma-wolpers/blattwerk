@@ -151,15 +151,26 @@ YAML_ANSWER_TYPES = {
 }
 
 BLOCK_ALLOWED_OPTIONS = {
-    "material": {"title", "show", "mode"},
-    "info": {"type", "show", "mode"},
-    "task": {"points", "time", "work", "action", "hint", "show", "mode", "title"},
-    "subtask": {"time", "work", "action", "show", "mode"},
+    "material": {"title", "show", "mode", "align"},
+    "info": {"type", "show", "mode", "align"},
+    "task": {
+        "points",
+        "time",
+        "work",
+        "action",
+        "hint",
+        "show",
+        "mode",
+        "title",
+        "align",
+    },
+    "subtask": {"time", "work", "action", "show", "mode", "align"},
     "lines": {
         "show",
         "mode",
         "rows",
         "height",
+        "align",
     },
     "grid": {
         "show",
@@ -167,6 +178,7 @@ BLOCK_ALLOWED_OPTIONS = {
         "rows",
         "cols",
         "scale",
+        "align",
     },
     "geometry": {
         "show",
@@ -180,16 +192,19 @@ BLOCK_ALLOWED_OPTIONS = {
         "origin",
         "step_x",
         "step_y",
+        "align",
     },
     "dots": {
         "show",
         "mode",
         "height",
+        "align",
     },
     "space": {
         "show",
         "mode",
         "height",
+        "align",
     },
     "table": {
         "show",
@@ -224,6 +239,7 @@ BLOCK_ALLOWED_OPTIONS = {
         "full_width",
         "positive_sign",
         "signed_positive",
+        "align",
     },
     "mc": {
         "show",
@@ -234,6 +250,7 @@ BLOCK_ALLOWED_OPTIONS = {
         "correct",
         "options",
         "widths",
+        "align",
     },
     "cloze": {
         "show",
@@ -243,6 +260,7 @@ BLOCK_ALLOWED_OPTIONS = {
         "words",
         "words_multi",
         "layout",
+        "align",
     },
     "matching": {
         "show",
@@ -272,9 +290,10 @@ BLOCK_ALLOWED_OPTIONS = {
         "horizontal",
         "vertical",
         "words",
+        "align",
     },
-    "solution": {"label", "show", "mode"},
-    "columns": {"cols", "widths", "ratio", "gap"},
+    "solution": {"label", "show", "mode", "align"},
+    "columns": {"cols", "widths", "ratio", "gap", "align"},
     "nextcol": set(),
     "endcolumns": set(),
     "help": {"title", "level", "show", "mode", "tag"},
@@ -287,6 +306,8 @@ BLOCK_ALLOWED_OPTIONS = {
         "width",
         "height",
         "max-width",
+        "align",
+        "alignment",
         "show",
         "mode",
     },
@@ -297,6 +318,8 @@ BLOCK_ALLOWED_OPTIONS = {
 }
 
 QRCODE_SIZE_OPTION_KEYS = {"w", "h", "maxw", "width", "height", "max-width"}
+
+OBJECT_ALIGN_VALUE_HINT = "left|right|center|block"
 
 CRITICAL_DIAGNOSTIC_CODES = {
     "AN003",  # Invalid YAML in schema-driven answer blocks.
@@ -441,6 +464,29 @@ def _is_valid_qrcode_css_size(value):
     if not text:
         return False
     return bool(_QRCODE_CSS_SIZE_PATTERN.fullmatch(text))
+
+
+def _is_valid_object_align(value):
+    normalized = _normalize_value(str(value or ""))
+    normalized = normalized.replace("\u00fc", "u").replace("\u00df", "ss")
+    return normalized in {
+        "left",
+        "links",
+        "linksbundig",
+        "linksbuendig",
+        "right",
+        "rechts",
+        "rechtsbundig",
+        "rechtsbuendig",
+        "center",
+        "centre",
+        "middle",
+        "mitte",
+        "zentriert",
+        "justify",
+        "block",
+        "blocksatz",
+    }
 
 
 def _is_valid_qrcode_url(value):
@@ -949,6 +995,23 @@ def _collect_document_diagnostics(meta, blocks, content_text, content_base_line=
                     option_key,
                     option_value,
                     KNOWN_HINT_VALUES,
+                )
+            elif (
+                option_key in {"align", "alignment"}
+                and block_type not in {"matching", "table"}
+                and not _is_valid_object_align(option_value)
+            ):
+                diagnostics.append(
+                    BuildDiagnostic(
+                        code="OP002",
+                        message=(
+                            "Ungueltiger Wert fuer "
+                            f"`{option_key}` in Block `{block_type}`: `{option_value}`. "
+                            f"Erlaubt ist `{OBJECT_ALIGN_VALUE_HINT}`."
+                        ),
+                        block_index=index,
+                        block_type=block_type,
+                    )
                 )
             elif block_type == "qrcode" and option_key in QRCODE_SIZE_OPTION_KEYS:
                 if not _is_valid_qrcode_css_size(option_value):

@@ -169,6 +169,23 @@ Zweck: Teilaufgabe zu vorherigem `task`.
 Optionen: `time`, `work`, `action`, `show` (alle optional)
 Regel: Nur als Folgeblock auf Top-Level.
 
+### 5.4a Objekt-Ausrichtung (`align`)
+Viele Blocktypen unterstuetzen zusaetzlich eine objektbezogene Ausrichtung:
+
+- `align=left|right|center|block`
+    - auch DE-Aliase wie `links`, `rechts`, `mitte`, `zentriert`, `blocksatz`
+
+Unterstuetzte Blocktypen:
+- `material`, `info`, `task`, `subtask`, `solution`
+- `lines`, `grid`, `geometry`, `dots`, `space`, `numberline`, `mc`, `cloze`, `wordsearch`
+- `qrcode`, `columns`
+
+Wirkung:
+- `left`: linksbuendig
+- `right`: rechtsbuendig
+- `center`: zentriert
+- `block`: Blocksatz
+
 ### 5.5 Antwort-Blocktypen
 Zweck: Antwortbereich oder interaktiver Antworttyp.
 
@@ -349,6 +366,7 @@ Optionen:
 - `w` oder `width` (optional)
 - `h` oder `height` (optional)
 - `maxw` oder `max-width` (optional)
+- `align` oder `alignment` (optional, `left|right|center|block`)
 - `show` (optional)
 
 Groessenwerte folgen derselben Logik wie Bildgroessen in Markdown-Bildern.
@@ -360,6 +378,12 @@ Beispiel:
 :::
 ```
 
+Markdown-Bilder unterstuetzen dieselbe Logik direkt im `title`-Attribut:
+
+```markdown
+![Geheimcodes](Geheimcodes.png "w=70% align=center")
+```
+
 Hinweis:
 - In HTML- und PDF-Ausgaben ist der QR-Code klickbar; der Klick oeffnet den hinterlegten Link.
 
@@ -369,12 +393,16 @@ Optionen: `label=true|false` (optional, Standard `true`), `show` (optional)
 
 ### 5.8 columns / nextcol / endcolumns
 Zweck: Spaltenlayout.
-`columns` Optionen: `cols=2..6` (optional, Standard `2`), `widths` oder `ratio` (optional), `gap` (optional)
+`columns` Optionen: `cols=2..6` (optional, Standard `2`), `widths` oder `ratio` (optional), `gap` (optional), `align` (optional)
 
 `gap`:
 - CSS-Laenge fuer den horizontalen Spaltenabstand.
 - Unterstuetzte Einheiten: `px`, `pt`, `cm`, `mm`, `em`, `rem`, `%`.
 - Beispiel: `:::columns cols=2 widths="2 1" gap=1cm :::`
+
+`align`:
+- Optionales Container-Alignment fuer den gesamten Spaltenblock (`left|right|center|block`).
+- Beispiel: `:::columns cols=2 widths="2 1" align=center :::`
 
 ### 5.9 help / hilfe
 Zweck: Hilfekartenblock (separate Hilfekarten-Ausgabe).

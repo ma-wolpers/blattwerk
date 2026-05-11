@@ -142,6 +142,35 @@ def test_qrcode_options_are_allowed_without_op001():
     assert "QR002" not in codes
 
 
+def test_qrcode_alignment_alias_is_allowed_without_op001():
+    text = _build_document(":::qrcode url=https://example.org alignment=center\n:::")
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+
+    assert "OP001" not in codes
+    assert "OP002" not in codes
+
+
+def test_task_align_option_is_allowed_without_op001():
+    text = _build_document(":::task align=right\nRechne aus.\n:::")
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+
+    assert "OP001" not in codes
+    assert "OP002" not in codes
+
+
+def test_columns_align_option_is_allowed_without_op001():
+    text = _build_document(
+        ":::columns cols=2 widths='1 1' align=center\n:::raw\nA\n:::\n:::nextcol:::\n:::raw\nB\n:::\n:::endcolumns:::"
+    )
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+
+    assert "OP001" not in codes
+    assert "OP002" not in codes
+
+
 def test_qrcode_without_url_emits_qr001_error():
     text = _build_document(":::qrcode w=3cm\n:::")
     inspected = inspect_markdown_text(text)
@@ -162,6 +191,22 @@ def test_qrcode_with_invalid_url_emits_qr002_error():
 
 def test_qrcode_with_invalid_size_emits_op002():
     text = _build_document(":::qrcode url=https://example.org w=riesig\n:::")
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+
+    assert "OP002" in codes
+
+
+def test_task_with_invalid_align_emits_op002():
+    text = _build_document(":::task align=diagonal\nRechne aus.\n:::")
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+
+    assert "OP002" in codes
+
+
+def test_columns_with_invalid_align_emits_op002():
+    text = _build_document(":::columns cols=2 widths='1 1' align=diagonal :::")
     inspected = inspect_markdown_text(text)
     codes = {diagnostic.code for diagnostic in inspected.diagnostics}
 
