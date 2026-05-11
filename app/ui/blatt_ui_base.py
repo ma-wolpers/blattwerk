@@ -36,6 +36,7 @@ from bw_libs.ui_contract.hsm import (
     build_ui_hsm_contract,
 )
 from bw_libs.ui_contract.popup import POPUP_KIND_MODAL, POPUP_KIND_NON_MODAL, PopupPolicy, PopupPolicyRegistry
+from bw_libs.ui_contract.laufkern import LaufKernRoute, build_manifest, verify_manifest, verify_reachability
 from bw_libs.app_shell import AppShellConfig, TkinterAppShell
 from .ui_theme import DEFAULT_THEME
 from ..styles.blatt_styles import DEFAULT_FONT_PROFILE, DEFAULT_FONT_SIZE_PROFILE
@@ -456,6 +457,47 @@ class BlattwerkAppBase:
             active_mode_override=active_mode_override,
         )
 
+    def _build_laufkern_manifest(self):
+        """Build one declarative LaufKern manifest from registered runtime shortcuts."""
+
+        definitions = self.keybinding_registry.all()
+        intents = tuple(sorted({definition.intent for definition in definitions}))
+        routes = tuple(
+            LaufKernRoute(
+                route_id=f"shortcut.{definition.binding_id}",
+                intent=definition.intent,
+                route_type="shortcut",
+                modes=tuple(definition.modes),
+                binding_id=definition.binding_id,
+                metadata={"sequence": definition.sequence},
+            )
+            for definition in definitions
+        )
+        return build_manifest(
+            manifest_id="blattwerk.shortcuts.runtime",
+            repo_name="blattwerk",
+            intents=intents,
+            routes=routes,
+            keybinding_registry=self.keybinding_registry,
+            metadata={"provider": "blattwerk.app.ui.blatt_ui_base"},
+        )
+
+    def _summarize_laufkern_reachability(
+        self,
+        *,
+        runtime_context: KeybindingRuntimeContext,
+    ) -> str:
+        """Return compact LaufKern reachability summary for current runtime state."""
+
+        manifest = self._build_laufkern_manifest()
+        manifest_ok, manifest_errors = verify_manifest(manifest)
+        if not manifest_ok:
+            return f"LaufKern manifest-errors={len(manifest_errors)}"
+
+        results = verify_reachability(manifest=manifest, context=runtime_context)
+        reachable = sum(1 for result in results if result.reachable)
+        return f"LaufKern intents {reachable}/{len(results)} erreichbar"
+
     def _build_shortcut_debug_overlay_rows(self) -> list[tuple[str, str, str, str, str]]:
         """Build compact diagnostics rows for the shortcut debug table."""
 
@@ -491,6 +533,12 @@ class BlattwerkAppBase:
             return
 
         context = self._collect_shortcut_runtime_context()
+        runtime_context = KeybindingRuntimeContext(
+            active_mode=str(context["active_mode"]),
+            offline=bool(context["offline"]),
+            text_input_focused=bool(context["text_input_focused"]),
+            dialog_open=bool(context["dialog_open"]),
+        )
         self.shortcut_debug_context_var.set(
             " | ".join(
                 [
@@ -523,7 +571,14 @@ class BlattwerkAppBase:
             )
 
         self.shortcut_debug_summary_var.set(
-            f"Bindings: {len(rows)} total | {active_count} active | {disabled_count} disabled"
+            " | ".join(
+                [
+                    f"Bindings: {len(rows)} total",
+                    f"{active_count} active",
+                    f"{disabled_count} disabled",
+                    self._summarize_laufkern_reachability(runtime_context=runtime_context),
+                ]
+            )
         )
 
     def _schedule_shortcut_debug_overlay_refresh(self) -> None:

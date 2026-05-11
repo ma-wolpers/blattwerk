@@ -22,6 +22,7 @@ Regel:
 - Format-Switching in der Vorschau: Wenn der Benutzer das Seitenformat wechselt (z. B. 16:9 → 16:10 oder A4 → A5), wird jetzt korrekt ein neuer Render angestoßen und der Cache wird invalidiert. Zuvor blieb die Vorschau-Darstellung trotz Format-Änderung gleich.
 
 ### Changed
+- LaufKern-Runtime-Auswertung an die bestehende Shortcut-Debug-Ansicht angebunden: `app/ui/blatt_ui_base.py` baut jetzt ein deklaratives LaufKern-Manifest aus der zentralen Shortcut-Registry, validiert es und zeigt die aktuelle Intent-Reachability im Debug-Summary an.
 - Step-6-Guardrail-Hardening umgesetzt: `tools/ci/check_ai_guardrails.py` blockiert jetzt zusaetzlich repo-weit lokale Neudefinitionen der reservierten Shared-Primitives `TkRootHost`, `ScrollablePopupWindow` und `WrappedTextField`, damit zentrale bw-gui-Bausteine nicht mehr als lokale Klassen nachgebaut werden.
 - Step-5-Rollout fortgesetzt: `bw-gui`-Submodule auf den neuen Shared-Stand mit `TkRootHost`, `ScrollablePopupWindow` und `WrappedTextField` aktualisiert, sodass die zentralen Host-/Popup-/Form-Bausteine fuer Folge-Migrationen im Repo verfuegbar sind.
 - Step-2-Guardrail-Scope abgeschlossen: die repo-weite GUI-Vertragspruefung in `tools/ci/check_ai_guardrails.py` umfasst jetzt zusaetzlich `bw_libs/`, sodass direkte `tkinter`/`ttk`-Imports und neue lokale `ui`/`widgets`/`tui`-Basisklassen auch in Shared-Library-Pfaden blockiert werden.
