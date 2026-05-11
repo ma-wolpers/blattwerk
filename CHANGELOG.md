@@ -26,6 +26,7 @@ The format is based on Keep a Changelog.
 
 ### Changed
 
+- AI guardrails now enforce LaufKern fallback sunset Wave-3: local `ModuleNotFoundError` fallback branches were removed from the central contract bridges (`bw_libs/ui_contract/keybinding.py`, `bw_libs/ui_contract/popup.py`, `bw_libs/ui_contract/hsm.py`, `bw_libs/ui_contract/laufkern.py`), and fallback handlers are now forbidden repo-wide in guardrail scan scopes.
 - Blattwerk fuehrt jetzt eine zentrale LaufKern-Bridge (`bw_libs.ui_contract.laufkern`) fuer Manifest-, Reachability- und Tracking-Vertraege, wodurch die Trennung "Programm = Was" und "LaufKern = Wie" in der UI-Contract-Schicht technisch vorbereitet ist.
 - Die Shortcut-Runtime-Debug-Ansicht zeigt jetzt zusaetzlich eine LaufKern-Zusammenfassung zur aktuellen Intent-Erreichbarkeit (erreichbare Intents pro Runtime-Kontext und Manifest-Validierungsstatus).
 - Der LaufKern-Manifestaufbau wurde in einen dedizierten Provider (`app/ui/laufkern_manifest_provider.py`) ausgelagert, damit Runtime-Integration (Wie) und app-spezifische Deklaration (Was) klar getrennt bleiben.

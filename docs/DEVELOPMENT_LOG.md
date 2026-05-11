@@ -22,6 +22,8 @@ Regel:
 - Format-Switching in der Vorschau: Wenn der Benutzer das Seitenformat wechselt (z. B. 16:9 → 16:10 oder A4 → A5), wird jetzt korrekt ein neuer Render angestoßen und der Cache wird invalidiert. Zuvor blieb die Vorschau-Darstellung trotz Format-Änderung gleich.
 
 ### Changed
+- Wave-3-Sunset abgeschlossen: lokale `ModuleNotFoundError`-Fallback-Zweige wurden aus den zentralen UI-Contract-Bridges (`bw_libs/ui_contract/keybinding.py`, `bw_libs/ui_contract/popup.py`, `bw_libs/ui_contract/hsm.py`, `bw_libs/ui_contract/laufkern.py`) entfernt; Shared-Imports sind jetzt verpflichtend.
+- Guardrail-Sunset auf Wave-3 umgestellt: `tools/ci/check_ai_guardrails.py` blockiert `except ModuleNotFoundError` jetzt repo-weit in den Scan-Scopes (`app`, `bw_libs`) ohne Bridge-Allowlist.
 - Wave-2-Sunset-Gate aktiviert: `tools/ci/check_ai_guardrails.py` erlaubt `except ModuleNotFoundError` nur noch in den zentralen UI-Contract-Bridges (`bw_libs/ui_contract/keybinding.py`, `bw_libs/ui_contract/popup.py`, `bw_libs/ui_contract/hsm.py`, `bw_libs/ui_contract/laufkern.py`) und blockiert neue lokale Fallback-Zweige ausserhalb dieser Baseline.
 - LaufKern-Tracking an produktiven Dispatch-Pfad angebunden: `app/ui/shortcut_manager.py` protokolliert ausgefuehrte Shortcut-Intents jetzt als LaufKern-Tracking-Artefakte (done/failed), und `app/ui/blatt_ui_base.py` zeigt zusaetzlich einen Completion-Status aus der laufenden Artefaktaggregation im Shortcut-Debug an.
 - LaufKern-Manifestaufbau aus der UI-Klasse in einen dedizierten Provider ausgelagert: `app/ui/laufkern_manifest_provider.py` erzeugt jetzt den deklarativen Runtime-Manifestzustand aus der Shortcut-Registry.
