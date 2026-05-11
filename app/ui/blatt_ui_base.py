@@ -36,8 +36,9 @@ from bw_libs.ui_contract.hsm import (
     build_ui_hsm_contract,
 )
 from bw_libs.ui_contract.popup import POPUP_KIND_MODAL, POPUP_KIND_NON_MODAL, PopupPolicy, PopupPolicyRegistry
-from bw_libs.ui_contract.laufkern import LaufKernRoute, build_manifest, verify_manifest, verify_reachability
+from bw_libs.ui_contract.laufkern import verify_manifest, verify_reachability
 from bw_libs.app_shell import AppShellConfig, TkinterAppShell
+from .laufkern_manifest_provider import build_runtime_shortcut_manifest
 from .ui_theme import DEFAULT_THEME
 from ..styles.blatt_styles import DEFAULT_FONT_PROFILE, DEFAULT_FONT_SIZE_PROFILE
 from ..styles.worksheet_design import (
@@ -460,27 +461,7 @@ class BlattwerkAppBase:
     def _build_laufkern_manifest(self):
         """Build one declarative LaufKern manifest from registered runtime shortcuts."""
 
-        definitions = self.keybinding_registry.all()
-        intents = tuple(sorted({definition.intent for definition in definitions}))
-        routes = tuple(
-            LaufKernRoute(
-                route_id=f"shortcut.{definition.binding_id}",
-                intent=definition.intent,
-                route_type="shortcut",
-                modes=tuple(definition.modes),
-                binding_id=definition.binding_id,
-                metadata={"sequence": definition.sequence},
-            )
-            for definition in definitions
-        )
-        return build_manifest(
-            manifest_id="blattwerk.shortcuts.runtime",
-            repo_name="blattwerk",
-            intents=intents,
-            routes=routes,
-            keybinding_registry=self.keybinding_registry,
-            metadata={"provider": "blattwerk.app.ui.blatt_ui_base"},
-        )
+        return build_runtime_shortcut_manifest(self.keybinding_registry)
 
     def _summarize_laufkern_reachability(
         self,
