@@ -32,7 +32,7 @@ Design-Präferenzen sind bindend, solange sie der Grammatik nicht widersprechen.
 8. Bei Aufgabenformulierungen Operatoren immer explizit aus den verlinkten Operatorenlisten wählen, fett markieren und deren erwartete Leistung konsequent umsetzen.
 9. In Mathematikaufgaben konsequent diese Schreibweise verwenden: Division mit Doppelpunkt (:) und Multiplikation mit cdot-Punkt (·), nicht mit x, * oder ÷.
 10. Nutze für Tabellen konsequent die Blattwerk-Syntax (siehe docs/MD_FORMAT.md) und vermeide Markdown-Tabellen.
-11. Nutze PowerShell wegen Mojibake-Gefahr grundsätzlich mit Vorsicht; bei Datei- und Textoperationen immer auf saubere UTF-8-Verarbeitung achten und lieber direkt über VSCode-Tools die Dateien bearbeiten.
+11. Nutze PowerShell wegen Mojibake-Gefahr grundsätzlich mit Vorsicht; bei Datei- und Textoperationen immer auf saubere UTF-8-Verarbeitung achten und lieber direkt über VSCode-Patches die Dateien bearbeiten, auch nicht per Python.
 12. Wenn du explizite `§`-Marker für nur im Arbeitsblatt sichtbare Inhalte setzt, immer gegenpruefen, dass fuer denselben Aufgabenteil auch eine sichtbare Loesung vorhanden ist, typischerweise mit `%`-Marker oder einer blockeigenen Loesungsdarstellung.
 
 ## Pflicht-Validierung nach Aenderungen
