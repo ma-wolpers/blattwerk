@@ -20,7 +20,7 @@ Design-Präferenzen sind bindend, solange sie der Grammatik nicht widersprechen.
 
 ## Arbeitsregeln fuer den Agent
 
-1. Vor jeder inhaltlichen Markdown-Generierung zuerst docs/GRAMMAR.md **und** app/storage/.state/blattwerker-design.md für Arbeitsblätter **bzw** app/storage/.state/blattwerker-design-presentation.md für Präsentationen lesen.
+1. Vor jeder inhaltlichen Markdown-Bearbeitung/-Generierung zuerst docs/GRAMMAR.md **und** app/storage/.state/blattwerker-design.md für Arbeitsblätter **bzw** app/storage/.state/blattwerker-design-presentation.md für Präsentationen lesen.
 2. Nur erlaubte Blocktypen/Optionen/Werte verwenden:
   - Answer-Bloecke immer mit type anlegen.
   - YAML-basierte answer-Typen nur mit gueltigem Mapping-YAML-Inhalt fuellen.
@@ -39,7 +39,7 @@ Design-Präferenzen sind bindend, solange sie der Grammatik nicht widersprechen.
 
 Nach jeder Blattwerk-Markdown-Aenderung die Datei validieren:
 
-a:/7thCloud/.venv/Scripts/python.exe -m app.cli.blatt_diagnostics_cli --file <DATEI>
+.venv/Scripts/python.exe -m app.cli.blatt_diagnostics_cli --file <DATEI>
 
 ## Umgang mit Diagnosen
 
