@@ -18,7 +18,7 @@
     --dot-spacing: 0.5cm;
     --block-gap-compact: 0.45em;
     --block-gap-regular: 0.75em;
-    --task-gap-before: 2.25em;
+    --task-gap-before: 1.25em;
     --task-gap-after: 0.35em;
     --answer-buffer-inline: 0.5em;
 }
