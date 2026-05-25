@@ -8,6 +8,7 @@ The format is based on Keep a Changelog.
 
 ### Added
 
+- New settings toggle under Ansicht und Layout: `Vorschau bei Tabwechsel automatisch aktualisieren` (Ja/Nein) controls whether switching document tabs forces a preview rebuild or allows cached preview reuse.
 - New `qrcode` block for worksheets/presentations: `:::qrcode url=... w=... h=... maxw=... :::` renders a QR image with image-like sizing options; QR links are clickable in HTML and PDF exports.
 - New systematic QR examples: `examples/markdown/example-qrcode-links.md` (worksheet) and `examples/markdown/example-presentation-qrcode-links.md` (presentation).
 - New object alignment support (`left|right|center|block`) for markdown images via image title options (for example `"w=70% align=center"`) and for many block objects via `align=...` (including `qrcode`, `task`, `material`, answer blocks, and `columns` containers).

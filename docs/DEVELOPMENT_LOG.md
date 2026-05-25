@@ -9,6 +9,8 @@ Regel:
 ## [Unreleased]
 
 ### Added
+- Neue Einstellung `preview_auto_refresh_on_tab_switch` (Tab: Ansicht und Layout) eingefuehrt, um per Ja/Nein zu steuern, ob die Vorschau beim Dokument-Tabwechsel immer neu gebaut wird.
+- Tabwechsel-Vorschau nutzt die neue Einstellung direkt: `True` erzwingt Rebuild (gegen stale Cache), `False` erlaubt Cache-Wiederverwendung.
 - LaufKern-Canary-Integration gestartet: neues zentrales Bridge-Modul `bw_libs/ui_contract/laufkern.py` eingefuehrt (Manifest-, Reachability- und Tracking-API inkl. Shared-`bw_gui.laufkern`-Bridge mit lokalem Fallback) und ueber `bw_libs/ui_contract/__init__.py` als zentrale Importoberflaeche exportiert.
 - Neuer Regressionstest `tests/test_laufkern_bridge.py` validiert Manifestaufbau und Shortcut-basierte Reachability ueber die zentrale LaufKern-Schnittstelle.
 - Neuer Blocktyp `qrcode` eingefuehrt: rendert QR-Codes aus `url=...`, unterstuetzt Groessenoptionen `w/h/maxw` (inkl. `width/height/max-width`) analog zur vorhandenen Bildgroessenlogik und erzeugt in HTML/PDF klickbare Linkziele.

@@ -182,6 +182,12 @@ PREFERENCE_SPECS = {
         "type": "bool",
         "default": True,
     },
+    "preview_auto_refresh_on_tab_switch": {
+        "tab": "view_layout",
+        "label": "Vorschau bei Tabwechsel automatisch aktualisieren",
+        "type": "bool",
+        "default": True,
+    },
     "remember_window_geometry": {
         "tab": "view_layout",
         "label": "Fenstergeometrie merken",

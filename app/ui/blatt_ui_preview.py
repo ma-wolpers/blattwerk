@@ -212,7 +212,14 @@ class BlattwerkAppPreviewMixin:
     def _refresh_preview_for_active_tab(self):
             """Refreshes active tab preview while favoring cached pages when possible."""
 
-            self.refresh_preview(force_rebuild=False)
+            preferences = getattr(self, "user_preferences", {})
+            raw_value = preferences.get("preview_auto_refresh_on_tab_switch", True)
+            if isinstance(raw_value, str):
+                auto_refresh = raw_value.strip().lower() in {"1", "true", "yes", "ja", "on"}
+            else:
+                auto_refresh = bool(raw_value)
+
+            self.refresh_preview(force_rebuild=auto_refresh)
 
     def _default_markdown_content(self):
             """Liefert den Standardinhalt für neu erzeugte Markdown-Dateien."""
