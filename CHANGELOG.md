@@ -17,6 +17,7 @@ The format is based on Keep a Changelog.
 
 ### Fixed
 
+- Font-size class selection no longer flips implicitly when switching document tabs; exports now keep the actively selected size class stable across worksheet and presentation documents.
 - Preview format switching now correctly updates the rendered preview when changing between different slide formats (16:9 → 16:10 → 4:3) or worksheet formats (A4 → A5).
 - Presentation slides now reserve less vertical minimum spacing between slide content and the phase overview footer, so dense slide content has visibly more usable space.
 - Presentation builds now emit a non-blocking warning (`PT002`) when a rendered PDF has more pages than expected slides, indicating vertical slide overflow during compile/render.

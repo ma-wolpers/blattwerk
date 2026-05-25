@@ -806,7 +806,6 @@ class BlattwerkAppBase:
             "contrast": self.preview_contrast_var.get(),
             "color_profile": self.design_color_profile_var.get(),
             "font_profile": self.design_font_profile_var.get(),
-            "font_size_profile": self.design_font_size_profile_var.get(),
             "fit_mode": self.preview_fit_mode_var.get(),
             "layout_mode": self.preview_layout_mode_var.get(),
             "zoom_percent": int(round(self.zoom_percent)),
@@ -841,7 +840,6 @@ class BlattwerkAppBase:
         tab_state["contrast"] = self.preview_contrast_var.get()
         tab_state["color_profile"] = self.design_color_profile_var.get()
         tab_state["font_profile"] = self.design_font_profile_var.get()
-        tab_state["font_size_profile"] = self.design_font_size_profile_var.get()
         tab_state["fit_mode"] = self.preview_fit_mode_var.get()
         tab_state["layout_mode"] = self.preview_layout_mode_var.get()
         tab_state["zoom_percent"] = int(round(self.zoom_percent))
@@ -903,7 +901,6 @@ class BlattwerkAppBase:
             self.preview_contrast_var.set(tab_state.get("contrast", self.preview_contrast_var.get()))
             self.design_color_profile_var.set(tab_state.get("color_profile", self.design_color_profile_var.get()))
             self.design_font_profile_var.set(tab_state.get("font_profile", self.design_font_profile_var.get()))
-            self.design_font_size_profile_var.set(tab_state.get("font_size_profile", self.design_font_size_profile_var.get()))
             self.preview_fit_mode_var.set(tab_state.get("fit_mode", self.preview_fit_mode_var.get()))
             self.preview_layout_mode_var.set(tab_state.get("layout_mode", self.preview_layout_mode_var.get()))
             self.zoom_percent = int(str(tab_state.get("zoom_percent", int(round(self.zoom_percent))) or self.zoom_percent))
