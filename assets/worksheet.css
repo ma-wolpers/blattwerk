@@ -689,9 +689,11 @@ h1 {
 
 .mc-option {
     display: inline-flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 0.28em;
-    white-space: nowrap;
+    white-space: normal;
+    min-width: 0;
+    max-width: 100%;
     font-size: inherit;
     line-height: inherit;
 }
@@ -709,6 +711,8 @@ h1 {
 .mc-label {
     font-size: inherit;
     line-height: inherit;
+    white-space: normal;
+    overflow-wrap: anywhere;
 }
 
 .mc-option.is-correct .mc-box,
