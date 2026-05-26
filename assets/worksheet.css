@@ -53,6 +53,7 @@ hr {
 .presentation-document {
     margin: 0;
     padding: 0;
+    --task-gap-before: 1.1em;
 }
 
 .ab-slide {
@@ -118,6 +119,10 @@ hr {
     flex: 1 1 auto;
     margin: 0;
     padding: 0 0.85cm 0 0.85cm;
+}
+
+.presentation-document .ab-slide-body > *:first-child {
+    margin-top: 0.2cm;
 }
 
 .presentation-section-footer {
