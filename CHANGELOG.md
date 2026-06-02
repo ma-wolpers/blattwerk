@@ -33,6 +33,8 @@ The format is based on Keep a Changelog.
 
 ### Changed
 
+- Downstream-Mod-Integration vorbereitet: Blattwerk verwaltet `kurzentwerfer` jetzt als eigenes Git-Submodule fuer versionierte Pointer-Updates.
+
 - AI guardrails now emit non-blocking local warnings when configured core keyboard intents (for example export/help/new/save-as/settings/debug/escape) are present but matching shortcut binding markers are missing in the shortcut definitions.
 
 - UI contract bridges are now fully decommissioned to thin shared re-export shims (`bw_libs/ui_contract/keybinding.py`, `bw_libs/ui_contract/popup.py`, `bw_libs/ui_contract/hsm.py`, `bw_libs/ui_contract/laufkern.py`); dead local duplicate implementations were removed.
