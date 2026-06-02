@@ -104,6 +104,38 @@ Einstellungen aendern:
 
 Hinweis: `.venv` nicht zwischen Rechnern kopieren, immer lokal neu erstellen.
 
+## Parallelbetrieb: Hauptstrang + Nebenstrang
+
+Dieses Repo nutzt fuer die Downstream-Integration mit Kurzentwerfer einen dauerhaften Nebenstrang.
+
+Verbindliche Arbeitsaufteilung:
+
+- `a:/Code/blattwerk-main`: Hauptarbeit auf Branch `main` (nur Blattwerk-Hauptstrang).
+- `a:/Code/blattwerk`: Integrations-/Nebenstrang `feat/add-kurzentwerfer-mod-phase0`.
+- `a:/Code/kurzentwerfer`: aktive Kurzentwerfer-Entwicklung im eigenstaendigen Repo.
+
+Wichtige Regeln:
+
+1. Der Nebenstrang wird nicht nach `main` gemerged.
+2. Kurzentwerfer-Aenderungen passieren im Kurzentwerfer-Repo, nicht dauerhaft im Submodule-Checkout unter Blattwerk.
+3. Wenn ein neuer Kurzentwerfer-Stand integriert werden soll:
+	- Kurzentwerfer committen und pushen,
+	- im Blattwerk-Nebenstrang den Submodule-Pointer aktualisieren,
+	- Pointer-Bump im Nebenstrang committen.
+4. Damit der Nebenstrang von Blattwerk profitiert, `origin/main` regelmaessig in den Nebenstrang uebernehmen (Merge oder Rebase) und danach Guardrails/Tests ausfuehren.
+
+Kurzroutine fuer den Nebenstrang:
+
+```powershell
+Push-Location a:/Code/blattwerk
+git fetch origin
+git merge origin/main
+git submodule status kurzentwerfer
+.\.venv\Scripts\python.exe tools/ci/check_ai_guardrails.py
+.\.venv\Scripts\python.exe -m pytest -q
+Pop-Location
+```
+
 ## Häufige Probleme
 
 ### `py` wird nicht erkannt

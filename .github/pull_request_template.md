@@ -10,6 +10,7 @@ Describe what changed and why.
 - [ ] `CHANGELOG.md` updated (if user-facing behavior changed)
 - [ ] New shortcuts are registered centrally in `bw_libs/ui_contract/keybinding.py`
 - [ ] New popups follow central policy in `bw_libs/ui_contract/popup.py`
+- [ ] Side-thread rule respected: PRs to `main` do not introduce `kurzentwerfer` submodule integration artifacts
 - [ ] Feature work is grouped in dedicated commit(s)
 - [ ] No auto-push required; push stays manual
 - [ ] Tests or validation run and documented

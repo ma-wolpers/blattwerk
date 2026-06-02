@@ -33,6 +33,10 @@ The format is based on Keep a Changelog.
 
 ### Changed
 
+- Parallelbetrieb fuer Entwicklung stabilisiert: Blattwerk-Hauptstrang (`main`) und Kurzentwerfer-Integrationsnebenstrang sind jetzt als dauerhaft getrenntes Worktree-/Repo-Betriebsmodell dokumentiert (Hauptarbeit auf `a:/Code/blattwerk-main`, Integrationsarbeit auf `a:/Code/blattwerk`, Kurzentwerfer-Facharbeit im eigenen Repo).
+- PR-Checkliste erweitert: PRs gegen `main` muessen explizit bestaetigen, dass keine `kurzentwerfer`-Submodule-Integrationsartefakte in den Hauptstrang eingefuehrt werden.
+- Neuer Guardrail-Hardstop: `tools/ci/check_ai_guardrails.py` blockiert main-targeted Kontexte (Branch `main` oder PR-Base `main`), wenn `kurzentwerfer` als Submodule eingebunden ist.
+
 - Downstream-Mod-Integration vorbereitet: Blattwerk verwaltet `kurzentwerfer` jetzt als eigenes Git-Submodule fuer versionierte Pointer-Updates.
 - CI-Qualitaetsgate erweitert: der `quality-guardrails`-Workflow checkt rekursiv eingecheckte Submodule und fuehrt ein separates `kurzentwerfer`-Gate (Guardrails + Tests) aus.
 - Guardrails fuer Downstream-Integration erweitert: bei aktivem `kurzentwerfer`-Submodule werden Submodule-Konfiguration und Kurzentwerfer-DSL-Trennungsanker hart geprueft; fehlende CI-/Remote-Haertung im getrackten Submodule-Commit wird als Prozesswarnung ausgegeben.

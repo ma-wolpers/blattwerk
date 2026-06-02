@@ -27,6 +27,9 @@ Regel:
 - Format-Switching in der Vorschau: Wenn der Benutzer das Seitenformat wechselt (z. B. 16:9 → 16:10 oder A4 → A5), wird jetzt korrekt ein neuer Render angestoßen und der Cache wird invalidiert. Zuvor blieb die Vorschau-Darstellung trotz Format-Änderung gleich.
 
 ### Changed
+- Betriebsmodell fuer den Downstream-Nebenstrang gehaertet: dualer Blattwerk-Worktree (`a:/Code/blattwerk-main` fuer `main`, `a:/Code/blattwerk` fuer den Integrationsstrang) und dauerhafte Trennung Kurzentwerfer-Facharbeit (`a:/Code/kurzentwerfer`) sind jetzt in README, AGENTS und Copilot-Instructions verbindlich dokumentiert.
+- PR-Disziplin fuer den Hauptstrang geschaerft: PR-Template enthaelt jetzt einen expliziten Side-Thread-Checklist-Punkt, dass PRs nach `main` keine `kurzentwerfer`-Submodule-Integrationsartefakte einfuehren duerfen.
+- Guardrail-Hardstop fuer Hauptstrangschutz ergaenzt: `tools/ci/check_ai_guardrails.py` blockiert jetzt main-targeted Kontexte (Branch `main` oder GitHub-PR mit `base=main`), sobald `kurzentwerfer` als Submodule im Arbeitsbaum enthalten ist.
 - Downstream-Mod-Integration Phase 3 gestartet: `quality-guardrails`-Workflow auf rekursiven Submodule-Checkout erweitert und um separates `kurzentwerfer`-Qualitaetsgate (Guardrails + Pytest) ergaenzt.
 - Downstream-Mod-Integration Phase 2 gestartet: `tools/ci/check_ai_guardrails.py` prueft jetzt bei aktivem `kurzentwerfer`-Submodule die Integrationskonfiguration (`.gitmodules`) sowie harte Kurzentwerfer-Qualitaetsanker (Guardrail-Datei und DSL-Trennungsmarker); fehlende CI-/Remote-Haertung im getrackten Submodule-Commit wird als non-blocking Prozesswarnung gemeldet.
 - Downstream-Mod-Integration Phase 0 gestartet: `kurzentwerfer` als Git-Submodule im Repo verankert und auf `main` als Tracking-Basis vorbereitet.

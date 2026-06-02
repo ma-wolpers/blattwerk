@@ -179,6 +179,20 @@ def _staged_files(repo_root: Path) -> set[str]:
         return set()
 
 
+def _current_branch(repo_root: Path) -> str:
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+            cwd=str(repo_root),
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        return result.stdout.strip()
+    except Exception:
+        return ""
+
+
 def _has_relevant_staged_changes(staged: set[str], repo_root: Path) -> bool:
     try:
         root_rel_to_repo = str(ROOT.resolve().relative_to(repo_root.resolve())).replace("\\", "/")
@@ -727,6 +741,27 @@ def _check_downstream_mod_integration(errors: list[str]) -> None:
         _require_substring(_read(kze_validator_rel), "KZF010", kze_validator_rel, errors)
 
 
+def _check_side_thread_main_protection(repo_root: Path, errors: list[str]) -> None:
+    """Block kurzentwerfer side-thread artifacts in main-targeted contexts."""
+
+    gitmodules = _read(".gitmodules")
+    section_marker = f"[submodule \"{DOWNSTREAM_MOD_SUBMODULE_NAME}\"]"
+    if section_marker not in gitmodules:
+        return
+
+    current_branch = _current_branch(repo_root)
+    github_event = os.environ.get("GITHUB_EVENT_NAME", "")
+    github_base_ref = os.environ.get("GITHUB_BASE_REF", "")
+    is_main_target_pr = github_event == "pull_request" and github_base_ref == "main"
+    is_main_branch = current_branch == "main"
+    if not (is_main_target_pr or is_main_branch):
+        return
+
+    errors.append(
+        ".gitmodules: kurzentwerfer side-thread integration is forbidden on main-targeted contexts; keep it on the dedicated side branch only"
+    )
+
+
 def _collect_process_guidance_warnings() -> list[str]:
     """Collect non-blocking warnings for process guidance consistency."""
     warnings: list[str] = []
@@ -866,6 +901,7 @@ def main() -> int:
     _check_shared_ui_contract_hardening(errors)
     _check_laufkern_fallback_sunset(errors)
     _check_ui_contract_bridge_decommission(errors)
+    _check_side_thread_main_protection(repo_root, errors)
     _check_downstream_mod_integration(errors)
     _check_future_gui_entry_contracts(errors)
     _check_repo_wide_gui_contracts(errors)

@@ -41,3 +41,9 @@ Verbindliche Regeln:
 8. Feature-Commit und Push-Disziplin
 - Feature-Aenderungen werden in eigenstaendigen Commits gebuendelt (ein Feature = ein klarer Commit-Block).
 - Push erfolgt manuell durch den Nutzer nach eigener Freigabe; kein Auto-Push.
+
+9. Dauerhafter Nebenstrang fuer Kurzentwerfer
+- Der Branch `feat/add-kurzentwerfer-mod-phase0` ist ein dauerhafter Integrations-/Nebenstrang und darf nicht nach `main` gemerged werden.
+- Blattwerk-Hauptarbeit erfolgt auf `main` (empfohlener separater Worktree: `a:/Code/blattwerk-main`).
+- Kurzentwerfer-Facharbeit erfolgt im eigenstaendigen Repo `a:/Code/kurzentwerfer`; im Blattwerk-Nebenstrang wird nur der Submodule-Pointer nachgezogen.
+- Nebenstrangpflege beinhaltet regelmaessiges Uebernehmen von `origin/main` in den Nebenstrang (Merge/Rebase) plus anschliessende Guardrail-/Test-Validierung.
