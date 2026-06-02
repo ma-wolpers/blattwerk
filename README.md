@@ -165,6 +165,7 @@ python blattwerk.py
 - Formale Grammatik: `docs/GRAMMAR.md`
 - Validator und Diagnosecodes: `docs/VALIDATOR.md`
 - Agent-Setup und Agent-Erstellung: `docs/AGENT_SETUP.md`
+- Setup Zweiter PC (Worktrees + Nebenstrang + KI-Regeln): `docs/SETUP_ZWEITER_PC.md`
 - CSS-Anleitung: `docs/CSS_ANLEITUNG.md`
 - Architektur (intern): `docs/ARCHITEKTUR.md`
 - Architektur (einfach): `docs/ARCHITEKTUR_EINFACH.md`
