@@ -28,6 +28,7 @@ Regel:
 
 ### Changed
 - Downstream-Mod-Integration Phase 3 gestartet: `quality-guardrails`-Workflow auf rekursiven Submodule-Checkout erweitert und um separates `kurzentwerfer`-Qualitaetsgate (Guardrails + Pytest) ergaenzt.
+- Downstream-Mod-Integration Phase 2 gestartet: `tools/ci/check_ai_guardrails.py` prueft jetzt bei aktivem `kurzentwerfer`-Submodule die Integrationskonfiguration (`.gitmodules`) sowie harte Kurzentwerfer-Qualitaetsanker (Guardrail-Datei und DSL-Trennungsmarker); fehlende CI-/Remote-Haertung im getrackten Submodule-Commit wird als non-blocking Prozesswarnung gemeldet.
 - Downstream-Mod-Integration Phase 0 gestartet: `kurzentwerfer` als Git-Submodule im Repo verankert und auf `main` als Tracking-Basis vorbereitet.
 - Lernhilfen-Bildexport granularisiert: `Lernhilfen -> PNG` und `Lernhilfen -> PNG (ZIP)` rendern jetzt jede sichtbare Lernhilfe als eigene Karte/Bilddatei statt als seitenweise PDF-Rasterung; Dateinamen werden bei Mehrfachkarten fortlaufend erzeugt.
 - Allgemeiner Soft-Guardrail fuer Shortcut-Abdeckung ergaenzt: `tools/ci/check_ai_guardrails.py` meldet lokal (non-blocking) Warnungen, wenn konfigurierte Kern-Intents (z. B. Export/Hilfe/Neu/Save-As/Settings/Debug/Escape) ohne passenden Keyboard-Binding-Marker in den Blattwerk-Shortcutdefinitionen gefunden werden.

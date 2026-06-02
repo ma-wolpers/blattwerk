@@ -35,6 +35,7 @@ The format is based on Keep a Changelog.
 
 - Downstream-Mod-Integration vorbereitet: Blattwerk verwaltet `kurzentwerfer` jetzt als eigenes Git-Submodule fuer versionierte Pointer-Updates.
 - CI-Qualitaetsgate erweitert: der `quality-guardrails`-Workflow checkt rekursiv eingecheckte Submodule und fuehrt ein separates `kurzentwerfer`-Gate (Guardrails + Tests) aus.
+- Guardrails fuer Downstream-Integration erweitert: bei aktivem `kurzentwerfer`-Submodule werden Submodule-Konfiguration und Kurzentwerfer-DSL-Trennungsanker hart geprueft; fehlende CI-/Remote-Haertung im getrackten Submodule-Commit wird als Prozesswarnung ausgegeben.
 
 - AI guardrails now emit non-blocking local warnings when configured core keyboard intents (for example export/help/new/save-as/settings/debug/escape) are present but matching shortcut binding markers are missing in the shortcut definitions.
 
