@@ -37,3 +37,8 @@ Pflichtregeln:
 9. Commit-/Push-Workflow
 - Feature-Aenderungen als eigene Commits strukturieren.
 - Kein automatisches Pushen; Push bleibt bewusst manuell.
+
+10. Repo-Rollen auf diesem PC
+- `c:/Users/7thpl/Desktop/Code/blattwerk` ist der Hauptarbeitsordner auf `main`.
+- `c:/Users/7thpl/Desktop/Code/blattwerk-side` ist der dauerhafte Integrations-/Nebenstrang `feat/add-kurzentwerfer-mod-phase0`.
+- Kein automatisches Erzeugen eines zusaetzlichen `blattwerk-main`-Worktrees oder Parallel-Ordners.
