@@ -33,7 +33,11 @@ The format is based on Keep a Changelog.
 
 ### Changed
 
-- Parallelbetrieb fuer Entwicklung stabilisiert: Blattwerk-Hauptstrang (`main`) und Kurzentwerfer-Integrationsnebenstrang sind jetzt als dauerhaft getrenntes Worktree-/Repo-Betriebsmodell dokumentiert (Hauptarbeit auf `a:/Code/blattwerk-main`, Integrationsarbeit auf `a:/Code/blattwerk`, Kurzentwerfer-Facharbeit im eigenen Repo).
+- Legacy-Sichtbarkeitsmarker in textbasierten Antwortbloecken werden jetzt nur noch am absoluten Zeilenanfang erkannt (`§`, `%`, `&` als eigenes Start-Token). Zeilenende-Formen wie `Text %` bleiben normaler Text.
+- Inline-Sichtbarkeitsmarker mit Klammern (`§{...}`, `%{...}`, `&{...}`) bleiben auch in der Zeilenmitte voll unterstuetzt.
+- Blattwerker-Designpraeferenzen fuer Prozentangaben wurden auf Schreibweise mit Leerzeichen vereinheitlicht (`75 %` statt `75%`) - konsistent fuer Arbeitsblatt- und Praesentationskontext.
+
+- Parallelbetrieb fuer Entwicklung stabilisiert: Blattwerk-Hauptstrang (`main`) und Kurzentwerfer-Integrationsnebenstrang sind jetzt als klares Branch-Betriebsmodell im bestehenden Repo dokumentiert (Arbeit in `a:/Code/blattwerk` mit Branch-Wechsel zwischen `main` und `feat/add-kurzentwerfer-mod-phase0`; Kurzentwerfer-Facharbeit im eigenen Repo).
 - PR-Checkliste erweitert: PRs gegen `main` muessen explizit bestaetigen, dass keine `kurzentwerfer`-Submodule-Integrationsartefakte in den Hauptstrang eingefuehrt werden.
 - Neuer Guardrail-Hardstop: `tools/ci/check_ai_guardrails.py` blockiert main-targeted Kontexte (Branch `main` oder PR-Base `main`), wenn `kurzentwerfer` als Submodule eingebunden ist.
 

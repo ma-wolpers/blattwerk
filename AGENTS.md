@@ -47,5 +47,5 @@ Verbindliche Regeln:
 - Blattwerk-Hauptarbeit erfolgt im bestehenden Ordner `c:/Users/7thpl/Desktop/Code/blattwerk` auf `main`.
 - Dieser Ordner `c:/Users/7thpl/Desktop/Code/blattwerk-side` bleibt der Integrations-/Nebenstrang fuer `feat/add-kurzentwerfer-mod-phase0`.
 - Kurzentwerfer-Facharbeit erfolgt im eigenstaendigen Repo `a:/Code/kurzentwerfer`; im Blattwerk-Nebenstrang wird nur der Submodule-Pointer nachgezogen.
-- Kein automatisches Erzeugen eines zusaetzlichen `blattwerk-main`-Worktrees oder Parallel-Ordners.
+- Kein automatisches Erzeugen eines zusaetzlichen `blattwerk`-Worktrees oder Parallel-Ordners.
 - Nebenstrangpflege beinhaltet regelmaessiges Uebernehmen von `origin/main` in den Nebenstrang (Merge/Rebase) plus anschliessende Guardrail-/Test-Validierung.

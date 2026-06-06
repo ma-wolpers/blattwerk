@@ -110,8 +110,8 @@ Dieses Repo nutzt fuer die Downstream-Integration mit Kurzentwerfer einen dauerh
 
 Verbindliche Arbeitsaufteilung:
 
-- `a:/Code/blattwerk-main`: Hauptarbeit auf Branch `main` (nur Blattwerk-Hauptstrang).
-- `a:/Code/blattwerk`: Integrations-/Nebenstrang `feat/add-kurzentwerfer-mod-phase0`.
+- `a:/Code/blattwerk`: Hauptarbeit auf Branch `main` (Blattwerk-Hauptstrang).
+- `a:/Code/blattwerk`: Integrations-/Nebenstrang `feat/add-kurzentwerfer-mod-phase0` (per Branch-Wechsel im selben Repo).
 - `a:/Code/kurzentwerfer`: aktive Kurzentwerfer-Entwicklung im eigenstaendigen Repo.
 
 Wichtige Regeln:

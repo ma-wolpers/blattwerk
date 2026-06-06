@@ -1,4 +1,4 @@
-# Setup Zweiter PC: Blattwerk + Kurzentwerfer Nebenstrang
+﻿# Setup Zweiter PC: Blattwerk + Kurzentwerfer Nebenstrang
 
 Diese Anleitung richtet einen zweiten PC so ein, dass du gleichzeitig
 
@@ -10,8 +10,7 @@ Diese Anleitung richtet einen zweiten PC so ein, dass du gleichzeitig
 
 Empfohlene Ordnerstruktur:
 
-- `a:/Code/blattwerk-main` -> Blattwerk `main` (Hauptstrang)
-- `a:/Code/blattwerk` -> Blattwerk `feat/add-kurzentwerfer-mod-phase0` (Nebenstrang)
+- `a:/Code/blattwerk` -> Blattwerk `main` (Hauptstrang)
 - `a:/Code/kurzentwerfer` -> Kurzentwerfer-Repo (aktive Facharbeit)
 
 Wichtig:
@@ -55,14 +54,14 @@ git submodule update --init --recursive
 Pop-Location
 ```
 
-## 3) Blattwerk main als zweiten Worktree anlegen
+## 3) Zwischen main und Nebenstrang wechseln (ein Repo-Ordner)
 
 ```powershell
 Push-Location a:/Code/blattwerk
-git worktree add a:/Code/blattwerk-main main
-Pop-Location
-
-Push-Location a:/Code/blattwerk-main
+git fetch origin
+git switch main
+git pull --ff-only origin main
+git switch feat/add-kurzentwerfer-mod-phase0
 git submodule update --init --recursive
 Pop-Location
 ```
@@ -71,25 +70,16 @@ Kontrolle:
 
 ```powershell
 Push-Location a:/Code/blattwerk
-git worktree list
+git branch --show-current
 Pop-Location
 ```
 
 ## 4) Python-Umgebungen einrichten
 
-Blattwerk Nebenstrang:
+Blattwerk (einmalig):
 
 ```powershell
 Push-Location a:/Code/blattwerk
-py -3 -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
-Pop-Location
-```
-
-Blattwerk main:
-
-```powershell
-Push-Location a:/Code/blattwerk-main
 py -3 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
 Pop-Location
@@ -129,15 +119,14 @@ Pop-Location
 
 Empfohlenes Multi-Root-Workspace-Set:
 
-1. `a:/Code/blattwerk-main`
-2. `a:/Code/blattwerk`
-3. `a:/Code/kurzentwerfer`
+1. `a:/Code/blattwerk`
+2. `a:/Code/kurzentwerfer`
 
 Klare Regel im Alltag:
 
-1. Blattwerk-Features/Fixes nur in `a:/Code/blattwerk-main`.
+1. Blattwerk-Features/Fixes in `a:/Code/blattwerk` auf Branch `main`.
 2. Kurzentwerfer-Facharbeit nur in `a:/Code/kurzentwerfer`.
-3. Integrations-/Pointer-Arbeit nur in `a:/Code/blattwerk`.
+3. Integrations-/Pointer-Arbeit in `a:/Code/blattwerk` auf Branch `feat/add-kurzentwerfer-mod-phase0`.
 
 ## 7) Pointer-Bump-Workflow (Kurzentwerfer -> Blattwerk Nebenstrang)
 
@@ -179,8 +168,9 @@ Aktive Schutzmechanismen:
 Hauptstrang aktualisieren:
 
 ```powershell
-Push-Location a:/Code/blattwerk-main
+Push-Location a:/Code/blattwerk
 git fetch origin
+git switch main
 git pull --ff-only origin main
 Pop-Location
 ```
@@ -190,6 +180,7 @@ Nebenstrang mit main synchronisieren:
 ```powershell
 Push-Location a:/Code/blattwerk
 git fetch origin
+git switch feat/add-kurzentwerfer-mod-phase0
 git merge origin/main
 .\.venv\Scripts\python.exe tools/ci/check_ai_guardrails.py
 .\.venv\Scripts\python.exe -m pytest -q
@@ -212,3 +203,4 @@ Wenn versehentlich ein PR Richtung `main` mit Nebenstrang-Artefakten erstellt wu
 1. Nicht mergen.
 2. PR schliessen.
 3. Weiterarbeit auf `feat/add-kurzentwerfer-mod-phase0`.
+
