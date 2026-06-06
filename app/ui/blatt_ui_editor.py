@@ -608,9 +608,9 @@ class BlattwerkAppEditorMixin:
                         f"{line_no}.{value_end}",
                     )
 
-            for marker_match in re.finditer(r"(^|\s)([§%&])(?=\s|$)", line_text):
-                marker_start = marker_match.start(2)
-                marker_end = marker_match.end(2)
+            for marker_match in re.finditer(r"^([§%&])(?=\s|$)", line_text):
+                marker_start = marker_match.start(1)
+                marker_end = marker_match.end(1)
                 self.editor_widget.tag_add(
                     "syn_marker",
                     f"{line_no}.{marker_start}",

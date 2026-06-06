@@ -38,11 +38,11 @@ def test_conflicting_line_markers_emit_an006_warning():
     assert "AN006" in codes
 
 
-def test_conflicting_legacy_start_and_end_markers_emit_an006_warning():
-    text = _build_document(":::lines\n§ Start %\n:::")
+def test_trailing_legacy_marker_does_not_emit_an006_warning():
+    text = _build_document(":::lines\nText %\n:::")
     inspected = inspect_markdown_text(text)
     codes = {diagnostic.code for diagnostic in inspected.diagnostics}
-    assert "AN006" in codes
+    assert "AN006" not in codes
 
 
 def test_non_empty_answer_without_marker_conflict_has_no_new_warnings():

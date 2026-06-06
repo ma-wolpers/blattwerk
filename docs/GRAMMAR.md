@@ -68,12 +68,14 @@ block_name        = "material"
 - Legacy-Syntax `:::answer type=...` ist ungueltig; Antwortflaechen werden nur noch ueber dedizierte Blocktypen beschrieben.
 - `grid` ist textbasiert und nutzt normale Marker-/Inline-Sichtbarkeit wie andere textbasierte Antwortbloecke.
 - YAML-basierte Antwort-Blocktypen (`geometry`, `numberline`, `table`, `matching`) erwarten Mapping-YAML als Inhalt.
+- In YAML-Double-Quotes muessen LaTeX-Backslashes escaped werden (z. B. `"$\\dfrac{1}{2}$"`); alternativ Single-Quotes verwenden (`'$\dfrac{1}{2}$'`).
+- LaTeX-Gruppierung nutzt normale geschweifte Klammern (`{}`); `\{`/`\}` ist nur fuer sichtbare Literal-Klammern gedacht.
 - In Geometry-YAML (`points`, `sequence`, `pairs`, `functions`) ist Element-Sichtbarkeit nur als `show: "§"|"%"|"&"` erlaubt.
 - `sequence`-Einträge haben `x`, `y` (und optional `label`); alle Einträge werden als sortierte Polylinie verbunden.
 - `pairs`-Einträge haben `x1`, `y1`, `x2`, `y2`; jeder Eintrag wird als eigene Strecke gerendert. Optionaler Key `line`: `solid` | `dashed` (Standard: `dashed`).
 - In Numberline-YAML (`labels`, `answers`, `arcs`) ist Element-Sichtbarkeit nur als `show: "§"|"%"|"&"` erlaubt.
 - In textbasierten Antwort-Blockinhalten sind zwei Marker-Varianten erlaubt:
-    - Legacy-Zeilenmarker als eigenes Token am Zeilenanfang/-ende:
+    - Legacy-Zeilenmarker als eigenes Token am absoluten Zeilenanfang:
         - `§` -> worksheet
         - `%` -> solution
         - `&` -> both
@@ -81,9 +83,10 @@ block_name        = "material"
         - `§{...}` -> nur Arbeitsblatt
         - `%{...}` -> nur Loesung
         - `&{...}` -> Arbeitsblatt und Loesung
+- Inline-Token (`§{...}`, `%{...}`, `&{...}`) duerfen auch in der Zeilenmitte stehen.
 - Text ohne Token ist standardmaessig in beiden Modi sichtbar.
 - Escape-Sequenzen fuer Literale: `\%\{`, `\§\{`, `\&`, `\}`.
-- Syntaxkonflikte (`AN006`) entstehen bei ungeschlossenen Inline-Tokens (z. B. `%{Text`) oder bei Legacy-Markern gleichzeitig am Zeilenanfang und -ende.
+- Syntaxkonflikte (`AN006`) entstehen bei ungeschlossenen Inline-Tokens (z. B. `%{Text`).
 
 ## 4. Kanonische Werte (Auszug)
 
