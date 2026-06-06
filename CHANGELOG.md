@@ -8,6 +8,7 @@ The format is based on Keep a Changelog.
 
 ### Added
 
+- New setting in Ansicht und Layout: automatic preview refresh after typing pause can now be enabled/disabled via checkbox, and the idle delay is configurable in milliseconds.
 - New settings toggle under Ansicht und Layout: `Vorschau bei Tabwechsel automatisch aktualisieren` (Ja/Nein) controls whether switching document tabs forces a preview rebuild or allows cached preview reuse.
 - New `qrcode` block for worksheets/presentations: `:::qrcode url=... w=... h=... maxw=... :::` renders a QR image with image-like sizing options; QR links are clickable in HTML and PDF exports.
 - New systematic QR examples: `examples/markdown/example-qrcode-links.md` (worksheet) and `examples/markdown/example-presentation-qrcode-links.md` (presentation).

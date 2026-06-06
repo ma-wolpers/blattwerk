@@ -9,6 +9,7 @@ Regel:
 ## [Unreleased]
 
 ### Added
+- Neue lokale Einstellung fuer die Vorschauaktualisierung nach Tipp-Pause: Auto-Refresh im Schreibbereich ist jetzt als Checkbox plus konfigurierbare Verzoegerung (ms) verfuegbar; bei Deaktivierung werden pending Auto-Refresh-Timer sofort verworfen.
 - Neue Einstellung `preview_auto_refresh_on_tab_switch` (Tab: Ansicht und Layout) eingefuehrt, um per Ja/Nein zu steuern, ob die Vorschau beim Dokument-Tabwechsel immer neu gebaut wird.
 - Tabwechsel-Vorschau nutzt die neue Einstellung direkt: `True` erzwingt Rebuild (gegen stale Cache), `False` erlaubt Cache-Wiederverwendung.
 - LaufKern-Canary-Integration gestartet: neues zentrales Bridge-Modul `bw_libs/ui_contract/laufkern.py` eingefuehrt (Manifest-, Reachability- und Tracking-API inkl. Shared-`bw_gui.laufkern`-Bridge mit lokalem Fallback) und ueber `bw_libs/ui_contract/__init__.py` als zentrale Importoberflaeche exportiert.

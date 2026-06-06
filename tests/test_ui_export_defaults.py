@@ -80,3 +80,18 @@ def test_normalize_user_preferences_maps_legacy_export_keys_to_split_keys():
     assert normalized["default_export_page_format_worksheet"] == "a5_landscape"
     # Legacy worksheet format is invalid for presentation defaults and is normalized safely.
     assert normalized["default_export_page_format_presentation"] == "presentation_16_9"
+
+
+def test_normalize_user_preferences_adds_preview_auto_refresh_defaults():
+    normalized = normalize_user_preferences({})
+
+    assert normalized["preview_auto_refresh_on_edit_idle_enabled"] is False
+    assert normalized["preview_auto_refresh_on_edit_idle_delay_ms"] == 1200
+
+
+def test_normalize_user_preferences_clamps_preview_auto_refresh_delay():
+    low = normalize_user_preferences({"preview_auto_refresh_on_edit_idle_delay_ms": 1})
+    high = normalize_user_preferences({"preview_auto_refresh_on_edit_idle_delay_ms": 99999})
+
+    assert low["preview_auto_refresh_on_edit_idle_delay_ms"] == 200
+    assert high["preview_auto_refresh_on_edit_idle_delay_ms"] == 10000

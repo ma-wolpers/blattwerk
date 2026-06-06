@@ -114,6 +114,9 @@ class BlattwerkAppBase:
         self._editor_outline_after_id = None
         self._editor_outline_delay_ms = 220
         self._editor_outline_items = []
+        self._preview_auto_refresh_after_id = None
+        self._preview_auto_refresh_on_edit_idle_enabled = False
+        self._preview_auto_refresh_on_edit_idle_delay_ms = 1200
         self._editor_completion_popup = None
         self._editor_completion_listbox = None
         self._editor_completion_items = []
@@ -230,6 +233,12 @@ class BlattwerkAppBase:
 
     def _on_shell_close(self) -> bool:
         """Persist lightweight UI state before the root window closes."""
+
+        try:
+            if hasattr(self, "_cancel_editor_auto_preview_refresh"):
+                self._cancel_editor_auto_preview_refresh()
+        except Exception:
+            pass
 
         try:
             if hasattr(self, "_close_help_preview_window"):
