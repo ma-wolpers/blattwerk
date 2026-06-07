@@ -1,23 +1,23 @@
-﻿# Setup Zweiter PC: Blattwerk + Kurzentwerfer Nebenstrang
+﻿# Setup Zweiter PC: Blattwerk + Kurzentwerfer Add-on auf main
 
 Diese Anleitung richtet einen zweiten PC so ein, dass du gleichzeitig
 
-- Blattwerk-Hauptarbeit auf `main` machen kannst,
-- den dauerhaften Kurzentwerfer-Integrationsnebenstrang weiterentwickeln kannst,
-- und KI-Agenten das Setup nicht versehentlich beschaedigen.
+- Blattwerk auf `main` weiterentwickeln kannst,
+- Kurzentwerfer im eigenen Repo pflegst,
+- und Integrationsaenderungen als normale Blattwerk-main-Changes sauber validierst.
 
 ## Zielbild
 
 Empfohlene Ordnerstruktur:
 
-- `a:/Code/blattwerk` -> Blattwerk `main` (Hauptstrang)
+- `a:/Code/blattwerk` -> Blattwerk-Repo (main als Integrations- und Hauptbranch)
 - `a:/Code/kurzentwerfer` -> Kurzentwerfer-Repo (aktive Facharbeit)
 
 Wichtig:
 
-1. Der Nebenstrang wird nicht nach `main` gemerged.
-2. Kurzentwerfer-Entwicklung passiert im eigenstaendigen Repo `a:/Code/kurzentwerfer`.
-3. Im Blattwerk-Nebenstrang wird nur der Submodule-Pointer nachgezogen.
+1. Kurzentwerfer darf als Add-on auf Blattwerk-`main` integriert werden.
+2. Kurzentwerfer-Entwicklung passiert weiterhin im eigenstaendigen Repo `a:/Code/kurzentwerfer`.
+3. Im Blattwerk-Repo wird der Kurzentwerfer-Submodule-Pointer nachvollziehbar aktualisiert.
 
 ## Voraussetzungen
 
@@ -35,33 +35,34 @@ git clone https://github.com/ma-wolpers/kurzentwerfer.git kurzentwerfer
 Pop-Location
 ```
 
-## 2) Blattwerk Nebenstrang aktivieren
-
-```powershell
-Push-Location a:/Code/blattwerk
-git fetch origin
-git switch -c feat/add-kurzentwerfer-mod-phase0 --track origin/feat/add-kurzentwerfer-mod-phase0
-git submodule update --init --recursive
-Pop-Location
-```
-
-Wenn der Branch lokal bereits existiert:
-
-```powershell
-Push-Location a:/Code/blattwerk
-git switch feat/add-kurzentwerfer-mod-phase0
-git submodule update --init --recursive
-Pop-Location
-```
-
-## 3) Zwischen main und Nebenstrang wechseln (ein Repo-Ordner)
+## 2) Blattwerk main aktivieren
 
 ```powershell
 Push-Location a:/Code/blattwerk
 git fetch origin
 git switch main
 git pull --ff-only origin main
-git switch feat/add-kurzentwerfer-mod-phase0
+git submodule update --init --recursive
+Pop-Location
+```
+
+Wenn `main` lokal noch nicht existiert:
+
+```powershell
+Push-Location a:/Code/blattwerk
+git switch -c main --track origin/main
+git pull --ff-only origin main
+git submodule update --init --recursive
+Pop-Location
+```
+
+## 3) Integrationsbasis aktualisieren
+
+```powershell
+Push-Location a:/Code/blattwerk
+git fetch origin
+git switch main
+git pull --ff-only origin main
 git submodule update --init --recursive
 Pop-Location
 ```
@@ -96,7 +97,7 @@ Pop-Location
 
 ## 5) Erstvalidierung
 
-Blattwerk Nebenstrang:
+Blattwerk main:
 
 ```powershell
 Push-Location a:/Code/blattwerk
@@ -126,14 +127,14 @@ Klare Regel im Alltag:
 
 1. Blattwerk-Features/Fixes in `a:/Code/blattwerk` auf Branch `main`.
 2. Kurzentwerfer-Facharbeit nur in `a:/Code/kurzentwerfer`.
-3. Integrations-/Pointer-Arbeit in `a:/Code/blattwerk` auf Branch `feat/add-kurzentwerfer-mod-phase0`.
+3. Integrations-/Pointer-Arbeit in `a:/Code/blattwerk` ebenfalls auf Branch `main`.
 
-## 7) Pointer-Bump-Workflow (Kurzentwerfer -> Blattwerk Nebenstrang)
+## 7) Pointer-Bump-Workflow (Kurzentwerfer -> Blattwerk main)
 
 1. In `a:/Code/kurzentwerfer`: aendern, testen, committen, pushen.
 2. In `a:/Code/blattwerk`: Submodule auf neuen Stand ziehen.
-3. Guardrails/Tests im Blattwerk-Nebenstrang laufen lassen.
-4. Pointer-Bump committen und nur auf Nebenstrang pushen.
+3. Guardrails/Tests in Blattwerk laufen lassen.
+4. Pointer-Bump auf `main` committen und via normalem PR-/Merge-Fluss integrieren.
 
 Beispiel:
 
@@ -144,7 +145,7 @@ git submodule update --remote kurzentwerfer
 .\.venv\Scripts\python.exe -m pytest -q
 git add kurzentwerfer
 git commit -m "chore(mod): bump kurzentwerfer submodule"
-git push origin feat/add-kurzentwerfer-mod-phase0
+git push origin main
 Pop-Location
 ```
 
@@ -159,13 +160,13 @@ Diese Dateien enthalten bindende Regeln fuer KI-Agenten:
 
 Aktive Schutzmechanismen:
 
-1. Dauerhafter Nebenstrang ist explizit dokumentiert.
-2. PR-Template fordert Side-Thread-Regel explizit ab.
-3. Guardrail-Hardstop blockiert main-targeted Kontexte, wenn Kurzentwerfer-Submodule-Artefakte enthalten sind.
+1. Kurzentwerfer-Integration als Add-on auf Blattwerk-main ist explizit geregelt.
+2. PR-Template erzwingt weiterhin zentrale Governance-Checks (Doku, Changelog, Tests).
+3. Guardrails pruefen weiterhin Integrationskonfiguration und DSL-Trennungsanker fuer das Kurzentwerfer-Submodule.
 
 ## 9) Tagesroutine (30 Sekunden)
 
-Hauptstrang aktualisieren:
+Blattwerk main aktualisieren:
 
 ```powershell
 Push-Location a:/Code/blattwerk
@@ -175,13 +176,13 @@ git pull --ff-only origin main
 Pop-Location
 ```
 
-Nebenstrang mit main synchronisieren:
+Kurzentwerfer-Submodule auf neuesten Stand ziehen:
 
 ```powershell
 Push-Location a:/Code/blattwerk
 git fetch origin
-git switch feat/add-kurzentwerfer-mod-phase0
-git merge origin/main
+git switch main
+git submodule update --remote kurzentwerfer
 .\.venv\Scripts\python.exe tools/ci/check_ai_guardrails.py
 .\.venv\Scripts\python.exe -m pytest -q
 Pop-Location
@@ -189,7 +190,7 @@ Pop-Location
 
 ## 10) Fehlerfall und schnelle Reparatur
 
-Wenn der Nebenstrang-Arbeitsbaum im Submodule unerwartet abweicht:
+Wenn der Submodule-Arbeitsbaum unerwartet abweicht:
 
 ```powershell
 Push-Location a:/Code/blattwerk
@@ -198,9 +199,9 @@ git submodule status kurzentwerfer
 Pop-Location
 ```
 
-Wenn versehentlich ein PR Richtung `main` mit Nebenstrang-Artefakten erstellt wurde:
+Wenn Integrationsaenderungen auf `main` nicht valide sind:
 
-1. Nicht mergen.
-2. PR schliessen.
-3. Weiterarbeit auf `feat/add-kurzentwerfer-mod-phase0`.
+1. Nicht mergen bzw. nicht freigeben.
+2. Guardrails/Tests lokal reproduzieren.
+3. Submodule-Pointer, Doku und Governance-Dateien konsistent nachziehen.
 

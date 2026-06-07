@@ -104,27 +104,26 @@ Einstellungen aendern:
 
 Hinweis: `.venv` nicht zwischen Rechnern kopieren, immer lokal neu erstellen.
 
-## Parallelbetrieb: Hauptstrang + Nebenstrang
+## Integration mit Kurzentwerfer (Add-on auf main)
 
-Dieses Repo nutzt fuer die Downstream-Integration mit Kurzentwerfer einen dauerhaften Nebenstrang.
+Dieses Repo integriert Kurzentwerfer als Add-on direkt auf Blattwerk-`main`.
 
 Verbindliche Arbeitsaufteilung:
 
-- `a:/Code/blattwerk`: Hauptarbeit auf Branch `main` (Blattwerk-Hauptstrang).
-- `a:/Code/blattwerk`: Integrations-/Nebenstrang `feat/add-kurzentwerfer-mod-phase0` (per Branch-Wechsel im selben Repo).
-- `a:/Code/kurzentwerfer`: aktive Kurzentwerfer-Entwicklung im eigenstaendigen Repo.
+- `a:/Code/blattwerk`: Blattwerk-Hauptentwicklung und Integrationsarbeit auf `main`.
+- `a:/Code/kurzentwerfer`: aktive Kurzentwerfer-Fachentwicklung im eigenstaendigen Repo.
 
 Wichtige Regeln:
 
-1. Der Nebenstrang wird nicht nach `main` gemerged.
-2. Kurzentwerfer-Aenderungen passieren im Kurzentwerfer-Repo, nicht dauerhaft im Submodule-Checkout unter Blattwerk.
+1. Integrationsaenderungen auf Blattwerk erfolgen ueber normale PRs nach `main`.
+2. Kurzentwerfer-Facharbeit bleibt im Kurzentwerfer-Repo; im Blattwerk-Repo wird der Submodule-Pointer gepflegt.
 3. Wenn ein neuer Kurzentwerfer-Stand integriert werden soll:
 	- Kurzentwerfer committen und pushen,
-	- im Blattwerk-Nebenstrang den Submodule-Pointer aktualisieren,
-	- Pointer-Bump im Nebenstrang committen.
-4. Damit der Nebenstrang von Blattwerk profitiert, `origin/main` regelmaessig in den Nebenstrang uebernehmen (Merge oder Rebase) und danach Guardrails/Tests ausfuehren.
+	- in Blattwerk den Submodule-Pointer aktualisieren,
+	- Guardrails und Tests in Blattwerk ausfuehren,
+	- Pointer-Bump auf `main` committen.
 
-Kurzroutine fuer den Nebenstrang:
+Kurzroutine fuer Integrationsupdates auf `main`:
 
 ```powershell
 Push-Location a:/Code/blattwerk
@@ -165,7 +164,7 @@ python blattwerk.py
 - Formale Grammatik: `docs/GRAMMAR.md`
 - Validator und Diagnosecodes: `docs/VALIDATOR.md`
 - Agent-Setup und Agent-Erstellung: `docs/AGENT_SETUP.md`
-- Setup Zweiter PC (Worktrees + Nebenstrang + KI-Regeln): `docs/SETUP_ZWEITER_PC.md`
+- Setup Zweiter PC (main-Integration + KI-Regeln): `docs/SETUP_ZWEITER_PC.md`
 - CSS-Anleitung: `docs/CSS_ANLEITUNG.md`
 - Architektur (intern): `docs/ARCHITEKTUR.md`
 - Architektur (einfach): `docs/ARCHITEKTUR_EINFACH.md`

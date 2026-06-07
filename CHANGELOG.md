@@ -34,13 +34,17 @@ The format is based on Keep a Changelog.
 
 ### Changed
 
+- Governance-Anpassung fuer Downstream-Integration: die Nebenstrang-only-Regel fuer Kurzentwerfer wurde aufgehoben; Integration als Add-on auf Blattwerk-`main` ist jetzt zulaessig.
+- Guardrail-Hardstop entfernt: main-targeted Kontexte werden nicht mehr automatisch blockiert, wenn `kurzentwerfer` als Submodule eingebunden ist.
+- PR-Template/Agent-Instruktionen bereinigt: explizite Side-Thread-Verbotsklausel wurde entfernt.
+
 - Legacy-Sichtbarkeitsmarker in textbasierten Antwortbloecken werden jetzt nur noch am absoluten Zeilenanfang erkannt (`§`, `%`, `&` als eigenes Start-Token). Zeilenende-Formen wie `Text %` bleiben normaler Text.
 - Inline-Sichtbarkeitsmarker mit Klammern (`§{...}`, `%{...}`, `&{...}`) bleiben auch in der Zeilenmitte voll unterstuetzt.
 - Blattwerker-Designpraeferenzen fuer Prozentangaben wurden auf Schreibweise mit Leerzeichen vereinheitlicht (`75 %` statt `75%`) - konsistent fuer Arbeitsblatt- und Praesentationskontext.
 
-- Parallelbetrieb fuer Entwicklung stabilisiert: Blattwerk-Hauptstrang (`main`) und Kurzentwerfer-Integrationsnebenstrang sind jetzt als klares Branch-Betriebsmodell im bestehenden Repo dokumentiert (Arbeit in `a:/Code/blattwerk` mit Branch-Wechsel zwischen `main` und `feat/add-kurzentwerfer-mod-phase0`; Kurzentwerfer-Facharbeit im eigenen Repo).
-- PR-Checkliste erweitert: PRs gegen `main` muessen explizit bestaetigen, dass keine `kurzentwerfer`-Submodule-Integrationsartefakte in den Hauptstrang eingefuehrt werden.
-- Neuer Guardrail-Hardstop: `tools/ci/check_ai_guardrails.py` blockiert main-targeted Kontexte (Branch `main` oder PR-Base `main`), wenn `kurzentwerfer` als Submodule eingebunden ist.
+- Integrationsbetrieb umgestellt: Kurzentwerfer wird als Add-on auf Blattwerk-`main` integriert; die aktive Kurzentwerfer-Facharbeit bleibt im eigenstaendigen Repo.
+- Governance und Validierung bleiben fuer Integrationsaenderungen auf main verpflichtend (Guardrails, Tests, Changelog-/Doku-Pflege).
+- Downstream-Guardrails pruefen weiterhin Submodule-Konfiguration und DSL-Trennungsanker, ohne pauschale Blockade main-targeted Kontexte.
 
 - Downstream-Mod-Integration vorbereitet: Blattwerk verwaltet `kurzentwerfer` jetzt als eigenes Git-Submodule fuer versionierte Pointer-Updates.
 - CI-Qualitaetsgate erweitert: der `quality-guardrails`-Workflow checkt rekursiv eingecheckte Submodule und fuehrt ein separates `kurzentwerfer`-Gate (Guardrails + Tests) aus.

@@ -28,12 +28,15 @@ Regel:
 - Format-Switching in der Vorschau: Wenn der Benutzer das Seitenformat wechselt (z. B. 16:9 → 16:10 oder A4 → A5), wird jetzt korrekt ein neuer Render angestoßen und der Cache wird invalidiert. Zuvor blieb die Vorschau-Darstellung trotz Format-Änderung gleich.
 
 ### Changed
+- Governance fuer Kurzentwerfer-Integration angepasst: das bisherige Hauptstrang-Verbot wurde aufgehoben; Kurzentwerfer darf als Add-on auf Blattwerk-`main` integriert werden.
+- Guardrail-Hardstop entfernt: `tools/ci/check_ai_guardrails.py` blockiert main-targeted Kontexte nicht mehr allein wegen aktivem `kurzentwerfer`-Submodule.
+- Governance-Texte und PR-Checkliste synchronisiert: AGENTS, Copilot-Instructions und PR-Template enthalten keine Nebenstrang-only-Pflicht mehr.
 - Sichtbarkeitsmarker in textbasierten Antwortbloecken wurden auf Start-only vereinheitlicht: Legacy-Token `§`, `%`, `&` werden nur noch als eigenes Token am absoluten Zeilenanfang interpretiert; Zeilenende-Legacy (`Text %`) wird nicht mehr als Marker behandelt.
 - Marker-Synchronisierung abgeschlossen: Parser (`answer_line_markers`), Editor-Syntaxhighlighting (`blatt_ui_editor`), VSCode-Injection-Grammatik, Tests und Grammar-/Validator-Dokumentation wurden gemeinsam auf die Start-only-Semantik umgestellt.
 - Blattwerker-Designpraeferenzen fuer Prozentschreibweise vereinheitlicht: Prozentsaetze werden jetzt mit Leerzeichen zwischen Zahl und Prozentzeichen gefuehrt (`75 %` statt `75%`) und in Arbeitsblatt- sowie Praesentations-Praeferenzdatei konsistent dokumentiert.
-- Betriebsmodell fuer den Downstream-Nebenstrang gehaertet: Blattwerk nutzt das bestehende Repo-Verzeichnis `a:/Code/blattwerk` mit klarem Branch-Wechsel (`main` fuer Hauptarbeit, `feat/add-kurzentwerfer-mod-phase0` fuer Integration); die Kurzentwerfer-Facharbeit bleibt dauerhaft im eigenen Repo `a:/Code/kurzentwerfer`.
-- PR-Disziplin fuer den Hauptstrang geschaerft: PR-Template enthaelt jetzt einen expliziten Side-Thread-Checklist-Punkt, dass PRs nach `main` keine `kurzentwerfer`-Submodule-Integrationsartefakte einfuehren duerfen.
-- Guardrail-Hardstop fuer Hauptstrangschutz ergaenzt: `tools/ci/check_ai_guardrails.py` blockiert jetzt main-targeted Kontexte (Branch `main` oder GitHub-PR mit `base=main`), sobald `kurzentwerfer` als Submodule im Arbeitsbaum enthalten ist.
+- Integrationsmodell konsolidiert: Kurzentwerfer wird als Add-on auf Blattwerk-`main` gepflegt; die Kurzentwerfer-Facharbeit bleibt im eigenstaendigen Repo `a:/Code/kurzentwerfer`.
+- PR-Governance fuer Integrationsaenderungen bleibt aktiv: Doku-/Changelog-/Validierungspflichten gelten unveraendert fuer main-targeted Integrationsarbeit.
+- Guardrails fuer Downstream-Integration bleiben als harte Qualitaetspruefung aktiv (Submodule-Konfiguration und DSL-Trennungsanker), ohne pauschalen main-Hardstop.
 - Downstream-Mod-Integration Phase 3 gestartet: `quality-guardrails`-Workflow auf rekursiven Submodule-Checkout erweitert und um separates `kurzentwerfer`-Qualitaetsgate (Guardrails + Pytest) ergaenzt.
 - Downstream-Mod-Integration Phase 2 gestartet: `tools/ci/check_ai_guardrails.py` prueft jetzt bei aktivem `kurzentwerfer`-Submodule die Integrationskonfiguration (`.gitmodules`) sowie harte Kurzentwerfer-Qualitaetsanker (Guardrail-Datei und DSL-Trennungsmarker); fehlende CI-/Remote-Haertung im getrackten Submodule-Commit wird als non-blocking Prozesswarnung gemeldet.
 - Downstream-Mod-Integration Phase 0 gestartet: `kurzentwerfer` als Git-Submodule im Repo verankert und auf `main` als Tracking-Basis vorbereitet.

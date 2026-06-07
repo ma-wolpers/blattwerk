@@ -42,10 +42,7 @@ Verbindliche Regeln:
 - Feature-Aenderungen werden in eigenstaendigen Commits gebuendelt (ein Feature = ein klarer Commit-Block).
 - Push erfolgt manuell durch den Nutzer nach eigener Freigabe; kein Auto-Push.
 
-9. Dauerhafter Nebenstrang fuer Kurzentwerfer
-- Der Branch `feat/add-kurzentwerfer-mod-phase0` ist ein dauerhafter Integrations-/Nebenstrang und darf nicht nach `main` gemerged werden.
-- Blattwerk-Hauptarbeit erfolgt im bestehenden Ordner `c:/Users/7thpl/Desktop/Code/blattwerk` auf `main`.
-- Dieser Ordner `c:/Users/7thpl/Desktop/Code/blattwerk-side` bleibt der Integrations-/Nebenstrang fuer `feat/add-kurzentwerfer-mod-phase0`.
-- Kurzentwerfer-Facharbeit erfolgt im eigenstaendigen Repo `a:/Code/kurzentwerfer`; im Blattwerk-Nebenstrang wird nur der Submodule-Pointer nachgezogen.
-- Kein automatisches Erzeugen eines zusaetzlichen `blattwerk`-Worktrees oder Parallel-Ordners.
-- Nebenstrangpflege beinhaltet regelmaessiges Uebernehmen von `origin/main` in den Nebenstrang (Merge/Rebase) plus anschliessende Guardrail-/Test-Validierung.
+9. Kurzentwerfer-Integration als Add-on
+- Kurzentwerfer kann als Add-on auf dem aktuellen Blattwerk-`main` integriert und weiterentwickelt werden.
+- Integrationsaenderungen folgen weiterhin der normalen Qualitaets- und Governance-Pruefung (Guardrails, Tests, Changelog, PR-Checkliste).
+- Kurzentwerfer-Facharbeit kann weiterhin im eigenstaendigen Repo `a:/Code/kurzentwerfer` erfolgen; Integrationsstand in Blattwerk wird ueber Submodule-/Pointer-Updates synchron gehalten.
