@@ -324,6 +324,61 @@ class BlattwerkAppEditorMixin:
 
         self._sync_editor_with_source(trigger="focus")
 
+    def _cancel_editor_auto_preview_refresh(self):
+        """Cancels any pending auto-preview refresh timer."""
+
+        timer_id = getattr(self, "_preview_auto_refresh_after_id", None)
+        if timer_id is None:
+            return
+
+        try:
+            self.root.after_cancel(timer_id)
+        except Exception:
+            pass
+        self._preview_auto_refresh_after_id = None
+
+    def _queue_editor_auto_preview_refresh(self):
+        """Schedules a debounced preview refresh after typing pauses."""
+
+        if not bool(getattr(self, "_preview_auto_refresh_on_edit_idle_enabled", False)):
+            self._cancel_editor_auto_preview_refresh()
+            return
+
+        if self.editor_widget is None:
+            return
+
+        self._cancel_editor_auto_preview_refresh()
+        delay_ms = int(getattr(self, "_preview_auto_refresh_on_edit_idle_delay_ms", 1200) or 1200)
+        self._preview_auto_refresh_after_id = self.root.after(
+            delay_ms,
+            self._run_editor_auto_preview_refresh,
+        )
+
+    def _run_editor_auto_preview_refresh(self):
+        """Runs idle auto-refresh and ensures preview uses persisted editor content."""
+
+        self._preview_auto_refresh_after_id = None
+
+        if not bool(getattr(self, "_preview_auto_refresh_on_edit_idle_enabled", False)):
+            return
+
+        if self.editor_widget is None:
+            return
+
+        if self._editor_save_after_id is not None:
+            try:
+                self.root.after_cancel(self._editor_save_after_id)
+            except Exception:
+                pass
+            self._editor_save_after_id = None
+
+        if self._editor_has_unsaved_changes:
+            self._save_editor_content()
+            if self._editor_has_unsaved_changes:
+                return
+
+        self.refresh_preview(force_rebuild=True)
+
     def _on_editor_modified(self, _event=None):
         """Schedules a debounced save after user edits."""
 
@@ -348,6 +403,7 @@ class BlattwerkAppEditorMixin:
             self.root.after_cancel(self._editor_save_after_id)
 
         self._editor_save_after_id = self.root.after(self._editor_save_delay_ms, self._save_editor_content)
+        self._queue_editor_auto_preview_refresh()
 
     def _save_editor_content(self):
         """Writes the current editor content back to the selected markdown file."""
@@ -608,9 +664,9 @@ class BlattwerkAppEditorMixin:
                         f"{line_no}.{value_end}",
                     )
 
-            for marker_match in re.finditer(r"(^|\s)([§%&])(?=\s|$)", line_text):
-                marker_start = marker_match.start(2)
-                marker_end = marker_match.end(2)
+            for marker_match in re.finditer(r"^([§%&])(?=\s|$)", line_text):
+                marker_start = marker_match.start(1)
+                marker_end = marker_match.end(1)
                 self.editor_widget.tag_add(
                     "syn_marker",
                     f"{line_no}.{marker_start}",

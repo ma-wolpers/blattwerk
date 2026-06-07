@@ -188,6 +188,20 @@ PREFERENCE_SPECS = {
         "type": "bool",
         "default": True,
     },
+    "preview_auto_refresh_on_edit_idle_enabled": {
+        "tab": "view_layout",
+        "label": "Vorschau nach Tipp-Pause automatisch aktualisieren",
+        "type": "bool",
+        "default": False,
+    },
+    "preview_auto_refresh_on_edit_idle_delay_ms": {
+        "tab": "view_layout",
+        "label": "Vorschau Verzoegerung nach Tipp-Pause (ms)",
+        "type": "int",
+        "default": 1200,
+        "min": 200,
+        "max": 10000,
+    },
     "remember_window_geometry": {
         "tab": "view_layout",
         "label": "Fenstergeometrie merken",

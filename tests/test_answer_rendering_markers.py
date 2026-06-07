@@ -12,9 +12,9 @@ def test_lines_answer_shows_worksheet_marker_text_only_in_worksheet_mode():
     assert solution_html == ""
 
 
-def test_lines_answer_legacy_marker_stays_supported():
+def test_lines_answer_legacy_start_marker_stays_supported():
     options = {"type": "lines", "rows": "2"}
-    content = "Starthilfe %"
+    content = "% Starthilfe"
 
     worksheet_html = _render_answer_block(options, content, include_solutions=False)
     solution_html = _render_answer_block(options, content, include_solutions=True)

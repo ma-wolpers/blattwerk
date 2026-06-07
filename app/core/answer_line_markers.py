@@ -34,7 +34,7 @@ def _decode_escaped_space_tokens(text, html=False):
 
 def _extract_leading_line_marker(line):
     """Return ``(marker, remaining_line)`` when line starts with legacy marker token."""
-    match = re.match(rf"^\s*([{MARKER_TOKEN_PATTERN}])(?=\s|$)(.*)$", line)
+    match = re.match(rf"^([{MARKER_TOKEN_PATTERN}])(?=\s|$)(.*)$", line)
     if not match:
         return None, line
 
@@ -43,30 +43,18 @@ def _extract_leading_line_marker(line):
     return marker, remainder
 
 
-def _extract_trailing_line_marker(line):
-    """Return ``(marker, remaining_line)`` when line ends with legacy marker token."""
-    match = re.match(rf"^(.*?)(?:\s+|^)([{MARKER_TOKEN_PATTERN}])\s*$", line)
-    if not match:
-        return None, line
-
-    remainder = match.group(1).rstrip()
-    marker = match.group(2)
-    return marker, remainder
-
-
 def parse_answer_line_visibility(raw_line, default_show="both"):
     """Parse one line with legacy line markers and optional inline visibility tokens."""
     line = "" if raw_line is None else str(raw_line)
 
-    # Legacy syntax support: `§ text` or `text %` controls full-line visibility.
+    # Legacy syntax support: marker token at absolute line start controls full-line visibility.
     leading_marker, after_leading = _extract_leading_line_marker(line)
-    trailing_marker, after_trailing = _extract_trailing_line_marker(after_leading)
 
-    selected_line_marker = leading_marker or trailing_marker
-    has_conflict = leading_marker is not None and trailing_marker is not None
+    selected_line_marker = leading_marker
+    has_conflict = False
     line_default_show = MARKER_SHOW_MODE.get(selected_line_marker, default_show)
 
-    line = after_trailing
+    line = after_leading
     segments = []
     plain_buffer = []
     index = 0

@@ -38,7 +38,7 @@ Pflichtregeln:
 - Feature-Aenderungen als eigene Commits strukturieren.
 - Kein automatisches Pushen; Push bleibt bewusst manuell.
 
-10. Repo-Rollen auf diesem PC
-- `c:/Users/7thpl/Desktop/Code/blattwerk` ist der Hauptarbeitsordner auf `main`.
-- `c:/Users/7thpl/Desktop/Code/blattwerk-side` ist der dauerhafte Integrations-/Nebenstrang `feat/add-kurzentwerfer-mod-phase0`.
-- Kein automatisches Erzeugen eines zusaetzlichen `blattwerk-main`-Worktrees oder Parallel-Ordners.
+10. Kurzentwerfer-Integration auf Blattwerk-main
+- Kurzentwerfer darf als Add-on auf dem aktuellen Blattwerk-`main` integriert werden.
+- Integrationsaenderungen muessen weiterhin Guardrails und Tests bestehen.
+- Die PR-Checkliste ist vollstaendig zu pflegen, inklusive Changelog-/Dokumentationspflichten bei nutzerrelevanten Aenderungen.

@@ -1,3 +1,7 @@
 [submodule "bw-gui"]
 	path = bw-gui
 	url = ../bw-gui
+[submodule "kurzentwerfer"]
+	path = kurzentwerfer
+	url = https://github.com/ma-wolpers/kurzentwerfer.git
+	branch = main

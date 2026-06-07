@@ -8,6 +8,7 @@ The format is based on Keep a Changelog.
 
 ### Added
 
+- New setting in Ansicht und Layout: automatic preview refresh after typing pause can now be enabled/disabled via checkbox, and the idle delay is configurable in milliseconds.
 - New settings toggle under Ansicht und Layout: `Vorschau bei Tabwechsel automatisch aktualisieren` (Ja/Nein) controls whether switching document tabs forces a preview rebuild or allows cached preview reuse.
 - New `qrcode` block for worksheets/presentations: `:::qrcode url=... w=... h=... maxw=... :::` renders a QR image with image-like sizing options; QR links are clickable in HTML and PDF exports.
 - New systematic QR examples: `examples/markdown/example-qrcode-links.md` (worksheet) and `examples/markdown/example-presentation-qrcode-links.md` (presentation).
@@ -32,6 +33,22 @@ The format is based on Keep a Changelog.
 - HEIC/HEIF image references now use a PDF-render fallback: when Chromium cannot decode the source directly, Blattwerk rewrites local HEIC sources to temporary PNG assets for preview/PDF/PPTX pipelines.
 
 ### Changed
+
+- Governance-Anpassung fuer Downstream-Integration: die Nebenstrang-only-Regel fuer Kurzentwerfer wurde aufgehoben; Integration als Add-on auf Blattwerk-`main` ist jetzt zulaessig.
+- Guardrail-Hardstop entfernt: main-targeted Kontexte werden nicht mehr automatisch blockiert, wenn `kurzentwerfer` als Submodule eingebunden ist.
+- PR-Template/Agent-Instruktionen bereinigt: explizite Side-Thread-Verbotsklausel wurde entfernt.
+
+- Legacy-Sichtbarkeitsmarker in textbasierten Antwortbloecken werden jetzt nur noch am absoluten Zeilenanfang erkannt (`§`, `%`, `&` als eigenes Start-Token). Zeilenende-Formen wie `Text %` bleiben normaler Text.
+- Inline-Sichtbarkeitsmarker mit Klammern (`§{...}`, `%{...}`, `&{...}`) bleiben auch in der Zeilenmitte voll unterstuetzt.
+- Blattwerker-Designpraeferenzen fuer Prozentangaben wurden auf Schreibweise mit Leerzeichen vereinheitlicht (`75 %` statt `75%`) - konsistent fuer Arbeitsblatt- und Praesentationskontext.
+
+- Integrationsbetrieb umgestellt: Kurzentwerfer wird als Add-on auf Blattwerk-`main` integriert; die aktive Kurzentwerfer-Facharbeit bleibt im eigenstaendigen Repo.
+- Governance und Validierung bleiben fuer Integrationsaenderungen auf main verpflichtend (Guardrails, Tests, Changelog-/Doku-Pflege).
+- Downstream-Guardrails pruefen weiterhin Submodule-Konfiguration und DSL-Trennungsanker, ohne pauschale Blockade main-targeted Kontexte.
+
+- Downstream-Mod-Integration vorbereitet: Blattwerk verwaltet `kurzentwerfer` jetzt als eigenes Git-Submodule fuer versionierte Pointer-Updates.
+- CI-Qualitaetsgate erweitert: der `quality-guardrails`-Workflow checkt rekursiv eingecheckte Submodule und fuehrt ein separates `kurzentwerfer`-Gate (Guardrails + Tests) aus.
+- Guardrails fuer Downstream-Integration erweitert: bei aktivem `kurzentwerfer`-Submodule werden Submodule-Konfiguration und Kurzentwerfer-DSL-Trennungsanker hart geprueft; fehlende CI-/Remote-Haertung im getrackten Submodule-Commit wird als Prozesswarnung ausgegeben.
 
 - AI guardrails now emit non-blocking local warnings when configured core keyboard intents (for example export/help/new/save-as/settings/debug/escape) are present but matching shortcut binding markers are missing in the shortcut definitions.
 

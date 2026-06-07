@@ -104,6 +104,37 @@ Einstellungen aendern:
 
 Hinweis: `.venv` nicht zwischen Rechnern kopieren, immer lokal neu erstellen.
 
+## Integration mit Kurzentwerfer (Add-on auf main)
+
+Dieses Repo integriert Kurzentwerfer als Add-on direkt auf Blattwerk-`main`.
+
+Verbindliche Arbeitsaufteilung:
+
+- `a:/Code/blattwerk`: Blattwerk-Hauptentwicklung und Integrationsarbeit auf `main`.
+- `a:/Code/kurzentwerfer`: aktive Kurzentwerfer-Fachentwicklung im eigenstaendigen Repo.
+
+Wichtige Regeln:
+
+1. Integrationsaenderungen auf Blattwerk erfolgen ueber normale PRs nach `main`.
+2. Kurzentwerfer-Facharbeit bleibt im Kurzentwerfer-Repo; im Blattwerk-Repo wird der Submodule-Pointer gepflegt.
+3. Wenn ein neuer Kurzentwerfer-Stand integriert werden soll:
+	- Kurzentwerfer committen und pushen,
+	- in Blattwerk den Submodule-Pointer aktualisieren,
+	- Guardrails und Tests in Blattwerk ausfuehren,
+	- Pointer-Bump auf `main` committen.
+
+Kurzroutine fuer Integrationsupdates auf `main`:
+
+```powershell
+Push-Location a:/Code/blattwerk
+git fetch origin
+git merge origin/main
+git submodule status kurzentwerfer
+.\.venv\Scripts\python.exe tools/ci/check_ai_guardrails.py
+.\.venv\Scripts\python.exe -m pytest -q
+Pop-Location
+```
+
 ## Häufige Probleme
 
 ### `py` wird nicht erkannt
@@ -133,6 +164,7 @@ python blattwerk.py
 - Formale Grammatik: `docs/GRAMMAR.md`
 - Validator und Diagnosecodes: `docs/VALIDATOR.md`
 - Agent-Setup und Agent-Erstellung: `docs/AGENT_SETUP.md`
+- Setup Zweiter PC (main-Integration + KI-Regeln): `docs/SETUP_ZWEITER_PC.md`
 - CSS-Anleitung: `docs/CSS_ANLEITUNG.md`
 - Architektur (intern): `docs/ARCHITEKTUR.md`
 - Architektur (einfach): `docs/ARCHITEKTUR_EINFACH.md`

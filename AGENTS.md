@@ -42,7 +42,7 @@ Verbindliche Regeln:
 - Feature-Aenderungen werden in eigenstaendigen Commits gebuendelt (ein Feature = ein klarer Commit-Block).
 - Push erfolgt manuell durch den Nutzer nach eigener Freigabe; kein Auto-Push.
 
-9. Repo-Rollen auf diesem PC
-- Der bestehende Ordner `c:/Users/7thpl/Desktop/Code/blattwerk` ist der Hauptarbeitsordner auf `main`.
-- Der Integrations-/Nebenstrang `feat/add-kurzentwerfer-mod-phase0` laeuft im separaten Ordner `c:/Users/7thpl/Desktop/Code/blattwerk-side`.
-- Kein automatisches Erzeugen eines zusaetzlichen `blattwerk-main`-Worktrees oder Parallel-Ordners.
+9. Kurzentwerfer-Integration als Add-on
+- Kurzentwerfer kann als Add-on auf dem aktuellen Blattwerk-`main` integriert und weiterentwickelt werden.
+- Integrationsaenderungen folgen weiterhin der normalen Qualitaets- und Governance-Pruefung (Guardrails, Tests, Changelog, PR-Checkliste).
+- Kurzentwerfer-Facharbeit kann weiterhin im eigenstaendigen Repo `a:/Code/kurzentwerfer` erfolgen; Integrationsstand in Blattwerk wird ueber Submodule-/Pointer-Updates synchron gehalten.

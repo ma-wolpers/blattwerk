@@ -9,6 +9,7 @@ Regel:
 ## [Unreleased]
 
 ### Added
+- Neue lokale Einstellung fuer die Vorschauaktualisierung nach Tipp-Pause: Auto-Refresh im Schreibbereich ist jetzt als Checkbox plus konfigurierbare Verzoegerung (ms) verfuegbar; bei Deaktivierung werden pending Auto-Refresh-Timer sofort verworfen.
 - Neue Einstellung `preview_auto_refresh_on_tab_switch` (Tab: Ansicht und Layout) eingefuehrt, um per Ja/Nein zu steuern, ob die Vorschau beim Dokument-Tabwechsel immer neu gebaut wird.
 - Tabwechsel-Vorschau nutzt die neue Einstellung direkt: `True` erzwingt Rebuild (gegen stale Cache), `False` erlaubt Cache-Wiederverwendung.
 - LaufKern-Canary-Integration gestartet: neues zentrales Bridge-Modul `bw_libs/ui_contract/laufkern.py` eingefuehrt (Manifest-, Reachability- und Tracking-API inkl. Shared-`bw_gui.laufkern`-Bridge mit lokalem Fallback) und ueber `bw_libs/ui_contract/__init__.py` als zentrale Importoberflaeche exportiert.
@@ -27,6 +28,18 @@ Regel:
 - Format-Switching in der Vorschau: Wenn der Benutzer das Seitenformat wechselt (z. B. 16:9 → 16:10 oder A4 → A5), wird jetzt korrekt ein neuer Render angestoßen und der Cache wird invalidiert. Zuvor blieb die Vorschau-Darstellung trotz Format-Änderung gleich.
 
 ### Changed
+- Governance fuer Kurzentwerfer-Integration angepasst: das bisherige Hauptstrang-Verbot wurde aufgehoben; Kurzentwerfer darf als Add-on auf Blattwerk-`main` integriert werden.
+- Guardrail-Hardstop entfernt: `tools/ci/check_ai_guardrails.py` blockiert main-targeted Kontexte nicht mehr allein wegen aktivem `kurzentwerfer`-Submodule.
+- Governance-Texte und PR-Checkliste synchronisiert: AGENTS, Copilot-Instructions und PR-Template enthalten keine Nebenstrang-only-Pflicht mehr.
+- Sichtbarkeitsmarker in textbasierten Antwortbloecken wurden auf Start-only vereinheitlicht: Legacy-Token `§`, `%`, `&` werden nur noch als eigenes Token am absoluten Zeilenanfang interpretiert; Zeilenende-Legacy (`Text %`) wird nicht mehr als Marker behandelt.
+- Marker-Synchronisierung abgeschlossen: Parser (`answer_line_markers`), Editor-Syntaxhighlighting (`blatt_ui_editor`), VSCode-Injection-Grammatik, Tests und Grammar-/Validator-Dokumentation wurden gemeinsam auf die Start-only-Semantik umgestellt.
+- Blattwerker-Designpraeferenzen fuer Prozentschreibweise vereinheitlicht: Prozentsaetze werden jetzt mit Leerzeichen zwischen Zahl und Prozentzeichen gefuehrt (`75 %` statt `75%`) und in Arbeitsblatt- sowie Praesentations-Praeferenzdatei konsistent dokumentiert.
+- Integrationsmodell konsolidiert: Kurzentwerfer wird als Add-on auf Blattwerk-`main` gepflegt; die Kurzentwerfer-Facharbeit bleibt im eigenstaendigen Repo `a:/Code/kurzentwerfer`.
+- PR-Governance fuer Integrationsaenderungen bleibt aktiv: Doku-/Changelog-/Validierungspflichten gelten unveraendert fuer main-targeted Integrationsarbeit.
+- Guardrails fuer Downstream-Integration bleiben als harte Qualitaetspruefung aktiv (Submodule-Konfiguration und DSL-Trennungsanker), ohne pauschalen main-Hardstop.
+- Downstream-Mod-Integration Phase 3 gestartet: `quality-guardrails`-Workflow auf rekursiven Submodule-Checkout erweitert und um separates `kurzentwerfer`-Qualitaetsgate (Guardrails + Pytest) ergaenzt.
+- Downstream-Mod-Integration Phase 2 gestartet: `tools/ci/check_ai_guardrails.py` prueft jetzt bei aktivem `kurzentwerfer`-Submodule die Integrationskonfiguration (`.gitmodules`) sowie harte Kurzentwerfer-Qualitaetsanker (Guardrail-Datei und DSL-Trennungsmarker); fehlende CI-/Remote-Haertung im getrackten Submodule-Commit wird als non-blocking Prozesswarnung gemeldet.
+- Downstream-Mod-Integration Phase 0 gestartet: `kurzentwerfer` als Git-Submodule im Repo verankert und auf `main` als Tracking-Basis vorbereitet.
 - Lernhilfen-Bildexport granularisiert: `Lernhilfen -> PNG` und `Lernhilfen -> PNG (ZIP)` rendern jetzt jede sichtbare Lernhilfe als eigene Karte/Bilddatei statt als seitenweise PDF-Rasterung; Dateinamen werden bei Mehrfachkarten fortlaufend erzeugt.
 - Allgemeiner Soft-Guardrail fuer Shortcut-Abdeckung ergaenzt: `tools/ci/check_ai_guardrails.py` meldet lokal (non-blocking) Warnungen, wenn konfigurierte Kern-Intents (z. B. Export/Hilfe/Neu/Save-As/Settings/Debug/Escape) ohne passenden Keyboard-Binding-Marker in den Blattwerk-Shortcutdefinitionen gefunden werden.
 - Phase-I-Decommission abgeschlossen: die zentralen UI-Contract-Bridges (`bw_libs/ui_contract/keybinding.py`, `bw_libs/ui_contract/popup.py`, `bw_libs/ui_contract/hsm.py`, `bw_libs/ui_contract/laufkern.py`) wurden auf schlanke Shared-Re-Exports reduziert; tote lokale Duplikat-Implementierungen sind entfernt.

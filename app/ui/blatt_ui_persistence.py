@@ -209,6 +209,22 @@ class BlattwerkAppPersistenceMixin:
             payload["startup_editor_view_mode"] = self.editor_view_mode_var.get()
             payload["diagnostics_debounce_ms"] = int(str(getattr(self, "_editor_diagnostics_delay_ms", payload.get("diagnostics_debounce_ms", 350))))
             payload["outline_debounce_ms"] = int(str(getattr(self, "_editor_outline_delay_ms", payload.get("outline_debounce_ms", 220))))
+            payload["preview_auto_refresh_on_edit_idle_enabled"] = bool(
+                getattr(
+                    self,
+                    "_preview_auto_refresh_on_edit_idle_enabled",
+                    payload.get("preview_auto_refresh_on_edit_idle_enabled", False),
+                )
+            )
+            payload["preview_auto_refresh_on_edit_idle_delay_ms"] = int(
+                str(
+                    getattr(
+                        self,
+                        "_preview_auto_refresh_on_edit_idle_delay_ms",
+                        payload.get("preview_auto_refresh_on_edit_idle_delay_ms", 1200),
+                    )
+                )
+            )
             return normalize_user_preferences(payload)
 
     def _apply_user_preferences_live(self, preferences: dict[str, object]):
@@ -225,6 +241,16 @@ class BlattwerkAppPersistenceMixin:
 
             self._editor_diagnostics_delay_ms = int(str(normalized["diagnostics_debounce_ms"]))
             self._editor_outline_delay_ms = int(str(normalized["outline_debounce_ms"]))
+            self._preview_auto_refresh_on_edit_idle_enabled = bool(
+                normalized.get("preview_auto_refresh_on_edit_idle_enabled", False)
+            )
+            self._preview_auto_refresh_on_edit_idle_delay_ms = int(
+                str(normalized.get("preview_auto_refresh_on_edit_idle_delay_ms", 1200))
+            )
+            if not self._preview_auto_refresh_on_edit_idle_enabled and hasattr(
+                self, "_cancel_editor_auto_preview_refresh"
+            ):
+                self._cancel_editor_auto_preview_refresh()
 
             editor_mode = str(normalized["startup_editor_view_mode"])
             fit_mode = str(normalized["startup_fit_mode"])

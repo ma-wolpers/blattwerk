@@ -16,13 +16,33 @@ def test_filter_marker_visibility_for_modes():
 
 
 def test_filter_legacy_line_markers_for_modes():
-    content = "§ Nur AB\nNur Loesung %\n& Beides"
+    content = "§ Nur AB\n% Nur Loesung\n& Beides"
 
     worksheet = filter_answer_content_for_mode(content, include_solutions=False)
     solution = filter_answer_content_for_mode(content, include_solutions=True)
 
     assert worksheet == "Nur AB\nBeides"
     assert solution == "Nur Loesung\nBeides"
+
+
+def test_trailing_percent_stays_plain_text():
+    content = "43 % Rabatt"
+
+    worksheet = filter_answer_content_for_mode(content, include_solutions=False)
+    solution = filter_answer_content_for_mode(content, include_solutions=True)
+
+    assert worksheet == "43 % Rabatt"
+    assert solution == "43 % Rabatt"
+
+
+def test_inline_marker_in_line_middle_stays_supported():
+    content = "zum %{Beispiel} so"
+
+    worksheet = filter_answer_content_for_mode(content, include_solutions=False)
+    solution = filter_answer_content_for_mode(content, include_solutions=True)
+
+    assert worksheet == "zum  so"
+    assert solution == "zum Beispiel so"
 
 
 def test_math_dollar_is_not_a_marker_without_token_spacing():

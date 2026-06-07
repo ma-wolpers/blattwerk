@@ -209,6 +209,14 @@ Regeln:
 - Strukturierte Inhalte sind YAML fuer `geometry`, `numberline`, `table` und `matching`.
 - `matching` ist YAML-only (kein alternatives [section]-Format).
 
+YAML-Quoting fuer LaTeX in YAML-basierten Antwortbloecken:
+- In YAML-Double-Quotes (`"..."`) startet `\` immer eine Escape-Sequenz.
+- LaTeX-Kommandos wie `\dfrac` muessen dort mit Doppel-Backslash geschrieben werden: `"$\\dfrac{1}{2}$"`.
+- Alternativ koennen Single-Quotes genutzt werden (`'...'`); dann bleibt ein einzelner Backslash erhalten, z. B. `'$\dfrac{1}{2}$'`.
+- Geschweifte Klammern fuer LaTeX-Argumente werden **nicht** escaped: korrekt ist `{...}` (z. B. `\dfrac{1}{2}`), nicht `\{...\}`.
+- `\{` und `\}` nur verwenden, wenn im Ergebnis wirklich ein sichtbares `{` oder `}` erscheinen soll.
+- Empfehlung: In `table`-`cells` LaTeX-Inhalte entweder mit Doppel-Backslash in Double-Quotes oder direkt in Single-Quotes notieren, um YAML-Fehler (`AN003`) zu vermeiden.
+
 #### Lines-Optionen und Renderingverhalten
 
 Fuer `lines` gilt zusaetzlich:
@@ -320,7 +328,7 @@ Legacy-Zeilenmarker (gesamte Zeile):
 - `§` = Zeile nur im Arbeitsblatt
 - `%` = Zeile nur in der Lösung
 - `&` = Zeile in Arbeitsblatt und Lösung
-- Erkennung nur als eigenes Token am Zeilenanfang oder Zeilenende.
+- Erkennung nur als eigenes Token am absoluten Zeilenanfang.
 
 Inline-Token (Teil einer Zeile):
 - `§{...}` = nur im Arbeitsblatt sichtbar
@@ -332,13 +340,13 @@ Default-Regel:
 
 Beispiele:
 - `§ Starte mit einem Satz.`
-- `Beispielaufgabe im AB &`
+- `& Beispielaufgabe in beiden Modi`
 - `§{Impuls im AB} %{Musterantwort in der Loesung} Gemeinsamer Text`
+- `zum %{Beispiel} so`
 - `Text mit Escape \%\{ bleibt als Literal sichtbar.`
 - `$x^2 + 1$` bleibt normales Mathe-/Textfragment (kein Token ohne `{...}`).
 
 Konflikt-/Syntaxregel:
-- Legacy-Marker am Anfang und Ende derselben Zeile gelten als Konflikt.
 - Inline-Token muessen geschlossen werden (`}`); ungeschlossene Token erzeugen ebenfalls `AN006`.
 
 Option-Namenskonvention (kanonisch):
