@@ -18,10 +18,10 @@ from .model import (
 _PHASE_LOOKUP = {
     "einstieg": "Einstieg",
     "erarbeitung": "Erarbeitung",
-    "ergebnissicherung": "Ergebnis- sicherung",
+    "sicherung": "Ergebnis- sicherung",
     "vertiefung": "Vertiefung",
     "hausaufgabe": "Hausaufgabe",
-    "didaktische reserve": "Didaktische Reserve",
+    "reserve": "Didaktische Reserve",
 }
 
 _TIME_RE = re.compile(r"^(?P<hour>[01]?\d|2[0-3]):(?P<minute>[0-5]\d)$")

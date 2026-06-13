@@ -41,7 +41,7 @@ _KURZENTWURF_META_SUPPORT_KEYS = (
 )
 _KURZENTWURF_TITLE = "Neuer Kurzentwurf"
 _KURZENTWURF_PHASE_HEADER_RE = re.compile(
-    r"(?im)^\s*#(?:einstieg|erarbeitung|ergebnissicherung|vertiefung|hausaufgabe|didaktische reserve)\b"
+    r"(?im)^\s*#(?:einstieg|erarbeitung|sicherung|vertiefung|hausaufgabe|reserve)\b"
 )
 _KURZENTWURF_MARKER_RE = re.compile(r"(?im)^\s*(?:S>|A>|U>|s<|ant<)\s*")
 
