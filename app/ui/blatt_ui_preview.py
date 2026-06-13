@@ -35,10 +35,11 @@ from .preview_geometry import (
     parse_scrollregion,
 )
 from ..core.document_preview_build import build_preview_images_for_document
+from ..core.kurzentwurf_settings import kurzentwurf_runtime_options_from_preferences
 from ..core.document_types import (
     DOCUMENT_TYPE_KURZENTWURF,
     build_new_document_content,
-    detect_document_type_from_meta,
+    detect_document_type,
     get_new_document_dialog_defaults,
 )
 from ..core.blatt_kern_shared import normalize_document_mode, split_front_matter
@@ -182,10 +183,24 @@ class BlattwerkAppPreviewMixin:
                     continue
                 control.configure(state="disabled")
 
-    def _build_preview_cache_key(self, input_path: Path, include_solutions: bool, page_format: str, contrast_profile: str):
+    def _build_preview_cache_key(
+            self,
+            input_path: Path,
+            include_solutions: bool,
+            page_format: str,
+            contrast_profile: str,
+            *,
+            document_type: str = "worksheet",
+    ):
             """Builds a deterministic cache key for rendered preview pages."""
 
             stats = input_path.stat()
+            kurzentwurf_runtime_key = None
+            if str(document_type or "").strip().lower() == DOCUMENT_TYPE_KURZENTWURF:
+                preferences = getattr(self, "user_preferences", {})
+                options = kurzentwurf_runtime_options_from_preferences(preferences)
+                kurzentwurf_runtime_key = tuple(sorted((str(k), repr(v)) for k, v in options.items()))
+
             return (
                 str(input_path),
                 int(getattr(stats, "st_mtime_ns", int(stats.st_mtime * 1_000_000_000))),
@@ -199,6 +214,7 @@ class BlattwerkAppPreviewMixin:
                 str(self.design_color_profile_var.get()),
                 str(self.design_font_profile_var.get()),
                 str(self.design_font_size_profile_var.get()),
+                kurzentwurf_runtime_key,
             )
 
     def _read_document_mode(self, input_path: Path) -> str:
@@ -222,7 +238,12 @@ class BlattwerkAppPreviewMixin:
             except Exception:
                 return "worksheet"
 
-            return detect_document_type_from_meta(meta or {}, detection_mode=detection_mode)
+            return detect_document_type(
+                meta or {},
+                detection_mode=detection_mode,
+                source_path=input_path,
+                markdown_text=text,
+            )
 
     def _active_document_tab_state(self):
             """Returns mutable state dict for the currently active tab when available."""
@@ -480,6 +501,9 @@ class BlattwerkAppPreviewMixin:
             if hasattr(self, "_read_document_type"):
                 document_type = self._read_document_type(input_path)
 
+            preferences = getattr(self, "user_preferences", {})
+            kurzentwurf_options = kurzentwurf_runtime_options_from_preferences(preferences)
+
             return build_preview_images_for_document(
                 input_path,
                 document_type=document_type,
@@ -492,6 +516,7 @@ class BlattwerkAppPreviewMixin:
                 black_screen_mode=black_screen_mode,
                 presentation_section_separator=section_separator,
                 presentation_hide_future_sections=hide_future_sections,
+                kurzentwurf_options=kurzentwurf_options,
             )
 
     def refresh_preview(self, force_rebuild=False):
@@ -534,7 +559,13 @@ class BlattwerkAppPreviewMixin:
                 cache_key = None
                 if tab_state is not None:
                     try:
-                        cache_key = self._build_preview_cache_key(input_path, include_solutions, page_format, contrast_profile)
+                        cache_key = self._build_preview_cache_key(
+                            input_path,
+                            include_solutions,
+                            page_format,
+                            contrast_profile,
+                            document_type=document_type,
+                        )
                     except Exception:
                         cache_key = None
 
