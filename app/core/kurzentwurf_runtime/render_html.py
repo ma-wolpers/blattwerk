@@ -13,9 +13,12 @@ _ORDERED_ITEM_RE = re.compile(r"^\d+[\.)]\s+(.+)$")
 
 PHASE_SEPARATOR_LINE = "line"
 PHASE_SEPARATOR_SPACE = "space"
+PAGE_ORIENTATION_VERTICAL = "vertical"
+PAGE_ORIENTATION_HORIZONTAL = "horizontal"
 
 DEFAULT_BODY_FONT_SIZE_PT = 10.5
 DEFAULT_PAGE_MARGIN_CM = 1.15
+DEFAULT_PAGE_ORIENTATION_MODE = PAGE_ORIENTATION_VERTICAL
 DEFAULT_PHASE_ROW_SEPARATOR_MODE = PHASE_SEPARATOR_LINE
 DEFAULT_PHASE_ROW_SPACING_PX = 10
 DEFAULT_S_MARKER_LABEL = "S:innen"
@@ -29,6 +32,7 @@ def render_document_html(
     show_document_header: bool = False,
     body_font_size_pt: float = DEFAULT_BODY_FONT_SIZE_PT,
     page_margin_cm: float = DEFAULT_PAGE_MARGIN_CM,
+    page_orientation_mode: str = DEFAULT_PAGE_ORIENTATION_MODE,
     phase_row_separator_mode: str = DEFAULT_PHASE_ROW_SEPARATOR_MODE,
     phase_row_spacing_px: int = DEFAULT_PHASE_ROW_SPACING_PX,
     s_marker_label: str = DEFAULT_S_MARKER_LABEL,
@@ -48,6 +52,7 @@ def render_document_html(
         min_value=0.4,
         max_value=4.0,
     )
+    page_orientation_mode = _normalize_page_orientation_mode(page_orientation_mode)
     phase_row_separator_mode = _normalize_phase_separator_mode(phase_row_separator_mode)
     phase_row_spacing_px = _sanitize_int(
         phase_row_spacing_px,
@@ -92,6 +97,8 @@ def render_document_html(
             f"{subtitle_html}"
         )
 
+    page_orientation_css = "landscape" if page_orientation_mode == PAGE_ORIENTATION_HORIZONTAL else "portrait"
+
     return f"""<!doctype html>
 <html lang=\"de\">
 <head>
@@ -103,7 +110,7 @@ def render_document_html(
     }}
 
     @page {{
-      size: A4 portrait;
+            size: A4 {page_orientation_css};
       margin: {page_margin_cm:.3f}cm;
     }}
 
@@ -489,6 +496,13 @@ def _normalize_phase_separator_mode(value: object) -> str:
     if text == PHASE_SEPARATOR_SPACE:
         return PHASE_SEPARATOR_SPACE
     return PHASE_SEPARATOR_LINE
+
+
+def _normalize_page_orientation_mode(value: object) -> str:
+    text = str(value or "").strip().lower()
+    if text == PAGE_ORIENTATION_HORIZONTAL:
+        return PAGE_ORIENTATION_HORIZONTAL
+    return PAGE_ORIENTATION_VERTICAL
 
 
 def _sanitize_marker_label(value: object, *, default: str) -> str:

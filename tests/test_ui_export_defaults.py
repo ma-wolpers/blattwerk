@@ -95,3 +95,17 @@ def test_normalize_user_preferences_clamps_preview_auto_refresh_delay():
 
     assert low["preview_auto_refresh_on_edit_idle_delay_ms"] == 200
     assert high["preview_auto_refresh_on_edit_idle_delay_ms"] == 10000
+
+
+def test_normalize_user_preferences_adds_kurzentwurf_runtime_defaults():
+    normalized = normalize_user_preferences({})
+
+    assert normalized["kurzentwurf_column_widths_text"] == "10 20 60 10"
+    assert normalized["kurzentwurf_show_document_header"] is False
+    assert normalized["kurzentwurf_body_font_size_pt"] == 10.5
+    assert normalized["kurzentwurf_page_margin_cm"] == 1.15
+    assert normalized["kurzentwurf_page_orientation_mode"] == "vertical"
+    assert normalized["kurzentwurf_phase_row_separator_mode"] == "line"
+    assert normalized["kurzentwurf_phase_row_spacing_px"] == 10
+    assert normalized["kurzentwurf_s_marker_label"] == "S:innen"
+    assert normalized["kurzentwurf_ant_marker_label"] == "Antizipiert:"

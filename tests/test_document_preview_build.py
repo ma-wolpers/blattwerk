@@ -38,8 +38,8 @@ def test_preview_dispatch_uses_kurzentwurf_builder(monkeypatch, tmp_path):
 
     calls = []
 
-    def _fake_kurzentwurf_builder(path):
-        calls.append(path)
+    def _fake_kurzentwurf_builder(path, **kwargs):
+        calls.append((path, kwargs))
         return (["kurzentwurf-page"], [BuildDiagnostic(code="KZF999", message="ok")])
 
     monkeypatch.setattr("app.core.document_preview_build._build_kurzentwurf_preview_images", _fake_kurzentwurf_builder)
@@ -51,11 +51,18 @@ def test_preview_dispatch_uses_kurzentwurf_builder(monkeypatch, tmp_path):
         page_format="a4_portrait",
         contrast_profile="standard",
         worksheet_design=WorksheetDesignOptions("indigo", "segoe", "normal"),
+        kurzentwurf_options={
+            "column_widths_text": "1 2 3 2",
+            "page_orientation_mode": "horizontal",
+        },
     )
 
     assert pages == ["kurzentwurf-page"]
     assert diagnostics[0].code == "KZF999"
-    assert calls == [input_path]
+    assert calls and calls[0][0] == input_path
+    forwarded = calls[0][1].get("kurzentwurf_options") or {}
+    assert forwarded.get("column_widths_text") == "1 2 3 2"
+    assert forwarded.get("page_orientation_mode") == "horizontal"
 
 
 def test_preview_dispatch_raises_readable_kurzentwurf_error(monkeypatch, tmp_path):
@@ -74,7 +81,7 @@ def test_preview_dispatch_raises_readable_kurzentwurf_error(monkeypatch, tmp_pat
 
     monkeypatch.setattr(
         "app.core.document_preview_build.build_kurzentwerfer_preview_images",
-        lambda source: ([], _Inspection()),
+        lambda source, **kwargs: ([], _Inspection()),
     )
 
     try:

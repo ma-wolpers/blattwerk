@@ -32,7 +32,8 @@ from ..core.document_export_build import (
     export_document_png,
     export_document_png_zip,
 )
-from ..core.document_types import DOCUMENT_TYPE_KURZENTWURF, detect_document_type_from_meta
+from ..core.kurzentwurf_settings import kurzentwurf_runtime_options_from_preferences
+from ..core.document_types import DOCUMENT_TYPE_KURZENTWURF, detect_document_type
 from ..core.export_path_guardrails import validate_export_output_path
 from ..core.blatt_kern_pptx_export import build_presentation_pptx
 from .help_card_image_trim import trim_lernhilfe_image
@@ -141,7 +142,12 @@ class BlattwerkAppExportMixin:
 
         preferences = getattr(self, "user_preferences", {})
         detection_mode = preferences.get("document_type_detection_mode", "yaml_keys")
-        return detect_document_type_from_meta(meta or {}, detection_mode=detection_mode)
+        return detect_document_type(
+            meta or {},
+            detection_mode=detection_mode,
+            source_path=input_path,
+            markdown_text=text,
+        )
 
     def _count_visible_lernhilfen(self, input_path: Path, include_solutions: bool) -> int:
         """Counts currently visible lernhilfen blocks for a given document and mode."""
@@ -345,6 +351,8 @@ class BlattwerkAppExportMixin:
     ):
         """Export pdf."""
         document_type = self._detect_document_type(input_path)
+        preferences = getattr(self, "user_preferences", {})
+        kurzentwurf_options = kurzentwurf_runtime_options_from_preferences(preferences)
         if mode == "both":
             worksheet_path = self._without_solution_suffix(output_path)
             solution_path = self._with_solution_suffix(worksheet_path)
@@ -354,6 +362,7 @@ class BlattwerkAppExportMixin:
                 output_path=worksheet_path,
                 document_type=document_type,
                 include_solutions=False,
+                kurzentwurf_options=kurzentwurf_options,
                 worksheet_request=self._worksheet_build_request(
                     input_path=input_path,
                     output_path=worksheet_path,
@@ -369,6 +378,7 @@ class BlattwerkAppExportMixin:
                 output_path=solution_path,
                 document_type=document_type,
                 include_solutions=True,
+                kurzentwurf_options=kurzentwurf_options,
                 worksheet_request=self._worksheet_build_request(
                     input_path=input_path,
                     output_path=solution_path,
@@ -391,6 +401,7 @@ class BlattwerkAppExportMixin:
             output_path=target,
             document_type=document_type,
             include_solutions=include_solutions,
+            kurzentwurf_options=kurzentwurf_options,
             worksheet_request=self._worksheet_build_request(
                 input_path=input_path,
                 output_path=target,
@@ -415,6 +426,8 @@ class BlattwerkAppExportMixin:
     ):
         """Export html."""
         document_type = self._detect_document_type(input_path)
+        preferences = getattr(self, "user_preferences", {})
+        kurzentwurf_options = kurzentwurf_runtime_options_from_preferences(preferences)
         if mode == "both":
             worksheet_path = self._without_solution_suffix(output_path)
             solution_path = self._with_solution_suffix(worksheet_path)
@@ -424,6 +437,7 @@ class BlattwerkAppExportMixin:
                 output_path=worksheet_path,
                 document_type=document_type,
                 include_solutions=False,
+                kurzentwurf_options=kurzentwurf_options,
                 worksheet_request=self._worksheet_build_request(
                     input_path=input_path,
                     output_path=worksheet_path,
@@ -439,6 +453,7 @@ class BlattwerkAppExportMixin:
                 output_path=solution_path,
                 document_type=document_type,
                 include_solutions=True,
+                kurzentwurf_options=kurzentwurf_options,
                 worksheet_request=self._worksheet_build_request(
                     input_path=input_path,
                     output_path=solution_path,
@@ -461,6 +476,7 @@ class BlattwerkAppExportMixin:
             output_path=target,
             document_type=document_type,
             include_solutions=include_solutions,
+            kurzentwurf_options=kurzentwurf_options,
             worksheet_request=self._worksheet_build_request(
                 input_path=input_path,
                 output_path=target,
@@ -486,6 +502,8 @@ class BlattwerkAppExportMixin:
         """Export png."""
         worksheet_design = self._worksheet_design_options()
         document_type = self._detect_document_type(input_path)
+        preferences = getattr(self, "user_preferences", {})
+        kurzentwurf_options = kurzentwurf_runtime_options_from_preferences(preferences)
         metadata_defaults = self._metadata_defaults_from_preferences()
         copyright_override = self._copyright_text_from_preferences() or None
         section_separator, hide_future_sections = self._current_presentation_footer_export_options()
@@ -507,6 +525,7 @@ class BlattwerkAppExportMixin:
                 presentation_section_separator=section_separator,
                 presentation_hide_future_sections=hide_future_sections,
                 diagnostics_out=compile_diagnostics,
+                kurzentwurf_options=kurzentwurf_options,
             )
             out_solution = export_document_png(
                 input_path=input_path,
@@ -522,6 +541,7 @@ class BlattwerkAppExportMixin:
                 presentation_section_separator=section_separator,
                 presentation_hide_future_sections=hide_future_sections,
                 diagnostics_out=compile_diagnostics,
+                kurzentwurf_options=kurzentwurf_options,
             )
             return [*out_worksheet, *out_solution]
 
@@ -541,6 +561,7 @@ class BlattwerkAppExportMixin:
             presentation_section_separator=section_separator,
             presentation_hide_future_sections=hide_future_sections,
             diagnostics_out=compile_diagnostics,
+            kurzentwurf_options=kurzentwurf_options,
         )
 
     def _export_png_zip(
@@ -556,6 +577,8 @@ class BlattwerkAppExportMixin:
         """Export png zip."""
         worksheet_design = self._worksheet_design_options()
         document_type = self._detect_document_type(input_path)
+        preferences = getattr(self, "user_preferences", {})
+        kurzentwurf_options = kurzentwurf_runtime_options_from_preferences(preferences)
         metadata_defaults = self._metadata_defaults_from_preferences()
         copyright_override = self._copyright_text_from_preferences() or None
         section_separator, hide_future_sections = self._current_presentation_footer_export_options()
@@ -577,6 +600,7 @@ class BlattwerkAppExportMixin:
                 presentation_section_separator=section_separator,
                 presentation_hide_future_sections=hide_future_sections,
                 diagnostics_out=compile_diagnostics,
+                kurzentwurf_options=kurzentwurf_options,
             )
             export_document_png_zip(
                 input_path=input_path,
@@ -592,6 +616,7 @@ class BlattwerkAppExportMixin:
                 presentation_section_separator=section_separator,
                 presentation_hide_future_sections=hide_future_sections,
                 diagnostics_out=compile_diagnostics,
+                kurzentwurf_options=kurzentwurf_options,
             )
             return [worksheet_path, solution_path]
 
@@ -614,6 +639,7 @@ class BlattwerkAppExportMixin:
             presentation_section_separator=section_separator,
             presentation_hide_future_sections=hide_future_sections,
             diagnostics_out=compile_diagnostics,
+            kurzentwurf_options=kurzentwurf_options,
         )
         return [out_file]
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import tempfile
 from pathlib import Path
+from typing import Mapping
 
 import fitz
 from PIL import Image
@@ -12,6 +13,7 @@ from .kurzentwurf_runtime.build import build_preview_images as build_kurzentwerf
 
 from .blatt_validator import BuildDiagnostic
 from .build_requests import WorksheetBuildRequest, WorksheetDesignOptions, build_worksheet_from_request
+from .kurzentwurf_settings import resolve_kurzentwurf_runtime_options
 from .document_types import DOCUMENT_TYPE_KURZENTWURF
 
 
@@ -28,11 +30,12 @@ def build_preview_images_for_document(
     black_screen_mode: str = "none",
     presentation_section_separator: str = "dot",
     presentation_hide_future_sections: bool = False,
+    kurzentwurf_options: Mapping[str, object] | None = None,
 ) -> tuple[list[Image.Image], list[BuildDiagnostic]]:
     """Build preview images for the active document family."""
 
     if str(document_type or "").strip().lower() == DOCUMENT_TYPE_KURZENTWURF:
-        return _build_kurzentwurf_preview_images(input_path)
+        return _build_kurzentwurf_preview_images(input_path, kurzentwurf_options=kurzentwurf_options)
 
     return _build_worksheet_preview_images(
         input_path,
@@ -98,9 +101,14 @@ def _build_worksheet_preview_images(
             pass
 
 
-def _build_kurzentwurf_preview_images(input_path: Path) -> tuple[list[Image.Image], list[BuildDiagnostic]]:
+def _build_kurzentwurf_preview_images(
+    input_path: Path,
+    *,
+    kurzentwurf_options: Mapping[str, object] | None = None,
+) -> tuple[list[Image.Image], list[BuildDiagnostic]]:
     source = input_path.read_text(encoding="utf-8")
-    pages, inspection = build_kurzentwerfer_preview_images(source)
+    runtime_options = resolve_kurzentwurf_runtime_options(kurzentwurf_options)
+    pages, inspection = build_kurzentwerfer_preview_images(source, **runtime_options)
 
     diagnostics = [_to_build_diagnostic(diag) for diag in inspection.diagnostics]
     if inspection.has_errors:

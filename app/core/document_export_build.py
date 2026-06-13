@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import tempfile
+from typing import Mapping
 import zipfile
 
 from PIL import Image
@@ -13,6 +14,7 @@ from .kurzentwurf_runtime.build import export_pdf_from_source, render_html_from_
 from .blatt_validator import BuildDiagnostic
 from .build_requests import WorksheetBuildRequest, build_worksheet_from_request
 from .document_preview_build import build_preview_images_for_document
+from .kurzentwurf_settings import resolve_kurzentwurf_runtime_options
 from .document_types import DOCUMENT_TYPE_KURZENTWURF
 from .export_path_guardrails import validate_export_output_path
 
@@ -24,12 +26,18 @@ def export_document_pdf(
     document_type: str,
     include_solutions: bool,
     worksheet_request: WorksheetBuildRequest,
+    kurzentwurf_options: Mapping[str, object] | None = None,
 ) -> Path:
     """Export one document variant as PDF."""
 
     if str(document_type or "").strip().lower() == DOCUMENT_TYPE_KURZENTWURF:
         _ensure_supported_kurzentwurf_mode(include_solutions)
-        return _export_kurzentwurf_pdf(input_path=input_path, output_path=output_path, diagnostics_out=worksheet_request.diagnostics_out)
+        return _export_kurzentwurf_pdf(
+            input_path=input_path,
+            output_path=output_path,
+            diagnostics_out=worksheet_request.diagnostics_out,
+            kurzentwurf_options=kurzentwurf_options,
+        )
 
     return Path(build_worksheet_from_request(worksheet_request))
 
@@ -41,12 +49,18 @@ def export_document_html(
     document_type: str,
     include_solutions: bool,
     worksheet_request: WorksheetBuildRequest,
+    kurzentwurf_options: Mapping[str, object] | None = None,
 ) -> Path:
     """Export one document variant as HTML."""
 
     if str(document_type or "").strip().lower() == DOCUMENT_TYPE_KURZENTWURF:
         _ensure_supported_kurzentwurf_mode(include_solutions)
-        return _export_kurzentwurf_html(input_path=input_path, output_path=output_path, diagnostics_out=worksheet_request.diagnostics_out)
+        return _export_kurzentwurf_html(
+            input_path=input_path,
+            output_path=output_path,
+            diagnostics_out=worksheet_request.diagnostics_out,
+            kurzentwurf_options=kurzentwurf_options,
+        )
 
     return Path(build_worksheet_from_request(worksheet_request))
 
@@ -66,6 +80,7 @@ def export_document_png(
     presentation_section_separator: str = "dot",
     presentation_hide_future_sections: bool = False,
     diagnostics_out: list[BuildDiagnostic] | None = None,
+    kurzentwurf_options: Mapping[str, object] | None = None,
 ) -> list[Path]:
     """Export one document variant as one or more PNG files."""
 
@@ -84,6 +99,7 @@ def export_document_png(
         black_screen_mode=black_screen_mode,
         presentation_section_separator=presentation_section_separator,
         presentation_hide_future_sections=presentation_hide_future_sections,
+        kurzentwurf_options=kurzentwurf_options,
     )
     _extend_diagnostics(diagnostics_out, diagnostics)
     return _save_png_pages(output_path=output_path, pages=pages)
@@ -104,6 +120,7 @@ def export_document_png_zip(
     presentation_section_separator: str = "dot",
     presentation_hide_future_sections: bool = False,
     diagnostics_out: list[BuildDiagnostic] | None = None,
+    kurzentwurf_options: Mapping[str, object] | None = None,
 ) -> Path:
     """Export one document variant as a ZIP archive with page PNGs."""
 
@@ -122,16 +139,24 @@ def export_document_png_zip(
         black_screen_mode=black_screen_mode,
         presentation_section_separator=presentation_section_separator,
         presentation_hide_future_sections=presentation_hide_future_sections,
+        kurzentwurf_options=kurzentwurf_options,
     )
     _extend_diagnostics(diagnostics_out, diagnostics)
     return _save_png_zip(output_path=output_path, pages=pages)
 
 
-def _export_kurzentwurf_pdf(*, input_path: Path, output_path: Path, diagnostics_out: list[BuildDiagnostic] | None) -> Path:
+def _export_kurzentwurf_pdf(
+    *,
+    input_path: Path,
+    output_path: Path,
+    diagnostics_out: list[BuildDiagnostic] | None,
+    kurzentwurf_options: Mapping[str, object] | None,
+) -> Path:
     target_path = validate_export_output_path(output_path.with_suffix(".pdf"), allowed_suffixes={".pdf"})
     target_path.parent.mkdir(parents=True, exist_ok=True)
     source = input_path.read_text(encoding="utf-8")
-    success, inspection = export_pdf_from_source(source, target_path)
+    runtime_options = resolve_kurzentwurf_runtime_options(kurzentwurf_options)
+    success, inspection = export_pdf_from_source(source, target_path, **runtime_options)
     diagnostics = [_to_build_diagnostic(diag) for diag in inspection.diagnostics]
     _extend_diagnostics(diagnostics_out, diagnostics)
     if not success:
@@ -139,11 +164,18 @@ def _export_kurzentwurf_pdf(*, input_path: Path, output_path: Path, diagnostics_
     return target_path
 
 
-def _export_kurzentwurf_html(*, input_path: Path, output_path: Path, diagnostics_out: list[BuildDiagnostic] | None) -> Path:
+def _export_kurzentwurf_html(
+    *,
+    input_path: Path,
+    output_path: Path,
+    diagnostics_out: list[BuildDiagnostic] | None,
+    kurzentwurf_options: Mapping[str, object] | None,
+) -> Path:
     target_path = validate_export_output_path(output_path.with_suffix(".html"), allowed_suffixes={".html"})
     target_path.parent.mkdir(parents=True, exist_ok=True)
     source = input_path.read_text(encoding="utf-8")
-    html, inspection = render_html_from_source(source)
+    runtime_options = resolve_kurzentwurf_runtime_options(kurzentwurf_options)
+    html, inspection = render_html_from_source(source, **runtime_options)
     diagnostics = [_to_build_diagnostic(diag) for diag in inspection.diagnostics]
     _extend_diagnostics(diagnostics_out, diagnostics)
     if html is None:

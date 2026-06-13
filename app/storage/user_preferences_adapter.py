@@ -21,6 +21,20 @@ from ..styles.worksheet_design import (
     DEFAULT_COLOR_PROFILE,
     COLOR_PROFILE_ORDER,
 )
+from ..core.kurzentwurf_runtime.column_widths import DEFAULT_COLUMN_WEIGHTS_TEXT
+from ..core.kurzentwurf_runtime.render_html import (
+    DEFAULT_ANT_MARKER_LABEL,
+    DEFAULT_BODY_FONT_SIZE_PT,
+    DEFAULT_PAGE_ORIENTATION_MODE,
+    DEFAULT_PAGE_MARGIN_CM,
+    DEFAULT_PHASE_ROW_SEPARATOR_MODE,
+    DEFAULT_PHASE_ROW_SPACING_PX,
+    DEFAULT_S_MARKER_LABEL,
+    PAGE_ORIENTATION_HORIZONTAL,
+    PAGE_ORIENTATION_VERTICAL,
+    PHASE_SEPARATOR_LINE,
+    PHASE_SEPARATOR_SPACE,
+)
 from .local_config_store import (
     DEFAULT_MAX_RECENT_FILES,
     MAX_MAX_RECENT_FILES,
@@ -422,6 +436,68 @@ PREFERENCE_SPECS = {
         "type": "enum",
         "default": "yaml_keys",
         "values": ["yaml_keys", "hybrid", "document_type_key"],
+    },
+    "kurzentwurf_column_widths_text": {
+        "tab": "document_types",
+        "label": "Kurzentwurf Spaltengewichte",
+        "type": "str",
+        "default": DEFAULT_COLUMN_WEIGHTS_TEXT,
+    },
+    "kurzentwurf_show_document_header": {
+        "tab": "document_types",
+        "label": "Kurzentwurf Dokumentkopf anzeigen",
+        "type": "bool",
+        "default": False,
+    },
+    "kurzentwurf_body_font_size_pt": {
+        "tab": "document_types",
+        "label": "Kurzentwurf Schriftgroesse (pt)",
+        "type": "float",
+        "default": DEFAULT_BODY_FONT_SIZE_PT,
+        "min": 8.0,
+        "max": 16.0,
+    },
+    "kurzentwurf_page_margin_cm": {
+        "tab": "document_types",
+        "label": "Kurzentwurf Seitenrand (cm)",
+        "type": "float",
+        "default": DEFAULT_PAGE_MARGIN_CM,
+        "min": 0.4,
+        "max": 4.0,
+    },
+    "kurzentwurf_page_orientation_mode": {
+        "tab": "document_types",
+        "label": "Kurzentwurf Ausrichtung",
+        "type": "enum",
+        "default": DEFAULT_PAGE_ORIENTATION_MODE,
+        "values": [PAGE_ORIENTATION_VERTICAL, PAGE_ORIENTATION_HORIZONTAL],
+    },
+    "kurzentwurf_phase_row_separator_mode": {
+        "tab": "document_types",
+        "label": "Kurzentwurf Segmenttrenner",
+        "type": "enum",
+        "default": DEFAULT_PHASE_ROW_SEPARATOR_MODE,
+        "values": [PHASE_SEPARATOR_LINE, PHASE_SEPARATOR_SPACE],
+    },
+    "kurzentwurf_phase_row_spacing_px": {
+        "tab": "document_types",
+        "label": "Kurzentwurf Segmentabstand (px)",
+        "type": "int",
+        "default": DEFAULT_PHASE_ROW_SPACING_PX,
+        "min": 0,
+        "max": 40,
+    },
+    "kurzentwurf_s_marker_label": {
+        "tab": "document_types",
+        "label": "Kurzentwurf Label S>",
+        "type": "str",
+        "default": DEFAULT_S_MARKER_LABEL,
+    },
+    "kurzentwurf_ant_marker_label": {
+        "tab": "document_types",
+        "label": "Kurzentwurf Label ant<",
+        "type": "str",
+        "default": DEFAULT_ANT_MARKER_LABEL,
     },
     # Accessibility
     "tooltips_enabled": {

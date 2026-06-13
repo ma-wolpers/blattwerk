@@ -711,7 +711,18 @@ class BlattwerkAppEditorMixin:
         preferences = getattr(self, "user_preferences", {})
         detection_mode = preferences.get("document_type_detection_mode", "yaml_keys")
         try:
-            inspected = inspect_document_text(text, detection_mode=detection_mode)
+            source_path = None
+            if hasattr(self, "_active_document_tab_state"):
+                try:
+                    tab_state = self._active_document_tab_state()
+                except Exception:
+                    tab_state = None
+                if isinstance(tab_state, dict):
+                    raw_path = str(tab_state.get("path", "") or "").strip()
+                    if raw_path:
+                        source_path = raw_path
+
+            inspected = inspect_document_text(text, detection_mode=detection_mode, source_path=source_path)
         except Exception:
             self._set_editor_diagnostics([])
             return

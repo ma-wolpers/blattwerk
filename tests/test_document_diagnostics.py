@@ -19,3 +19,48 @@ def test_inspect_document_text_uses_kurzentwurf_validator_for_kurzentwurf():
     assert result.document_type == DOCUMENT_TYPE_KURZENTWURF
     assert any(diag.code == "KZF010" for diag in result.diagnostics)
     assert any("Kurzentwurf-DSL" in diag.message for diag in result.diagnostics if diag.code == "KZF010")
+
+
+def test_inspect_document_text_uses_legacy_kurzentwurf_fallback_for_kwe_path():
+    result = inspect_document_text(
+        "---\nStundenthema: Thema\n---\n#einstieg t=10\nS> Impuls\n",
+        detection_mode="document_type_key",
+        source_path="beispiel.kwe.md",
+    )
+
+    assert result.document_type == DOCUMENT_TYPE_KURZENTWURF
+    assert all(diag.code != "FM001" for diag in result.diagnostics)
+
+
+def test_inspect_document_text_uses_legacy_kurzentwurf_fallback_for_plain_md():
+    result = inspect_document_text(
+        "---\nStundenthema: Thema\nLerngruppe: 6a\n---\n#einstieg t=10\nS> Impuls\n",
+        detection_mode="document_type_key",
+        source_path="beispiel.md",
+    )
+
+    assert result.document_type == DOCUMENT_TYPE_KURZENTWURF
+    assert all(diag.code != "FM001" for diag in result.diagnostics)
+
+
+def test_inspect_document_text_recognizes_user_style_plain_md_kurzentwurf():
+    result = inspect_document_text(
+        "---\n"
+        "Stundentyp: Unterricht\n"
+        "Dauer: 2\n"
+        "Stundenthema: Bist du normal\n"
+        "Oberthema: Prozentrechnung\n"
+        "Stundenziel: Prozentwerte berechnen\n"
+        "Teilziele:\n"
+        "Kompetenzen:\n"
+        "  - Dreisatz nutzen\n"
+        "Material:\n"
+        "Unterrichtsbesuch:\n"
+        "---\n\n"
+        "#einstieg t=5\n",
+        detection_mode="document_type_key",
+        source_path="lila-5 06-15 Prozentwerte.md",
+    )
+
+    assert result.document_type == DOCUMENT_TYPE_KURZENTWURF
+    assert all(diag.code != "FM001" for diag in result.diagnostics)

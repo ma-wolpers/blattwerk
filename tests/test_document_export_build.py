@@ -37,9 +37,14 @@ def test_export_document_pdf_uses_kurzentwurf_builder(monkeypatch, tmp_path):
     class _Inspection:
         diagnostics = (_Diag(),)
 
+    def _fake_export_pdf_from_source(source, output_path, **kwargs):
+        seen["path"] = output_path
+        seen["kwargs"] = kwargs
+        return True, _Inspection()
+
     monkeypatch.setattr(
         "app.core.document_export_build.export_pdf_from_source",
-        lambda source, output_path: (seen.setdefault("path", output_path) or True, _Inspection()),
+        _fake_export_pdf_from_source,
     )
 
     out_path = export_document_pdf(
@@ -48,22 +53,33 @@ def test_export_document_pdf_uses_kurzentwurf_builder(monkeypatch, tmp_path):
         document_type=DOCUMENT_TYPE_KURZENTWURF,
         include_solutions=False,
         worksheet_request=request,
+        kurzentwurf_options={
+            "column_widths_text": "1 2 3 2",
+            "page_orientation_mode": "horizontal",
+        },
     )
 
     assert out_path.suffix == ".pdf"
     assert Path(seen["path"]) == out_path
+    assert seen["kwargs"].get("column_widths_text") == "1 2 3 2"
+    assert seen["kwargs"].get("page_orientation_mode") == "horizontal"
     assert request.diagnostics_out[0].code == "KZF001"
 
 
 def test_export_document_html_writes_kurzentwurf_html(monkeypatch, tmp_path):
     request = _worksheet_request(tmp_path, diagnostics_out=[])
+    seen = {}
 
     class _Inspection:
         diagnostics = ()
 
+    def _fake_render_html_from_source(source, **kwargs):
+        seen["kwargs"] = kwargs
+        return "<html>ok</html>", _Inspection()
+
     monkeypatch.setattr(
         "app.core.document_export_build.render_html_from_source",
-        lambda source: ("<html>ok</html>", _Inspection()),
+        _fake_render_html_from_source,
     )
 
     out_path = export_document_html(
@@ -72,9 +88,11 @@ def test_export_document_html_writes_kurzentwurf_html(monkeypatch, tmp_path):
         document_type=DOCUMENT_TYPE_KURZENTWURF,
         include_solutions=False,
         worksheet_request=request,
+        kurzentwurf_options={"show_document_header": True},
     )
 
     assert out_path.read_text(encoding="utf-8") == "<html>ok</html>"
+    assert seen["kwargs"].get("show_document_header") is True
 
 
 def test_export_document_png_creates_numbered_pages(monkeypatch, tmp_path):

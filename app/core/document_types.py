@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+from pathlib import PurePath
 from typing import Mapping
 
 from .blatt_kern_shared import normalize_document_mode
@@ -27,7 +29,21 @@ KNOWN_DOCUMENT_TYPE_DETECTION_MODES = {
 }
 
 _KURZENTWURF_META_KEYS = ("Stundenthema", "Lerngruppe", "start")
+_KURZENTWURF_META_SUPPORT_KEYS = (
+    "Stundentyp",
+    "Dauer",
+    "Oberthema",
+    "Stundenziel",
+    "Teilziele",
+    "Kompetenzen",
+    "Material",
+    "Unterrichtsbesuch",
+)
 _KURZENTWURF_TITLE = "Neuer Kurzentwurf"
+_KURZENTWURF_PHASE_HEADER_RE = re.compile(
+    r"(?im)^\s*#(?:einstieg|erarbeitung|ergebnissicherung|vertiefung|hausaufgabe|didaktische reserve)\b"
+)
+_KURZENTWURF_MARKER_RE = re.compile(r"(?im)^\s*(?:S>|A>|U>|s<|ant<)\s*")
 
 
 def normalize_document_type(value: object, default: str = DOCUMENT_TYPE_WORKSHEET) -> str:
@@ -81,6 +97,28 @@ def detect_document_type_from_meta(
     return DOCUMENT_TYPE_WORKSHEET
 
 
+def detect_document_type(
+    meta: Mapping[str, object] | None,
+    *,
+    detection_mode: str = DOCUMENT_TYPE_DETECTION_YAML_KEYS,
+    source_path: str | PurePath | None = None,
+    markdown_text: str | None = None,
+) -> str:
+    """Resolve document type with compatibility fallbacks for legacy Kurzentwurf files."""
+
+    document_type = detect_document_type_from_meta(meta, detection_mode=detection_mode)
+    if document_type != DOCUMENT_TYPE_WORKSHEET:
+        return document_type
+
+    if _looks_like_kurzentwurf_path(source_path):
+        return DOCUMENT_TYPE_KURZENTWURF
+
+    if _looks_like_kurzentwurf_legacy_source(meta, markdown_text):
+        return DOCUMENT_TYPE_KURZENTWURF
+
+    return DOCUMENT_TYPE_WORKSHEET
+
+
 def get_new_document_title(document_type: str, preferences: Mapping[str, object] | None = None) -> str:
     document_type = normalize_document_type(document_type)
     user_preferences = preferences if isinstance(preferences, Mapping) else {}
@@ -119,7 +157,41 @@ def get_new_document_dialog_defaults(document_type: str) -> tuple[str, str]:
 
 
 def _looks_like_kurzentwurf_meta(meta: Mapping[str, object]) -> bool:
-    return sum(1 for key in _KURZENTWURF_META_KEYS if str(meta.get(key, "") or "").strip()) >= 2
+    primary_match_count = sum(1 for key in _KURZENTWURF_META_KEYS if str(meta.get(key, "") or "").strip())
+    if primary_match_count >= 2:
+        return True
+
+    support_match_count = sum(1 for key in _KURZENTWURF_META_SUPPORT_KEYS if key in meta)
+    if str(meta.get("Stundenthema", "") or "").strip() and support_match_count >= 2:
+        return True
+
+    return False
+
+
+def _looks_like_kurzentwurf_path(path: str | PurePath | None) -> bool:
+    if path is None:
+        return False
+
+    suffixes = [suffix.lower() for suffix in PurePath(str(path)).suffixes]
+    return len(suffixes) >= 2 and suffixes[-2:] == [".kwe", ".md"]
+
+
+def _looks_like_kurzentwurf_legacy_source(
+    meta: Mapping[str, object] | None,
+    markdown_text: str | None,
+) -> bool:
+    metadata = meta if isinstance(meta, Mapping) else {}
+    matching_meta_keys = sum(1 for key in _KURZENTWURF_META_KEYS if str(metadata.get(key, "") or "").strip())
+    if matching_meta_keys >= 2:
+        return True
+    if matching_meta_keys == 0 or not isinstance(markdown_text, str):
+        return False
+
+    if _KURZENTWURF_PHASE_HEADER_RE.search(markdown_text):
+        return True
+    if _KURZENTWURF_MARKER_RE.search(markdown_text):
+        return True
+    return False
 
 
 def _build_worksheet_template(preferences: Mapping[str, object]) -> str:
