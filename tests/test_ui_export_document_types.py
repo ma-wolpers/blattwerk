@@ -33,7 +33,14 @@ def test_show_export_diagnostics_skips_kurzentwurf(monkeypatch, tmp_path):
 
     monkeypatch.setattr(
         "app.ui.blatt_ui_export.build_warning_payload",
-        lambda *args, **kwargs: called.__setitem__("warning_payload", called["warning_payload"] + 1),
+        lambda *args, **kwargs: (
+            called.__setitem__("warning_payload", called["warning_payload"] + 1)
+            or {
+                "count": 1,
+                "title": "Kurzentwurf-Warnungen (Export)",
+                "message": "- KZF101 [Zeile 6]: Marker mit Doppelpunkt sind ungueltig.",
+            }
+        ),
     )
     monkeypatch.setattr(
         "app.ui.blatt_ui_export.messagebox.showwarning",
@@ -42,8 +49,8 @@ def test_show_export_diagnostics_skips_kurzentwurf(monkeypatch, tmp_path):
 
     app._show_export_diagnostics(tmp_path / "kurzentwurf.md")
 
-    assert called["warning_payload"] == 0
-    assert called["messagebox"] == 0
+    assert called["warning_payload"] == 1
+    assert called["messagebox"] == 1
 
 
 def test_open_worksheet_export_dialog_disables_mode_selection_for_kurzentwurf(monkeypatch, tmp_path):

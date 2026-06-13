@@ -365,9 +365,6 @@ class BlattwerkAppPreviewMixin:
 
     def _show_document_diagnostics(self, input_path: Path, context_label: str):
             """Zeigt nicht-blockierende Blattwerk-Warnungen einmalig pro Dokumentzustand."""
-            if hasattr(self, "_read_document_type") and self._read_document_type(input_path) == DOCUMENT_TYPE_KURZENTWURF:
-                return
-
             warning_payload = build_warning_payload(input_path, context_label)
             if warning_payload is None:
                 return

@@ -20,9 +20,10 @@ from ..core.completion_catalogs import (
     get_completion_options_for_block,
     get_completion_option_values,
 )
-from ..core.blatt_validator import (
-    inspect_markdown_text,
+from ..core.document_diagnostics import (
+    inspect_document_text,
 )
+from ..core.document_types import DOCUMENT_TYPE_KURZENTWURF
 from ..storage.local_config_store import (
     get_block_type_decay_scores,
     get_option_value_decay_scores,
@@ -707,8 +708,10 @@ class BlattwerkAppEditorMixin:
             return
 
         text = self.editor_widget.get("1.0", "end-1c")
+        preferences = getattr(self, "user_preferences", {})
+        detection_mode = preferences.get("document_type_detection_mode", "yaml_keys")
         try:
-            inspected = inspect_markdown_text(text)
+            inspected = inspect_document_text(text, detection_mode=detection_mode)
         except Exception:
             self._set_editor_diagnostics([])
             return
@@ -734,25 +737,26 @@ class BlattwerkAppEditorMixin:
                 }
             )
 
-        for line_no in structure["close_suffix_lines"]:
-            items.append(
-                {
-                    "line": max(1, int(line_no)),
-                    "code": "SY001",
-                    "severity": "error",
-                    "message": "Nach schließendem ::: ist kein weiterer Text erlaubt.",
-                }
-            )
+        if inspected.document_type != DOCUMENT_TYPE_KURZENTWURF:
+            for line_no in structure["close_suffix_lines"]:
+                items.append(
+                    {
+                        "line": max(1, int(line_no)),
+                        "code": "SY001",
+                        "severity": "error",
+                        "message": "Nach schließendem ::: ist kein weiterer Text erlaubt.",
+                    }
+                )
 
-        for line_no in structure["unclosed_open_lines"]:
-            items.append(
-                {
-                    "line": max(1, int(line_no)),
-                    "code": "SY002",
-                    "severity": "error",
-                    "message": "Block ist geöffnet, aber nicht mit ::: geschlossen.",
-                }
-            )
+            for line_no in structure["unclosed_open_lines"]:
+                items.append(
+                    {
+                        "line": max(1, int(line_no)),
+                        "code": "SY002",
+                        "severity": "error",
+                        "message": "Block ist geöffnet, aber nicht mit ::: geschlossen.",
+                    }
+                )
 
         self._set_editor_diagnostics(items)
 

@@ -42,3 +42,27 @@ def test_build_warning_payload_formats_first_diagnostic_line(tmp_path):
     assert payload["count"] >= 1
     assert payload["title"] == "Blattwerk-Warnungen (Export)"
     assert "AN005" in payload["message"]
+
+
+def test_build_warning_payload_formats_kurzentwurf_warning_line(tmp_path):
+    doc_path = tmp_path / "kurzentwurf.md"
+    doc_path.write_text(
+        "---\n"
+        "Stundenthema: T\n"
+        "Lerngruppe: 6a\n"
+        "start: 08:00\n"
+        "---\n"
+        "# Einstieg t=10 start=08:05\n"
+        "S> Einstieg\n"
+        "s< Aktiv\n"
+        "U> Plenum\n",
+        encoding="utf-8",
+    )
+
+    payload = build_warning_payload(doc_path, "Vorschau")
+
+    assert payload is not None
+    assert payload["count"] >= 1
+    assert payload["title"] == "Kurzentwurf-Warnungen (Vorschau)"
+    assert "KZF136" in payload["message"]
+    assert "Zeile" in payload["message"]

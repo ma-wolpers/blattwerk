@@ -232,9 +232,6 @@ class BlattwerkAppExportMixin:
         if not bool(preferences.get("pre_export_diagnostics_enabled", True)):
             return
 
-        if self._detect_document_type(input_path) == DOCUMENT_TYPE_KURZENTWURF:
-            return
-
         warning_payload = build_warning_payload(input_path, "Export")
         if warning_payload is None or warning_payload["count"] <= 0:
             return
