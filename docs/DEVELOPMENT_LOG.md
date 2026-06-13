@@ -13,6 +13,7 @@ Regel:
 - New-Document-Flow in Blattwerk umgestellt: `Strg+N` und Menue `Neu` oeffnen jetzt zuerst eine Typauswahl und erzeugen danach typgerechtes YAML-Startmaterial.
 - Neue YAML-Grundlage verdrahtet: frische Dokumente schreiben `document_type`, Kurzentwurf-Templates behalten zusaetzlich ihre spezifischen YAML-Schluessel (`Stundenthema`, `Lerngruppe`, `start`) fuer die Standarderkennung.
 - Neues Settings-Tab `Dokumenttypen` vorbereitet und die erste Erkennungsoption `document_type_detection_mode` als Grundlage fuer spaetere Umschaltlogik angelegt.
+- Laufzeitverdrahtung nachgezogen: beim Oeffnen und Anwenden von Dokument-Tabs liest Blattwerk jetzt neben `mode` auch den erkannten `document_type`, persistiert beide Werte im Tab-State und erzwingt fuer Praesentationen sowie Kurzentwuerfe einen worksheet-only Preview-Modus ohne Loesungsumschaltung.
 
 - Neue lokale Einstellung fuer die Vorschauaktualisierung nach Tipp-Pause: Auto-Refresh im Schreibbereich ist jetzt als Checkbox plus konfigurierbare Verzoegerung (ms) verfuegbar; bei Deaktivierung werden pending Auto-Refresh-Timer sofort verworfen.
 - Neue Einstellung `preview_auto_refresh_on_tab_switch` (Tab: Ansicht und Layout) eingefuehrt, um per Ja/Nein zu steuern, ob die Vorschau beim Dokument-Tabwechsel immer neu gebaut wird.

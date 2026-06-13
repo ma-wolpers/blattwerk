@@ -802,13 +802,34 @@ class BlattwerkAppBase:
 
         return str(Path(input_path).expanduser().resolve())
 
-    def _build_document_tab_state(self, input_path: Path) -> dict[str, str]:
+    def _build_document_tab_state(self, input_path: Path) -> dict[str, object]:
         """Creates initial per-tab state for a document."""
 
         normalized_path = self._normalize_document_path(input_path)
+        document_mode = "worksheet"
+        document_type = "worksheet"
+
+        if hasattr(self, "_read_document_mode"):
+            try:
+                document_mode = str(self._read_document_mode(input_path) or "worksheet")
+            except Exception:
+                document_mode = "worksheet"
+
+        if hasattr(self, "_read_document_type"):
+            try:
+                document_type = str(self._read_document_type(input_path) or "worksheet")
+            except Exception:
+                document_type = "worksheet"
+
+        preview_mode = self.preview_mode_var.get()
+        if document_mode == "presentation" or document_type == "kurzentwurf":
+            preview_mode = "worksheet"
+
         return {
             "path": normalized_path,
-            "preview_mode": self.preview_mode_var.get(),
+            "document_mode": document_mode,
+            "document_type": document_type,
+            "preview_mode": preview_mode,
             "page_format": self.preview_page_format_var.get(),
             "section_separator": self.preview_section_separator_var.get(),
             "hide_future_sections": bool(self.preview_hide_future_sections_var.get()),
@@ -839,7 +860,13 @@ class BlattwerkAppBase:
         input_text = self._clean_path_text(self.input_var.get())
         if input_text:
             try:
-                tab_state["path"] = self._normalize_document_path(Path(input_text))
+                current_path = Path(input_text)
+                tab_state["path"] = self._normalize_document_path(current_path)
+                if current_path.exists():
+                    if hasattr(self, "_read_document_mode"):
+                        tab_state["document_mode"] = str(self._read_document_mode(current_path) or "worksheet")
+                    if hasattr(self, "_read_document_type"):
+                        tab_state["document_type"] = str(self._read_document_type(current_path) or "worksheet")
             except Exception:
                 pass
         tab_state["preview_mode"] = self.preview_mode_var.get()
@@ -878,6 +905,17 @@ class BlattwerkAppBase:
             self.status_var.set("Datei im Tab existiert nicht mehr")
             return
 
+        if hasattr(self, "_read_document_mode"):
+            try:
+                tab_state["document_mode"] = str(self._read_document_mode(input_path) or "worksheet")
+            except Exception:
+                tab_state["document_mode"] = str(tab_state.get("document_mode", "worksheet") or "worksheet")
+        if hasattr(self, "_read_document_type"):
+            try:
+                tab_state["document_type"] = str(self._read_document_type(input_path) or "worksheet")
+            except Exception:
+                tab_state["document_type"] = str(tab_state.get("document_type", "worksheet") or "worksheet")
+
         self._tab_switch_in_progress = True
         try:
             separator_value = str(
@@ -903,7 +941,10 @@ class BlattwerkAppBase:
                 }
 
             self.input_var.set(str(input_path))
-            self.preview_mode_var.set(tab_state.get("preview_mode", self.preview_mode_var.get()))
+            preview_mode = str(tab_state.get("preview_mode", self.preview_mode_var.get()) or self.preview_mode_var.get())
+            if tab_state.get("document_mode") == "presentation" or tab_state.get("document_type") == "kurzentwurf":
+                preview_mode = "worksheet"
+            self.preview_mode_var.set(preview_mode)
             self.preview_page_format_var.set(tab_state.get("page_format", self.preview_page_format_var.get()))
             self.preview_section_separator_var.set(separator_value)
             self.preview_hide_future_sections_var.set(bool(hide_future_value))

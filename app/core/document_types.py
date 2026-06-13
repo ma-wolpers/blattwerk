@@ -72,6 +72,9 @@ def detect_document_type_from_meta(
     if normalized_mode == DOCUMENT_TYPE_PRESENTATION:
         return DOCUMENT_TYPE_PRESENTATION
 
+    if normalized_detection_mode == DOCUMENT_TYPE_DETECTION_EXPLICIT_KEY:
+        return DOCUMENT_TYPE_WORKSHEET
+
     if _looks_like_kurzentwurf_meta(metadata):
         return DOCUMENT_TYPE_KURZENTWURF
 

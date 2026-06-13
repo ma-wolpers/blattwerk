@@ -37,7 +37,12 @@ from .preview_geometry import (
     parse_scrollregion,
 )
 from ..core.build_requests import WorksheetBuildRequest, build_worksheet_from_request
-from ..core.document_types import build_new_document_content, get_new_document_dialog_defaults
+from ..core.document_types import (
+    DOCUMENT_TYPE_KURZENTWURF,
+    build_new_document_content,
+    detect_document_type_from_meta,
+    get_new_document_dialog_defaults,
+)
 from ..core.blatt_kern_shared import normalize_document_mode, split_front_matter
 from ..core.diagnostic_warnings import build_warning_payload
 from ..styles.blatt_styles import invalidate_stylesheet_template_cache
@@ -206,6 +211,20 @@ class BlattwerkAppPreviewMixin:
             except Exception:
                 return "worksheet"
             return normalize_document_mode((meta or {}).get("mode"), default="worksheet")
+
+    def _read_document_type(self, input_path: Path) -> str:
+            """Reads current document type from frontmatter and configured detection policy."""
+
+            preferences = getattr(self, "user_preferences", {})
+            detection_mode = str(preferences.get("document_type_detection_mode", "yaml_keys") or "yaml_keys")
+
+            try:
+                text = input_path.read_text(encoding="utf-8")
+                meta, _content = split_front_matter(text)
+            except Exception:
+                return "worksheet"
+
+            return detect_document_type_from_meta(meta or {}, detection_mode=detection_mode)
 
     def _active_document_tab_state(self):
             """Returns mutable state dict for the currently active tab when available."""
@@ -511,11 +530,13 @@ class BlattwerkAppPreviewMixin:
                 page_format = self.preview_page_format_var.get()
                 contrast_profile = self.preview_contrast_var.get()
                 document_mode = self._read_document_mode(input_path)
+                document_type = self._read_document_type(input_path)
                 self._current_preview_document_mode = document_mode
+                self._current_preview_document_type = document_type
                 self._apply_preview_mode_controls_for_document_mode(document_mode)
                 self._apply_preview_page_format_controls_for_document_mode(document_mode)
 
-                if document_mode == "presentation":
+                if document_mode == "presentation" or document_type == DOCUMENT_TYPE_KURZENTWURF:
                     include_solutions = False
                     if self.preview_mode_var.get() != "worksheet":
                         self.preview_mode_var.set("worksheet")
