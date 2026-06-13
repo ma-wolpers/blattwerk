@@ -377,7 +377,7 @@ def _build_phase_from_header(
     if duration_text:
         try:
             duration_minutes = int(duration_text)
-            if duration_minutes <= 0:
+            if duration_minutes < 0:
                 raise ValueError()
         except ValueError:
             diagnostics.append(
