@@ -41,7 +41,7 @@ def write_pdf_from_html(html: str, output_path: Path) -> Path:
 
     with tempfile.TemporaryDirectory() as temp_dir_name:
         temp_dir = Path(temp_dir_name)
-        html_path = temp_dir / "kurzentwerfer-preview.html"
+        html_path = temp_dir / "kurzentwurf-preview.html"
         html_path.write_text(html, encoding="utf-8")
 
         command = [

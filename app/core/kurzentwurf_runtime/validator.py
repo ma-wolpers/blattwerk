@@ -41,8 +41,8 @@ def inspect_kurzentwerfer_text(source: str) -> InspectionResult:
                     code="KZF010",
                     severity="error",
                     message=(
-                        f"Blattwerk-Marker '{marker}' ist in Kurzentwerfer ungueltig. "
-                        "Bitte die Kurzentwerfer-DSL verwenden."
+                        f"Blattwerk-Marker '{marker}' ist in Kurzentwurf ungueltig. "
+                        "Bitte die Kurzentwurf-DSL verwenden."
                     ),
                 )
             )

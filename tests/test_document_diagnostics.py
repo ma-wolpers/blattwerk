@@ -18,3 +18,4 @@ def test_inspect_document_text_uses_kurzentwurf_validator_for_kurzentwurf():
 
     assert result.document_type == DOCUMENT_TYPE_KURZENTWURF
     assert any(diag.code == "KZF010" for diag in result.diagnostics)
+    assert any("Kurzentwurf-DSL" in diag.message for diag in result.diagnostics if diag.code == "KZF010")

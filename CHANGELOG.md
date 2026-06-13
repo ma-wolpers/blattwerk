@@ -16,6 +16,7 @@ The format is based on Keep a Changelog.
 - Export-Build nach Dokumenttyp erweitert: Kurzentwurf kann jetzt direkt aus Blattwerk als PDF, HTML, PNG und PNG-ZIP exportiert werden; der Arbeitsblatt-Exportdialog sperrt dafuer unpassende Loesungsmodi.
 - Diagnostik nach Dokumenttyp vereinheitlicht: Editor, Vorschau- und Export-Warnungen nutzen fuer Kurzentwurf jetzt die passende DSL-Diagnostik statt Blattwerk-spezifische Markerpruefungen.
 - Kurzentwurf-Runtime ins Hauptrepo uebernommen: Blattwerk verwendet fuer Vorschau, Export und Diagnostik jetzt einen lokalen Runtime-Pfad unter `app/core/kurzentwurf_runtime` statt eines separaten Kurzentwerfer-Submoduls.
+- Sichtbare Begriffe bereinigt: neue Kurzentwurf-Hinweise und KZF-Fehlermeldungen sprechen jetzt konsistent vom integrierten Kurzentwurf statt vom alten Produktnamen Kurzentwerfer.
 
 - New setting in Ansicht und Layout: automatic preview refresh after typing pause can now be enabled/disabled via checkbox, and the idle delay is configurable in milliseconds.
 - New settings toggle under Ansicht und Layout: `Vorschau bei Tabwechsel automatisch aktualisieren` (Ja/Nein) controls whether switching document tabs forces a preview rebuild or allows cached preview reuse.

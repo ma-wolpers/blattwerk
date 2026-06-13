@@ -78,7 +78,7 @@ def prompt_new_document_type(app, *, initial_value: str = DOCUMENT_TYPE_WORKSHEE
         variable=selected_document_type,
         value=DOCUMENT_TYPE_KURZENTWURF,
         label="Kurzentwurf",
-        hint="Kurzentwurf-DSL mit `Stundenthema`, `Lerngruppe` und `start` im YAML.",
+        hint="Integrierter Kurzentwurf mit DSL, `Stundenthema`, `Lerngruppe` und `start` im YAML.",
     )
 
     button_row = widgets.Frame(container)
