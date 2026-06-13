@@ -627,12 +627,13 @@ class BlattwerkAppStyleMixin:
                 {"type": "command", "label": "Shortcut-Runtime-Debug", "command": self._toggle_shortcut_debug_overlay},
                 {"type": "command", "label": "Identitaet und Copyright", "command": lambda: self._open_local_settings_dialog("identity")},
                 {"type": "command", "label": "Dokument Defaults", "command": lambda: self._open_local_settings_dialog("document_defaults")},
+                {"type": "command", "label": "Dokumenttypen", "command": lambda: self._open_local_settings_dialog("document_types")},
                 {"type": "command", "label": "Accessibility", "command": lambda: self._open_local_settings_dialog("accessibility")},
                 {"type": "command", "label": "Backup", "command": lambda: self._open_local_settings_dialog("backup")},
             ]
 
             return [
-                {"type": "command", "label": "Neue Markdown-Datei…", "command": self.create_new_markdown_file},
+                {"type": "command", "label": "Neues Dokument…", "command": self.create_new_markdown_file},
                 {"type": "command", "label": "Markdown öffnen…", "command": self.pick_input},
                 {"type": "command", "label": "Speichern unter…", "command": self.save_markdown_file_as},
                 {"type": "submenu", "label": "Zuletzt geöffnet", "items": recent_items},

@@ -37,6 +37,7 @@ TAB_ORDER = [
     "shortcuts",
     "identity",
     "document_defaults",
+    "document_types",
     "accessibility",
     "backup",
 ]
@@ -51,6 +52,7 @@ TAB_LABELS = {
     "shortcuts": "Shortcuts",
     "identity": "Identitaet und Copyright",
     "document_defaults": "Dokument Defaults",
+    "document_types": "Dokumenttypen",
     "accessibility": "Bedienung und Accessibility",
     "backup": "Sicherheit und Backup",
 }
@@ -412,6 +414,14 @@ PREFERENCE_SPECS = {
         "label": "Arbeits-Emoji standardmaessig sichtbar",
         "type": "bool",
         "default": True,
+    },
+    # Dokumenttypen
+    "document_type_detection_mode": {
+        "tab": "document_types",
+        "label": "Kurzentwurf-Erkennung",
+        "type": "enum",
+        "default": "yaml_keys",
+        "values": ["yaml_keys", "hybrid", "document_type_key"],
     },
     # Accessibility
     "tooltips_enabled": {

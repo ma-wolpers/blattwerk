@@ -8,6 +8,10 @@ The format is based on Keep a Changelog.
 
 ### Added
 
+- Neuer Erstellungsfluss fuer `Strg+N` und Menue `Neu`: Blattwerk fragt jetzt vor dem Dateidialog, ob ein Aufgabenblatt, eine Praesentation oder ein Kurzentwurf angelegt werden soll.
+- Neue Dokumenttyp-Grundlage eingefuehrt: neue Dokumente schreiben jetzt YAML-Metadaten fuer `document_type`; Kurzentwurf kann zusaetzlich ueber seine spezifischen YAML-Schluessel erkannt werden.
+- Neues Einstellungs-Tab `Dokumenttypen` vorbereitet, um die Kurzentwurf-Erkennung spaeter gezielt umzuschalten.
+
 - New setting in Ansicht und Layout: automatic preview refresh after typing pause can now be enabled/disabled via checkbox, and the idle delay is configurable in milliseconds.
 - New settings toggle under Ansicht und Layout: `Vorschau bei Tabwechsel automatisch aktualisieren` (Ja/Nein) controls whether switching document tabs forces a preview rebuild or allows cached preview reuse.
 - New `qrcode` block for worksheets/presentations: `:::qrcode url=... w=... h=... maxw=... :::` renders a QR image with image-like sizing options; QR links are clickable in HTML and PDF exports.

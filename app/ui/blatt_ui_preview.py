@@ -7,7 +7,12 @@ import tempfile
 import fitz
 from PIL import Image, ImageTk
 
+from bw_libs.shared_gui_core import ensure_bw_gui_on_path
+
+ensure_bw_gui_on_path()
+
 from .dialog_services import filedialog, messagebox
+from .document_type_dialog import prompt_new_document_type
 
 from .ui_constants import (
     CUSTOM_FIT_MODE,
@@ -32,6 +37,7 @@ from .preview_geometry import (
     parse_scrollregion,
 )
 from ..core.build_requests import WorksheetBuildRequest, build_worksheet_from_request
+from ..core.document_types import build_new_document_content, get_new_document_dialog_defaults
 from ..core.blatt_kern_shared import normalize_document_mode, split_front_matter
 from ..core.diagnostic_warnings import build_warning_payload
 from ..styles.blatt_styles import invalidate_stylesheet_template_cache
@@ -221,63 +227,35 @@ class BlattwerkAppPreviewMixin:
 
             self.refresh_preview(force_rebuild=auto_refresh)
 
-    def _default_markdown_content(self):
-            """Liefert den Standardinhalt für neu erzeugte Markdown-Dateien."""
+    def _default_markdown_content(self, document_type="worksheet"):
+            """Liefert den Standardinhalt für neu erzeugte Dokumente."""
 
             preferences = getattr(self, "user_preferences", {})
-            title_prefix = str(preferences.get("new_doc_title_prefix", "") or "").strip()
-            default_subject = str(preferences.get("default_subject", "") or "").strip() or "Fach eintragen"
-            author = str(preferences.get("default_document_author", "") or "").strip()
-            school = str(preferences.get("default_school_name", "") or "").strip()
-            language_variant = str(preferences.get("language_variant", "") or "").strip()
-            date_format = str(preferences.get("date_format", "") or "").strip()
-            worksheet_label = str(preferences.get("worksheet_label", "") or "").strip()
-            default_grade = str(preferences.get("default_grade_level", "") or "").strip()
-            work_emoji_visible = bool(preferences.get("default_work_emoji_visible", True))
+            return build_new_document_content(document_type, preferences)
 
-            title = "Neues Arbeitsblatt"
-            if title_prefix:
-                title = f"{title_prefix} {title}".strip()
+    def _select_new_document_type(self):
+            """Opens modal selection dialog for the next document to create."""
 
-            metadata_lines = [
-                "---",
-                f"Titel: {title}",
-                f"Fach: {default_subject}",
-                "Thema: Thema eintragen",
-            ]
-            if author:
-                metadata_lines.append(f"Autor: {author}")
-            if school:
-                metadata_lines.append(f"Schule: {school}")
-            if default_grade:
-                metadata_lines.append(f"Klassenstufe: {default_grade}")
-            if language_variant:
-                metadata_lines.append(f"Sprache: {language_variant}")
-            if date_format:
-                metadata_lines.append(f"Datumsformat: {date_format}")
-            if worksheet_label:
-                metadata_lines.append(f"LabelAufgaben: {worksheet_label}")
-            if not work_emoji_visible:
-                metadata_lines.append("mode: test")
-            metadata_lines.append("---")
-
-            return (
-                "\n".join(metadata_lines)
-                + "\n\n"
-                + ":::material title=\"Hinweis\"\n"
-                + "Arbeite sauber und lies jede Aufgabe genau.\n"
-                + ":::\n\n"
-                + ":::task points=2 work=single action=read\n"
-                + "Formuliere hier deine erste Aufgabe.\n"
-                + ":::\n"
-            )
+            preferences = getattr(self, "user_preferences", {})
+            initial_value = str(preferences.get("last_new_document_type", "worksheet") or "worksheet")
+            selected_document_type = prompt_new_document_type(self, initial_value=initial_value)
+            if selected_document_type:
+                preferences["last_new_document_type"] = selected_document_type
+            return selected_document_type
 
     def create_new_markdown_file(self):
-            """Erzeugt eine neue Markdown-Datei über Dateidialog und öffnet sie direkt."""
+            """Erzeugt ein neues Dokument über Typauswahl und Dateidialog."""
+
+            document_type = self._select_new_document_type()
+            if not document_type:
+                return
+
+            dialog_title, initial_name = get_new_document_dialog_defaults(document_type)
 
             dialog_kwargs = {
-                "title": "Neue Markdown-Datei anlegen",
+                "title": dialog_title,
                 "defaultextension": ".md",
+                "initialfile": initial_name,
                 "filetypes": [("Markdown", "*.md"), ("Alle Dateien", "*.*")],
             }
             initial_dir = self._get_initial_dialog_dir("input_markdown")
@@ -301,14 +279,14 @@ class BlattwerkAppPreviewMixin:
 
             try:
                 target_path.parent.mkdir(parents=True, exist_ok=True)
-                target_path.write_text(self._default_markdown_content(), encoding="utf-8")
+                target_path.write_text(self._default_markdown_content(document_type), encoding="utf-8")
             except Exception as error:
                 messagebox.showerror("Datei konnte nicht erstellt werden", str(error))
                 self.status_var.set("Neue Datei konnte nicht erstellt werden")
                 return
 
             self._set_last_dialog_dir("input_markdown", str(target_path))
-            self.status_var.set("Neue Markdown-Datei erstellt")
+            self.status_var.set(f"Neues Dokument erstellt: {target_path.name}")
             self._open_input_path(target_path, add_recent=True)
 
     def save_markdown_file_as(self):
