@@ -19,7 +19,6 @@ from ..core.build_requests import (
     HelpCardsBuildRequest,
     WorksheetBuildRequest,
     build_help_cards_from_request,
-    build_worksheet_from_request,
 )
 from ..core.blatt_kern_help_render import collect_help_blocks, collect_labeled_help_blocks, render_help_cards_html
 from ..core.blatt_validator import inspect_markdown_text
@@ -27,6 +26,13 @@ from ..core.blatt_kern_shared import normalize_document_mode, split_front_matter
 from ..core.blatt_kern_io_html import absolutize_local_image_sources, apply_image_size_options
 from ..core.blatt_kern_io_pdf import write_pdf_from_html
 from ..core.diagnostic_warnings import build_warning_payload
+from ..core.document_export_build import (
+    export_document_html,
+    export_document_pdf,
+    export_document_png,
+    export_document_png_zip,
+)
+from ..core.document_types import DOCUMENT_TYPE_KURZENTWURF, detect_document_type_from_meta
 from ..core.export_path_guardrails import validate_export_output_path
 from ..core.blatt_kern_pptx_export import build_presentation_pptx
 from .help_card_image_trim import trim_lernhilfe_image
@@ -125,6 +131,18 @@ class BlattwerkAppExportMixin:
             return "worksheet"
         return normalize_document_mode((meta or {}).get("mode"), default="worksheet")
 
+    def _detect_document_type(self, input_path: Path) -> str:
+        """Resolve document type from frontmatter/preferences with robust fallback."""
+        try:
+            text = input_path.read_text(encoding="utf-8")
+            meta, _content = split_front_matter(text)
+        except Exception:
+            return "worksheet"
+
+        preferences = getattr(self, "user_preferences", {})
+        detection_mode = preferences.get("document_type_detection_mode", "yaml_keys")
+        return detect_document_type_from_meta(meta or {}, detection_mode=detection_mode)
+
     def _count_visible_lernhilfen(self, input_path: Path, include_solutions: bool) -> int:
         """Counts currently visible lernhilfen blocks for a given document and mode."""
 
@@ -212,6 +230,9 @@ class BlattwerkAppExportMixin:
         """Zeigt nicht-blockierende Warnungen vor dem Export an."""
         preferences = getattr(self, "user_preferences", {})
         if not bool(preferences.get("pre_export_diagnostics_enabled", True)):
+            return
+
+        if self._detect_document_type(input_path) == DOCUMENT_TYPE_KURZENTWURF:
             return
 
         warning_payload = build_warning_payload(input_path, "Export")
@@ -326,12 +347,17 @@ class BlattwerkAppExportMixin:
         compile_diagnostics=None,
     ):
         """Export pdf."""
+        document_type = self._detect_document_type(input_path)
         if mode == "both":
             worksheet_path = self._without_solution_suffix(output_path)
             solution_path = self._with_solution_suffix(worksheet_path)
 
-            out_worksheet = build_worksheet_from_request(
-                self._worksheet_build_request(
+            out_worksheet = export_document_pdf(
+                input_path=input_path,
+                output_path=worksheet_path,
+                document_type=document_type,
+                include_solutions=False,
+                worksheet_request=self._worksheet_build_request(
                     input_path=input_path,
                     output_path=worksheet_path,
                     include_solutions=False,
@@ -339,10 +365,14 @@ class BlattwerkAppExportMixin:
                     contrast_profile=contrast_profile,
                     black_screen_mode=black_screen_mode,
                     diagnostics_out=compile_diagnostics,
-                )
+                ),
             )
-            out_solution = build_worksheet_from_request(
-                self._worksheet_build_request(
+            out_solution = export_document_pdf(
+                input_path=input_path,
+                output_path=solution_path,
+                document_type=document_type,
+                include_solutions=True,
+                worksheet_request=self._worksheet_build_request(
                     input_path=input_path,
                     output_path=solution_path,
                     include_solutions=True,
@@ -350,7 +380,7 @@ class BlattwerkAppExportMixin:
                     contrast_profile=contrast_profile,
                     black_screen_mode=black_screen_mode,
                     diagnostics_out=compile_diagnostics,
-                )
+                ),
             )
             return [out_worksheet, out_solution]
 
@@ -359,8 +389,12 @@ class BlattwerkAppExportMixin:
         if include_solutions:
             target = self._with_solution_suffix(target)
 
-        out_file = build_worksheet_from_request(
-            self._worksheet_build_request(
+        out_file = export_document_pdf(
+            input_path=input_path,
+            output_path=target,
+            document_type=document_type,
+            include_solutions=include_solutions,
+            worksheet_request=self._worksheet_build_request(
                 input_path=input_path,
                 output_path=target,
                 include_solutions=include_solutions,
@@ -368,7 +402,7 @@ class BlattwerkAppExportMixin:
                 contrast_profile=contrast_profile,
                 black_screen_mode=black_screen_mode,
                 diagnostics_out=compile_diagnostics,
-            )
+            ),
         )
         return [out_file]
 
@@ -383,12 +417,17 @@ class BlattwerkAppExportMixin:
         compile_diagnostics=None,
     ):
         """Export html."""
+        document_type = self._detect_document_type(input_path)
         if mode == "both":
             worksheet_path = self._without_solution_suffix(output_path)
             solution_path = self._with_solution_suffix(worksheet_path)
 
-            out_worksheet = build_worksheet_from_request(
-                self._worksheet_build_request(
+            out_worksheet = export_document_html(
+                input_path=input_path,
+                output_path=worksheet_path,
+                document_type=document_type,
+                include_solutions=False,
+                worksheet_request=self._worksheet_build_request(
                     input_path=input_path,
                     output_path=worksheet_path,
                     include_solutions=False,
@@ -396,10 +435,14 @@ class BlattwerkAppExportMixin:
                     contrast_profile=contrast_profile,
                     black_screen_mode=black_screen_mode,
                     diagnostics_out=compile_diagnostics,
-                )
+                ),
             )
-            out_solution = build_worksheet_from_request(
-                self._worksheet_build_request(
+            out_solution = export_document_html(
+                input_path=input_path,
+                output_path=solution_path,
+                document_type=document_type,
+                include_solutions=True,
+                worksheet_request=self._worksheet_build_request(
                     input_path=input_path,
                     output_path=solution_path,
                     include_solutions=True,
@@ -407,7 +450,7 @@ class BlattwerkAppExportMixin:
                     contrast_profile=contrast_profile,
                     black_screen_mode=black_screen_mode,
                     diagnostics_out=compile_diagnostics,
-                )
+                ),
             )
             return [out_worksheet, out_solution]
 
@@ -416,8 +459,12 @@ class BlattwerkAppExportMixin:
         if include_solutions:
             target = self._with_solution_suffix(target)
 
-        out_file = build_worksheet_from_request(
-            self._worksheet_build_request(
+        out_file = export_document_html(
+            input_path=input_path,
+            output_path=target,
+            document_type=document_type,
+            include_solutions=include_solutions,
+            worksheet_request=self._worksheet_build_request(
                 input_path=input_path,
                 output_path=target,
                 include_solutions=include_solutions,
@@ -425,62 +472,79 @@ class BlattwerkAppExportMixin:
                 contrast_profile=contrast_profile,
                 black_screen_mode=black_screen_mode,
                 diagnostics_out=compile_diagnostics,
-            )
+            ),
         )
         return [out_file]
 
-    def _export_png_zip_single(
+    def _export_png(
         self,
         input_path: Path,
-        output_zip_path: Path,
-        include_solutions: bool,
+        output_path: Path,
         page_format: str,
+        mode: str,
         contrast_profile: str,
-        worksheet_design,
         black_screen_mode: str = "none",
         compile_diagnostics=None,
     ):
-        """Exports one worksheet variant as PNG files inside a ZIP archive."""
-        section_separator, hide_future_sections = (
-            self._current_presentation_footer_export_options()
-        )
-        output_zip_path = validate_export_output_path(
-            output_zip_path,
-            allowed_suffixes={".zip"},
-        )
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            tmp_dir_path = Path(tmp_dir)
-            temp_pdf = tmp_dir_path / "source.pdf"
-            build_worksheet_from_request(
-                WorksheetBuildRequest(
-                    input_path=input_path,
-                    output_path=temp_pdf,
-                    include_solutions=include_solutions,
-                    page_format=page_format,
-                    print_profile=contrast_profile,
-                    design=worksheet_design,
-                    metadata_defaults=self._metadata_defaults_from_preferences(),
-                    copyright_text_override=self._copyright_text_from_preferences() or None,
-                    black_screen_mode=black_screen_mode,
-                    presentation_section_separator=section_separator,
-                    presentation_hide_future_sections=hide_future_sections,
-                    diagnostics_out=compile_diagnostics,
-                )
-            )
+        """Export png."""
+        worksheet_design = self._worksheet_design_options()
+        document_type = self._detect_document_type(input_path)
+        metadata_defaults = self._metadata_defaults_from_preferences()
+        copyright_override = self._copyright_text_from_preferences() or None
+        section_separator, hide_future_sections = self._current_presentation_footer_export_options()
 
-            with (
-                fitz.open(temp_pdf) as doc,
-                zipfile.ZipFile(
-                    output_zip_path, "w", compression=zipfile.ZIP_DEFLATED
-                ) as archive,
-            ):
-                for idx in range(len(doc)):
-                    page = doc.load_page(idx)
-                    pix = page.get_pixmap(dpi=200, alpha=False)
-                    png_name = f"page_{idx + 1:03d}.png"
-                    png_path = tmp_dir_path / png_name
-                    pix.save(png_path)
-                    archive.write(png_path, arcname=png_name)
+        if mode == "both":
+            worksheet_path = self._without_solution_suffix(output_path)
+            solution_path = self._with_solution_suffix(worksheet_path)
+            out_worksheet = export_document_png(
+                input_path=input_path,
+                output_path=worksheet_path,
+                document_type=document_type,
+                include_solutions=False,
+                page_format=page_format,
+                contrast_profile=contrast_profile,
+                worksheet_design=worksheet_design,
+                metadata_defaults=metadata_defaults,
+                copyright_override=copyright_override,
+                black_screen_mode=black_screen_mode,
+                presentation_section_separator=section_separator,
+                presentation_hide_future_sections=hide_future_sections,
+                diagnostics_out=compile_diagnostics,
+            )
+            out_solution = export_document_png(
+                input_path=input_path,
+                output_path=solution_path,
+                document_type=document_type,
+                include_solutions=True,
+                page_format=page_format,
+                contrast_profile=contrast_profile,
+                worksheet_design=worksheet_design,
+                metadata_defaults=metadata_defaults,
+                copyright_override=copyright_override,
+                black_screen_mode=black_screen_mode,
+                presentation_section_separator=section_separator,
+                presentation_hide_future_sections=hide_future_sections,
+                diagnostics_out=compile_diagnostics,
+            )
+            return [*out_worksheet, *out_solution]
+
+        include_solutions = mode == "solution"
+        target = self._with_solution_suffix(output_path) if include_solutions else output_path
+        return export_document_png(
+            input_path=input_path,
+            output_path=target,
+            document_type=document_type,
+            include_solutions=include_solutions,
+            page_format=page_format,
+            contrast_profile=contrast_profile,
+            worksheet_design=worksheet_design,
+            metadata_defaults=metadata_defaults,
+            copyright_override=copyright_override,
+            black_screen_mode=black_screen_mode,
+            presentation_section_separator=section_separator,
+            presentation_hide_future_sections=hide_future_sections,
+            diagnostics_out=compile_diagnostics,
+        )
 
     def _export_png_zip(
         self,
@@ -494,29 +558,43 @@ class BlattwerkAppExportMixin:
     ):
         """Export png zip."""
         worksheet_design = self._worksheet_design_options()
+        document_type = self._detect_document_type(input_path)
+        metadata_defaults = self._metadata_defaults_from_preferences()
+        copyright_override = self._copyright_text_from_preferences() or None
+        section_separator, hide_future_sections = self._current_presentation_footer_export_options()
         if mode == "both":
             worksheet_path = self._without_solution_suffix(output_path)
             solution_path = self._with_solution_suffix(worksheet_path)
 
-            self._export_png_zip_single(
-                input_path,
-                worksheet_path,
+            export_document_png_zip(
+                input_path=input_path,
+                output_path=worksheet_path,
+                document_type=document_type,
                 include_solutions=False,
                 page_format=page_format,
                 contrast_profile=contrast_profile,
                 worksheet_design=worksheet_design,
+                metadata_defaults=metadata_defaults,
+                copyright_override=copyright_override,
                 black_screen_mode=black_screen_mode,
-                compile_diagnostics=compile_diagnostics,
+                presentation_section_separator=section_separator,
+                presentation_hide_future_sections=hide_future_sections,
+                diagnostics_out=compile_diagnostics,
             )
-            self._export_png_zip_single(
-                input_path,
-                solution_path,
+            export_document_png_zip(
+                input_path=input_path,
+                output_path=solution_path,
+                document_type=document_type,
                 include_solutions=True,
                 page_format=page_format,
                 contrast_profile=contrast_profile,
                 worksheet_design=worksheet_design,
+                metadata_defaults=metadata_defaults,
+                copyright_override=copyright_override,
                 black_screen_mode=black_screen_mode,
-                compile_diagnostics=compile_diagnostics,
+                presentation_section_separator=section_separator,
+                presentation_hide_future_sections=hide_future_sections,
+                diagnostics_out=compile_diagnostics,
             )
             return [worksheet_path, solution_path]
 
@@ -525,17 +603,22 @@ class BlattwerkAppExportMixin:
         if include_solutions:
             target = self._with_solution_suffix(target)
 
-        self._export_png_zip_single(
-            input_path,
-            target,
+        out_file = export_document_png_zip(
+            input_path=input_path,
+            output_path=target,
+            document_type=document_type,
             include_solutions=include_solutions,
             page_format=page_format,
             contrast_profile=contrast_profile,
             worksheet_design=worksheet_design,
+            metadata_defaults=metadata_defaults,
+            copyright_override=copyright_override,
             black_screen_mode=black_screen_mode,
-            compile_diagnostics=compile_diagnostics,
+            presentation_section_separator=section_separator,
+            presentation_hide_future_sections=hide_future_sections,
+            diagnostics_out=compile_diagnostics,
         )
-        return [target]
+        return [out_file]
 
     def _export_pptx(
         self,
@@ -791,7 +874,9 @@ class BlattwerkAppExportMixin:
             _ALLOWED_EXPORT_MODES,
             "worksheet",
         )
-        default_mode = preview_mode
+        document_type = self._detect_document_type(input_path)
+        allow_mode_selection = document_type != DOCUMENT_TYPE_KURZENTWURF
+        default_mode = preview_mode if allow_mode_selection else "worksheet"
         default_format = _resolve_export_default_format(preferences, "worksheet")
         default_page_format = _resolve_export_default_page_format(preferences, "worksheet")
 
@@ -805,7 +890,7 @@ class BlattwerkAppExportMixin:
             worksheet_label=str(preferences.get("worksheet_label", "Aufgaben") or "Aufgaben"),
             solution_label=str(preferences.get("solution_label", "Loesung") or "Loesung"),
             solution_suffix=str(preferences.get("solution_suffix", "_loesung") or "_loesung"),
-            allow_mode_selection=True,
+            allow_mode_selection=allow_mode_selection,
         )
         if not dialog.result:
             return
@@ -838,6 +923,16 @@ class BlattwerkAppExportMixin:
                 )
             elif fmt == "html":
                 out_files = self._export_html(
+                    input_path,
+                    output_path,
+                    page_format,
+                    mode,
+                    contrast_profile,
+                    black_screen_mode=black_screen_mode,
+                    compile_diagnostics=compile_diagnostics,
+                )
+            elif fmt == "png":
+                out_files = self._export_png(
                     input_path,
                     output_path,
                     page_format,
@@ -928,6 +1023,16 @@ class BlattwerkAppExportMixin:
                 )
             elif fmt == "html":
                 out_files = self._export_html(
+                    input_path,
+                    output_path,
+                    page_format,
+                    mode,
+                    contrast_profile,
+                    black_screen_mode=black_screen_mode,
+                    compile_diagnostics=compile_diagnostics,
+                )
+            elif fmt == "png":
+                out_files = self._export_png(
                     input_path,
                     output_path,
                     page_format,

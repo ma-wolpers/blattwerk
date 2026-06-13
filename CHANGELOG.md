@@ -13,6 +13,7 @@ The format is based on Keep a Changelog.
 - Neues Einstellungs-Tab `Dokumenttypen` vorbereitet, um die Kurzentwurf-Erkennung spaeter gezielt umzuschalten.
 - Laufzeit-Erkennung verdrahtet: Blattwerk liest den Dokumenttyp jetzt auch beim Oeffnen und Tabwechsel aus YAML und behandelt Praesentationen sowie Kurzentwuerfe konsistent als reinen Vorschau-/Worksheet-Pfad ohne Loesungsumschaltung.
 - Preview-Build nach Dokumenttyp vorbereitet: Blattwerk routed die Vorschau jetzt zentral nach Dokumentfamilie und kann Kurzentwurf ueber den integrierten Kurzentwerfer-Buildpfad rendern.
+- Export-Build nach Dokumenttyp erweitert: Kurzentwurf kann jetzt direkt aus Blattwerk als PDF, HTML, PNG und PNG-ZIP exportiert werden; der Arbeitsblatt-Exportdialog sperrt dafuer unpassende Loesungsmodi.
 
 - New setting in Ansicht und Layout: automatic preview refresh after typing pause can now be enabled/disabled via checkbox, and the idle delay is configurable in milliseconds.
 - New settings toggle under Ansicht und Layout: `Vorschau bei Tabwechsel automatisch aktualisieren` (Ja/Nein) controls whether switching document tabs forces a preview rebuild or allows cached preview reuse.
