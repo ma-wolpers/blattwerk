@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-import tempfile
-import fitz
 from PIL import Image, ImageTk
 
 from bw_libs.shared_gui_core import ensure_bw_gui_on_path
@@ -36,7 +34,7 @@ from .preview_geometry import (
     get_zoom_target_size,
     parse_scrollregion,
 )
-from ..core.build_requests import WorksheetBuildRequest, build_worksheet_from_request
+from ..core.document_preview_build import build_preview_images_for_document
 from ..core.document_types import (
     DOCUMENT_TYPE_KURZENTWURF,
     build_new_document_content,
@@ -367,6 +365,9 @@ class BlattwerkAppPreviewMixin:
 
     def _show_document_diagnostics(self, input_path: Path, context_label: str):
             """Zeigt nicht-blockierende Blattwerk-Warnungen einmalig pro Dokumentzustand."""
+            if hasattr(self, "_read_document_type") and self._read_document_type(input_path) == DOCUMENT_TYPE_KURZENTWURF:
+                return
+
             warning_payload = build_warning_payload(input_path, context_label)
             if warning_payload is None:
                 return
@@ -463,9 +464,6 @@ class BlattwerkAppPreviewMixin:
 
             invalidate_stylesheet_template_cache()
 
-            with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
-                temp_pdf_path = Path(tmp.name)
-
             worksheet_design = self._worksheet_design_options()
             black_screen_mode = str(self.preview_black_screen_var.get() or "none").strip().lower()
             section_separator = self._normalize_presentation_section_separator(
@@ -481,38 +479,23 @@ class BlattwerkAppPreviewMixin:
             if hasattr(self, "_copyright_text_from_preferences"):
                 copyright_override = self._copyright_text_from_preferences() or None
 
-            try:
-                compile_diagnostics = []
-                build_worksheet_from_request(
-                    WorksheetBuildRequest(
-                        input_path=input_path,
-                        output_path=temp_pdf_path,
-                        include_solutions=include_solutions,
-                        page_format=page_format,
-                        print_profile=contrast_profile,
-                        design=worksheet_design,
-                        metadata_defaults=metadata_defaults,
-                        copyright_text_override=copyright_override,
-                        black_screen_mode=black_screen_mode,
-                        presentation_section_separator=section_separator,
-                        presentation_hide_future_sections=hide_future_sections,
-                        diagnostics_out=compile_diagnostics,
-                    )
-                )
+            document_type = "worksheet"
+            if hasattr(self, "_read_document_type"):
+                document_type = self._read_document_type(input_path)
 
-                pages = []
-                with fitz.open(temp_pdf_path) as doc:
-                    for page_index in range(len(doc)):
-                        page = doc.load_page(page_index)
-                        pix = page.get_pixmap(dpi=150, alpha=False)
-                        image = Image.frombytes("RGB", (pix.width, pix.height), pix.samples)
-                        pages.append(image)
-                return pages, compile_diagnostics
-            finally:
-                try:
-                    temp_pdf_path.unlink(missing_ok=True)
-                except Exception:
-                    pass
+            return build_preview_images_for_document(
+                input_path,
+                document_type=document_type,
+                include_solutions=include_solutions,
+                page_format=page_format,
+                contrast_profile=contrast_profile,
+                worksheet_design=worksheet_design,
+                metadata_defaults=metadata_defaults,
+                copyright_override=copyright_override,
+                black_screen_mode=black_screen_mode,
+                presentation_section_separator=section_separator,
+                presentation_hide_future_sections=hide_future_sections,
+            )
 
     def refresh_preview(self, force_rebuild=False):
             """Lädt die Vorschau neu, z. B. nach Änderungen an der Markdown-Datei."""
