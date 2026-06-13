@@ -141,10 +141,7 @@ CHANGELOG_CODEV_RELEVANT_PATHS = {
 LAUFKERN_BRIDGE_PATH = "bw_libs/ui_contract/laufkern.py"
 LAUFKERN_FALLBACK_SCAN_ROOTS = ("app", "bw_libs")
 
-DOWNSTREAM_MOD_SUBMODULE_NAME = "kurzentwerfer"
-DOWNSTREAM_MOD_SUBMODULE_PATH = "kurzentwerfer"
-DOWNSTREAM_MOD_SUBMODULE_URL = "https://github.com/ma-wolpers/kurzentwerfer.git"
-DOWNSTREAM_BW_GUI_URL = "https://github.com/ma-wolpers/bw-gui"
+INTEGRATED_KURZENTWURF_RUNTIME_ROOT = "app/core/kurzentwurf_runtime"
 
 
 def _repo_root() -> Path:
@@ -672,59 +669,37 @@ def _check_ui_contract_bridge_decommission(errors: list[str]) -> None:
             _forbid_substring(source, forbidden, rel_path, errors)
 
 
-def _check_downstream_mod_integration(errors: list[str]) -> None:
-    """Validate downstream Kurzentwerfer submodule integration contracts."""
+def _check_integrated_kurzentwurf_runtime(errors: list[str]) -> None:
+    """Validate the embedded Kurzentwurf runtime used by Blattwerk."""
 
-    gitmodules = _read(".gitmodules")
-    section_marker = f"[submodule \"{DOWNSTREAM_MOD_SUBMODULE_NAME}\"]"
-    if section_marker not in gitmodules:
-        return
-
-    _require_substring(
-        gitmodules,
-        f"path = {DOWNSTREAM_MOD_SUBMODULE_PATH}",
-        ".gitmodules",
-        errors,
-    )
-    _require_substring(
-        gitmodules,
-        f"url = {DOWNSTREAM_MOD_SUBMODULE_URL}",
-        ".gitmodules",
-        errors,
-    )
-    _require_substring(gitmodules, "branch = main", ".gitmodules", errors)
-
-    downstream_required_files = (
-        f"{DOWNSTREAM_MOD_SUBMODULE_PATH}/.gitmodules",
-        f"{DOWNSTREAM_MOD_SUBMODULE_PATH}/tools/ci/check_ai_guardrails.py",
-        f"{DOWNSTREAM_MOD_SUBMODULE_PATH}/app/core/model.py",
-        f"{DOWNSTREAM_MOD_SUBMODULE_PATH}/app/core/validator.py",
+    required_runtime_files = (
+        f"{INTEGRATED_KURZENTWURF_RUNTIME_ROOT}/__init__.py",
+        f"{INTEGRATED_KURZENTWURF_RUNTIME_ROOT}/build.py",
+        f"{INTEGRATED_KURZENTWURF_RUNTIME_ROOT}/column_widths.py",
+        f"{INTEGRATED_KURZENTWURF_RUNTIME_ROOT}/dsl.py",
+        f"{INTEGRATED_KURZENTWURF_RUNTIME_ROOT}/model.py",
+        f"{INTEGRATED_KURZENTWURF_RUNTIME_ROOT}/pdf_export.py",
+        f"{INTEGRATED_KURZENTWURF_RUNTIME_ROOT}/render_html.py",
+        f"{INTEGRATED_KURZENTWURF_RUNTIME_ROOT}/validator.py",
     )
 
-    for rel_path in downstream_required_files:
+    for rel_path in required_runtime_files:
         if not (ROOT / rel_path).exists():
-            errors.append(
-                f"{rel_path}: missing required downstream integration file (run submodule init/update and keep phase-3 CI files in sync)"
-            )
+            errors.append(f"{rel_path}: missing required integrated Kurzentwurf runtime file")
 
-    kze_guardrail_rel = f"{DOWNSTREAM_MOD_SUBMODULE_PATH}/tools/ci/check_ai_guardrails.py"
-    if (ROOT / kze_guardrail_rel).exists():
-        kze_guardrail = _read(kze_guardrail_rel)
-        _require_substring(kze_guardrail, "FORBIDDEN_MARKERS", kze_guardrail_rel, errors)
-        _require_substring(kze_guardrail, "KZF010", kze_guardrail_rel, errors)
+    model_rel = f"{INTEGRATED_KURZENTWURF_RUNTIME_ROOT}/model.py"
+    if (ROOT / model_rel).exists():
+        _require_substring(_read(model_rel), "FORBIDDEN_BLATTWERK_MARKERS", model_rel, errors)
 
-    kze_model_rel = f"{DOWNSTREAM_MOD_SUBMODULE_PATH}/app/core/model.py"
-    if (ROOT / kze_model_rel).exists():
-        _require_substring(
-            _read(kze_model_rel),
-            "FORBIDDEN_BLATTWERK_MARKERS",
-            kze_model_rel,
-            errors,
-        )
+    validator_rel = f"{INTEGRATED_KURZENTWURF_RUNTIME_ROOT}/validator.py"
+    if (ROOT / validator_rel).exists():
+        validator_source = _read(validator_rel)
+        _require_substring(validator_source, "KZF010", validator_rel, errors)
+        _require_substring(validator_source, "KZF101", validator_rel, errors)
 
-    kze_validator_rel = f"{DOWNSTREAM_MOD_SUBMODULE_PATH}/app/core/validator.py"
-    if (ROOT / kze_validator_rel).exists():
-        _require_substring(_read(kze_validator_rel), "KZF010", kze_validator_rel, errors)
+    build_rel = f"{INTEGRATED_KURZENTWURF_RUNTIME_ROOT}/build.py"
+    if (ROOT / build_rel).exists():
+        _require_substring(_read(build_rel), "build_preview_images", build_rel, errors)
 
 
 def _collect_process_guidance_warnings() -> list[str]:
@@ -773,36 +748,6 @@ def _collect_shortcut_coverage_warnings() -> list[str]:
         warnings.append(
             f"shortcut-coverage ({check['label']}): intent marker found without configured keyboard binding marker"
         )
-    return warnings
-
-
-def _collect_downstream_mod_warnings() -> list[str]:
-    """Collect non-blocking warnings for staged downstream rollout alignment."""
-
-    warnings: list[str] = []
-    gitmodules = _read(".gitmodules")
-    section_marker = f"[submodule \"{DOWNSTREAM_MOD_SUBMODULE_NAME}\"]"
-    if section_marker not in gitmodules:
-        return warnings
-
-    kze_gitmodules_rel = f"{DOWNSTREAM_MOD_SUBMODULE_PATH}/.gitmodules"
-    if not (ROOT / kze_gitmodules_rel).exists():
-        warnings.append(
-            f"downstream-mod: {kze_gitmodules_rel} missing in workspace (did you run git submodule update --init --recursive?)"
-        )
-    else:
-        kze_gitmodules = _read(kze_gitmodules_rel)
-        if f"url = {DOWNSTREAM_BW_GUI_URL}" not in kze_gitmodules:
-            warnings.append(
-                "downstream-mod: kurzentwerfer submodule still references non-GitHub bw-gui URL; align to GitHub remote for CI portability"
-            )
-
-    kze_ci_rel = f"{DOWNSTREAM_MOD_SUBMODULE_PATH}/.github/workflows/quality-guardrails.yml"
-    if not (ROOT / kze_ci_rel).exists():
-        warnings.append(
-            f"downstream-mod: {kze_ci_rel} not found; kurzentwerfer CI gate appears not yet available on tracked submodule commit"
-        )
-
     return warnings
 
 
@@ -866,14 +811,12 @@ def main() -> int:
     _check_shared_ui_contract_hardening(errors)
     _check_laufkern_fallback_sunset(errors)
     _check_ui_contract_bridge_decommission(errors)
-    _check_downstream_mod_integration(errors)
+    _check_integrated_kurzentwurf_runtime(errors)
     _check_future_gui_entry_contracts(errors)
     _check_repo_wide_gui_contracts(errors)
     _check_gui_migration_backlog(errors)
     warnings = _collect_process_guidance_warnings()
     warnings.extend(_collect_shortcut_coverage_warnings())
-    warnings.extend(_collect_downstream_mod_warnings())
-
     if errors:
         print("AI guardrail check failed:")
         for item in errors:

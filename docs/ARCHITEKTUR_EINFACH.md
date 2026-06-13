@@ -21,6 +21,7 @@ So vermeiden wir Klebercode und Verwirrung.
   - Das ist der Programmkern.
   - Hier werden fachliche Entscheidungen getroffen.
   - Parse, Validate, Render und Build passieren hier.
+  - Dokumenttyp-Routing fuer Arbeitsblatt, Praesentation und Kurzentwurf passiert ebenfalls hier.
 
 - `app/ui`
   - Hier ist die Oberfläche.
@@ -39,7 +40,7 @@ So vermeiden wir Klebercode und Verwirrung.
   - Alle Oeffnungswege (Dateidialog, Recent-Menue, Shortcut `Z`) laufen ueber denselben UI-Dispatcher; bereits offene Dateien werden fokussiert statt doppelt geoeffnet.
   - Das Hauptfenster kann Vorschau und Schreibbereich einzeln oder zusammen anzeigen.
   - Der Schreibbereich speichert Aenderungen debounced direkt in die Markdown-Datei.
-  - Der Schreibbereich zeigt Live-Diagnostik aus dem Programmkern (Validator) und markiert nur betroffene Zeilen in der UI.
+  - Der Schreibbereich zeigt Live-Diagnostik aus dem Programmkern passend zum Dokumenttyp und markiert nur betroffene Zeilen in der UI.
   - Syntax-Highlighting und Completion sind UI-Funktionen; ihre fachlichen Vorschlagsquellen kommen weiterhin aus dem Programmkern.
   - Completion-Kandidaten kommen zentral aus `app/core/completion_catalogs.py`; die UI hält dafür keine eigenen statischen Fachlisten.
   - Als Folding-Ersatz gibt es eine Struktur-Outline im UI, die direkt zu Frontmatter/Blockstellen springt.
@@ -64,13 +65,16 @@ Im Kern läuft immer dieselbe Reihenfolge:
 3. Dokument rendern
 4. Ausgabe bauen (HTML/PDF)
 
-Der Render-Schritt ist dokumentmodusabhaengig:
+Der Render-Schritt ist dokumenttyp- und dokumentmodusabhaengig:
 - Arbeitsblatt-/Loesungspfad fuer normale Blaetter
 - Folienpfad fuer `mode: presentation` mit Markersteuerung (z. B. Folienwechsel/Frame/Abschnitt)
+- Kurzentwurf-Pfad fuer die integrierte DSL-Runtime
 
 Zusatz im Kern:
 - Warntexte aufbereiten (`diagnostic_warnings.py`)
 - Typisierte Build-Anfragen (`build_requests.py`)
+- Dokumenttyp-Routing und Diagnostikadapter (`document_types.py`, `document_preview_build.py`, `document_export_build.py`, `document_diagnostics.py`)
+- Eingebettete Kurzentwurf-Runtime (`app/core/kurzentwurf_runtime`)
 - Fachregel für BW/Farbhinweise (`color_mentions.py`)
 
 ## Was ist verboten?

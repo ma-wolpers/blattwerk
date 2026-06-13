@@ -20,6 +20,8 @@ Regel:
 - Worksheet-Exportdialog fuer Kurzentwurf abgesichert: Loesungs-/Beides-Modi werden dort ausgeblendet, und das Blattwerk-Pre-Export-Warnungspopup wird fuer Kurzentwurf unterdrueckt.
 - Gemeinsamen Diagnostik-Adapter eingefuehrt: Dokumenttyp wird jetzt vor der Validierung aufgeloest, danach laufen Blattwerk-Dokumente weiter ueber den bisherigen Markdown-Validator und Kurzentwurf ueber die DSL-V2-Diagnostik.
 - Editor- sowie Preview-/Export-Warnungen auf den neuen Adapter umgestellt; Kurzentwurf zeigt dadurch eigene KZF-Diagnostik, waehrend Blattwerk-only Strukturmarker wie `SY001/SY002` dort nicht mehr zusaetzlich injiziert werden.
+- Kurzentwurf-Runtime ins Blattwerk-Repo gezogen: die bisher genutzten Core-Module wurden nach `app/core/kurzentwurf_runtime` uebernommen und die aktiven Importpfade auf diesen lokalen Runtime-Pfad umgestellt.
+- Governance und CI auf das integrierte Modell umgestellt: Guardrails und Workflow pruefen jetzt den eingebetteten Runtime-Pfad statt ein separates Kurzentwerfer-Submodul oder Pointer-Bump-Setup vorauszusetzen.
 
 - Neue lokale Einstellung fuer die Vorschauaktualisierung nach Tipp-Pause: Auto-Refresh im Schreibbereich ist jetzt als Checkbox plus konfigurierbare Verzoegerung (ms) verfuegbar; bei Deaktivierung werden pending Auto-Refresh-Timer sofort verworfen.
 - Neue Einstellung `preview_auto_refresh_on_tab_switch` (Tab: Ansicht und Layout) eingefuehrt, um per Ja/Nein zu steuern, ob die Vorschau beim Dokument-Tabwechsel immer neu gebaut wird.

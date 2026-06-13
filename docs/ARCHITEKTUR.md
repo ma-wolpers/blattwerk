@@ -26,6 +26,8 @@ Kernaufgaben:
 Zusätzliche Kern-Usecases:
 - `diagnostic_warnings.py` (Warnaufbereitung)
 - `build_requests.py` (typisierte Build-Schnittstelle)
+- `document_types.py`, `document_preview_build.py`, `document_export_build.py`, `document_diagnostics.py` (dokumenttypabhaengige Routing-/Diagnostikadapter)
+- `kurzentwurf_runtime/*` (eingebettete Kurzentwurf-DSL-Runtime fuer Parse/Validate/Render/Build)
 - `color_mentions.py` (fachliche BW/Farb-Regel)
 
 ## Schichtenmodell
@@ -53,12 +55,12 @@ UI-Zuschnitt im Hauptfenster:
 - Die Vorschau verwendet tab-lokale Cache-Keys aus Dateistand plus Render-Optionen; unveraenderte Tab-Wechsel nutzen den Cache ohne erneuten Build.
 - Sichtbarkeit ist ein expliziter View-State (`preview_only`, `both`, `editor_only`) in der UI-Schicht.
 - Der Schreibbereich speichert Markdown-Aenderungen debounced direkt auf Dateiebene (UTF-8), ohne automatische Vorschau-Aktualisierung.
-- Der Schreibbereich nutzt die Validator-API aus `app/core` direkt fuer debounced Live-Diagnostik; die UI mappt nur auf Zeilenmarkierung und Navigationsliste.
+- Der Schreibbereich nutzt die dokumenttypabhaengige Diagnostik-API aus `app/core` direkt fuer debounced Live-Diagnostik; die UI mappt nur auf Zeilenmarkierung und Navigationsliste.
 - Syntax-Highlighting und Completion im Schreibbereich liegen als UI-Feature in `app/ui`; fachliche Kandidatenquellen (z. B. bekannte Block-/Antworttypen) kommen aus `app/core` ohne Regelduplikation.
 - Completion-Kataloge werden zentral aus `app/core/completion_catalogs.py` abgefragt; `app/ui` darf diese Kataloge nicht als statische Listen duplizieren.
 - Ein Folding-Äquivalent wird in `app/ui` als Outline-Navigation umgesetzt (Struktur lesen, Einträge anspringen), ohne den Parser im Kern zu duplizieren.
 - Die Vorschau bleibt weiterhin explizit manuell aktualisiert und bezieht ihren Inhalt wie bisher ausschließlich aus dem aktuellen Dateisystemstand.
-- `app/core` rendert dokumentmodusabhaengig: Arbeitsblatt-/Loesungsseiten im Worksheet-Pfad, folienbasiertes Rendering im Praesentationspfad (`mode: presentation`) mit Marker-gesteuerten Frame-/Abschnittsregeln.
+- `app/core` rendert dokumenttyp- und dokumentmodusabhaengig: Arbeitsblatt-/Loesungsseiten im Worksheet-Pfad, folienbasiertes Rendering im Praesentationspfad (`mode: presentation`) und Kurzentwurf ueber die eingebettete DSL-Runtime.
 
 ## Ablauf-Invarianten
 

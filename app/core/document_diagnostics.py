@@ -12,7 +12,7 @@ from .document_types import (
     detect_document_type_from_meta,
     normalize_document_type_detection_mode,
 )
-from kurzentwerfer.app.core.validator import inspect_kurzentwerfer_text
+from .kurzentwurf_runtime.validator import inspect_kurzentwerfer_text
 
 
 @dataclass(frozen=True)

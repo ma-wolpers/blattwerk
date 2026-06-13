@@ -38,7 +38,7 @@ Pflichtregeln:
 - Feature-Aenderungen als eigene Commits strukturieren.
 - Kein automatisches Pushen; Push bleibt bewusst manuell.
 
-10. Kurzentwerfer-Integration auf Blattwerk-main
-- Kurzentwerfer darf als Add-on auf dem aktuellen Blattwerk-`main` integriert werden.
-- Integrationsaenderungen muessen weiterhin Guardrails und Tests bestehen.
+10. Kurzentwurf ist in Blattwerk integriert
+- Kurzentwurf wird in Blattwerk als eigener Dokumenttyp und lokaler Runtime-Pfad gepflegt.
+- Aenderungen daran muessen weiterhin Guardrails und Tests bestehen.
 - Die PR-Checkliste ist vollstaendig zu pflegen, inklusive Changelog-/Dokumentationspflichten bei nutzerrelevanten Aenderungen.

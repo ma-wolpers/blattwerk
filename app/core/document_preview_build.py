@@ -8,7 +8,7 @@ from pathlib import Path
 import fitz
 from PIL import Image
 
-from kurzentwerfer.app.core.build import build_preview_images as build_kurzentwerfer_preview_images
+from .kurzentwurf_runtime.build import build_preview_images as build_kurzentwerfer_preview_images
 
 from .blatt_validator import BuildDiagnostic
 from .build_requests import WorksheetBuildRequest, WorksheetDesignOptions, build_worksheet_from_request

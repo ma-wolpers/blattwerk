@@ -8,7 +8,7 @@ import zipfile
 
 from PIL import Image
 
-from kurzentwerfer.app.core.build import export_pdf_from_source, render_html_from_source
+from .kurzentwurf_runtime.build import export_pdf_from_source, render_html_from_source
 
 from .blatt_validator import BuildDiagnostic
 from .build_requests import WorksheetBuildRequest, build_worksheet_from_request

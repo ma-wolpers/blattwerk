@@ -42,7 +42,7 @@ Verbindliche Regeln:
 - Feature-Aenderungen werden in eigenstaendigen Commits gebuendelt (ein Feature = ein klarer Commit-Block).
 - Push erfolgt manuell durch den Nutzer nach eigener Freigabe; kein Auto-Push.
 
-9. Kurzentwerfer-Integration als Add-on
-- Kurzentwerfer kann als Add-on auf dem aktuellen Blattwerk-`main` integriert und weiterentwickelt werden.
-- Integrationsaenderungen folgen weiterhin der normalen Qualitaets- und Governance-Pruefung (Guardrails, Tests, Changelog, PR-Checkliste).
-- Kurzentwerfer-Facharbeit kann weiterhin im eigenstaendigen Repo `a:/Code/kurzentwerfer` erfolgen; Integrationsstand in Blattwerk wird ueber Submodule-/Pointer-Updates synchron gehalten.
+9. Kurzentwurf ist Teil von Blattwerk
+- Kurzentwurf wird in Blattwerk als eigener Dokumenttyp und lokaler Runtime-Pfad gepflegt.
+- Aenderungen an Kurzentwurf-Funktionen folgen derselben Qualitaets- und Governance-Pruefung wie Blattwerk-Kernarbeit.
+- Neue Abhaengigkeiten auf ein separates Kurzentwerfer-Produkt oder Pointer-/Submodule-Workflows sind nicht mehr erlaubt.

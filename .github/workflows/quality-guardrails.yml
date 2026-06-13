@@ -31,33 +31,7 @@ jobs:
       - name: Run tests
         run: pytest -q
 
-      - name: Verify submodule integrity
+      - name: Verify integrated Kurzentwurf runtime
         run: |
-          git submodule status
-          test -d kurzentwerfer
-
-  kurzentwerfer-quality:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-          fetch-depth: 0
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Install kurzentwerfer dependencies
-        run: python -m pip install -r kurzentwerfer/requirements-dev.txt
-
-      - name: Run kurzentwerfer AI guardrail check
-        working-directory: kurzentwerfer
-        run: python tools/ci/check_ai_guardrails.py
-
-      - name: Run kurzentwerfer tests
-        working-directory: kurzentwerfer
-        run: pytest -q
+          test -d app/core/kurzentwurf_runtime
+          test -f app/core/kurzentwurf_runtime/build.py
