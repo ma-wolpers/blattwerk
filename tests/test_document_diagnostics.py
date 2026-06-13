@@ -64,3 +64,18 @@ def test_inspect_document_text_recognizes_user_style_plain_md_kurzentwurf():
 
     assert result.document_type == DOCUMENT_TYPE_KURZENTWURF
     assert all(diag.code != "FM001" for diag in result.diagnostics)
+
+
+def test_kurzentwurf_implicit_lines_do_not_emit_kzf049_warning():
+    result = inspect_document_text(
+        "---\n"
+        "Stundenthema: Thema\n"
+        "Lerngruppe: 6a\n"
+        "start: 08:00\n"
+        "---\n\n"
+        "#einstieg t=10\n"
+        "Freitext ohne Marker\n",
+    )
+
+    assert result.document_type == DOCUMENT_TYPE_KURZENTWURF
+    assert all(diag.code != "KZF049" for diag in result.diagnostics)

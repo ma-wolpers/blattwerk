@@ -283,23 +283,6 @@ def parse_kurzentwerfer_text(source: str) -> ParsedKurzentwurf:
             line_index += 1
             continue
 
-        target_label = {
-            "schritte": "Lernschritte",
-            "aktivitaeten": "Lernaktivitaeten",
-            "umgebung": "Lernumgebung",
-            "antizipiert": "Antizipiert",
-        }.get(target_key, "Lernschritte")
-        diagnostics.append(
-            Diagnostic(
-                code="KZF049",
-                severity="warning",
-                message=(
-                    f"Zeile ohne Marker wurde implizit als {target_label} interpretiert. "
-                    "Fuer klare Struktur Marker setzen."
-                ),
-                line=line_index + 1,
-            )
-        )
         line_index += 1
 
     _finalize_segment(phase_builder, segment_builder, diagnostics)
