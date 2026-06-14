@@ -10,6 +10,8 @@ The format is based on Keep a Changelog.
 
 - Schreibbereich: `Strg+Rücktaste` löscht das Wort vor dem Cursor, `Strg+Entf` löscht das Wort nach dem Cursor — wie in üblichen Texteditoren erwartet.
 
+- Kurzentwurf-Rendering: Nummerierte und buchstabierte Listen (`1.`, `1)`, `a.`, `a)`, `A.`, `A)`) werden jetzt als HTML-`<ol>`-Elemente gerendert und behalten ihre Nummerierung/Buchstabierung. Bisher wurden sie als ungeordnete `<ul>`-Listen ausgegeben.
+
 - Kurzentwurf-DSL: Zwischen zwei `---`-Trennern darf jetzt eine ganze Zeile ohne Spaltenmarker (kein S>, A>, U>, s<, ant<) stehen. Sie wird als **Full-Row-Segment** erkannt und als einzelne Zelle mit `colspan=3` ueber die drei Inhaltsspalten (Lernschritte, Lernaktivitaeten, Lernumgebung) gerendert. Solche Zeilen werden auch in der Diagnostik korrekt behandelt: KZF112, KZF113, KZF114 feuern fuer sie nicht.
 
 ### Fixed

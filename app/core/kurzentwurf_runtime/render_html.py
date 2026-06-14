@@ -9,7 +9,8 @@ _HIGHLIGHT_RE = re.compile(r"==(.+?)==")
 _BOLD_RE = re.compile(r"(\*\*(.+?)\*\*)|(__(.+?)__)")
 _ITALIC_STAR_RE = re.compile(r"(?<!\*)\*([^*\n]+?)\*(?!\*)")
 _ITALIC_UNDERSCORE_RE = re.compile(r"(?<!_)_([^_\n]+?)_(?!_)")
-_ORDERED_ITEM_RE = re.compile(r"^\d+[\.)]\s+(.+)$")
+_ORDERED_DIGIT_RE = re.compile(r"^\d+[.)]\s+(.+)$")
+_ORDERED_ALPHA_RE = re.compile(r"^([a-zA-Z])[.)]\s+(.+)$")
 
 PHASE_SEPARATOR_LINE = "line"
 PHASE_SEPARATOR_SPACE = "space"
@@ -572,6 +573,7 @@ def _render_text(text: str) -> str:
     blocks: list[str] = []
     paragraph_lines: list[str] = []
     list_items: list[str] = []
+    list_ordered_type: str | None = None  # None=unordered, '1'/'a'/'A'=ordered
 
     def flush_paragraph() -> None:
         if not paragraph_lines:
@@ -594,16 +596,24 @@ def _render_text(text: str) -> str:
             if item.strip()
         )
         if items_html:
-            blocks.append(f"<ul class=\"cell-list\">{items_html}</ul>")
+            if list_ordered_type is None:
+                blocks.append(f"<ul class=\"cell-list\">{items_html}</ul>")
+            else:
+                type_attr = f" type=\"{list_ordered_type}\"" if list_ordered_type != "1" else ""
+                blocks.append(f"<ol{type_attr} class=\"cell-list\">{items_html}</ol>")
         list_items.clear()
 
     for raw_line in lines:
         stripped = raw_line.strip()
 
-        bullet_item = _extract_bullet_text(stripped)
-        if bullet_item is not None:
+        extracted = _extract_bullet_text(stripped)
+        if extracted is not None:
+            item_text, ordered_type = extracted
             flush_paragraph()
-            list_items.append(bullet_item)
+            if list_items and list_ordered_type != ordered_type:
+                flush_list()
+            list_ordered_type = ordered_type
+            list_items.append(item_text)
             continue
 
         if not stripped:
@@ -623,17 +633,27 @@ def _render_text(text: str) -> str:
     return "".join(blocks)
 
 
-def _extract_bullet_text(line: str) -> str | None:
+def _extract_bullet_text(line: str) -> tuple[str, str | None] | None:
+    """Returns (text, ordered_type) or None.
+
+    ordered_type is None for bullet lists, '1' for digit-ordered,
+    'a'/'A' for lower-/upper-alpha ordered lists.
+    """
     if not line:
         return None
 
-    for marker in ("- ", "* ", "â€¢ "):
+    for marker in ("- ", "* ", "• "):
         if line.startswith(marker):
-            return line[len(marker) :].strip()
+            return line[len(marker):].strip(), None
 
-    ordered_match = _ORDERED_ITEM_RE.match(line)
-    if ordered_match:
-        return ordered_match.group(1).strip()
+    digit_match = _ORDERED_DIGIT_RE.match(line)
+    if digit_match:
+        return digit_match.group(1).strip(), "1"
+
+    alpha_match = _ORDERED_ALPHA_RE.match(line)
+    if alpha_match:
+        ordered_type = "a" if alpha_match.group(1).islower() else "A"
+        return alpha_match.group(2).strip(), ordered_type
 
     return None
 
