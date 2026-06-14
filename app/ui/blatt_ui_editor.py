@@ -109,6 +109,8 @@ class BlattwerkAppEditorMixin:
             self.editor_widget.bind("<Up>", self._on_editor_completion_move_up)
             self.editor_widget.bind("<Down>", self._on_editor_completion_move_down)
             self.editor_widget.bind("<Return>", self._on_editor_completion_enter)
+            self.editor_widget.bind("<Control-BackSpace>", self._on_editor_delete_word_before)
+            self.editor_widget.bind("<Control-Delete>", self._on_editor_delete_word_after)
 
         diagnostics_frame = widgets.LabelFrame(parent, text="Diagnostik")
         diagnostics_frame.pack(fill="x", padx=8, pady=(0, 8))
@@ -1066,6 +1068,62 @@ class BlattwerkAppEditorMixin:
         if self._editor_completion_items:
             return self._on_editor_completion_accept()
         return None
+
+    def _on_editor_delete_word_before(self, _event=None):
+        """Deletes the word (or whitespace token) before the cursor (Ctrl+Backspace)."""
+
+        cursor_pos = self.editor_widget.index("insert")
+        line, col = map(int, cursor_pos.split("."))
+
+        if col == 0:
+            if line > 1:
+                self.editor_widget.delete("insert -1c", "insert")
+            return "break"
+
+        text_before = self.editor_widget.get(f"{line}.0", cursor_pos)
+        pos = len(text_before)
+
+        while pos > 0 and text_before[pos - 1] in " \t":
+            pos -= 1
+        if pos > 0:
+            if text_before[pos - 1].isalnum() or text_before[pos - 1] == "_":
+                while pos > 0 and (text_before[pos - 1].isalnum() or text_before[pos - 1] == "_"):
+                    pos -= 1
+            else:
+                while pos > 0 and not text_before[pos - 1].isalnum() and text_before[pos - 1] not in " \t_":
+                    pos -= 1
+
+        chars_to_delete = len(text_before) - pos
+        if chars_to_delete > 0:
+            self.editor_widget.delete(f"insert -{chars_to_delete}c", "insert")
+        return "break"
+
+    def _on_editor_delete_word_after(self, _event=None):
+        """Deletes the word (or whitespace token) after the cursor (Ctrl+Delete)."""
+
+        cursor_pos = self.editor_widget.index("insert")
+        line_end = self.editor_widget.index("insert lineend")
+
+        if self.editor_widget.compare(cursor_pos, "==", line_end):
+            self.editor_widget.delete("insert", "insert +1c")
+            return "break"
+
+        text_after = self.editor_widget.get(cursor_pos, line_end)
+        pos = 0
+
+        while pos < len(text_after) and text_after[pos] in " \t":
+            pos += 1
+        if pos < len(text_after):
+            if text_after[pos].isalnum() or text_after[pos] == "_":
+                while pos < len(text_after) and (text_after[pos].isalnum() or text_after[pos] == "_"):
+                    pos += 1
+            else:
+                while pos < len(text_after) and not text_after[pos].isalnum() and text_after[pos] not in " \t_":
+                    pos += 1
+
+        if pos > 0:
+            self.editor_widget.delete("insert", f"insert +{pos}c")
+        return "break"
 
     def _on_editor_mouse_click(self, _event=None):
         """Closes completion popup when user clicks in editor."""
