@@ -28,6 +28,7 @@ class _SegmentBuilder:
     active_column_key: str = "schritte"
     has_s_marker: bool = False
     has_ant_marker: bool = False
+    has_any_marker: bool = False
 
     def is_empty(self) -> bool:
         values = (self.schritte, self.aktivitaeten, self.umgebung, self.antizipiert)
@@ -37,11 +38,13 @@ class _SegmentBuilder:
         if self.line <= 0:
             self.line = line
 
+        self.has_any_marker = True
         self.active_column_key = key
         self._append_to_key(key, value.strip())
         self.last_marker_key = key
 
     def switch_column(self, step_count: int) -> None:
+        self.has_any_marker = True
         order = ("schritte", "aktivitaeten", "umgebung")
         # antizipiert belongs to the activities column for pipe-based switching.
         if self.active_column_key == "antizipiert":
@@ -83,6 +86,7 @@ class _SegmentBuilder:
             umgebung=_normalize_optional_text(self.umgebung),
             antizipiert=_normalize_optional_text(self.antizipiert),
             line=line,
+            full_row=not self.has_any_marker,
         )
 
 
@@ -159,18 +163,13 @@ def parse_kurzentwerfer_text(source: str) -> ParsedKurzentwurf:
             continue
 
         if phase_builder is None:
-            diagnostics.append(
-                Diagnostic(
-                    code="KZF001",
-                    severity="error",
-                    message="Zeile ausserhalb einer #phase-Definition.",
-                    line=line_index + 1,
-                )
-            )
             line_index += 1
             continue
 
         if stripped == "---":
+            if phase_builder is None:
+                line_index += 1
+                continue
             if segment_builder.is_empty():
                 diagnostics.append(
                     Diagnostic(
@@ -202,6 +201,7 @@ def parse_kurzentwerfer_text(source: str) -> ParsedKurzentwurf:
                 continue
 
             if marker == "a>":
+                segment_builder.has_any_marker = True
                 segment_builder.active_column_key = "aktivitaeten"
                 segment_builder.last_marker_key = None
                 if value:

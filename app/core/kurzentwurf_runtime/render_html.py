@@ -244,6 +244,11 @@ def render_document_html(
       padding: 0;
     }}
 
+    td.full-row-cell {{
+      font-style: italic;
+      color: #444;
+    }}
+
     mark {{
       background: #fff36d;
       padding: 0 0.06em;
@@ -304,10 +309,13 @@ def _render_phase_rows(
     if time_label:
         phase_time_html = f"<div class=\"phase-time\">({escape(time_label)})</div>"
 
+    full_row_indices = {i for i, s in enumerate(segments) if s.full_row}
+
     schritte_map = _build_group_map(
         segments,
         text_getter=lambda item: item.schritte,
         inherit_getter=lambda item: item.inherit_schritte,
+        full_row_indices=full_row_indices,
     )
     aktivitaeten_map = _build_group_map(
         segments,
@@ -317,11 +325,13 @@ def _render_phase_rows(
             ant_marker_label=ant_marker_label,
         ),
         inherit_getter=lambda item: item.inherit_aktivitaeten,
+        full_row_indices=full_row_indices,
     )
     umgebung_map = _build_group_map(
         segments,
         text_getter=lambda item: item.umgebung,
         inherit_getter=lambda item: item.inherit_umgebung,
+        full_row_indices=full_row_indices,
     )
 
     rows: list[str] = []
@@ -331,6 +341,17 @@ def _render_phase_rows(
             row_classes.append("phase-segment-row-followup")
         if index < len(segments) - 1:
             row_classes.append("phase-segment-row-nonlast")
+
+        if index in full_row_indices:
+            text = _render_text(segments[index].schritte or "")
+            rows.append(
+                f"<tr class=\"{' '.join(row_classes)} full-row-segment\">"
+                "<td colspan=\"3\" class=\"full-row-cell\"><div class=\"cell-content\">"
+                f"{text}"
+                "</div></td>"
+                "</tr>"
+            )
+            continue
 
         cells: list[str] = []
         if index == 0:
@@ -392,14 +413,16 @@ def _build_group_map(
     *,
     text_getter,
     inherit_getter,
+    full_row_indices: set[int] | None = None,
 ) -> dict[int, tuple[int, str]]:
     if not segments:
         return {}
 
+    breaks = full_row_indices or set()
     groups: dict[int, tuple[int, str]] = {}
     start_index = 0
     for index in range(1, len(segments)):
-        if not inherit_getter(segments[index]):
+        if not inherit_getter(segments[index]) or index in breaks or (index - 1) in breaks:
             groups[start_index] = (index - start_index, text_getter(segments[start_index]))
             start_index = index
 

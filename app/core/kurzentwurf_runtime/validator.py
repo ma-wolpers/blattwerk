@@ -24,6 +24,8 @@ _PHASE_LOOKUP = {
     "reserve": "Didaktische Reserve",
 }
 
+_OPTIONAL_TIME_PHASES = {"Hausaufgabe", "Didaktische Reserve"}
+
 _TIME_RE = re.compile(r"^(?P<hour>[01]?\d|2[0-3]):(?P<minute>[0-5]\d)$")
 _COLON_MARKER_RE = re.compile(r"^\s*(S|A|U|ant)\s*:\s*", re.IGNORECASE)
 
@@ -114,33 +116,34 @@ def inspect_kurzentwerfer_text(source: str) -> InspectionResult:
             explicit_umgebung = _normalize_optional(raw_segment.umgebung)
             antizipiert = _normalize_optional(raw_segment.antizipiert) or ""
 
-            if explicit_schritte is None and current_schritte is None:
-                diagnostics.append(
-                    Diagnostic(
-                        code="KZF112",
-                        severity="error",
-                        message="Erstes Segment einer Phase braucht Inhalt bei S> (oder Pipe-Spalte 1).",
-                        line=raw_segment.line,
+            if not raw_segment.full_row:
+                if explicit_schritte is None and current_schritte is None:
+                    diagnostics.append(
+                        Diagnostic(
+                            code="KZF112",
+                            severity="error",
+                            message="Erstes Segment einer Phase braucht Inhalt bei S> (oder Pipe-Spalte 1).",
+                            line=raw_segment.line,
+                        )
                     )
-                )
-            if explicit_aktivitaeten is None and current_aktivitaeten is None:
-                diagnostics.append(
-                    Diagnostic(
-                        code="KZF113",
-                        severity="error",
-                        message="Erstes Segment einer Phase braucht Lernaktivitaeten mit s<.",
-                        line=raw_segment.line,
+                if explicit_aktivitaeten is None and current_aktivitaeten is None:
+                    diagnostics.append(
+                        Diagnostic(
+                            code="KZF113",
+                            severity="error",
+                            message="Erstes Segment einer Phase braucht Lernaktivitaeten mit s<.",
+                            line=raw_segment.line,
+                        )
                     )
-                )
-            if explicit_umgebung is None and current_umgebung is None:
-                diagnostics.append(
-                    Diagnostic(
-                        code="KZF114",
-                        severity="error",
-                        message="Erstes Segment einer Phase braucht Inhalt bei U> (oder Pipe-Spalte 3).",
-                        line=raw_segment.line,
+                if explicit_umgebung is None and current_umgebung is None:
+                    diagnostics.append(
+                        Diagnostic(
+                            code="KZF114",
+                            severity="error",
+                            message="Erstes Segment einer Phase braucht Inhalt bei U> (oder Pipe-Spalte 3).",
+                            line=raw_segment.line,
+                        )
                     )
-                )
 
             inherit_schritte = explicit_schritte is None
             inherit_umgebung = explicit_umgebung is None
@@ -163,6 +166,7 @@ def inspect_kurzentwerfer_text(source: str) -> InspectionResult:
                     inherit_aktivitaeten=inherit_aktivitaeten,
                     inherit_umgebung=inherit_umgebung,
                     line=raw_segment.line,
+                    full_row=raw_segment.full_row,
                 )
             )
 
@@ -224,7 +228,8 @@ def _resolve_phase_times(
     if not normalized_blocks:
         return [], []
 
-    has_duration = any(block["duration_minutes"] is not None for block in normalized_blocks)
+    timed_blocks = [b for b in normalized_blocks if str(b["phase"]) not in _OPTIONAL_TIME_PHASES]
+    has_duration = any(block["duration_minutes"] is not None for block in timed_blocks)
 
     starts: list[int | None] = [None] * len(normalized_blocks)
     ends: list[int | None] = [None] * len(normalized_blocks)
@@ -252,8 +257,13 @@ def _resolve_phase_times(
             return starts, ends
 
         for index, block in enumerate(normalized_blocks):
+            phase = str(block["phase"])
             duration = block["duration_minutes"]
             line = int(block["line"])
+
+            if phase in _OPTIONAL_TIME_PHASES:
+                continue
+
             if duration is None:
                 diagnostics.append(
                     Diagnostic(
@@ -298,10 +308,19 @@ def _resolve_phase_times(
 
         return starts, ends
 
+    first_timed_index = next(
+        (i for i, b in enumerate(normalized_blocks) if str(b["phase"]) not in _OPTIONAL_TIME_PHASES),
+        None,
+    )
     for index, block in enumerate(normalized_blocks):
+        phase = str(block["phase"])
         line = int(block["line"])
+
+        if phase in _OPTIONAL_TIME_PHASES:
+            continue
+
         start_text = str(block["start_time"] or "").strip()
-        if index == 0 and not start_text:
+        if index == first_timed_index and not start_text:
             start_text = global_start_time.strip()
 
         if not start_text:

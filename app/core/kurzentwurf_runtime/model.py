@@ -49,6 +49,7 @@ class RawSegment:
     umgebung: str | None
     antizipiert: str | None
     line: int
+    full_row: bool = False
 
 
 @dataclass(frozen=True)
@@ -99,6 +100,7 @@ class KurzentwurfSegment:
     inherit_aktivitaeten: bool
     inherit_umgebung: bool
     line: int
+    full_row: bool = False
 
 
 @dataclass(frozen=True)
