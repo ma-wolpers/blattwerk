@@ -62,6 +62,133 @@ _SYNTAX_TAGS = (
     "syn_block_pair",
 )
 
+# \x01 marks the cursor landing position after snippet insertion.
+# Opened via Ctrl+B → dropdown menu; single letter selects the block.
+# Letters are safe here because they are menu access keys, not global bindings.
+_EDITOR_BLOCK_MENU_ITEMS: list[tuple[str, str, str]] = [
+    ("A", "Auswahlaufgabe (mc)", (
+        ":::mc inline=true\n"
+        "\x01Frage oder Einleitung…\n"
+        "- [x] Richtige Antwort\n"
+        "- [ ] Falsche Antwort A\n"
+        "- [ ] Falsche Antwort B\n"
+        ":::\n"
+    )),
+    ("B", "Tabelle (table)", (
+        ':::table rows=3 cols=3 headers="A|B|C"\n'
+        "cells:\n"
+        '\x01  - ["", "", ""]\n'
+        '  - ["", "", ""]\n'
+        '  - ["", "", ""]\n'
+        ":::\n"
+    )),
+    ("C", "Spalten-Layout (columns)", (
+        ':::columns cols=2 widths="1 1" :::\n'
+        "\x01\n"
+        ":::nextcol :::\n"
+        "\n"
+        ":::endcolumns :::\n"
+    )),
+    ("D", "Punktpapier (dots)", (
+        ":::dots height=4cm\n"
+        "\x01\n"
+        ":::\n"
+    )),
+    ("E", "Koordinatensystem (geometry)", (
+        ':::geometry scale=0.5cm axis=true origin="10,10"\n'
+        "points:\n"
+        '\x01  - {x: 0, y: 0, label: "A", show: "&"}\n'
+        ":::\n"
+    )),
+    ("F", "Infobox / Hinweis (info)", (
+        ":::info type=tip\n"
+        "\x01Hinweis hier…\n"
+        ":::\n"
+    )),
+    ("G", "Gitterpapier (grid)", (
+        ":::grid scale=0.5cm\n"
+        "\x01\n"
+        ":::\n"
+    )),
+    ("H", "Hilfe-Karte (help)", (
+        ':::help title="Hilfe" level=1\n'
+        "\x01Hilfetext hier…\n"
+        ":::\n"
+    )),
+    ("I", "Bild (image)", (
+        '![Bildbeschreibung](bild.png "w=80% align=center")\n'
+        "\x01"
+    )),
+    ("K", "Lückentext (cloze)", (
+        ":::cloze gap=fixed words=below\n"
+        "\x01Text mit {{Lücke}} hier.\n"
+        ":::\n"
+    )),
+    ("L", "Linienfeld (lines)", (
+        ":::lines rows=3\n"
+        "\x01\n"
+        ":::\n"
+    )),
+    ("M", "Material", (
+        ':::material title="Titel"\n'
+        "\x01Inhalt hier…\n"
+        ":::\n"
+    )),
+    ("N", "Zahlengerade (numberline)", (
+        ":::numberline min=0 max=10 tick_step=1 major_every=5 height=2cm\n"
+        "labels:\n"
+        '\x01  - {value: 0, show: "&"}\n'
+        '  - {value: 10, show: "&"}\n'
+        "answers:\n"
+        "  - {value: 5}\n"
+        ":::\n"
+    )),
+    ("P", "Freier Platz (space)", (
+        ":::space height=3cm\n"
+        "\x01\n"
+        ":::\n"
+    )),
+    ("Q", "QR-Code", (
+        ":::qrcode url=https://example.org w=3cm h=3cm maxw=45% :::\n"
+        "\x01"
+    )),
+    ("R", "Musterlösung (solution)", (
+        ":::solution\n"
+        "\x01Musterlösung hier…\n"
+        ":::\n"
+    )),
+    ("S", "Teilaufgabe (subtask)", (
+        ":::subtask work=single\n"
+        "\x01Teilaufgabe hier…\n"
+        ":::\n"
+    )),
+    ("T", "Aufgabe (task)", (
+        ":::task work=single action=write\n"
+        "\x01Aufgabentext hier…\n"
+        ":::\n"
+    )),
+    ("W", "Wortsuchrätsel (wordsearch)", (
+        ":::wordsearch min_size=10x12 diagonal=false\n"
+        "\x01- Wort1\n"
+        "- Wort2\n"
+        "- Wort3\n"
+        ":::\n"
+    )),
+    ("Z", "Zuordnung (matching)", (
+        ":::matching layout=horizontal height_mode=uniform lane_align=center show_guides=false\n"
+        "left:\n"
+        '\x01  - "Begriff A"\n'
+        '  - "Begriff B"\n'
+        "right:\n"
+        '  - "Erklärung A"\n'
+        '  - "Erklärung B"\n'
+        "matches:\n"
+        '  - "1-1"\n'
+        '  - "2-2"\n'
+        ":::\n"
+    )),
+]
+
 
 class BlattwerkAppEditorMixin:
     """Adds a basic markdown editor area with debounced live save."""
@@ -111,6 +238,7 @@ class BlattwerkAppEditorMixin:
             self.editor_widget.bind("<Return>", self._on_editor_completion_enter)
             self.editor_widget.bind("<Control-BackSpace>", self._on_editor_delete_word_before)
             self.editor_widget.bind("<Control-Delete>", self._on_editor_delete_word_after)
+            self.editor_widget.bind("<Control-b>", self._show_block_insert_menu)
 
         diagnostics_frame = widgets.LabelFrame(parent, text="Diagnostik")
         diagnostics_frame.pack(fill="x", padx=8, pady=(0, 8))
@@ -1123,6 +1251,69 @@ class BlattwerkAppEditorMixin:
 
         if pos > 0:
             self.editor_widget.delete("insert", f"insert +{pos}c")
+        return "break"
+
+    def _show_block_insert_menu(self, event=None):
+        """Opens the block-insertion dropdown at the cursor position (Ctrl+B)."""
+        if self.editor_widget is None:
+            return "break"
+
+        menu = ui.Menu(self.editor_widget, tearoff=0)
+        for letter, label, snippet in _EDITOR_BLOCK_MENU_ITEMS:
+            menu.add_command(
+                label=f"{letter}   {label}",
+                underline=0,
+                command=lambda s=snippet: self._insert_editor_snippet(s),
+            )
+
+        try:
+            bbox = self.editor_widget.bbox("insert")
+            if bbox:
+                x = self.editor_widget.winfo_rootx() + bbox[0]
+                y = self.editor_widget.winfo_rooty() + bbox[1] + bbox[3]
+            else:
+                x = self.editor_widget.winfo_rootx() + 20
+                y = self.editor_widget.winfo_rooty() + 20
+        except Exception:
+            x = self.editor_widget.winfo_rootx() + 20
+            y = self.editor_widget.winfo_rooty() + 20
+
+        try:
+            menu.tk_popup(x, y, 0)
+        finally:
+            menu.grab_release()
+
+        return "break"
+
+    def _insert_editor_snippet(self, template: str):
+        """Inserts a block snippet at the cursor. \\x01 in template marks cursor landing position."""
+
+        if self.editor_widget is None:
+            return "break"
+
+        cursor_mark = "\x01"
+        cursor_offset = template.find(cursor_mark)
+        clean_text = template.replace(cursor_mark, "")
+
+        insert_pos = self.editor_widget.index("insert")
+        line, col = map(int, insert_pos.split("."))
+
+        prefix = "\n" if col > 0 else ""
+        self.editor_widget.insert(insert_pos, prefix + clean_text)
+
+        if cursor_offset >= 0:
+            text_to_cursor = prefix + template[:cursor_offset]
+            newline_count = text_to_cursor.count("\n")
+            last_newline = text_to_cursor.rfind("\n")
+            cursor_line = line + newline_count
+            cursor_col = len(text_to_cursor) - last_newline - 1 if last_newline >= 0 else col + len(text_to_cursor)
+            self.editor_widget.mark_set("insert", f"{cursor_line}.{cursor_col}")
+
+        self.editor_widget.see("insert")
+        self.editor_widget.focus_set()
+        self._queue_editor_highlighting(immediate=True)
+        self._queue_editor_diagnostics(immediate=True)
+        self._queue_editor_outline(immediate=True)
         return "break"
 
     def _on_editor_mouse_click(self, _event=None):

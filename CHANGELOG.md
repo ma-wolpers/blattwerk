@@ -9,6 +9,7 @@ The format is based on Keep a Changelog.
 ### Added
 
 - Schreibbereich: `Strg+Rücktaste` löscht das Wort vor dem Cursor, `Strg+Entf` löscht das Wort nach dem Cursor — wie in üblichen Texteditoren erwartet.
+- Schreibbereich: `Strg+B` öffnet ein Dropdown-Menü mit allen 20 Blocktypen. Eintrag per Mausklick oder durch Drücken des unterstrichenen Buchstabens auswählen; der Cursor landet direkt im Inhaltsbereich des eingefügten Blocks. Buchstaben-Übersicht: A=mc · B=Tabelle · C=columns · D=dots · E=geometry · F=info · G=grid · H=help · I=Bild · K=cloze · L=lines · M=material · N=numberline · P=space · Q=qrcode · R=solution · S=subtask · T=task · W=wordsearch · Z=matching.
 
 - Kurzentwurf-Rendering: Nummerierte und buchstabierte Listen (`1.`, `1)`, `a.`, `a)`, `A.`, `A)`) werden jetzt als HTML-`<ol>`-Elemente gerendert und behalten ihre Nummerierung/Buchstabierung. Bisher wurden sie als ungeordnete `<ul>`-Listen ausgegeben.
 
