@@ -105,6 +105,20 @@ def inspect_kurzentwerfer_text(source: str) -> InspectionResult:
             )
             continue
 
+        if raw_phase.segments[0].full_row:
+            diagnostics.append(
+                Diagnostic(
+                    code="KZF115",
+                    severity="error",
+                    message=(
+                        "Erstes Segment einer Phase braucht mindestens einen Spaltenmarker "
+                        "(S>/A>/U>/s</ant<) und darf keine reine Vollbreitenzeile sein."
+                    ),
+                    line=raw_phase.segments[0].line,
+                )
+            )
+            continue
+
         current_schritte: str | None = None
         current_aktivitaeten: str | None = None
         current_umgebung: str | None = None
@@ -317,14 +331,8 @@ def _resolve_phase_times(
             start_text = global_start_time.strip()
 
         if not start_text:
-            diagnostics.append(
-                Diagnostic(
-                    code="KZF133",
-                    severity="error",
-                    message="Startzeit-Modus erwartet start=HH:MM pro Phase (oder globale Startzeit fuer die erste Phase).",
-                    line=line,
-                )
-            )
+            # Times are fully optional: a phase without start/duration info
+            # simply renders without a time label.
             continue
 
         parsed_start = _parse_time_to_minutes(start_text)
