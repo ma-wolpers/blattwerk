@@ -70,7 +70,7 @@ def _build_qrcode_data_uri(url):
         version=None,
         error_correction=qrcode.constants.ERROR_CORRECT_M,
         box_size=8,
-        border=2,
+        border=1,
     )
     qr.add_data(url)
     qr.make(fit=True)

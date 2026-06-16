@@ -1409,6 +1409,22 @@ h1 {
     margin: 0;
 }
 
+.qrcode {
+    margin: 0;
+    padding: 0;
+    line-height: 0;
+}
+
+.qrcode-link {
+    display: inline-block;
+}
+
+.qrcode img {
+    display: block;
+    margin: 0;
+    padding: 0;
+}
+
 .footer-copyright {
     position: fixed;
     left: 0.08cm;
