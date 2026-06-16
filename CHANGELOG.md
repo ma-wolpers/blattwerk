@@ -13,11 +13,12 @@ The format is based on Keep a Changelog.
 
 - Kurzentwurf-Rendering: Nummerierte und buchstabierte Listen (`1.`, `1)`, `a.`, `a)`, `A.`, `A)`) werden jetzt als HTML-`<ol>`-Elemente gerendert und behalten ihre Nummerierung/Buchstabierung. Bisher wurden sie als ungeordnete `<ul>`-Listen ausgegeben.
 
-- Kurzentwurf-DSL: Zwischen zwei `---`-Trennern darf jetzt eine ganze Zeile ohne Spaltenmarker (kein S>, A>, U>, s<, ant<) stehen. Sie wird als **Full-Row-Segment** erkannt und als einzelne Zelle mit `colspan=3` ueber die drei Inhaltsspalten (Lernschritte, Lernaktivitaeten, Lernumgebung) gerendert. Solche Zeilen werden auch in der Diagnostik korrekt behandelt: KZF112, KZF113, KZF114 feuern fuer sie nicht.
+- Kurzentwurf-DSL: Zwischen zwei `---`-Trennern darf jetzt eine ganze Zeile ohne Spaltenmarker (kein S>, A>, U>, s<, ant<) stehen. Sie wird als **Full-Row-Segment** erkannt und als einzelne Zelle mit `colspan=3` ueber die drei Inhaltsspalten (Lernschritte, Lernaktivitaeten, Lernumgebung) gerendert.
 
 ### Fixed
 
 - Kurzentwurf-Diagnostik: Zeilen und `---`-Trenner, die vor dem ersten `#phase`-Tag (z. B. `#einstieg`) stehen, werden jetzt stillschweigend ignoriert statt mit KZF001 ("Zeile ausserhalb einer #phase-Definition") zu fehlen. Das erlaubt Anmerkungen und Vorbereitungsnotizen direkt nach dem YAML-Front-Matter.
+- Kurzentwurf-Segmente duerfen jetzt generell leere Lernschritte-, Lernaktivitaeten- und Lernumgebung-Felder haben (KZF112/KZF113/KZF114 wurden entfernt). Insbesondere nach einem Full-Row-Segment werden nicht erneut explizit gesetzte Spalten leer gerendert, statt faelschlicherweise den zuletzt gesetzten Wert von vor der Vollbreitenzeile zu wiederholen.
 - Kurzentwurf-Zeitaufloesung: Phasen `#hausaufgabe` und `#reserve` muessen kein `t=`-Attribut haben und werden aus der Zeitrechnung ausgeklammert. Zuvor loeste das Fehlen von `t=` bei diesen Phasen faelschlicherweise KZF132 ("Alle Phasen muessen t=... setzen") aus.
 
 - Neuer Erstellungsfluss fuer `Strg+N` und Menue `Neu`: Blattwerk fragt jetzt vor dem Dateidialog, ob ein Aufgabenblatt, eine Praesentation oder ein Kurzentwurf angelegt werden soll.

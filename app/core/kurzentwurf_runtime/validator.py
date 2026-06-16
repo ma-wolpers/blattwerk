@@ -116,34 +116,27 @@ def inspect_kurzentwerfer_text(source: str) -> InspectionResult:
             explicit_umgebung = _normalize_optional(raw_segment.umgebung)
             antizipiert = _normalize_optional(raw_segment.antizipiert) or ""
 
-            if not raw_segment.full_row:
-                if explicit_schritte is None and current_schritte is None:
-                    diagnostics.append(
-                        Diagnostic(
-                            code="KZF112",
-                            severity="error",
-                            message="Erstes Segment einer Phase braucht Inhalt bei S> (oder Pipe-Spalte 1).",
-                            line=raw_segment.line,
-                        )
+            if raw_segment.full_row:
+                # Full-row segments are standalone annotations: they neither
+                # inherit from nor feed into the surrounding column state, and
+                # they break inheritance for whatever follows them.
+                validated_segments.append(
+                    KurzentwurfSegment(
+                        schritte=explicit_schritte or "",
+                        aktivitaeten="",
+                        umgebung="",
+                        antizipiert=antizipiert,
+                        inherit_schritte=False,
+                        inherit_aktivitaeten=False,
+                        inherit_umgebung=False,
+                        line=raw_segment.line,
+                        full_row=True,
                     )
-                if explicit_aktivitaeten is None and current_aktivitaeten is None:
-                    diagnostics.append(
-                        Diagnostic(
-                            code="KZF113",
-                            severity="error",
-                            message="Erstes Segment einer Phase braucht Lernaktivitaeten mit s<.",
-                            line=raw_segment.line,
-                        )
-                    )
-                if explicit_umgebung is None and current_umgebung is None:
-                    diagnostics.append(
-                        Diagnostic(
-                            code="KZF114",
-                            severity="error",
-                            message="Erstes Segment einer Phase braucht Inhalt bei U> (oder Pipe-Spalte 3).",
-                            line=raw_segment.line,
-                        )
-                    )
+                )
+                current_schritte = None
+                current_aktivitaeten = None
+                current_umgebung = None
+                continue
 
             inherit_schritte = explicit_schritte is None
             inherit_umgebung = explicit_umgebung is None
@@ -166,7 +159,7 @@ def inspect_kurzentwerfer_text(source: str) -> InspectionResult:
                     inherit_aktivitaeten=inherit_aktivitaeten,
                     inherit_umgebung=inherit_umgebung,
                     line=raw_segment.line,
-                    full_row=raw_segment.full_row,
+                    full_row=False,
                 )
             )
 
