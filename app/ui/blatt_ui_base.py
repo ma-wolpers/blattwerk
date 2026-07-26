@@ -5,7 +5,9 @@ from __future__ import annotations
 from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 
 ensure_bw_gui_on_path()
-from bw_gui.runtime import ui, widgets
+from bw_gui.runtime import BwBaseWindow, ui, widgets
+from bw_gui.menu import section_spec
+from bw_gui.runtime import AppShellConfig
 
 from pathlib import Path
 
@@ -20,7 +22,7 @@ from .ui_constants import (
     VIEW_FIT_WIDTH,
     VIEW_LAYOUT_SINGLE,
 )
-from bw_libs.ui_contract.keybinding import (
+from bw_gui.contracts.keybinding import (
     UI_MODE_DIALOG,
     UI_MODE_EDITOR,
     UI_MODE_GLOBAL,
@@ -29,15 +31,14 @@ from bw_libs.ui_contract.keybinding import (
     KeyBindingDefinition,
     KeybindingRuntimeContext,
 )
-from bw_libs.ui_contract.hsm import (
+from bw_gui.contracts.hsm import (
     ESCAPE_CLOSE_POPUP,
     ESCAPE_EXIT_INLINE_EDITOR,
     ESCAPE_POP_PARENT,
     build_ui_hsm_contract,
 )
-from bw_libs.ui_contract.popup import POPUP_KIND_MODAL, POPUP_KIND_NON_MODAL, PopupPolicy, PopupPolicyRegistry
-from bw_libs.ui_contract.laufkern import aggregate_completion, emit_tracking_artifact, verify_manifest, verify_reachability
-from bw_libs.app_shell import AppShellConfig, TkinterAppShell
+from bw_gui.contracts.popup import POPUP_KIND_MODAL, POPUP_KIND_NON_MODAL, PopupPolicy, PopupPolicyRegistry
+from bw_gui.laufkern import aggregate_completion, emit_tracking_artifact, verify_manifest, verify_reachability
 from .laufkern_manifest_provider import build_runtime_shortcut_manifest
 from .ui_theme import DEFAULT_THEME
 from ..styles.blatt_styles import DEFAULT_FONT_PROFILE, DEFAULT_FONT_SIZE_PROFILE
@@ -46,12 +47,11 @@ from ..styles.worksheet_design import (
     DEFAULT_COLOR_PROFILE,
 )
 
-class BlattwerkAppBase:
+
+class BlattwerkAppBase(BwBaseWindow):
     """Basisklasse für gemeinsamen GUI-Zustand und globale Shortcuts."""
 
-    def __init__(self, root, deps: AppDependencies | None = None):
-        """Init."""
-        self.root = root
+    def __init__(self, deps: AppDependencies | None = None):
         self.dependencies = deps
         shell_config = (
             deps.shell_config
@@ -63,9 +63,29 @@ class BlattwerkAppBase:
                 min_height=640,
             )
         )
-        self.app_shell = TkinterAppShell(self.root, shell_config, on_close=self._on_shell_close)
+        super().__init__(
+            title=shell_config.title,
+            geometry=shell_config.geometry,
+            min_width=shell_config.min_width,
+            min_height=shell_config.min_height,
+            theme_key=DEFAULT_THEME,
+            on_close=self._on_shell_close,
+        )
+
+    def build_menu(self) -> list:
+        return [
+            section_spec("datei", lambda: self._to_shared_menu_items(self._menu_file_items()), label="Datei", alt="d"),
+            section_spec("ansicht", lambda: self._to_shared_menu_items(self._menu_view_items()), label="Ansicht", alt="a"),
+            section_spec("shortcuts", lambda: self._to_shared_menu_items(self._menu_shortcuts_items()), label="Shortcuts", alt="s"),
+        ]
+
+    def build_content(self, frame) -> None:
+        self.root = self  # backward-compat alias for all self.root.* calls
+        from .window_identity import apply_window_icon
+        apply_window_icon(self)
+
         try:
-            self._default_tk_scaling = float(self.root.tk.call("tk", "scaling"))
+            self._default_tk_scaling = float(self.tk.call("tk", "scaling"))
         except Exception:
             self._default_tk_scaling = 1.0
 
@@ -213,9 +233,10 @@ class BlattwerkAppBase:
 
         self._load_ui_settings()
         self._load_recent_files()
+        # Sync BwBaseWindow's stored theme key with the loaded UI settings
+        self._shell.apply_theme(self.theme_var.get())
         self._configure_styles()
-        self._build_menu()
-        self._build_ui()
+        self._build_ui(parent=frame)
         if hasattr(self, "_apply_user_preferences_live") and hasattr(self, "user_preferences"):
             self._apply_user_preferences_live(self.user_preferences)
         self._apply_theme(redraw_preview=False)
@@ -226,10 +247,19 @@ class BlattwerkAppBase:
         if hasattr(self, "_maybe_apply_startup_file_preference"):
             self._maybe_apply_startup_file_preference()
 
-        # Enforce startup behavior: always open with preview area only.
         self.editor_view_mode_var.set(EDITOR_VIEW_PREVIEW_ONLY)
         if hasattr(self, "_apply_editor_view_mode"):
             self._apply_editor_view_mode()
+
+    def open_settings(self) -> None:
+        self._open_local_settings_dialog()
+
+    def apply_theme(self, theme_key: str) -> None:
+        """Called by BwBaseWindow View menu theme radios."""
+        self._shell.apply_theme(theme_key)
+        if hasattr(self, "theme_var"):
+            self.theme_var.set(theme_key)
+            self._on_theme_changed()
 
     def _on_shell_close(self) -> bool:
         """Persist lightweight UI state before the root window closes."""
@@ -294,11 +324,8 @@ class BlattwerkAppBase:
 
         self._sync_popup_sessions_from_windows()
 
-        shared_menu_bar = getattr(self, "_shared_menu_bar", None)
-        if shared_menu_bar is not None and bool(getattr(shared_menu_bar, "_popup_stack", [])):
-            return True
-
-        if bool(getattr(self, "_menu_popup_stack", [])):
+        menu_bar = getattr(self, "_menu_bar", None)
+        if menu_bar is not None and bool(getattr(menu_bar, "_popup_stack", [])):
             return True
 
         if self.popup_policy_registry.has_mode_blocking_popup():
@@ -1037,4 +1064,3 @@ class BlattwerkAppBase:
             current_index = 0
         next_index = (current_index + step) % len(options)
         var.set(options[next_index])
-

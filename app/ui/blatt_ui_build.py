@@ -50,9 +50,10 @@ class BlattwerkAppBuildMixin:
             style_name = "SegmentedActive.TButton" if mode == active_mode else "Segmented.TButton"
             button.configure(style=style_name)
 
-    def _build_ui(self):
+    def _build_ui(self, parent=None):
         """Build ui."""
-        outer = widgets.Frame(self.root, padding=12)
+        _p = parent if parent is not None else self.root
+        outer = widgets.Frame(_p, padding=12)
         outer.pack(fill="both", expand=True)
 
         file_row = widgets.Frame(outer)

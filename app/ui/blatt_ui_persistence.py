@@ -296,7 +296,7 @@ class BlattwerkAppPersistenceMixin:
             if hasattr(self, "_hide_swatch_tooltip") and not bool(normalized.get("tooltips_enabled", True)):
                 self._hide_swatch_tooltip()
             if getattr(self, "root", None) is not None:
-                self._build_menu()
+                self._refresh_custom_menu_model()
 
     def _commit_user_preferences(self, preferences: dict[str, object]):
             normalized = normalize_user_preferences(preferences)

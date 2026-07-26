@@ -42,8 +42,6 @@ from .ui_constants import (
     VIEW_MODE_LABELS,
 )
 from .ui_theme import (
-    THEMES,
-    THEME_ORDER,
     apply_window_theme,
     configure_ttk_theme,
     get_theme,
@@ -53,8 +51,6 @@ from .ui_theme import (
 
 ensure_bw_gui_on_path()
 from bw_gui.runtime import ui, widgets
-from bw_gui.menu import CustomMenuBar as SharedCustomMenuBar
-from bw_gui.menu import MenuDefinition as SharedMenuDefinition
 from bw_gui.menu import MenuItem as SharedMenuItem
 
 BW_COLOR_PROFILE_KEYS = {"bw"}
@@ -73,11 +69,6 @@ class BlattwerkAppStyleMixin:
             self._cycle_option(self.design_color_profile_var, COLOR_PROFILE_ORDER, step=step)
             self._warn_if_bw_mode_has_color_mentions(previous_profile=previous_profile)
             self._on_worksheet_design_changed()
-
-    def _cycle_theme(self, step: int = 1):
-            """Cycle through available themes and apply immediately."""
-            self._cycle_option(self.theme_var, THEME_ORDER, step=step)
-            self._on_theme_changed()
 
     def _cycle_font_profile(self, step: int = 1):
             """Cycle through available worksheet font profiles."""
@@ -218,6 +209,12 @@ class BlattwerkAppStyleMixin:
                     x_view_start=x_view_start,
                     y_view_start=y_view_start,
                 )
+
+    def _cycle_theme(self, step: int = 1):
+            """Cycle themes via BwBaseWindow apply_theme so the View menu stays in sync."""
+            from bw_gui.theming import THEME_ORDER
+            self._cycle_option(self.theme_var, THEME_ORDER, step=step)
+            self.apply_theme(self.theme_var.get())
 
     def _on_theme_changed(self):
             """On theme changed."""
@@ -375,224 +372,18 @@ class BlattwerkAppStyleMixin:
             return tuple(converted)
 
     def _refresh_custom_menu_theme(self):
-            """Applies current theme colors to custom top menu strip and open popups."""
+            """Applies current theme colors to the menu bar."""
 
-            shared_menu_bar = getattr(self, "_shared_menu_bar", None)
-            if shared_menu_bar is not None:
-                shared_menu_bar.refresh_theme(self.theme_var.get())
-                self._custom_menu_strip = shared_menu_bar.strip
-                self._menu_popup_stack = list(getattr(shared_menu_bar, "_popup_stack", []))
-                self._active_menu_key = getattr(shared_menu_bar, "_active_key", None)
-                return
+            menu_bar = getattr(self, "_menu_bar", None)
+            if menu_bar is not None:
+                menu_bar.refresh_theme(self.theme_var.get())
 
-            menu_strip = getattr(self, "_custom_menu_strip", None)
-            if menu_strip is None or not menu_strip.winfo_exists():
-                return
+    def _refresh_custom_menu_model(self):
+            """Refresh hook used by persistence when recent files change."""
 
-            theme = get_theme(self.theme_var.get())
-            strip_bg = theme["bg_surface"]
-            border = theme["border"]
-            muted = theme["fg_muted"]
-
-            menu_strip.configure(bg=strip_bg, highlightthickness=1, highlightbackground=border, bd=0)
-
-            active_key = getattr(self, "_active_menu_key", None)
-            for key, button in getattr(self, "_menu_top_buttons", {}).items():
-                if button is None or not button.winfo_exists():
-                    continue
-                is_active = key == active_key and bool(getattr(self, "_menu_popup_stack", []))
-                button.configure(
-                    bg=theme["accent_soft"] if is_active else strip_bg,
-                    fg=theme["fg_primary"],
-                    activebackground=theme["accent_soft"],
-                    activeforeground=theme["fg_primary"],
-                    highlightbackground=border,
-                    highlightcolor=theme["accent"],
-                    disabledforeground=muted,
-                )
-
-            for popup in list(getattr(self, "_menu_popup_stack", [])):
-                if popup is None or not popup.winfo_exists():
-                    continue
-                popup.configure(bg=border)
-                body = getattr(popup, "_menu_body", None)
-                if body is not None and body.winfo_exists():
-                    body.configure(bg=strip_bg)
-
-    def _close_all_menu_popups(self):
-            """Closes all open custom menu popups and resets active menu state."""
-
-            shared_menu_bar = getattr(self, "_shared_menu_bar", None)
-            if shared_menu_bar is not None:
-                shared_menu_bar.close_all_popups()
-                self._menu_popup_stack = list(getattr(shared_menu_bar, "_popup_stack", []))
-                self._active_menu_key = getattr(shared_menu_bar, "_active_key", None)
-                self._refresh_custom_menu_theme()
-                return
-
-            focus_guard_id = getattr(self, "_menu_focus_guard_after_id", None)
-            if focus_guard_id is not None:
-                try:
-                    self.root.after_cancel(focus_guard_id)
-                except Exception:
-                    pass
-                self._menu_focus_guard_after_id = None
-
-            for popup in reversed(list(getattr(self, "_menu_popup_stack", []))):
-                try:
-                    if popup is not None and popup.winfo_exists():
-                        popup.destroy()
-                except ui.TclError:
-                    pass
-
-            self._menu_popup_stack = []
-            self._active_menu_key = None
-            self._refresh_custom_menu_theme()
-
-    def _close_menu_popups_from_level(self, level: int):
-            """Closes submenu popups deeper than the requested level."""
-
-            stack = list(getattr(self, "_menu_popup_stack", []))
-            while len(stack) > level:
-                popup = stack.pop()
-                try:
-                    if popup is not None and popup.winfo_exists():
-                        popup.destroy()
-                except ui.TclError:
-                    pass
-            self._menu_popup_stack = stack
-
-    def _menu_widget_is_managed(self, widget) -> bool:
-            """Returns whether widget belongs to custom menu strip or one of its popups."""
-
-            if widget is None:
-                return False
-
-            managed_roots = []
-            strip = getattr(self, "_custom_menu_strip", None)
-            if strip is not None and strip.winfo_exists():
-                managed_roots.append(strip)
-            for popup in getattr(self, "_menu_popup_stack", []):
-                if popup is not None and popup.winfo_exists():
-                    managed_roots.append(popup)
-
-            current = widget
-            while current is not None:
-                for root_widget in managed_roots:
-                    if current == root_widget:
-                        return True
-                parent_name = current.winfo_parent()
-                if not parent_name:
-                    break
-                try:
-                    current = current._nametowidget(parent_name)
-                except Exception:
-                    break
-            return False
-
-    def _on_global_menu_click(self, event):
-            """Closes menu popups when user clicks outside menu strip or popup windows."""
-
-            if not getattr(self, "_menu_popup_stack", []):
-                return
-            if self._menu_widget_is_managed(getattr(event, "widget", None)):
-                return
-            self._close_all_menu_popups()
-
-    def _on_root_deactivate_for_menu(self, _event=None):
-            """Closes open menus on app deactivation (including Alt+Tab focus loss)."""
-
-            if not getattr(self, "_menu_popup_stack", []):
-                return
-
-            def _maybe_close():
-                focus_widget = None
-                try:
-                    focus_widget = self.root.focus_displayof()
-                except Exception:
-                    focus_widget = None
-
-                # Focuswechsel innerhalb der eigenen Custom-Menüs darf nicht schließen.
-                if self._menu_widget_is_managed(focus_widget):
-                    return
-
-                self._close_all_menu_popups()
-
-            self.root.after(0, _maybe_close)
-
-    def _schedule_menu_focus_guard(self):
-            """Continuously checks focus while menus are open and closes on real app focus loss."""
-
-            current_id = getattr(self, "_menu_focus_guard_after_id", None)
-            if current_id is not None:
-                try:
-                    self.root.after_cancel(current_id)
-                except Exception:
-                    pass
-                self._menu_focus_guard_after_id = None
-
-            if not getattr(self, "_menu_popup_stack", []):
-                return
-
-            def _check_focus():
-                self._menu_focus_guard_after_id = None
-                if not getattr(self, "_menu_popup_stack", []):
-                    return
-
-                focus_widget = None
-                try:
-                    focus_widget = self.root.focus_displayof()
-                except Exception:
-                    focus_widget = None
-
-                if focus_widget is None:
-                    self._close_all_menu_popups()
-                    return
-
-                if self._menu_widget_is_managed(focus_widget):
-                    self._menu_focus_guard_after_id = self.root.after(120, _check_focus)
-                    return
-
-                self._menu_focus_guard_after_id = self.root.after(120, _check_focus)
-
-            self._menu_focus_guard_after_id = self.root.after(160, _check_focus)
-
-    def _on_menu_mnemonic(self, menu_key: str):
-            """Opens top-level menu by mnemonic key and consumes the Alt event."""
-
-            self._open_top_menu_by_key(menu_key)
-            return "break"
-
-    def _bind_custom_menu_global_handlers(self):
-            """Installs global handlers for outside click and deactivation close behavior."""
-
-            if getattr(self, "_custom_menu_global_handlers_bound", False):
-                return
-
-            self.root.bind_all("<Button-1>", self._on_global_menu_click, add="+")
-            self.root.bind("<Unmap>", self._on_root_deactivate_for_menu, add="+")
-            self.root.bind("<Deactivate>", self._on_root_deactivate_for_menu, add="+")
-            self.root.bind_all("<Alt-d>", lambda _event: self._on_menu_mnemonic("datei"), add="+")
-            self.root.bind_all("<Alt-D>", lambda _event: self._on_menu_mnemonic("datei"), add="+")
-            self.root.bind_all("<Alt-a>", lambda _event: self._on_menu_mnemonic("ansicht"), add="+")
-            self.root.bind_all("<Alt-A>", lambda _event: self._on_menu_mnemonic("ansicht"), add="+")
-            self.root.bind_all("<Alt-s>", lambda _event: self._on_menu_mnemonic("shortcuts"), add="+")
-            self.root.bind_all("<Alt-S>", lambda _event: self._on_menu_mnemonic("shortcuts"), add="+")
-            self._custom_menu_global_handlers_bound = True
-
-    def _menu_popup_style(self):
-            """Returns consolidated colors for custom menu popups."""
-
-            theme = get_theme(self.theme_var.get())
-            return {
-                "popup_bg": theme["bg_surface"],
-                "popup_fg": theme["fg_primary"],
-                "popup_border": theme["border"],
-                "hover_bg": theme["accent_soft"],
-                "hover_fg": theme["fg_primary"],
-                "muted_fg": theme["fg_muted"],
-                "separator": theme["border"],
-            }
+            menu_bar = getattr(self, "_menu_bar", None)
+            if menu_bar is not None:
+                menu_bar.build()
 
     def _menu_shortcuts_items(self):
             """Builds menu rows for shortcut hints."""
@@ -638,26 +429,13 @@ class BlattwerkAppStyleMixin:
                 {"type": "command", "label": "Speichern unter…", "command": self.save_markdown_file_as},
                 {"type": "submenu", "label": "Zuletzt geöffnet", "items": recent_items},
                 {"type": "separator"},
-                {"type": "command", "label": "Einstellungen…", "command": self._open_local_settings_dialog},
-                {"type": "submenu", "label": "Einstellungen direkt", "items": settings_items},
+                {"type": "submenu", "label": "Einstellungen", "items": settings_items},
                 {"type": "separator"},
                 {"type": "command", "label": "Beenden", "command": self.root.destroy},
             ]
 
     def _menu_view_items(self):
             """Builds rows for top menu Ansicht including radio-like entries."""
-
-            theme_items = []
-            for theme_key in THEME_ORDER:
-                label = THEMES.get(theme_key, {}).get("label", theme_key)
-                theme_items.append(
-                    {
-                        "type": "radio",
-                        "label": label,
-                        "checked": self.theme_var.get() == theme_key,
-                        "command": (lambda key=theme_key: (self.theme_var.set(key), self._on_theme_changed())),
-                    }
-                )
 
             return [
                 {
@@ -716,230 +494,7 @@ class BlattwerkAppStyleMixin:
                     "label": "Lernhilfenansicht",
                     "command": self.open_help_preview_window,
                 },
-                {"type": "separator"},
-                {"type": "submenu", "label": "Theme", "items": theme_items},
             ]
-
-    def _menu_top_definitions(self):
-            """Defines top-level menus with mnemonic keys and row builders."""
-
-            return [
-                {"key": "datei", "label": "Datei", "underline": 0, "alt": "d", "items_fn": self._menu_file_items},
-                {"key": "ansicht", "label": "Ansicht", "underline": 0, "alt": "a", "items_fn": self._menu_view_items},
-                {"key": "shortcuts", "label": "Shortcuts", "underline": 0, "alt": "s", "items_fn": self._menu_shortcuts_items},
-            ]
-
-    def _menu_execute_command(self, command):
-            """Runs menu command and closes all popups afterwards."""
-
-            self._close_all_menu_popups()
-            if callable(command):
-                command()
-
-    def _open_menu_popup(self, anchor_widget, items: list[dict], level: int, top_key: str):
-            """Creates one popup window for a menu level and renders row widgets."""
-
-            existing_stack = list(getattr(self, "_menu_popup_stack", []))
-            if level < len(existing_stack):
-                existing_popup = existing_stack[level]
-                if existing_popup is not None and existing_popup.winfo_exists():
-                    if getattr(existing_popup, "_menu_anchor_widget", None) == anchor_widget:
-                        return
-
-            self._close_menu_popups_from_level(level)
-
-            style = self._menu_popup_style()
-            popup = ui.Toplevel(self.root)
-            popup.overrideredirect(True)
-            popup.transient(self.root)
-            popup.attributes("-topmost", True)
-            popup.configure(bg=style["popup_border"], bd=1, highlightthickness=0)
-
-            body = ui.Frame(popup, bg=style["popup_bg"], bd=0, highlightthickness=0)
-            body.pack(fill="both", expand=True, padx=1, pady=1)
-            popup._menu_body = body
-            popup._menu_anchor_widget = anchor_widget
-
-            if level == 0:
-                x_pos = anchor_widget.winfo_rootx()
-                y_pos = anchor_widget.winfo_rooty() + anchor_widget.winfo_height()
-            else:
-                x_pos = anchor_widget.winfo_rootx() + anchor_widget.winfo_width() - 1
-                y_pos = anchor_widget.winfo_rooty()
-
-            popup.geometry(f"+{int(x_pos)}+{int(y_pos)}")
-            popup.lift()
-            popup.update_idletasks()
-
-            default_bg = style["popup_bg"]
-            default_fg = style["popup_fg"]
-            hover_bg = style["hover_bg"]
-            hover_fg = style["hover_fg"]
-
-            for row_index, item in enumerate(items):
-                row_type = item.get("type", "command")
-                if row_type == "separator":
-                    separator = ui.Frame(body, height=1, bg=style["separator"], bd=0, highlightthickness=0)
-                    separator.pack(fill="x", padx=8, pady=4)
-                    continue
-
-                text = item.get("label", "")
-                prefix = ""
-                suffix = ""
-                fg = default_fg
-
-                if row_type == "radio":
-                    prefix = "● " if bool(item.get("checked", False)) else "○ "
-                if row_type == "submenu":
-                    suffix = "   ▸"
-                if row_type == "disabled":
-                    fg = style["muted_fg"]
-
-                row = ui.Label(
-                    body,
-                    text=f"{prefix}{text}{suffix}",
-                    anchor="w",
-                    justify="left",
-                    bg=default_bg,
-                    fg=fg,
-                    padx=10,
-                    pady=6,
-                    font=("Segoe UI", 9),
-                )
-                row.pack(fill="x")
-
-                if row_type == "disabled":
-                    continue
-
-                def _set_row_hover(widget=row, active=True):
-                    try:
-                        if widget.winfo_exists():
-                            widget.configure(bg=hover_bg if active else default_bg, fg=hover_fg if active else fg)
-                    except ui.TclError:
-                        pass
-
-                if row_type == "submenu":
-                    submenu_items = list(item.get("items", []))
-
-                    def _open_submenu(_event=None, parent_row=row, sub_items=submenu_items, next_level=level + 1):
-                        self._open_menu_popup(parent_row, sub_items, next_level, top_key=top_key)
-
-                    row.bind("<Enter>", lambda _event, widget=row: _set_row_hover(widget, True))
-                    row.bind("<Leave>", lambda _event, widget=row: _set_row_hover(widget, False))
-                    row.bind("<Button-1>", _open_submenu)
-                    continue
-
-                command = item.get("command")
-                row.bind("<Enter>", lambda _event, widget=row: _set_row_hover(widget, True))
-                row.bind("<Leave>", lambda _event, widget=row: _set_row_hover(widget, False))
-                row.bind("<Button-1>", lambda _event, cmd=command: self._menu_execute_command(cmd))
-
-            self._menu_popup_stack.append(popup)
-            self._active_menu_key = top_key
-            self._refresh_custom_menu_theme()
-            self._schedule_menu_focus_guard()
-
-    def _open_top_menu(self, menu_definition: dict):
-            """Opens one top-level menu popup below its strip button."""
-
-            shared_menu_bar = getattr(self, "_shared_menu_bar", None)
-            if shared_menu_bar is not None:
-                target_key = menu_definition.get("key")
-                for shared_definition in getattr(shared_menu_bar, "definitions", ()): 
-                    if getattr(shared_definition, "key", None) == target_key:
-                        shared_menu_bar.open_top_menu(shared_definition)
-                        self._refresh_custom_menu_theme()
-                        return
-
-            key = menu_definition.get("key")
-            button = getattr(self, "_menu_top_buttons", {}).get(key)
-            if button is None or not button.winfo_exists():
-                return
-
-            if key == getattr(self, "_active_menu_key", None) and getattr(self, "_menu_popup_stack", []):
-                self._close_all_menu_popups()
-                return
-
-            items = list(menu_definition.get("items_fn", lambda: [])())
-            self._open_menu_popup(button, items, level=0, top_key=key)
-
-    def _open_top_menu_by_key(self, key: str):
-            """Opens top-level menu by mnemonic key."""
-
-            shared_menu_bar = getattr(self, "_shared_menu_bar", None)
-            if shared_menu_bar is not None:
-                for shared_definition in getattr(shared_menu_bar, "definitions", ()): 
-                    if getattr(shared_definition, "key", None) == key:
-                        shared_menu_bar.open_top_menu(shared_definition)
-                        self._refresh_custom_menu_theme()
-                        return
-
-            for definition in getattr(self, "_menu_top_definitions_cache", []):
-                if definition.get("key") == key:
-                    self._open_top_menu(definition)
-                    return
-
-    def _build_custom_menu_strip(self):
-            """Builds themed custom menu strip with top-level buttons and mnemonics."""
-
-            old_shared = getattr(self, "_shared_menu_bar", None)
-            if old_shared is not None:
-                old_shared.destroy()
-
-            definitions = self._menu_top_definitions()
-            self._menu_top_definitions_cache = definitions
-
-            shared_definitions = []
-            for definition in definitions:
-                items_fn = definition.get("items_fn", lambda: [])
-
-                def _provider(func=items_fn):
-                    return self._to_shared_menu_items(list(func()))
-
-                shared_definitions.append(
-                    SharedMenuDefinition(
-                        key=str(definition.get("key", "")),
-                        label=str(definition.get("label", "")),
-                        alt=str(definition.get("alt", "")),
-                        items_provider=_provider,
-                    )
-                )
-
-            self._shared_menu_bar = SharedCustomMenuBar(
-                self.root,
-                shared_definitions,
-                theme_key=self.theme_var.get(),
-            )
-            self._shared_menu_bar.build()
-            self._custom_menu_strip = self._shared_menu_bar.strip
-            self._menu_top_buttons = {}
-            self._menu_popup_stack = list(getattr(self._shared_menu_bar, "_popup_stack", []))
-            self._active_menu_key = getattr(self._shared_menu_bar, "_active_key", None)
-
-    def _refresh_custom_menu_model(self):
-            """Refresh hook used by persistence when recent files change."""
-
-            shared_menu_bar = getattr(self, "_shared_menu_bar", None)
-            if shared_menu_bar is not None:
-                shared_menu_bar.build()
-                self._custom_menu_strip = shared_menu_bar.strip
-                self._menu_popup_stack = list(getattr(shared_menu_bar, "_popup_stack", []))
-                self._active_menu_key = getattr(shared_menu_bar, "_active_key", None)
-                return
-
-            active_key = getattr(self, "_active_menu_key", None)
-            has_open_popups = bool(getattr(self, "_menu_popup_stack", []))
-            if has_open_popups:
-                self._close_all_menu_popups()
-                if active_key is not None:
-                    self._open_top_menu_by_key(active_key)
-
-    def _build_menu(self):
-            """Builds a themed custom menu strip replacing native Tk menubar."""
-
-            self.root.config(menu="")
-            self.recent_menu = None
-            self._build_custom_menu_strip()
 
     def _get_input_path_if_exists(self):
             """Get input path if exists."""
@@ -1042,4 +597,3 @@ class BlattwerkAppStyleMixin:
                 self._show_current_page(reset_scroll=True)
             if hasattr(self, "_persist_active_document_tab_state"):
                 self._persist_active_document_tab_state()
-

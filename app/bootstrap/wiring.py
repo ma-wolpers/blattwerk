@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from app.app_info import APP_INFO, AppInfo
-from bw_libs.app_shell import AppShellConfig
+from bw_gui.runtime import AppShellConfig
 
 
 @dataclass(frozen=True)
