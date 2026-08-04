@@ -56,6 +56,10 @@ The format is based on Keep a Changelog.
 - Presentation slide counter now excludes `-+` frame steps from the total slide count (frame variants share one logical folio number).
 - Presentation frame steps (`-+`) no longer introduce extra paragraph spacing in adjacent raw Markdown lines; quote/list flow now matches rendering without the marker split.
 - HEIC/HEIF image references now use a PDF-render fallback: when Chromium cannot decode the source directly, Blattwerk rewrites local HEIC sources to temporary PNG assets for preview/PDF/PPTX pipelines.
+- Kurzentwurf: `t=0` wird jetzt als gueltige Zeitangabe akzeptiert statt einen Validierungsfehler auszuloesen.
+- Kurzentwurf-Diagnostik: KZF049 (Warnung bei impliziten Markern) wurde entfernt.
+- Kurzentwurf-Phasen: eine leere erste Zeile am Phasenbeginn wird jetzt stillschweigend ignoriert statt als Fehler gewertet.
+- QR-Code-Block: inneres Padding leicht reduziert fuer kompaktere Darstellung.
 
 ### Changed
 
