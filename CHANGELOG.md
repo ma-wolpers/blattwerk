@@ -18,6 +18,7 @@ The format is based on Keep a Changelog.
 
 ### Fixed
 
+- Blattwerk stürzte beim Start ab: `ui_theme.py` importierte `get_theme`/`is_dark_color`/`mix_hex` noch aus dem inzwischen privatisierten `bw_gui.theming`-Modul (`ImportError`, sobald die lokale `bw-gui`-Umgebungsauflösung das gemeinsame Live-Repo statt der eingefrorenen Submodul-Kopie fand). Import auf den dokumentierten privaten Pfad `bw_gui.theming._theme_manager` umgestellt.
 - Kurzentwurf-Diagnostik: Zeilen und `---`-Trenner, die vor dem ersten `#phase`-Tag (z. B. `#einstieg`) stehen, werden jetzt stillschweigend ignoriert statt mit KZF001 ("Zeile ausserhalb einer #phase-Definition") zu fehlen. Das erlaubt Anmerkungen und Vorbereitungsnotizen direkt nach dem YAML-Front-Matter.
 - Kurzentwurf-Segmente duerfen jetzt generell leere Lernschritte-, Lernaktivitaeten- und Lernumgebung-Felder haben (KZF112/KZF113/KZF114 wurden entfernt). Insbesondere nach einem Full-Row-Segment werden nicht erneut explizit gesetzte Spalten leer gerendert, statt faelschlicherweise den zuletzt gesetzten Wert von vor der Vollbreitenzeile zu wiederholen.
 - Kurzentwurf-Diagnostik: das Fehlen jeglicher Zeitangabe (KZF133) loest keinen Fehler mehr aus; Zeiten sind rein optional.

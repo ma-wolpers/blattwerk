@@ -15,14 +15,8 @@ ensure_bw_gui_on_path()
 
 from bw_gui.runtime import ui, widgets
 from bw_gui.runtime.platform import apply_window_chrome_theme
-from bw_gui.theming import (
-    THEME_ORDER,
-    configure_ttk_theme as _configure_base,
-    get_theme as _get_theme,
-    is_dark_color,
-    mix_hex,
-    normalize_theme_key as _normalize,
-)
+from bw_gui.theming import THEME_ORDER, configure_ttk_theme as _configure_base, normalize_theme_key as _normalize
+from bw_gui.theming._theme_manager import get_theme as _get_theme, is_dark_color, mix_hex
 
 DEFAULT_THEME = "slate_indigo"
 
