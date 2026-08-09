@@ -255,8 +255,17 @@ class BlattwerkAppBase(BwBaseWindow):
         self._open_local_settings_dialog()
 
     def apply_theme(self, theme_key: str) -> None:
-        """Called by BwBaseWindow View menu theme radios."""
-        self._shell.apply_theme(theme_key)
+        """Called by BwBaseWindow View menu theme radios.
+
+        Uses BwBaseWindow.apply_theme() (shell theme storage + menu-bar radio
+        refresh + window chrome) instead of poking self._shell directly, so this
+        entry point no longer depends on the later _apply_theme() call to bring
+        the menu bar in sync. _apply_theme() still redundantly re-applies root
+        bg/chrome/ttk/menu itself (kept as-is): it is also the sole theming step
+        for _apply_user_preferences_live(), which changes theme_var without
+        going through apply_theme()/this method at all.
+        """
+        BwBaseWindow.apply_theme(self, theme_key)
         if hasattr(self, "theme_var"):
             self.theme_var.set(theme_key)
             self._on_theme_changed()
