@@ -233,9 +233,9 @@ class BlattwerkAppBase(BwBaseWindow):
 
         self._load_ui_settings()
         self._load_recent_files()
-        # Sync BwBaseWindow's stored theme key with the loaded UI settings
-        self._shell.apply_theme(self.theme_var.get())
-        self._configure_styles()
+        # _load_ui_settings() already synced shell/menu/chrome and ttk styles via
+        # _apply_user_preferences_live() -> BwBaseWindow.apply_theme(), so widgets
+        # built below pick up the loaded theme's ttk styles from the start.
         self._build_ui(parent=frame)
         if hasattr(self, "_apply_user_preferences_live") and hasattr(self, "user_preferences"):
             self._apply_user_preferences_live(self.user_preferences)
@@ -258,12 +258,11 @@ class BlattwerkAppBase(BwBaseWindow):
         """Called by BwBaseWindow View menu theme radios.
 
         Uses BwBaseWindow.apply_theme() (shell theme storage + menu-bar radio
-        refresh + window chrome) instead of poking self._shell directly, so this
-        entry point no longer depends on the later _apply_theme() call to bring
-        the menu bar in sync. _apply_theme() still redundantly re-applies root
-        bg/chrome/ttk/menu itself (kept as-is): it is also the sole theming step
-        for _apply_user_preferences_live(), which changes theme_var without
-        going through apply_theme()/this method at all.
+        refresh + window chrome) instead of poking self._shell directly.
+        _apply_user_preferences_live() (the other place theme_var can change)
+        does the same via its own BwBaseWindow.apply_theme() call, so
+        _apply_theme() no longer needs to redundantly re-apply root bg/chrome/
+        ttk/menu itself — every caller has already synced the shell first.
         """
         BwBaseWindow.apply_theme(self, theme_key)
         if hasattr(self, "theme_var"):

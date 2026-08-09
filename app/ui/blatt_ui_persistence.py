@@ -8,7 +8,7 @@ from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 
 
 ensure_bw_gui_on_path()
-from bw_gui.runtime import widgets
+from bw_gui.runtime import BwBaseWindow, widgets
 
 from .dialog_services import messagebox
 from .ui_theme import normalize_theme_key
@@ -231,6 +231,10 @@ class BlattwerkAppPersistenceMixin:
             normalized = normalize_user_preferences(preferences)
             self.user_preferences = dict(normalized)
             self.theme_var.set(normalized["default_theme_key"])
+            # This path changes the theme independently of apply_theme(), so it must
+            # sync the shell itself (shell theme storage + menu-bar radio refresh +
+            # window chrome) — otherwise self.theme_key silently drifts from theme_var.
+            BwBaseWindow.apply_theme(self, self.theme_var.get())
             self.design_color_profile_var.set(normalized["default_color_profile"])
             self.design_font_profile_var.set(normalized["default_font_profile"])
             self.design_font_size_profile_var.set(normalized["default_font_size_profile"])

@@ -155,19 +155,17 @@ class BlattwerkAppStyleMixin:
             current_key = normalize_font_size_profile(self.design_font_size_profile_var.get())
             self.font_size_profile_combo.set(FONT_SIZE_PROFILE_LABELS.get(current_key, FONT_SIZE_PROFILE_LABELS[DEFAULT_FONT_SIZE_PROFILE]))
 
-    def _configure_styles(self):
-            """Konfiguriert zentrale UI-Stile auf Basis des aktiven Themes."""
-
-            apply_window_theme(self.root, self.theme_var.get())
-            configure_ttk_theme(self.root, self.theme_var.get())
-
     def _apply_theme(self, redraw_preview=True):
-            """Wendet das aktive Theme auf Fenster, ttk-Styles und Canvas an."""
+            """Wendet das aktive Theme auf Canvas, Editor und Zusatzfenster an.
+
+            Hauptfenster-Hintergrund/-Chrome und Menüband laufen inzwischen immer
+            über BwBaseWindow.apply_theme() (aufgerufen von apply_theme() bzw.
+            _apply_user_preferences_live(), beide vor jedem _apply_theme()-Aufruf) —
+            hier daher nicht mehr redundant erneut angewendet.
+            """
 
             theme_key = self.theme_var.get()
             theme = get_theme(theme_key)
-            apply_window_theme(self.root, theme_key)
-            configure_ttk_theme(self.root, theme_key)
 
             if hasattr(self, "preview_canvas"):
                 style_canvas(self.preview_canvas, theme_key)
@@ -196,8 +194,6 @@ class BlattwerkAppStyleMixin:
                     self._configure_editor_syntax_tags()
                 if hasattr(self, "_apply_editor_theme_widgets"):
                     self._apply_editor_theme_widgets()
-
-            self._refresh_custom_menu_theme()
 
             self._refresh_color_profile_swatches()
 
@@ -370,13 +366,6 @@ class BlattwerkAppStyleMixin:
                 )
 
             return tuple(converted)
-
-    def _refresh_custom_menu_theme(self):
-            """Applies current theme colors to the menu bar."""
-
-            menu_bar = getattr(self, "_menu_bar", None)
-            if menu_bar is not None:
-                menu_bar.refresh_theme(self.theme_var.get())
 
     def _refresh_custom_menu_model(self):
             """Refresh hook used by persistence when recent files change."""
