@@ -100,163 +100,347 @@ Fuehre hier den naechsten Gedanken aus.
 
 Lückentext-Antwortfeld. `gap`/`gap_length` steuert den Lückenmodus/-länge, `words`/`words_multi` die Wortbank-Optionen, `layout` das Layout der Wortbank-Position.
 
-Optionen: `align`, `gap`, `gap_length`, `layout`, `mode`, `show`, `words`, `words_multi`
+| Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
+|---|---|---|---|---|---|
+| `align` | Enum | `block`, `blocksatz`, `center`, `centre`, `justify`, `left`, `links`, `linksbuendig`, `linksbundig`, `middle`, `mitte`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
+| `gap` | Enum | `approx`, `equal`, `fixed`, `gleich`, `same`, `uniform` | nein | `approx` | Lückenlängen-Modus: `fixed`/`equal`/`same`/`uniform`/`gleich` erzwingt gleich lange Lücken, jeder andere Wert (Standard) berechnet die Lückenlänge approximativ aus der Wortlänge. |
+| `gap_length` | Ganzzahl | -- | nein | `10` | Feste Lückenlänge in Zeichen bei `gap=fixed` (Standard `10`). |
+| `layout` | Text | -- | nein | -- | Steuert ein Layout-Detail des Blocks -- die genaue Bedeutung ist blocktyp-abhängig, siehe Besonderheit unten. |
+| `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
+| `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
+| `words` | Text | -- | nein | -- | Blocktyp-abhängige Bedeutung, siehe Besonderheit unten. *Besonderheit bei `cloze`:* Position der Wortbank relativ zum Lückentext -- nicht die Lückenwörter selbst (die stehen im Blockinhalt). |
+| `words_multi` | Bool | -- | nein | `True` | Erlaubt Mehrfachauswahl in der Wortbank (Standard: an). |
 
 ### `columns`
 
 Spaltenlayout für nebeneinander angeordnete Inhalte. `cols=2..6` (Standard 2) setzt die Spaltenzahl, `widths`/`ratio` die relativen Breiten, `gap=<css-länge>` den Spaltenabstand. Muss mit `:::nextcol` (Spaltenwechsel) und `:::endcolumns` (Ende) strukturiert werden.
 
-Optionen: `align`, `cols`, `gap`, `ratio`, `widths`
+| Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
+|---|---|---|---|---|---|
+| `align` | Enum | `block`, `blocksatz`, `center`, `centre`, `justify`, `left`, `links`, `linksbuendig`, `linksbundig`, `middle`, `mitte`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
+| `cols` | Ganzzahl | -- | nein | `2` | Anzahl Spalten des Rasters. Der genaue Standardwert und ob eine fehlende Angabe automatisch aus verfügbarer Breite berechnet wird, hängt vom Blocktyp ab (siehe Tabelle: Spalte "Standard"). |
+| `gap` | CSS-Länge | -- | nein | -- | Horizontaler Abstand zwischen den Spalten als CSS-Länge (z. B. `1cm`). |
+| `ratio` | Text | -- | nein | -- | Alias von `widths` -- relative Spaltengewichte. |
+| `widths` | Text | -- | nein | -- | Relative Breiten (Gewichte, z. B. `"2 1"`) oder feste CSS-Breiten für die Spalten/Elemente dieses Blocks. |
 
 ### `dots`
 
 Punktraster-Schreibfeld (z. B. für Übungen zur Feinmotorik/Schrift).
 
-Optionen: `align`, `height`, `mode`, `show`
+| Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
+|---|---|---|---|---|---|
+| `align` | Enum | `block`, `blocksatz`, `center`, `centre`, `justify`, `left`, `links`, `linksbuendig`, `linksbundig`, `middle`, `mitte`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
+| `height` | CSS-Länge | -- | nein | `4cm` | Höhe des Antwortfelds als CSS-Länge (z. B. `4cm`, `120px`). Der genaue Standardwert hängt vom Blocktyp ab (siehe Tabelle: Spalte "Standard"). |
+| `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
+| `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
 
 ### `endcolumns`
 
 Schließt einen `:::columns`-Block ab. Keine eigenen Optionen.
 
-Optionen: keine
+Keine Optionen.
 
 ### `framebreak`
 
 Erzeugt im Präsentationsmodus einen neuen Frame mit dem bisherigen plus neuem Inhalt -- siehe Control-Marker `-+`.
 
-Optionen: keine
+Keine Optionen.
 
 ### `geometry`
 
 Koordinatensystem für Punkte, Polylinien, Strecken und Funktionsgraphen (siehe Geometry-Abschnitt unten für die YAML-Payload-Struktur). `axis=true` aktiviert echte Achsen mit `origin`/`step_x`/`step_y` zur Umrechnung mathematischer Koordinaten in Rasterzellen; `axis_label_x`/`axis_label_y` beschriften die Achsen (Standard `x`/`y`).
 
-Optionen: `align`, `axis`, `axis_label_x`, `axis_label_y`, `cols`, `line`, `mode`, `origin`, `rows`, `scale`, `show`, `step_x`, `step_y`
+| Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
+|---|---|---|---|---|---|
+| `align` | Enum | `block`, `blocksatz`, `center`, `centre`, `justify`, `left`, `links`, `linksbuendig`, `linksbundig`, `middle`, `mitte`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
+| `axis` | Bool | -- | nein | `False` | Aktiviert ein mathematisches Koordinatensystem mit x-/y-Achse, Tick-Marks und Achsenbeschriftung (Standard: aus, dann gelten reine Rasterkoordinaten `col`/`row`). **Wichtig:** `axis=true` wirkt nur zusammen mit einem gültigen `origin` -- fehlt `origin` oder ist er ungültig, fällt der Block still (ohne Fehler/Warnung) auf den Rasterkoordinaten-Modus zurück. In diesem Fall werden `functions`-Einträge komplett ignoriert, und `points`/`pairs` interpretieren ihre `x`/`y`-Werte als `col`/`row` statt als Mathe-Koordinaten. |
+| `axis_label_x` | Text | -- | nein | `x` | Beschriftung der x-Achse (Standard `x`), nur wirksam bei aktivem Achsenmodus (siehe `axis`). |
+| `axis_label_y` | Text | -- | nein | `y` | Beschriftung der y-Achse (Standard `y`), nur wirksam bei aktivem Achsenmodus (siehe `axis`). |
+| `cols` | Ganzzahl | -- | nein | `20` | Anzahl Spalten des Rasters. Der genaue Standardwert und ob eine fehlende Angabe automatisch aus verfügbarer Breite berechnet wird, hängt vom Blocktyp ab (siehe Tabelle: Spalte "Standard"). |
+| `line` | Enum | `dashed`, `solid` | ja | `solid` | Linienstil des Rasterhintergrunds: `solid` (Standard) oder `dashed`. Nur bei `:::grid`/`:::geometry` vorhanden -- nicht zu verwechseln mit dem gleichnamigen `pairs[].line`-Feld in der Geometry-YAML-Payload (dort eigene, unabhängige Einstellung pro Strecke). |
+| `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
+| `origin` | Text | -- | nein | -- | Ursprung des Koordinatensystems im Raster, Format `"spalte,zeile"` (z. B. `"10,10"`). **Pflicht, sobald `axis=true` gesetzt ist** -- ohne (oder mit ungültigem) `origin` bleibt der Achsenmodus trotz `axis=true` inaktiv, siehe Besonderheit dort. |
+| `rows` | Ganzzahl | -- | nein | `5` | Anzahl Zeilen des Rasters/der Linien. Der genaue Standardwert und ob eine fehlende Angabe automatisch berechnet wird, hängt vom Blocktyp ab (siehe Tabelle: Spalte "Standard"). |
+| `scale` | CSS-Länge | -- | nein | `0.5cm` | Zellgröße des Rasters als CSS-Länge (Standard `0.5cm`), z. B. `scale=0.4cm` oder `scale=6mm`. |
+| `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
+| `step_x` | Zahl | -- | nein | `1.0` | Skalierung zwischen mathematischer x-Koordinate und Rasterzellen (Standard `1`), nur bei `axis=true`. |
+| `step_y` | Zahl | -- | nein | `1.0` | Skalierung zwischen mathematischer y-Koordinate und Rasterzellen (Standard `1`), nur bei `axis=true`. |
 
 ### `grid`
 
 Kästchen-/Schreibfeld mit einem Textraster. `rows`/`cols` setzen die Rastergröße (ohne `cols` wird die Spaltenzahl automatisch aus verfügbarer Breite und `scale` berechnet), `scale=<css-länge>` die Zellgröße (Standard `0.5cm`). `line=solid|dashed` steuert den Linienstil des Rasters. Marker-/Inline-Text wird wie bei `lines` nach Arbeitsblatt/Lösung gefiltert.
 
-Optionen: `align`, `cols`, `line`, `mode`, `rows`, `scale`, `show`
+| Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
+|---|---|---|---|---|---|
+| `align` | Enum | `block`, `blocksatz`, `center`, `centre`, `justify`, `left`, `links`, `linksbuendig`, `linksbundig`, `middle`, `mitte`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
+| `cols` | Ganzzahl | -- | nein | -- | Anzahl Spalten des Rasters. Der genaue Standardwert und ob eine fehlende Angabe automatisch aus verfügbarer Breite berechnet wird, hängt vom Blocktyp ab (siehe Tabelle: Spalte "Standard"). |
+| `line` | Enum | `dashed`, `solid` | ja | `solid` | Linienstil des Rasterhintergrunds: `solid` (Standard) oder `dashed`. Nur bei `:::grid`/`:::geometry` vorhanden -- nicht zu verwechseln mit dem gleichnamigen `pairs[].line`-Feld in der Geometry-YAML-Payload (dort eigene, unabhängige Einstellung pro Strecke). |
+| `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
+| `rows` | Ganzzahl | -- | nein | `5` | Anzahl Zeilen des Rasters/der Linien. Der genaue Standardwert und ob eine fehlende Angabe automatisch berechnet wird, hängt vom Blocktyp ab (siehe Tabelle: Spalte "Standard"). |
+| `scale` | CSS-Länge | -- | nein | `0.5cm` | Zellgröße des Rasters als CSS-Länge (Standard `0.5cm`), z. B. `scale=0.4cm` oder `scale=6mm`. |
+| `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
 
 ### `help`
 
 Separate Hilfekarte (eigene Ausgabe, nicht Teil des normalen Arbeitsblatts). `level` (1-99) gruppiert Hilfen nach Schwierigkeitsstufe, `tag` beeinflusst die automatische Beschriftung (z. B. `1A`, `1B`), `title` überschreibt den Standardtitel "Hilfe". Kanonischer Blockname; `hilfe` ist ein dokumentierter Alias mit identischen Optionen.
 
-Optionen: `level`, `mode`, `show`, `tag`, `title`
+| Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
+|---|---|---|---|---|---|
+| `level` | Ganzzahl | -- | nein | -- | Schwierigkeitsstufe der Hilfekarte (1-99) -- rein organisatorisch, ohne Einfluss auf Sichtbarkeit oder Reihenfolge. |
+| `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
+| `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
+| `tag` | Text | -- | nein | -- | Beeinflusst die automatische Beschriftung mehrerer Hilfekarten zum selben Bezugspunkt (z. B. `tag=1` erzeugt `1A`, `1B`, ...; ein einzelner Buchstabe erzeugt `1<tag>`, `2<tag>`, ...). |
+| `title` | Text | -- | nein | -- | Überschreibt die automatisch erzeugte Standardbeschriftung des Blocks mit einem eigenen Text. |
 
 ### `hilfe`
 
 Dokumentierter Alias für `help` -- identische Optionen und Bedeutung, nur andere Schreibweise.
 
-Optionen: `level`, `mode`, `show`, `tag`, `title`
+| Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
+|---|---|---|---|---|---|
+| `level` | Ganzzahl | -- | nein | -- | Schwierigkeitsstufe der Hilfekarte (1-99) -- rein organisatorisch, ohne Einfluss auf Sichtbarkeit oder Reihenfolge. |
+| `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
+| `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
+| `tag` | Text | -- | nein | -- | Beeinflusst die automatische Beschriftung mehrerer Hilfekarten zum selben Bezugspunkt (z. B. `tag=1` erzeugt `1A`, `1B`, ...; ein einzelner Buchstabe erzeugt `1<tag>`, `2<tag>`, ...). |
+| `title` | Text | -- | nein | -- | Überschreibt die automatisch erzeugte Standardbeschriftung des Blocks mit einem eigenen Text. |
 
 ### `info`
 
 Hinweisbox mit `type=default|warning|note` für unterschiedliche Hervorhebungsstile.
 
-Optionen: `align`, `mode`, `show`, `type`
+| Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
+|---|---|---|---|---|---|
+| `align` | Enum | `block`, `blocksatz`, `center`, `centre`, `justify`, `left`, `links`, `linksbuendig`, `linksbundig`, `middle`, `mitte`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
+| `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
+| `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
+| `type` | Enum | `default`, `note`, `warning` | nein | `default` | Hervorhebungsstil der Hinweisbox: `default` (Standard), `warning` oder `note`. |
 
 ### `lines`
 
 Textbasiertes Antwortfeld mit Linien zum Beschriften. `rows=<n>` setzt die Mindestanzahl sichtbarer Linien (Standard 3); die tatsächliche Anzahl ist `max(rows, sichtbare Inhaltszeilen)`. `height=<css-länge>` steuert die Linienhöhe. Markdown ist im Inhalt erlaubt; `§`/`%`/`&`-Zeilenmarker (bzw. `§{...}`/`%{...}`/`&{...}` inline) steuern, ob eine Zeile nur im Arbeitsblatt, nur in der Lösung oder in beiden erscheint.
 
-Optionen: `align`, `height`, `mode`, `rows`, `show`
+| Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
+|---|---|---|---|---|---|
+| `align` | Enum | `block`, `blocksatz`, `center`, `centre`, `justify`, `left`, `links`, `linksbuendig`, `linksbundig`, `middle`, `mitte`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
+| `height` | CSS-Länge | -- | nein | -- | Höhe des Antwortfelds als CSS-Länge (z. B. `4cm`, `120px`). Der genaue Standardwert hängt vom Blocktyp ab (siehe Tabelle: Spalte "Standard"). |
+| `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
+| `rows` | Ganzzahl | -- | nein | `3` | Anzahl Zeilen des Rasters/der Linien. Der genaue Standardwert und ob eine fehlende Angabe automatisch berechnet wird, hängt vom Blocktyp ab (siehe Tabelle: Spalte "Standard"). |
+| `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
 
 ### `matching`
 
 Zuordnungs-Antwortfeld (YAML-only) mit zwei Seiten (`left`/`right` oder `top`/`bottom`, je nach `layout`/`orientation`) und den Verbindungen in `matches`. `worksheet_matches` zeigt optional Beispielverbindungen bereits im Arbeitsblatt. `height_mode=content|uniform`, `lane_align` und `show_guides` steuern das Layout; ein Seiten-Verhältnis von genau einem Element (1↔N) löst die Warnung `MA001` aus.
 
-Optionen: `align`, `bottom`, `height_mode`, `lane_align`, `layout`, `left`, `links`, `matches`, `mode`, `orientation`, `right`, `scale`, `show`, `show_guides`, `top`, `worksheet_matches`
+| Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
+|---|---|---|---|---|---|
+| `align` | Enum | `center` | nein | `center` | Bei `matching` deutlich enger als die generische `align`-Option: einziger unterstützter Wert ist `center` (Standard) -- zentriert Inhalte in den Zuordnungs-Blöcken horizontal und vertikal. Andere Werte werden aktuell nicht geprüft. |
+| `bottom` | Text | -- | nein | -- | Untere-Seite-Einträge bei vertikalem Layout, `|`-getrennt. |
+| `height_mode` | Enum | `content`, `uniform` | nein | `content` | `content` (Standard) richtet jeden Block nach eigenem Inhalt aus; `uniform` macht alle Blöcke gleich hoch. |
+| `lane_align` | Enum | `center`, `end`, `start` | nein | `center` | Richtet beide Seiten entlang ihrer gemeinsamen Mittelachse aus: `start`, `center` (Standard) oder `end`. |
+| `layout` | Text | -- | nein | -- | Steuert ein Layout-Detail des Blocks -- die genaue Bedeutung ist blocktyp-abhängig, siehe Besonderheit unten. *Besonderheit bei `matching`:* Legt fest, ob die beiden Seiten horizontal (`left`/`right`) oder vertikal (`top`/`bottom`) angeordnet werden. |
+| `left` | Text | -- | nein | -- | Linke-Seite-Einträge bei horizontalem Layout, `|`-getrennt. |
+| `links` | Text | -- | nein | -- | Alias von `left`. |
+| `matches` | Text | -- | nein | -- | Definiert die korrekten Verbindungen zwischen beiden Seiten. |
+| `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
+| `orientation` | Text | -- | nein | -- | Alias von `layout`. |
+| `right` | Text | -- | nein | -- | Rechte-Seite-Einträge bei horizontalem Layout, `|`-getrennt. |
+| `scale` | CSS-Länge | -- | nein | `0.5cm` | Zellgröße des Rasters als CSS-Länge (Standard `0.5cm`), z. B. `scale=0.4cm` oder `scale=6mm`. |
+| `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
+| `show_guides` | Bool | -- | nein | `False` | Blendet gestrichelte Platzhalterblöcke und Canvas-Rand ein (Standard: aus). |
+| `top` | Text | -- | nein | -- | Obere-Seite-Einträge bei vertikalem Layout, `|`-getrennt. |
+| `worksheet_matches` | Text | -- | nein | -- | Zeigt zusätzlich Beispielverbindungen bereits im Arbeitsblatt (nicht nur in der Lösung). |
 
 ### `material`
 
 Kontext- und Erklärmaterial, das vor einer Aufgabe eingeblendet wird. Optionale `title` beschriftet die Box.
 
-Optionen: `align`, `mode`, `show`, `title`
+| Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
+|---|---|---|---|---|---|
+| `align` | Enum | `block`, `blocksatz`, `center`, `centre`, `justify`, `left`, `links`, `linksbuendig`, `linksbundig`, `middle`, `mitte`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
+| `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
+| `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
+| `title` | Text | -- | nein | -- | Überschreibt die automatisch erzeugte Standardbeschriftung des Blocks mit einem eigenen Text. |
 
 ### `mc`
 
 Multiple-Choice-/Wahr-Falsch-Antwortfeld. `options` listet die Antwortmöglichkeiten, `correct` die richtige(n), `tf`/`true_false` schaltet auf Wahr-Falsch-Layout, `inline` und `widths` steuern das Layout.
 
-Optionen: `align`, `correct`, `inline`, `mode`, `options`, `show`, `tf`, `true_false`, `widths`
+| Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
+|---|---|---|---|---|---|
+| `align` | Enum | `block`, `blocksatz`, `center`, `centre`, `justify`, `left`, `links`, `linksbuendig`, `linksbundig`, `middle`, `mitte`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
+| `correct` | Text | -- | nein | -- | Kennzeichnet die richtige(n) Antwortoption(en). |
+| `inline` | Bool | -- | nein | `False` | Schaltet auf ein kompaktes, horizontal fließendes Layout der Antwortoptionen um (Standard: aus). |
+| `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
+| `options` | Text | -- | nein | -- | Listet die Antwortmöglichkeiten. |
+| `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
+| `tf` | Bool | -- | nein | `False` | Schaltet auf Wahr-Falsch-Layout um (akzeptiert u. a. `1`/`true`/`yes`/`on`/`tf`/`richtigfalsch`/`richtig_false` als "an"; Standard: aus). |
+| `true_false` | Bool | -- | nein | `False` | Alias von `tf`. |
+| `widths` | Text | -- | nein | -- | Relative Breiten (Gewichte, z. B. `"2 1"`) oder feste CSS-Breiten für die Spalten/Elemente dieses Blocks. |
 
 ### `nextcol`
 
 Spaltenwechsel innerhalb eines `:::columns`-Blocks. Keine eigenen Optionen.
 
-Optionen: keine
+Keine Optionen.
 
 ### `numberline`
 
 Zahlenstrahl-Antwortfeld mit YAML-Payload (`labels`/`answers`/`arcs`/... je Element mit `show: "§"|"%"|"&"` für Sichtbarkeit). Optionen wie `min`/`max`, `tick_step`, `major_every` und `positive_sign` steuern Wertebereich und Beschriftung.
 
-Optionen: `align`, `full_width`, `height`, `major_every`, `max`, `max_width_cm`, `max_width_mm`, `maximum`, `min`, `minimum`, `mode`, `positive_sign`, `show`, `signed_positive`, `tick_spacing`, `tick_spacing_cm`, `tick_spacing_mm`, `tick_step`, `ticks`
+| Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
+|---|---|---|---|---|---|
+| `align` | Enum | `block`, `blocksatz`, `center`, `centre`, `justify`, `left`, `links`, `linksbuendig`, `linksbundig`, `middle`, `mitte`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
+| `full_width` | Bool | -- | nein | -- | Erzwingt volle verfügbare Breite für den Zahlenstrahl. |
+| `height` | CSS-Länge | -- | nein | `2.7cm` | Höhe des Antwortfelds als CSS-Länge (z. B. `4cm`, `120px`). Der genaue Standardwert hängt vom Blocktyp ab (siehe Tabelle: Spalte "Standard"). |
+| `major_every` | Ganzzahl | -- | nein | `0` | Jede n-te Tick-Marke wird als Hauptmarkierung hervorgehoben. |
+| `max` | Zahl | -- | nein | -- | Obere Grenze des dargestellten Zahlenbereichs. |
+| `max_width_cm` | Zahl | -- | nein | -- | Maximale Darstellungsbreite des Zahlenstrahls in Zentimetern. |
+| `max_width_mm` | Zahl | -- | nein | -- | Maximale Darstellungsbreite des Zahlenstrahls in Millimetern. |
+| `maximum` | Zahl | -- | nein | -- | Alias von `max`. |
+| `min` | Zahl | -- | nein | -- | Untere Grenze des dargestellten Zahlenbereichs. |
+| `minimum` | Zahl | -- | nein | -- | Alias von `min`. |
+| `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
+| `positive_sign` | Bool | -- | nein | -- | Zeigt bei positiven Zahlen explizit ein `+`-Vorzeichen an (Standard: aus). |
+| `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
+| `signed_positive` | Bool | -- | nein | -- | Alias von `positive_sign`. |
+| `tick_spacing` | Zahl | -- | nein | -- | Physischer Abstand zwischen Tick-Marken (Einheit im Wert enthalten). |
+| `tick_spacing_cm` | Zahl | -- | nein | -- | Physischer Abstand zwischen Tick-Marken in Zentimetern. |
+| `tick_spacing_mm` | Zahl | -- | nein | -- | Physischer Abstand zwischen Tick-Marken in Millimetern. |
+| `tick_step` | Zahl | -- | nein | -- | Abstand zwischen zwei Tick-Marken in Zahlenraum-Einheiten. |
+| `ticks` | Text | -- | nein | -- | Explizite Liste anzuzeigender Tick-Werte. |
 
 ### `pagebreak`
 
 Erzwingt einen harten Seiten-/Folienumbruch -- siehe Control-Marker `--!`.
 
-Optionen: keine
+Keine Optionen.
 
 ### `qrcode`
 
 Klickbarer QR-Code-Link. `url` ist Pflicht (http/https-Link oder relativer Pfad ohne Leerzeichen). Größenoptionen `w`/`h`/`maxw` (auch `width`/`height`/`max-width`) folgen derselben CSS-Größen-Logik wie Markdown-Bilder (z. B. `3cm`, `120px`, `60%`, `auto`).
 
-Optionen: `align`, `alignment`, `h`, `height`, `max-width`, `maxw`, `mode`, `show`, `url`, `w`, `width`
+| Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
+|---|---|---|---|---|---|
+| `align` | Enum | `block`, `blocksatz`, `center`, `centre`, `justify`, `left`, `links`, `linksbuendig`, `linksbundig`, `middle`, `mitte`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
+| `alignment` | Enum | `block`, `blocksatz`, `center`, `centre`, `justify`, `left`, `links`, `linksbuendig`, `linksbundig`, `middle`, `mitte`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Alias von `align` bei `qrcode` -- identische generische Objekt-Ausrichtung (`left|right|center|block`), nur andere Schreibweise. |
+| `h` | CSS-Länge | -- | ja | -- | Höhe des QR-Codes als CSS-Größe, gleiche Regeln wie `w`. |
+| `height` | CSS-Länge | -- | ja | -- | Alias von `h` -- Höhe des QR-Codes, folgt derselben CSS-Größen-Logik wie Bildgrößen in Markdown (z. B. `3cm`, `120px`, `60%`, `auto`); ungültige Werte werden als `OP002` gemeldet. |
+| `max-width` | CSS-Länge | -- | ja | -- | Alias von `maxw`. |
+| `maxw` | CSS-Länge | -- | ja | -- | Maximale Breite des QR-Codes als CSS-Größe, gleiche Regeln wie `w`. |
+| `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
+| `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
+| `url` | URL | -- | ja | -- | Pflichtoption: Ziel-Link des QR-Codes (http/https-URL oder relativer Pfad ohne Leerzeichen). Ungültige Werte werden als `QR002` gemeldet, ein fehlender Wert als `QR001`. |
+| `w` | CSS-Länge | -- | ja | -- | Breite des QR-Codes als CSS-Größe (z. B. `3cm`, `120px`, `60%`, `auto`); ungültige Werte werden als `OP002` gemeldet. |
+| `width` | CSS-Länge | -- | ja | -- | Alias von `w` -- Breite des QR-Codes, siehe `height`/`w`/`h`/`maxw`. |
 
 ### `sectionmark`
 
 Setzt den aktuellen Abschnittsnamen für die Präsentations-Footer-Navigation -- siehe Control-Marker `--#`.
 
-Optionen: `title`
+| Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
+|---|---|---|---|---|---|
+| `title` | Text | -- | nein | -- | Überschreibt die automatisch erzeugte Standardbeschriftung des Blocks mit einem eigenen Text. |
 
 ### `slidechromeoff`
 
 Blendet Mini-Header/Footer auf der aktuellen Folie aus -- siehe Control-Marker `--hf`.
 
-Optionen: keine
+Keine Optionen.
 
 ### `solution`
 
 Musterlösungstext. `label=true|false` (Standard `true`) blendet das Label "Lösung" ein/aus.
 
-Optionen: `align`, `label`, `mode`, `show`
+| Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
+|---|---|---|---|---|---|
+| `align` | Enum | `block`, `blocksatz`, `center`, `centre`, `justify`, `left`, `links`, `linksbuendig`, `linksbundig`, `middle`, `mitte`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
+| `label` | Bool | -- | nein | `True` | Blendet das Label "Lösung" vor dem Text ein/aus (Standard: an). |
+| `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
+| `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
 
 ### `space`
 
 Freier Leerraum ohne Linien/Raster, z. B. für Zeichnungen.
 
-Optionen: `align`, `height`, `mode`, `show`
+| Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
+|---|---|---|---|---|---|
+| `align` | Enum | `block`, `blocksatz`, `center`, `centre`, `justify`, `left`, `links`, `linksbuendig`, `linksbundig`, `middle`, `mitte`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
+| `height` | CSS-Länge | -- | nein | `3cm` | Höhe des Antwortfelds als CSS-Länge (z. B. `4cm`, `120px`). Der genaue Standardwert hängt vom Blocktyp ab (siehe Tabelle: Spalte "Standard"). |
+| `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
+| `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
 
 ### `subtask`
 
 Teilaufgabe zu einem vorangehenden `task`. Muss unmittelbar nach dem zugehörigen `task` als eigener Top-Level-Block folgen (nicht verschachtelt); mehrere `subtask`-Blöcke werden automatisch a), b), c) ... nummeriert. Unterstützt `time`/`work`/`action` wie `task`.
 
-Optionen: `action`, `align`, `mode`, `show`, `time`, `work`
+| Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
+|---|---|---|---|---|---|
+| `action` | Enum | `austauschen`, `calculate`, `decide`, `draw`, `entscheiden`, `exchange`, `experiment`, `experimentieren`, `lesen`, `match`, `read`, `rechnen`, `reflect`, `reflektieren`, `schreiben`, `write`, `zeichnen`, `zuordnen` | ja | *(keiner)* | Tätigkeits-Hinweis, wird als Emoji + Label gerendert (`read`/`lesen` 📖, `write`/`schreiben` ✍️, `calculate`/`rechnen` 🔢, `draw`/`zeichnen` 📐, `match`/`zuordnen` ↔️, `exchange`/`austauschen` 💬, `decide`/`entscheiden` ⚖️, `experiment`/`experimentieren` 🧪, `reflect`/`reflektieren` 🤔). Ohne Angabe wird kein Aktions-Symbol angezeigt. |
+| `align` | Enum | `block`, `blocksatz`, `center`, `centre`, `justify`, `left`, `links`, `linksbuendig`, `linksbundig`, `middle`, `mitte`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
+| `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
+| `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
+| `time` | Text | -- | nein | -- | Geschätzte Bearbeitungszeit, wird als `X min` ausgegeben. Freier Textwert -- üblich, aber nicht erzwungen, ist eine reine Zahl (Minuten). |
+| `work` | Enum | `ea`, `einzel`, `einzelarbeit`, `ga`, `group`, `gruppe`, `gruppenarbeit`, `pa`, `partner`, `partnerarbeit`, `single` | ja | `single` | Empfohlene Arbeitsform, wird als Emoji + Label gerendert: `single`/`einzel` (👤), `partner` (👥) oder `group`/`gruppe` (👪). Deutsche und englische Schreibweisen sind gleichwertig. Ohne Angabe gilt `single`. |
 
 ### `table`
 
 Tabellen-Antwortfeld mit YAML-Payload. `headers="A|B|C"` setzt Spaltenüberschriften, `header_columns=<n>` (Alias `header_cols`) macht die ersten `n` Spalten zu Header-Spalten, `row_labels="..."` beschriftet Zeilen, `widths=...` steuert Spaltenbreiten, `alignment=left|center|right|justify` (auch Kurzformen `l`/`r`/`c`/`j`, auch pro Spalte) die Ausrichtung, `row_height=<css-länge>` die Zeilenhöhe.
 
-Optionen: `alignment`, `cols`, `header_cols`, `header_columns`, `headers`, `mode`, `row_height`, `row_labels`, `rows`, `show`, `width`, `widths`
+| Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
+|---|---|---|---|---|---|
+| `alignment` | Enum | `c`, `center`, `j`, `justify`, `l`, `left`, `r`, `right` | nein | -- | Eigene, von der generischen `align`-Option unabhängige Semantik: steuert die Textausrichtung je Tabellenspalte, auch als Kurzform pro Spalte (z. B. `alignment="l r c c"` mit `l`/`r`/`c`/`j` für links/rechts/zentriert/Blocksatz). Aktuell nicht vom Validator geprüft. |
+| `cols` | Ganzzahl | -- | nein | -- | Anzahl Spalten des Rasters. Der genaue Standardwert und ob eine fehlende Angabe automatisch aus verfügbarer Breite berechnet wird, hängt vom Blocktyp ab (siehe Tabelle: Spalte "Standard"). |
+| `header_cols` | Ganzzahl | -- | nein | -- | Alias von `header_columns`. |
+| `header_columns` | Ganzzahl | -- | nein | -- | Rendert die ersten `n` Spalten im Tabellenkörper als Header-Spalten. |
+| `headers` | Text | -- | nein | -- | Spaltenüberschriften, `|`-getrennt (z. B. `headers="A|B|C"`). |
+| `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
+| `row_height` | CSS-Länge | -- | nein | -- | Zeilenhöhe als CSS-Länge. |
+| `row_labels` | Text | -- | nein | -- | Zeilenbeschriftungen, `|`-getrennt (z. B. `row_labels="Zeile 1|Zeile 2"`). |
+| `rows` | Ganzzahl | -- | nein | -- | Anzahl Zeilen des Rasters/der Linien. Der genaue Standardwert und ob eine fehlende Angabe automatisch berechnet wird, hängt vom Blocktyp ab (siehe Tabelle: Spalte "Standard"). |
+| `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
+| `width` | CSS-Länge | -- | nein | -- | Gesamtbreite der Tabelle als CSS-Länge. |
+| `widths` | Text | -- | nein | -- | Relative Breiten (Gewichte, z. B. `"2 1"`) oder feste CSS-Breiten für die Spalten/Elemente dieses Blocks. |
 
 ### `task`
 
 Die Hauptaufgabe -- der zentrale Blocktyp eines Arbeitsblatts. `points` vergibt eine Punktzahl, `time` eine Bearbeitungszeit in Minuten (Ausgabe als `X min`). `work` zeigt die empfohlene Arbeitsform (`single`/`partner`/`group`, auch deutsche Aliase wie `einzel`), `action` einen Tätigkeits-Hinweis (`read`/`write`/`calculate`/...) und `hint` einen Lernhinweis (`tip`/`definition`/`remember`/...) -- jeweils mit passendem Emoji gerendert. `title` beschriftet die Aufgabe zusätzlich zur automatischen Nummerierung.
 
-Optionen: `action`, `align`, `hint`, `mode`, `points`, `show`, `time`, `title`, `work`
+| Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
+|---|---|---|---|---|---|
+| `action` | Enum | `austauschen`, `calculate`, `decide`, `draw`, `entscheiden`, `exchange`, `experiment`, `experimentieren`, `lesen`, `match`, `read`, `rechnen`, `reflect`, `reflektieren`, `schreiben`, `write`, `zeichnen`, `zuordnen` | ja | *(keiner)* | Tätigkeits-Hinweis, wird als Emoji + Label gerendert (`read`/`lesen` 📖, `write`/`schreiben` ✍️, `calculate`/`rechnen` 🔢, `draw`/`zeichnen` 📐, `match`/`zuordnen` ↔️, `exchange`/`austauschen` 💬, `decide`/`entscheiden` ⚖️, `experiment`/`experimentieren` 🧪, `reflect`/`reflektieren` 🤔). Ohne Angabe wird kein Aktions-Symbol angezeigt. |
+| `align` | Enum | `block`, `blocksatz`, `center`, `centre`, `justify`, `left`, `links`, `linksbuendig`, `linksbundig`, `middle`, `mitte`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
+| `hint` | Enum | `def`, `definition`, `erinnerung`, `expert`, `expertenaufgabe`, `fachwort`, `hint`, `remember`, `reminder`, `term`, `tip`, `tipp` | ja | *(keiner)* | Siehe `option:hint` -- bei `task` zusätzlich mit passendem Emoji direkt neben der Aufgabe gerendert. |
+| `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
+| `points` | Text | -- | nein | -- | Vergibt eine Punktzahl für die Aufgabe, wird neben der Aufgabe angezeigt. |
+| `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
+| `time` | Text | -- | nein | -- | Geschätzte Bearbeitungszeit, wird als `X min` ausgegeben. Freier Textwert -- üblich, aber nicht erzwungen, ist eine reine Zahl (Minuten). |
+| `title` | Text | -- | nein | -- | Überschreibt die automatisch erzeugte Standardbeschriftung des Blocks mit einem eigenen Text. |
+| `work` | Enum | `ea`, `einzel`, `einzelarbeit`, `ga`, `group`, `gruppe`, `gruppenarbeit`, `pa`, `partner`, `partnerarbeit`, `single` | ja | `single` | Empfohlene Arbeitsform, wird als Emoji + Label gerendert: `single`/`einzel` (👤), `partner` (👥) oder `group`/`gruppe` (👪). Deutsche und englische Schreibweisen sind gleichwertig. Ohne Angabe gilt `single`. |
 
 ### `vspacer`
 
 Erzeugt vertikalen Abstand in voller Breite -- siehe Control-Marker `-=`.
 
-Optionen: `height`
+| Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
+|---|---|---|---|---|---|
+| `height` | CSS-Länge | -- | nein | -- | Höhe des Antwortfelds als CSS-Länge (z. B. `4cm`, `120px`). Der genaue Standardwert hängt vom Blocktyp ab (siehe Tabelle: Spalte "Standard"). |
 
 ### `wordsearch`
 
 Wortsuchrätsel-Antwortfeld. `words` listet die zu versteckenden Wörter, `diagonal`/`horizontal`/`vertical` steuern erlaubte Richtungen, `min_size`/`min_rows`/`min_cols` die Mindestrastergröße.
 
-Optionen: `align`, `diagonal`, `horizontal`, `min_cols`, `min_rows`, `min_size`, `mode`, `show`, `vertical`, `words`
+| Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
+|---|---|---|---|---|---|
+| `align` | Enum | `block`, `blocksatz`, `center`, `centre`, `justify`, `left`, `links`, `linksbuendig`, `linksbundig`, `middle`, `mitte`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
+| `diagonal` | Bool | -- | nein | `False` | Erlaubt diagonale Wortplatzierung im Rätsel (Standard: aus). Akzeptiert auch eine Richtungsliste statt eines einfachen Ein/Aus-Werts. |
+| `horizontal` | Bool | -- | nein | `False` | Erlaubt horizontale Wortplatzierung (Standard: aus). Akzeptiert auch eine Richtungsliste. |
+| `min_cols` | Ganzzahl | -- | nein | -- | Mindestanzahl Spalten des Rätselrasters. |
+| `min_rows` | Ganzzahl | -- | nein | -- | Mindestanzahl Zeilen des Rätselrasters. |
+| `min_size` | Ganzzahl | -- | nein | -- | Mindestrastergröße (Zeilen und Spalten gemeinsam). |
+| `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
+| `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
+| `vertical` | Bool | -- | nein | `False` | Erlaubt vertikale Wortplatzierung (Standard: aus). Akzeptiert auch eine Richtungsliste. |
+| `words` | Text | -- | nein | -- | Blocktyp-abhängige Bedeutung, siehe Besonderheit unten. |
 
 ## 6. Wertlisten für `work`/`action`/`hint`
 
@@ -309,27 +493,18 @@ Erlaubte Keys: `color`, `label`, `show`, `thickness`, `x`, `y`.
 
 ### Repräsentatives Beispiel
 
-```yaml
+```markdown
+:::geometry rows=20 cols=20 axis=true origin="10,10"
 points:
-  - x: 2
-    y: 3
-    label: A
-    color: "#2563eb"
-    thickness: 2
+  - {x: 2, y: 3, label: "A", color: "#2563eb", thickness: 2}
 pairs:
-  - x1: 0
-    y1: 0
-    x2: 4
-    y2: 4
-    line: dashed
-    label: Strecke g
+  - {x1: 0, y1: 0, x2: 4, y2: 4, line: dashed, label: "Strecke g"}
 functions:
-  - expr: "x**2"
-    domain: "-3:3"
-    label: f(x) = x²
-    color: "#dc2626"
-    thickness: 1.5
+  - {expr: "x^2", domain: "-3:3", label: "f(x) = x^2", color: "#dc2626", thickness: 1.5}
+:::
 ```
+
+Flow-Style-YAML (`{key: value, ...}` auf einer Zeile) ist die in den Blattwerk-Beispielen übliche Schreibweise für Geometry-Einträge -- Block-Style (`key:` mit eingerückten Folgezeilen) ist gleichwertig und wird identisch geparst. `axis=true` **und** ein gültiges `origin` sind zusammen nötig, damit `functions` überhaupt gerendert wird und `points`/`pairs` als Mathe-Koordinaten statt Rasterkoordinaten interpretiert werden (siehe Besonderheit bei `axis`/`origin` oben).
 
 ## 9. Sichtbarkeitsmarker in Antwortinhalten
 

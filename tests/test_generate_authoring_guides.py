@@ -1,5 +1,6 @@
 """Tests für den Autoren-Anleitungs-Generator (`tools/docs/generate_authoring_guides.py`)."""
 
+import re
 import sys
 from dataclasses import replace
 from pathlib import Path
@@ -12,6 +13,9 @@ if str(_TOOLS_DOCS_DIR) not in sys.path:
 
 import authoring_guide_prose  # noqa: E402
 import generate_authoring_guides as guide_generator  # noqa: E402
+from app.core.answer_grid_plot import render_geometry_answer  # noqa: E402
+from app.core.blatt_validator import inspect_markdown_text  # noqa: E402
+from app.core.blatt_validator_constants import BlockOptionSpec  # noqa: E402
 from app.core.markdown_conventions import collect_markdown_conventions  # noqa: E402
 
 
@@ -53,15 +57,26 @@ def test_prose_coverage_detects_missing_geometry_section_prose(monkeypatch):
         guide_generator.assert_prose_coverage(catalog)
 
 
-def test_render_worksheet_presentation_guide_changes_when_catalog_changes():
+def test_render_worksheet_presentation_guide_changes_when_catalog_changes(monkeypatch):
     catalog = collect_markdown_conventions()
     baseline = guide_generator.render_worksheet_presentation_guide(catalog)
 
     # Simuliert eine neue Blockoption, um zu belegen, dass der Renderer
     # tatsaechlich vom Katalog abhaengt und nicht etwa gecachte/statische
     # Werte ausgibt.
+    marker_option = BlockOptionSpec(
+        name="__test_marker_option__",
+        kind="text",
+        allowed_values=None,
+        validated=False,
+        default=guide_generator.MISSING,
+    )
+    augmented_prose = dict(authoring_guide_prose.PROSE_SECTIONS)
+    augmented_prose["block:task.__test_marker_option__"] = "Testmarker-Erklärung."
+    monkeypatch.setattr(guide_generator, "PROSE_SECTIONS", augmented_prose)
+
     modified_blocks = tuple(
-        replace(block, allowed_options=block.allowed_options | {"__test_marker_option__"})
+        replace(block, options=block.options + (marker_option,))
         if block.name == "task"
         else block
         for block in catalog.blocks
@@ -92,3 +107,46 @@ def test_main_check_mode_passes_against_freshly_written_guides(tmp_path, monkeyp
 
     worksheet_path.write_text("veraltet", encoding="utf-8")
     assert guide_generator.main(["--check"]) == 1
+
+
+def _extract_fenced_markdown_block(guide_text: str, needle: str) -> str:
+    """Holt den Inhalt des ersten ` ```markdown ` -Codeblocks, der `needle` enthält."""
+    for match in re.finditer(r"```markdown\n(.*?)\n```", guide_text, re.DOTALL):
+        if needle in match.group(1):
+            return match.group(1)
+    raise AssertionError(f"Kein ```markdown-Codeblock mit {needle!r} gefunden.")
+
+
+def test_geometry_example_in_generated_guide_actually_validates_and_renders():
+    """Regressionstest fuer die manuelle Verifikation des Geometry-Beispiels.
+
+    Das im generierten Leitfaden gezeigte Flow-Style-YAML-Beispiel muss
+    tatsaechlich fehlerfrei validieren UND als SVG mit allen drei
+    Objektarten (points/pairs/functions) rendern -- nicht nur syntaktisch
+    aussehen wie gueltiges Blattwerk-Markdown. `axis=true` ohne `origin`
+    wuerde funktions-Eintraege still verschlucken (siehe Besonderheit bei
+    `block:geometry.axis`), deshalb ist genau dieser Fall hier verdrahtet.
+    """
+    catalog = collect_markdown_conventions()
+    guide_text = guide_generator.render_worksheet_presentation_guide(catalog)
+    block_markdown = _extract_fenced_markdown_block(guide_text, ":::geometry")
+
+    document = "---\nTitel: T\nFach: M\nThema: X\n---\n" + block_markdown + "\n"
+    result = inspect_markdown_text(document)
+    assert result.diagnostics == [], f"Beispiel validiert nicht sauber: {result.diagnostics}"
+
+    header_line, content_lines = block_markdown.split("\n", 1)
+    block_content = content_lines.rsplit(":::", 1)[0]
+    assert "axis=true" in header_line
+    assert 'origin="10,10"' in header_line
+
+    svg = render_geometry_answer(
+        {"rows": "20", "cols": "20", "axis": "true", "origin": "10,10"},
+        block_content,
+        True,
+        True,
+    )
+    assert "A" in svg
+    assert "Strecke g" in svg
+    assert "f(x)" in svg
+    assert "grid-segment-dashed" in svg

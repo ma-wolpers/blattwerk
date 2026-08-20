@@ -285,4 +285,240 @@ PROSE_SECTIONS: dict[str, str] = {
         "Control-Marker `--#`."
     ),
     "block:vspacer": ("Erzeugt vertikalen Abstand in voller Breite -- siehe Control-Marker `-=`."),
+    # -- Geteilte Optionskonzepte (option:<name>) -- gelten identisch über mehrere Blöcke --
+    "option:show": (
+        "Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur "
+        "Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente "
+        "sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung "
+        "`OP003` aus, bleibt aber weiterhin funktionsfähig)."
+    ),
+    "option:mode": (
+        "Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur "
+        "im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der "
+        "Block in beiden Ausgaben sichtbar."
+    ),
+    "option:align": (
+        "Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, "
+        "`center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische "
+        "Schreibweisen gleichwertig)."
+    ),
+    "option:work": (
+        "Empfohlene Arbeitsform, wird als Emoji + Label gerendert: `single`/`einzel` (👤), "
+        "`partner` (👥) oder `group`/`gruppe` (👪). Deutsche und englische Schreibweisen sind "
+        "gleichwertig. Ohne Angabe gilt `single`."
+    ),
+    "option:action": (
+        "Tätigkeits-Hinweis, wird als Emoji + Label gerendert (`read`/`lesen` 📖, `write`/"
+        "`schreiben` ✍️, `calculate`/`rechnen` 🔢, `draw`/`zeichnen` 📐, `match`/`zuordnen` ↔️, "
+        "`exchange`/`austauschen` 💬, `decide`/`entscheiden` ⚖️, `experiment`/`experimentieren` 🧪, "
+        "`reflect`/`reflektieren` 🤔). Ohne Angabe wird kein Aktions-Symbol angezeigt."
+    ),
+    "option:hint": (
+        "Lernhinweis, wird als Emoji + Label gerendert (`tip`/`tipp` 💡, `definition` 📘, "
+        "`remember`/`erinnerung` 💭, `term`/`fachwort` 📖, `expert`/`expertenaufgabe` 🚀). Ohne "
+        "Angabe wird kein Hinweis-Symbol angezeigt."
+    ),
+    "option:line": (
+        "Linienstil des Rasterhintergrunds: `solid` (Standard) oder `dashed`. Nur bei `:::grid`/"
+        "`:::geometry` vorhanden -- nicht zu verwechseln mit dem gleichnamigen `pairs[].line`-Feld "
+        "in der Geometry-YAML-Payload (dort eigene, unabhängige Einstellung pro Strecke)."
+    ),
+    "option:title": (
+        "Überschreibt die automatisch erzeugte Standardbeschriftung des Blocks mit einem eigenen Text."
+    ),
+    "option:widths": (
+        "Relative Breiten (Gewichte, z. B. `\"2 1\"`) oder feste CSS-Breiten für die Spalten/Elemente "
+        "dieses Blocks."
+    ),
+    "option:scale": (
+        "Zellgröße des Rasters als CSS-Länge (Standard `0.5cm`), z. B. `scale=0.4cm` oder `scale=6mm`."
+    ),
+    "option:rows": (
+        "Anzahl Zeilen des Rasters/der Linien. Der genaue Standardwert und ob eine fehlende Angabe "
+        "automatisch berechnet wird, hängt vom Blocktyp ab (siehe Tabelle: Spalte \"Standard\")."
+    ),
+    "option:cols": (
+        "Anzahl Spalten des Rasters. Der genaue Standardwert und ob eine fehlende Angabe automatisch "
+        "aus verfügbarer Breite berechnet wird, hängt vom Blocktyp ab (siehe Tabelle: Spalte "
+        "\"Standard\")."
+    ),
+    "option:height": (
+        "Höhe des Antwortfelds als CSS-Länge (z. B. `4cm`, `120px`). Der genaue Standardwert hängt "
+        "vom Blocktyp ab (siehe Tabelle: Spalte \"Standard\")."
+    ),
+    "option:time": (
+        "Geschätzte Bearbeitungszeit, wird als `X min` ausgegeben. Freier Textwert -- üblich, aber "
+        "nicht erzwungen, ist eine reine Zahl (Minuten)."
+    ),
+    "option:tag": (
+        "Beeinflusst die automatische Beschriftung mehrerer Hilfekarten zum selben Bezugspunkt (z. B. "
+        "`tag=1` erzeugt `1A`, `1B`, ...; ein einzelner Buchstabe erzeugt `1<tag>`, `2<tag>`, ...)."
+    ),
+    "option:level": (
+        "Schwierigkeitsstufe der Hilfekarte (1-99) -- rein organisatorisch, ohne Einfluss auf "
+        "Sichtbarkeit oder Reihenfolge."
+    ),
+    "option:layout": (
+        "Steuert ein Layout-Detail des Blocks -- die genaue Bedeutung ist blocktyp-abhängig, siehe "
+        "Besonderheit unten."
+    ),
+    "option:words": (
+        "Blocktyp-abhängige Bedeutung, siehe Besonderheit unten."
+    ),
+    # -- Divergente Optionen: block-eigene Erklärungen (block:<block>.<name>) --
+    "block:matching.align": (
+        "Bei `matching` deutlich enger als die generische `align`-Option: einziger unterstützter "
+        "Wert ist `center` (Standard) -- zentriert Inhalte in den Zuordnungs-Blöcken horizontal und "
+        "vertikal. Andere Werte werden aktuell nicht geprüft."
+    ),
+    "block:qrcode.alignment": (
+        "Alias von `align` bei `qrcode` -- identische generische Objekt-Ausrichtung "
+        "(`left|right|center|block`), nur andere Schreibweise."
+    ),
+    "block:table.alignment": (
+        "Eigene, von der generischen `align`-Option unabhängige Semantik: steuert die Textausrichtung "
+        "je Tabellenspalte, auch als Kurzform pro Spalte (z. B. `alignment=\"l r c c\"` mit `l`/`r`/"
+        "`c`/`j` für links/rechts/zentriert/Blocksatz). Aktuell nicht vom Validator geprüft."
+    ),
+    "block:cloze.gap": (
+        "Lückenlängen-Modus: `fixed`/`equal`/`same`/`uniform`/`gleich` erzwingt gleich lange Lücken, "
+        "jeder andere Wert (Standard) berechnet die Lückenlänge approximativ aus der Wortlänge."
+    ),
+    "block:columns.gap": (
+        "Horizontaler Abstand zwischen den Spalten als CSS-Länge (z. B. `1cm`)."
+    ),
+    "block:qrcode.height": (
+        "Alias von `h` -- Höhe des QR-Codes, folgt derselben CSS-Größen-Logik wie Bildgrößen in "
+        "Markdown (z. B. `3cm`, `120px`, `60%`, `auto`); ungültige Werte werden als `OP002` gemeldet."
+    ),
+    "block:table.width": ("Gesamtbreite der Tabelle als CSS-Länge."),
+    "block:qrcode.width": ("Alias von `w` -- Breite des QR-Codes, siehe `height`/`w`/`h`/`maxw`."),
+    # -- Block-spezifische Optionen ohne geteiltes Konzept ------------------
+    "block:info.type": (
+        "Hervorhebungsstil der Hinweisbox: `default` (Standard), `warning` oder `note`."
+    ),
+    "block:task.points": ("Vergibt eine Punktzahl für die Aufgabe, wird neben der Aufgabe angezeigt."),
+    "block:task.hint": (
+        "Siehe `option:hint` -- bei `task` zusätzlich mit passendem Emoji direkt neben der Aufgabe "
+        "gerendert."
+    ),
+    "block:geometry.axis": (
+        "Aktiviert ein mathematisches Koordinatensystem mit x-/y-Achse, Tick-Marks und "
+        "Achsenbeschriftung (Standard: aus, dann gelten reine Rasterkoordinaten `col`/`row`). "
+        "**Wichtig:** `axis=true` wirkt nur zusammen mit einem gültigen `origin` -- fehlt `origin` "
+        "oder ist er ungültig, fällt der Block still (ohne Fehler/Warnung) auf den Rasterkoordinaten-"
+        "Modus zurück. In diesem Fall werden `functions`-Einträge komplett ignoriert, und `points`/"
+        "`pairs` interpretieren ihre `x`/`y`-Werte als `col`/`row` statt als Mathe-Koordinaten."
+    ),
+    "block:geometry.axis_label_x": ("Beschriftung der x-Achse (Standard `x`), nur wirksam bei aktivem Achsenmodus (siehe `axis`)."),
+    "block:geometry.axis_label_y": ("Beschriftung der y-Achse (Standard `y`), nur wirksam bei aktivem Achsenmodus (siehe `axis`)."),
+    "block:geometry.origin": (
+        "Ursprung des Koordinatensystems im Raster, Format `\"spalte,zeile\"` (z. B. `\"10,10\"`). "
+        "**Pflicht, sobald `axis=true` gesetzt ist** -- ohne (oder mit ungültigem) `origin` bleibt der "
+        "Achsenmodus trotz `axis=true` inaktiv, siehe Besonderheit dort."
+    ),
+    "block:geometry.step_x": (
+        "Skalierung zwischen mathematischer x-Koordinate und Rasterzellen (Standard `1`), nur bei "
+        "`axis=true`."
+    ),
+    "block:geometry.step_y": (
+        "Skalierung zwischen mathematischer y-Koordinate und Rasterzellen (Standard `1`), nur bei "
+        "`axis=true`."
+    ),
+    "block:table.headers": ('Spaltenüberschriften, `|`-getrennt (z. B. `headers="A|B|C"`).'),
+    "block:table.header_columns": (
+        "Rendert die ersten `n` Spalten im Tabellenkörper als Header-Spalten."
+    ),
+    "block:table.header_cols": ("Alias von `header_columns`."),
+    "block:table.row_labels": ('Zeilenbeschriftungen, `|`-getrennt (z. B. `row_labels="Zeile 1|Zeile 2"`).'),
+    "block:table.row_height": ("Zeilenhöhe als CSS-Länge."),
+    "block:mc.inline": (
+        "Schaltet auf ein kompaktes, horizontal fließendes Layout der Antwortoptionen um "
+        "(Standard: aus)."
+    ),
+    "block:mc.tf": (
+        "Schaltet auf Wahr-Falsch-Layout um (akzeptiert u. a. `1`/`true`/`yes`/`on`/`tf`/"
+        "`richtigfalsch`/`richtig_false` als \"an\"; Standard: aus)."
+    ),
+    "block:mc.true_false": ("Alias von `tf`."),
+    "block:mc.correct": ("Kennzeichnet die richtige(n) Antwortoption(en)."),
+    "block:mc.options": ("Listet die Antwortmöglichkeiten."),
+    "block:wordsearch.diagonal": (
+        "Erlaubt diagonale Wortplatzierung im Rätsel (Standard: aus). Akzeptiert auch eine "
+        "Richtungsliste statt eines einfachen Ein/Aus-Werts."
+    ),
+    "block:wordsearch.horizontal": (
+        "Erlaubt horizontale Wortplatzierung (Standard: aus). Akzeptiert auch eine Richtungsliste."
+    ),
+    "block:wordsearch.vertical": (
+        "Erlaubt vertikale Wortplatzierung (Standard: aus). Akzeptiert auch eine Richtungsliste."
+    ),
+    "block:wordsearch.min_size": ("Mindestrastergröße (Zeilen und Spalten gemeinsam)."),
+    "block:wordsearch.min_rows": ("Mindestanzahl Zeilen des Rätselrasters."),
+    "block:wordsearch.min_cols": ("Mindestanzahl Spalten des Rätselrasters."),
+    "block:solution.label": ('Blendet das Label "Lösung" vor dem Text ein/aus (Standard: an).'),
+    "block:columns.ratio": ("Alias von `widths` -- relative Spaltengewichte."),
+    "block:cloze.gap_length": ("Feste Lückenlänge in Zeichen bei `gap=fixed` (Standard `10`)."),
+    "block:cloze.words_multi": (
+        "Erlaubt Mehrfachauswahl in der Wortbank (Standard: an)."
+    ),
+    "block:matching.left": ("Linke-Seite-Einträge bei horizontalem Layout, `|`-getrennt."),
+    "block:matching.right": ("Rechte-Seite-Einträge bei horizontalem Layout, `|`-getrennt."),
+    "block:matching.top": ("Obere-Seite-Einträge bei vertikalem Layout, `|`-getrennt."),
+    "block:matching.bottom": ("Untere-Seite-Einträge bei vertikalem Layout, `|`-getrennt."),
+    "block:matching.matches": ("Definiert die korrekten Verbindungen zwischen beiden Seiten."),
+    "block:matching.links": ("Alias von `left`."),
+    "block:matching.worksheet_matches": (
+        "Zeigt zusätzlich Beispielverbindungen bereits im Arbeitsblatt (nicht nur in der Lösung)."
+    ),
+    "block:matching.layout": (
+        "Legt fest, ob die beiden Seiten horizontal (`left`/`right`) oder vertikal (`top`/`bottom`) "
+        "angeordnet werden."
+    ),
+    "block:matching.orientation": ("Alias von `layout`."),
+    "block:matching.height_mode": (
+        "`content` (Standard) richtet jeden Block nach eigenem Inhalt aus; `uniform` macht alle "
+        "Blöcke gleich hoch."
+    ),
+    "block:matching.show_guides": (
+        "Blendet gestrichelte Platzhalterblöcke und Canvas-Rand ein (Standard: aus)."
+    ),
+    "block:matching.lane_align": (
+        "Richtet beide Seiten entlang ihrer gemeinsamen Mittelachse aus: `start`, `center` (Standard) "
+        "oder `end`."
+    ),
+    "block:cloze.words": (
+        "Position der Wortbank relativ zum Lückentext -- nicht die Lückenwörter selbst (die stehen "
+        "im Blockinhalt)."
+    ),
+    "block:numberline.min": ("Untere Grenze des dargestellten Zahlenbereichs."),
+    "block:numberline.max": ("Obere Grenze des dargestellten Zahlenbereichs."),
+    "block:numberline.minimum": ("Alias von `min`."),
+    "block:numberline.maximum": ("Alias von `max`."),
+    "block:numberline.tick_step": ("Abstand zwischen zwei Tick-Marken in Zahlenraum-Einheiten."),
+    "block:numberline.ticks": ("Explizite Liste anzuzeigender Tick-Werte."),
+    "block:numberline.tick_spacing_mm": ("Physischer Abstand zwischen Tick-Marken in Millimetern."),
+    "block:numberline.tick_spacing_cm": ("Physischer Abstand zwischen Tick-Marken in Zentimetern."),
+    "block:numberline.tick_spacing": ("Physischer Abstand zwischen Tick-Marken (Einheit im Wert enthalten)."),
+    "block:numberline.major_every": ("Jede n-te Tick-Marke wird als Hauptmarkierung hervorgehoben."),
+    "block:numberline.max_width_mm": ("Maximale Darstellungsbreite des Zahlenstrahls in Millimetern."),
+    "block:numberline.max_width_cm": ("Maximale Darstellungsbreite des Zahlenstrahls in Zentimetern."),
+    "block:numberline.full_width": ("Erzwingt volle verfügbare Breite für den Zahlenstrahl."),
+    "block:numberline.positive_sign": (
+        "Zeigt bei positiven Zahlen explizit ein `+`-Vorzeichen an (Standard: aus)."
+    ),
+    "block:numberline.signed_positive": ("Alias von `positive_sign`."),
+    "block:qrcode.url": (
+        "Pflichtoption: Ziel-Link des QR-Codes (http/https-URL oder relativer Pfad ohne "
+        "Leerzeichen). Ungültige Werte werden als `QR002` gemeldet, ein fehlender Wert als `QR001`."
+    ),
+    "block:qrcode.w": (
+        "Breite des QR-Codes als CSS-Größe (z. B. `3cm`, `120px`, `60%`, `auto`); ungültige Werte "
+        "werden als `OP002` gemeldet."
+    ),
+    "block:qrcode.h": (
+        "Höhe des QR-Codes als CSS-Größe, gleiche Regeln wie `w`."
+    ),
+    "block:qrcode.maxw": ("Maximale Breite des QR-Codes als CSS-Größe, gleiche Regeln wie `w`."),
+    "block:qrcode.max-width": ("Alias von `maxw`."),
 }

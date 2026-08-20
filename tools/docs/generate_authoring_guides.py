@@ -38,6 +38,7 @@ from app.core.document_types import (  # noqa: E402
     DOCUMENT_TYPE_WORKSHEET,
     build_new_document_content,
 )
+from app.core.blatt_validator_constants import MISSING  # noqa: E402
 from app.core.markdown_conventions import (  # noqa: E402
     MarkdownConventionCatalog,
     collect_markdown_conventions,
@@ -61,6 +62,56 @@ class ProseCoverageError(Exception):
     """Ein Katalogeintrag hat keine zugehörige Prosa-Erklärung in `PROSE_SECTIONS`."""
 
 
+def _option_variant_key(spec: object) -> tuple:
+    """Fakten, die entscheiden, ob zwei Blöcke 'dieselbe' Option meinen (Default zählt nicht mit)."""
+    return (spec.kind, spec.allowed_values, spec.validated)
+
+
+def _majority_variant_by_option_name(catalog: MarkdownConventionCatalog) -> dict[str, tuple]:
+    """Für jeden Optionsnamen: die von den meisten Blöcken geteilte Variante (kind/allowed_values/validated).
+
+    Nur wenn diese "Mehrheitsvariante" von **mindestens zwei** Blöcken
+    geteilt wird, gilt die Option als generisches, block-übergreifendes
+    Konzept (`option:<name>`-Prosa reicht). Bei genau einem Nutzer pro
+    Variante (z. B. `alignment` bei `qrcode` vs. `table` -- zwei völlig
+    verschiedene Bedeutungen) gibt es keine Mehrheit; jeder Block braucht
+    dann eine eigene `block:<block>.<name>`-Erklärung, keine generische.
+    """
+    from collections import Counter
+
+    counters: dict[str, Counter] = {}
+    for block in catalog.blocks:
+        for spec in block.options:
+            counters.setdefault(spec.name, Counter())[_option_variant_key(spec)] += 1
+
+    majority: dict[str, tuple] = {}
+    for name, counter in counters.items():
+        variant, count = counter.most_common(1)[0]
+        if count >= 2:
+            majority[name] = variant
+    return majority
+
+
+def _option_prose_keys(catalog: MarkdownConventionCatalog, block_name: str, spec: object) -> tuple[str, bool]:
+    """Liefert (bevorzugter Prosa-Key, ob zusätzlich noch ein Shared-Key existieren darf) für eine Option.
+
+    Rückgabe `(key, allow_shared_supplement)`: wenn die Option des Blocks
+    der Mehrheitsvariante entspricht, ist `key` der generische
+    `option:<name>`-Key (ein optionales `block:<block>.<name>`-Supplement
+    darf zusätzlich existieren). Weicht der Block von der Mehrheit ab
+    (oder gibt es gar keine Mehrheit), ist `key` der block-eigene
+    `block:<block>.<name>`-Key, der dann **alleinstehend** gilt (kein
+    Shared-Text, der inhaltlich falsch wäre).
+    """
+    majority = _majority_variant_by_option_name(catalog)
+    generic_key = f"option:{spec.name}"
+    specific_key = f"block:{block_name}.{spec.name}"
+
+    if majority.get(spec.name) == _option_variant_key(spec):
+        return generic_key, True
+    return specific_key, False
+
+
 def _geometry_prose_keys() -> tuple[str, ...]:
     return (
         "geometry:block_options",
@@ -81,7 +132,15 @@ def _kurzentwurf_prose_keys() -> tuple[str, ...]:
 
 
 def assert_prose_coverage(catalog: MarkdownConventionCatalog) -> None:
-    """Wirft `ProseCoverageError`, wenn ein Katalogeintrag keine Prosa-Erklärung hat."""
+    """Wirft `ProseCoverageError`, wenn ein Katalogeintrag keine Prosa-Erklärung hat.
+
+    Prüft auf zwei Ebenen: jeder Blocktyp braucht `block:<name>` (die
+    einleitende Blockbeschreibung); jede Option jedes Blocks braucht
+    *mindestens* die von `_option_prose_keys` bestimmte Erklärung (generisch
+    `option:<name>` für Mehrheitsvarianten, sonst zwingend die block-eigene
+    `block:<block>.<name>`) -- ein block-spezifisches Supplement zusätzlich
+    zum generischen Text ist immer erlaubt, aber nie Pflicht.
+    """
     required_keys: list[str] = []
     required_keys.extend(f"block:{block.name}" for block in catalog.blocks)
     required_keys.extend(f"frontmatter:{name}" for name in catalog.required_frontmatter_fields)
@@ -90,11 +149,18 @@ def assert_prose_coverage(catalog: MarkdownConventionCatalog) -> None:
     required_keys.extend(_geometry_prose_keys())
     required_keys.extend(_kurzentwurf_prose_keys())
 
-    missing = sorted(key for key in required_keys if key not in PROSE_SECTIONS)
+    missing = [key for key in required_keys if key not in PROSE_SECTIONS]
+
+    for block in catalog.blocks:
+        for spec in block.options:
+            key, _allow_supplement = _option_prose_keys(catalog, block.name, spec)
+            if key not in PROSE_SECTIONS:
+                missing.append(key)
+
     if missing:
         raise ProseCoverageError(
             "Fehlende Prosa-Abschnitte in tools/docs/authoring_guide_prose.py: "
-            + ", ".join(missing)
+            + ", ".join(sorted(set(missing)))
         )
 
 
@@ -123,12 +189,62 @@ def _render_frontmatter_details(catalog: MarkdownConventionCatalog) -> str:
     return "\n".join(parts)
 
 
+def _kind_label(kind: str) -> str:
+    return {
+        "enum": "Enum",
+        "boolean": "Bool",
+        "integer": "Ganzzahl",
+        "number": "Zahl",
+        "css_length": "CSS-Länge",
+        "url": "URL",
+        "text": "Text",
+    }.get(kind, kind)
+
+
+def _default_label(default: object) -> str:
+    if default is MISSING:
+        return "--"
+    if default is None:
+        return "*(keiner)*"
+    return f"`{default}`"
+
+
+def _option_explanation(catalog: MarkdownConventionCatalog, block_name: str, spec: object) -> str:
+    key, allow_supplement = _option_prose_keys(catalog, block_name, spec)
+    text = _prose(key)
+    if not allow_supplement:
+        return text
+
+    supplement_key = f"block:{block_name}.{spec.name}"
+    if supplement_key in PROSE_SECTIONS:
+        text += f" *Besonderheit bei `{block_name}`:* {_prose(supplement_key)}"
+    return text
+
+
+def _render_option_table(catalog: MarkdownConventionCatalog, block) -> str:
+    if not block.options:
+        return "Keine Optionen."
+
+    lines = [
+        "| Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |",
+        "|---|---|---|---|---|---|",
+    ]
+    for spec in sorted(block.options, key=lambda s: s.name):
+        allowed = ", ".join(f"`{v}`" for v in sorted(spec.allowed_values)) if spec.allowed_values else "--"
+        explanation = _option_explanation(catalog, block.name, spec)
+        lines.append(
+            f"| `{spec.name}` | {_kind_label(spec.kind)} | {allowed} | "
+            f"{'ja' if spec.validated else 'nein'} | {_default_label(spec.default)} | {explanation} |"
+        )
+    return "\n".join(lines)
+
+
 def _render_block_reference(catalog: MarkdownConventionCatalog) -> str:
     parts = []
     for block in catalog.blocks:
-        options = ", ".join(f"`{opt}`" for opt in sorted(block.allowed_options)) or "keine"
         parts.append(
-            f"### `{block.name}`\n\n{_prose(f'block:{block.name}')}\n\nOptionen: {options}"
+            f"### `{block.name}`\n\n{_prose(f'block:{block.name}')}\n\n"
+            + _render_option_table(catalog, block)
         )
     return "\n\n".join(parts)
 
@@ -156,29 +272,27 @@ def _render_geometry_section(catalog: MarkdownConventionCatalog) -> str:
         parts.append(f"### `{entry.section}`\n\n{_prose(f'geometry:{entry.section}')}\n\nErlaubte Keys: {keys}.")
 
     example = (
-        "```yaml\n"
+        "```markdown\n"
+        ":::geometry rows=20 cols=20 axis=true origin=\"10,10\"\n"
         "points:\n"
-        "  - x: 2\n"
-        "    y: 3\n"
-        "    label: A\n"
-        "    color: \"#2563eb\"\n"
-        "    thickness: 2\n"
+        "  - {x: 2, y: 3, label: \"A\", color: \"#2563eb\", thickness: 2}\n"
         "pairs:\n"
-        "  - x1: 0\n"
-        "    y1: 0\n"
-        "    x2: 4\n"
-        "    y2: 4\n"
-        "    line: dashed\n"
-        "    label: Strecke g\n"
+        "  - {x1: 0, y1: 0, x2: 4, y2: 4, line: dashed, label: \"Strecke g\"}\n"
         "functions:\n"
-        "  - expr: \"x**2\"\n"
-        "    domain: \"-3:3\"\n"
-        "    label: f(x) = x²\n"
-        "    color: \"#dc2626\"\n"
-        "    thickness: 1.5\n"
+        "  - {expr: \"x^2\", domain: \"-3:3\", label: \"f(x) = x^2\", color: \"#dc2626\", thickness: 1.5}\n"
+        ":::\n"
         "```"
     )
-    parts.append(f"### Repräsentatives Beispiel\n\n{example}")
+    parts.append(
+        "### Repräsentatives Beispiel\n\n"
+        + example
+        + "\n\nFlow-Style-YAML (`{key: value, ...}` auf einer Zeile) ist die in den "
+        "Blattwerk-Beispielen übliche Schreibweise für Geometry-Einträge -- Block-Style "
+        "(`key:` mit eingerückten Folgezeilen) ist gleichwertig und wird identisch geparst. "
+        "`axis=true` **und** ein gültiges `origin` sind zusammen nötig, damit `functions` "
+        "überhaupt gerendert wird und `points`/`pairs` als Mathe-Koordinaten statt "
+        "Rasterkoordinaten interpretiert werden (siehe Besonderheit bei `axis`/`origin` oben)."
+    )
     return "\n\n".join(parts)
 
 
