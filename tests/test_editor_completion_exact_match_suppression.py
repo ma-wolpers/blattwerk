@@ -73,3 +73,35 @@ def test_helper_returns_false_for_single_non_exact_match():
     assert not BlattwerkAppEditorCompletionContextMixin._is_single_exact_completion_match(
         "lin", [{"insert_text": "lines"}]
     )
+
+
+def test_helper_compares_against_label_not_insert_text_for_self_closing_types():
+    # `insert_text` traegt bei selbstschliessenden Typen zusaetzlich das
+    # automatisch angehaengte "::: " -- der Vergleich muss trotzdem ueber
+    # `label` (den getippten Namen) exakt treffen.
+    assert BlattwerkAppEditorCompletionContextMixin._is_single_exact_completion_match(
+        "nextcol", [{"label": "nextcol", "insert_text": "nextcol :::"}]
+    )
+
+
+def test_self_closing_block_type_suggestion_appends_closing_fence():
+    # ":::nextc" -- "nextcol" ist der einzige passende Blocktyp, aber kein
+    # exakter Treffer, daher bleibt das Popup offen und liefert den
+    # vervollstaendigten Marker inklusive schliessendem ':::'.
+    editor = _DummyContextEditor(":::nextc", cursor_line=1, cursor_col=8)
+
+    context = editor._collect_editor_completion_context(auto=False)
+
+    assert context is not None
+    assert len(context["suggestions"]) == 1
+    assert context["suggestions"][0]["insert_text"] == "nextcol :::"
+
+
+def test_regular_block_type_suggestion_does_not_append_closing_fence():
+    editor = _DummyContextEditor(":::lin", cursor_line=1, cursor_col=6)
+
+    context = editor._collect_editor_completion_context(auto=False)
+
+    matches = [item for item in context["suggestions"] if item["label"] == "lines"]
+    assert matches
+    assert matches[0]["insert_text"] == "lines"

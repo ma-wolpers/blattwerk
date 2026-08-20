@@ -4,6 +4,18 @@ from __future__ import annotations
 
 from . import blatt_validator as validator
 
+_SELF_CLOSING_BLOCK_TYPES = frozenset(
+    {"nextcol", "endcolumns", "pagebreak", "framebreak", "slidechromeoff", "sectionmark", "vspacer"}
+)
+"""Blocktypen ohne eigenen Body, die immer als Einzeiler mit schließendem
+`:::` auf derselben Zeile geschrieben werden (siehe die self-closing
+Regel `_SELF_CLOSING_BLOCK_PATTERN` in `blatt_kern_shared_parsing.py`).
+Anders als z. B. `:::info ... :::`, das typischerweise Body-Inhalt
+zwischen öffnendem und schließendem Marker hat, tragen diese sieben
+Blocktypen nie Body-Inhalt -- ein öffnender Marker ohne sofortiges
+`:::` auf derselben Zeile lässt den Parser fälschlich auf einen
+mehrzeiligen Body warten (siehe `parse_blocks`)."""
+
 
 def get_completion_block_types() -> tuple[str, ...]:
     """Returns known block types for completion in stable sorted order."""
@@ -45,3 +57,9 @@ def get_completion_option_values(block_type: str, option_key: str) -> tuple[str,
             return tuple(sorted(spec.allowed_values)) if spec.allowed_values else ()
 
     return ()
+
+
+def get_self_closing_block_types() -> frozenset[str]:
+    """Returns block types that are always self-closing markers without a body."""
+
+    return _SELF_CLOSING_BLOCK_TYPES

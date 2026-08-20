@@ -16,6 +16,7 @@ from ..core.completion_catalogs import (
     get_completion_block_types,
     get_completion_options_for_block,
     get_completion_option_values,
+    get_self_closing_block_types,
 )
 from ..storage.local_config_store import get_option_value_decay_scores
 
@@ -41,12 +42,16 @@ class BlattwerkAppEditorCompletionContextMixin:
         Verhindert ein Popup mit einem einzigen, bereits fertig getippten
         Vorschlag (z. B. Cursor direkt nach `:::lines`, wenn `lines` der
         einzige Blocktyp ist, der mit `lines` beginnt) -- kein sinnvoller
-        weiterer Vorschlag mehr nötig.
+        weiterer Vorschlag mehr nötig. Vergleicht bewusst gegen `label`
+        (der getippte Name selbst), nicht `insert_text`: bei selbstschließenden
+        Blocktypen enthält `insert_text` zusätzlich das automatisch
+        mitgelieferte schließende `:::` (siehe `get_self_closing_block_types`)
+        und würde sonst nie exakt zum getippten Präfix passen.
         """
         if not prefix or len(suggestions) != 1:
             return False
         sole = suggestions[0]
-        candidate_text = str(sole.get("insert_text") or sole.get("label") or "")
+        candidate_text = str(sole.get("label") or sole.get("insert_text") or "")
         return candidate_text.strip().lower() == prefix.strip().lower()
 
     def _collect_editor_completion_context(self, auto: bool):
@@ -81,10 +86,13 @@ class BlattwerkAppEditorCompletionContextMixin:
                 if auto and block_prefix == "" and stripped_line == ":::" and self._editor_get_enclosing_block_type(line_no):
                     return None
 
+                self_closing_block_types = get_self_closing_block_types()
                 suggestions = [
                     {
                         "label": block_type,
-                        "insert_text": block_type,
+                        "insert_text": (
+                            f"{block_type} :::" if block_type in self_closing_block_types else block_type
+                        ),
                         "kind": "block_type",
                         "block_type": block_type,
                     }

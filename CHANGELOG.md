@@ -8,6 +8,7 @@ The format is based on Keep a Changelog.
 
 ### Added
 
+- Schreibbereich: Beim Übernehmen selbstschließender Blockmarker (`nextcol`, `endcolumns`, `pagebreak`, `framebreak`, `slidechromeoff`, `sectionmark`, `vspacer`) wird automatisch das passende schließende `:::` mit eingefügt. Bisher entstand ein fälschlich offener Block, der auf eine separate Abschlusszeile wartete.
 - Schreibbereich: Wenn der getippte Blocktyp oder Optionsname bereits exakt einem einzigen Vorschlag entspricht (z. B. Cursor direkt nach `:::lines`), öffnet sich kein weiteres Vorschlags-Popup mehr.
 - Schreibbereich: `Strg+Enter` und `Shift+Enter` lehnen eine offene Vorschlagsliste jetzt ab und fügen stattdessen einen normalen Zeilenumbruch ein. Bisher übernahmen beide versehentlich den Vorschlag wie reines `Enter`, da keine eigene Tastenkombination dafür gebunden war.
 - Validator prüft jetzt die Paarung von `:::columns`/`:::nextcol`/`:::endcolumns`: `nextcol` außerhalb eines offenen `columns`-Blocks, `endcolumns` ohne passenden offenen `columns`, ein nie mit `endcolumns` geschlossener `columns`-Block sowie verschachtelte `columns`-Blöcke werden jetzt als Fehler gemeldet (`BL007`-`BL010`); eine unpassende Anzahl `nextcol`-Marker (weicht von der bei `cols=` angegebenen Spaltenzahl minus eins ab) als Warnung (`BL011`). Bisher wurden diese Fälle beim Rendern nur still toleriert, ohne dass die Autorin/der Autor eine Rückmeldung bekam.
