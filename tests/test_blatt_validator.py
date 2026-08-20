@@ -297,6 +297,101 @@ def test_grid_line_dashed_option_is_accepted():
     assert "OP002" not in codes
 
 
+def test_geometry_unknown_entry_key_emits_an011_warning():
+    text = _build_document(
+        ":::geometry rows=4 cols=4\n"
+        "functions:\n"
+        "  - {expr: 'x^2', lable: 'typo'}\n"
+        ":::"
+    )
+    inspected = inspect_markdown_text(text)
+    an011 = [d for d in inspected.diagnostics if d.code == "AN011"]
+    assert an011
+    assert "lable" in an011[0].message
+
+
+def test_geometry_all_allowed_entry_keys_do_not_emit_an011():
+    text = _build_document(
+        ":::geometry rows=4 cols=4 axis=true origin=\"2,2\"\n"
+        "points:\n"
+        "  - {x: 0, y: 0, col: 0, row: 0, label: p, show: '&', color: red, thickness: 1}\n"
+        "sequence:\n"
+        "  - {x: 0, y: 0, label: s, show: '&', color: red, thickness: 1}\n"
+        "pairs:\n"
+        "  - {x1: 0, y1: 0, x2: 1, y2: 1, line: solid, label: l, show: '&', color: red, thickness: 1}\n"
+        "functions:\n"
+        "  - {expr: x, domain: '-1:1', label: f, show: '&', color: red, thickness: 1}\n"
+        ":::"
+    )
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+    assert "AN011" not in codes
+
+
+def test_geometry_pairs_line_invalid_value_emits_an012_error_separately_from_op002():
+    text = _build_document(
+        ":::geometry rows=4 cols=4 line=dashed\n"
+        "pairs:\n"
+        "  - {x1: 0, y1: 0, x2: 1, y2: 1, line: wavy}\n"
+        ":::"
+    )
+    inspected = inspect_markdown_text(text)
+    an012 = [d for d in inspected.diagnostics if d.code == "AN012"]
+    assert an012
+    assert an012[0].severity == "error"
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+    assert "OP002" not in codes
+
+
+def test_geometry_invalid_color_emits_an013_warning():
+    text = _build_document(
+        ":::geometry rows=4 cols=4\n"
+        "points:\n"
+        "  - {x: 0, y: 0, color: 'red;}body{display:none'}\n"
+        ":::"
+    )
+    inspected = inspect_markdown_text(text)
+    an013 = [d for d in inspected.diagnostics if d.code == "AN013"]
+    assert an013
+    assert an013[0].severity == "warning"
+
+
+def test_geometry_valid_color_does_not_emit_an013():
+    text = _build_document(
+        ":::geometry rows=4 cols=4\n"
+        "points:\n"
+        "  - {x: 0, y: 0, color: '#ff00aa'}\n"
+        ":::"
+    )
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+    assert "AN013" not in codes
+
+
+def test_geometry_non_positive_thickness_emits_an014_warning():
+    text = _build_document(
+        ":::geometry rows=4 cols=4\n"
+        "points:\n"
+        "  - {x: 0, y: 0, thickness: 0}\n"
+        ":::"
+    )
+    inspected = inspect_markdown_text(text)
+    an014 = [d for d in inspected.diagnostics if d.code == "AN014"]
+    assert an014
+
+
+def test_geometry_positive_thickness_does_not_emit_an014():
+    text = _build_document(
+        ":::geometry rows=4 cols=4\n"
+        "points:\n"
+        "  - {x: 0, y: 0, thickness: 2.5}\n"
+        ":::"
+    )
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+    assert "AN014" not in codes
+
+
 def test_geometry_line_invalid_value_emits_op002_error():
     text = _build_document(":::geometry rows=2 line=wavy\n:::")
     inspected = inspect_markdown_text(text)

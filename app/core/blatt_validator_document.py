@@ -30,7 +30,10 @@ from .blatt_validator_constants import (
 from .blatt_validator_marker_syntax import _has_explicit_worksheet_marker_without_solution
 from .blatt_validator_types import BuildDiagnostic
 from .blatt_validator_value_helpers import _get_matching_item_counts, _is_truthy_meta_bool
-from .blatt_validator_yaml_entries import _validate_payload_show_markers
+from .blatt_validator_yaml_entries import (
+    _validate_geometry_entry_fields,
+    _validate_payload_show_markers,
+)
 
 
 def _validate_frontmatter(meta):
@@ -244,6 +247,7 @@ def _validate_yaml_answer_payload(diagnostics, index, block_type, options, conte
 
         if isinstance(parsed, dict):
             _validate_payload_show_markers(diagnostics, index, answer_type, parsed)
+            _validate_geometry_entry_fields(diagnostics, index, answer_type, parsed)
 
     if answer_type == "matching":
         first_count, second_count = _get_matching_item_counts(options, content)

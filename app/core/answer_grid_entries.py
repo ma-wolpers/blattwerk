@@ -13,6 +13,27 @@ from __future__ import annotations
 from .answer_special_shared import parse_svg_color, parse_svg_thickness
 
 
+GEOMETRY_ENTRY_ALLOWED_KEYS = {
+    "points": {"x", "y", "col", "row", "label", "show", "color", "thickness"},
+    "sequence": {"x", "y", "label", "show", "color", "thickness"},
+    "pairs": {"x1", "y1", "x2", "y2", "line", "label", "show", "color", "thickness"},
+    "functions": {"expr", "domain", "label", "show", "color", "thickness"},
+}
+"""Normative Menge erlaubter YAML-Keys je Geometry-Sektion.
+
+Einzige Quelle für "welche Felder darf ein Eintrag in dieser Sektion
+haben" — lebt hier neben den `_parse_*`-Funktionen, die diese Felder
+tatsächlich lesen, statt in einem separaten Schema-Modul oder im
+Validator. `blatt_validator_yaml_entries.py` importiert dieses Dict, um
+unbekannte Keys zu erkennen (Diagnose `AN011`); Parser und Validator
+können dadurch nicht auseinanderlaufen. Ein Test
+(`tests/test_blatt_validator.py`) füllt pro Sektion einen Eintrag mit
+*allen* hier gelisteten Keys und prüft sowohl, dass der Validator keine
+`AN011`-Diagnose meldet, als auch, dass die jeweilige `_parse_*`-Funktion
+kein Feld verliert — das hält beide Seiten nachweisbar synchron.
+"""
+
+
 def _as_float(value):
     """Konvertiert einen Wert nach `float`, liefert `None` statt einer Exception."""
     try:

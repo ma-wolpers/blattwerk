@@ -8,6 +8,7 @@ The format is based on Keep a Changelog.
 
 ### Added
 
+- Validator erkennt jetzt unbekannte YAML-Keys sowie ungültige `line`-/`color`-/`thickness`-Werte in `geometry`-Objekt-Einträgen (`points`/`sequence`/`pairs`/`functions`): neue Diagnosecodes `AN011` (unbekannter Key, z. B. Tippfehler wie `lable`), `AN012` (ungültiger `pairs`-`line`-Wert, getrennt von der gleichnamigen Block-Option), `AN013` (ungültiger `color`-Wert), `AN014` (ungültiger `thickness`-Wert). Bisher wurden solche Tippfehler/ungültigen Werte in Geometry-YAML-Objekten still ignoriert.
 - Geometry-Objekte (`points`, `sequence`, `pairs`, `functions`) unterstützen jetzt optionale `color`- und `thickness`-Keys pro Objekt (beliebiger CSS-Farbwert bzw. positive Zahl), mit sicherem Fallback auf den bisherigen Theme-Standard bei fehlendem oder ungültigem Wert.
 - `pairs` (Strecken) und `functions` (Funktionsgraphen) unterstützen jetzt einen optionalen `label`-Key, analog zu den bereits vorhandenen Labels bei `points`/`sequence`. Strecken-Labels erscheinen am Streckenmittelpunkt, Funktionsgraph-Labels am rechten (letzten sichtbaren) Kurvenende.
 - `:::grid`/`:::geometry`: neue Option `line=solid|dashed` (Standard: `solid`) steuert den Linienstil des Rasterhintergrunds selbst. Ungültige Werte (z. B. `line=wavy`) werden vom Validator als `OP002` gemeldet und fallen beim Rendern sicher auf `solid` zurück.
