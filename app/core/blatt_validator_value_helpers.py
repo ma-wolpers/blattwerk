@@ -15,6 +15,7 @@ from urllib.parse import urlparse
 
 import yaml
 
+from .blatt_validator_constants import KNOWN_ALIGN_VALUES
 from .blatt_validator_patterns import (
     _POSIX_ABSOLUTE_PATH_RE,
     _QRCODE_CSS_SIZE_PATTERN,
@@ -166,24 +167,7 @@ def _is_valid_object_align(value):
     """Prüft einen `align`/`alignment`-Wert gegen die unterstützten deutschen/englischen Schreibweisen."""
     normalized = _normalize_value(str(value or ""))
     normalized = normalized.replace("ü", "u").replace("ß", "ss")
-    return normalized in {
-        "left",
-        "links",
-        "linksbundig",
-        "linksbuendig",
-        "right",
-        "rechts",
-        "rechtsbundig",
-        "rechtsbuendig",
-        "center",
-        "centre",
-        "middle",
-        "mitte",
-        "zentriert",
-        "justify",
-        "block",
-        "blocksatz",
-    }
+    return normalized in KNOWN_ALIGN_VALUES
 
 
 def _is_valid_qrcode_url(value):

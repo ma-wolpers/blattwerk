@@ -103,6 +103,32 @@ das den Linienstil einzelner Strecken steuert und separat über
 `GEOMETRY_ENTRY_ALLOWED_KEYS`/`_validate_geometry_entry_fields` geprüft
 wird — beide Ebenen teilen sich nur den Namen, nicht die Validierung.
 """
+KNOWN_ALIGN_VALUES = {
+    "left",
+    "links",
+    "linksbundig",
+    "linksbuendig",
+    "right",
+    "rechts",
+    "rechtsbundig",
+    "rechtsbuendig",
+    "center",
+    "centre",
+    "middle",
+    "mitte",
+    "zentriert",
+    "justify",
+    "block",
+    "blocksatz",
+}
+"""Erlaubte Werte für die Objekt-Ausrichtungsoption `align`/`alignment`
+(deutsche und englische Schreibweisen). Normative Quelle für
+`_is_valid_object_align` (`blatt_validator_value_helpers.py`) -- lebt hier
+statt als Inline-Literal, damit `BLOCK_OPTION_SPECS` (unten) dieselbe
+Menge referenzieren kann, ohne sie zu duplizieren. Gilt **nicht** für
+`table`/`matching`, die ihre eigene, abweichende `align`-Semantik haben
+(siehe `BLOCK_OPTION_SPECS`-Eintrag dort)."""
+
 NUMBERLINE_ANSWER_TYPES = {"numberline"}
 MARKER_SHOW_SECTIONS_BY_ANSWER_TYPE = {
     "geometry": ("points", "pairs", "functions"),
@@ -176,177 +202,298 @@ YAML_ANSWER_TYPES = {
     "matching",
 }
 
-BLOCK_ALLOWED_OPTIONS = {
-    "material": {"title", "show", "mode", "align"},
-    "info": {"type", "show", "mode", "align"},
-    "task": {
-        "points",
-        "time",
-        "work",
-        "action",
-        "hint",
-        "show",
-        "mode",
-        "title",
-        "align",
-    },
-    "subtask": {"time", "work", "action", "show", "mode", "align"},
-    "lines": {
-        "show",
-        "mode",
-        "rows",
-        "height",
-        "align",
-    },
-    "grid": {
-        "show",
-        "mode",
-        "rows",
-        "cols",
-        "scale",
-        "line",
-        "align",
-    },
-    "geometry": {
-        "show",
-        "mode",
-        "rows",
-        "cols",
-        "scale",
-        "line",
-        "axis",
-        "axis_label_x",
-        "axis_label_y",
-        "origin",
-        "step_x",
-        "step_y",
-        "align",
-    },
-    "dots": {
-        "show",
-        "mode",
-        "height",
-        "align",
-    },
-    "space": {
-        "show",
-        "mode",
-        "height",
-        "align",
-    },
-    "table": {
-        "show",
-        "mode",
-        "rows",
-        "cols",
-        "width",
-        "widths",
-        "alignment",
-        "row_height",
-        "headers",
-        "header_columns",
-        "header_cols",
-        "row_labels",
-    },
-    "numberline": {
-        "show",
-        "mode",
-        "height",
-        "min",
-        "max",
-        "minimum",
-        "maximum",
-        "tick_step",
-        "ticks",
-        "tick_spacing_mm",
-        "tick_spacing_cm",
-        "tick_spacing",
-        "major_every",
-        "max_width_mm",
-        "max_width_cm",
-        "full_width",
-        "positive_sign",
-        "signed_positive",
-        "align",
-    },
-    "mc": {
-        "show",
-        "mode",
-        "inline",
-        "tf",
-        "true_false",
-        "correct",
-        "options",
-        "widths",
-        "align",
-    },
-    "cloze": {
-        "show",
-        "mode",
-        "gap",
-        "gap_length",
-        "words",
-        "words_multi",
-        "layout",
-        "align",
-    },
-    "matching": {
-        "show",
-        "mode",
-        "scale",
-        "layout",
-        "orientation",
-        "left",
-        "right",
-        "top",
-        "bottom",
-        "matches",
-        "links",
-        "worksheet_matches",
-        "height_mode",
-        "align",
-        "show_guides",
-        "lane_align",
-    },
-    "wordsearch": {
-        "show",
-        "mode",
-        "min_size",
-        "min_rows",
-        "min_cols",
-        "diagonal",
-        "horizontal",
-        "vertical",
-        "words",
-        "align",
-    },
-    "solution": {"label", "show", "mode", "align"},
-    "columns": {"cols", "widths", "ratio", "gap", "align"},
-    "nextcol": set(),
-    "endcolumns": set(),
-    "help": {"title", "level", "show", "mode", "tag"},
-    "hilfe": {"title", "level", "show", "mode", "tag"},
-    "qrcode": {
-        "url",
-        "w",
-        "h",
-        "maxw",
-        "width",
-        "height",
-        "max-width",
-        "align",
-        "alignment",
-        "show",
-        "mode",
-    },
-    "pagebreak": set(),
-    "framebreak": set(),
-    "slidechromeoff": set(),
-    "sectionmark": {"title"},
-    "vspacer": {"height"},
-}
+@dataclass(frozen=True)
+class BlockOptionSpec:
+    """Normativer Fakt über eine `:::blocktyp key=value`-Option -- Validator-Eigentum, keine Prosa.
+
+    **`kind` und `validated` sind unabhängige Dimensionen, nicht gekoppelt:**
+    `kind` beschreibt, welche Art von Wert der Code an dieser Stelle
+    tatsächlich erwartet/verarbeitet -- auch wenn das nur im *Renderer*
+    steckt (z. B. `rows` wird über `_safe_int(...)` gelesen -> `kind=
+    "integer"`, unabhängig davon, ob der Validator das prüft). `validated`
+    sagt ausschließlich, ob der **Validator** dieses Format/diese Werte
+    aktuell durchsetzt (d. h. ein falscher Wert eine Diagnose auslöst).
+    `BlockOptionSpec(name="height", kind="css_length", validated=False)`
+    heißt also präzise: *"wird als CSS-Länge interpretiert, aber der
+    Validator prüft das Format nicht"* -- keine automatische normative
+    Verschärfung. `kind` ∈ {"enum", "boolean", "integer", "number",
+    "css_length", "url", "text"}; `"text"` ist der ehrliche Rückfall, wenn
+    der Code den Wert nur als Rohstring durchreicht bzw. keine spezifischere
+    Klassifizierung im Code belegt ist.
+
+    **`default`-Sentinel:** `MISSING` = kein dokumentierbarer expliziter
+    Default im Code gefunden; ein konkreter Wert = der Code verwendet
+    exakt diesen Default; `None` wird nur gesetzt, wenn im Code
+    tatsächlich semantisch "nichts" der Default ist (z. B. `action`/`hint`
+    bei `task`: ohne Angabe wird schlicht kein Symbol gerendert). Ein
+    dynamischer Theme-/Renderer-Fallback (kein fester Wert, z. B. Geometry-
+    `color`/`thickness` ohne gültigen Wert) wird **nicht** hier codiert,
+    sondern bleibt `MISSING` und wird in der redaktionellen Prosa als
+    dynamisches Verhalten beschrieben.
+    """
+
+    name: str
+    kind: str
+    allowed_values: frozenset[str] | None
+    validated: bool
+    default: object
+
+
+# -- Wiederverwendete Optionskonzepte (identische Bedeutung über mehrere Blöcke) --
+# Instanzen werden in mehreren Block-Tupeln unten referenziert statt dupliziert.
+
+_OPT_SHOW = BlockOptionSpec("show", "enum", frozenset(KNOWN_SHOW_VALUES), True, "both")
+_OPT_MODE = BlockOptionSpec("mode", "enum", frozenset(KNOWN_BLOCK_MODE_VALUES), True, MISSING)
+_OPT_ALIGN = BlockOptionSpec("align", "enum", frozenset(KNOWN_ALIGN_VALUES), True, MISSING)
+_OPT_ALIGNMENT_GENERIC = BlockOptionSpec(
+    "alignment", "enum", frozenset(KNOWN_ALIGN_VALUES), True, MISSING
+)
+_OPT_WORK = BlockOptionSpec("work", "enum", frozenset(KNOWN_WORK_VALUES), True, "single")
+_OPT_ACTION = BlockOptionSpec("action", "enum", frozenset(KNOWN_ACTION_VALUES), True, None)
+_OPT_HINT = BlockOptionSpec("hint", "enum", frozenset(KNOWN_HINT_VALUES), True, None)
+_OPT_LINE = BlockOptionSpec("line", "enum", frozenset(KNOWN_GRID_LINE_STYLES), True, "solid")
+_OPT_TITLE = BlockOptionSpec("title", "text", None, False, MISSING)
+_OPT_WIDTHS = BlockOptionSpec("widths", "text", None, False, MISSING)
+_OPT_SCALE = BlockOptionSpec("scale", "css_length", None, False, "0.5cm")
 
 QRCODE_SIZE_OPTION_KEYS = {"w", "h", "maxw", "width", "height", "max-width"}
+_OPT_QRCODE_SIZE_HINT = "CSS-Größe wie `3cm`, `120px`, `60%` oder `auto`"
+
+BLOCK_OPTION_SPECS: dict[str, tuple[BlockOptionSpec, ...]] = {
+    "material": (_OPT_TITLE, _OPT_SHOW, _OPT_MODE, _OPT_ALIGN),
+    "info": (
+        BlockOptionSpec("type", "enum", frozenset({"default", "warning", "note"}), False, "default"),
+        _OPT_SHOW,
+        _OPT_MODE,
+        _OPT_ALIGN,
+    ),
+    "task": (
+        BlockOptionSpec("points", "text", None, False, MISSING),
+        BlockOptionSpec("time", "text", None, False, MISSING),
+        _OPT_WORK,
+        _OPT_ACTION,
+        _OPT_HINT,
+        _OPT_SHOW,
+        _OPT_MODE,
+        _OPT_TITLE,
+        _OPT_ALIGN,
+    ),
+    "subtask": (
+        BlockOptionSpec("time", "text", None, False, MISSING),
+        _OPT_WORK,
+        _OPT_ACTION,
+        _OPT_SHOW,
+        _OPT_MODE,
+        _OPT_ALIGN,
+    ),
+    "lines": (
+        _OPT_SHOW,
+        _OPT_MODE,
+        BlockOptionSpec("rows", "integer", None, False, 3),
+        BlockOptionSpec("height", "css_length", None, False, MISSING),
+        _OPT_ALIGN,
+    ),
+    "grid": (
+        _OPT_SHOW,
+        _OPT_MODE,
+        BlockOptionSpec("rows", "integer", None, False, 5),
+        BlockOptionSpec(
+            "cols", "integer", None, False, MISSING
+        ),  # ohne Angabe automatisch aus Druckbreite/scale berechnet
+        _OPT_SCALE,
+        _OPT_LINE,
+        _OPT_ALIGN,
+    ),
+    "geometry": (
+        _OPT_SHOW,
+        _OPT_MODE,
+        BlockOptionSpec("rows", "integer", None, False, 5),
+        BlockOptionSpec("cols", "integer", None, False, 20),
+        _OPT_SCALE,
+        _OPT_LINE,
+        BlockOptionSpec("axis", "boolean", None, False, False),
+        BlockOptionSpec("axis_label_x", "text", None, False, "x"),
+        BlockOptionSpec("axis_label_y", "text", None, False, "y"),
+        BlockOptionSpec("origin", "text", None, False, MISSING),  # Format "col,row"
+        BlockOptionSpec("step_x", "number", None, False, 1.0),
+        BlockOptionSpec("step_y", "number", None, False, 1.0),
+        _OPT_ALIGN,
+    ),
+    "dots": (
+        _OPT_SHOW,
+        _OPT_MODE,
+        BlockOptionSpec("height", "css_length", None, False, "4cm"),
+        _OPT_ALIGN,
+    ),
+    "space": (
+        _OPT_SHOW,
+        _OPT_MODE,
+        BlockOptionSpec("height", "css_length", None, False, "3cm"),
+        _OPT_ALIGN,
+    ),
+    "table": (
+        _OPT_SHOW,
+        _OPT_MODE,
+        BlockOptionSpec("rows", "integer", None, False, MISSING),
+        BlockOptionSpec("cols", "integer", None, False, MISSING),
+        BlockOptionSpec("width", "css_length", None, False, MISSING),
+        _OPT_WIDTHS,
+        BlockOptionSpec(
+            "alignment",
+            "enum",
+            frozenset({"left", "right", "center", "justify", "l", "r", "c", "j"}),
+            False,
+            MISSING,
+        ),  # eigene Semantik (auch pro Spalte, Kurzformen l/r/c/j) -- NICHT über _is_valid_object_align geprüft
+        BlockOptionSpec("row_height", "css_length", None, False, MISSING),
+        BlockOptionSpec("headers", "text", None, False, MISSING),
+        BlockOptionSpec("header_columns", "integer", None, False, MISSING),
+        BlockOptionSpec("header_cols", "integer", None, False, MISSING),  # Alias von header_columns
+        BlockOptionSpec("row_labels", "text", None, False, MISSING),
+    ),
+    "numberline": (
+        _OPT_SHOW,
+        _OPT_MODE,
+        BlockOptionSpec("height", "css_length", None, False, "2.7cm"),
+        BlockOptionSpec("min", "number", None, False, MISSING),
+        BlockOptionSpec("max", "number", None, False, MISSING),
+        BlockOptionSpec("minimum", "number", None, False, MISSING),  # Alias von min
+        BlockOptionSpec("maximum", "number", None, False, MISSING),  # Alias von max
+        BlockOptionSpec("tick_step", "number", None, False, MISSING),
+        BlockOptionSpec("ticks", "text", None, False, MISSING),
+        BlockOptionSpec("tick_spacing_mm", "number", None, False, MISSING),
+        BlockOptionSpec("tick_spacing_cm", "number", None, False, MISSING),
+        BlockOptionSpec("tick_spacing", "number", None, False, MISSING),
+        BlockOptionSpec("major_every", "integer", None, False, 0),
+        BlockOptionSpec("max_width_mm", "number", None, False, MISSING),
+        BlockOptionSpec("max_width_cm", "number", None, False, MISSING),
+        BlockOptionSpec("full_width", "boolean", None, False, MISSING),
+        BlockOptionSpec("positive_sign", "boolean", None, False, MISSING),
+        BlockOptionSpec("signed_positive", "boolean", None, False, MISSING),  # Alias von positive_sign
+        _OPT_ALIGN,
+    ),
+    "mc": (
+        _OPT_SHOW,
+        _OPT_MODE,
+        BlockOptionSpec("inline", "boolean", None, False, False),
+        BlockOptionSpec("tf", "boolean", None, False, False),
+        BlockOptionSpec("true_false", "boolean", None, False, False),  # Alias von tf
+        BlockOptionSpec("correct", "text", None, False, MISSING),
+        BlockOptionSpec("options", "text", None, False, MISSING),
+        _OPT_WIDTHS,
+        _OPT_ALIGN,
+    ),
+    "cloze": (
+        _OPT_SHOW,
+        _OPT_MODE,
+        BlockOptionSpec(
+            "gap", "enum", frozenset({"fixed", "equal", "same", "uniform", "gleich", "approx"}), False, "approx"
+        ),
+        BlockOptionSpec("gap_length", "integer", None, False, 10),
+        BlockOptionSpec("words", "text", None, False, MISSING),  # Wortbank-Position, nicht die Lückenwörter selbst
+        BlockOptionSpec("words_multi", "boolean", None, False, True),
+        BlockOptionSpec("layout", "text", None, False, MISSING),
+        _OPT_ALIGN,
+    ),
+    "matching": (
+        _OPT_SHOW,
+        _OPT_MODE,
+        _OPT_SCALE,
+        BlockOptionSpec("layout", "text", None, False, MISSING),
+        BlockOptionSpec("orientation", "text", None, False, MISSING),  # Alias von layout
+        BlockOptionSpec("left", "text", None, False, MISSING),
+        BlockOptionSpec("right", "text", None, False, MISSING),
+        BlockOptionSpec("top", "text", None, False, MISSING),
+        BlockOptionSpec("bottom", "text", None, False, MISSING),
+        BlockOptionSpec("matches", "text", None, False, MISSING),
+        BlockOptionSpec("links", "text", None, False, MISSING),  # Alias von left
+        BlockOptionSpec("worksheet_matches", "text", None, False, MISSING),
+        BlockOptionSpec("height_mode", "enum", frozenset({"content", "uniform"}), False, "content"),
+        BlockOptionSpec(
+            "align", "enum", frozenset({"center"}), False, "center"
+        ),  # eigene, engere Semantik -- NICHT über _is_valid_object_align geprüft
+        BlockOptionSpec("show_guides", "boolean", None, False, False),
+        BlockOptionSpec("lane_align", "enum", frozenset({"start", "center", "end"}), False, "center"),
+    ),
+    "wordsearch": (
+        _OPT_SHOW,
+        _OPT_MODE,
+        BlockOptionSpec("min_size", "integer", None, False, MISSING),
+        BlockOptionSpec("min_rows", "integer", None, False, MISSING),
+        BlockOptionSpec("min_cols", "integer", None, False, MISSING),
+        BlockOptionSpec("diagonal", "boolean", None, False, False),
+        BlockOptionSpec("horizontal", "boolean", None, False, False),  # akzeptiert auch Richtungslisten
+        BlockOptionSpec("vertical", "boolean", None, False, False),  # akzeptiert auch Richtungslisten
+        BlockOptionSpec("words", "text", None, False, MISSING),
+        _OPT_ALIGN,
+    ),
+    "solution": (
+        BlockOptionSpec("label", "boolean", None, False, True),
+        _OPT_SHOW,
+        _OPT_MODE,
+        _OPT_ALIGN,
+    ),
+    "columns": (
+        BlockOptionSpec("cols", "integer", None, False, 2),
+        _OPT_WIDTHS,
+        BlockOptionSpec("ratio", "text", None, False, MISSING),  # Alias von widths
+        BlockOptionSpec("gap", "css_length", None, False, MISSING),
+        _OPT_ALIGN,
+    ),
+    "nextcol": (),
+    "endcolumns": (),
+    "help": (
+        _OPT_TITLE,
+        BlockOptionSpec("level", "integer", None, False, MISSING),
+        _OPT_SHOW,
+        _OPT_MODE,
+        BlockOptionSpec("tag", "text", None, False, MISSING),
+    ),
+    "hilfe": (
+        _OPT_TITLE,
+        BlockOptionSpec("level", "integer", None, False, MISSING),
+        _OPT_SHOW,
+        _OPT_MODE,
+        BlockOptionSpec("tag", "text", None, False, MISSING),
+    ),
+    "qrcode": (
+        BlockOptionSpec("url", "url", None, True, MISSING),
+        BlockOptionSpec("w", "css_length", None, True, MISSING),
+        BlockOptionSpec("h", "css_length", None, True, MISSING),
+        BlockOptionSpec("maxw", "css_length", None, True, MISSING),
+        BlockOptionSpec("width", "css_length", None, True, MISSING),  # Alias von w
+        BlockOptionSpec("height", "css_length", None, True, MISSING),  # Alias von h
+        BlockOptionSpec("max-width", "css_length", None, True, MISSING),  # Alias von maxw
+        _OPT_ALIGN,
+        _OPT_ALIGNMENT_GENERIC,
+        _OPT_SHOW,
+        _OPT_MODE,
+    ),
+    "pagebreak": (),
+    "framebreak": (),
+    "slidechromeoff": (),
+    "sectionmark": (_OPT_TITLE,),
+    "vspacer": (
+        BlockOptionSpec("height", "css_length", None, False, MISSING),
+    ),  # als `:::vspacer height=...`-Blockoption unvalidiert; nur die `-=<länge>`-Kurzform (Control-Marker) wird per `BL006` geprüft
+}
+"""Vollständiger normativer Optionskatalog je Blocktyp (alle `KNOWN_BLOCK_TYPES`
+außer `"raw"`, inklusive optionsloser Blöcke als leere Tupel). `kind`/
+`validated`/`default` sind für die validierten Optionen (`show`, `mode`,
+`align` außer bei `table`/`matching`, `work`, `action`, `hint`, `line`,
+`qrcode`s `url`/Größenoptionen) direkt am Validierungscode verifiziert;
+für alle anderen Optionen an der tatsächlichen Renderer-Verarbeitung
+(`_safe_int`-Aufrufe -> `"integer"`, CSS-Längen-Parsing -> `"css_length"`,
+`_option_is_enabled`-Aufrufe -> `"boolean"`) oder, wo auch das nicht
+eindeutig belegt ist, als ehrlicher `"text"`-Rückfall."""
+
+BLOCK_ALLOWED_OPTIONS = {
+    block: frozenset(spec.name for spec in specs) for block, specs in BLOCK_OPTION_SPECS.items()
+}
+"""Abgeleitet aus `BLOCK_OPTION_SPECS` (s. o.) -- keine zweite, separat
+gepflegte Quelle mehr. Bestehende Konsumenten (`blatt_validator_block_options.py`,
+`completion_catalogs.py`, `markdown_conventions.py`) brauchen nur die
+Namensmenge und bleiben unverändert lauffähig."""
 
 OBJECT_ALIGN_VALUE_HINT = "left|right|center|block"
 

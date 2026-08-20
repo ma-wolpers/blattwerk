@@ -3,18 +3,25 @@
 Aus `blatt_validator_document.py` ausgelagert, da diese eine Funktion
 (die Options-Werteprüfung mit ihrer langen `elif`-Kette) allein bereits
 gut ein Drittel der Zeilen der ursprünglichen ~400-Zeilen-Datei ausmachte.
+
+Die einfachen Enum-Optionen (`mode`, `work`, `action`, `hint`, `line` --
+strukturell identisch: "Wert nicht in der für diesen Blocktyp erlaubten
+Menge -> `OP002`") werden generisch aus `BLOCK_OPTION_SPECS`
+(`blatt_validator_constants.py`) geprüft, statt vier/fünf fast identische
+`elif`-Zweige zu pflegen: der Katalogeintrag *ist* die Prüfregel, kann
+strukturell nicht mehr von ihr abweichen. `show` (eigener Deprecation-
+Zweig `OP003`), `align`/`alignment` (Sonderregel: bei `table`/`matching`
+nicht über diesen generischen Weg geprüft, siehe deren eigene
+Katalogeinträge) und `qrcode`s `url`/Größenoptionen bleiben bewusst
+eigene Sonderlogik -- echte Blockausnahmen, kein sauberer generischer Fall.
 """
 
 from __future__ import annotations
 
 from .blatt_validator_constants import (
     ANSWER_BLOCK_TYPES,
-    KNOWN_ACTION_VALUES,
-    KNOWN_BLOCK_MODE_VALUES,
-    KNOWN_GRID_LINE_STYLES,
-    KNOWN_HINT_VALUES,
+    BLOCK_OPTION_SPECS,
     KNOWN_SHOW_VALUES,
-    KNOWN_WORK_VALUES,
     OBJECT_ALIGN_VALUE_HINT,
     QRCODE_SIZE_OPTION_KEYS,
 )
@@ -27,6 +34,32 @@ from .blatt_validator_value_helpers import (
     _normalize_value,
     _option_items,
 )
+
+_GENERIC_VALIDATED_ENUM_OPTION_NAMES = {"mode", "work", "action", "hint", "line"}
+
+
+def _lookup_option_spec(block_type, option_key):
+    """Findet den `BlockOptionSpec` für `(block_type, option_key)`, falls vorhanden."""
+    for spec in BLOCK_OPTION_SPECS.get(block_type, ()):
+        if spec.name == option_key:
+            return spec
+    return None
+
+
+def _validate_generic_enum_option(diagnostics, index, block_type, option_key, option_value, normalized_value):
+    """Prüft eine Option generisch gegen `BLOCK_OPTION_SPECS`, wenn ihr Katalogeintrag ein validiertes Enum ist.
+
+    Deckt `mode`/`work`/`action`/`hint` (blockübergreifend) sowie `line`
+    (nur bei `grid`/`geometry`, wo es überhaupt als Option existiert --
+    andere Blöcke scheitern für `line` bereits vorher an `OP001`) ab.
+    """
+    spec = _lookup_option_spec(block_type, option_key)
+    if spec is None or spec.kind != "enum" or not spec.validated or not spec.allowed_values:
+        return
+    if normalized_value not in spec.allowed_values:
+        _append_invalid_option_value(
+            diagnostics, index, block_type, option_key, option_value, spec.allowed_values
+        )
 
 
 def _validate_block_options(diagnostics, index, block_type, options, allowed_options):
@@ -83,32 +116,9 @@ def _validate_block_options(diagnostics, index, block_type, options, allowed_opt
                     block_type=block_type,
                 )
             )
-        elif option_key == "mode" and normalized_value not in KNOWN_BLOCK_MODE_VALUES:
-            _append_invalid_option_value(
-                diagnostics, index, block_type, option_key, option_value, KNOWN_BLOCK_MODE_VALUES
-            )
-        elif option_key == "work" and normalized_value not in KNOWN_WORK_VALUES:
-            _append_invalid_option_value(
-                diagnostics, index, block_type, option_key, option_value, KNOWN_WORK_VALUES
-            )
-        elif (
-            option_key == "action"
-            and normalized_value not in KNOWN_ACTION_VALUES
-        ):
-            _append_invalid_option_value(
-                diagnostics, index, block_type, option_key, option_value, KNOWN_ACTION_VALUES
-            )
-        elif option_key == "hint" and normalized_value not in KNOWN_HINT_VALUES:
-            _append_invalid_option_value(
-                diagnostics, index, block_type, option_key, option_value, KNOWN_HINT_VALUES
-            )
-        elif (
-            option_key == "line"
-            and block_type in {"grid", "geometry"}
-            and normalized_value not in KNOWN_GRID_LINE_STYLES
-        ):
-            _append_invalid_option_value(
-                diagnostics, index, block_type, option_key, option_value, KNOWN_GRID_LINE_STYLES
+        elif option_key in _GENERIC_VALIDATED_ENUM_OPTION_NAMES:
+            _validate_generic_enum_option(
+                diagnostics, index, block_type, option_key, option_value, normalized_value
             )
         elif (
             option_key in {"align", "alignment"}

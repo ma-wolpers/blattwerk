@@ -21,11 +21,11 @@ from .answer_grid_axis import _parse_origin, _resolve_axis_name
 from .answer_grid_entries import _parse_positive_float
 from .answer_grid_primitives import _render_grid_primitives_svg
 from .answer_grid_svg_frame import _estimate_geometry_bleed_units, _render_grid_background_svg
+from .blatt_validator_constants import KNOWN_GRID_LINE_STYLES
 
 
 _DEFAULT_GEOMETRY_COLS = 20
 _DEFAULT_PRINTABLE_WIDTH_CM = 18.0
-_KNOWN_GRID_LINE_STYLES = {"solid", "dashed"}
 
 
 def _resolve_grid_line_style(options):
@@ -38,7 +38,7 @@ def _resolve_grid_line_style(options):
     (`OP002`) gemeldet; hier gilt nur der sichere Rendering-Fallback.
     """
     raw_value = str(options.get("line", "solid")).strip().lower()
-    return raw_value if raw_value in _KNOWN_GRID_LINE_STYLES else "solid"
+    return raw_value if raw_value in KNOWN_GRID_LINE_STYLES else "solid"
 
 
 def _parse_grid_scale(raw_value):

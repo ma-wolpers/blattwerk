@@ -14,7 +14,8 @@ Parser / Validator / Runtime (bestehende normative Konstanten)
 
 Quellen im Einzelnen:
 - `blatt_validator_constants.py`: Frontmatter-Felder (`REQUIRED_FRONTMATTER_FIELDS`/
-  `OPTIONAL_FRONTMATTER_FIELDS`), Blocktypen/-optionen (`BLOCK_ALLOWED_OPTIONS`),
+  `OPTIONAL_FRONTMATTER_FIELDS`), Blocktypen/-optionen inkl. Pro-Options-
+  Fakten (`BLOCK_OPTION_SPECS`, davon `BLOCK_ALLOWED_OPTIONS` abgeleitet),
   Wertlisten (`KNOWN_WORK_VALUES`/`KNOWN_ACTION_VALUES`/`KNOWN_HINT_VALUES`),
   Grid-/Geometry-Linienstile (`KNOWN_GRID_LINE_STYLES`).
 - `blatt_kern_shared_data.py`: Control-Marker-Syntax (`CONTROL_MARKERS`) --
@@ -40,7 +41,7 @@ from dataclasses import dataclass
 from .answer_grid_entries import GEOMETRY_ENTRY_ALLOWED_KEYS
 from .blatt_kern_shared_data import CONTROL_MARKERS, ControlMarkerSpec
 from .blatt_validator_constants import (
-    BLOCK_ALLOWED_OPTIONS,
+    BLOCK_OPTION_SPECS,
     KNOWN_ACTION_VALUES,
     KNOWN_BLOCK_TYPES,
     KNOWN_GRID_LINE_STYLES,
@@ -48,6 +49,7 @@ from .blatt_validator_constants import (
     KNOWN_WORK_VALUES,
     OPTIONAL_FRONTMATTER_FIELDS,
     REQUIRED_FRONTMATTER_FIELDS,
+    BlockOptionSpec,
     FrontmatterFieldSpec,
 )
 from .document_types import KURZENTWURF_LEGACY_DETECTION_SUPPORT_KEYS
@@ -57,15 +59,15 @@ from .kurzentwurf_runtime.model import ALLOWED_PHASES
 
 @dataclass(frozen=True)
 class BlockSpec:
-    """Ein Blattwerk-`:::`-Blocktyp mit seinen erlaubten Optionen.
+    """Ein Blattwerk-`:::`-Blocktyp mit seinen Optionen -- inklusive Pro-Options-Fakten.
 
-    Reine Re-Verpackung von `BLOCK_ALLOWED_OPTIONS[name]` -- keine
+    Reine Re-Verpackung von `BLOCK_OPTION_SPECS[name]` -- keine
     zusätzlichen Felder wie `requires`/`mutually_exclusive`, da diese
     Informationen im Code nirgends normativ existieren.
     """
 
     name: str
-    allowed_options: frozenset[str]
+    options: tuple[BlockOptionSpec, ...]
 
 
 @dataclass(frozen=True)
@@ -142,7 +144,7 @@ def collect_markdown_conventions() -> MarkdownConventionCatalog:
     blocks = tuple(
         BlockSpec(
             name=block_name,
-            allowed_options=frozenset(BLOCK_ALLOWED_OPTIONS.get(block_name, set())),
+            options=tuple(BLOCK_OPTION_SPECS.get(block_name, ())),
         )
         for block_name in sorted(KNOWN_BLOCK_TYPES)
         if block_name != "raw"
