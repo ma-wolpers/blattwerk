@@ -35,6 +35,11 @@ Der Validator prueft Blattwerk-Markdown vor dem Build und liefert stabile Diagno
 - `BL004`: Ungueltiger Blockwechsel: Ein neuer `:::`-Block startet, bevor der aktuell offene Block geschlossen wurde; Marker muessen strikt als Oeffnen/Schliessen abwechseln.
 - `BL005`: Abschnittstrenner `---` oder `--` innerhalb eines offenen `:::`-Blocks sind ungueltig; sie sind nur auf Top-Level erlaubt.
 - `BL006`: Ungueltiger Abschnitts- (`--#`), Vertikalabstands- (`-=`) oder Folien-Chrome-Marker (`--hf`) -- Syntax entspricht nicht der erwarteten Form.
+- `BL007`: `nextcol` ausserhalb eines offenen `columns`-Blocks.
+- `BL008`: `endcolumns` ohne passenden offenen `columns`-Block.
+- `BL009`: `columns`-Block wird bis Dokument- bzw. Folienende nicht mit `endcolumns` geschlossen.
+- `BL010`: Verschachtelter `columns`-Block (ein neuer `columns` startet, bevor der vorherige mit `endcolumns` geschlossen wurde).
+- `BL011`: Anzahl `nextcol`-Marker zwischen `columns` und `endcolumns` weicht von `cols - 1` ab (Warnung).
 - `OP001`: Unbekannte Option fuer einen bekannten Block.
 - `OP002`: Ungueltiger Wert einer bekannten Option.
 - `OP003`: Option `show` in einem Block ist veraltet; `mode=worksheet|solution` verwenden.

@@ -29,6 +29,7 @@ from .blatt_validator_constants import (
     KNOWN_BLOCK_TYPES,
 )
 from .blatt_validator_block_options import _validate_block_options
+from .blatt_validator_columns import _validate_columns_structure
 from .blatt_validator_document import (
     _validate_block_type_specifics,
     _validate_frontmatter,
@@ -54,7 +55,8 @@ __all__ = [
 
 
 def _collect_document_diagnostics(meta, blocks, content_text, content_base_line=1):
-    """Orchestriert die vollständige Dokumentprüfung: Marker-Syntax, Frontmatter, je Block Optionen/Typ/YAML."""
+    """Orchestriert die vollständige Dokumentprüfung: Marker-Syntax, Frontmatter, je Block Optionen/Typ/YAML,
+    abschließend die dokumentweite `columns`/`nextcol`/`endcolumns`-Paarungsprüfung (`BL007`-`BL011`)."""
     diagnostics = _collect_block_marker_syntax_diagnostics(
         content_text, base_line=content_base_line
     )
@@ -118,6 +120,7 @@ def _collect_document_diagnostics(meta, blocks, content_text, content_base_line=
 
         _validate_yaml_answer_payload(diagnostics, index, block_type, options, content)
 
+    diagnostics.extend(_validate_columns_structure(blocks))
     return diagnostics
 
 
