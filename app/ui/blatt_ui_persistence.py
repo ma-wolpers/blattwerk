@@ -364,6 +364,7 @@ class BlattwerkAppPersistenceMixin:
                 self.ui_settings,
                 color_profile_order=COLOR_PROFILE_ORDER,
             )
+            self.preview_controls_collapsed_var.set(bool(self.ui_settings.get("preview_controls_collapsed", False)))
             self.preview_contrast_var.set(resolved_profiles["worksheet_contrast"])
             self.design_color_profile_var.set(resolved_profiles["worksheet_color_profile"])
             self.design_font_profile_var.set(resolved_profiles["worksheet_font_profile"])
@@ -378,6 +379,7 @@ class BlattwerkAppPersistenceMixin:
             """Speichert aktuelle UI-Einstellungen."""
 
             self.ui_settings["theme"] = normalize_theme_key(self.theme_var.get())
+            self.ui_settings["preview_controls_collapsed"] = bool(self.preview_controls_collapsed_var.get())
             self.ui_settings.update(
                 normalize_design_profiles_for_persistence(
                     worksheet_contrast=self.preview_contrast_var.get(),

@@ -94,6 +94,7 @@ class BlattwerkAppBase(BwBaseWindow):
         self.preview_black_screen_var = ui.StringVar(value="none")
         self.preview_section_separator_var = ui.StringVar(value="dot")
         self.preview_hide_future_sections_var = ui.BooleanVar(value=False)
+        self.preview_controls_collapsed_var = ui.BooleanVar(value=False)
         self.preview_page_format_var = ui.StringVar(value="a4_portrait")
         self.preview_contrast_var = ui.StringVar(value="standard")
         self.preview_fit_mode_var = ui.StringVar(value=VIEW_FIT_WIDTH)
@@ -123,6 +124,9 @@ class BlattwerkAppBase(BwBaseWindow):
         self.preview_container = None
         self.editor_preview_paned = None
         self.preview_h_scroll = None
+        self._preview_controls_frame = None
+        self.preview_controls_toggle_btn = None
+        self._preview_controls_after_anchor = None
         self._editor_loading_content = False
         self._editor_save_after_id = None
         self._editor_save_delay_ms = 800

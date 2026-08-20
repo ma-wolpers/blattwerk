@@ -135,8 +135,23 @@ class BlattwerkAppBuildMixin:
 
         self._build_editor_panel(self.editor_container)
 
+        preview_controls_header = widgets.Frame(self.preview_container, padding=(8, 4, 8, 0))
+        preview_controls_header.pack(fill="x")
+        self.preview_controls_toggle_btn = widgets.Button(
+            preview_controls_header,
+            text="▾",
+            width=3,
+            style="SecondaryAction.TButton",
+            command=self._toggle_preview_controls_collapsed,
+        )
+        self.preview_controls_toggle_btn.pack(side="left")
+        widgets.Label(preview_controls_header, text="Vorschau-Optionen", style="Muted.TLabel").pack(
+            side="left", padx=(6, 0)
+        )
+
         preview_controls = widgets.Frame(self.preview_container, padding=8)
         preview_controls.pack(fill="x")
+        self._preview_controls_frame = preview_controls
 
         self._responsive_sections = []
 
@@ -385,7 +400,8 @@ class BlattwerkAppBuildMixin:
         widgets.Label(info_row, textvariable=self.page_info_var).pack(side="left")
         widgets.Label(info_row, textvariable=self.zoom_info_var).pack(side="left", padx=(14, 0))
 
-        widgets.Separator(self.preview_container, orient="horizontal").pack(fill="x")
+        self._preview_controls_after_anchor = widgets.Separator(self.preview_container, orient="horizontal")
+        self._preview_controls_after_anchor.pack(fill="x")
 
         preview_canvas_frame = widgets.Frame(self.preview_container)
         preview_canvas_frame.pack(fill="both", expand=True)
@@ -429,6 +445,27 @@ class BlattwerkAppBuildMixin:
         self._apply_editor_view_mode()
         self._update_nav_buttons()
         self._build_global_status_bar(outer)
+        self._apply_preview_controls_collapsed_state()
+
+    def _toggle_preview_controls_collapsed(self):
+        """Klappt die Vorschau-Knopfleiste ein oder aus."""
+
+        self.preview_controls_collapsed_var.set(not self.preview_controls_collapsed_var.get())
+        self._apply_preview_controls_collapsed_state()
+        self._save_ui_settings()
+
+    def _apply_preview_controls_collapsed_state(self):
+        """Zeigt oder verbirgt die Vorschau-Knopfleiste je nach Toggle-Zustand."""
+
+        if self._preview_controls_frame is None or self.preview_controls_toggle_btn is None:
+            return
+
+        collapsed = bool(self.preview_controls_collapsed_var.get())
+        if collapsed:
+            self._preview_controls_frame.pack_forget()
+        else:
+            self._preview_controls_frame.pack(fill="x", before=self._preview_controls_after_anchor)
+        self.preview_controls_toggle_btn.configure(text="▸" if collapsed else "▾")
 
     def _build_global_status_bar(self, parent):
         """Creates the global status line below the editor/preview paned area, spanning both."""
