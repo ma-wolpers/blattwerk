@@ -34,6 +34,21 @@ _EDITOR_FRONTMATTER_KEYS = (
 class BlattwerkAppEditorCompletionContextMixin:
     """Erkennt, welche Art Vervollständigung an der aktuellen Cursorposition passt."""
 
+    @staticmethod
+    def _is_single_exact_completion_match(prefix: str, suggestions: list[dict]) -> bool:
+        """Returns True when exactly one suggestion remains and it already equals the typed prefix exactly.
+
+        Verhindert ein Popup mit einem einzigen, bereits fertig getippten
+        Vorschlag (z. B. Cursor direkt nach `:::lines`, wenn `lines` der
+        einzige Blocktyp ist, der mit `lines` beginnt) -- kein sinnvoller
+        weiterer Vorschlag mehr nötig.
+        """
+        if not prefix or len(suggestions) != 1:
+            return False
+        sole = suggestions[0]
+        candidate_text = str(sole.get("insert_text") or sole.get("label") or "")
+        return candidate_text.strip().lower() == prefix.strip().lower()
+
     def _collect_editor_completion_context(self, auto: bool):
         """Derives completion candidates from current line and cursor context."""
 
@@ -76,6 +91,8 @@ class BlattwerkAppEditorCompletionContextMixin:
                     for block_type in get_completion_block_types()
                     if block_type.startswith(block_prefix)
                 ]
+                if self._is_single_exact_completion_match(block_prefix, suggestions):
+                    return None
                 if auto and not suggestions:
                     return None
 
@@ -182,6 +199,8 @@ class BlattwerkAppEditorCompletionContextMixin:
                         for option in block_allowed_options
                         if option.startswith(key_prefix)
                     ]
+                    if self._is_single_exact_completion_match(key_prefix, suggestions):
+                        return None
                     return {
                         "suggestions": suggestions,
                         "replace_start": f"{line_no}.{key_match.start(1)}",
