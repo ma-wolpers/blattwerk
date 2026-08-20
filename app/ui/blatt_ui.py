@@ -5,6 +5,9 @@ from __future__ import annotations
 from .blatt_ui_base import BlattwerkAppBase
 from .blatt_ui_build import BlattwerkAppBuildMixin
 from .blatt_ui_editor import BlattwerkAppEditorMixin
+from .blatt_ui_editor_completion_context import BlattwerkAppEditorCompletionContextMixin
+from .blatt_ui_editor_completion_popup import BlattwerkAppEditorCompletionPopupMixin
+from .blatt_ui_editor_completion_ranking import BlattwerkAppEditorCompletionRankingMixin
 from .blatt_ui_export import BlattwerkAppExportMixin
 from .blatt_ui_help_preview import BlattwerkAppHelpPreviewMixin
 from .blatt_ui_persistence import BlattwerkAppPersistenceMixin
@@ -22,6 +25,9 @@ from bw_gui.widgets import HoverTooltip as _SharedHoverTooltipContractMarker
 
 class BlattwerkApp(
     BlattwerkAppExportMixin,
+    BlattwerkAppEditorCompletionRankingMixin,
+    BlattwerkAppEditorCompletionContextMixin,
+    BlattwerkAppEditorCompletionPopupMixin,
     BlattwerkAppEditorMixin,
     BlattwerkAppPreviewMixin,
     BlattwerkAppHelpPreviewMixin,
