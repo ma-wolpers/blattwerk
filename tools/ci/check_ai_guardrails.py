@@ -26,8 +26,31 @@ GUARDRAIL_RELEVANT_PATHS = {
     "docs/DEVELOPMENT_LOG.md",
     "docs/GUI_MIGRATION_BACKLOG.md",
     "docs/VALIDATOR.md",
+    "docs/ANLEITUNG_ARBEITSBLATT_PRAESENTATION.md",
+    "docs/ANLEITUNG_KURZENTWURF.md",
     "CHANGELOG.md",
     "tools/ci/check_ai_guardrails.py",
+    "tools/docs/generate_authoring_guides.py",
+    "tools/docs/authoring_guide_prose.py",
+    "app/core/markdown_conventions.py",
+    "app/core/blatt_validator_constants.py",
+    "app/core/blatt_validator_document.py",
+    "app/core/blatt_validator_block_options.py",
+    "app/core/blatt_validator_patterns.py",
+    "app/core/blatt_validator_yaml_entries.py",
+    "app/core/answer_grid_entries.py",
+    "app/core/answer_special_shared.py",
+    "app/core/document_types.py",
+    "app/core/blatt_kern_shared.py",
+    "app/core/blatt_kern_shared_data.py",
+    "app/core/blatt_kern_shared_parsing.py",
+    "app/core/blatt_kern_shared_blocks.py",
+    "app/core/blatt_kern_shared_meta.py",
+    "app/core/kurzentwurf_runtime/model.py",
+    "app/core/kurzentwurf_runtime/dsl.py",
+    "app/core/kurzentwurf_runtime/dsl_frontmatter.py",
+    "app/core/kurzentwurf_runtime/dsl_phases.py",
+    "app/core/kurzentwurf_runtime/dsl_segments.py",
     "app/ui/blatt_ui_style.py",
     "app/ui/export_dialog.py",
     "bw_libs/ui_contract/keybinding.py",
@@ -669,6 +692,52 @@ def _check_ui_contract_bridge_decommission(errors: list[str]) -> None:
             _forbid_substring(source, forbidden, rel_path, errors)
 
 
+def _check_authoring_guides_sync(errors: list[str]) -> None:
+    """Rendert die Autoren-Anleitungen frisch und vergleicht sie mit den committeten Dateien.
+
+    Wird in `main()` **unconditionally** aufgerufen (vor der Staged-File-
+    Gate-Liste), nicht hinter `GUARDRAIL_RELEVANT_PATHS` -- eine Aenderung
+    an den zugrundeliegenden Code-Katalogen (Validator-/Parser-/
+    Kurzentwurf-Konstanten in `app/core/markdown_conventions.py`) darf
+    diese Pruefung nie unbemerkt umgehen, selbst wenn die betroffene Datei
+    aus der Pfadliste vergessen wurde. `_staged_files()` liest ohnehin nur
+    lokal gestagte Aenderungen; in CI (frischer Checkout, kein Staged-
+    State) greift die Gate-Liste sowieso nie.
+    """
+    tools_docs_dir = ROOT / "tools" / "docs"
+    if str(tools_docs_dir) not in sys.path:
+        sys.path.insert(0, str(tools_docs_dir))
+
+    try:
+        import generate_authoring_guides as guide_generator
+    except Exception as exc:  # pragma: no cover - defensive guardrail fallback
+        errors.append(f"tools/docs/generate_authoring_guides.py: Import fehlgeschlagen ({exc})")
+        return
+
+    try:
+        fresh_guides = guide_generator.generate_guides()
+    except guide_generator.ProseCoverageError as exc:
+        errors.append(f"tools/docs/generate_authoring_guides.py: {exc}")
+        return
+    except Exception as exc:  # pragma: no cover - defensive guardrail fallback
+        errors.append(f"tools/docs/generate_authoring_guides.py: Generierung fehlgeschlagen ({exc})")
+        return
+
+    for path, content in fresh_guides.items():
+        rel_path = path.relative_to(ROOT).as_posix()
+        if not path.exists():
+            errors.append(
+                f"{rel_path}: fehlt -- mit `python tools/docs/generate_authoring_guides.py` erzeugen"
+            )
+            continue
+        existing = path.read_text(encoding="utf-8")
+        if existing != content:
+            errors.append(
+                f"{rel_path}: veraltet gegenueber aktuellem Code-Katalog -- neu erzeugen mit "
+                "`python tools/docs/generate_authoring_guides.py`"
+            )
+
+
 def _check_integrated_kurzentwurf_runtime(errors: list[str]) -> None:
     """Validate the embedded Kurzentwurf runtime used by Blattwerk."""
 
@@ -759,11 +828,25 @@ def _is_ci_environment() -> bool:
 def main() -> int:
     repo_root = _repo_root()
     staged = _staged_files(repo_root)
-    if staged and not _has_relevant_staged_changes(staged, repo_root):
-        print("AI guardrail check skipped (no guardrail-relevant staged files).")
-        return 0
 
     errors: list[str] = []
+
+    # Laufen unconditionally, vor dem Staged-File-Skip-Gate unten: beide
+    # gleichen generierte/abgeleitete Artefakte gegen Code-Konstanten ab
+    # und duerfen nicht uebersprungen werden, nur weil zufaellig keine der
+    # in GUARDRAIL_RELEVANT_PATHS gelisteten Dateien gestaged ist (siehe
+    # _check_authoring_guides_sync-Docstring).
+    _check_extension_validator_sync(errors)
+    _check_authoring_guides_sync(errors)
+
+    if staged and not _has_relevant_staged_changes(staged, repo_root):
+        if errors:
+            print("AI guardrail check failed:")
+            for item in errors:
+                print(f" - {item}")
+            return 2
+        print("AI guardrail check skipped (no guardrail-relevant staged files).")
+        return 0
 
     _read("AGENTS.md")
     _read(".github/copilot-instructions.md")
@@ -806,7 +889,6 @@ def main() -> int:
     _check_development_log_updated(staged, errors)
     _check_changelog_updated(staged, errors)
     _check_marker_token_consistency(errors)
-    _check_extension_validator_sync(errors)
     _check_blattwerker_solution_rule(errors)
     _check_shared_ui_contract_hardening(errors)
     _check_laufkern_fallback_sunset(errors)
