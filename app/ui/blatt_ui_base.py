@@ -144,6 +144,19 @@ class BlattwerkAppBase(BwBaseWindow):
         self._editor_completion_replace_end = None
         self._editor_completion_context_kind = None
         self._editor_completion_context_meta = {}
+        self._editor_search_frame = None
+        self._editor_search_replace_row = None
+        self._editor_search_before_widget = None
+        self._editor_search_query_entry = None
+        self._editor_search_replace_entry = None
+        self._editor_search_visible = False
+        self._editor_search_replace_visible = False
+        self._editor_search_matches = []
+        self._editor_search_current_index = None
+        self._editor_search_query_var = ui.StringVar(value="")
+        self._editor_search_replace_var = ui.StringVar(value="")
+        self._editor_search_case_sensitive_var = ui.BooleanVar(value=False)
+        self._editor_search_match_count_var = ui.StringVar(value="0/0")
         self._editor_last_saved_block_type_counts = {}
         self._editor_last_loaded_path = None
         self._editor_has_unsaved_changes = False

@@ -201,6 +201,8 @@ class BlattwerkAppEditorMixin:
         self.editor_widget.bind("<Button-1>", self._on_editor_mouse_click)
         self.editor_widget.bind("<FocusIn>", self._on_editor_focus_in)
 
+        self._build_editor_search_bar(parent, editor_body)
+
         preferences = getattr(self, "user_preferences", {})
         if bool(preferences.get("shortcuts_editor_group_enabled", True)):
             self.editor_widget.bind("<Control-space>", self._on_editor_completion_trigger)
@@ -218,6 +220,8 @@ class BlattwerkAppEditorMixin:
             self.editor_widget.bind("<Control-BackSpace>", self._on_editor_delete_word_before)
             self.editor_widget.bind("<Control-Delete>", self._on_editor_delete_word_after)
             self.editor_widget.bind("<Control-b>", self._show_block_insert_menu)
+            self.editor_widget.bind("<Control-f>", self._toggle_editor_find_bar)
+            self.editor_widget.bind("<Control-h>", self._toggle_editor_replace_bar)
 
         diagnostics_frame = widgets.LabelFrame(parent, text="Diagnostik")
         diagnostics_frame.pack(fill="x", padx=8, pady=(0, 8))
@@ -579,7 +583,7 @@ class BlattwerkAppEditorMixin:
             self.editor_widget.tag_configure("diag_error", background="#ffe2e2")
 
     def _configure_editor_syntax_tags(self):
-        """Configures text tags for syntax highlighting in markdown editor."""
+        """Configures text tags for syntax highlighting plus search-match highlighting in markdown editor."""
 
         if self.editor_widget is None:
             return
@@ -597,6 +601,8 @@ class BlattwerkAppEditorMixin:
             self.editor_widget.tag_configure("syn_marker", foreground="#F44747")
             self.editor_widget.tag_configure("syn_block_close_error", background="#5A1F2A", foreground="#FF9DA4")
             self.editor_widget.tag_configure("syn_block_pair", background="#2C3744")
+            self.editor_widget.tag_configure("search_match", background="#5C4A1E")
+            self.editor_widget.tag_configure("search_match_current", background="#B36B00", foreground="#1A1A1A")
         else:
             self.editor_widget.tag_configure("syn_frontmatter_delim", foreground="#0b7285")
             self.editor_widget.tag_configure("syn_frontmatter_key", foreground="#1864ab")
@@ -607,6 +613,8 @@ class BlattwerkAppEditorMixin:
             self.editor_widget.tag_configure("syn_marker", foreground="#c92a2a")
             self.editor_widget.tag_configure("syn_block_close_error", background="#ffe2e2", foreground="#8b0000")
             self.editor_widget.tag_configure("syn_block_pair", background=theme["accent_soft"])
+            self.editor_widget.tag_configure("search_match", background="#fff3bf")
+            self.editor_widget.tag_configure("search_match_current", background="#ffa94d", foreground="#1a1a1a")
 
     def _apply_editor_theme_widgets(self):
         """Applies theme colors to editor side widgets beyond the main text area."""

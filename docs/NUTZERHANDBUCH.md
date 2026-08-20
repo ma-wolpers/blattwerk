@@ -71,7 +71,8 @@ Installation/Setup steht bewusst in `README.md`.
 - `Strg+,`: Einstellungen öffnen
 - `Strg+1 / Strg+2 / Strg+3`: Nur Vorschau / Vorschau+Schreibbereich / Nur Schreibbereich
 - `Strg+T`: Theme wechseln
-- `Strg+F`: Schriftprofil wechseln
+- `Strg+Shift+F`: Schriftprofil wechseln
+- `Strg+Shift+H`: Lernhilfenansicht öffnen
 - `Esc`: App beenden
 
 ## 5) Exportdialog-Shortcuts
@@ -152,6 +153,19 @@ Installation/Setup steht bewusst in `README.md`.
 - Solange die Vorschlagsliste offen ist, funktionieren `Pfeil hoch/runter`, `Enter` und `Tab` direkt im Editor.
 - `Strg+Enter` oder `Shift+Enter` lehnen eine offene Vorschlagsliste ab und fügen stattdessen einen normalen Zeilenumbruch ein (wie `Enter` ohne offene Vorschlagsliste).
 - Die lokale Completion-Gewichtung kann in den Einstellungen über `Ranking zurücksetzen` gelöscht werden.
+
+## 11a) Suchen & Ersetzen im Schreibbereich
+
+- `Strg+F` öffnet die Suchleiste, `Strg+H` öffnet zusätzlich die Ersetzen-Zeile.
+- Ist beim Öffnen Text im Schreibbereich markiert, wird er als Suchbegriff übernommen; ohne Markierung bleibt das Suchfeld leer.
+- Groß-/Kleinschreibung wird standardmäßig ignoriert; über die Checkbox in der Suchleiste umschaltbar (löst sofort eine neue Suche aus).
+- Die Suche ist literal (kein Regex) und zyklisch: "Weiter" am Dokumentende springt zum Anfang, "Zurück" am Anfang zum Ende.
+- Die Suche startet ab dem aktuellen Cursor bzw. aktuellen Treffer, nicht immer vom Dokumentanfang.
+- Alle Treffer werden markiert, der aktuelle Treffer zusätzlich hervorgehoben. Trefferzähler im Format `3/12`, bei keinen Treffern `0/0`.
+- `Enter` im Suchfeld springt zum nächsten Treffer, `Shift+Enter` zum vorherigen.
+- `Esc` schließt die Suchleiste und stellt den Fokus im Schreibbereich wieder her.
+- Bei leerer Suchanfrage werden keine Treffer markiert und `Ersetzen`/`Alle ersetzen` haben keine Wirkung.
+- `Ersetzen` ersetzt nur den aktuellen Treffer und springt danach zum nächsten; `Alle ersetzen` ersetzt alle aktuellen Treffer auf einmal.
 
 ## 12) Struktur-Outline
 

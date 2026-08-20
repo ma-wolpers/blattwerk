@@ -8,6 +8,7 @@ The format is based on Keep a Changelog.
 
 ### Added
 
+- Schreibbereich: `Strg+F` öffnet eine Suchleiste, `Strg+H` öffnet Suchen+Ersetzen. Groß-/Kleinschreibung wird standardmäßig ignoriert (umschaltbar), die Suche ist zyklisch und startet ab dem aktuellen Cursor bzw. Treffer, alle Treffer werden markiert und der aktuelle Treffer separat hervorgehoben, Trefferzähler im Format `3/12`. Weil `Strg+F`/`Strg+H` jetzt für Suchen/Ersetzen reserviert sind, wurden `Schriftprofil wechseln` und `Lernhilfenansicht öffnen` auf `Strg+Shift+F`/`Strg+Shift+H` verlegt.
 - Schreibbereich: Vorschläge für Blockoptionen (`key`) fügen jetzt direkt `key=` ein und platzieren den Cursor dahinter; danach öffnen sich automatisch die passenden Wert-Vorschläge, genau wie beim echten Tippen von `key=`. Bisher musste `=` manuell getippt werden.
 - Schreibbereich: Beim Übernehmen selbstschließender Blockmarker (`nextcol`, `endcolumns`, `pagebreak`, `framebreak`, `slidechromeoff`, `sectionmark`, `vspacer`) wird automatisch das passende schließende `:::` mit eingefügt. Bisher entstand ein fälschlich offener Block, der auf eine separate Abschlusszeile wartete.
 - Schreibbereich: Wenn der getippte Blocktyp oder Optionsname bereits exakt einem einzigen Vorschlag entspricht (z. B. Cursor direkt nach `:::lines`), öffnet sich kein weiteres Vorschlags-Popup mehr.

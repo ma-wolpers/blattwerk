@@ -8,6 +8,7 @@ from .blatt_ui_editor import BlattwerkAppEditorMixin
 from .blatt_ui_editor_completion_context import BlattwerkAppEditorCompletionContextMixin
 from .blatt_ui_editor_completion_popup import BlattwerkAppEditorCompletionPopupMixin
 from .blatt_ui_editor_completion_ranking import BlattwerkAppEditorCompletionRankingMixin
+from .blatt_ui_editor_search import BlattwerkAppEditorSearchMixin
 from .blatt_ui_export import BlattwerkAppExportMixin
 from .blatt_ui_help_preview import BlattwerkAppHelpPreviewMixin
 from .blatt_ui_persistence import BlattwerkAppPersistenceMixin
@@ -28,6 +29,7 @@ class BlattwerkApp(
     BlattwerkAppEditorCompletionRankingMixin,
     BlattwerkAppEditorCompletionContextMixin,
     BlattwerkAppEditorCompletionPopupMixin,
+    BlattwerkAppEditorSearchMixin,
     BlattwerkAppEditorMixin,
     BlattwerkAppPreviewMixin,
     BlattwerkAppHelpPreviewMixin,
