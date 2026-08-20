@@ -25,6 +25,20 @@ from .answer_grid_svg_frame import _estimate_geometry_bleed_units, _render_grid_
 
 _DEFAULT_GEOMETRY_COLS = 20
 _DEFAULT_PRINTABLE_WIDTH_CM = 18.0
+_KNOWN_GRID_LINE_STYLES = {"solid", "dashed"}
+
+
+def _resolve_grid_line_style(options):
+    """Liest die `line=solid|dashed`-Option und normalisiert auf einen bekannten Wert.
+
+    Ein fehlender oder ungültiger Wert fällt auf `"solid"` zurück — das
+    entspricht dem Rasterverhalten vor Einführung dieser Option, damit
+    bestehende Dokumente ohne `line=...` unverändert weiter durchgezogen
+    gerendert werden. Ungültige Werte werden separat vom Validator
+    (`OP002`) gemeldet; hier gilt nur der sichere Rendering-Fallback.
+    """
+    raw_value = str(options.get("line", "solid")).strip().lower()
+    return raw_value if raw_value in _KNOWN_GRID_LINE_STYLES else "solid"
 
 
 def _parse_grid_scale(raw_value):
@@ -126,7 +140,7 @@ def render_grid_answer(options, content, include_solutions, render_solution_text
     style_parts = [f"--rows:{rows}", f"--cell-size:{scale}", f"--cols:{cols}"]
 
     solution_text_html = render_solution_text(content, include_solutions)
-    grid_svg = _render_grid_background_svg(cols, rows)
+    grid_svg = _render_grid_background_svg(cols, rows, line_style=_resolve_grid_line_style(options))
 
     overlay_parts = [grid_svg]
     if solution_text_html:
@@ -192,6 +206,7 @@ def render_geometry_answer(options, content, include_solutions, render_solution_
             bleed_bottom_units,
             bleed_left_units,
         ),
+        line_style=_resolve_grid_line_style(options),
     )
     primitives_svg = _render_grid_primitives_svg(
         options,

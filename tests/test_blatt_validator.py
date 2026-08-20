@@ -290,6 +290,21 @@ def test_geometry_yaml_legacy_show_values_emit_an007_error():
     assert an007[0].severity == "error"
 
 
+def test_grid_line_dashed_option_is_accepted():
+    text = _build_document(":::grid rows=2 line=dashed\n:::")
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+    assert "OP002" not in codes
+
+
+def test_geometry_line_invalid_value_emits_op002_error():
+    text = _build_document(":::geometry rows=2 line=wavy\n:::")
+    inspected = inspect_markdown_text(text)
+    op002 = [d for d in inspected.diagnostics if d.code == "OP002"]
+    assert op002
+    assert "line" in op002[0].message
+
+
 def test_grid_plain_marker_text_does_not_emit_an004():
     text = _build_document(":::grid rows=2\n§\n% Muster\n:::")
     inspected = inspect_markdown_text(text)

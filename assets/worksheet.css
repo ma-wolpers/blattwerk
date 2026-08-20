@@ -833,6 +833,10 @@ h1 {
     stroke-width: 0.07;
 }
 
+.grid-background-line-dashed {
+    stroke-dasharray: 2 2;
+}
+
 .grid-axis {
     stroke: #000;
     stroke-width: 0.9;

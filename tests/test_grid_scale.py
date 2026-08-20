@@ -230,3 +230,43 @@ def test_grid_axis_border_keeps_labels_and_arrowheads_visible():
     assert "10.3400,10.0000" in html
     assert "0.0000,-0.3400" in html
     assert re.search(r"class='grid-axis-label grid-axis-name' x='[0-9.\-]+' y='[0-9.\-]+' text-anchor='end'\>Amplitude</text>", html)
+
+
+def test_grid_line_dashed_option_adds_dashed_class():
+    html = _render_answer_block(
+        {"type": "grid", "rows": "2", "cols": "2", "line": "dashed"},
+        "",
+        include_solutions=False,
+    )
+
+    assert "grid-background-line-dashed" in html
+
+
+def test_grid_line_defaults_to_solid_without_option():
+    html = _render_answer_block(
+        {"type": "grid", "rows": "2", "cols": "2"},
+        "",
+        include_solutions=False,
+    )
+
+    assert "grid-background-line-dashed" not in html
+
+
+def test_geometry_line_dashed_option_adds_dashed_class():
+    html = _render_answer_block(
+        {"type": "geometry", "rows": "2", "cols": "2", "line": "dashed"},
+        "",
+        include_solutions=False,
+    )
+
+    assert "grid-background-line-dashed" in html
+
+
+def test_grid_line_invalid_value_falls_back_to_solid_rendering():
+    html = _render_answer_block(
+        {"type": "grid", "rows": "2", "cols": "2", "line": "wavy"},
+        "",
+        include_solutions=False,
+    )
+
+    assert "grid-background-line-dashed" not in html

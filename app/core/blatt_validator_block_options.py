@@ -11,6 +11,7 @@ from .blatt_validator_constants import (
     ANSWER_BLOCK_TYPES,
     KNOWN_ACTION_VALUES,
     KNOWN_BLOCK_MODE_VALUES,
+    KNOWN_GRID_LINE_STYLES,
     KNOWN_HINT_VALUES,
     KNOWN_SHOW_VALUES,
     KNOWN_WORK_VALUES,
@@ -100,6 +101,14 @@ def _validate_block_options(diagnostics, index, block_type, options, allowed_opt
         elif option_key == "hint" and normalized_value not in KNOWN_HINT_VALUES:
             _append_invalid_option_value(
                 diagnostics, index, block_type, option_key, option_value, KNOWN_HINT_VALUES
+            )
+        elif (
+            option_key == "line"
+            and block_type in {"grid", "geometry"}
+            and normalized_value not in KNOWN_GRID_LINE_STYLES
+        ):
+            _append_invalid_option_value(
+                diagnostics, index, block_type, option_key, option_value, KNOWN_GRID_LINE_STYLES
             )
         elif (
             option_key in {"align", "alignment"}

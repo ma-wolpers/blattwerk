@@ -246,6 +246,10 @@ Fuer `grid` gilt zusaetzlich:
     - Standard: `0.5cm`
     - Steuert die Zellgroesse des Rasters (Massstab).
     - Beispiel: `scale=0.4cm`, `scale=6mm`.
+- `line=solid|dashed`
+    - Standard: `solid`
+    - Steuert den Linienstil des Rasterhintergrunds selbst.
+    - Ungueltige Werte fallen mit Validator-Warnung (`OP002`) auf `solid` zurueck.
 
 Automatische Spaltenzahl in `grid` ohne `cols`:
 - Ohne explizites `cols` wird `cols` deterministisch aus aktiver Druck-Inhaltsbreite (Seitenformat + aktive Seitenraender) und `scale` berechnet.
@@ -265,6 +269,10 @@ Fuer `geometry` gilt zusaetzlich:
     - Standard: `0.5cm`
     - Steuert die Zellgroesse des Rasters (Massstab).
     - Beispiel: `scale=0.4cm`, `scale=6mm`.
+- `line=solid|dashed`
+    - Standard: `solid`
+    - Steuert den Linienstil des Rasterhintergrunds selbst (nicht zu verwechseln mit dem gleichnamigen `line`-Feld bei `pairs`-Eintraegen, das den Linienstil einzelner Strecken steuert).
+    - Ungueltige Werte fallen mit Validator-Warnung (`OP002`) auf `solid` zurueck.
 - `axis=true|false`
     - Aktiviert ein mathematisches Koordinatensystem mit x-/y-Achse.
     - Bei `axis=true` werden Achsen, Tick-Marks und Achsenlabels standardmäßig gerendert.

@@ -8,6 +8,7 @@ The format is based on Keep a Changelog.
 
 ### Added
 
+- `:::grid`/`:::geometry`: neue Option `line=solid|dashed` (Standard: `solid`) steuert den Linienstil des Rasterhintergrunds selbst. Ungültige Werte (z. B. `line=wavy`) werden vom Validator als `OP002` gemeldet und fallen beim Rendern sicher auf `solid` zurück.
 - Schreibbereich: `Strg+Rücktaste` löscht das Wort vor dem Cursor, `Strg+Entf` löscht das Wort nach dem Cursor — wie in üblichen Texteditoren erwartet.
 - Schreibbereich: `Strg+B` öffnet ein Dropdown-Menü mit allen 20 Blocktypen. Eintrag per Mausklick oder durch Drücken des unterstrichenen Buchstabens auswählen; der Cursor landet direkt im Inhaltsbereich des eingefügten Blocks. Buchstaben-Übersicht: A=mc · B=Tabelle · C=columns · D=dots · E=geometry · F=info · G=grid · H=help · I=Bild · K=cloze · L=lines · M=material · N=numberline · P=space · Q=qrcode · R=solution · S=subtask · T=task · W=wordsearch · Z=matching.
 

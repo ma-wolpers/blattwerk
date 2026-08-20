@@ -51,6 +51,15 @@ KNOWN_PRESENTATION_LAYOUTS = {
     "presentation_4_3",
 }
 GRID_MARKER_SHOW_VALUES = {"&", "§", "%"}
+KNOWN_GRID_LINE_STYLES = {"solid", "dashed"}
+"""Erlaubte Werte für die Block-Option `line=...` bei `:::grid`/`:::geometry`.
+
+Steuert den Linienstil des Rasterhintergrunds selbst (nicht zu verwechseln
+mit dem gleichnamigen Objekt-Feld `pairs[].line` in der Geometry-YAML-DSL,
+das den Linienstil einzelner Strecken steuert und separat über
+`GEOMETRY_ENTRY_ALLOWED_KEYS`/`_validate_geometry_entry_fields` geprüft
+wird — beide Ebenen teilen sich nur den Namen, nicht die Validierung.
+"""
 NUMBERLINE_ANSWER_TYPES = {"numberline"}
 MARKER_SHOW_SECTIONS_BY_ANSWER_TYPE = {
     "geometry": ("points", "pairs", "functions"),
@@ -152,6 +161,7 @@ BLOCK_ALLOWED_OPTIONS = {
         "rows",
         "cols",
         "scale",
+        "line",
         "align",
     },
     "geometry": {
@@ -160,6 +170,7 @@ BLOCK_ALLOWED_OPTIONS = {
         "rows",
         "cols",
         "scale",
+        "line",
         "axis",
         "axis_label_x",
         "axis_label_y",

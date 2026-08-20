@@ -45,18 +45,28 @@ def _svg_viewport_frame(cols, rows, bleed_units=(0.0, 0.0, 0.0, 0.0)):
     return view_box, style
 
 
-def _render_grid_background_svg(cols, rows, bleed_units=(0.0, 0.0, 0.0, 0.0)):
-    """Rendert das Karo-Raster als SVG im selben Koordinatensystem wie die Overlays."""
+def _render_grid_background_svg(cols, rows, bleed_units=(0.0, 0.0, 0.0, 0.0), line_style="solid"):
+    """Rendert das Karo-Raster als SVG im selben Koordinatensystem wie die Overlays.
+
+    `line_style` steuert nur das Aussehen der Rasterlinien selbst
+    (`"solid"`/`"dashed"`, Default `"solid"` entspricht dem bisherigen,
+    immer durchgezogenen Verhalten) — ein ungültiger Wert wird von der
+    aufrufenden Seite bereits auf `"solid"` normalisiert, hier wird nur
+    noch zwischen den zwei bekannten Werten unterschieden.
+    """
     view_box, frame_style = _svg_viewport_frame(cols, rows, bleed_units)
+    line_classes = "grid-background-line"
+    if line_style == "dashed":
+        line_classes += " grid-background-line-dashed"
     grid_lines = []
 
     for x in range(0, int(cols) + 1):
         grid_lines.append(
-            f"<line class='grid-background-line' x1='{x:.4f}' y1='0' x2='{x:.4f}' y2='{rows:.4f}' />"
+            f"<line class='{line_classes}' x1='{x:.4f}' y1='0' x2='{x:.4f}' y2='{rows:.4f}' />"
         )
     for y in range(0, int(rows) + 1):
         grid_lines.append(
-            f"<line class='grid-background-line' x1='0' y1='{y:.4f}' x2='{cols:.4f}' y2='{y:.4f}' />"
+            f"<line class='{line_classes}' x1='0' y1='{y:.4f}' x2='{cols:.4f}' y2='{y:.4f}' />"
         )
 
     return (
