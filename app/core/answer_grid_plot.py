@@ -1,14 +1,26 @@
-"""Grid answer renderers for writing fields and coordinate systems."""
+"""Grid-Antwort-Renderer: Schreibraster und Koordinatensysteme (öffentliche API).
+
+Orchestriert die Renderer für `:::grid` (`render_grid_answer`) und
+`:::geometry` (`render_geometry_answer`) sowie das einfache `:::dots`-Feld
+(`render_dots_answer`). Die eigentliche Geometrie-/SVG-Detailarbeit lebt in
+den Nachbarmodulen `answer_grid_svg_frame.py` (Viewport/Hintergrundraster),
+`answer_grid_axis.py` (Achsen-Geometrie), `answer_grid_entries.py`
+(Geometrie-Objekt-Parsing) und `answer_grid_primitives.py`
+(Geometrie-Objekt-Rendering) — dieses Modul bleibt bewusst der schlanke
+öffentliche Einstiegspunkt, den `blatt_kern_answer_table.py` importiert.
+"""
 
 from __future__ import annotations
 
-import ast
 import math
 import re
-from html import escape
 
 from .answer_special_shared import _option_is_enabled, _safe_int
 from .answer_yaml_payload import parse_yaml_answer_payload_with_solution
+from .answer_grid_axis import _parse_origin, _resolve_axis_name
+from .answer_grid_entries import _parse_positive_float
+from .answer_grid_primitives import _render_grid_primitives_svg
+from .answer_grid_svg_frame import _estimate_geometry_bleed_units, _render_grid_background_svg
 
 
 _DEFAULT_GEOMETRY_COLS = 20
@@ -27,7 +39,12 @@ def _parse_grid_scale(raw_value):
 
 
 def _grid_cell_size_to_cm(scale_value):
-    """Convert parsed grid cell size to cm for deterministic bleed padding."""
+    """Konvertiert einen geparsten Grid-Zellwert nach cm für deterministisches Bleed-Padding.
+
+    `em`/`rem`/`%` sind kontextabhängig und lassen sich ohne Layout-Engine
+    nicht exakt in cm umrechnen; dafür ein stabiler Fallback (`0.5`) statt
+    einer Fehlberechnung.
+    """
     text = str(scale_value or "").strip().lower()
     match = re.fullmatch(r"(\d+(?:\.\d+)?)(cm|mm|px|pt|em|rem|%)", text)
     if not match:
@@ -50,7 +67,7 @@ def _grid_cell_size_to_cm(scale_value):
 
 
 def _resolve_runtime_printable_width_cm(options):
-    """Resolve printable width from runtime layout context passed by layout rendering."""
+    """Löst die druckbare Breite aus dem vom Layout-Rendering übergebenen Laufzeitkontext auf."""
     raw_value = (options or {}).get("_printable_width_cm")
     parsed = _as_float(raw_value)
     if parsed is None or parsed <= 0:
@@ -58,14 +75,29 @@ def _resolve_runtime_printable_width_cm(options):
     return parsed
 
 
+def _as_float(value):
+    """Konvertiert einen Wert nach `float`, liefert `None` statt einer Exception.
+
+    Lokale Kopie statt Import aus `answer_grid_entries`, da dort nur
+    private (`_`-präfixierte) Helper für die Geometry-Entry-Domäne liegen
+    sollen und dieses Modul eine unabhängige, sehr kleine Konvertierung
+    benötigt (kein Grund für eine Modul-übergreifende Abhängigkeit nur für
+    eine Ein-Zeilen-Funktion).
+    """
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
 def _estimate_grid_auto_cols(scale_value, printable_width_cm):
-    """Estimate default grid columns from runtime printable width and cell size."""
+    """Schätzt die Standard-Spaltenzahl aus druckbarer Breite und Zellgröße zur Laufzeit."""
     cell_size_cm = max(0.01, _grid_cell_size_to_cm(scale_value))
     return max(1, int(math.floor(printable_width_cm / cell_size_cm)))
 
 
 def render_dots_answer(options, content, include_solutions, render_solution_text):
-    """Render a dotted answer field with optional in-field solution overlay text."""
+    """Rendert ein Punktraster-Antwortfeld mit optionalem eingebetteten Lösungstext-Overlay."""
     height = options.get("height", "4cm")
     solution_text_html = render_solution_text(content, include_solutions)
     if solution_text_html:
@@ -78,7 +110,7 @@ def render_dots_answer(options, content, include_solutions, render_solution_text
 
 
 def render_grid_answer(options, content, include_solutions, render_solution_text):
-    """Render a writing grid with optional marker-based overlay text."""
+    """Rendert ein Schreibraster mit optionalem Marker-basiertem Overlay-Text."""
     rows = max(1, _safe_int(options.get("rows", 5), 5))
     scale = _parse_grid_scale(options.get("scale"))
     printable_width_cm = _resolve_runtime_printable_width_cm(options)
@@ -112,7 +144,7 @@ def render_grid_answer(options, content, include_solutions, render_solution_text
 
 
 def render_geometry_answer(options, content, include_solutions, render_solution_text):
-    """Render a coordinate/raster system with optional YAML-defined overlays."""
+    """Rendert ein Koordinaten-/Raster-System mit optionalen YAML-definierten Overlays."""
     rows = max(1, _safe_int(options.get("rows", 5), 5))
     scale = _parse_grid_scale(options.get("scale"))
     cell_size_cm = _grid_cell_size_to_cm(scale)
@@ -215,671 +247,5 @@ def render_geometry_answer(options, content, include_solutions, render_solution_
 
 
 def _parse_grid_payload(content):
-    """Parse YAML payload for grid overlays and return `(payload, fallback_solution_text)`."""
+    """Parst den YAML-Payload für Grid-Overlays und liefert `(payload, fallback_solution_text)`."""
     return parse_yaml_answer_payload_with_solution(content)
-
-
-def _svg_viewport_frame(cols, rows, bleed_units=(0.0, 0.0, 0.0, 0.0)):
-    """Build shared SVG viewport geometry for grid background and overlays."""
-    bleed_top, bleed_right, bleed_bottom, bleed_left = bleed_units
-    view_x = -bleed_left
-    view_y = -bleed_top
-    view_w = float(cols) + bleed_left + bleed_right
-    view_h = float(rows) + bleed_top + bleed_bottom
-
-    left_pct = -(bleed_left / float(cols)) * 100.0 if cols else 0.0
-    top_pct = -(bleed_top / float(rows)) * 100.0 if rows else 0.0
-    width_pct = (view_w / float(cols)) * 100.0 if cols else 100.0
-    height_pct = (view_h / float(rows)) * 100.0 if rows else 100.0
-
-    style = (
-        f"left:{left_pct:.4f}%; top:{top_pct:.4f}%; "
-        f"width:{width_pct:.4f}%; height:{height_pct:.4f}%"
-    )
-    view_box = f"{view_x:.4f} {view_y:.4f} {view_w:.4f} {view_h:.4f}"
-    return view_box, style
-
-
-def _render_grid_background_svg(cols, rows, bleed_units=(0.0, 0.0, 0.0, 0.0)):
-    """Render the grid raster as SVG so it shares the exact coordinate system with overlays."""
-    view_box, frame_style = _svg_viewport_frame(cols, rows, bleed_units)
-    grid_lines = []
-
-    for x in range(0, int(cols) + 1):
-        grid_lines.append(
-            f"<line class='grid-background-line' x1='{x:.4f}' y1='0' x2='{x:.4f}' y2='{rows:.4f}' />"
-        )
-    for y in range(0, int(rows) + 1):
-        grid_lines.append(
-            f"<line class='grid-background-line' x1='0' y1='{y:.4f}' x2='{cols:.4f}' y2='{y:.4f}' />"
-        )
-
-    return (
-        f"<svg class='grid-overlay-bg' viewBox='{view_box}' preserveAspectRatio='none' aria-hidden='true' style='{frame_style}'>"
-        f"{''.join(grid_lines)}"
-        "</svg>"
-    )
-
-
-def _render_grid_primitives_svg(options, payload, rows, cols, include_solutions, bleed_units=(0.0, 0.0, 0.0, 0.0)):
-    """Render optional geometric primitives inside the grid as SVG."""
-    axis_enabled = _option_is_enabled(options.get("axis"), default=False)
-    origin = _parse_origin(options.get("origin"), cols, rows) if axis_enabled else None
-    axis_origin = (
-        _clamp_axis_origin(origin[0], origin[1], cols, rows)
-        if axis_enabled and origin is not None
-        else None
-    )
-    if axis_enabled and origin is None:
-        axis_enabled = False
-
-    step_x = _parse_positive_float(options.get("step_x"), 1.0)
-    step_y = _parse_positive_float(options.get("step_y"), 1.0)
-
-    lines = []
-    if axis_enabled and origin is not None and axis_origin is not None:
-        logical_ox, logical_oy = origin
-        axis_ox, axis_oy = axis_origin
-        axis_label_x = _resolve_axis_name(
-            options,
-            "axis_label_x",
-            aliases=("x_label", "axis_x_label"),
-            default="x",
-        )
-        axis_label_y = _resolve_axis_name(
-            options,
-            "axis_label_y",
-            aliases=("y_label", "axis_y_label"),
-            default="y",
-        )
-        lines.append(
-            f"<line class='grid-axis' x1='0' y1='{axis_oy:.4f}' x2='{cols:.4f}' y2='{axis_oy:.4f}' />"
-        )
-        lines.append(
-            f"<line class='grid-axis' x1='{axis_ox:.4f}' y1='0' x2='{axis_ox:.4f}' y2='{rows:.4f}' />"
-        )
-        lines.extend(
-            _render_axis_arrowheads_and_names(
-                axis_ox, axis_oy, cols, rows, axis_label_x, axis_label_y
-            )
-        )
-        lines.extend(
-            _render_axis_ticks_and_labels(
-                logical_ox,
-                logical_oy,
-                axis_ox,
-                axis_oy,
-                cols,
-                rows,
-                step_x,
-                step_y,
-            )
-        )
-
-    point_entries = _parse_points(
-        payload.get("points"), axis_enabled, origin, step_x, step_y, include_solutions
-    )
-    sequence_entries = _parse_sequence(
-        payload.get("sequence"), axis_enabled, origin, step_x, step_y, include_solutions
-    )
-    segment_entries = _parse_pairs(
-        payload.get("pairs"), axis_enabled, origin, step_x, step_y, include_solutions
-    )
-    fn_entries = _parse_functions(
-        payload.get("functions"), axis_enabled, include_solutions
-    )
-
-    point_markup = []
-    for px, py, label, mode in point_entries + sequence_entries:
-        if not _inside_grid(px, py, cols, rows):
-            continue
-        cross_half = 0.18
-        point_markup.append(
-            f"<line class='grid-point grid-mode-{mode}' x1='{px - cross_half:.4f}' y1='{py - cross_half:.4f}' x2='{px + cross_half:.4f}' y2='{py + cross_half:.4f}' />"
-        )
-        point_markup.append(
-            f"<line class='grid-point grid-mode-{mode}' x1='{px - cross_half:.4f}' y1='{py + cross_half:.4f}' x2='{px + cross_half:.4f}' y2='{py - cross_half:.4f}' />"
-        )
-        if label:
-            point_markup.append(
-                f"<text class='grid-point-label grid-mode-{mode}' x='{px + 0.24:.4f}' y='{py - 0.24:.4f}'>{escape(label)}</text>"
-            )
-
-    if sequence_entries:
-        filtered = [
-            (x, y, mode)
-            for x, y, _label, mode in sequence_entries
-            if _inside_grid(x, y, cols, rows)
-        ]
-        if len(filtered) >= 2:
-            seq_mode = filtered[0][2]
-            points_attr = " ".join(
-                f"{x:.4f},{y:.4f}"
-                for x, y, _mode in sorted(filtered, key=lambda item: item[0])
-            )
-            lines.append(
-                f"<polyline class='grid-sequence-line grid-mode-{seq_mode}' points='{points_attr}' />"
-            )
-
-    for gx1, gy1, gx2, gy2, mode, line_style in segment_entries:
-        lines.append(
-            f"<line class='grid-segment grid-segment-{line_style} grid-mode-{mode}' x1='{gx1:.4f}' y1='{gy1:.4f}' x2='{gx2:.4f}' y2='{gy2:.4f}' />"
-        )
-
-    for expr, x_min, x_max, mode in fn_entries:
-        poly_points = _sample_function_points(
-            expr, x_min, x_max, origin, step_x, step_y, cols, rows
-        )
-        if len(poly_points) < 2:
-            continue
-        points_attr = " ".join(f"{x:.4f},{y:.4f}" for x, y in poly_points)
-        lines.append(
-            f"<polyline class='grid-function-line grid-mode-{mode}' points='{points_attr}' />"
-        )
-
-    all_markup = lines + point_markup
-    if not all_markup:
-        return ""
-
-    view_box, frame_style = _svg_viewport_frame(cols, rows, bleed_units)
-
-    return (
-        f"<svg class='grid-overlay' viewBox='{view_box}' preserveAspectRatio='none' aria-hidden='true' style='{frame_style}'>"
-        f"{''.join(all_markup)}"
-        "</svg>"
-    )
-
-
-def _parse_origin(raw_origin, cols, rows):
-    """Parse origin in `col,row` form without clamping to grid extents."""
-    if not raw_origin:
-        return None
-
-    text = str(raw_origin).strip().replace(";", ",").replace(" ", "")
-    parts = [part for part in text.split(",") if part]
-    if len(parts) != 2:
-        return None
-
-    try:
-        col = float(parts[0])
-        row = float(parts[1])
-    except ValueError:
-        return None
-
-    return col, row
-
-
-def _clamp_axis_origin(origin_x, origin_y, cols, rows):
-    """Clamp only the visible axis position so axes stay on-grid."""
-    return (
-        _clamp_to_range(origin_x, 0.0, float(cols)),
-        _clamp_to_range(origin_y, 0.0, float(rows)),
-    )
-
-
-def _clamp_to_range(value, lower, upper):
-    """Clamp a scalar value into the inclusive `[lower, upper]` range."""
-    return max(lower, min(upper, float(value)))
-
-
-def _parse_points(raw_points, axis_enabled, origin, step_x, step_y, include_solutions):
-    """Parse point entries into grid-space tuples `(x, y, label, mode)`."""
-    if not isinstance(raw_points, list):
-        return []
-
-    parsed = []
-    for item in raw_points:
-        if not isinstance(item, dict):
-            continue
-        mode = _normalize_show_mode(item.get("show"))
-        if not _is_visible(mode, include_solutions):
-            continue
-
-        if axis_enabled:
-            x = _as_float(item.get("x"))
-            y = _as_float(item.get("y"))
-            if x is None or y is None or origin is None:
-                continue
-            gx = origin[0] + (x / step_x)
-            gy = origin[1] - (y / step_y)
-        else:
-            gx = _as_float(item.get("col", item.get("x")))
-            gy = _as_float(item.get("row", item.get("y")))
-            if gx is None or gy is None:
-                continue
-
-        label = str(item.get("label", "")).strip()
-        parsed.append((gx, gy, label, mode))
-
-    return parsed
-
-
-def _parse_sequence(raw_sequence, axis_enabled, origin, step_x, step_y, include_solutions):
-    """Parse a sequence of (x, y) values into a sorted polyline, only in axis mode."""
-    if not axis_enabled or origin is None or not isinstance(raw_sequence, list):
-        return []
-
-    parsed = []
-    for item in raw_sequence:
-        if not isinstance(item, dict):
-            continue
-        mode = _normalize_show_mode(item.get("show"))
-        if not _is_visible(mode, include_solutions):
-            continue
-        x = _as_float(item.get("x"))
-        y = _as_float(item.get("y"))
-        if x is None or y is None:
-            continue
-        gx = origin[0] + (x / step_x)
-        gy = origin[1] - (y / step_y)
-        label = str(item.get("label", "")).strip()
-        parsed.append((gx, gy, label, mode))
-    return parsed
-
-
-def _parse_pairs(raw_pairs, axis_enabled, origin, step_x, step_y, include_solutions):
-    """Parse line segments as (x1, y1, x2, y2) entries, only in axis mode."""
-    if not axis_enabled or origin is None or not isinstance(raw_pairs, list):
-        return []
-
-    parsed = []
-    for item in raw_pairs:
-        if not isinstance(item, dict):
-            continue
-        mode = _normalize_show_mode(item.get("show"))
-        if not _is_visible(mode, include_solutions):
-            continue
-        x1 = _as_float(item.get("x1"))
-        y1 = _as_float(item.get("y1"))
-        x2 = _as_float(item.get("x2"))
-        y2 = _as_float(item.get("y2"))
-        if x1 is None or y1 is None or x2 is None or y2 is None:
-            continue
-        raw_line = str(item.get("line", "dashed")).strip().lower()
-        line_style = raw_line if raw_line in ("solid", "dashed") else "dashed"
-        gx1 = origin[0] + (x1 / step_x)
-        gy1 = origin[1] - (y1 / step_y)
-        gx2 = origin[0] + (x2 / step_x)
-        gy2 = origin[1] - (y2 / step_y)
-        parsed.append((gx1, gy1, gx2, gy2, mode, line_style))
-    return parsed
-
-
-def _parse_functions(raw_functions, axis_enabled, include_solutions):
-    """Parse function descriptors `(expr, x_min, x_max)` for plotting."""
-    if not axis_enabled or not isinstance(raw_functions, list):
-        return []
-
-    parsed = []
-    for item in raw_functions:
-        if not isinstance(item, dict):
-            continue
-        mode = _normalize_show_mode(item.get("show"))
-        if not _is_visible(mode, include_solutions):
-            continue
-
-        expr = str(item.get("expr", "")).strip()
-        if not expr:
-            continue
-
-        domain = str(item.get("domain", "")).strip() or "-10:10"
-        x_min, x_max = _parse_domain(domain)
-        if x_min is None or x_max is None or x_min >= x_max:
-            continue
-
-        parsed.append((expr, x_min, x_max, mode))
-
-    return parsed
-
-
-def _render_axis_ticks_and_labels(
-    logical_origin_x,
-    logical_origin_y,
-    axis_origin_x,
-    axis_origin_y,
-    cols,
-    rows,
-    step_x,
-    step_y,
-):
-    """Render axis ticks and value labels for a coordinate grid."""
-    tick_markup = []
-    x_positions = _iter_axis_tick_positions(logical_origin_x, cols, step_x)
-    y_positions = _iter_axis_tick_positions(logical_origin_y, rows, step_y)
-    x_label_stride = _choose_axis_label_stride(len(x_positions))
-    y_label_stride = _choose_axis_label_stride(len(y_positions))
-
-    for gx, logical_x in x_positions:
-        tick_markup.append(
-            f"<line class='grid-axis-tick' x1='{gx:.4f}' y1='{axis_origin_y - 0.18:.4f}' x2='{gx:.4f}' y2='{axis_origin_y + 0.18:.4f}' />"
-        )
-        if _should_render_axis_label(logical_x, x_label_stride) and _is_inside_axis_label_safe_area(
-            gx, cols
-        ):
-            tick_markup.append(
-                f"<text class='grid-axis-label' x='{gx:.4f}' y='{axis_origin_y + 0.1:.4f}'>{_format_axis_label(logical_x)}</text>"
-            )
-
-    for gy, logical_y in y_positions:
-        tick_markup.append(
-            f"<line class='grid-axis-tick' x1='{axis_origin_x - 0.18:.4f}' y1='{gy:.4f}' x2='{axis_origin_x + 0.18:.4f}' y2='{gy:.4f}' />"
-        )
-        if _should_render_axis_label(logical_y, y_label_stride) and _is_inside_axis_label_safe_area(
-            gy, rows
-        ):
-            tick_markup.append(
-                f"<text class='grid-axis-label grid-axis-label-y' x='{axis_origin_x - 0.28:.4f}' y='{gy + 0.04:.4f}'>{_format_axis_label(-logical_y)}</text>"
-            )
-
-    return tick_markup
-
-
-def _resolve_axis_name(options, key, aliases=(), default=""):
-    """Resolve a textual axis name from options with optional aliases."""
-    value = options.get(key)
-    if value is None:
-        for alias in aliases:
-            candidate = options.get(alias)
-            if candidate is not None:
-                value = candidate
-                break
-    if value is None:
-        return default
-
-    text = str(value).strip()
-    return text or default
-
-
-def _render_axis_arrowheads_and_names(origin_x, origin_y, cols, rows, axis_label_x, axis_label_y):
-    """Render arrowheads at positive axis ends and textual axis names."""
-    markup = []
-
-    x_tip = float(cols) + 0.34
-    x_base = max(origin_x + 0.24, x_tip - 0.44)
-    x_top = max(0.04, origin_y - 0.18)
-    x_bottom = min(float(rows) - 0.04, origin_y + 0.18)
-    if x_base < x_tip:
-        markup.append(
-            "<polygon class='grid-axis' points='"
-            f"{x_tip:.4f},{origin_y:.4f} {x_base:.4f},{x_top:.4f} {x_base:.4f},{x_bottom:.4f}' />"
-        )
-    if axis_label_x:
-        x_name_y = origin_y - 0.28
-        x_name_x = x_tip + 0.16
-        markup.append(
-            f"<text class='grid-axis-label grid-axis-name' x='{x_name_x:.4f}' y='{x_name_y:.4f}' text-anchor='start'>{escape(axis_label_x)}</text>"
-        )
-
-    y_tip = -0.34
-    y_base = min(origin_y - 0.24, y_tip + 0.44)
-    y_left = max(0.04, origin_x - 0.18)
-    y_right = min(float(cols) - 0.04, origin_x + 0.18)
-    if y_tip < y_base:
-        markup.append(
-            "<polygon class='grid-axis' points='"
-            f"{origin_x:.4f},{y_tip:.4f} {y_left:.4f},{y_base:.4f} {y_right:.4f},{y_base:.4f}' />"
-        )
-    if axis_label_y:
-        y_name_x = origin_x - 0.1
-        y_name_y = y_tip - 0.9
-        markup.append(
-            f"<text class='grid-axis-label grid-axis-name' x='{y_name_x:.4f}' y='{y_name_y:.4f}' text-anchor='end'>{escape(axis_label_y)}</text>"
-        )
-
-    return markup
-
-
-def _choose_axis_label_stride(tick_count):
-    """Pick a sparse-enough label cadence for readable axis text."""
-    max_labels = 12
-    if tick_count <= max_labels:
-        return 1
-    return int(math.ceil(tick_count / max_labels))
-
-
-def _should_render_axis_label(logical_value, stride):
-    """Return True when a tick should receive a textual axis label."""
-    rounded = int(round(logical_value))
-    if abs(logical_value - rounded) > 1e-9:
-        return False
-    return rounded % max(1, stride) == 0
-
-
-def _estimate_geometry_bleed_units(
-    logical_origin,
-    cols,
-    rows,
-    step_x,
-    step_y,
-    axis_enabled,
-    axis_label_x,
-    axis_label_y,
-):
-    """Estimate per-side bleed padding in grid units for axis labels and names."""
-    base_top = 0.55
-    base_right = 0.55
-    base_bottom = 0.55
-    base_left = 0.55
-
-    if not axis_enabled or logical_origin is None:
-        return base_top, base_right, base_bottom, base_left
-
-    axis_origin_x, axis_origin_y = _clamp_axis_origin(logical_origin[0], logical_origin[1], cols, rows)
-
-    x_ticks = _iter_axis_tick_positions(logical_origin[0], cols, step_x)
-    y_ticks = _iter_axis_tick_positions(logical_origin[1], rows, step_y)
-
-    x_stride = _choose_axis_label_stride(len(x_ticks))
-    y_stride = _choose_axis_label_stride(len(y_ticks))
-
-    x_labels = [
-        _format_axis_label(logical_x)
-        for _gx, logical_x in x_ticks
-        if _should_render_axis_label(logical_x, x_stride)
-    ]
-    y_labels = [
-        _format_axis_label(-logical_y)
-        for _gy, logical_y in y_ticks
-        if _should_render_axis_label(logical_y, y_stride)
-    ]
-
-    max_x_chars = max((len(text) for text in x_labels), default=1)
-    max_y_chars = max((len(text) for text in y_labels), default=1)
-
-    # Approximate text box metrics in grid units.
-    char_w = 0.26
-    text_h = 0.78
-
-    y_tick_left_overhang = 0.28 + (char_w * max_y_chars) + 0.14
-    y_name_left_overhang = 0.12 + (char_w * max(1, len(axis_label_y or ""))) + 0.12
-    x_label_bottom_overhang = max(0.0, (axis_origin_y + 0.58) - float(rows)) + text_h
-    x_name_right_overhang = max(0.0, (float(cols) + 0.34 + 0.16 + (char_w * max(1, len(axis_label_x or "")))) - float(cols)) + 0.12
-    y_arrow_top_overhang = 0.34 + 0.08
-    y_name_top_overhang = 0.42 + text_h
-    x_name_top_overhang = max(0.0, 0.28 - axis_origin_y) + text_h
-
-    safety = 0.18
-    top = max(base_top, y_arrow_top_overhang, y_name_top_overhang, x_name_top_overhang) + safety
-    right = max(base_right, x_name_right_overhang) + safety
-    bottom = max(base_bottom, x_label_bottom_overhang, 0.56 + (0.02 * max_x_chars)) + safety
-    left = max(base_left, y_tick_left_overhang, y_name_left_overhang) + safety
-
-    return top, right, bottom, left
-
-
-def _is_inside_axis_label_safe_area(position, limit):
-    """Allow labels on the full visible axis segment for coordinate correctness."""
-    return 0.0 <= float(position) <= float(limit)
-
-
-def _iter_axis_tick_positions(origin, limit, step_value):
-    """Yield visible tick coordinates as `(grid_pos, logical_value)` tuples."""
-    ticks = []
-    max_ticks = 240
-
-    start_index = int(math.floor((-origin) * step_value))
-    end_index = int(math.ceil((limit - origin) * step_value))
-
-    for logical in range(start_index, end_index + 1):
-        grid_pos = origin + (logical / step_value)
-        if 0.0 <= grid_pos <= float(limit):
-            ticks.append((grid_pos, float(logical)))
-        if len(ticks) >= max_ticks:
-            break
-
-    return ticks
-
-
-def _format_axis_label(value):
-    """Format axis labels with integer preference and compact decimals."""
-    if abs(value - round(value)) < 1e-9:
-        return str(int(round(value)))
-    return f"{value:.2f}".rstrip("0").rstrip(".")
-
-
-def _parse_domain(domain_text):
-    """Parse textual function domain `min:max` to float tuple."""
-    normalized = domain_text.replace("..", ":")
-    parts = [part.strip() for part in normalized.split(":") if part.strip()]
-    if len(parts) != 2:
-        return None, None
-
-    try:
-        return float(parts[0]), float(parts[1])
-    except ValueError:
-        return None, None
-
-
-def _sample_function_points(expr, x_min, x_max, origin, step_x, step_y, cols, rows):
-    """Sample function graph points and map them to grid coordinates."""
-    if origin is None:
-        return []
-
-    sample_count = max(24, min(360, int((x_max - x_min) * 24)))
-    points = []
-    for index in range(sample_count + 1):
-        x_value = x_min + ((x_max - x_min) * index / sample_count)
-        y_value = _eval_function_expr(expr, x_value)
-        if y_value is None or math.isnan(y_value) or math.isinf(y_value):
-            continue
-
-        gx = origin[0] + (x_value / step_x)
-        gy = origin[1] - (y_value / step_y)
-        if _inside_grid(gx, gy, cols, rows):
-            points.append((gx, gy))
-
-    return points
-
-
-def _eval_function_expr(expr, x_value):
-    """Safely evaluate a mathematical expression with variable `x`."""
-    normalized_expr = (expr or "").replace("^", "**")
-    safe_globals = {
-        "__builtins__": {},
-        "sin": math.sin,
-        "cos": math.cos,
-        "tan": math.tan,
-        "sqrt": math.sqrt,
-        "log": math.log,
-        "exp": math.exp,
-        "abs": abs,
-        "pi": math.pi,
-        "e": math.e,
-    }
-
-    try:
-        tree = ast.parse(normalized_expr, mode="eval")
-    except SyntaxError:
-        return None
-
-    if not _is_safe_expression_tree(tree):
-        return None
-
-    try:
-        return float(
-            eval(compile(tree, "<grid-function>", "eval"), safe_globals, {"x": x_value})
-        )
-    except Exception:
-        return None
-
-
-def _is_safe_expression_tree(tree):
-    """Validate AST nodes for safe mathematical evaluation."""
-    allowed_nodes = {
-        ast.Expression,
-        ast.BinOp,
-        ast.UnaryOp,
-        ast.Constant,
-        ast.Name,
-        ast.Load,
-        ast.Add,
-        ast.Sub,
-        ast.Mult,
-        ast.Div,
-        ast.Pow,
-        ast.Mod,
-        ast.USub,
-        ast.UAdd,
-        ast.Call,
-    }
-    allowed_names = {"x", "sin", "cos", "tan", "sqrt", "log", "exp", "abs", "pi", "e"}
-
-    for node in ast.walk(tree):
-        if type(node) not in allowed_nodes:
-            return False
-        if isinstance(node, ast.Name) and node.id not in allowed_names:
-            return False
-        if isinstance(node, ast.Call):
-            if not isinstance(node.func, ast.Name):
-                return False
-            if node.func.id not in allowed_names:
-                return False
-    return True
-
-
-def _as_float(value):
-    """Convert value to float and return `None` on failure."""
-    try:
-        return float(value)
-    except (TypeError, ValueError):
-        return None
-
-
-def _parse_positive_float(value, default):
-    """Parse a strictly positive float, otherwise return `default`."""
-    parsed = _as_float(value)
-    if parsed is None or parsed <= 0:
-        return default
-    return parsed
-
-
-def _inside_grid(x_value, y_value, cols, rows):
-    """Return whether a point lies inside the visible grid area."""
-    return 0.0 <= x_value <= float(cols) and 0.0 <= y_value <= float(rows)
-
-
-def _is_visible(show_value, include_solutions):
-    """Evaluate marker-based element visibility (`§`, `%`, `&`)."""
-    if show_value in {"worksheet", "solution", "both", "invalid"}:
-        normalized = show_value
-    else:
-        normalized = _normalize_show_mode(show_value)
-    if normalized == "worksheet":
-        return not include_solutions
-    if normalized == "solution":
-        return include_solutions
-    if normalized == "both":
-        return True
-    return False
-
-
-def _normalize_show_mode(show_value):
-    """Normalize marker visibility to internal `worksheet|solution|both` mode."""
-    normalized = str(show_value or "&").strip()
-    if normalized == "§":
-        return "worksheet"
-    if normalized == "%":
-        return "solution"
-    if normalized == "&":
-        return "both"
-    return "invalid"
