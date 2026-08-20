@@ -8,6 +8,7 @@ The format is based on Keep a Changelog.
 
 ### Added
 
+- Schreibbereich: Vorschläge für Blockoptionen (`key`) fügen jetzt direkt `key=` ein und platzieren den Cursor dahinter; danach öffnen sich automatisch die passenden Wert-Vorschläge, genau wie beim echten Tippen von `key=`. Bisher musste `=` manuell getippt werden.
 - Schreibbereich: Beim Übernehmen selbstschließender Blockmarker (`nextcol`, `endcolumns`, `pagebreak`, `framebreak`, `slidechromeoff`, `sectionmark`, `vspacer`) wird automatisch das passende schließende `:::` mit eingefügt. Bisher entstand ein fälschlich offener Block, der auf eine separate Abschlusszeile wartete.
 - Schreibbereich: Wenn der getippte Blocktyp oder Optionsname bereits exakt einem einzigen Vorschlag entspricht (z. B. Cursor direkt nach `:::lines`), öffnet sich kein weiteres Vorschlags-Popup mehr.
 - Schreibbereich: `Strg+Enter` und `Shift+Enter` lehnen eine offene Vorschlagsliste jetzt ab und fügen stattdessen einen normalen Zeilenumbruch ein. Bisher übernahmen beide versehentlich den Vorschlag wie reines `Enter`, da keine eigene Tastenkombination dafür gebunden war.

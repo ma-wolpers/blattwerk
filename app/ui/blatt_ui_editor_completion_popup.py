@@ -202,8 +202,24 @@ class BlattwerkAppEditorCompletionPopupMixin:
         self._queue_editor_highlighting(immediate=True)
         self._queue_editor_diagnostics(immediate=True)
         self._queue_editor_outline(immediate=True)
-        self._close_editor_completion()
+        if self._should_chain_completion_after_accept(candidate, insert_text):
+            self._open_editor_completion(auto=True)
+        else:
+            self._close_editor_completion()
         return "break"
+
+    @staticmethod
+    def _should_chain_completion_after_accept(candidate: dict, insert_text: str) -> bool:
+        """Returns True when accepting `candidate` should immediately reopen completion for the next token.
+
+        Konkret: nach Übernahme eines `block_option`-Kandidaten, dessen
+        eingefügter Text auf `=` endet (z. B. `rows=`), sollen sofort die
+        passenden Wert-Vorschläge nachgeladen werden -- genau das Verhalten,
+        das auch beim echten Tippen von `key=` automatisch auftritt
+        (siehe `docs/NUTZERHANDBUCH.md`, Abschnitt 11).
+        """
+        kind = str(candidate.get("kind") or "").strip().lower()
+        return kind == "block_option" and insert_text.endswith("=")
 
     @staticmethod
     def _resolve_completion_insert(candidate):

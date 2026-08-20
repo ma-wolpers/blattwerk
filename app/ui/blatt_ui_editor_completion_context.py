@@ -143,7 +143,7 @@ class BlattwerkAppEditorCompletionContextMixin:
                     suggestions = [
                         {
                             "label": option,
-                            "insert_text": option,
+                            "insert_text": f"{option}=",
                             "kind": "block_option",
                         }
                         for option in block_allowed_options
@@ -166,7 +166,7 @@ class BlattwerkAppEditorCompletionContextMixin:
                     suggestions = [
                         {
                             "label": option,
-                            "insert_text": option,
+                            "insert_text": f"{option}=",
                             "kind": "block_option",
                         }
                         for option in block_allowed_options
@@ -176,7 +176,7 @@ class BlattwerkAppEditorCompletionContextMixin:
                         suggestions = [
                             {
                                 "label": option,
-                                "insert_text": option,
+                                "insert_text": f"{option}=",
                                 "kind": "block_option",
                             }
                             for option in block_allowed_options
@@ -201,7 +201,7 @@ class BlattwerkAppEditorCompletionContextMixin:
                     suggestions = [
                         {
                             "label": option,
-                            "insert_text": option,
+                            "insert_text": f"{option}=",
                             "kind": "block_option",
                         }
                         for option in block_allowed_options
