@@ -1468,7 +1468,7 @@ class BlattwerkAppEditorMixin:
         self._load_editor_content(input_path)
 
     def _apply_editor_view_mode(self):
-        """Shows preview area, editor area, or both depending on selected mode."""
+        """Shows preview area, editor area, or both depending on selected mode, and moves focus accordingly."""
 
         if self.editor_preview_paned is None or self.editor_container is None or self.preview_container is None:
             return
@@ -1483,17 +1483,37 @@ class BlattwerkAppEditorMixin:
 
         if mode == EDITOR_VIEW_EDITOR_ONLY:
             self.editor_preview_paned.add(self.editor_container)
+            self._focus_editor_widget_if_available()
         elif mode == EDITOR_VIEW_BOTH:
             self.editor_preview_paned.add(self.editor_container)
             self.editor_preview_paned.add(self.preview_container)
             self._schedule_equal_split()
             if hasattr(self, "_reflow_responsive_sections"):
                 self.root.after_idle(self._reflow_responsive_sections)
+            self._focus_editor_widget_if_available()
         else:
             self._close_editor_completion()
+            if self._editor_search_visible:
+                self._close_editor_search_bar()
             self.editor_preview_paned.add(self.preview_container)
             if hasattr(self, "_reflow_responsive_sections"):
                 self.root.after_idle(self._reflow_responsive_sections)
+            self._focus_preview_canvas_if_available()
+
+    def _focus_editor_widget_if_available(self):
+        """Moves keyboard focus into the editor text widget, if it currently exists."""
+
+        if self.editor_widget is not None and bool(self.editor_widget.winfo_exists()):
+            self.editor_widget.focus_set()
+
+    def _focus_preview_canvas_if_available(self):
+        """Moves keyboard focus onto the preview canvas so the editor text field no longer holds it."""
+
+        preview_canvas = getattr(self, "preview_canvas", None)
+        if preview_canvas is not None and bool(preview_canvas.winfo_exists()):
+            preview_canvas.focus_set()
+        elif self.root is not None:
+            self.root.focus_set()
 
     def _schedule_equal_split(self):
         """Starts a guarded retry cycle to place the splitter in the middle."""
