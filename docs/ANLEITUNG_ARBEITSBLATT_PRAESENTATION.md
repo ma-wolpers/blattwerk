@@ -213,7 +213,7 @@ Hinweisbox mit `type=default|warning|note` für unterschiedliche Hervorhebungsst
 | `align` | Enum | `block`, `blocksatz`, `center`, `centre`, `justify`, `left`, `links`, `linksbuendig`, `linksbundig`, `middle`, `mitte`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
 | `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
-| `type` | Enum | `default`, `note`, `warning` | nein | `default` | Hervorhebungsstil der Hinweisbox: `default` (Standard), `warning` oder `note`. |
+| `type` | Enum | `default`, `note`, `warning` | ja | `default` | Hervorhebungsstil der Hinweisbox: `default` (Standard), `warning` oder `note`. |
 
 ### `lines`
 

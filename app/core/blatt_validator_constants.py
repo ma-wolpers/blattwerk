@@ -262,7 +262,7 @@ _OPT_QRCODE_SIZE_HINT = "CSS-Größe wie `3cm`, `120px`, `60%` oder `auto`"
 BLOCK_OPTION_SPECS: dict[str, tuple[BlockOptionSpec, ...]] = {
     "material": (_OPT_TITLE, _OPT_SHOW, _OPT_MODE, _OPT_ALIGN),
     "info": (
-        BlockOptionSpec("type", "enum", frozenset({"default", "warning", "note"}), False, "default"),
+        BlockOptionSpec("type", "enum", frozenset({"default", "warning", "note"}), True, "default"),
         _OPT_SHOW,
         _OPT_MODE,
         _OPT_ALIGN,
@@ -481,7 +481,7 @@ BLOCK_OPTION_SPECS: dict[str, tuple[BlockOptionSpec, ...]] = {
 außer `"raw"`, inklusive optionsloser Blöcke als leere Tupel). `kind`/
 `validated`/`default` sind für die validierten Optionen (`show`, `mode`,
 `align` außer bei `table`/`matching`, `work`, `action`, `hint`, `line`,
-`qrcode`s `url`/Größenoptionen) direkt am Validierungscode verifiziert;
+`type` bei `info`, `qrcode`s `url`/Größenoptionen) direkt am Validierungscode verifiziert;
 für alle anderen Optionen an der tatsächlichen Renderer-Verarbeitung
 (`_safe_int`-Aufrufe -> `"integer"`, CSS-Längen-Parsing -> `"css_length"`,
 `_option_is_enabled`-Aufrufe -> `"boolean"`) oder, wo auch das nicht

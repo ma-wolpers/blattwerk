@@ -215,6 +215,23 @@ def test_columns_with_invalid_align_emits_op002():
     assert "OP002" in codes
 
 
+def test_info_with_valid_type_is_allowed_without_op002():
+    text = _build_document(":::info type=warning\nAchtung.\n:::")
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+
+    assert "OP001" not in codes
+    assert "OP002" not in codes
+
+
+def test_info_with_invalid_type_emits_op002():
+    text = _build_document(":::info type=danger\nAchtung.\n:::")
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+
+    assert "OP002" in codes
+
+
 def test_task_title_option_is_allowed_without_op001():
     text = _build_document(":::task title='Titel hier'\nRechne aus.\n:::")
     inspected = inspect_markdown_text(text)

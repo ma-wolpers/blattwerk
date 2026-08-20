@@ -3,7 +3,9 @@
 Schlanker Einstiegspunkt: definiert die öffentlichen Funktionen
 (`inspect_markdown_text`, `inspect_markdown_document`,
 `has_blocking_diagnostics`, `summarize_blocking_diagnostics`) sowie die
-Re-Exports `BuildDiagnostic`/`InspectedDocument`, die externer Code
+Re-Exports `BuildDiagnostic`/`InspectedDocument`/`BLOCK_OPTION_SPECS`/
+`KNOWN_ANSWER_TYPES`, die externer Code (u. a. `completion_catalogs.py`
+als `validator.BLOCK_OPTION_SPECS`/`validator.KNOWN_ANSWER_TYPES`)
 weiterhin unverändert aus `app.core.blatt_validator` importiert. Die
 eigentliche Prüflogik ist auf Nachbarmodule verteilt: Konstanten
 (`blatt_validator_constants.py`), Regex-Muster (`blatt_validator_patterns.py`),
@@ -21,7 +23,9 @@ from pathlib import Path
 from .blatt_kern_shared import parse_blocks, split_front_matter
 from .blatt_validator_constants import (
     BLOCK_ALLOWED_OPTIONS,
+    BLOCK_OPTION_SPECS,
     CRITICAL_DIAGNOSTIC_CODES,
+    KNOWN_ANSWER_TYPES,
     KNOWN_BLOCK_TYPES,
 )
 from .blatt_validator_block_options import _validate_block_options
@@ -40,6 +44,8 @@ from .blatt_validator_value_helpers import (
 __all__ = [
     "BuildDiagnostic",
     "InspectedDocument",
+    "BLOCK_OPTION_SPECS",
+    "KNOWN_ANSWER_TYPES",
     "has_blocking_diagnostics",
     "summarize_blocking_diagnostics",
     "inspect_markdown_text",
