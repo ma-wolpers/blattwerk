@@ -213,6 +213,8 @@ class BlattwerkAppEditorMixin:
             self.editor_widget.bind("<Up>", self._on_editor_completion_move_up)
             self.editor_widget.bind("<Down>", self._on_editor_completion_move_down)
             self.editor_widget.bind("<Return>", self._on_editor_completion_enter)
+            self.editor_widget.bind("<Control-Return>", self._on_editor_completion_reject_and_newline)
+            self.editor_widget.bind("<Shift-Return>", self._on_editor_completion_reject_and_newline)
             self.editor_widget.bind("<Control-BackSpace>", self._on_editor_delete_word_before)
             self.editor_widget.bind("<Control-Delete>", self._on_editor_delete_word_after)
             self.editor_widget.bind("<Control-b>", self._show_block_insert_menu)

@@ -66,6 +66,23 @@ class BlattwerkAppEditorCompletionPopupMixin:
             return self._on_editor_completion_accept()
         return None
 
+    def _on_editor_completion_reject_and_newline(self, _event=None):
+        """Closes any open completion popup and inserts a plain newline (Ctrl+Enter / Shift+Enter).
+
+        Both modifiers previously fell through to the unmodified `<Return>`
+        binding (no more specific binding existed), so they accepted the
+        open suggestion just like plain Enter -- exactly the opposite of
+        "reject". Explicitly bound so the more specific pattern wins.
+        """
+
+        self._close_editor_completion()
+        self.editor_widget.insert("insert", "\n")
+        self.editor_widget.see("insert")
+        self._queue_editor_highlighting(immediate=True)
+        self._queue_editor_diagnostics(immediate=True)
+        self._queue_editor_outline(immediate=True)
+        return "break"
+
     def _open_editor_completion(self, auto: bool):
         """Collects completion suggestions and renders popup near caret."""
 

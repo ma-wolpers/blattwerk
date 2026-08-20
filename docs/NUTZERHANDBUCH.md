@@ -150,6 +150,7 @@ Installation/Setup steht bewusst in `README.md`.
 - Gleichstand bei Blocktypen wird über die feste Blattwerk-Standardreihenfolge aufgelöst.
 - Vorschlag mit Doppelklick oder `Enter` übernehmen.
 - Solange die Vorschlagsliste offen ist, funktionieren `Pfeil hoch/runter`, `Enter` und `Tab` direkt im Editor.
+- `Strg+Enter` oder `Shift+Enter` lehnen eine offene Vorschlagsliste ab und fügen stattdessen einen normalen Zeilenumbruch ein (wie `Enter` ohne offene Vorschlagsliste).
 - Die lokale Completion-Gewichtung kann in den Einstellungen über `Ranking zurücksetzen` gelöscht werden.
 
 ## 12) Struktur-Outline
