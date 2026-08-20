@@ -68,7 +68,14 @@ FUTURE_GUI_ENTRY_FILE_NAMES = {
     "blatt_ui.py",
     "screen_builder.py",
 }
-FUTURE_GUI_ENTRY_BASELINES: set[str] = set()
+FUTURE_GUI_ENTRY_BASELINES: set[str] = {
+    # app/ui/blatt_ui.py ist eine reine Fassade (kombiniert nur Mixins zu
+    # `class BlattwerkApp(...)`) -- der eigentliche, bereits vertragskonforme
+    # Shared-Bootstrap lebt in app/ui/blatt_ui_base.py und wird dort separat
+    # von _check_shared_ui_contract_hardening geprueft. Siehe
+    # docs/GUI_MIGRATION_BACKLOG.md fuer Begruendung/remove_by.
+    "app/ui/blatt_ui.py",
+}
 FUTURE_GUI_REQUIRED_SHARED_SNIPPETS = (
     "ensure_bw_gui_on_path()",
     "from bw_gui.runtime import",
@@ -563,21 +570,25 @@ def _check_blattwerker_solution_rule(errors: list[str]) -> None:
 
 
 def _check_shared_ui_contract_hardening(errors: list[str]) -> None:
-    """Require shared menu/shortcut contracts in Blattwerk UI modules."""
+    """Require shared menu/shortcut contracts in Blattwerk UI modules.
 
-    style_module = _read("app/ui/blatt_ui_style.py")
-    for snippet in (
-        "from bw_gui.menu import CustomMenuBar as SharedCustomMenuBar",
-        "def _build_custom_menu_strip(self):",
-        "self._shared_menu_bar = SharedCustomMenuBar(",
-    ):
-        _require_substring(style_module, snippet, "app/ui/blatt_ui_style.py", errors)
+    Der Menu-Vertrag lebt tatsaechlich in `app/ui/blatt_ui_base.py`:
+    `BlattwerkAppBase` erbt von `bw_gui.runtime.BwBaseWindow` und
+    ueberschreibt `build_menu()`, das `bw_gui.menu.section_spec(...)`-
+    Eintraege liefert -- `BwBaseWindow` instanziiert die geteilte
+    `CustomMenuBar` bereits selbst. Dieser Check prueft rein textuell
+    gegen diese Datei (kein `bw_gui`-Import, keine Abhaengigkeit vom
+    Schwester-Repo `bw-gui`), analog zu allen anderen Checks hier.
+    """
 
+    base_module = _read("app/ui/blatt_ui_base.py")
     for snippet in (
-        "except ModuleNotFoundError",
-        "if SharedCustomMenuBar is None",
+        "from bw_gui.runtime import BwBaseWindow",
+        "from bw_gui.menu import section_spec",
+        "class BlattwerkAppBase(BwBaseWindow):",
+        "def build_menu(self) -> list:",
     ):
-        _forbid_substring(style_module, snippet, "app/ui/blatt_ui_style.py", errors)
+        _require_substring(base_module, snippet, "app/ui/blatt_ui_base.py", errors)
 
     export_module = _read("app/ui/export_dialog.py")
     for snippet in (
