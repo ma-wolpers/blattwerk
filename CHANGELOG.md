@@ -8,6 +8,16 @@ The format is based on Keep a Changelog.
 
 ### Added
 
+- Neue, automatisch aus dem Code generierte Autoren-Anleitungen: `docs/ANLEITUNG_ARBEITSBLATT_PRAESENTATION.md` (Arbeitsblatt-/Präsentations-Markdown-Dialekt inkl. Geometry-Payload-Referenz) und `docs/ANLEITUNG_KURZENTWURF.md` (Kurzentwurf-DSL). Beide werden aus `app/core/markdown_conventions.py` erzeugt (`python tools/docs/generate_authoring_guides.py`) und können damit nie von den tatsächlich gültigen Blocktypen/Optionen/Frontmatter-Feldern abweichen; die bisherige, von Hand gepflegte `docs/MD_FORMAT.md` entfällt dafür.
+- Validator prüft jetzt zusätzlich `show_student_header`/`show_document_header` im Frontmatter (neuer Diagnosecode `FM006`, boolesche Werte wie `ja`/`nein`/`j`/`n`/`true`/`false`/`1`/`0`).
+- VSCode-Extension: Syntax-Highlighting für die `:::grid`/`:::geometry`-Option `line` ergänzt (fehlte bisher in der Options-Hervorhebung).
+
+### Fixed
+
+- `show_student_header`/`show_document_header` im Frontmatter wurden als roher Wahrheitswert gelesen: ein nicht-leerer String wie `show_student_header: nein` galt technisch als "wahr" und aktivierte die Schülerkopfzeile entgegen der erkennbaren Absicht. Beide Felder werden jetzt korrekt als `ja`/`nein`-Wert interpretiert (wie bereits bei `lochen`).
+
+### Added
+
 - Validator erkennt jetzt unbekannte YAML-Keys sowie ungültige `line`-/`color`-/`thickness`-Werte in `geometry`-Objekt-Einträgen (`points`/`sequence`/`pairs`/`functions`): neue Diagnosecodes `AN011` (unbekannter Key, z. B. Tippfehler wie `lable`), `AN012` (ungültiger `pairs`-`line`-Wert, getrennt von der gleichnamigen Block-Option), `AN013` (ungültiger `color`-Wert), `AN014` (ungültiger `thickness`-Wert). Bisher wurden solche Tippfehler/ungültigen Werte in Geometry-YAML-Objekten still ignoriert.
 - Geometry-Objekte (`points`, `sequence`, `pairs`, `functions`) unterstützen jetzt optionale `color`- und `thickness`-Keys pro Objekt (beliebiger CSS-Farbwert bzw. positive Zahl), mit sicherem Fallback auf den bisherigen Theme-Standard bei fehlendem oder ungültigem Wert.
 - `pairs` (Strecken) und `functions` (Funktionsgraphen) unterstützen jetzt einen optionalen `label`-Key, analog zu den bereits vorhandenen Labels bei `points`/`sequence`. Strecken-Labels erscheinen am Streckenmittelpunkt, Funktionsgraph-Labels am rechten (letzten sichtbaren) Kurvenende.
