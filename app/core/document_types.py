@@ -28,8 +28,13 @@ KNOWN_DOCUMENT_TYPE_DETECTION_MODES = {
     DOCUMENT_TYPE_DETECTION_EXPLICIT_KEY,
 }
 
-_KURZENTWURF_META_KEYS = ("Stundenthema", "Lerngruppe", "start")
-_KURZENTWURF_META_SUPPORT_KEYS = (
+KURZENTWURF_IDENTITY_DETECTION_KEYS = ("Stundenthema", "Lerngruppe", "start")
+"""YAML-Frontmatter-Keys, die zur Alt-/Typerkennung eines Kurzentwurf-Dokuments
+beitragen (siehe `_looks_like_kurzentwurf_meta`/`_looks_like_kurzentwurf_legacy_source`).
+Öffentlich benannt, damit `app/core/markdown_conventions.py` sie als
+`legacy_detection_only`-Katalogeintrag re-verpacken kann, ohne private
+Namen zu importieren."""
+KURZENTWURF_LEGACY_DETECTION_SUPPORT_KEYS = (
     "Stundentyp",
     "Dauer",
     "Oberthema",
@@ -39,6 +44,10 @@ _KURZENTWURF_META_SUPPORT_KEYS = (
     "Material",
     "Unterrichtsbesuch",
 )
+"""Zusätzliche, rein historische YAML-Keys, die nur zur Alt-Erkennung
+beitragen (siehe `_looks_like_kurzentwurf_meta`). **Nicht** von
+`kurzentwurf_runtime` gelesen oder gerendert -- kein funktionaler
+DSL-Bestandteil, keine aktiven Autoren-Empfehlung."""
 _KURZENTWURF_TITLE = "Neuer Kurzentwurf"
 _KURZENTWURF_PHASE_HEADER_RE = re.compile(
     r"(?im)^\s*#(?:einstieg|erarbeitung|sicherung|vertiefung|hausaufgabe|reserve)\b"
@@ -157,11 +166,11 @@ def get_new_document_dialog_defaults(document_type: str) -> tuple[str, str]:
 
 
 def _looks_like_kurzentwurf_meta(meta: Mapping[str, object]) -> bool:
-    primary_match_count = sum(1 for key in _KURZENTWURF_META_KEYS if str(meta.get(key, "") or "").strip())
+    primary_match_count = sum(1 for key in KURZENTWURF_IDENTITY_DETECTION_KEYS if str(meta.get(key, "") or "").strip())
     if primary_match_count >= 2:
         return True
 
-    support_match_count = sum(1 for key in _KURZENTWURF_META_SUPPORT_KEYS if key in meta)
+    support_match_count = sum(1 for key in KURZENTWURF_LEGACY_DETECTION_SUPPORT_KEYS if key in meta)
     if str(meta.get("Stundenthema", "") or "").strip() and support_match_count >= 2:
         return True
 
@@ -181,7 +190,7 @@ def _looks_like_kurzentwurf_legacy_source(
     markdown_text: str | None,
 ) -> bool:
     metadata = meta if isinstance(meta, Mapping) else {}
-    matching_meta_keys = sum(1 for key in _KURZENTWURF_META_KEYS if str(metadata.get(key, "") or "").strip())
+    matching_meta_keys = sum(1 for key in KURZENTWURF_IDENTITY_DETECTION_KEYS if str(metadata.get(key, "") or "").strip())
     if matching_meta_keys >= 2:
         return True
     if matching_meta_keys == 0 or not isinstance(markdown_text, str):
