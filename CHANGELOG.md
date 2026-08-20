@@ -8,6 +8,7 @@ The format is based on Keep a Changelog.
 
 ### Added
 
+- Die Statusanzeige ("Gespeichert", "Vorschau erstellt" etc.) steht jetzt in einer eigenen, schmalen Zeile ganz unten im Fenster, unterhalb von Editor und Vorschau — statt wie bisher nur im Vorschau-Panel.
 - Bereichswechsel (Nur Vorschau / Beides / Nur Schreibbereich, z. B. per `Strg+1/2/3`): Der Cursor springt jetzt automatisch in den Schreibbereich, sobald dieser sichtbar wird, und verlässt ihn automatisch in Richtung Vorschau, sobald nur noch die Vorschau angezeigt wird. Eine offene Suchleiste wird beim Wechsel in den reinen Vorschau-Modus automatisch geschlossen.
 - Schreibbereich: `Strg+F` öffnet eine Suchleiste, `Strg+H` öffnet Suchen+Ersetzen. Groß-/Kleinschreibung wird standardmäßig ignoriert (umschaltbar), die Suche ist zyklisch und startet ab dem aktuellen Cursor bzw. Treffer, alle Treffer werden markiert und der aktuelle Treffer separat hervorgehoben, Trefferzähler im Format `3/12`. Weil `Strg+F`/`Strg+H` jetzt für Suchen/Ersetzen reserviert sind, wurden `Schriftprofil wechseln` und `Lernhilfenansicht öffnen` auf `Strg+Shift+F`/`Strg+Shift+H` verlegt.
 - Schreibbereich: Vorschläge für Blockoptionen (`key`) fügen jetzt direkt `key=` ein und platzieren den Cursor dahinter; danach öffnen sich automatisch die passenden Wert-Vorschläge, genau wie beim echten Tippen von `key=`. Bisher musste `=` manuell getippt werden.

@@ -384,8 +384,6 @@ class BlattwerkAppBuildMixin:
         info_row.pack(fill="x", pady=(0, 8))
         widgets.Label(info_row, textvariable=self.page_info_var).pack(side="left")
         widgets.Label(info_row, textvariable=self.zoom_info_var).pack(side="left", padx=(14, 0))
-        self.status_label = widgets.Label(info_row, textvariable=self.status_var, style="Muted.TLabel")
-        self.status_label.pack(side="right")
 
         widgets.Separator(self.preview_container, orient="horizontal").pack(fill="x")
 
@@ -430,6 +428,15 @@ class BlattwerkAppBuildMixin:
         self._reflow_responsive_sections()
         self._apply_editor_view_mode()
         self._update_nav_buttons()
+        self._build_global_status_bar(outer)
+
+    def _build_global_status_bar(self, parent):
+        """Creates the global status line below the editor/preview paned area, spanning both."""
+
+        status_bar = widgets.Frame(parent, style="ControlStrip.TFrame", padding=(8, 4))
+        status_bar.pack(fill="x", pady=(6, 0))
+        self.status_label = widgets.Label(status_bar, textvariable=self.status_var, style="Muted.TLabel")
+        self.status_label.pack(side="left")
 
     def _register_responsive_section(self, container, main_group, optional_groups, indent_px=16, gap_px=12):
         """Registers a responsive control section with dynamic row wrapping."""
