@@ -1,3 +1,5 @@
+import pytest
+
 from app.core.blatt_validator import inspect_markdown_text
 
 
@@ -527,6 +529,54 @@ def test_frontmatter_invalid_presentation_bool_emits_fm005():
     fm005 = [d for d in diagnostics if d.code == "FM005"]
     assert fm005
     assert fm005[0].severity == "error"
+
+
+def _build_document_with_show_student_header(value):
+    return (
+        "---\n"
+        "Titel: T\n"
+        "Fach: M\n"
+        "Thema: X\n"
+        f"show_student_header: {value}\n"
+        "---\n"
+        "Text\n"
+    )
+
+
+@pytest.mark.parametrize("value", ["ja", "nein", "j", "n", "true", "false", "1", "0"])
+def test_frontmatter_valid_show_student_header_has_no_fm006(value):
+    doc = _build_document_with_show_student_header(value)
+    codes = {d.code for d in inspect_markdown_text(doc).diagnostics}
+    assert "FM006" not in codes
+
+
+@pytest.mark.parametrize("value", ["wahr", "falsch", "maybe", "xyz"])
+def test_frontmatter_invalid_show_student_header_emits_fm006(value):
+    """`wahr`/`falsch` sind gueltig fuer FM005-Felder, aber NICHT fuer FM006
+
+    (unterschiedliches Boolean-Vokabular: `_meta_bool_ja_nein` kennt kein
+    `wahr`/`falsch`, dafuer `j`/`n` -- Regressionsschutz gegen versehentliches
+    Verwenden von `TRUTHY_META_BOOLEAN_TOKENS` statt `JA_NEIN_BOOLEAN_TOKENS`).
+    """
+    doc = _build_document_with_show_student_header(value)
+    diagnostics = inspect_markdown_text(doc).diagnostics
+    fm006 = [d for d in diagnostics if d.code == "FM006"]
+    assert fm006
+    assert fm006[0].severity == "error"
+
+
+def test_frontmatter_invalid_show_document_header_emits_fm006():
+    doc = (
+        "---\n"
+        "Titel: T\n"
+        "Fach: M\n"
+        "Thema: X\n"
+        "show_document_header: wahr\n"
+        "---\n"
+        "Text\n"
+    )
+    codes = {d.code for d in inspect_markdown_text(doc).diagnostics}
+    assert "FM006" in codes
 
 
 def test_absolute_markdown_image_path_emits_pt001():

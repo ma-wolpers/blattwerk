@@ -10,7 +10,50 @@ verteilt über Validierungscode.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+
+from .blatt_kern_shared_data import JA_NEIN_BOOLEAN_TOKENS
+from .document_types import KNOWN_DOCUMENT_TYPES
+
 REQUIRED_FRONTMATTER_FIELDS = ("Titel", "Fach", "Thema")
+
+MISSING = object()
+"""Sentinel für `FrontmatterFieldSpec.default`: "kein Default vorhanden" --
+unterscheidbar von einem tatsächlichen Default-Wert `None`."""
+
+TRUTHY_META_BOOLEAN_TOKENS = frozenset(
+    {
+        "1", "true", "wahr", "ja", "yes", "on",
+        "0", "false", "falsch", "nein", "no", "off",
+    }
+)
+"""Exakt das von `_is_truthy_meta_bool` (`blatt_validator_value_helpers.py`,
+genutzt von `FM005`) akzeptierte Boolean-Vokabular. **Nicht** identisch mit
+`JA_NEIN_BOOLEAN_TOKENS` (`blatt_kern_shared_data.py`, genutzt von `FM006`/
+`_meta_bool_ja_nein`: ohne `wahr`/`falsch`, dafür mit `j`/`n`) -- zwei echte,
+unterschiedliche Boolean-Parser im Code, absichtlich getrennt geführt statt
+künstlich vereinheitlicht."""
+
+
+@dataclass(frozen=True)
+class FrontmatterFieldSpec:
+    """Normativer Fakt über ein optionales Frontmatter-Feld -- Validator-Eigentum, keine Prosa.
+
+    `kind` ∈ {"free_text", "scalar_nonempty", "enum", "boolean"}.
+    `validated=False` heißt: das Feld existiert (und wird ggf. an anderer
+    Stelle im Code funktional gelesen), aber der Validator prüft seinen
+    Wert aktuell nicht -- eine ehrliche normative Aussage, kein
+    Versäumnis im Katalog. Redaktionelle Beschreibungen/Erklärungen
+    gehören bewusst **nicht** hierher, sondern in die
+    `PROSE_SECTIONS`-Registry des Doku-Generators
+    (`tools/docs/generate_authoring_guides.py`).
+    """
+
+    name: str
+    kind: str
+    allowed_values: frozenset[str] | None
+    default: object
+    validated: bool
 
 KNOWN_BLOCK_TYPES = {
     "raw",
@@ -310,3 +353,44 @@ OBJECT_ALIGN_VALUE_HINT = "left|right|center|block"
 CRITICAL_DIAGNOSTIC_CODES = {
     "AN003",  # Invalid YAML in schema-driven answer blocks.
 }
+
+OPTIONAL_FRONTMATTER_FIELDS = (
+    FrontmatterFieldSpec("mode", "enum", frozenset(KNOWN_DOCUMENT_MODES), "worksheet", True),
+    FrontmatterFieldSpec(
+        "presentation_layout", "enum", frozenset(KNOWN_PRESENTATION_LAYOUTS), MISSING, True
+    ),
+    FrontmatterFieldSpec(
+        "presentation_show_mini_header", "boolean", TRUTHY_META_BOOLEAN_TOKENS, True, True
+    ),
+    FrontmatterFieldSpec(
+        "presentation_show_section_footer", "boolean", TRUTHY_META_BOOLEAN_TOKENS, True, True
+    ),
+    FrontmatterFieldSpec("tag", "scalar_nonempty", None, MISSING, True),
+    FrontmatterFieldSpec(
+        "show_student_header", "boolean", JA_NEIN_BOOLEAN_TOKENS, False, True
+    ),
+    FrontmatterFieldSpec(
+        "show_document_header", "boolean", JA_NEIN_BOOLEAN_TOKENS, True, True
+    ),
+    FrontmatterFieldSpec(
+        "document_type", "enum", frozenset(KNOWN_DOCUMENT_TYPES), "worksheet", False
+    ),
+    FrontmatterFieldSpec("lochen", "boolean", JA_NEIN_BOOLEAN_TOKENS, False, False),
+    FrontmatterFieldSpec("copyright", "free_text", None, MISSING, False),
+    FrontmatterFieldSpec("Stufe", "free_text", None, MISSING, False),
+    FrontmatterFieldSpec("worksheet_type", "free_text", None, MISSING, False),
+    FrontmatterFieldSpec("font_profile", "free_text", None, MISSING, False),
+)
+"""Vollständiger normativer Katalog optionaler Frontmatter-Felder.
+
+`show_student_header`/`show_document_header` referenzieren bewusst
+`JA_NEIN_BOOLEAN_TOKENS` (nicht `TRUTHY_META_BOOLEAN_TOKENS`), weil sie
+über `_meta_bool_ja_nein` gelesen werden (siehe `FM006` in
+`blatt_validator_document.py`) -- ein anderes Vokabular als das der
+bereits bestehenden `FM005`-Felder. `document_type`/`lochen` sind
+funktional genutzt, aber bewusst `validated=False` (siehe
+`docs/ANLEITUNG_ARBEITSBLATT_PRAESENTATION.md`, Vier-Zustands-Raster).
+`Stufe`/`worksheet_type`/`font_profile` sind `validated=False` **und**
+werden aktuell an keiner Stelle aus dem Dokument-Meta gelesen (verifiziert
+per Repo-weitem Grep) -- toter, aber weiterhin syntaktisch akzeptierter
+Frontmatter-Inhalt."""

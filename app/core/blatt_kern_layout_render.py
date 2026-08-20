@@ -8,6 +8,7 @@ from html import escape
 from .answer_special import estimate_matching_weight, estimate_wordsearch_weight
 from ..styles.blatt_styles import build_stylesheet, resolve_printable_width_cm
 from .blatt_kern_shared import (
+    _meta_bool_ja_nein,
     _safe_int,
     annotate_task_help_references,
     annotate_standalone_subtasks,
@@ -764,7 +765,7 @@ def render_html(
         )
 
     student_header = ""
-    if meta.get("show_student_header", False):
+    if _meta_bool_ja_nein(meta.get("show_student_header"), default=False):
         student_header = """
         <div class="student-header">
             <div class="student-field">
@@ -783,7 +784,7 @@ def render_html(
         """
 
     document_header = ""
-    if meta.get("show_document_header", True):
+    if _meta_bool_ja_nein(meta.get("show_document_header"), default=True):
         document_header = f"""
 <div class="document-header">
 <div class="header-meta">

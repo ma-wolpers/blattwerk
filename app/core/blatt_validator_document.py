@@ -22,26 +22,113 @@ from .answer_line_markers import (
 )
 from .blatt_validator_constants import (
     ANSWER_BLOCK_TYPES,
-    KNOWN_DOCUMENT_MODES,
-    KNOWN_PRESENTATION_LAYOUTS,
+    OPTIONAL_FRONTMATTER_FIELDS,
     REQUIRED_FRONTMATTER_FIELDS,
     YAML_ANSWER_TYPES,
 )
 from .blatt_validator_marker_syntax import _has_explicit_worksheet_marker_without_solution
 from .blatt_validator_types import BuildDiagnostic
-from .blatt_validator_value_helpers import _get_matching_item_counts, _is_truthy_meta_bool
+from .blatt_validator_value_helpers import _get_matching_item_counts
 from .blatt_validator_yaml_entries import (
     _validate_geometry_entry_fields,
     _validate_payload_show_markers,
 )
 
+# Diagnosecode/Schweregrad/Sonderregeln pro validiertem optionalen Feld.
+# Bewusst getrennt von `OPTIONAL_FRONTMATTER_FIELDS` (dort steht nur, WAS
+# gültig ist -- geteilt mit dem Doku-Collector); dieses Mapping ist reines
+# Validator-Implementierungsdetail (Diagnosecode/Schweregrad sind für die
+# generierte Autorenanleitung nicht relevant, siehe `docs/VALIDATOR.md`).
+# `skip_when_empty=True` bei `presentation_layout` bewahrt bestehendes
+# Verhalten: ein leerer Wert (z. B. `presentation_layout:` ohne Inhalt)
+# löst dort keine Diagnose aus, bei `mode` dagegen schon -- eine echte,
+# vorbestehende Asymmetrie, kein neu eingeführtes Verhalten.
+_ENUM_FIELD_DIAGNOSTICS = {
+    "mode": {"code": "FM002", "severity": "warning", "skip_when_empty": False},
+    "presentation_layout": {"code": "FM004", "severity": "error", "skip_when_empty": True},
+}
+_BOOLEAN_FIELD_DIAGNOSTIC_CODES = {
+    "presentation_show_mini_header": "FM005",
+    "presentation_show_section_footer": "FM005",
+    "show_student_header": "FM006",
+    "show_document_header": "FM006",
+}
+_SCALAR_NONEMPTY_FIELD_DIAGNOSTIC_CODES = {
+    "tag": "FM003",
+}
+
+
+def _validate_optional_enum_field(field, raw_value):
+    rules = _ENUM_FIELD_DIAGNOSTICS[field.name]
+    normalized = str(raw_value or "").strip().lower()
+    if rules["skip_when_empty"] and not normalized:
+        return None
+    if normalized in field.allowed_values:
+        return None
+    return BuildDiagnostic(
+        code=rules["code"],
+        message=(
+            f"Ungueltiger Frontmatter-Wert fuer `{field.name}`: `{raw_value}`. "
+            f"Erlaubt: {', '.join(sorted(field.allowed_values))}."
+        ),
+        severity=rules["severity"],
+    )
+
+
+def _validate_optional_boolean_field(field, raw_value):
+    # Bewusst nicht `raw_value or ""`: YAML-native `false`/`0` sind falsy in
+    # Python und wuerden dadurch faelschlich zu einem leeren String
+    # kollabieren (und damit als ungueltig gemeldet werden), obwohl beide
+    # gueltige boolesche Schreibweisen sind.
+    normalized = str(raw_value).strip().lower() if raw_value is not None else ""
+    if normalized in field.allowed_values:
+        return None
+    return BuildDiagnostic(
+        code=_BOOLEAN_FIELD_DIAGNOSTIC_CODES[field.name],
+        message=(
+            f"Ungueltiger Frontmatter-Wert fuer `{field.name}`. "
+            "Erlaubt sind boolesche Werte (z. B. true/false, ja/nein, 1/0)."
+        ),
+        severity="error",
+    )
+
+
+def _validate_optional_scalar_nonempty_field(field, raw_value):
+    code = _SCALAR_NONEMPTY_FIELD_DIAGNOSTIC_CODES[field.name]
+    if isinstance(raw_value, (dict, list)):
+        return BuildDiagnostic(
+            code=code,
+            message=(
+                f"Ungueltiger Frontmatter-Wert fuer `{field.name}`: "
+                "Erlaubt ist ein einfacher Textwert (z. B. `1`, `A`, `TAG`)."
+            ),
+            severity="error",
+        )
+    if not str(raw_value).strip():
+        return BuildDiagnostic(
+            code=code,
+            message=(
+                f"Ungueltiger Frontmatter-Wert fuer `{field.name}`: leerer Wert ist nicht erlaubt."
+            ),
+            severity="error",
+        )
+    return None
+
 
 def _validate_frontmatter(meta):
-    """Validiert Frontmatter-Felder (`FM001`-`FM005`) und liefert die gefundenen Diagnosen."""
+    """Validiert Frontmatter-Felder (`FM001`-`FM006`) und liefert die gefundenen Diagnosen.
+
+    Pflichtfelder (`FM001`) kommen direkt aus `REQUIRED_FRONTMATTER_FIELDS`;
+    optionale Felder werden generisch über `OPTIONAL_FRONTMATTER_FIELDS`
+    geprüft (nur Felder mit `validated=True` und nur, wenn im Dokument
+    gesetzt) -- Katalog und Validierungsverhalten können dadurch
+    strukturell nicht mehr auseinanderlaufen.
+    """
     diagnostics = []
+    metadata = meta if isinstance(meta, dict) else {}
 
     for required_key in REQUIRED_FRONTMATTER_FIELDS:
-        value = str((meta or {}).get(required_key, "")).strip()
+        value = str(metadata.get(required_key, "")).strip()
         if not value:
             diagnostics.append(
                 BuildDiagnostic(
@@ -50,74 +137,22 @@ def _validate_frontmatter(meta):
                 )
             )
 
-    if isinstance(meta, dict) and "mode" in meta:
-        mode_raw = str(meta.get("mode", "")).strip().lower()
-        if mode_raw not in KNOWN_DOCUMENT_MODES:
-            diagnostics.append(
-                BuildDiagnostic(
-                    code="FM002",
-                    message=(
-                        "Ungueltiger Frontmatter-Wert fuer `mode`: "
-                        f"`{meta.get('mode')}`. Erlaubt: worksheet, solution, presentation, ws, test."
-                    ),
-                )
-            )
+    for field in OPTIONAL_FRONTMATTER_FIELDS:
+        if not field.validated or field.name not in metadata:
+            continue
 
-    if isinstance(meta, dict) and "tag" in meta:
-        tag_value = meta.get("tag")
-        if isinstance(tag_value, (dict, list)):
-            diagnostics.append(
-                BuildDiagnostic(
-                    code="FM003",
-                    message=(
-                        "Ungueltiger Frontmatter-Wert fuer `tag`: "
-                        "Erlaubt ist ein einfacher Textwert (z. B. `1`, `A`, `TAG`)."
-                    ),
-                    severity="error",
-                )
-            )
-        elif not str(tag_value).strip():
-            diagnostics.append(
-                BuildDiagnostic(
-                    code="FM003",
-                    message=(
-                        "Ungueltiger Frontmatter-Wert fuer `tag`: leerer Wert ist nicht erlaubt."
-                    ),
-                    severity="error",
-                )
-            )
+        raw_value = metadata.get(field.name)
+        if field.kind == "enum":
+            diagnostic = _validate_optional_enum_field(field, raw_value)
+        elif field.kind == "boolean":
+            diagnostic = _validate_optional_boolean_field(field, raw_value)
+        elif field.kind == "scalar_nonempty":
+            diagnostic = _validate_optional_scalar_nonempty_field(field, raw_value)
+        else:
+            diagnostic = None
 
-    if isinstance(meta, dict):
-        if "presentation_layout" in meta:
-            layout_value = str(meta.get("presentation_layout") or "").strip()
-            if layout_value and layout_value not in KNOWN_PRESENTATION_LAYOUTS:
-                diagnostics.append(
-                    BuildDiagnostic(
-                        code="FM004",
-                        message=(
-                            "Ungueltiger Frontmatter-Wert fuer `presentation_layout`: "
-                            f"`{layout_value}`. Erlaubt: "
-                            f"{', '.join(sorted(KNOWN_PRESENTATION_LAYOUTS))}."
-                        ),
-                        severity="error",
-                    )
-                )
-
-        for bool_key in (
-            "presentation_show_mini_header",
-            "presentation_show_section_footer",
-        ):
-            if bool_key in meta and not _is_truthy_meta_bool(meta.get(bool_key)):
-                diagnostics.append(
-                    BuildDiagnostic(
-                        code="FM005",
-                        message=(
-                            f"Ungueltiger Frontmatter-Wert fuer `{bool_key}`. "
-                            "Erlaubt sind boolesche Werte (z. B. true/false, ja/nein, 1/0)."
-                        ),
-                        severity="error",
-                    )
-                )
+        if diagnostic is not None:
+            diagnostics.append(diagnostic)
 
     return diagnostics
 
