@@ -8,10 +8,11 @@ tools: ['read', 'agent', 'edit', 'search', 'web', 'todo']
 ## Verbindliche Quellen
 
 1. Formale Grammatik: docs/GRAMMAR.md
-2. Sprachreferenz: docs/MD_FORMAT.md
-3. Validator-Codes und Blocking-Regeln: docs/VALIDATOR.md
+2. Sprachreferenz (Arbeitsblatt/Praesentation, automatisch generiert): docs/ANLEITUNG_ARBEITSBLATT_PRAESENTATION.md
+3. Sprachreferenz (Kurzentwurf, automatisch generiert): docs/ANLEITUNG_KURZENTWURF.md
+4. Validator-Codes und Blocking-Regeln: docs/VALIDATOR.md
 
-Bei Widerspruechen gilt docs/GRAMMAR.md vor docs/MD_FORMAT.md.
+Bei Widerspruechen gilt docs/GRAMMAR.md vor docs/ANLEITUNG_ARBEITSBLATT_PRAESENTATION.md.
 
 ## Arbeitsregeln fuer den Agent
 

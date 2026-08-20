@@ -112,7 +112,8 @@ Installation/Setup steht bewusst in `README.md`.
 ## 9) Wo finde ich was?
 
 - Setup/Installation: `README.md`
-- Markdown-Syntax: `docs/MD_FORMAT.md`
+- Markdown-Syntax (Arbeitsblatt/Präsentation, automatisch generiert): `docs/ANLEITUNG_ARBEITSBLATT_PRAESENTATION.md`
+- Kurzentwurf-Syntax (automatisch generiert): `docs/ANLEITUNG_KURZENTWURF.md`
 - CSS-Anpassung: `docs/CSS_ANLEITUNG.md`
 - Arbeitsblatt-Regeln (Praxis): `docs/ARBEITSBLATT_NOTIZEN.md`
 

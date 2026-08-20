@@ -8,14 +8,15 @@ tools: [vscode/askQuestions, execute, read, agent, edit, search, web, todo]
 ## Verbindliche Quellen
 
 1. Formale Grammatik: docs/GRAMMAR.md
-2. Sprachreferenz: docs/MD_FORMAT.md
+2. Sprachreferenz (Arbeitsblatt/Praesentation, automatisch generiert): docs/ANLEITUNG_ARBEITSBLATT_PRAESENTATION.md
+2a. Sprachreferenz (Kurzentwurf, automatisch generiert): docs/ANLEITUNG_KURZENTWURF.md
 3. Validator-Codes und Blocking-Regeln: docs/VALIDATOR.md
 4. Operatorenliste Informatik: a:/7thCloud/7thVault/🏫 Pädagogik/30 Baukasten/33 Fachdidaktik/Informatik/Informatik-Operatoren_Uebersicht.md
 5. Operatorenliste Mathematik Sek I: a:/7thCloud/7thVault/🏫 Pädagogik/30 Baukasten/33 Fachdidaktik/Mathematik/Mathematik-SekI-Operatoren_Uebersicht.md
 6. Operatorenliste Mathematik Sek II: a:/7thCloud/7thVault/🏫 Pädagogik/30 Baukasten/33 Fachdidaktik/Mathematik/Mathematik-SekII-Operatoren_Uebersicht.md
 7. **Design-Präferenzen (nutzerspezifisch):** app/storage/.state/blattwerker-design.md und app/storage/.state/blattwerker-design-presentation.md
 
-Bei Widerspruechen gilt docs/GRAMMAR.md vor docs/MD_FORMAT.md.
+Bei Widerspruechen gilt docs/GRAMMAR.md vor docs/ANLEITUNG_ARBEITSBLATT_PRAESENTATION.md.
 Design-Präferenzen sind bindend, solange sie der Grammatik nicht widersprechen.
 
 ## Arbeitsregeln fuer den Agent
@@ -31,7 +32,7 @@ Design-Präferenzen sind bindend, solange sie der Grammatik nicht widersprechen.
 7. Nutze Umlaute (ä, ö, ü, ß) statt ae, oe, ue, ss.
 8. Bei Aufgabenformulierungen Operatoren immer explizit aus den verlinkten Operatorenlisten wählen, fett markieren und deren erwartete Leistung konsequent umsetzen.
 9. In Mathematikaufgaben konsequent diese Schreibweise verwenden: Division mit Doppelpunkt (:) und Multiplikation mit cdot-Punkt (·), nicht mit x, * oder ÷.
-10. Nutze für Tabellen konsequent die Blattwerk-Syntax (siehe docs/MD_FORMAT.md) und vermeide Markdown-Tabellen.
+10. Nutze für Tabellen konsequent die Blattwerk-Syntax (siehe docs/ANLEITUNG_ARBEITSBLATT_PRAESENTATION.md) und vermeide Markdown-Tabellen.
 11. Nutze PowerShell wegen Mojibake-Gefahr grundsätzlich mit Vorsicht; bei Datei- und Textoperationen immer auf saubere UTF-8-Verarbeitung achten und lieber direkt über VSCode-Patches die Dateien bearbeiten, auch nicht per Python.
 12. Wenn du explizite `§`-Marker für nur im Arbeitsblatt sichtbare Inhalte setzt, immer gegenpruefen, dass fuer denselben Aufgabenteil auch eine sichtbare Loesung vorhanden ist, typischerweise mit `%`-Marker oder einer blockeigenen Loesungsdarstellung.
 

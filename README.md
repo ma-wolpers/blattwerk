@@ -150,7 +150,8 @@ python blattwerk.py
 ## Dokumentation
 
 - Nutzerhandbuch (Funktionen/Bedienlogik): `docs/NUTZERHANDBUCH.md`
-- Markdown-Syntax: `docs/MD_FORMAT.md`
+- Markdown-Syntax (Arbeitsblatt/Präsentation, automatisch generiert): `docs/ANLEITUNG_ARBEITSBLATT_PRAESENTATION.md`
+- Kurzentwurf-Syntax (automatisch generiert): `docs/ANLEITUNG_KURZENTWURF.md`
 - Formale Grammatik: `docs/GRAMMAR.md`
 - Validator und Diagnosecodes: `docs/VALIDATOR.md`
 - Agent-Setup und Agent-Erstellung: `docs/AGENT_SETUP.md`

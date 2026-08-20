@@ -1,7 +1,7 @@
 # Blattwerk Grammar (Canonical)
 
 Diese Datei definiert die kanonische Grammatik fuer Blattwerk-Markdown.
-`docs/MD_FORMAT.md` bleibt die normative Fachreferenz; diese Datei fokussiert die formale Sprache.
+`docs/ANLEITUNG_ARBEITSBLATT_PRAESENTATION.md` (automatisch generiert aus `app/core/markdown_conventions.py`) bleibt die normative Fachreferenz; diese Datei fokussiert die formale Sprache.
 
 ## 1. Lexer-Ebene (vereinfacht)
 
@@ -97,7 +97,7 @@ block_name        = "material"
 - `show` (Blockoption): `worksheet|solution|both`
 - Grid-System-/Numberline-Elemente in YAML: `show: "§"|"%"|"&"`
 
-Die vollstaendige Optionsmatrix und Aliasliste steht in `docs/MD_FORMAT.md`.
+Die vollstaendige Optionsmatrix und Aliasliste steht in `docs/ANLEITUNG_ARBEITSBLATT_PRAESENTATION.md`.
 
 ## 5. Diagnose-Codes und Stabilitaet
 
