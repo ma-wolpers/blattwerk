@@ -6,6 +6,7 @@ from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 
 ensure_bw_gui_on_path()
 from bw_gui.runtime import ui, widgets
+from bw_gui.widgets import HoverTooltip
 
 from .ui_constants import (
     EDITOR_VIEW_BOTH,
@@ -82,25 +83,34 @@ class BlattwerkAppBuildMixin:
         self._editor_mode_segment_buttons = {
             EDITOR_VIEW_PREVIEW_ONLY: widgets.Button(
                 segment_group,
-                text="Vorschau",
+                text="◧",
+                width=3,
                 style="Segmented.TButton",
                 command=lambda: self._set_editor_view_mode(EDITOR_VIEW_PREVIEW_ONLY),
             ),
             EDITOR_VIEW_BOTH: widgets.Button(
                 segment_group,
-                text="Beides",
+                text="◫",
+                width=3,
                 style="Segmented.TButton",
                 command=lambda: self._set_editor_view_mode(EDITOR_VIEW_BOTH),
             ),
             EDITOR_VIEW_EDITOR_ONLY: widgets.Button(
                 segment_group,
-                text="Schreibbereich",
+                text="✎",
+                width=3,
                 style="Segmented.TButton",
                 command=lambda: self._set_editor_view_mode(EDITOR_VIEW_EDITOR_ONLY),
             ),
         }
-        for button in self._editor_mode_segment_buttons.values():
+        _editor_mode_segment_tooltips = {
+            EDITOR_VIEW_PREVIEW_ONLY: "Vorschau",
+            EDITOR_VIEW_BOTH: "Vorschau + Schreibbereich",
+            EDITOR_VIEW_EDITOR_ONLY: "Schreibbereich",
+        }
+        for mode_key, button in self._editor_mode_segment_buttons.items():
             button.pack(side="left", padx=(0, 6))
+            HoverTooltip(button, _editor_mode_segment_tooltips[mode_key])
 
         widgets.Separator(area_row, orient="vertical", style="ControlStrip.TSeparator").pack(side="left", fill="y", padx=(10, 10))
         widgets.Label(area_row, text="Dokumente:", width=10, style="ControlStripLabel.TLabel").pack(side="left", padx=(0, 8))

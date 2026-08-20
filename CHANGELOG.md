@@ -8,6 +8,7 @@ The format is based on Keep a Changelog.
 
 ### Added
 
+- Die Bereich-Buttons ("Vorschau"/"Beides"/"Schreibbereich") sind jetzt schmaler und zeigen Symbole statt Text (mit Tooltip zur Erklärung).
 - Die Knopfleiste der Vorschau (Format/Design/Aktionen) lässt sich über einen Pfeil-Button ein- und ausklappen, um Platz zu sparen. Der Zustand wird gemerkt.
 - Die Statusanzeige ("Gespeichert", "Vorschau erstellt" etc.) steht jetzt in einer eigenen, schmalen Zeile ganz unten im Fenster, unterhalb von Editor und Vorschau — statt wie bisher nur im Vorschau-Panel.
 - Bereichswechsel (Nur Vorschau / Beides / Nur Schreibbereich, z. B. per `Strg+1/2/3`): Der Cursor springt jetzt automatisch in den Schreibbereich, sobald dieser sichtbar wird, und verlässt ihn automatisch in Richtung Vorschau, sobald nur noch die Vorschau angezeigt wird. Eine offene Suchleiste wird beim Wechsel in den reinen Vorschau-Modus automatisch geschlossen.
