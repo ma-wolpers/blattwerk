@@ -10,6 +10,8 @@ entsteht.
 
 from __future__ import annotations
 
+from .answer_special_shared import parse_svg_color, parse_svg_thickness
+
 
 def _as_float(value):
     """Konvertiert einen Wert nach `float`, liefert `None` statt einer Exception."""
@@ -85,12 +87,15 @@ def _is_visible(show_value, include_solutions):
 
 
 def _parse_points(raw_points, axis_enabled, origin, step_x, step_y, include_solutions):
-    """Parst `points`-Einträge zu Grid-Tupeln `(x, y, label, mode)`.
+    """Parst `points`-Einträge zu Grid-Tupeln `(x, y, label, color, thickness, mode)`.
 
     Im Achsenmodus (`axis_enabled`) werden mathematische Koordinaten
     (`x`/`y`) über `origin`/`step_x`/`step_y` in Rasterkoordinaten
     umgerechnet; ohne Achse werden direkte Rasterkoordinaten (`col`/`row`,
-    mit `x`/`y` als Alias) erwartet.
+    mit `x`/`y` als Alias) erwartet. `color`/`thickness` sind optional und
+    werden über `parse_svg_color`/`parse_svg_thickness` sanitized; `None`
+    bedeutet "kein gültiger Wert gesetzt", der Renderer fällt dann auf den
+    bisherigen Theme-Default zurück.
     """
     if not isinstance(raw_points, list):
         return []
@@ -117,7 +122,9 @@ def _parse_points(raw_points, axis_enabled, origin, step_x, step_y, include_solu
                 continue
 
         label = str(item.get("label", "")).strip()
-        parsed.append((gx, gy, label, mode))
+        color = parse_svg_color(item.get("color"))
+        thickness = parse_svg_thickness(item.get("thickness"))
+        parsed.append((gx, gy, label, color, thickness, mode))
 
     return parsed
 
@@ -127,6 +134,9 @@ def _parse_sequence(raw_sequence, axis_enabled, origin, step_x, step_y, include_
 
     Nur im Achsenmodus sinnvoll (ohne mathematischen Ursprung gibt es keine
     eindeutige Sortierreihenfolge über `x`), daher `[]` ohne `axis_enabled`.
+    `color`/`thickness` gelten hier für die aus den Punkten gebildete
+    Verbindungslinie (siehe `_render_grid_primitives_svg`), nicht für die
+    einzelnen Punktmarkierungen.
     """
     if not axis_enabled or origin is None or not isinstance(raw_sequence, list):
         return []
@@ -145,17 +155,19 @@ def _parse_sequence(raw_sequence, axis_enabled, origin, step_x, step_y, include_
         gx = origin[0] + (x / step_x)
         gy = origin[1] - (y / step_y)
         label = str(item.get("label", "")).strip()
-        parsed.append((gx, gy, label, mode))
+        color = parse_svg_color(item.get("color"))
+        thickness = parse_svg_thickness(item.get("thickness"))
+        parsed.append((gx, gy, label, color, thickness, mode))
     return parsed
 
 
 def _parse_pairs(raw_pairs, axis_enabled, origin, step_x, step_y, include_solutions):
-    """Parst `pairs`-Einträge (Strecken) als `(x1, y1, x2, y2, mode, line_style)`.
+    """Parst `pairs`-Einträge (Strecken) als `(x1, y1, x2, y2, label, color, thickness, mode, line_style)`.
 
     `line_style` fällt bei fehlendem oder ungültigem `line`-Wert still auf
     `"dashed"` zurück — das ist der bestehende Default-Fallback für die
-    *Rendering*-Ebene; eine Diagnose für ungültige `line`-Werte gibt es
-    (Stand Phase 0) noch nicht, wird in einer späteren Phase ergänzt.
+    *Rendering*-Ebene; eine spätere Phase ergänzt eine Validator-Diagnose
+    für ungültige `line`-Werte, ohne diesen Rendering-Fallback zu ändern.
     """
     if not axis_enabled or origin is None or not isinstance(raw_pairs, list):
         return []
@@ -179,12 +191,15 @@ def _parse_pairs(raw_pairs, axis_enabled, origin, step_x, step_y, include_soluti
         gy1 = origin[1] - (y1 / step_y)
         gx2 = origin[0] + (x2 / step_x)
         gy2 = origin[1] - (y2 / step_y)
-        parsed.append((gx1, gy1, gx2, gy2, mode, line_style))
+        label = str(item.get("label", "")).strip()
+        color = parse_svg_color(item.get("color"))
+        thickness = parse_svg_thickness(item.get("thickness"))
+        parsed.append((gx1, gy1, gx2, gy2, label, color, thickness, mode, line_style))
     return parsed
 
 
 def _parse_functions(raw_functions, axis_enabled, include_solutions):
-    """Parst `functions`-Deskriptoren als `(expr, x_min, x_max, mode)`.
+    """Parst `functions`-Deskriptoren als `(expr, x_min, x_max, label, color, thickness, mode)`.
 
     Nur im Achsenmodus sinnvoll, da Funktionsgraphen ohne mathematisches
     Koordinatensystem nicht definiert sind.
@@ -209,6 +224,9 @@ def _parse_functions(raw_functions, axis_enabled, include_solutions):
         if x_min is None or x_max is None or x_min >= x_max:
             continue
 
-        parsed.append((expr, x_min, x_max, mode))
+        label = str(item.get("label", "")).strip()
+        color = parse_svg_color(item.get("color"))
+        thickness = parse_svg_thickness(item.get("thickness"))
+        parsed.append((expr, x_min, x_max, label, color, thickness, mode))
 
     return parsed

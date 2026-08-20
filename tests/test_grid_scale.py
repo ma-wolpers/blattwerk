@@ -270,3 +270,57 @@ def test_grid_line_invalid_value_falls_back_to_solid_rendering():
     )
 
     assert "grid-background-line-dashed" not in html
+
+
+def test_geometry_point_color_and_thickness_are_rendered_inline():
+    html = _render_answer_block(
+        {"type": "geometry", "rows": "10", "cols": "10", "axis": "true", "origin": "5,5"},
+        "points:\n  - {x: 1, y: 1, color: '#ff0000', thickness: 3}\n",
+        include_solutions=True,
+    )
+
+    assert "style='stroke:#ff0000;stroke-width:3.0000'" in html
+
+
+def test_geometry_invalid_color_is_not_emitted_into_style_attribute():
+    html = _render_answer_block(
+        {"type": "geometry", "rows": "10", "cols": "10", "axis": "true", "origin": "5,5"},
+        "points:\n  - {x: 1, y: 1, color: 'red;}body{display:none'}\n",
+        include_solutions=True,
+    )
+
+    assert "red;}body{display:none" not in html
+    assert "display:none" not in html
+
+
+def test_geometry_invalid_thickness_falls_back_to_default_rendering():
+    html = _render_answer_block(
+        {"type": "geometry", "rows": "10", "cols": "10", "axis": "true", "origin": "5,5"},
+        "points:\n  - {x: 1, y: 1, thickness: -3}\n",
+        include_solutions=True,
+    )
+
+    assert "stroke-width:-3" not in html
+
+
+def test_geometry_function_label_is_rendered_and_escaped():
+    html = _render_answer_block(
+        {"type": "geometry", "rows": "10", "cols": "10", "axis": "true", "origin": "5,5"},
+        "functions:\n  - {expr: 'x', domain: '-1:1', label: '<script>bad</script>'}\n",
+        include_solutions=True,
+    )
+
+    assert "grid-function-label" in html
+    assert "<script>bad</script>" not in html
+    assert "&lt;script&gt;bad&lt;/script&gt;" in html
+
+
+def test_geometry_segment_label_is_rendered_at_midpoint():
+    html = _render_answer_block(
+        {"type": "geometry", "rows": "10", "cols": "10", "axis": "true", "origin": "5,5"},
+        "pairs:\n  - {x1: 0, y1: 0, x2: 2, y2: 0, label: 'AB'}\n",
+        include_solutions=True,
+    )
+
+    assert "grid-segment-label" in html
+    assert ">AB</text>" in html

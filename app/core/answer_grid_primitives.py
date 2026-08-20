@@ -30,6 +30,29 @@ from .answer_grid_function_eval import _sample_function_points
 from .answer_grid_svg_frame import _svg_viewport_frame
 
 
+def _svg_stroke_style_attr(color, thickness):
+    """Baut ein optionales `style='stroke:...;stroke-width:...'`-Attribut für Linien-Elemente.
+
+    `color`/`thickness` sind bereits über `parse_svg_color`/
+    `parse_svg_thickness` sanitized (siehe `answer_grid_entries.py`) — hier
+    wird nur noch zu einem CSS-`style`-Attribut zusammengesetzt, keine
+    erneute Validierung von Rohtext. Liefert einen leeren String, wenn
+    weder Farbe noch Dicke gesetzt sind, damit das Element auf die
+    bestehende, mode-abhängige CSS-Klasse zurückfällt.
+    """
+    parts = []
+    if color:
+        parts.append(f"stroke:{color}")
+    if thickness is not None:
+        parts.append(f"stroke-width:{thickness:.4f}")
+    return f" style='{';'.join(parts)}'" if parts else ""
+
+
+def _svg_fill_style_attr(color):
+    """Baut ein optionales `style='fill:...'`-Attribut für Label-`<text>`-Elemente."""
+    return f" style='fill:{color}'" if color else ""
+
+
 def _render_grid_primitives_svg(options, payload, rows, cols, include_solutions, bleed_units=(0.0, 0.0, 0.0, 0.0)):
     """Rendert optionale geometrische Primitive innerhalb des Rasters als SVG.
 
@@ -106,52 +129,66 @@ def _render_grid_primitives_svg(options, payload, rows, cols, include_solutions,
     )
 
     point_markup = []
-    for px, py, label, mode in point_entries + sequence_entries:
+    for px, py, label, color, thickness, mode in point_entries + sequence_entries:
         if not _inside_grid(px, py, cols, rows):
             continue
         cross_half = 0.18
+        stroke_style = _svg_stroke_style_attr(color, thickness)
         point_markup.append(
-            f"<line class='grid-point grid-mode-{mode}' x1='{px - cross_half:.4f}' y1='{py - cross_half:.4f}' x2='{px + cross_half:.4f}' y2='{py + cross_half:.4f}' />"
+            f"<line class='grid-point grid-mode-{mode}'{stroke_style} x1='{px - cross_half:.4f}' y1='{py - cross_half:.4f}' x2='{px + cross_half:.4f}' y2='{py + cross_half:.4f}' />"
         )
         point_markup.append(
-            f"<line class='grid-point grid-mode-{mode}' x1='{px - cross_half:.4f}' y1='{py + cross_half:.4f}' x2='{px + cross_half:.4f}' y2='{py - cross_half:.4f}' />"
+            f"<line class='grid-point grid-mode-{mode}'{stroke_style} x1='{px - cross_half:.4f}' y1='{py + cross_half:.4f}' x2='{px + cross_half:.4f}' y2='{py - cross_half:.4f}' />"
         )
         if label:
             point_markup.append(
-                f"<text class='grid-point-label grid-mode-{mode}' x='{px + 0.24:.4f}' y='{py - 0.24:.4f}'>{escape(label)}</text>"
+                f"<text class='grid-point-label grid-mode-{mode}'{_svg_fill_style_attr(color)} x='{px + 0.24:.4f}' y='{py - 0.24:.4f}'>{escape(label)}</text>"
             )
 
     if sequence_entries:
         filtered = [
-            (x, y, mode)
-            for x, y, _label, mode in sequence_entries
+            (x, y, color, thickness, mode)
+            for x, y, _label, color, thickness, mode in sequence_entries
             if _inside_grid(x, y, cols, rows)
         ]
         if len(filtered) >= 2:
-            seq_mode = filtered[0][2]
+            seq_color, seq_thickness, seq_mode = filtered[0][2], filtered[0][3], filtered[0][4]
             points_attr = " ".join(
                 f"{x:.4f},{y:.4f}"
-                for x, y, _mode in sorted(filtered, key=lambda item: item[0])
+                for x, y, _color, _thickness, _mode in sorted(filtered, key=lambda item: item[0])
             )
+            stroke_style = _svg_stroke_style_attr(seq_color, seq_thickness)
             lines.append(
-                f"<polyline class='grid-sequence-line grid-mode-{seq_mode}' points='{points_attr}' />"
+                f"<polyline class='grid-sequence-line grid-mode-{seq_mode}'{stroke_style} points='{points_attr}' />"
             )
 
-    for gx1, gy1, gx2, gy2, mode, line_style in segment_entries:
+    for gx1, gy1, gx2, gy2, label, color, thickness, mode, line_style in segment_entries:
+        stroke_style = _svg_stroke_style_attr(color, thickness)
         lines.append(
-            f"<line class='grid-segment grid-segment-{line_style} grid-mode-{mode}' x1='{gx1:.4f}' y1='{gy1:.4f}' x2='{gx2:.4f}' y2='{gy2:.4f}' />"
+            f"<line class='grid-segment grid-segment-{line_style} grid-mode-{mode}'{stroke_style} x1='{gx1:.4f}' y1='{gy1:.4f}' x2='{gx2:.4f}' y2='{gy2:.4f}' />"
         )
+        if label:
+            mid_x, mid_y = (gx1 + gx2) / 2, (gy1 + gy2) / 2
+            lines.append(
+                f"<text class='grid-segment-label grid-mode-{mode}'{_svg_fill_style_attr(color)} x='{mid_x + 0.16:.4f}' y='{mid_y - 0.16:.4f}'>{escape(label)}</text>"
+            )
 
-    for expr, x_min, x_max, mode in fn_entries:
+    for expr, x_min, x_max, label, color, thickness, mode in fn_entries:
         poly_points = _sample_function_points(
             expr, x_min, x_max, origin, step_x, step_y, cols, rows
         )
         if len(poly_points) < 2:
             continue
         points_attr = " ".join(f"{x:.4f},{y:.4f}" for x, y in poly_points)
+        stroke_style = _svg_stroke_style_attr(color, thickness)
         lines.append(
-            f"<polyline class='grid-function-line grid-mode-{mode}' points='{points_attr}' />"
+            f"<polyline class='grid-function-line grid-mode-{mode}'{stroke_style} points='{points_attr}' />"
         )
+        if label:
+            end_x, end_y = poly_points[-1]
+            lines.append(
+                f"<text class='grid-function-label grid-mode-{mode}'{_svg_fill_style_attr(color)} x='{end_x + 0.16:.4f}' y='{end_y - 0.16:.4f}'>{escape(label)}</text>"
+            )
 
     all_markup = lines + point_markup
     if not all_markup:

@@ -67,6 +67,74 @@ def _parse_option_list(raw_value):
     return [item.strip() for item in normalized.split("|") if item.strip()]
 
 
+_SVG_COLOR_MAX_LENGTH = 64
+
+_SVG_COLOR_PATTERN = re.compile(
+    r"#[0-9a-fA-F]{3}"
+    r"|#[0-9a-fA-F]{4}"
+    r"|#[0-9a-fA-F]{6}"
+    r"|#[0-9a-fA-F]{8}"
+    r"|(?:rgb|rgba|hsl|hsla)\(\s*[0-9.%,\s]+\)"
+    r"|[a-zA-Z]+"
+)
+"""Whitelist-Muster für als SVG-`style`-Attribut sichere Farbwerte.
+
+Deckt Hex (`#rgb`/`#rrggbb`/`#rrggbbaa`), die Funktionsschreibweisen
+`rgb()`/`rgba()`/`hsl()`/`hsla()` (Innenleben nur Ziffern/Punkt/Prozent/
+Komma/Whitespace) sowie reine CSS-Farbnamen ab — genau eine dieser Formen,
+keine Wiederholung/Verkettung (kein `+`/`{n,m}` um die gesamte Alternation,
+sonst liesse sich z. B. `"redred"` oder eine Aneinanderreihung mehrerer
+Teilformen durchschleusen). Absichtlich **kein** `match()`+`$`, sondern
+`fullmatch()` in `parse_svg_color` — `$` würde in Python-Regex ohne
+`re.MULTILINE` auch direkt vor einem abschließenden `\n` matchen und
+liesse z. B. `"red\n; javascript:..."` durch. Die Gesamtlänge wird separat
+in `parse_svg_color` über `_SVG_COLOR_MAX_LENGTH` begrenzt (Defense-in-Depth
+gegen überlange Payloads im generierten Markup) statt im Regex-Pattern
+selbst, um die Alternation nicht versehentlich wiederholbar zu machen.
+"""
+
+
+def parse_svg_color(raw_value):
+    """Validiert/sanitized einen rohen Farbwert für die Verwendung in einem SVG-`style`-Attribut.
+
+    Liefert `None` bei leerem/fehlendem/zu langem Wert oder wenn der Wert
+    nicht dem engen Whitelist-Pattern entspricht — Aufrufer (Renderer wie
+    Validator) behandeln `None` einheitlich als "kein gültiger Farbwert
+    gesetzt" und fallen auf den bisherigen Theme-Default zurück. Dies ist
+    die **einzige** Stelle im Code, die entscheidet, was eine gültige Farbe
+    ist; Renderer und Validator rufen exakt diese Funktion auf, damit beide
+    Seiten nie auseinanderlaufen können. Sicherheitsrelevant: der
+    zurückgegebene Wert wird roh in generiertes SVG-Markup interpoliert,
+    daher `fullmatch` (kein `search`/`match`) gegen ein enges
+    Zeichen-Whitelist-Pattern statt einer Blacklist gefährlicher Zeichen.
+    """
+    text = str(raw_value or "").strip()
+    if not text or len(text) > _SVG_COLOR_MAX_LENGTH:
+        return None
+    if not _SVG_COLOR_PATTERN.fullmatch(text):
+        return None
+    return text
+
+
+def parse_svg_thickness(raw_value):
+    """Validiert einen rohen Dicke-Wert (SVG-`stroke-width`, unitless) für Geometrie-Objekte.
+
+    Liefert `None` bei fehlendem, nicht als `float` parsebarem oder
+    nicht-positivem Wert — Aufrufer fallen dann auf die bisherige,
+    Theme-abhängige Standarddicke zurück. Einzige Quelle für "was ist eine
+    gültige Dicke", von Renderer und Validator gemeinsam genutzt.
+    """
+    if raw_value is None:
+        return None
+    try:
+        parsed = float(raw_value)
+    except (TypeError, ValueError):
+        return None
+    if parsed <= 0:
+        return None
+    return parsed
+
+
 def _as_text_list(value):
     """Normalisiert Werte zu einer nicht-leeren Liste aus Strings."""
     if value is None:

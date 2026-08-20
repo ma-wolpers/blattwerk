@@ -291,10 +291,19 @@ Geometry-YAML-Sichtbarkeit auf Elementebene (`points`, `sequence`, `pairs`, `fun
 - Ohne `show` gilt standardmäßig `"&"`.
 - Werte wie `show: worksheet|solution|both` sind für Grid-Elemente ungültig.
 
-`sequence`-Einträge (`x`, `y`, optional `label`): alle sichtbaren Punkte werden nach x-Wert sortiert als Polylinie verbunden.
+Optionale Style-Keys auf Elementebene, gültig bei `points`, `sequence`, `pairs` und `functions`:
+- `color`: beliebiger CSS-Farbwert (`#rgb`, `#rrggbb`, `#rrggbbaa`, `rgb()`/`rgba()`/`hsl()`/`hsla()`, oder ein CSS-Farbname wie `red`). Ohne gültigen Wert gilt der bisherige Theme-Standard (abhängig vom Arbeitsblatt-/Lösungsmodus).
+- `thickness`: positive Zahl, steuert die Linien-/Punktdicke (unitless, wie das bestehende SVG-Koordinatensystem). Ohne gültigen Wert gilt die bisherige Standarddicke.
+- Ungültige Werte werden vom Validator gemeldet (`AN013` für `color`, `AN014` für `thickness`) und fallen beim Rendern sicher auf den Standard zurück — kein ungültiger Wert gelangt ins erzeugte Markup.
 
-`pairs`-Einträge (`x1`, `y1`, `x2`, `y2`): jeder Eintrag wird als unabhängige Strecke von Endpunkt 1 nach Endpunkt 2 gerendert.
-- Optionaler Key `line`: `solid` | `dashed` (Standard: `dashed`)
+`sequence`-Einträge (`x`, `y`, optional `label`, `color`, `thickness`): alle sichtbaren Punkte werden nach x-Wert sortiert als Polylinie verbunden; `color`/`thickness` des ersten sichtbaren Punkts bestimmen das Aussehen der gesamten Verbindungslinie.
+
+`pairs`-Einträge (`x1`, `y1`, `x2`, `y2`, optional `label`, `color`, `thickness`): jeder Eintrag wird als unabhängige Strecke von Endpunkt 1 nach Endpunkt 2 gerendert.
+- Optionaler Key `line`: `solid` | `dashed` (Standard: `dashed`) — Objekt-Eigenschaft einzelner Strecken, nicht zu verwechseln mit der gleichnamigen Block-Option `line=solid|dashed` bei `:::grid`/`:::geometry` (steuert das Rasterlinien-Styling).
+- Optionaler Key `label`: Text, der mittig auf der Strecke angezeigt wird.
+
+`functions`-Einträge (`expr`, optional `domain`, `label`, `color`, `thickness`): rendert den Graphen der Funktion `expr` (Variable `x`) über den `domain`-Bereich (Standard `-10:10`).
+- Optionaler Key `label`: Text, der am rechten (letzten sichtbaren) Ende des Funktionsgraphen angezeigt wird.
 
 Numberline-YAML-Sichtbarkeit auf Elementebene (`labels`, `answers`, `arcs`):
 - `show: "§"` = nur Arbeitsblatt
