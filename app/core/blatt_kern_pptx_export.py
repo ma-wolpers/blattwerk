@@ -40,6 +40,7 @@ def build_presentation_pptx(
     black_screen_mode: str = "none",
     presentation_section_separator: str = "dot",
     presentation_hide_future_sections: bool = False,
+    presentation_ignore_framebreaks: bool = False,
      metadata_defaults: dict | None = None,
      diagnostics_out=None,
     copyright_text_override: str | None = None,
@@ -78,6 +79,7 @@ def build_presentation_pptx(
                     diagnostics_out=diagnostics_out,
                 presentation_section_separator=presentation_section_separator,
                 presentation_hide_future_sections=presentation_hide_future_sections,
+                presentation_ignore_framebreaks=presentation_ignore_framebreaks,
             )
         )
 

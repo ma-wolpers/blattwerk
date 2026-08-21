@@ -289,6 +289,7 @@ class BlattwerkAppExportMixin:
         black_screen_mode: str = "none",
         presentation_section_separator: str | None = None,
         presentation_hide_future_sections: bool | None = None,
+        presentation_ignore_framebreaks: bool = False,
         diagnostics_out=None,
     ):
         default_separator, default_hide_future = (
@@ -314,6 +315,7 @@ class BlattwerkAppExportMixin:
                 if presentation_hide_future_sections is not None
                 else default_hide_future
             ),
+            presentation_ignore_framebreaks=bool(presentation_ignore_framebreaks),
             diagnostics_out=diagnostics_out,
         )
 
@@ -347,6 +349,7 @@ class BlattwerkAppExportMixin:
         mode: str,
         contrast_profile: str,
         black_screen_mode: str = "none",
+        presentation_ignore_framebreaks: bool = False,
         compile_diagnostics=None,
     ):
         """Export pdf."""
@@ -370,6 +373,7 @@ class BlattwerkAppExportMixin:
                     page_format=page_format,
                     contrast_profile=contrast_profile,
                     black_screen_mode=black_screen_mode,
+                    presentation_ignore_framebreaks=presentation_ignore_framebreaks,
                     diagnostics_out=compile_diagnostics,
                 ),
             )
@@ -386,6 +390,7 @@ class BlattwerkAppExportMixin:
                     page_format=page_format,
                     contrast_profile=contrast_profile,
                     black_screen_mode=black_screen_mode,
+                    presentation_ignore_framebreaks=presentation_ignore_framebreaks,
                     diagnostics_out=compile_diagnostics,
                 ),
             )
@@ -409,6 +414,7 @@ class BlattwerkAppExportMixin:
                 page_format=page_format,
                 contrast_profile=contrast_profile,
                 black_screen_mode=black_screen_mode,
+                presentation_ignore_framebreaks=presentation_ignore_framebreaks,
                 diagnostics_out=compile_diagnostics,
             ),
         )
@@ -422,6 +428,7 @@ class BlattwerkAppExportMixin:
         mode: str,
         contrast_profile: str,
         black_screen_mode: str = "none",
+        presentation_ignore_framebreaks: bool = False,
         compile_diagnostics=None,
     ):
         """Export html."""
@@ -445,6 +452,7 @@ class BlattwerkAppExportMixin:
                     page_format=page_format,
                     contrast_profile=contrast_profile,
                     black_screen_mode=black_screen_mode,
+                    presentation_ignore_framebreaks=presentation_ignore_framebreaks,
                     diagnostics_out=compile_diagnostics,
                 ),
             )
@@ -461,6 +469,7 @@ class BlattwerkAppExportMixin:
                     page_format=page_format,
                     contrast_profile=contrast_profile,
                     black_screen_mode=black_screen_mode,
+                    presentation_ignore_framebreaks=presentation_ignore_framebreaks,
                     diagnostics_out=compile_diagnostics,
                 ),
             )
@@ -484,6 +493,7 @@ class BlattwerkAppExportMixin:
                 page_format=page_format,
                 contrast_profile=contrast_profile,
                 black_screen_mode=black_screen_mode,
+                presentation_ignore_framebreaks=presentation_ignore_framebreaks,
                 diagnostics_out=compile_diagnostics,
             ),
         )
@@ -497,6 +507,7 @@ class BlattwerkAppExportMixin:
         mode: str,
         contrast_profile: str,
         black_screen_mode: str = "none",
+        presentation_ignore_framebreaks: bool = False,
         compile_diagnostics=None,
     ):
         """Export png."""
@@ -524,6 +535,7 @@ class BlattwerkAppExportMixin:
                 black_screen_mode=black_screen_mode,
                 presentation_section_separator=section_separator,
                 presentation_hide_future_sections=hide_future_sections,
+                presentation_ignore_framebreaks=presentation_ignore_framebreaks,
                 diagnostics_out=compile_diagnostics,
                 kurzentwurf_options=kurzentwurf_options,
             )
@@ -540,6 +552,7 @@ class BlattwerkAppExportMixin:
                 black_screen_mode=black_screen_mode,
                 presentation_section_separator=section_separator,
                 presentation_hide_future_sections=hide_future_sections,
+                presentation_ignore_framebreaks=presentation_ignore_framebreaks,
                 diagnostics_out=compile_diagnostics,
                 kurzentwurf_options=kurzentwurf_options,
             )
@@ -560,6 +573,7 @@ class BlattwerkAppExportMixin:
             black_screen_mode=black_screen_mode,
             presentation_section_separator=section_separator,
             presentation_hide_future_sections=hide_future_sections,
+            presentation_ignore_framebreaks=presentation_ignore_framebreaks,
             diagnostics_out=compile_diagnostics,
             kurzentwurf_options=kurzentwurf_options,
         )
@@ -572,6 +586,7 @@ class BlattwerkAppExportMixin:
         mode: str,
         contrast_profile: str,
         black_screen_mode: str = "none",
+        presentation_ignore_framebreaks: bool = False,
         compile_diagnostics=None,
     ):
         """Export png zip."""
@@ -599,6 +614,7 @@ class BlattwerkAppExportMixin:
                 black_screen_mode=black_screen_mode,
                 presentation_section_separator=section_separator,
                 presentation_hide_future_sections=hide_future_sections,
+                presentation_ignore_framebreaks=presentation_ignore_framebreaks,
                 diagnostics_out=compile_diagnostics,
                 kurzentwurf_options=kurzentwurf_options,
             )
@@ -615,6 +631,7 @@ class BlattwerkAppExportMixin:
                 black_screen_mode=black_screen_mode,
                 presentation_section_separator=section_separator,
                 presentation_hide_future_sections=hide_future_sections,
+                presentation_ignore_framebreaks=presentation_ignore_framebreaks,
                 diagnostics_out=compile_diagnostics,
                 kurzentwurf_options=kurzentwurf_options,
             )
@@ -638,6 +655,7 @@ class BlattwerkAppExportMixin:
             black_screen_mode=black_screen_mode,
             presentation_section_separator=section_separator,
             presentation_hide_future_sections=hide_future_sections,
+            presentation_ignore_framebreaks=presentation_ignore_framebreaks,
             diagnostics_out=compile_diagnostics,
             kurzentwurf_options=kurzentwurf_options,
         )
@@ -651,6 +669,7 @@ class BlattwerkAppExportMixin:
         mode: str,
         contrast_profile: str,
         black_screen_mode: str = "none",
+        presentation_ignore_framebreaks: bool = False,
         compile_diagnostics=None,
     ):
         """Export as PPTX (one slide per page/slide, rendered at 200 DPI)."""
@@ -682,6 +701,7 @@ class BlattwerkAppExportMixin:
                     black_screen_mode=black_screen_mode,
                     presentation_section_separator=section_separator,
                     presentation_hide_future_sections=hide_future_sections,
+                    presentation_ignore_framebreaks=presentation_ignore_framebreaks,
                     metadata_defaults=metadata_defaults,
                     copyright_text_override=copyright_override,
                     diagnostics_out=compile_diagnostics,
@@ -705,6 +725,7 @@ class BlattwerkAppExportMixin:
             black_screen_mode=black_screen_mode,
             presentation_section_separator=section_separator,
             presentation_hide_future_sections=hide_future_sections,
+            presentation_ignore_framebreaks=presentation_ignore_framebreaks,
             metadata_defaults=metadata_defaults,
             copyright_text_override=copyright_override,
             diagnostics_out=compile_diagnostics,
@@ -1031,6 +1052,7 @@ class BlattwerkAppExportMixin:
             _ALLOWED_BLACK_SCREEN_MODES,
             "none",
         )
+        ignore_framebreaks = bool(dialog.result.get("ignore_framebreaks", False))
         page_format = str(self.preview_page_format_var.get() or "").strip()
         if page_format not in _ALLOWED_PRESENTATION_PAGE_FORMATS:
             page_format = default_page_format
@@ -1052,6 +1074,7 @@ class BlattwerkAppExportMixin:
                     mode,
                     contrast_profile,
                     black_screen_mode=black_screen_mode,
+                    presentation_ignore_framebreaks=ignore_framebreaks,
                     compile_diagnostics=compile_diagnostics,
                 )
             elif fmt == "html":
@@ -1062,6 +1085,7 @@ class BlattwerkAppExportMixin:
                     mode,
                     contrast_profile,
                     black_screen_mode=black_screen_mode,
+                    presentation_ignore_framebreaks=ignore_framebreaks,
                     compile_diagnostics=compile_diagnostics,
                 )
             elif fmt == "png":
@@ -1072,6 +1096,7 @@ class BlattwerkAppExportMixin:
                     mode,
                     contrast_profile,
                     black_screen_mode=black_screen_mode,
+                    presentation_ignore_framebreaks=ignore_framebreaks,
                     compile_diagnostics=compile_diagnostics,
                 )
             elif fmt == "pptx":
@@ -1082,6 +1107,7 @@ class BlattwerkAppExportMixin:
                     mode,
                     contrast_profile,
                     black_screen_mode=black_screen_mode,
+                    presentation_ignore_framebreaks=ignore_framebreaks,
                     compile_diagnostics=compile_diagnostics,
                 )
             else:
@@ -1092,6 +1118,7 @@ class BlattwerkAppExportMixin:
                     mode,
                     contrast_profile,
                     black_screen_mode=black_screen_mode,
+                    presentation_ignore_framebreaks=ignore_framebreaks,
                     compile_diagnostics=compile_diagnostics,
                 )
 

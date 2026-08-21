@@ -259,6 +259,68 @@ def test_render_html_presentation_framebreak_builds_incremental_frames():
     assert "Beta" in slide_bodies[1]
 
 
+def test_render_html_presentation_ignore_framebreaks_merges_into_one_slide():
+    meta = {
+        "Titel": "T",
+        "Fach": "M",
+        "Thema": "X",
+        "mode": "presentation",
+    }
+    blocks = parse_blocks(
+        ":::task\n"
+        "Alpha\n"
+        ":::\n"
+        "-+\n"
+        ":::task\n"
+        "Beta\n"
+        ":::\n"
+    )
+
+    html = render_html(
+        meta, blocks, include_solutions=False, presentation_ignore_framebreaks=True
+    )
+    slide_bodies = re.findall(
+        r"<section class='ab-slide'>(.*?)</section>",
+        html,
+        flags=re.DOTALL,
+    )
+
+    assert len(slide_bodies) == 1
+    assert "Alpha" in slide_bodies[0]
+    assert "Beta" in slide_bodies[0]
+
+
+def test_render_html_presentation_default_framebreak_behavior_is_unchanged():
+    # Regressionsschutz: presentation_ignore_framebreaks=False (impliziter
+    # Default, kein Parameter uebergeben) darf das bestehende Verhalten aus
+    # test_render_html_presentation_framebreak_builds_incremental_frames
+    # nicht veraendern.
+    meta = {
+        "Titel": "T",
+        "Fach": "M",
+        "Thema": "X",
+        "mode": "presentation",
+    }
+    blocks = parse_blocks(
+        ":::task\n"
+        "Alpha\n"
+        ":::\n"
+        "-+\n"
+        ":::task\n"
+        "Beta\n"
+        ":::\n"
+    )
+
+    html = render_html(meta, blocks, include_solutions=False)
+    slide_bodies = re.findall(
+        r"<section class='ab-slide'>(.*?)</section>",
+        html,
+        flags=re.DOTALL,
+    )
+
+    assert len(slide_bodies) == 2
+
+
 def test_render_html_presentation_framebreak_keeps_raw_markdown_line_spacing():
     meta = {
         "Titel": "T",

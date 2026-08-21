@@ -343,6 +343,7 @@ class PresentationExportDialog(_BaseExportDialog):
         super().__init__(parent, input_path, theme_key, initial_output_dir=initial_output_dir)
         self.format_var = ui.StringVar(value=default_format)
         self.black_screen_var = ui.StringVar(value=black_screen_default)
+        self.ignore_framebreaks_var = ui.BooleanVar(value=False)
 
         self.window.title("Praesentation exportieren")
         self._build_ui()
@@ -374,6 +375,14 @@ class PresentationExportDialog(_BaseExportDialog):
         widgets.Radiobutton(black_row, text="Vorher", value="before", variable=self.black_screen_var).pack(side="left", padx=(12, 0))
         widgets.Radiobutton(black_row, text="Nachher", value="after", variable=self.black_screen_var).pack(side="left", padx=(12, 0))
         widgets.Radiobutton(black_row, text="Beides", value="both", variable=self.black_screen_var).pack(side="left", padx=(12, 0))
+
+        framebreak_row = widgets.Frame(outer)
+        framebreak_row.pack(fill="x", pady=(4, 4))
+        widgets.Checkbutton(
+            framebreak_row,
+            text="Schrittweise Folien (-+) zu einer Folie zusammenfassen",
+            variable=self.ignore_framebreaks_var,
+        ).pack(side="left")
 
         out_row = widgets.Frame(outer)
         out_row.pack(fill="x", pady=(10, 4))
@@ -515,6 +524,7 @@ class PresentationExportDialog(_BaseExportDialog):
             "format": self.format_var.get(),
             "mode": "worksheet",
             "black_screen": self.black_screen_var.get(),
+            "ignore_framebreaks": bool(self.ignore_framebreaks_var.get()),
             "output_path": out_path,
         }
         self.window.destroy()

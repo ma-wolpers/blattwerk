@@ -30,6 +30,7 @@ def build_preview_images_for_document(
     black_screen_mode: str = "none",
     presentation_section_separator: str = "dot",
     presentation_hide_future_sections: bool = False,
+    presentation_ignore_framebreaks: bool = False,
     kurzentwurf_options: Mapping[str, object] | None = None,
 ) -> tuple[list[Image.Image], list[BuildDiagnostic]]:
     """Build preview images for the active document family."""
@@ -48,6 +49,7 @@ def build_preview_images_for_document(
         black_screen_mode=black_screen_mode,
         presentation_section_separator=presentation_section_separator,
         presentation_hide_future_sections=presentation_hide_future_sections,
+        presentation_ignore_framebreaks=presentation_ignore_framebreaks,
     )
 
 
@@ -63,6 +65,7 @@ def _build_worksheet_preview_images(
     black_screen_mode: str,
     presentation_section_separator: str,
     presentation_hide_future_sections: bool,
+    presentation_ignore_framebreaks: bool = False,
 ) -> tuple[list[Image.Image], list[BuildDiagnostic]]:
     with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
         temp_pdf_path = Path(tmp.name)
@@ -82,6 +85,7 @@ def _build_worksheet_preview_images(
                 black_screen_mode=black_screen_mode,
                 presentation_section_separator=presentation_section_separator,
                 presentation_hide_future_sections=presentation_hide_future_sections,
+                presentation_ignore_framebreaks=presentation_ignore_framebreaks,
                 diagnostics_out=compile_diagnostics,
             )
         )

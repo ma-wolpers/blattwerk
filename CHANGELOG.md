@@ -8,6 +8,7 @@ The format is based on Keep a Changelog.
 
 ### Added
 
+- Präsentations-Export: neue Option "Schrittweise Folien (-+) zu einer Folie zusammenfassen" im Export-Dialog (standardmäßig abgewählt). Fasst alle durch den `-+`-Marker (framebreak) verbundenen Folien zu einer einzigen finalen Folie zusammen — wirkt einheitlich über PDF, HTML, PNG, PNG-ZIP und PPTX.
 - Im Lernhilfen-Exportdialog kann jetzt (bei mehr als einem offenen Tab) "Alle offenen Dokumente exportieren" ausgewählt werden: erzeugt ein ZIP mit je einer PDF-Datei pro geöffnetem Dokument, jeweils mit dem aktuellen Editorinhalt. Der Export ist atomar — scheitert auch nur eines der Dokumente beim Bauen, wird der gesamte Vorgang mit klarer Fehlermeldung abgebrochen und es entsteht keine Teil-Datei; Dokumente ganz ohne Lernhilfen werden dagegen sauber übersprungen und am Ende gemeldet.
 - PDF-Export mehrerer Lernhilfenkarten: die linke Spalte (DIN-A6-Breite) wird jetzt vollständig gefüllt, bevor die rechte Spalte beginnt — statt Karten einfach in voller Seitenbreite untereinander zu stapeln. Spart Papier beim Ausschneiden.
 - Lernhilfen werden grundsätzlich in DIN-A6-Breite (10,5 cm, inklusive Innenabstand der Karte) erstellt — unabhängig vom sonst gewählten Seitenformat. Betrifft sowohl den Einzelkarten-Export (PNG/PNG-ZIP) als auch die spätere Kartenbreite im kombinierten PDF-Export.

@@ -91,7 +91,8 @@ PROSE_SECTIONS: dict[str, str] = {
     "marker:framebreak": (
         "`-+` auf einer eigenen Zeile erzeugt im Präsentationsmodus einen neuen Frame (neue Folie), "
         "der den bisherigen Folieninhalt beibehält und um den folgenden Inhalt ergänzt -- nützlich, um "
-        "einen Gedanken schrittweise aufzubauen."
+        "einen Gedanken schrittweise aufzubauen. Der Präsentations-Exportdialog bietet eine Option, "
+        "diese schrittweisen Folien beim Export zu einer einzigen finalen Folie zusammenzufassen."
     ),
     "marker:slidechromeoff": (
         "`--hf` auf einer eigenen Zeile blendet auf der aktuellen Folie Mini-Header und Footer "

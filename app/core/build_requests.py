@@ -43,6 +43,7 @@ class WorksheetBuildRequest:
     black_screen_mode: str = "none"
     presentation_section_separator: str = "dot"
     presentation_hide_future_sections: bool = False
+    presentation_ignore_framebreaks: bool = False
     diagnostics_out: list | None = None
 
 
@@ -80,6 +81,7 @@ def build_worksheet_from_request(request: WorksheetBuildRequest):
         black_screen_mode=request.black_screen_mode,
         presentation_section_separator=request.presentation_section_separator,
         presentation_hide_future_sections=request.presentation_hide_future_sections,
+        presentation_ignore_framebreaks=request.presentation_ignore_framebreaks,
         diagnostics_out=request.diagnostics_out,
         **request.design.as_kwargs(),
     )

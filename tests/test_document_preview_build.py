@@ -32,6 +32,42 @@ def test_preview_dispatch_uses_worksheet_builder(monkeypatch, tmp_path):
     assert calls and calls[0][0] == input_path
 
 
+def test_preview_dispatch_forwards_presentation_ignore_framebreaks(monkeypatch, tmp_path):
+    input_path = tmp_path / "praesentation.md"
+    input_path.write_text("---\nTitel: T\nmode: presentation\n---\n", encoding="utf-8")
+
+    captured_requests = []
+
+    def _fake_build_worksheet_from_request(request):
+        captured_requests.append(request)
+        raise _StopEarly()
+
+    monkeypatch.setattr(
+        "app.core.document_preview_build.build_worksheet_from_request",
+        _fake_build_worksheet_from_request,
+    )
+
+    for flag in (True, False):
+        captured_requests.clear()
+        try:
+            build_preview_images_for_document(
+                input_path,
+                document_type=DOCUMENT_TYPE_WORKSHEET,
+                include_solutions=False,
+                page_format="presentation_16_9",
+                contrast_profile="standard",
+                worksheet_design=WorksheetDesignOptions("indigo", "segoe", "normal"),
+                presentation_ignore_framebreaks=flag,
+            )
+        except _StopEarly:
+            pass
+        assert captured_requests[0].presentation_ignore_framebreaks is flag
+
+
+class _StopEarly(Exception):
+    """Bricht den Build gezielt ab, sobald die WorksheetBuildRequest erzeugt wurde."""
+
+
 def test_preview_dispatch_uses_kurzentwurf_builder(monkeypatch, tmp_path):
     input_path = tmp_path / "kurzentwurf.md"
     input_path.write_text("---\nStundenthema: T\nLerngruppe: 6a\nstart: 08:00\n---\n", encoding="utf-8")

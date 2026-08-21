@@ -452,7 +452,7 @@ Wortsuchrätsel-Antwortfeld. `words` listet die zu versteckenden Wörter, `diago
 
 ## 7. Control-Marker-Referenz
 
-- **framebreak**: `-+` auf einer eigenen Zeile erzeugt im Präsentationsmodus einen neuen Frame (neue Folie), der den bisherigen Folieninhalt beibehält und um den folgenden Inhalt ergänzt -- nützlich, um einen Gedanken schrittweise aufzubauen.
+- **framebreak**: `-+` auf einer eigenen Zeile erzeugt im Präsentationsmodus einen neuen Frame (neue Folie), der den bisherigen Folieninhalt beibehält und um den folgenden Inhalt ergänzt -- nützlich, um einen Gedanken schrittweise aufzubauen. Der Präsentations-Exportdialog bietet eine Option, diese schrittweisen Folien beim Export zu einer einzigen finalen Folie zusammenzufassen.
 - **pagebreak**: `--!` auf einer eigenen Zeile erzwingt einen harten Seiten-/Folienumbruch an dieser Stelle.
 - **sectionmark**: `--# Abschnittsname` setzt den aktuellen Abschnittsnamen für die Footer-Navigation in Präsentationen. Alles nach `--# ` bis Zeilenende wird als Abschnittstitel übernommen.
 - **slidechromeoff**: `--hf` auf einer eigenen Zeile blendet auf der aktuellen Folie Mini-Header und Footer (Phasenübersicht + Folienzähler) aus, ohne das globale Präsentationslayout zu verändern -- nützlich für Folien mit wenig Platz.

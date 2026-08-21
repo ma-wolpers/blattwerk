@@ -432,8 +432,18 @@ def _build_presentation_slides(
     include_solutions,
     document_mode,
     printable_width_cm,
+    ignore_framebreaks=False,
 ):
-    """Build slide payloads from block stream, including frame-duplication markers."""
+    """Build slide payloads from block stream, including frame-duplication markers.
+
+    `ignore_framebreaks=True` treats `-+`-Marker (framebreak) als reines
+    No-Op statt eine neue, den bisherigen Inhalt behaltende Folie zu
+    beginnen -- der gesamte durch `-+` verbundene Inhalt landet dann in
+    einer einzigen finalen Folie. Wirkt als Eigenschaft der
+    Präsentationsstruktur einheitlich für alle Ausgabeformate, da dies der
+    einzige gemeinsame Punkt ist, den PDF/HTML/PNG/PPTX-Export letztlich
+    durchlaufen (siehe `render_html`/`build_worksheet`).
+    """
     slides = []
     current_blocks = []
     current_section = ""
@@ -499,7 +509,8 @@ def _build_presentation_slides(
             continue
 
         if block_type == "framebreak":
-            _flush_slide(clear_blocks=False)
+            if not ignore_framebreaks:
+                _flush_slide(clear_blocks=False)
             continue
 
         _append_slide_block(block_type, options, content)
@@ -520,6 +531,7 @@ def _render_presentation_html(
     black_screen_mode,
     presentation_section_separator,
     presentation_hide_future_sections,
+    presentation_ignore_framebreaks=False,
 ):
     hole_punch_enabled = is_hole_punch_layout_enabled(meta)
     printable_width_cm = resolve_printable_width_cm(
@@ -539,6 +551,7 @@ def _render_presentation_html(
         include_solutions=include_solutions,
         document_mode="presentation",
         printable_width_cm=printable_width_cm,
+        ignore_framebreaks=bool(presentation_ignore_framebreaks),
     )
 
     if not slides:
@@ -702,6 +715,7 @@ def render_html(
     black_screen_mode="none",
     presentation_section_separator="dot",
     presentation_hide_future_sections=False,
+    presentation_ignore_framebreaks=False,
 ):
     """Baut das vollständige HTML-Dokument inklusive Styles und Header/Footer."""
     document_mode = normalize_document_mode(
@@ -733,6 +747,7 @@ def render_html(
             black_screen_mode=black_screen_mode,
             presentation_section_separator=presentation_section_separator,
             presentation_hide_future_sections=presentation_hide_future_sections,
+            presentation_ignore_framebreaks=presentation_ignore_framebreaks,
         )
 
     numbered_blocks = assign_task_numbers(blocks)

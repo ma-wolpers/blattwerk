@@ -121,6 +121,35 @@ def test_export_document_png_creates_numbered_pages(monkeypatch, tmp_path):
     assert diagnostics[0].code == "PT002"
 
 
+def test_export_document_png_forwards_presentation_ignore_framebreaks(monkeypatch, tmp_path):
+    input_path = tmp_path / "source.md"
+    input_path.write_text("demo", encoding="utf-8")
+    image = Image.new("RGB", (10, 10), color="white")
+    seen_kwargs = {}
+
+    def _fake_build_preview_images(*args, **kwargs):
+        seen_kwargs.update(kwargs)
+        return [image], []
+
+    monkeypatch.setattr(
+        "app.core.document_export_build.build_preview_images_for_document",
+        _fake_build_preview_images,
+    )
+
+    export_document_png(
+        input_path=input_path,
+        output_path=tmp_path / "pages.png",
+        document_type=DOCUMENT_TYPE_WORKSHEET,
+        include_solutions=False,
+        page_format="presentation_16_9",
+        contrast_profile="standard",
+        worksheet_design=WorksheetDesignOptions("indigo", "segoe", "normal"),
+        presentation_ignore_framebreaks=True,
+    )
+
+    assert seen_kwargs.get("presentation_ignore_framebreaks") is True
+
+
 def test_export_document_png_zip_creates_archive(monkeypatch, tmp_path):
     input_path = tmp_path / "source.md"
     input_path.write_text("demo", encoding="utf-8")

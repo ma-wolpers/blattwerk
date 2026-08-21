@@ -79,6 +79,7 @@ def export_document_png(
     black_screen_mode: str = "none",
     presentation_section_separator: str = "dot",
     presentation_hide_future_sections: bool = False,
+    presentation_ignore_framebreaks: bool = False,
     diagnostics_out: list[BuildDiagnostic] | None = None,
     kurzentwurf_options: Mapping[str, object] | None = None,
 ) -> list[Path]:
@@ -99,6 +100,7 @@ def export_document_png(
         black_screen_mode=black_screen_mode,
         presentation_section_separator=presentation_section_separator,
         presentation_hide_future_sections=presentation_hide_future_sections,
+        presentation_ignore_framebreaks=presentation_ignore_framebreaks,
         kurzentwurf_options=kurzentwurf_options,
     )
     _extend_diagnostics(diagnostics_out, diagnostics)
@@ -119,6 +121,7 @@ def export_document_png_zip(
     black_screen_mode: str = "none",
     presentation_section_separator: str = "dot",
     presentation_hide_future_sections: bool = False,
+    presentation_ignore_framebreaks: bool = False,
     diagnostics_out: list[BuildDiagnostic] | None = None,
     kurzentwurf_options: Mapping[str, object] | None = None,
 ) -> Path:
@@ -139,6 +142,7 @@ def export_document_png_zip(
         black_screen_mode=black_screen_mode,
         presentation_section_separator=presentation_section_separator,
         presentation_hide_future_sections=presentation_hide_future_sections,
+        presentation_ignore_framebreaks=presentation_ignore_framebreaks,
         kurzentwurf_options=kurzentwurf_options,
     )
     _extend_diagnostics(diagnostics_out, diagnostics)
