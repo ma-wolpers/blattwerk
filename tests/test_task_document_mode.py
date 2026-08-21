@@ -648,6 +648,45 @@ def test_render_help_cards_html_card_has_no_horizontal_margin():
     assert "margin: 0 0 0.45cm 0" in card_rule
 
 
+def test_render_help_cards_html_wraps_multiple_cards_in_two_column_container():
+    meta = {"Titel": "T", "Fach": "M", "Thema": "X"}
+    blocks = [
+        ("help", {"title": "Erste"}, "Inhalt A"),
+        ("help", {"title": "Zweite"}, "Inhalt B"),
+        ("help", {"title": "Dritte"}, "Inhalt C"),
+    ]
+
+    html = render_help_cards_html(meta, blocks, include_solutions=False, page_format="a4_portrait")
+
+    assert '<div class="help-cards-columns">' in html
+    assert "column-width: 10.5cm" in html
+    assert "column-fill: auto" in html
+
+
+def test_render_help_cards_html_single_card_is_not_wrapped_in_columns():
+    meta = {"Titel": "T", "Fach": "M", "Thema": "X"}
+    blocks = [("help", {"title": "Einzige"}, "Inhalt")]
+
+    html = render_help_cards_html(meta, blocks, include_solutions=False, page_format="a4_portrait")
+
+    assert '<div class="help-cards-columns">' not in html
+
+
+def test_render_help_cards_html_a6_single_card_export_is_not_wrapped_in_columns():
+    meta = {"Titel": "T", "Fach": "M", "Thema": "X"}
+    blocks = [
+        ("help", {"title": "Erste"}, "Inhalt A"),
+        ("help", {"title": "Zweite"}, "Inhalt B"),
+    ]
+
+    # Der Einzelkarten-Renderpfad (page_format=a6_portrait, siehe C4) rendert
+    # immer nur eine Karte pro Aufruf in der Praxis, aber selbst mit
+    # mehreren Bloecken darf hier kein Spalten-Layout aktiviert werden.
+    html = render_help_cards_html(meta, blocks, include_solutions=False, page_format="a6_portrait")
+
+    assert '<div class="help-cards-columns">' not in html
+
+
 def test_collect_labeled_help_blocks_assigns_labels_in_visible_order():
     meta = {"tag": "1"}
     blocks = [

@@ -8,6 +8,7 @@ The format is based on Keep a Changelog.
 
 ### Added
 
+- PDF-Export mehrerer Lernhilfenkarten: die linke Spalte (DIN-A6-Breite) wird jetzt vollständig gefüllt, bevor die rechte Spalte beginnt — statt Karten einfach in voller Seitenbreite untereinander zu stapeln. Spart Papier beim Ausschneiden.
 - Lernhilfen werden grundsätzlich in DIN-A6-Breite (10,5 cm, inklusive Innenabstand der Karte) erstellt — unabhängig vom sonst gewählten Seitenformat. Betrifft sowohl den Einzelkarten-Export (PNG/PNG-ZIP) als auch die spätere Kartenbreite im kombinierten PDF-Export.
 - Die Bereich-Buttons ("Vorschau"/"Beides"/"Schreibbereich") sind jetzt schmaler und zeigen Symbole statt Text (mit Tooltip zur Erklärung).
 - Die Knopfleiste der Vorschau (Format/Design/Aktionen) lässt sich über einen Pfeil-Button ein- und ausklappen, um Platz zu sparen. Der Zustand wird gemerkt.

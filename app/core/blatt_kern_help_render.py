@@ -102,6 +102,24 @@ def _annotate_help_block_labels(help_blocks, help_tag):
     return annotated_blocks
 
 
+def _wrap_cards_for_layout(cards_html, page_format):
+    """Wraps rendered cards in a CSS-Multicol-Container for the two-column A4 print layout.
+
+    Nur aktiv bei mindestens zwei Karten und einem physischen Seitenformat,
+    das breiter ist als eine einzelne DIN-A6-Karte (`page_format` ungleich
+    `"a6_portrait"`) -- der Einzelkarten-Renderpfad (Feature C4) bleibt
+    unberührt. `column-width: {HELP_CARD_WIDTH_CM}cm` sorgt dafür, dass der
+    Browser die linke Spalte zuerst vollständig füllt, bevor die rechte
+    beginnt (Standard-CSS-Fragmentierungsverhalten für paginierte Medien),
+    ohne dass serverseitig Karten vorab auf Spalten verteilt werden müssten
+    (Kartenhöhen sind variabel und erst durch den Renderer bekannt).
+    """
+    joined = "".join(cards_html)
+    if len(cards_html) <= 1 or page_format == "a6_portrait":
+        return joined
+    return f'<div class="help-cards-columns">{joined}</div>'
+
+
 def render_help_cards_html(
     meta,
     blocks,
@@ -176,6 +194,12 @@ body {{
     margin: 0;
 }}
 
+.help-cards-columns {{
+    column-width: {HELP_CARD_WIDTH_CM}cm;
+    column-fill: auto;
+    column-gap: 0;
+}}
+
 .help-card {{
     box-sizing: border-box;
     width: {HELP_CARD_WIDTH_CM}cm;
@@ -248,7 +272,7 @@ window.MathJax = {{
 </style>
 </head>
 <body>
-{"".join(cards_html)}
+{_wrap_cards_for_layout(cards_html, page_format)}
 </body>
 </html>
 """
