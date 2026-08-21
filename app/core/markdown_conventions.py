@@ -24,10 +24,13 @@ Quellen im Einzelnen:
 - `answer_grid_entries.py`: Geometry-Objekt-Felder (`GEOMETRY_ENTRY_ALLOWED_KEYS`)
   -- dieselbe Quelle, die auch Renderer und Validator (`AN011`-`AN014`)
   verwenden.
-- `kurzentwurf_runtime/model.py` (`ALLOWED_PHASES`) und
-  `kurzentwurf_runtime/dsl_frontmatter.py` (`TITLE_KEYS`/`SUBTITLE_KEYS`/
-  `START_KEYS`): die tatsächlich vom Kurzentwurf-DSL-Parser verstandenen
-  Phasen- und Identitäts-Metadaten-Keys.
+- `kurzentwurf_runtime/model.py` (`PHASE_SPECS`, davon `ALLOWED_PHASES`
+  abgeleitet; `LINE_MARKER_SPECS`) und `kurzentwurf_runtime/dsl_frontmatter.py`
+  (`TITLE_KEYS`/`SUBTITLE_KEYS`/`START_KEYS`): die tatsächlich vom
+  Kurzentwurf-DSL-Parser verstandenen Phasen (inkl. `#`-Hashtag, nicht nur
+  Anzeigename), Zeilenmarker und Identitäts-Metadaten-Keys. `validator.py`
+  bezieht seine `_PHASE_LOOKUP`/`_OPTIONAL_TIME_PHASES` ebenfalls aus
+  `PHASE_SPECS` -- eine einzige Quelle für Hashtag-Zuordnung.
 - `document_types.py` (`KURZENTWURF_LEGACY_DETECTION_SUPPORT_KEYS`): Keys,
   die **nur** zur Alt-Erkennung beitragen, nicht zur funktionalen DSL
   gehören -- werden deshalb separat als `legacy_detection_only_keys`
@@ -54,7 +57,7 @@ from .blatt_validator_constants import (
 )
 from .document_types import KURZENTWURF_LEGACY_DETECTION_SUPPORT_KEYS
 from .kurzentwurf_runtime.dsl_frontmatter import START_KEYS, SUBTITLE_KEYS, TITLE_KEYS
-from .kurzentwurf_runtime.model import ALLOWED_PHASES
+from .kurzentwurf_runtime.model import ALLOWED_PHASES, LINE_MARKER_SPECS, PHASE_SPECS, LineMarkerSpec, PhaseSpec
 
 
 @dataclass(frozen=True)
@@ -108,6 +111,8 @@ class KurzentwurfSpec:
     """
 
     phases: tuple[str, ...]
+    phase_specs: tuple[PhaseSpec, ...]
+    line_markers: tuple[LineMarkerSpec, ...]
     identity_meta_keys: frozenset[str]
     legacy_detection_only_keys: frozenset[str]
 
@@ -169,6 +174,8 @@ def collect_markdown_conventions() -> MarkdownConventionCatalog:
         ),
         kurzentwurf=KurzentwurfSpec(
             phases=tuple(ALLOWED_PHASES),
+            phase_specs=tuple(PHASE_SPECS),
+            line_markers=tuple(LINE_MARKER_SPECS),
             identity_meta_keys=frozenset(TITLE_KEYS | SUBTITLE_KEYS | START_KEYS),
             legacy_detection_only_keys=frozenset(KURZENTWURF_LEGACY_DETECTION_SUPPORT_KEYS),
         ),

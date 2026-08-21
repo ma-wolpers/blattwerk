@@ -207,6 +207,7 @@ def render_document_html(
       font-size: {phase_main_font_size_pt:.2f}pt;
       line-height: 1.2;
       margin-bottom: 2px;
+      overflow-wrap: break-word;
     }}
 
     .phase-time {{

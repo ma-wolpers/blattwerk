@@ -49,6 +49,31 @@ def test_kurzentwurf_identity_keys_are_disjoint_from_legacy_detection_keys():
     assert not (identity & legacy)
 
 
+def test_kurzentwurf_phases_stays_a_plain_string_tuple():
+    """`phases` bleibt `tuple[str, ...]` -- reichere Metadaten kommen ausschliesslich über `phase_specs`."""
+    catalog = collect_markdown_conventions()
+    assert all(isinstance(phase, str) for phase in catalog.kurzentwurf.phases)
+
+
+def test_kurzentwurf_phase_specs_match_phases_by_display_name():
+    catalog = collect_markdown_conventions()
+    assert tuple(spec.display_name for spec in catalog.kurzentwurf.phase_specs) == catalog.kurzentwurf.phases
+
+
+def test_kurzentwurf_phase_specs_hashtags_differ_from_display_names_where_expected():
+    catalog = collect_markdown_conventions()
+    by_display_name = {spec.display_name: spec.hashtag for spec in catalog.kurzentwurf.phase_specs}
+    assert by_display_name["Ergebnissicherung"] == "sicherung"
+    assert by_display_name["Didaktische Reserve"] == "reserve"
+
+
+def test_kurzentwurf_line_markers_include_non_rejected_and_rejected_entries():
+    catalog = collect_markdown_conventions()
+    tokens_by_rejected = {spec.token: spec.rejected for spec in catalog.kurzentwurf.line_markers}
+    assert tokens_by_rejected.get("s<") is False
+    assert tokens_by_rejected.get("ant>") is True
+
+
 def test_geometry_entries_match_source_of_truth_exactly():
     """Der Katalog darf GEOMETRY_ENTRY_ALLOWED_KEYS nur re-verpacken, nicht kopieren/abweichen."""
     catalog = collect_markdown_conventions()

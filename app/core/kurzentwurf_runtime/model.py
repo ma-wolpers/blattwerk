@@ -2,13 +2,60 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-ALLOWED_PHASES: tuple[str, ...] = (
-    "Einstieg",
-    "Erarbeitung",
-    "Ergebnissicherung",
-    "Vertiefung",
-    "Hausaufgabe",
-    "Didaktische Reserve",
+
+@dataclass(frozen=True)
+class PhaseSpec:
+    """Einzige Quelle für eine Kurzentwurf-Phase: Anzeigename, `#`-Hashtag, Zeitpflicht.
+
+    `display_name` ist der interne/kanonische Phasenname (verwendet in
+    `KurzentwurfPhaseBlock.phase`/`display_phase` und Fehlermeldungen wie
+    `KZF011`). `hashtag` ist der Text, den Autor:innen tatsächlich nach `#`
+    tippen müssen -- **nicht** identisch mit `display_name` (z. B.
+    `Ergebnissicherung` -> `#sicherung`, `Didaktische Reserve` -> `#reserve`).
+    """
+
+    display_name: str
+    hashtag: str
+    requires_explicit_time: bool
+
+
+PHASE_SPECS: tuple[PhaseSpec, ...] = (
+    PhaseSpec("Einstieg", "einstieg", True),
+    PhaseSpec("Erarbeitung", "erarbeitung", True),
+    PhaseSpec("Ergebnissicherung", "sicherung", True),
+    PhaseSpec("Vertiefung", "vertiefung", True),
+    PhaseSpec("Hausaufgabe", "hausaufgabe", False),
+    PhaseSpec("Didaktische Reserve", "reserve", False),
+)
+
+ALLOWED_PHASES: tuple[str, ...] = tuple(spec.display_name for spec in PHASE_SPECS)
+
+
+@dataclass(frozen=True)
+class LineMarkerSpec:
+    """Ein von `_MARKER_RE` (`dsl_segments.py`) erkannter Zeilenmarker -- rein strukturelle Fakten.
+
+    `target_field` ist das `RawSegment`-Feld, in das der Marker schreibt.
+    `accepts_inline_value` ist `False` für `A>`: Inhalt auf derselben Zeile
+    wie `A>` ist ungültig (`KZF150`) -- `A>` schaltet nur die aktive Spalte,
+    der Inhalt muss auf einer folgenden `s<`-Zeile stehen. `rejected=True`
+    für `ant>`: wird vom Regex erkannt, ist aber **kein** gültiger Alias von
+    `ant<` und erzeugt immer `KZF153`.
+    """
+
+    token: str
+    target_field: str
+    accepts_inline_value: bool
+    rejected: bool = False
+
+
+LINE_MARKER_SPECS: tuple[LineMarkerSpec, ...] = (
+    LineMarkerSpec("S>", "schritte", True),
+    LineMarkerSpec("A>", "aktivitaeten", False),
+    LineMarkerSpec("s<", "aktivitaeten", True),
+    LineMarkerSpec("U>", "umgebung", True),
+    LineMarkerSpec("ant<", "antizipiert", True),
+    LineMarkerSpec("ant>", "antizipiert", True, rejected=True),
 )
 
 FORBIDDEN_BLATTWERK_MARKERS: tuple[str, ...] = (

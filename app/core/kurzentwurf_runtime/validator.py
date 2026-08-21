@@ -8,6 +8,7 @@ from .model import (
     ALLOWED_PHASES,
     FORBIDDEN_BLATTWERK_MARKERS,
     LEGACY_ROW_MARKERS,
+    PHASE_SPECS,
     Diagnostic,
     InspectionResult,
     KurzentwurfDocument,
@@ -15,16 +16,9 @@ from .model import (
     KurzentwurfSegment,
 )
 
-_PHASE_LOOKUP = {
-    "einstieg": "Einstieg",
-    "erarbeitung": "Erarbeitung",
-    "sicherung": "Ergebnis- sicherung",
-    "vertiefung": "Vertiefung",
-    "hausaufgabe": "Hausaufgabe",
-    "reserve": "Didaktische Reserve",
-}
+_PHASE_LOOKUP = {spec.hashtag: spec.display_name for spec in PHASE_SPECS}
 
-_OPTIONAL_TIME_PHASES = {"Hausaufgabe", "Didaktische Reserve"}
+_OPTIONAL_TIME_PHASES = {spec.display_name for spec in PHASE_SPECS if not spec.requires_explicit_time}
 
 _TIME_RE = re.compile(r"^(?P<hour>[01]?\d|2[0-3]):(?P<minute>[0-5]\d)$")
 _COLON_MARKER_RE = re.compile(r"^\s*(S|A|U|ant)\s*:\s*", re.IGNORECASE)
