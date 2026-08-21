@@ -122,13 +122,17 @@ def _geometry_prose_keys() -> tuple[str, ...]:
     )
 
 
-def _kurzentwurf_prose_keys() -> tuple[str, ...]:
-    return (
+def _kurzentwurf_prose_keys(catalog: MarkdownConventionCatalog) -> tuple[str, ...]:
+    keys = [
         "kurzentwurf:phases",
         "kurzentwurf:identity_meta",
         "kurzentwurf:legacy_detection_only",
         "kurzentwurf:markers",
-    )
+    ]
+    keys.extend(f"kurzentwurf:phase:{spec.hashtag}" for spec in catalog.kurzentwurf.phase_specs)
+    keys.extend(f"kurzentwurf:marker:{spec.token}" for spec in catalog.kurzentwurf.line_markers)
+    keys.extend(f"kurzentwurf:legacy:{name}" for name in catalog.kurzentwurf.legacy_detection_only_keys)
+    return tuple(keys)
 
 
 def assert_prose_coverage(catalog: MarkdownConventionCatalog) -> None:
@@ -147,7 +151,7 @@ def assert_prose_coverage(catalog: MarkdownConventionCatalog) -> None:
     required_keys.extend(f"frontmatter:{field.name}" for field in catalog.optional_frontmatter_fields)
     required_keys.extend(f"marker:{marker.name}" for marker in catalog.control_markers)
     required_keys.extend(_geometry_prose_keys())
-    required_keys.extend(_kurzentwurf_prose_keys())
+    required_keys.extend(_kurzentwurf_prose_keys(catalog))
 
     missing = [key for key in required_keys if key not in PROSE_SECTIONS]
 
@@ -261,6 +265,30 @@ def _render_control_marker_reference(catalog: MarkdownConventionCatalog) -> str:
     return "\n".join(parts)
 
 
+def _render_kurzentwurf_phase_table(catalog: MarkdownConventionCatalog) -> str:
+    lines = ["| Anzeigename | Hashtag | Braucht `t=`? |", "|---|---|---|"]
+    for spec in catalog.kurzentwurf.phase_specs:
+        lines.append(
+            f"| `{spec.display_name}` | `#{spec.hashtag}` | "
+            f"{'ja' if spec.requires_explicit_time else 'nein'} |"
+        )
+    return "\n".join(lines)
+
+
+def _render_kurzentwurf_line_marker_reference(catalog: MarkdownConventionCatalog) -> str:
+    parts = []
+    for spec in catalog.kurzentwurf.line_markers:
+        parts.append(f"- **`{spec.token}`**: {_prose(f'kurzentwurf:marker:{spec.token}')}")
+    return "\n".join(parts)
+
+
+def _render_kurzentwurf_legacy_field_details(catalog: MarkdownConventionCatalog) -> str:
+    parts = []
+    for name in sorted(catalog.kurzentwurf.legacy_detection_only_keys):
+        parts.append(f"- **`{name}`**: {_prose(f'kurzentwurf:legacy:{name}')}")
+    return "\n".join(parts)
+
+
 def _render_geometry_section(catalog: MarkdownConventionCatalog) -> str:
     geometry = catalog.geometry
     line_styles = ", ".join(f"`{style}`" for style in sorted(geometry.line_styles))
@@ -350,23 +378,30 @@ def render_kurzentwurf_guide(catalog: MarkdownConventionCatalog) -> str:
     kurzentwurf_example = build_new_document_content(DOCUMENT_TYPE_KURZENTWURF, {})
 
     identity_keys = ", ".join(f"`{key}`" for key in sorted(catalog.kurzentwurf.identity_meta_keys))
-    legacy_keys = ", ".join(f"`{key}`" for key in sorted(catalog.kurzentwurf.legacy_detection_only_keys))
-    phases = "\n".join(f"- `{phase}`" for phase in catalog.kurzentwurf.phases)
 
     sections = [
         "# Kurzentwurf erstellen\n\n"
         "Kurzentwurf ist ein eigener Blattwerk-Dokumenttyp mit einer **eigenen DSL** -- nicht dem "
         "`:::`-Blockdialekt aus der Arbeitsblatt-/Präsentations-Anleitung. Diese Anleitung wird "
-        "automatisch aus dem Code erzeugt (`app/core/markdown_conventions.py`).",
+        "automatisch aus dem Code erzeugt (`app/core/markdown_conventions.py`). Fehlermeldungen tragen "
+        "stabile Codes wie `KZF011`/`KZF152` -- die vollständige Liste steht in "
+        "[`docs/VALIDATOR.md`](VALIDATOR.md#kurzentwurf-dsl-kzf).",
         "## 1. Schnellstart\n\n" + _fenced(kurzentwurf_example),
         "## 2. Frontmatter/Identitäts-Metadaten\n\n"
         + _prose("kurzentwurf:identity_meta")
         + f"\n\nAkzeptierte Schlüssel (alle gleichwertig, case-insensitiv): {identity_keys}.",
-        "## 3. Phasen\n\n" + _prose("kurzentwurf:phases") + "\n\nZulässige Phasennamen:\n\n" + phases,
-        "## 4. Zeilenmarker innerhalb einer Phase\n\n" + _prose("kurzentwurf:markers"),
+        "## 3. Phasen\n\n"
+        + _prose("kurzentwurf:phases")
+        + "\n\n"
+        + _render_kurzentwurf_phase_table(catalog),
+        "## 4. Zeilenmarker innerhalb einer Phase\n\n"
+        + _prose("kurzentwurf:markers")
+        + "\n\n"
+        + _render_kurzentwurf_line_marker_reference(catalog),
         "## 5. Legacy-Erkennungs-Felder (nicht aktiv verwenden)\n\n"
         + _prose("kurzentwurf:legacy_detection_only")
-        + f"\n\nBetroffene Felder: {legacy_keys}.",
+        + "\n\n"
+        + _render_kurzentwurf_legacy_field_details(catalog),
     ]
 
     return _AUTOGEN_HEADER + "\n\n".join(sections) + "\n"

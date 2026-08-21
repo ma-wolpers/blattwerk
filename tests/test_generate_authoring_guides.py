@@ -57,6 +57,33 @@ def test_prose_coverage_detects_missing_geometry_section_prose(monkeypatch):
         guide_generator.assert_prose_coverage(catalog)
 
 
+def test_prose_coverage_detects_missing_kurzentwurf_phase_prose(monkeypatch):
+    catalog = collect_markdown_conventions()
+    reduced_prose = dict(authoring_guide_prose.PROSE_SECTIONS)
+    del reduced_prose["kurzentwurf:phase:sicherung"]
+    monkeypatch.setattr(guide_generator, "PROSE_SECTIONS", reduced_prose)
+
+    with pytest.raises(guide_generator.ProseCoverageError, match="kurzentwurf:phase:sicherung"):
+        guide_generator.assert_prose_coverage(catalog)
+
+
+def test_prose_coverage_detects_missing_kurzentwurf_marker_prose(monkeypatch):
+    catalog = collect_markdown_conventions()
+    reduced_prose = dict(authoring_guide_prose.PROSE_SECTIONS)
+    del reduced_prose["kurzentwurf:marker:ant>"]
+    monkeypatch.setattr(guide_generator, "PROSE_SECTIONS", reduced_prose)
+
+    with pytest.raises(guide_generator.ProseCoverageError, match=re.escape("kurzentwurf:marker:ant>")):
+        guide_generator.assert_prose_coverage(catalog)
+
+
+def test_kurzentwurf_guide_phase_table_shows_hashtag_not_display_name_only():
+    catalog = collect_markdown_conventions()
+    guide_text = guide_generator.render_kurzentwurf_guide(catalog)
+    assert "`#sicherung`" in guide_text
+    assert "`#reserve`" in guide_text
+
+
 def test_render_worksheet_presentation_guide_changes_when_catalog_changes(monkeypatch):
     catalog = collect_markdown_conventions()
     baseline = guide_generator.render_worksheet_presentation_guide(catalog)

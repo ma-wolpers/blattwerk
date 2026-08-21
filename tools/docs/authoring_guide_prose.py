@@ -116,10 +116,38 @@ PROSE_SECTIONS: dict[str, str] = {
     ),
     # -- Kurzentwurf ---------------------------------------------------------
     "kurzentwurf:phases": (
-        "Ein Kurzentwurf gliedert sich in `#phase`-Abschnitte, deren Name einer der sechs festen "
-        "Unterrichtsphasen entsprechen muss (siehe Liste unten), z. B. `#einstieg t=10` für eine "
-        "10-minütige Einstiegsphase. `t=<minuten>` ist optional; ohne Zeitangaben wird die Phase ohne "
-        "Zeitlabel gerendert. `Hausaufgabe` und `Didaktische Reserve` benötigen nie ein `t=...`."
+        "Ein Kurzentwurf gliedert sich in `#phase`-Abschnitte. Wichtig: der nach `#` getippte Hashtag "
+        "ist **nicht** derselbe Text wie der Anzeigename der Phase (siehe Tabelle unten) -- z. B. "
+        "heißt die Phase `Ergebnissicherung`, aber der Hashtag lautet `#sicherung`, und "
+        "`Didaktische Reserve` ist `#reserve`. `t=<minuten>` gibt die Dauer der Phase an und ist "
+        "optional; ohne Zeitangaben wird die Phase ohne Zeitlabel gerendert. `Hausaufgabe` und "
+        "`Didaktische Reserve` benötigen nie ein `t=...` (fließen nicht in die Zeitrechnung ein). "
+        "Zusätzlich gibt es `start=HH:MM` als optionales Attribut im `#phase`-Header: das steuert "
+        "**nicht** die Zeitberechnung, sondern ist nur ein Plausibilitäts-Check gegen die aus `t=` "
+        "fortlaufend berechnete Startzeit -- weicht `start=` davon ab, wird es ignoriert und es "
+        "erscheint lediglich die Warnung `KZF136`."
+    ),
+    "kurzentwurf:phase:einstieg": (
+        "Aktiviert Vorwissen, schafft Zieltransparenz und weckt Interesse am neuen Thema."
+    ),
+    "kurzentwurf:phase:erarbeitung": (
+        "Kernphase, in der sich die Lernenden aktiv mit dem neuen Inhalt auseinandersetzen (z. B. in "
+        "Einzel-, Partner- oder Gruppenarbeit)."
+    ),
+    "kurzentwurf:phase:sicherung": (
+        "Hält die Ergebnisse der Erarbeitung fest und macht sie für alle sichtbar/verfügbar, z. B. "
+        "im Plenum oder an der Tafel."
+    ),
+    "kurzentwurf:phase:vertiefung": (
+        "Wendet das Gelernte in einem neuen Kontext an oder festigt es durch Übung/Transfer."
+    ),
+    "kurzentwurf:phase:hausaufgabe": (
+        "Beschreibt die Hausaufgabe. Läuft außerhalb der Unterrichtszeit und fließt deshalb nicht in "
+        "die `t=`-Zeitrechnung der Stunde ein."
+    ),
+    "kurzentwurf:phase:reserve": (
+        "Optionaler Puffer für den Fall, dass mehr Zeit übrig bleibt als geplant. Fließt wie "
+        "`Hausaufgabe` nicht in die `t=`-Zeitrechnung ein."
     ),
     "kurzentwurf:identity_meta": (
         "Titel, Untertitel und globale Startzeit können sowohl im YAML-Frontmatter (`---`-Block) als "
@@ -134,12 +162,43 @@ PROSE_SECTIONS: dict[str, str] = {
         "nicht als funktionale DSL-Felder verwendet, sondern höchstens als rein organisatorische "
         "Notiz betrachtet werden."
     ),
+    "kurzentwurf:legacy:Dauer": ("Historische Freitext-Angabe zur geplanten Stundendauer."),
+    "kurzentwurf:legacy:Kompetenzen": ("Historische Freitext-Auflistung angesprochener Kompetenzen."),
+    "kurzentwurf:legacy:Material": (
+        "Historische Materialliste. Für neue Dokumente stattdessen das YAML-Frontmatter-Feld "
+        "`Material` im Schnellstart-Beispiel oben verwenden (dort aktiv gerendert)."
+    ),
+    "kurzentwurf:legacy:Oberthema": ("Historisches Feld für ein übergeordnetes Reihenthema."),
+    "kurzentwurf:legacy:Stundentyp": ("Historisches Feld für eine Stundentyp-Bezeichnung (z. B. Einführung)."),
+    "kurzentwurf:legacy:Stundenziel": ("Historisches Feld für das übergeordnete Stundenziel."),
+    "kurzentwurf:legacy:Teilziele": ("Historische Freitext-Auflistung von Teilzielen der Stunde."),
+    "kurzentwurf:legacy:Unterrichtsbesuch": (
+        "Historisches Feld, ursprünglich zur Kennzeichnung von Unterrichtsbesuchs-Kurzentwürfen."
+    ),
     "kurzentwurf:markers": (
-        "Innerhalb einer Phase gliedern Zeilenmarker den Inhalt in drei Spalten: `S>` (Lernschritte), "
-        "`A>` gefolgt von `s<` (Lernaktivität der Lernenden) und `U>` (Lernumgebung/Sozialform). "
-        "`ant<` markiert eine antizipierte Schülerreaktion/Fehlvorstellung zum jeweiligen Lernschritt "
-        "und sollte nach jedem `s<` gesetzt werden. `---` trennt zwei Segmente innerhalb derselben "
-        "Phase; `|` allein auf einer Zeile springt zur nächsten Spalte."
+        "Innerhalb einer Phase gliedern Zeilenmarker den Inhalt in drei Spalten (Lernschritte/"
+        "Lernaktivitäten/Lernumgebung) plus eine Antizipations-Spur -- siehe die einzelnen Marker "
+        "unten. Zusätzlich: `---` allein auf einer Zeile trennt zwei Segmente innerhalb derselben "
+        "Phase; `|` allein auf einer Zeile springt ohne Werteingabe zur nächsten Spalte."
+    ),
+    "kurzentwurf:marker:S>": ("Beginnt die Spalte Lernschritte; der Inhalt steht direkt hinter `S>` auf derselben Zeile."),
+    "kurzentwurf:marker:A>": (
+        "Schaltet die aktive Spalte auf Lernaktivitäten um, trägt aber selbst **keinen** Inhalt -- "
+        "Inhalt direkt hinter `A>` auf derselben Zeile ist ungültig und löst `KZF150` aus. Der "
+        "eigentliche Inhalt gehört auf eine folgende `s<`-Zeile."
+    ),
+    "kurzentwurf:marker:s<": (
+        "Lernaktivität der Lernenden -- der eigentliche Inhalt der Spalte Lernaktivitäten, folgt "
+        "typischerweise auf `A>`. Inhalt in dieser Spalte vor dem ersten `s<` löst `KZF151` aus."
+    ),
+    "kurzentwurf:marker:U>": ("Beginnt die Spalte Lernumgebung/Sozialform; Inhalt direkt hinter `U>`."),
+    "kurzentwurf:marker:ant<": (
+        "Markiert eine antizipierte Schülerreaktion/Fehlvorstellung zum jeweiligen Lernschritt und "
+        "sollte nach jedem `s<` gesetzt werden -- fehlt es, erscheint die Warnung `KZF152`."
+    ),
+    "kurzentwurf:marker:ant>": (
+        "**Kein** gültiger Alias von `ant<`, obwohl es vom Zeilenmarker-Muster erkannt wird -- führt "
+        "immer zum Fehler `KZF153` (\"Bitte ant< verwenden\"). Nur `ant<` verwenden."
     ),
     # -- Geometry --------------------------------------------------------
     "geometry:block_options": (
