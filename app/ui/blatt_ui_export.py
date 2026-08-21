@@ -1123,12 +1123,15 @@ class BlattwerkAppExportMixin:
             "pdf",
         )
 
+        open_tab_paths = self._collect_open_document_paths()
+
         dialog = LernhilfenExportDialog(
             self.root,
             input_path=input_path,
             default_format=default_format,
             theme_key=self.theme_var.get(),
             initial_output_dir=self._get_initial_dialog_dir("export_output"),
+            allow_all_tabs_export=len(open_tab_paths) > 1,
         )
         if not dialog.result:
             return
@@ -1153,22 +1156,27 @@ class BlattwerkAppExportMixin:
         try:
             self.status_var.set("Lernhilfen-Export läuft…")
             self.root.update_idletasks()
-            self._show_export_diagnostics(input_path)
 
-            if fmt == "pdf":
-                out_files = self._export_help_cards_pdf(
-                    input_path, output_path, page_format, contrast_profile
-                )
-            elif fmt == "png":
-                out_files = self._export_help_cards_png(
-                    input_path, output_path, page_format, contrast_profile
-                )
-            elif fmt == "pngzip":
-                out_files = self._export_help_cards_png_zip(
-                    input_path, output_path, page_format, contrast_profile
+            if dialog.result.get("export_all_tabs"):
+                out_files = self._export_help_cards_for_multiple_documents(
+                    open_tab_paths, output_path, page_format, contrast_profile
                 )
             else:
-                raise ValueError("Lernhilfen unterstützen nur PDF, PNG oder PNG (ZIP).")
+                self._show_export_diagnostics(input_path)
+                if fmt == "pdf":
+                    out_files = self._export_help_cards_pdf(
+                        input_path, output_path, page_format, contrast_profile
+                    )
+                elif fmt == "png":
+                    out_files = self._export_help_cards_png(
+                        input_path, output_path, page_format, contrast_profile
+                    )
+                elif fmt == "pngzip":
+                    out_files = self._export_help_cards_png_zip(
+                        input_path, output_path, page_format, contrast_profile
+                    )
+                else:
+                    raise ValueError("Lernhilfen unterstützen nur PDF, PNG oder PNG (ZIP).")
 
             self.status_var.set("Lernhilfen-Export abgeschlossen")
             messagebox.showinfo(

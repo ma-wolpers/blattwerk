@@ -530,9 +530,12 @@ class LernhilfenExportDialog(_BaseExportDialog):
         default_format: str,
         theme_key: str,
         initial_output_dir: str | None = None,
+        allow_all_tabs_export: bool = False,
     ):
         super().__init__(parent, input_path, theme_key, initial_output_dir=initial_output_dir)
         self.format_var = ui.StringVar(value=default_format)
+        self.allow_all_tabs_export = bool(allow_all_tabs_export)
+        self.export_all_tabs_var = ui.BooleanVar(value=False)
 
         self.window.title("Lernhilfen exportieren")
         self._build_ui()
@@ -560,6 +563,16 @@ class LernhilfenExportDialog(_BaseExportDialog):
         widgets.Label(out_row, text="Ausgabe:", width=15).pack(side="left")
         widgets.Entry(out_row, textvariable=self.output_var).pack(side="left", fill="x", expand=True, padx=(0, 8))
         widgets.Button(out_row, text="Durchsuchen…", style="SecondaryAction.TButton", command=self._pick_output).pack(side="left")
+
+        if self.allow_all_tabs_export:
+            all_tabs_row = widgets.Frame(outer)
+            all_tabs_row.pack(fill="x", pady=(4, 4))
+            widgets.Checkbutton(
+                all_tabs_row,
+                text="Alle offenen Dokumente exportieren (ein ZIP mit je einer PDF-Datei)",
+                variable=self.export_all_tabs_var,
+                command=lambda: self._refresh_output_suggestion(force=True),
+            ).pack(side="left")
 
         actions = widgets.Frame(outer)
         actions.pack(fill="x", pady=(12, 0))
@@ -626,6 +639,8 @@ class LernhilfenExportDialog(_BaseExportDialog):
         return "break"
 
     def _extension(self):
+        if self.allow_all_tabs_export and bool(self.export_all_tabs_var.get()):
+            return ".zip"
         selected_format = self.format_var.get()
         if selected_format == "pdf":
             return ".pdf"
@@ -636,6 +651,11 @@ class LernhilfenExportDialog(_BaseExportDialog):
     def _refresh_output_suggestion(self, force=False):
         current = self.output_var.get().strip()
         if current and not force:
+            return
+
+        if self.allow_all_tabs_export and bool(self.export_all_tabs_var.get()):
+            suggestion_dir = self.input_path.with_suffix("").parent
+            self.output_var.set(str(suggestion_dir / "lernhilfen_alle_dokumente.zip"))
             return
 
         stem = self.input_path.with_suffix("")
@@ -663,8 +683,10 @@ class LernhilfenExportDialog(_BaseExportDialog):
             messagebox.showwarning("Fehlende Ausgabe", "Bitte gib eine Ausgabedatei an.", parent=self.window)
             return
 
+        export_all_tabs = self.allow_all_tabs_export and bool(self.export_all_tabs_var.get())
+
         selected_format = self.format_var.get()
-        if selected_format not in self._allowed_formats():
+        if not export_all_tabs and selected_format not in self._allowed_formats():
             messagebox.showwarning(
                 "Format erforderlich",
                 "Lernhilfen unterstützen nur PDF, PNG oder PNG (ZIP).",
@@ -677,9 +699,10 @@ class LernhilfenExportDialog(_BaseExportDialog):
             out_path = out_path.with_suffix(self._extension())
 
         self.result = {
-            "format": selected_format,
+            "format": "pdf" if export_all_tabs else selected_format,
             "mode": "help_cards",
             "output_path": out_path,
+            "export_all_tabs": export_all_tabs,
         }
         self.window.destroy()
 
