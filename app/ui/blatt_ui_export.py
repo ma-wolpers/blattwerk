@@ -818,7 +818,17 @@ class BlattwerkAppExportMixin:
         contrast_profile: str,
         tmp_dir_path: Path,
     ):
-        """Render each visible lernhilfe card as its own trimmed PNG-ready image."""
+        """Render each visible lernhilfe card as its own trimmed PNG-ready image.
+
+        `page_format` (Aufrufer-Präferenz, i. d. R. a4/a5) wird hier bewusst
+        ignoriert: Einzelkarten werden immer in DIN-A6-Breite gerendert
+        (steuert u. a. `document_header_size`/`solution_badge_size` über
+        `PAGE_LAYOUTS["a6_portrait"]`), unabhängig vom allgemeinen
+        Seitenformat-Preference des Nutzers. Der kombinierte Mehrkarten-PDF-
+        Export (`_export_help_cards_pdf`) behält dagegen das gewählte Format
+        für die physische Seite bei.
+        """
+        page_format = "a6_portrait"
 
         text = input_path.read_text(encoding="utf-8")
         meta, _content = split_front_matter(text)

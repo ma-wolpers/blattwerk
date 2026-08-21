@@ -16,6 +16,16 @@ from .blatt_kern_shared import (
     should_render_block,
 )
 
+HELP_CARD_WIDTH_CM = 10.5
+"""Äußere CSS-Box-Breite einer Lernhilfenkarte in Zentimetern, inklusive
+`padding`/`border` (nicht zusätzlich zu ihnen). Entspricht bewusst der
+DIN-A6-Breite (`PAGE_LAYOUTS["a6_portrait"]` in `app/styles/blatt_styles.py`),
+damit Einzelkarten-Export und Zweispalten-Mehrkarten-PDF (zwei Karten pro
+DIN-A4-Breite nebeneinander) dieselbe physische Kartenbreite verwenden.
+`.help-card` trägt bewusst keinen horizontalen Margin -- Abstände zwischen
+Karten im Zweispalten-Layout werden ausschließlich über den Spalten-Container
+gesteuert (siehe `.help-cards-columns`), nicht über Card-Margin."""
+
 
 def collect_help_blocks(blocks, include_solutions=False, document_mode="worksheet"):
     """Extrahiert sichtbare Hilfeblöcke inkl. Metadaten in Dokumentreihenfolge."""
@@ -157,24 +167,27 @@ def render_help_cards_html(
         )
 
     title_value = escape((meta or {}).get("Titel", "Hilfekarten"))
-    help_cards_css = """
-body {
+    help_cards_css = f"""
+body {{
     margin: 0;
-}
+}}
 
-@page {
+@page {{
     margin: 0;
-}
+}}
 
-.help-card {
+.help-card {{
+    box-sizing: border-box;
+    width: {HELP_CARD_WIDTH_CM}cm;
     border: var(--material-border-width) solid var(--material-border-color);
     border-radius: 10px;
     padding: 0.65cm 0.7cm;
     margin: 0 0 0.45cm 0;
     break-inside: avoid;
     page-break-inside: avoid;
-}
-
+    -webkit-column-break-inside: avoid;
+}}
+""" + """
 .help-card:last-child {
     margin-bottom: 0;
 }

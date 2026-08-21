@@ -85,3 +85,45 @@ def test_open_worksheet_export_dialog_keeps_mode_selection_for_worksheet(monkeyp
 
     assert seen["allow_mode_selection"] is True
     assert seen["default_mode"] == "solution"
+
+
+class _DummyDesignOptions:
+    color_profile = "indigo"
+    font_profile = "segoe"
+    font_size_profile = "normal"
+
+
+class _StopAfterRenderHelpCards(Exception):
+    """Bricht `_render_lernhilfe_card_images` gezielt vor der PDF-/Bild-Pipeline ab."""
+
+
+def test_render_lernhilfe_card_images_always_uses_a6_page_format(monkeypatch, tmp_path):
+    input_path = tmp_path / "doc.md"
+    input_path.write_text(
+        "---\nTitel: T\nFach: M\nThema: X\n---\n:::help title='Hilfe'\nInhalt\n:::\n",
+        encoding="utf-8",
+    )
+
+    recorded_page_formats = []
+
+    def _fake_render_help_cards_html(meta, blocks, include_solutions=False, page_format="a4_portrait", **kwargs):
+        recorded_page_formats.append(page_format)
+        raise _StopAfterRenderHelpCards()
+
+    monkeypatch.setattr("app.ui.blatt_ui_export.render_help_cards_html", _fake_render_help_cards_html)
+
+    app = _DummyExportApp(DOCUMENT_TYPE_WORKSHEET)
+    app._worksheet_design_options = lambda: _DummyDesignOptions()
+
+    for requested_page_format in ("a4_portrait", "a5_landscape"):
+        try:
+            app._render_lernhilfe_card_images(
+                input_path=input_path,
+                page_format=requested_page_format,
+                contrast_profile="standard",
+                tmp_dir_path=tmp_path,
+            )
+        except _StopAfterRenderHelpCards:
+            pass
+
+    assert recorded_page_formats == ["a6_portrait", "a6_portrait"]

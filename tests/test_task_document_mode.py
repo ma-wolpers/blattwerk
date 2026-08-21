@@ -623,6 +623,31 @@ def test_render_help_cards_html_uses_local_tag_in_card_title():
     assert "<h2>1 - Weiterdenken</h2>" in html
 
 
+def test_render_help_cards_html_uses_fixed_a6_card_width_regardless_of_page_format():
+    meta = {"Titel": "T", "Fach": "M", "Thema": "X"}
+    blocks = [("help", {"title": "Hilfe"}, "Inhalt")]
+
+    for page_format in ("a4_portrait", "a5_landscape", "a6_portrait"):
+        html = render_help_cards_html(meta, blocks, include_solutions=False, page_format=page_format)
+        card_rule_start = html.find(".help-card {")
+        card_rule_end = html.find("}", card_rule_start)
+        card_rule = html[card_rule_start:card_rule_end]
+        assert "width: 10.5cm" in card_rule
+        assert "box-sizing: border-box" in card_rule
+
+
+def test_render_help_cards_html_card_has_no_horizontal_margin():
+    meta = {"Titel": "T", "Fach": "M", "Thema": "X"}
+    blocks = [("help", {"title": "Hilfe"}, "Inhalt")]
+
+    html = render_help_cards_html(meta, blocks, include_solutions=False)
+
+    card_rule_start = html.find(".help-card {")
+    card_rule_end = html.find("}", card_rule_start)
+    card_rule = html[card_rule_start:card_rule_end]
+    assert "margin: 0 0 0.45cm 0" in card_rule
+
+
 def test_collect_labeled_help_blocks_assigns_labels_in_visible_order():
     meta = {"tag": "1"}
     blocks = [
