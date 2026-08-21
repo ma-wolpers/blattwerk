@@ -2,6 +2,11 @@
 
 Der Validator prueft Blattwerk-Markdown vor dem Build und liefert stabile Diagnosecodes.
 
+Dieses Dokument deckt zwei unabhaengige Diagnosesysteme ab: den Blattwerk-Markdown-Validator
+(`FM`/`BL`/`OP`/`AN`/`MA`/`PT`/`QR`-Codes, siehe unten) und die separate Kurzentwurf-DSL
+(`KZF`-Codes, siehe [Kurzentwurf-DSL (KZF)](#kurzentwurf-dsl-kzf)) -- beide haben eigene
+Einstiegspunkte und eigene Coderaeume, teilen sich aber dieses Referenzdokument.
+
 ## Ziel
 
 - einheitliche Diagnosen fuer UI, CLI und VS Code Extension
@@ -61,10 +66,43 @@ Der Validator prueft Blattwerk-Markdown vor dem Build und liefert stabile Diagno
 - `QR001`: `qrcode`-Block ohne Pflichtoption `url`.
 - `QR002`: `qrcode`-Block mit ungueltiger `url` (erlaubt: http/https oder relativer Pfad ohne Leerzeichen).
 
+## Kurzentwurf-DSL (KZF)
+
+Eigenes Diagnosesystem fuer den Kurzentwurf-Dokumenttyp (`app/core/kurzentwurf_runtime/`,
+nicht der Blattwerk-`:::`-Blockdialekt). Einstiegspunkt: `inspect_kurzentwerfer_text(...)`
+in `app/core/kurzentwurf_runtime/validator.py`. Ein Dokument mit mindestens einer
+`error`-Diagnose liefert kein validiertes `KurzentwurfDocument` (siehe
+`InspectionResult.has_errors`).
+
+- `KZF010` (error): Ein Blattwerk-`:::`-Blockdialekt-Marker (`:::`, `§{`, `%{`, `&{`) wurde im Kurzentwurf-Dokument gefunden -- diese gehoeren nicht zur Kurzentwurf-DSL.
+- `KZF011` (error): Ungueltiger `#phase`-Hashtag -- entspricht keinem der sechs erlaubten Phasen-Hashtags (siehe `docs/ANLEITUNG_KURZENTWURF.md`, Abschnitt "Phasen").
+- `KZF041` (error): Leerer Segmenttrenner `---` ohne Inhalt.
+- `KZF042` (error): Ungueltige Inline-Pipe-Syntax -- nur ein alleinstehendes `|` auf einer eigenen Zeile markiert einen Spaltenwechsel.
+- `KZF045` (error): YAML-Frontmatter wurde nicht mit einem schliessenden `---` beendet.
+- `KZF046` (error): `#phase`-Zeile ohne Phasenname nach dem `#`.
+- `KZF047` (error): `t=...` ist keine positive Ganzzahl (Minuten).
+- `KZF048` (error): `#phase`-Abschnitt enthaelt keine Segmente.
+- `KZF100` (error): Legacy-`[row]`-Blocksyntax ist in der aktuellen DSL (V2) nicht mehr erlaubt.
+- `KZF101` (error): Marker mit Doppelpunkt (z. B. `S:`) sind ungueltig -- `S>`/`A>`/`U>`/`s<`/`ant<` verwenden.
+- `KZF102` (error): `#phase`-Abschnitt enthaelt kein einziges Segment.
+- `KZF115` (error): Erstes Segment einer Phase ist eine reine Vollbreitenzeile ohne Spaltenmarker (`S>`/`A>`/`U>`/`s<`/`ant<`) -- unzulaessig, da es die Phasenzelle der Tabelle verankert.
+- `KZF130` (error): Dauer-Modus (`t=...`) erfordert eine globale Startzeit im Frontmatter (`start: HH:MM`).
+- `KZF131` (error): Globale Startzeit im Frontmatter ist kein gueltiges `HH:MM`-Format.
+- `KZF132` (error): Im Dauer-Modus muss jede zeitpflichtige Phase `t=...` setzen (`Hausaufgabe`/`Didaktische Reserve` ausgenommen).
+- `KZF134` (error): `start=...` im `#phase`-Header ist kein gueltiges `HH:MM`-Format.
+- `KZF136` (warning): `start=...` weicht von der aus `t=...` fortlaufend berechneten Startzeit ab und wird ignoriert.
+- `KZF150` (error): `A>` mit Inhalt auf derselben Zeile -- `A>` markiert nur die Spalte Lernaktivitaeten, Inhalt gehoert auf eine folgende `s<`-Zeile.
+- `KZF151` (error): Inhalt in der Spalte Lernaktivitaeten vor dem ersten `s<`.
+- `KZF152` (warning): `s<` ohne ein folgendes `ant<` -- Antizipation fehlt.
+- `KZF153` (error): `ant>` ist kein gueltiger Marker (kein Alias von `ant<`) -- `ant<` verwenden.
+- `KZF200` (error): PyMuPDF ist nicht verfuegbar -- PDF-Vorschau kann nicht gerendert werden.
+- `KZF220` (error): Dokument enthaelt keine renderbaren Phasen/Zeilen.
+
 ## Blocking-Regel
 
 Der Build wird blockiert, wenn mindestens eine Diagnose die Schwere `error` hat.
-Aktuell ist insbesondere `AN003` als kritisch zu behandeln.
+Aktuell ist insbesondere `AN003` als kritisch zu behandeln. Fuer Kurzentwurf gilt generell:
+jede `error`-Diagnose (siehe Liste oben) blockiert die Dokumentvalidierung.
 
 ## JSON-Bridge Format
 

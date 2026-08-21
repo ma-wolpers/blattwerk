@@ -749,6 +749,89 @@ def _check_authoring_guides_sync(errors: list[str]) -> None:
             )
 
 
+_KZF_CODE_SEVERITY_RE = re.compile(r'code="(KZF\d+)",\s+severity="(\w+)"')
+_KZF_DOC_ENTRY_RE = re.compile(r'`(KZF\d+)`\s*\((\w+)\)')
+
+
+def _extract_kzf_codes_from_runtime_source(errors: list[str]) -> dict[str, str]:
+    """Extract every `(code, severity)` pair from `Diagnostic(code="KZF...", severity="...")` calls.
+
+    Rein textuell (kein Import von `kurzentwurf_runtime`), analog zu allen
+    anderen Checks in dieser Datei. Meldet einen Fehler, wenn derselbe Code
+    an verschiedenen Fundstellen mit unterschiedlichem Schweregrad auftaucht
+    (aktuell nicht der Fall, aber wuerde eine Ein-Zeile-pro-Code-Doku im
+    Kurzentwurf-Abschnitt von docs/VALIDATOR.md unmoeglich machen).
+    """
+    codes: dict[str, str] = {}
+    root_dir = ROOT / INTEGRATED_KURZENTWURF_RUNTIME_ROOT
+    if not root_dir.exists():
+        return codes
+    for file_path in sorted(root_dir.glob("*.py")):
+        rel_path = file_path.relative_to(ROOT).as_posix()
+        text = _read(rel_path)
+        for match in _KZF_CODE_SEVERITY_RE.finditer(text):
+            code, severity = match.group(1), match.group(2)
+            existing = codes.get(code)
+            if existing is not None and existing != severity:
+                errors.append(
+                    f"{rel_path}: KZF-Code {code} hat widerspruechliche Schweregrade "
+                    f"({existing} vs. {severity}) an verschiedenen Fundstellen -- "
+                    "Ein-Zeile-pro-Code-Dokumentation in docs/VALIDATOR.md nicht mehr moeglich"
+                )
+            codes[code] = severity
+    return codes
+
+
+def _check_kurzentwurf_diagnostics_sync(errors: list[str]) -> None:
+    """Ensure every KZF diagnostic code+severity in the runtime matches docs/VALIDATOR.md.
+
+    Hybridmodell wie beim Blattwerk-Validator: Code ist die Wahrheit,
+    `docs/VALIDATOR.md` bleibt redaktionell formuliert (die Erklaerung je
+    Code muss nicht wortgleich mit der Fehlermeldung im Code sein) --
+    geprueft wird nur, dass jeder Code samt Schweregrad in beide Richtungen
+    exakt uebereinstimmt (kein fehlender, kein veralteter, kein Code mit
+    abweichendem Schweregrad). Laeuft unconditionally in `main()` (siehe
+    `_check_authoring_guides_sync`-Docstring fuer die Begruendung).
+    """
+    code_severity_in_source = _extract_kzf_codes_from_runtime_source(errors)
+    if not code_severity_in_source:
+        return
+
+    validator_doc = _read("docs/VALIDATOR.md")
+    section_marker = "## Kurzentwurf-DSL (KZF)"
+    if section_marker not in validator_doc:
+        errors.append(f"docs/VALIDATOR.md: fehlender Abschnitt '{section_marker}'")
+        return
+    section_text = validator_doc.split(section_marker, 1)[1].split("\n## ", 1)[0]
+
+    code_severity_in_doc: dict[str, str] = {}
+    for match in _KZF_DOC_ENTRY_RE.finditer(section_text):
+        code_severity_in_doc[match.group(1)] = match.group(2)
+
+    missing_in_doc = sorted(set(code_severity_in_source) - set(code_severity_in_doc))
+    if missing_in_doc:
+        errors.append(
+            "docs/VALIDATOR.md: KZF-Codes im Code, aber nicht im Kurzentwurf-Abschnitt "
+            f"dokumentiert -> {missing_in_doc}"
+        )
+
+    stale_in_doc = sorted(set(code_severity_in_doc) - set(code_severity_in_source))
+    if stale_in_doc:
+        errors.append(
+            "docs/VALIDATOR.md: KZF-Codes im Kurzentwurf-Abschnitt dokumentiert, aber nicht "
+            f"(mehr) im Code -> {stale_in_doc}"
+        )
+
+    for code in sorted(set(code_severity_in_source) & set(code_severity_in_doc)):
+        code_severity_source = code_severity_in_source[code]
+        code_severity_doc = code_severity_in_doc[code]
+        if code_severity_source != code_severity_doc:
+            errors.append(
+                f"docs/VALIDATOR.md: {code} hat Schweregrad '{code_severity_doc}' in der Doku, "
+                f"aber '{code_severity_source}' im Code"
+            )
+
+
 def _check_integrated_kurzentwurf_runtime(errors: list[str]) -> None:
     """Validate the embedded Kurzentwurf runtime used by Blattwerk."""
 
@@ -849,6 +932,7 @@ def main() -> int:
     # _check_authoring_guides_sync-Docstring).
     _check_extension_validator_sync(errors)
     _check_authoring_guides_sync(errors)
+    _check_kurzentwurf_diagnostics_sync(errors)
 
     if staged and not _has_relevant_staged_changes(staged, repo_root):
         if errors:
