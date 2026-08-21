@@ -8,6 +8,7 @@ The format is based on Keep a Changelog.
 
 ### Added
 
+- Autoren-Anleitung `docs/ANLEITUNG_KURZENTWURF.md`: Abschnitt "Phasen" zeigt jetzt eine Tabelle mit dem tatsächlich zu tippenden `#`-Hashtag pro Phase, statt nur den Anzeigenamen als vermeintlichen Hashtag zu listen -- `Ergebnissicherung` ist z. B. `#sicherung`, `Didaktische Reserve` ist `#reserve`. Abschnitt "Zeilenmarker" erklärt jetzt jeden Marker (`S>`/`A>`/`s<`/`U>`/`ant<`) einzeln inkl. der zugehörigen Diagnosecodes, und weist explizit darauf hin, dass `ant>` **kein** gültiger Alias von `ant<` ist. Abschnitt "Legacy-Erkennungs-Felder" hat jetzt eine Erklärung pro Feld statt einer reinen Namensliste. Neuer Abschnitt "Kurzentwurf-DSL (KZF)" in `docs/VALIDATOR.md` dokumentiert erstmals alle 23 Kurzentwurf-Diagnosecodes.
 - Präsentations-Export: neue Option "Schrittweise Folien (-+) zu einer Folie zusammenfassen" im Export-Dialog (standardmäßig abgewählt). Fasst alle durch den `-+`-Marker (framebreak) verbundenen Folien zu einer einzigen finalen Folie zusammen — wirkt einheitlich über PDF, HTML, PNG, PNG-ZIP und PPTX.
 - Im Lernhilfen-Exportdialog kann jetzt (bei mehr als einem offenen Tab) "Alle offenen Dokumente exportieren" ausgewählt werden: erzeugt ein ZIP mit je einer PDF-Datei pro geöffnetem Dokument, jeweils mit dem aktuellen Editorinhalt. Der Export ist atomar — scheitert auch nur eines der Dokumente beim Bauen, wird der gesamte Vorgang mit klarer Fehlermeldung abgebrochen und es entsteht keine Teil-Datei; Dokumente ganz ohne Lernhilfen werden dagegen sauber übersprungen und am Ende gemeldet.
 - PDF-Export mehrerer Lernhilfenkarten: die linke Spalte (DIN-A6-Breite) wird jetzt vollständig gefüllt, bevor die rechte Spalte beginnt — statt Karten einfach in voller Seitenbreite untereinander zu stapeln. Spart Papier beim Ausschneiden.
@@ -30,6 +31,7 @@ The format is based on Keep a Changelog.
 
 ### Fixed
 
+- Kurzentwurf-Phase "Ergebnissicherung" (`#sicherung`) rendert jetzt korrekt als "Ergebnissicherung" in HTML/PDF -- vorher enthielt das Phasenlabel einen fest eingebauten, fehlerhaften Bindestrich+Leerzeichen ("Ergebnis- sicherung"), vermutlich als improvisierter Zeilenumbruch-Behelf für das lange Wort in der schmalen Phasen-Spalte gedacht. Jetzt stattdessen sauber per CSS (`overflow-wrap: break-word`) gelöst, ohne den Anzeigenamen zu verfälschen.
 - `show_student_header`/`show_document_header` im Frontmatter wurden als roher Wahrheitswert gelesen: ein nicht-leerer String wie `show_student_header: nein` galt technisch als "wahr" und aktivierte die Schülerkopfzeile entgegen der erkennbaren Absicht. Beide Felder werden jetzt korrekt als `ja`/`nein`-Wert interpretiert (wie bereits bei `lochen`).
 
 ### Added
