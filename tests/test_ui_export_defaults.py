@@ -109,3 +109,28 @@ def test_normalize_user_preferences_adds_kurzentwurf_runtime_defaults():
     assert normalized["kurzentwurf_phase_row_spacing_px"] == 10
     assert normalized["kurzentwurf_s_marker_label"] == "S:innen"
     assert normalized["kurzentwurf_ant_marker_label"] == "Antizipiert:"
+
+
+def test_normalize_user_preferences_adds_option_value_style_defaults():
+    normalized = normalize_user_preferences({})
+
+    assert normalized["option_value_language_style"] == "german"
+    assert normalized["option_value_show_abbreviations"] is False
+
+
+def test_normalize_user_preferences_accepts_english_option_value_style():
+    normalized = normalize_user_preferences({"option_value_language_style": "english"})
+
+    assert normalized["option_value_language_style"] == "english"
+
+
+def test_normalize_user_preferences_rejects_unknown_option_value_style():
+    normalized = normalize_user_preferences({"option_value_language_style": "klingon"})
+
+    assert normalized["option_value_language_style"] == "german"
+
+
+def test_normalize_user_preferences_coerces_option_value_show_abbreviations():
+    normalized = normalize_user_preferences({"option_value_show_abbreviations": "true"})
+
+    assert normalized["option_value_show_abbreviations"] is True

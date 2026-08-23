@@ -8,6 +8,15 @@ The format is based on Keep a Changelog.
 
 ### Added
 
+- Neue Einstellungen im Tab "Editor Vervollständigung": "Sprachstil für Options-Wert-Vorschläge" (Deutsch/Englisch, Standard Deutsch) und "Abkürzungen in Options-Wert-Vorschlägen anzeigen" (Standard aus). Betrifft die Werte-Dropdowns von `work=`/`action=`/`align=`/`hint=`: statt aller Synonyme wird jetzt nur noch ein Wert pro Bedeutung im gewählten Sprachstil vorgeschlagen (z. B. nur `gruppe`, nicht zusätzlich `group`/`ga`); bei aktivem Abkürzungs-Toggle zeigt das Vorschlags-Label zusätzlich die Abkürzung in Klammern an (z. B. `gruppe (ga)`), eingefügt wird dabei immer das lange Wort. Alle bisherigen Synonyme und Schreibweisen (`einzel`/`single`/`ea`/`sgl` usw.) bleiben weiterhin gültige, akzeptierte Syntax — reine Vorschlags-Änderung.
+- Im Schreibbereich schlagen `:::table`/`:::numberline`/`:::mc`/`:::matching`/`:::columns`/`:::qrcode` jetzt nur noch die kanonische Form ihrer Options-Schlüssel-Aliase vor (z. B. `widths` statt zusätzlich `ratio`, `min`/`max` statt zusätzlich `minimum`/`maximum`, `w`/`h`/`maxw` statt zusätzlich `width`/`height`/`max-width`). Alle Alias-Schreibweisen bleiben weiterhin gültige, akzeptierte Syntax — reine Vorschlags-Änderung.
+
+### Changed
+
+- **Echte Syntaxänderung:** `work=einzelarbeit`/`work=partnerarbeit`/`work=gruppenarbeit` sowie `hint=expertenaufgabe` sind keine gültigen Werte mehr (lösen `OP002` aus). Ersatz: `work=einzel`/`work=partner`/`work=gruppe` bzw. `hint=experte` — die Anzeige (Symbol + Label "Einzelarbeit"/"Partnerarbeit"/"Gruppenarbeit"/"Expertenaufgabe") bleibt unverändert.
+
+### Added
+
 - Autoren-Anleitung `docs/ANLEITUNG_KURZENTWURF.md`: Abschnitt "Phasen" zeigt jetzt eine Tabelle mit dem tatsächlich zu tippenden `#`-Hashtag pro Phase, statt nur den Anzeigenamen als vermeintlichen Hashtag zu listen -- `Ergebnissicherung` ist z. B. `#sicherung`, `Didaktische Reserve` ist `#reserve`. Abschnitt "Zeilenmarker" erklärt jetzt jeden Marker (`S>`/`A>`/`s<`/`U>`/`ant<`) einzeln inkl. der zugehörigen Diagnosecodes, und weist explizit darauf hin, dass `ant>` **kein** gültiger Alias von `ant<` ist. Abschnitt "Legacy-Erkennungs-Felder" hat jetzt eine Erklärung pro Feld statt einer reinen Namensliste. Neuer Abschnitt "Kurzentwurf-DSL (KZF)" in `docs/VALIDATOR.md` dokumentiert erstmals alle 23 Kurzentwurf-Diagnosecodes.
 - Präsentations-Export: neue Option "Schrittweise Folien (-+) zu einer Folie zusammenfassen" im Export-Dialog (standardmäßig abgewählt). Fasst alle durch den `-+`-Marker (framebreak) verbundenen Folien zu einer einzigen finalen Folie zusammen — wirkt einheitlich über PDF, HTML, PNG, PNG-ZIP und PPTX.
 - Im Lernhilfen-Exportdialog kann jetzt (bei mehr als einem offenen Tab) "Alle offenen Dokumente exportieren" ausgewählt werden: erzeugt ein ZIP mit je einer PDF-Datei pro geöffnetem Dokument, jeweils mit dem aktuellen Editorinhalt. Der Export ist atomar — scheitert auch nur eines der Dokumente beim Bauen, wird der gesamte Vorgang mit klarer Fehlermeldung abgebrochen und es entsteht keine Teil-Datei; Dokumente ganz ohne Lernhilfen werden dagegen sauber übersprungen und am Ende gemeldet.

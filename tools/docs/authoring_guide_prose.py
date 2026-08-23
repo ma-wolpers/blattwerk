@@ -375,7 +375,7 @@ PROSE_SECTIONS: dict[str, str] = {
     ),
     "option:hint": (
         "Lernhinweis, wird als Emoji + Label gerendert (`tip`/`tipp` 💡, `definition` 📘, "
-        "`remember`/`erinnerung` 💭, `term`/`fachwort` 📖, `expert`/`expertenaufgabe` 🚀). Ohne "
+        "`remember`/`erinnerung` 💭, `term`/`fachwort` 📖, `expert`/`experte` 🚀). Ohne "
         "Angabe wird kein Hinweis-Symbol angezeigt."
     ),
     "option:line": (

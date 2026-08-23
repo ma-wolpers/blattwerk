@@ -215,6 +215,94 @@ def test_columns_with_invalid_align_emits_op002():
     assert "OP002" in codes
 
 
+@pytest.mark.parametrize(
+    "removed_value",
+    ["einzelarbeit", "partnerarbeit", "gruppenarbeit"],
+)
+def test_removed_work_long_forms_emit_op002(removed_value):
+    # Echte Syntaxaenderung (nicht nur Completion-Aenderung): diese
+    # Data-noise-Langformen sind komplett aus KNOWN_WORK_VALUES entfernt.
+    text = _build_document(f":::task work={removed_value}\nRechne aus.\n:::")
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+
+    assert "OP002" in codes
+
+
+def test_removed_hint_long_form_emits_op002():
+    text = _build_document(":::task hint=expertenaufgabe\nRechne aus.\n:::")
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+
+    assert "OP002" in codes
+
+
+@pytest.mark.parametrize(
+    "new_short_value",
+    ["einzel", "partner", "gruppe"],
+)
+def test_new_work_short_forms_are_valid(new_short_value):
+    text = _build_document(f":::task work={new_short_value}\nRechne aus.\n:::")
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+
+    assert "OP002" not in codes
+
+
+def test_new_hint_short_form_experte_is_valid():
+    text = _build_document(":::task hint=experte\nRechne aus.\n:::")
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+
+    assert "OP002" not in codes
+
+
+@pytest.mark.parametrize(
+    "option_key,abbreviation",
+    [
+        ("work", "sgl"),
+        ("work", "grp"),
+        ("action", "exc"),
+        ("action", "calc"),
+        ("hint", "tp"),
+        ("hint", "eri"),
+    ],
+)
+def test_newly_curated_abbreviations_are_valid(option_key, abbreviation):
+    text = _build_document(f":::task {option_key}={abbreviation}\nRechne aus.\n:::")
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+
+    assert "OP002" not in codes
+
+
+@pytest.mark.parametrize("align_abbreviation", ["l", "r", "c", "j", "m", "b"])
+def test_newly_curated_align_abbreviations_are_valid(align_abbreviation):
+    text = _build_document(f":::task align={align_abbreviation}\nRechne aus.\n:::")
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+
+    assert "OP002" not in codes
+
+
+@pytest.mark.parametrize(
+    "block_snippet",
+    [
+        ":::qrcode url=https://example.org width=3cm\n:::",
+        ":::columns cols=2 ratio='1 1'\n:::raw\nA\n:::\n:::nextcol:::\n:::raw\nB\n:::\n:::endcolumns:::",
+        ":::table header_cols=1\n| a |\n|---|\n:::",
+    ],
+)
+def test_key_aliases_remain_valid_syntax_without_op001(block_snippet):
+    # Reine Completion-Aenderung: Alias-Schluessel bleiben gueltig, nur
+    # nicht mehr vorgeschlagen (siehe test_completion_catalogs.py).
+    text = _build_document(block_snippet)
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+
+    assert "OP001" not in codes
+
+
 def test_nextcol_outside_open_columns_emits_bl007_error():
     text = _build_document(":::nextcol:::")
     inspected = inspect_markdown_text(text)

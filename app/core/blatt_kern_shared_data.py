@@ -34,53 +34,78 @@ MARKDOWN_EXTENSIONS = ["tables", "nl2br"]
 
 WORK_MODE_MAP = {
     "single": ("👤", "Einzelarbeit", "single"),
+    "sgl": ("👤", "Einzelarbeit", "single"),
     "ea": ("👤", "Einzelarbeit", "single"),
     "einzel": ("👤", "Einzelarbeit", "single"),
-    "einzelarbeit": ("👤", "Einzelarbeit", "single"),
     "partner": ("👥", "Partnerarbeit", "partner"),
     "pa": ("👥", "Partnerarbeit", "partner"),
-    "partnerarbeit": ("👥", "Partnerarbeit", "partner"),
     "group": ("👪", "Gruppenarbeit", "group"),
+    "grp": ("👪", "Gruppenarbeit", "group"),
     "ga": ("👪", "Gruppenarbeit", "group"),
     "gruppe": ("👪", "Gruppenarbeit", "group"),
-    "gruppenarbeit": ("👪", "Gruppenarbeit", "group"),
 }
+"""`einzelarbeit`/`partnerarbeit`/`gruppenarbeit` sind entfernt (siehe
+`KNOWN_WORK_VALUES` in `blatt_validator_constants.py`) -- die Anzeige-Labels
+bleiben unverändert lang/freundlich, obwohl die Eingabesyntax kürzer wurde."""
 
 TASK_ACTION_MAP = {
     "exchange": ("💬", "austauschen", "action"),
+    "exc": ("💬", "austauschen", "action"),
     "austauschen": ("💬", "austauschen", "action"),
+    "aus": ("💬", "austauschen", "action"),
     "decide": ("⚖️", "entscheiden", "action"),
+    "dec": ("⚖️", "entscheiden", "action"),
     "entscheiden": ("⚖️", "entscheiden", "action"),
+    "ent": ("⚖️", "entscheiden", "action"),
     "experiment": ("🧪", "experimentieren", "action"),
     "experimentieren": ("🧪", "experimentieren", "action"),
+    "exp": ("🧪", "experimentieren", "action"),
     "reflect": ("🤔", "reflektieren", "action"),
     "reflektieren": ("🤔", "reflektieren", "action"),
+    "ref": ("🤔", "reflektieren", "action"),
     "read": ("📖", "lesen", "action"),
+    "rd": ("📖", "lesen", "action"),
     "lesen": ("📖", "lesen", "action"),
+    "les": ("📖", "lesen", "action"),
     "calculate": ("🔢", "rechnen", "action"),
+    "calc": ("🔢", "rechnen", "action"),
     "rechnen": ("🔢", "rechnen", "action"),
+    "rech": ("🔢", "rechnen", "action"),
     "match": ("↔️", "zuordnen", "action"),
+    "mat": ("↔️", "zuordnen", "action"),
     "zuordnen": ("↔️", "zuordnen", "action"),
+    "zuo": ("↔️", "zuordnen", "action"),
     "write": ("✍️", "schreiben", "action"),
+    "wrt": ("✍️", "schreiben", "action"),
     "schreiben": ("✍️", "schreiben", "action"),
+    "schr": ("✍️", "schreiben", "action"),
     "draw": ("📐", "zeichnen", "action"),
+    "drw": ("📐", "zeichnen", "action"),
     "zeichnen": ("📐", "zeichnen", "action"),
+    "zei": ("📐", "zeichnen", "action"),
 }
 
 TASK_HINT_MAP = {
     "tip": ("💡", "Tipp", "hint"),
     "hint": ("💡", "Tipp", "hint"),
     "tipp": ("💡", "Tipp", "hint"),
+    "tp": ("💡", "Tipp", "hint"),
     "definition": ("📘", "Definition", "hint"),
     "def": ("📘", "Definition", "hint"),
     "remember": ("💭", "Erinnerung", "hint"),
+    "rem": ("💭", "Erinnerung", "hint"),
     "reminder": ("💭", "Erinnerung", "hint"),
     "erinnerung": ("💭", "Erinnerung", "hint"),
+    "eri": ("💭", "Erinnerung", "hint"),
     "term": ("📖", "Fachwort", "hint"),
+    "tm": ("📖", "Fachwort", "hint"),
     "fachwort": ("📖", "Fachwort", "hint"),
+    "fw": ("📖", "Fachwort", "hint"),
     "expert": ("🚀", "Expertenaufgabe", "hint"),
-    "expertenaufgabe": ("🚀", "Expertenaufgabe", "hint"),
+    "experte": ("🚀", "Expertenaufgabe", "hint"),
 }
+"""`expertenaufgabe` ist entfernt (siehe `KNOWN_HINT_VALUES`), ersetzt durch
+`experte` -- das Anzeige-Label "Expertenaufgabe" bleibt unverändert."""
 
 HELP_BLOCK_TYPES = {"help", "hilfe"}
 DOCUMENT_MODES = {"worksheet", "solution", "presentation", "test"}

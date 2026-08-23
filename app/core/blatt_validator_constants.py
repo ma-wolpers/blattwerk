@@ -105,21 +105,27 @@ wird — beide Ebenen teilen sich nur den Namen, nicht die Validierung.
 """
 KNOWN_ALIGN_VALUES = {
     "left",
+    "l",
     "links",
     "linksbundig",
     "linksbuendig",
     "right",
+    "r",
     "rechts",
     "rechtsbundig",
     "rechtsbuendig",
     "center",
+    "c",
     "centre",
     "middle",
     "mitte",
+    "m",
     "zentriert",
     "justify",
+    "j",
     "block",
     "blocksatz",
+    "b",
 }
 """Erlaubte Werte für die Objekt-Ausrichtungsoption `align`/`alignment`
 (deutsche und englische Schreibweisen). Normative Quelle für
@@ -136,51 +142,147 @@ MARKER_SHOW_SECTIONS_BY_ANSWER_TYPE = {
 }
 KNOWN_WORK_VALUES = {
     "single",
+    "sgl",
     "ea",
     "einzel",
-    "einzelarbeit",
     "partner",
     "pa",
-    "partnerarbeit",
     "group",
+    "grp",
     "ga",
     "gruppe",
-    "gruppenarbeit",
 }
 KNOWN_ACTION_VALUES = {
     "exchange",
+    "exc",
     "austauschen",
+    "aus",
     "decide",
+    "dec",
     "entscheiden",
+    "ent",
     "experiment",
     "experimentieren",
+    "exp",
     "reflect",
     "reflektieren",
+    "ref",
     "read",
+    "rd",
     "lesen",
+    "les",
     "calculate",
+    "calc",
     "rechnen",
+    "rech",
     "match",
+    "mat",
     "zuordnen",
+    "zuo",
     "write",
+    "wrt",
     "schreiben",
+    "schr",
     "draw",
+    "drw",
     "zeichnen",
+    "zei",
 }
 KNOWN_HINT_VALUES = {
     "tip",
     "tipp",
+    "tp",
     "hint",
     "definition",
     "def",
     "remember",
+    "rem",
     "reminder",
     "erinnerung",
+    "eri",
     "term",
+    "tm",
     "fachwort",
+    "fw",
     "expert",
-    "expertenaufgabe",
+    "experte",
+    "exp",
 }
+"""`gruppenarbeit`/`einzelarbeit`/`partnerarbeit`/`expertenaufgabe` sind
+bewusst entfernt (nicht nur aus der Completion): Data-noise-Langformen ohne
+kürzeres eigenständiges Konzept, ersetzt durch `gruppe`/`einzel`/`partner`/
+`experte`. Alte Werte lösen künftig `OP002` aus -- echte Syntaxänderung,
+siehe `OPTION_VALUE_STYLE_CATALOGS`-Migrationsnotiz unten."""
+
+_WORK_VALUE_STYLES = (
+    {"english": "single", "abbreviation_english": "sgl", "german": "einzel", "abbreviation_german": "ea"},
+    {"english": "partner", "abbreviation_english": "pa", "german": "partner", "abbreviation_german": "pa"},
+    {"english": "group", "abbreviation_english": "grp", "german": "gruppe", "abbreviation_german": "ga"},
+)
+_ACTION_VALUE_STYLES = (
+    {"english": "exchange", "abbreviation_english": "exc", "german": "austauschen", "abbreviation_german": "aus"},
+    {"english": "decide", "abbreviation_english": "dec", "german": "entscheiden", "abbreviation_german": "ent"},
+    {"english": "experiment", "abbreviation_english": "exp", "german": "experimentieren", "abbreviation_german": "exp"},
+    {"english": "reflect", "abbreviation_english": "ref", "german": "reflektieren", "abbreviation_german": "ref"},
+    {"english": "read", "abbreviation_english": "rd", "german": "lesen", "abbreviation_german": "les"},
+    {"english": "calculate", "abbreviation_english": "calc", "german": "rechnen", "abbreviation_german": "rech"},
+    {"english": "match", "abbreviation_english": "mat", "german": "zuordnen", "abbreviation_german": "zuo"},
+    {"english": "write", "abbreviation_english": "wrt", "german": "schreiben", "abbreviation_german": "schr"},
+    {"english": "draw", "abbreviation_english": "drw", "german": "zeichnen", "abbreviation_german": "zei"},
+)
+_ALIGN_VALUE_STYLES = (
+    {"english": "left", "abbreviation_english": "l", "german": "links", "abbreviation_german": "l"},
+    {"english": "right", "abbreviation_english": "r", "german": "rechts", "abbreviation_german": "r"},
+    {"english": "center", "abbreviation_english": "c", "german": "mitte", "abbreviation_german": "m"},
+    {"english": "justify", "abbreviation_english": "j", "german": "blocksatz", "abbreviation_german": "b"},
+)
+_HINT_VALUE_STYLES = (
+    {"english": "tip", "german": "tipp", "abbreviation_german": "tp"},
+    {"english": "definition", "abbreviation_english": "def", "german": "definition", "abbreviation_german": "def"},
+    {"english": "remember", "abbreviation_english": "rem", "german": "erinnerung", "abbreviation_german": "eri"},
+    {"english": "term", "abbreviation_english": "tm", "german": "fachwort", "abbreviation_german": "fw"},
+    {"english": "expert", "abbreviation_english": "exp", "german": "experte", "abbreviation_german": "exp"},
+)
+
+OPTION_VALUE_STYLE_CATALOGS = (
+    (KNOWN_WORK_VALUES, _WORK_VALUE_STYLES),
+    (KNOWN_ACTION_VALUES, _ACTION_VALUE_STYLES),
+    (KNOWN_ALIGN_VALUES, _ALIGN_VALUE_STYLES),
+    (KNOWN_HINT_VALUES, _HINT_VALUE_STYLES),
+)
+"""Kuratierter Katalog: pro Konzept je ein deutscher und englischer Wert samt
+sprachspezifischer Abkürzung (`abbreviation_english`/`abbreviation_german`).
+Handverlesene Daten, **keine automatisch aus der Wortlänge abgeleitete
+Abkürzung** -- der Resolver (`completion_catalogs.py`) liest diese Tabellen
+nur aus, er berechnet nichts selbst. Zuordnung zur jeweiligen `KNOWN_*_VALUES`-
+Menge erfolgt über Mengengleichheit (nicht über den Optionsnamen-String),
+damit z. B. `table`s eigene, abweichende `alignment`-Menge unberührt bleibt.
+Jeder hier referenzierte Wert (Sprachform wie Abkürzung) muss in der
+zugehörigen `KNOWN_*_VALUES`-Menge enthalten sein -- per Guardrail-Test
+abgesichert (`tests/test_blatt_validator_constants.py`)."""
+
+BLOCK_OPTION_KEY_ALIASES = {
+    "table": frozenset({"header_cols"}),
+    "numberline": frozenset({"minimum", "maximum", "signed_positive"}),
+    "mc": frozenset({"true_false"}),
+    "matching": frozenset({"orientation", "links"}),
+    "columns": frozenset({"ratio"}),
+    "qrcode": frozenset({"width", "height", "max-width"}),
+}
+"""Je Blocktyp ausschließlich die aus der Editor-Completion **auszublendenden
+Alias-Schlüssel** (nicht die kanonische Form -- die ergibt sich implizit
+daraus, dass sie in `BLOCK_ALLOWED_OPTIONS[block_type]` bleibt und hier
+nicht aufgeführt ist). Rein Completion-seitig: Alias-Schlüssel bleiben in
+`BLOCK_OPTION_SPECS`/`BLOCK_ALLOWED_OPTIONS` vollständig gültig und werden
+vom Validator weiterhin akzeptiert -- im Gegensatz zu den oben entfernten
+`work`/`hint`-Werten ist dies **keine** Syntaxänderung. Absichtlich
+blockbezogen (nicht global), da z. B. `qrcode`s `width` ein Alias von `w`
+ist, `table`s eigenes `width` aber primär/kanonisch. `tick_spacing_mm`/
+`tick_spacing_cm`/`tick_spacing`, `max_width_mm`/`max_width_cm` (numberline)
+sowie `matches`/`worksheet_matches` (matching) sind bewusst NICHT hier
+aufgeführt: unterschiedliche Einheiten bzw. Konzepte, keine austauschbaren
+Namen für denselben Wert."""
+
 ANSWER_BLOCK_TYPES = {
     "lines",
     "grid",

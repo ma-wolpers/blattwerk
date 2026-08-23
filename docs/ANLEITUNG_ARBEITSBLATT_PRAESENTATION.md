@@ -102,7 +102,7 @@ Lückentext-Antwortfeld. `gap`/`gap_length` steuert den Lückenmodus/-länge, `w
 
 | Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
 |---|---|---|---|---|---|
-| `align` | Enum | `block`, `blocksatz`, `center`, `centre`, `justify`, `left`, `links`, `linksbuendig`, `linksbundig`, `middle`, `mitte`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
+| `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
 | `gap` | Enum | `approx`, `equal`, `fixed`, `gleich`, `same`, `uniform` | nein | `approx` | Lückenlängen-Modus: `fixed`/`equal`/`same`/`uniform`/`gleich` erzwingt gleich lange Lücken, jeder andere Wert (Standard) berechnet die Lückenlänge approximativ aus der Wortlänge. |
 | `gap_length` | Ganzzahl | -- | nein | `10` | Feste Lückenlänge in Zeichen bei `gap=fixed` (Standard `10`). |
 | `layout` | Text | -- | nein | -- | Steuert ein Layout-Detail des Blocks -- die genaue Bedeutung ist blocktyp-abhängig, siehe Besonderheit unten. |
@@ -117,7 +117,7 @@ Spaltenlayout für nebeneinander angeordnete Inhalte. `cols=2..6` (Standard 2) s
 
 | Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
 |---|---|---|---|---|---|
-| `align` | Enum | `block`, `blocksatz`, `center`, `centre`, `justify`, `left`, `links`, `linksbuendig`, `linksbundig`, `middle`, `mitte`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
+| `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
 | `cols` | Ganzzahl | -- | nein | `2` | Anzahl Spalten des Rasters. Der genaue Standardwert und ob eine fehlende Angabe automatisch aus verfügbarer Breite berechnet wird, hängt vom Blocktyp ab (siehe Tabelle: Spalte "Standard"). |
 | `gap` | CSS-Länge | -- | nein | -- | Horizontaler Abstand zwischen den Spalten als CSS-Länge (z. B. `1cm`). |
 | `ratio` | Text | -- | nein | -- | Alias von `widths` -- relative Spaltengewichte. |
@@ -129,7 +129,7 @@ Punktraster-Schreibfeld (z. B. für Übungen zur Feinmotorik/Schrift).
 
 | Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
 |---|---|---|---|---|---|
-| `align` | Enum | `block`, `blocksatz`, `center`, `centre`, `justify`, `left`, `links`, `linksbuendig`, `linksbundig`, `middle`, `mitte`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
+| `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
 | `height` | CSS-Länge | -- | nein | `4cm` | Höhe des Antwortfelds als CSS-Länge (z. B. `4cm`, `120px`). Der genaue Standardwert hängt vom Blocktyp ab (siehe Tabelle: Spalte "Standard"). |
 | `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
@@ -152,7 +152,7 @@ Koordinatensystem für Punkte, Polylinien, Strecken und Funktionsgraphen (siehe 
 
 | Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
 |---|---|---|---|---|---|
-| `align` | Enum | `block`, `blocksatz`, `center`, `centre`, `justify`, `left`, `links`, `linksbuendig`, `linksbundig`, `middle`, `mitte`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
+| `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
 | `axis` | Bool | -- | nein | `False` | Aktiviert ein mathematisches Koordinatensystem mit x-/y-Achse, Tick-Marks und Achsenbeschriftung (Standard: aus, dann gelten reine Rasterkoordinaten `col`/`row`). **Wichtig:** `axis=true` wirkt nur zusammen mit einem gültigen `origin` -- fehlt `origin` oder ist er ungültig, fällt der Block still (ohne Fehler/Warnung) auf den Rasterkoordinaten-Modus zurück. In diesem Fall werden `functions`-Einträge komplett ignoriert, und `points`/`pairs` interpretieren ihre `x`/`y`-Werte als `col`/`row` statt als Mathe-Koordinaten. |
 | `axis_label_x` | Text | -- | nein | `x` | Beschriftung der x-Achse (Standard `x`), nur wirksam bei aktivem Achsenmodus (siehe `axis`). |
 | `axis_label_y` | Text | -- | nein | `y` | Beschriftung der y-Achse (Standard `y`), nur wirksam bei aktivem Achsenmodus (siehe `axis`). |
@@ -172,7 +172,7 @@ Kästchen-/Schreibfeld mit einem Textraster. `rows`/`cols` setzen die Rastergrö
 
 | Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
 |---|---|---|---|---|---|
-| `align` | Enum | `block`, `blocksatz`, `center`, `centre`, `justify`, `left`, `links`, `linksbuendig`, `linksbundig`, `middle`, `mitte`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
+| `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
 | `cols` | Ganzzahl | -- | nein | -- | Anzahl Spalten des Rasters. Der genaue Standardwert und ob eine fehlende Angabe automatisch aus verfügbarer Breite berechnet wird, hängt vom Blocktyp ab (siehe Tabelle: Spalte "Standard"). |
 | `line` | Enum | `dashed`, `solid` | ja | `solid` | Linienstil des Rasterhintergrunds: `solid` (Standard) oder `dashed`. Nur bei `:::grid`/`:::geometry` vorhanden -- nicht zu verwechseln mit dem gleichnamigen `pairs[].line`-Feld in der Geometry-YAML-Payload (dort eigene, unabhängige Einstellung pro Strecke). |
 | `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
@@ -210,7 +210,7 @@ Hinweisbox mit `type=default|warning|note` für unterschiedliche Hervorhebungsst
 
 | Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
 |---|---|---|---|---|---|
-| `align` | Enum | `block`, `blocksatz`, `center`, `centre`, `justify`, `left`, `links`, `linksbuendig`, `linksbundig`, `middle`, `mitte`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
+| `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
 | `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
 | `type` | Enum | `default`, `note`, `warning` | ja | `default` | Hervorhebungsstil der Hinweisbox: `default` (Standard), `warning` oder `note`. |
@@ -221,7 +221,7 @@ Textbasiertes Antwortfeld mit Linien zum Beschriften. `rows=<n>` setzt die Minde
 
 | Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
 |---|---|---|---|---|---|
-| `align` | Enum | `block`, `blocksatz`, `center`, `centre`, `justify`, `left`, `links`, `linksbuendig`, `linksbundig`, `middle`, `mitte`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
+| `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
 | `height` | CSS-Länge | -- | nein | -- | Höhe des Antwortfelds als CSS-Länge (z. B. `4cm`, `120px`). Der genaue Standardwert hängt vom Blocktyp ab (siehe Tabelle: Spalte "Standard"). |
 | `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
 | `rows` | Ganzzahl | -- | nein | `3` | Anzahl Zeilen des Rasters/der Linien. Der genaue Standardwert und ob eine fehlende Angabe automatisch berechnet wird, hängt vom Blocktyp ab (siehe Tabelle: Spalte "Standard"). |
@@ -256,7 +256,7 @@ Kontext- und Erklärmaterial, das vor einer Aufgabe eingeblendet wird. Optionale
 
 | Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
 |---|---|---|---|---|---|
-| `align` | Enum | `block`, `blocksatz`, `center`, `centre`, `justify`, `left`, `links`, `linksbuendig`, `linksbundig`, `middle`, `mitte`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
+| `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
 | `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
 | `title` | Text | -- | nein | -- | Überschreibt die automatisch erzeugte Standardbeschriftung des Blocks mit einem eigenen Text. |
@@ -267,7 +267,7 @@ Multiple-Choice-/Wahr-Falsch-Antwortfeld. `options` listet die Antwortmöglichke
 
 | Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
 |---|---|---|---|---|---|
-| `align` | Enum | `block`, `blocksatz`, `center`, `centre`, `justify`, `left`, `links`, `linksbuendig`, `linksbundig`, `middle`, `mitte`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
+| `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
 | `correct` | Text | -- | nein | -- | Kennzeichnet die richtige(n) Antwortoption(en). |
 | `inline` | Bool | -- | nein | `False` | Schaltet auf ein kompaktes, horizontal fließendes Layout der Antwortoptionen um (Standard: aus). |
 | `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
@@ -289,7 +289,7 @@ Zahlenstrahl-Antwortfeld mit YAML-Payload (`labels`/`answers`/`arcs`/... je Elem
 
 | Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
 |---|---|---|---|---|---|
-| `align` | Enum | `block`, `blocksatz`, `center`, `centre`, `justify`, `left`, `links`, `linksbuendig`, `linksbundig`, `middle`, `mitte`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
+| `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
 | `full_width` | Bool | -- | nein | -- | Erzwingt volle verfügbare Breite für den Zahlenstrahl. |
 | `height` | CSS-Länge | -- | nein | `2.7cm` | Höhe des Antwortfelds als CSS-Länge (z. B. `4cm`, `120px`). Der genaue Standardwert hängt vom Blocktyp ab (siehe Tabelle: Spalte "Standard"). |
 | `major_every` | Ganzzahl | -- | nein | `0` | Jede n-te Tick-Marke wird als Hauptmarkierung hervorgehoben. |
@@ -321,8 +321,8 @@ Klickbarer QR-Code-Link. `url` ist Pflicht (http/https-Link oder relativer Pfad 
 
 | Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
 |---|---|---|---|---|---|
-| `align` | Enum | `block`, `blocksatz`, `center`, `centre`, `justify`, `left`, `links`, `linksbuendig`, `linksbundig`, `middle`, `mitte`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
-| `alignment` | Enum | `block`, `blocksatz`, `center`, `centre`, `justify`, `left`, `links`, `linksbuendig`, `linksbundig`, `middle`, `mitte`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Alias von `align` bei `qrcode` -- identische generische Objekt-Ausrichtung (`left|right|center|block`), nur andere Schreibweise. |
+| `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
+| `alignment` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Alias von `align` bei `qrcode` -- identische generische Objekt-Ausrichtung (`left|right|center|block`), nur andere Schreibweise. |
 | `h` | CSS-Länge | -- | ja | -- | Höhe des QR-Codes als CSS-Größe, gleiche Regeln wie `w`. |
 | `height` | CSS-Länge | -- | ja | -- | Alias von `h` -- Höhe des QR-Codes, folgt derselben CSS-Größen-Logik wie Bildgrößen in Markdown (z. B. `3cm`, `120px`, `60%`, `auto`); ungültige Werte werden als `OP002` gemeldet. |
 | `max-width` | CSS-Länge | -- | ja | -- | Alias von `maxw`. |
@@ -353,7 +353,7 @@ Musterlösungstext. `label=true|false` (Standard `true`) blendet das Label "Lös
 
 | Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
 |---|---|---|---|---|---|
-| `align` | Enum | `block`, `blocksatz`, `center`, `centre`, `justify`, `left`, `links`, `linksbuendig`, `linksbundig`, `middle`, `mitte`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
+| `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
 | `label` | Bool | -- | nein | `True` | Blendet das Label "Lösung" vor dem Text ein/aus (Standard: an). |
 | `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
@@ -364,7 +364,7 @@ Freier Leerraum ohne Linien/Raster, z. B. für Zeichnungen.
 
 | Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
 |---|---|---|---|---|---|
-| `align` | Enum | `block`, `blocksatz`, `center`, `centre`, `justify`, `left`, `links`, `linksbuendig`, `linksbundig`, `middle`, `mitte`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
+| `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
 | `height` | CSS-Länge | -- | nein | `3cm` | Höhe des Antwortfelds als CSS-Länge (z. B. `4cm`, `120px`). Der genaue Standardwert hängt vom Blocktyp ab (siehe Tabelle: Spalte "Standard"). |
 | `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
@@ -375,12 +375,12 @@ Teilaufgabe zu einem vorangehenden `task`. Muss unmittelbar nach dem zugehörige
 
 | Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
 |---|---|---|---|---|---|
-| `action` | Enum | `austauschen`, `calculate`, `decide`, `draw`, `entscheiden`, `exchange`, `experiment`, `experimentieren`, `lesen`, `match`, `read`, `rechnen`, `reflect`, `reflektieren`, `schreiben`, `write`, `zeichnen`, `zuordnen` | ja | *(keiner)* | Tätigkeits-Hinweis, wird als Emoji + Label gerendert (`read`/`lesen` 📖, `write`/`schreiben` ✍️, `calculate`/`rechnen` 🔢, `draw`/`zeichnen` 📐, `match`/`zuordnen` ↔️, `exchange`/`austauschen` 💬, `decide`/`entscheiden` ⚖️, `experiment`/`experimentieren` 🧪, `reflect`/`reflektieren` 🤔). Ohne Angabe wird kein Aktions-Symbol angezeigt. |
-| `align` | Enum | `block`, `blocksatz`, `center`, `centre`, `justify`, `left`, `links`, `linksbuendig`, `linksbundig`, `middle`, `mitte`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
+| `action` | Enum | `aus`, `austauschen`, `calc`, `calculate`, `dec`, `decide`, `draw`, `drw`, `ent`, `entscheiden`, `exc`, `exchange`, `exp`, `experiment`, `experimentieren`, `les`, `lesen`, `mat`, `match`, `rd`, `read`, `rech`, `rechnen`, `ref`, `reflect`, `reflektieren`, `schr`, `schreiben`, `write`, `wrt`, `zei`, `zeichnen`, `zuo`, `zuordnen` | ja | *(keiner)* | Tätigkeits-Hinweis, wird als Emoji + Label gerendert (`read`/`lesen` 📖, `write`/`schreiben` ✍️, `calculate`/`rechnen` 🔢, `draw`/`zeichnen` 📐, `match`/`zuordnen` ↔️, `exchange`/`austauschen` 💬, `decide`/`entscheiden` ⚖️, `experiment`/`experimentieren` 🧪, `reflect`/`reflektieren` 🤔). Ohne Angabe wird kein Aktions-Symbol angezeigt. |
+| `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
 | `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
 | `time` | Text | -- | nein | -- | Geschätzte Bearbeitungszeit, wird als `X min` ausgegeben. Freier Textwert -- üblich, aber nicht erzwungen, ist eine reine Zahl (Minuten). |
-| `work` | Enum | `ea`, `einzel`, `einzelarbeit`, `ga`, `group`, `gruppe`, `gruppenarbeit`, `pa`, `partner`, `partnerarbeit`, `single` | ja | `single` | Empfohlene Arbeitsform, wird als Emoji + Label gerendert: `single`/`einzel` (👤), `partner` (👥) oder `group`/`gruppe` (👪). Deutsche und englische Schreibweisen sind gleichwertig. Ohne Angabe gilt `single`. |
+| `work` | Enum | `ea`, `einzel`, `ga`, `group`, `grp`, `gruppe`, `pa`, `partner`, `sgl`, `single` | ja | `single` | Empfohlene Arbeitsform, wird als Emoji + Label gerendert: `single`/`einzel` (👤), `partner` (👥) oder `group`/`gruppe` (👪). Deutsche und englische Schreibweisen sind gleichwertig. Ohne Angabe gilt `single`. |
 
 ### `table`
 
@@ -407,15 +407,15 @@ Die Hauptaufgabe -- der zentrale Blocktyp eines Arbeitsblatts. `points` vergibt 
 
 | Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
 |---|---|---|---|---|---|
-| `action` | Enum | `austauschen`, `calculate`, `decide`, `draw`, `entscheiden`, `exchange`, `experiment`, `experimentieren`, `lesen`, `match`, `read`, `rechnen`, `reflect`, `reflektieren`, `schreiben`, `write`, `zeichnen`, `zuordnen` | ja | *(keiner)* | Tätigkeits-Hinweis, wird als Emoji + Label gerendert (`read`/`lesen` 📖, `write`/`schreiben` ✍️, `calculate`/`rechnen` 🔢, `draw`/`zeichnen` 📐, `match`/`zuordnen` ↔️, `exchange`/`austauschen` 💬, `decide`/`entscheiden` ⚖️, `experiment`/`experimentieren` 🧪, `reflect`/`reflektieren` 🤔). Ohne Angabe wird kein Aktions-Symbol angezeigt. |
-| `align` | Enum | `block`, `blocksatz`, `center`, `centre`, `justify`, `left`, `links`, `linksbuendig`, `linksbundig`, `middle`, `mitte`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
-| `hint` | Enum | `def`, `definition`, `erinnerung`, `expert`, `expertenaufgabe`, `fachwort`, `hint`, `remember`, `reminder`, `term`, `tip`, `tipp` | ja | *(keiner)* | Siehe `option:hint` -- bei `task` zusätzlich mit passendem Emoji direkt neben der Aufgabe gerendert. |
+| `action` | Enum | `aus`, `austauschen`, `calc`, `calculate`, `dec`, `decide`, `draw`, `drw`, `ent`, `entscheiden`, `exc`, `exchange`, `exp`, `experiment`, `experimentieren`, `les`, `lesen`, `mat`, `match`, `rd`, `read`, `rech`, `rechnen`, `ref`, `reflect`, `reflektieren`, `schr`, `schreiben`, `write`, `wrt`, `zei`, `zeichnen`, `zuo`, `zuordnen` | ja | *(keiner)* | Tätigkeits-Hinweis, wird als Emoji + Label gerendert (`read`/`lesen` 📖, `write`/`schreiben` ✍️, `calculate`/`rechnen` 🔢, `draw`/`zeichnen` 📐, `match`/`zuordnen` ↔️, `exchange`/`austauschen` 💬, `decide`/`entscheiden` ⚖️, `experiment`/`experimentieren` 🧪, `reflect`/`reflektieren` 🤔). Ohne Angabe wird kein Aktions-Symbol angezeigt. |
+| `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
+| `hint` | Enum | `def`, `definition`, `eri`, `erinnerung`, `exp`, `expert`, `experte`, `fachwort`, `fw`, `hint`, `rem`, `remember`, `reminder`, `term`, `tip`, `tipp`, `tm`, `tp` | ja | *(keiner)* | Siehe `option:hint` -- bei `task` zusätzlich mit passendem Emoji direkt neben der Aufgabe gerendert. |
 | `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
 | `points` | Text | -- | nein | -- | Vergibt eine Punktzahl für die Aufgabe, wird neben der Aufgabe angezeigt. |
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
 | `time` | Text | -- | nein | -- | Geschätzte Bearbeitungszeit, wird als `X min` ausgegeben. Freier Textwert -- üblich, aber nicht erzwungen, ist eine reine Zahl (Minuten). |
 | `title` | Text | -- | nein | -- | Überschreibt die automatisch erzeugte Standardbeschriftung des Blocks mit einem eigenen Text. |
-| `work` | Enum | `ea`, `einzel`, `einzelarbeit`, `ga`, `group`, `gruppe`, `gruppenarbeit`, `pa`, `partner`, `partnerarbeit`, `single` | ja | `single` | Empfohlene Arbeitsform, wird als Emoji + Label gerendert: `single`/`einzel` (👤), `partner` (👥) oder `group`/`gruppe` (👪). Deutsche und englische Schreibweisen sind gleichwertig. Ohne Angabe gilt `single`. |
+| `work` | Enum | `ea`, `einzel`, `ga`, `group`, `grp`, `gruppe`, `pa`, `partner`, `sgl`, `single` | ja | `single` | Empfohlene Arbeitsform, wird als Emoji + Label gerendert: `single`/`einzel` (👤), `partner` (👥) oder `group`/`gruppe` (👪). Deutsche und englische Schreibweisen sind gleichwertig. Ohne Angabe gilt `single`. |
 
 ### `vspacer`
 
@@ -431,7 +431,7 @@ Wortsuchrätsel-Antwortfeld. `words` listet die zu versteckenden Wörter, `diago
 
 | Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
 |---|---|---|---|---|---|
-| `align` | Enum | `block`, `blocksatz`, `center`, `centre`, `justify`, `left`, `links`, `linksbuendig`, `linksbundig`, `middle`, `mitte`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
+| `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
 | `diagonal` | Bool | -- | nein | `False` | Erlaubt diagonale Wortplatzierung im Rätsel (Standard: aus). Akzeptiert auch eine Richtungsliste statt eines einfachen Ein/Aus-Werts. |
 | `horizontal` | Bool | -- | nein | `False` | Erlaubt horizontale Wortplatzierung (Standard: aus). Akzeptiert auch eine Richtungsliste. |
 | `min_cols` | Ganzzahl | -- | nein | -- | Mindestanzahl Spalten des Rätselrasters. |
@@ -444,11 +444,11 @@ Wortsuchrätsel-Antwortfeld. `words` listet die zu versteckenden Wörter, `diago
 
 ## 6. Wertlisten für `work`/`action`/`hint`
 
-**work (Arbeitsform bei task/subtask):** `ea`, `einzel`, `einzelarbeit`, `ga`, `group`, `gruppe`, `gruppenarbeit`, `pa`, `partner`, `partnerarbeit`, `single`
+**work (Arbeitsform bei task/subtask):** `ea`, `einzel`, `ga`, `group`, `grp`, `gruppe`, `pa`, `partner`, `sgl`, `single`
 
-**action (Tätigkeits-Hinweis bei task):** `austauschen`, `calculate`, `decide`, `draw`, `entscheiden`, `exchange`, `experiment`, `experimentieren`, `lesen`, `match`, `read`, `rechnen`, `reflect`, `reflektieren`, `schreiben`, `write`, `zeichnen`, `zuordnen`
+**action (Tätigkeits-Hinweis bei task):** `aus`, `austauschen`, `calc`, `calculate`, `dec`, `decide`, `draw`, `drw`, `ent`, `entscheiden`, `exc`, `exchange`, `exp`, `experiment`, `experimentieren`, `les`, `lesen`, `mat`, `match`, `rd`, `read`, `rech`, `rechnen`, `ref`, `reflect`, `reflektieren`, `schr`, `schreiben`, `write`, `wrt`, `zei`, `zeichnen`, `zuo`, `zuordnen`
 
-**hint (Lernhinweis bei task):** `def`, `definition`, `erinnerung`, `expert`, `expertenaufgabe`, `fachwort`, `hint`, `remember`, `reminder`, `term`, `tip`, `tipp`
+**hint (Lernhinweis bei task):** `def`, `definition`, `eri`, `erinnerung`, `exp`, `expert`, `experte`, `fachwort`, `fw`, `hint`, `rem`, `remember`, `reminder`, `term`, `tip`, `tipp`, `tm`, `tp`
 
 ## 7. Control-Marker-Referenz
 

@@ -14,8 +14,9 @@ import re
 
 from ..core.completion_catalogs import (
     get_completion_block_types,
-    get_completion_options_for_block,
+    get_completion_option_value_abbreviation_hints,
     get_completion_option_values,
+    get_completion_options_for_block,
     get_self_closing_block_types,
 )
 from ..storage.local_config_store import get_option_value_decay_scores
@@ -30,6 +31,21 @@ _EDITOR_FRONTMATTER_KEYS = (
     "lochen",
     "copyright",
 )
+
+
+def _format_option_value_label(value: str, abbreviation_hints: dict[str, str]) -> str:
+    """Appends a curated abbreviation hint to a completion label, e.g. `gruppe (ga)`.
+
+    Display-only: the abbreviation shown here is never the text this
+    completion path inserts (`insert_text` always stays the canonical
+    long value), regardless of whether the abbreviation is itself a
+    separately valid, accepted value.
+    """
+
+    abbreviation = abbreviation_hints.get(value.lower())
+    if not abbreviation:
+        return value
+    return f"{value} ({abbreviation})"
 
 
 class BlattwerkAppEditorCompletionContextMixin:
@@ -299,7 +315,20 @@ class BlattwerkAppEditorCompletionContextMixin:
         option_key_norm = str(option_key or "").strip().lower()
         prefix_norm = str(value_prefix or "").strip().lower()
 
-        defaults = list(get_completion_option_values(block_type_norm, option_key_norm))
+        preferences = getattr(self, "user_preferences", {})
+        value_style = str(preferences.get("option_value_language_style", "german") or "german")
+        show_abbreviations = bool(preferences.get("option_value_show_abbreviations", False))
+
+        defaults = list(
+            get_completion_option_values(block_type_norm, option_key_norm, value_style=value_style)
+        )
+        abbreviation_hints = (
+            get_completion_option_value_abbreviation_hints(
+                block_type_norm, option_key_norm, value_style
+            )
+            if show_abbreviations
+            else {}
+        )
 
         learned = []
         try:
@@ -320,7 +349,7 @@ class BlattwerkAppEditorCompletionContextMixin:
         filtered = [value for value in merged if value.lower().startswith(prefix_norm)]
         return [
             {
-                "label": value,
+                "label": _format_option_value_label(value, abbreviation_hints),
                 "insert_text": value,
                 "kind": "option_value",
                 "block_type": block_type_norm,

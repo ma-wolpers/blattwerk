@@ -117,6 +117,19 @@ PREFERENCE_SPECS = {
         "default": "wide",
         "values": ["compact", "normal", "wide"],
     },
+    "option_value_language_style": {
+        "tab": "editor_completion",
+        "label": "Sprachstil fuer Options-Wert-Vorschlaege",
+        "type": "enum",
+        "default": "german",
+        "values": ["german", "english"],
+    },
+    "option_value_show_abbreviations": {
+        "tab": "editor_completion",
+        "label": "Abkuerzungen in Options-Wert-Vorschlaegen anzeigen",
+        "type": "bool",
+        "default": False,
+    },
     # Editor Diagnostik
     "diagnostics_live_enabled": {
         "tab": "editor_diagnostics",

@@ -23,10 +23,12 @@ from pathlib import Path
 from .blatt_kern_shared import parse_blocks, split_front_matter
 from .blatt_validator_constants import (
     BLOCK_ALLOWED_OPTIONS,
+    BLOCK_OPTION_KEY_ALIASES,
     BLOCK_OPTION_SPECS,
     CRITICAL_DIAGNOSTIC_CODES,
     KNOWN_ANSWER_TYPES,
     KNOWN_BLOCK_TYPES,
+    OPTION_VALUE_STYLE_CATALOGS,
 )
 from .blatt_validator_block_options import _validate_block_options
 from .blatt_validator_columns import _validate_columns_structure
@@ -46,6 +48,8 @@ __all__ = [
     "BuildDiagnostic",
     "InspectedDocument",
     "BLOCK_OPTION_SPECS",
+    "BLOCK_OPTION_KEY_ALIASES",
+    "OPTION_VALUE_STYLE_CATALOGS",
     "KNOWN_ANSWER_TYPES",
     "has_blocking_diagnostics",
     "summarize_blocking_diagnostics",
