@@ -21,6 +21,9 @@ Quellen im Einzelnen:
 - `blatt_kern_shared_data.py`: Control-Marker-Syntax (`CONTROL_MARKERS`) --
   dieselbe Quelle, die auch der Parser (`blatt_kern_shared_parsing.py`) und
   der Validator (`blatt_validator_patterns.py`) verwenden.
+- `block_insert_snippets.py` (`BLOCK_INSERT_SNIPPETS`): dieselben Ctrl+B-
+  Einfüge-Vorlagen, die der Editor (`app/ui/blatt_ui_editor.py`) tatsächlich
+  einfügt -- re-verpackt als `BlockSpec.insert_snippet`.
 - `answer_grid_entries.py`: Geometry-Objekt-Felder (`GEOMETRY_ENTRY_ALLOWED_KEYS`)
   -- dieselbe Quelle, die auch Renderer und Validator (`AN011`-`AN014`)
   verwenden.
@@ -43,6 +46,7 @@ from dataclasses import dataclass
 
 from .answer_grid_entries import GEOMETRY_ENTRY_ALLOWED_KEYS
 from .blatt_kern_shared_data import CONTROL_MARKERS, ControlMarkerSpec
+from .block_insert_snippets import BLOCK_INSERT_SNIPPETS
 from .blatt_validator_constants import (
     BLOCK_OPTION_SPECS,
     KNOWN_ACTION_VALUES,
@@ -66,11 +70,16 @@ class BlockSpec:
 
     Reine Re-Verpackung von `BLOCK_OPTION_SPECS[name]` -- keine
     zusätzlichen Felder wie `requires`/`mutually_exclusive`, da diese
-    Informationen im Code nirgends normativ existieren.
+    Informationen im Code nirgends normativ existieren. `insert_snippet`
+    ist die reine Re-Verpackung von `BLOCK_INSERT_SNIPPETS.get(name)` --
+    ein *minimales, bequemes Beispiel* (dasselbe, das Ctrl+B im Editor
+    einfügt), keine vollständige Grammatikspezifikation; `None`, wenn der
+    Blocktyp keinen Ctrl+B-Menüeintrag hat.
     """
 
     name: str
     options: tuple[BlockOptionSpec, ...]
+    insert_snippet: str | None
 
 
 @dataclass(frozen=True)
@@ -150,6 +159,7 @@ def collect_markdown_conventions() -> MarkdownConventionCatalog:
         BlockSpec(
             name=block_name,
             options=tuple(BLOCK_OPTION_SPECS.get(block_name, ())),
+            insert_snippet=BLOCK_INSERT_SNIPPETS.get(block_name),
         )
         for block_name in sorted(KNOWN_BLOCK_TYPES)
         if block_name != "raw"
