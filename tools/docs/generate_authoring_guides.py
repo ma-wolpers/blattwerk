@@ -246,6 +246,11 @@ def _render_option_table(catalog: MarkdownConventionCatalog, block) -> str:
 
 
 def _render_block_insert_example(block) -> str:
+    """Rendert das Ctrl+B-Beispiel eines Blocks als gefencten Codeblock, falls vorhanden.
+
+    Entfernt den `\x01`-Cursor-Marker (nur für den Editor relevant) und gibt
+    `""` zurück, wenn der Block keinen Ctrl+B-Menüeintrag hat.
+    """
     if not block.insert_snippet:
         return ""
     cleaned = block.insert_snippet.replace("\x01", "")
@@ -276,6 +281,7 @@ def _render_control_marker_reference(catalog: MarkdownConventionCatalog) -> str:
 
 
 def _render_kurzentwurf_phase_table(catalog: MarkdownConventionCatalog) -> str:
+    """Rendert die Phasen-Tabelle (Anzeigename/Hashtag/Zeitpflicht) aus `PHASE_SPECS`."""
     lines = ["| Anzeigename | Hashtag | Braucht `t=`? |", "|---|---|---|"]
     for spec in catalog.kurzentwurf.phase_specs:
         lines.append(
@@ -286,6 +292,7 @@ def _render_kurzentwurf_phase_table(catalog: MarkdownConventionCatalog) -> str:
 
 
 def _render_kurzentwurf_line_marker_reference(catalog: MarkdownConventionCatalog) -> str:
+    """Rendert eine Bullet-Liste mit einer Prosa-Erklärung pro Zeilenmarker aus `LINE_MARKER_SPECS`."""
     parts = []
     for spec in catalog.kurzentwurf.line_markers:
         parts.append(f"- **`{spec.token}`**: {_prose(f'kurzentwurf:marker:{spec.token}')}")
@@ -293,6 +300,7 @@ def _render_kurzentwurf_line_marker_reference(catalog: MarkdownConventionCatalog
 
 
 def _render_kurzentwurf_legacy_field_details(catalog: MarkdownConventionCatalog) -> str:
+    """Rendert eine Bullet-Liste mit einer Erklärung pro Legacy-Erkennungsfeld."""
     parts = []
     for name in sorted(catalog.kurzentwurf.legacy_detection_only_keys):
         parts.append(f"- **`{name}`**: {_prose(f'kurzentwurf:legacy:{name}')}")
