@@ -93,6 +93,15 @@ def test_build_presentation_template_contains_mode_and_type():
     assert "Titel: Neue Praesentation" in content
 
 
+def test_build_presentation_template_uses_pagebreak_not_framebreak_between_distinct_tasks():
+    """Regressionstest: `-+` (Framebreak) baut denselben Gedanken schrittweise auf und ist kein
+    Folientrenner -- zwischen den beiden inhaltlich verschiedenen Beispiel-Tasks gehört `--!`."""
+    content = build_new_document_content(DOCUMENT_TYPE_PRESENTATION, {})
+
+    assert "\n--!\n" in content
+    assert "-+" not in content
+
+
 def test_build_kurzentwurf_template_contains_yaml_identity_keys():
     content = build_new_document_content(DOCUMENT_TYPE_KURZENTWURF, {"default_subject": "Informatik"})
 
