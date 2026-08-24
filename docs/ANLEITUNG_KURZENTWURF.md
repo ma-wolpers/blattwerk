@@ -6,7 +6,7 @@ Neu erzeugen: python tools/docs/generate_authoring_guides.py
 
 # Kurzentwurf erstellen
 
-Kurzentwurf ist ein eigener Blattwerk-Dokumenttyp mit einer **eigenen DSL** -- nicht dem `:::`-Blockdialekt aus der Arbeitsblatt-/Präsentations-Anleitung. Diese Anleitung wird automatisch aus dem Code erzeugt (`app/core/markdown_conventions.py`). Fehlermeldungen tragen stabile Codes wie `KZF011`/`KZF152` -- die vollständige Liste steht in [`docs/VALIDATOR.md`](VALIDATOR.md#kurzentwurf-dsl-kzf).
+Kurzentwurf ist ein eigener Blattwerk-Dokumenttyp mit einer **eigenen DSL** -- nicht dem `:::`-Blockdialekt aus der Arbeitsblatt-/Präsentations-Anleitung. Diese Anleitung wird automatisch aus dem Code erzeugt (`app/core/markdown_conventions.py`). Fehlermeldungen tragen stabile Codes wie `KZF011`/`KZF152` -- die vollständige Liste steht in [`docs/VALIDATOR.md`](VALIDATOR.md#kurzentwurf-dsl-kzf). Reine Schreibkonventionen und didaktische Empfehlungen (keine Korrektheitsregeln) stehen separat in [`docs/EMPFEHLUNGEN_STIL_KURZENTWURF.md`](EMPFEHLUNGEN_STIL_KURZENTWURF.md).
 
 ## 1. Schnellstart
 
@@ -46,7 +46,7 @@ Akzeptierte Schlüssel (alle gleichwertig, case-insensitiv): `lerngruppe`, `star
 
 ## 3. Phasen
 
-Ein Kurzentwurf gliedert sich in `#phase`-Abschnitte. Wichtig: der nach `#` getippte Hashtag ist **nicht** derselbe Text wie der Anzeigename der Phase (siehe Tabelle unten) -- z. B. heißt die Phase `Ergebnissicherung`, aber der Hashtag lautet `#sicherung`, und `Didaktische Reserve` ist `#reserve`. `t=<minuten>` gibt die Dauer der Phase an und ist optional; ohne Zeitangaben wird die Phase ohne Zeitlabel gerendert. `Hausaufgabe` und `Didaktische Reserve` benötigen nie ein `t=...` (fließen nicht in die Zeitrechnung ein). Zusätzlich gibt es `start=HH:MM` als optionales Attribut im `#phase`-Header: das steuert **nicht** die Zeitberechnung, sondern ist nur ein Plausibilitäts-Check gegen die aus `t=` fortlaufend berechnete Startzeit -- weicht `start=` davon ab, wird es ignoriert und es erscheint lediglich die Warnung `KZF136`.
+Ein Kurzentwurf gliedert sich in `#phase`-Abschnitte. Wichtig: der nach `#` getippte Hashtag ist **nicht** derselbe Text wie der Anzeigename der Phase (siehe Tabelle unten) -- z. B. heißt die Phase `Ergebnissicherung`, aber der Hashtag lautet `#sicherung`, und `Didaktische Reserve` ist `#reserve`. `t=<minuten>` gibt die Dauer der Phase an und ist optional; ohne Zeitangaben wird die Phase ohne Zeitlabel gerendert. `Hausaufgabe` und `Didaktische Reserve` benötigen nie ein `t=...` (fließen nicht in die Zeitrechnung ein). Zusätzlich gibt es `start=HH:MM` als optionales Attribut im `#phase`-Header: das steuert **nicht** die Zeitberechnung, sondern ist nur ein Plausibilitäts-Check gegen die aus `t=` fortlaufend berechnete Startzeit -- weicht `start=` davon ab, wird es ignoriert und es erscheint lediglich die Warnung `KZF136`. Jede Phase darf mehrfach im selben Dokument vorkommen (Wiederholungen werden automatisch mit römischen Ziffern durchnummeriert, z. B. "Erarbeitung I"/"Erarbeitung II") und es gibt **keine** vorgeschriebene Reihenfolge der Phasen -- sie können in beliebiger, auch wiederholter Abfolge auftreten.
 
 | Anzeigename | Hashtag | Braucht `t=`? |
 |---|---|---|
@@ -64,8 +64,8 @@ Innerhalb einer Phase gliedern Zeilenmarker den Inhalt in drei Spalten (Lernschr
 - **`S>`**: Beginnt die Spalte Lernschritte; der Inhalt steht direkt hinter `S>` auf derselben Zeile.
 - **`A>`**: Schaltet die aktive Spalte auf Lernaktivitäten um, trägt aber selbst **keinen** Inhalt -- Inhalt direkt hinter `A>` auf derselben Zeile ist ungültig und löst `KZF150` aus. Der eigentliche Inhalt gehört auf eine folgende `s<`-Zeile.
 - **`s<`**: Lernaktivität der Lernenden -- der eigentliche Inhalt der Spalte Lernaktivitäten, folgt typischerweise auf `A>`. Inhalt in dieser Spalte vor dem ersten `s<` löst `KZF151` aus.
-- **`U>`**: Beginnt die Spalte Lernumgebung/Sozialform; Inhalt direkt hinter `U>`.
-- **`ant<`**: Markiert eine antizipierte Schülerreaktion/Fehlvorstellung zum jeweiligen Lernschritt und sollte nach jedem `s<` gesetzt werden -- fehlt es, erscheint die Warnung `KZF152`.
+- **`U>`**: Beginnt die Spalte Lernumgebung/Sozialform; Inhalt direkt hinter `U>`. Materialangaben (z. B. welches Arbeitsblatt verwendet wird) gehören strukturell ausschließlich hierhin -- keine andere Spalte ist dafür vorgesehen.
+- **`ant<`**: Markiert eine antizipierte Schüler:innen-Antwort/-Reaktion zum jeweiligen Lernschritt -- **nicht nur Fehlvorstellungen**, sondern gute, neutrale wie falsche erwartete Antworten gleichermaßen. Sollte nach jedem `s<` gesetzt werden -- fehlt es, erscheint die Warnung `KZF152`.
 - **`ant>`**: **Kein** gültiger Alias von `ant<`, obwohl es vom Zeilenmarker-Muster erkannt wird -- führt immer zum Fehler `KZF153` ("Bitte ant< verwenden"). Nur `ant<` verwenden.
 
 ## 5. Legacy-Erkennungs-Felder (nicht aktiv verwenden)

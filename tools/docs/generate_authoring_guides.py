@@ -152,6 +152,8 @@ def assert_prose_coverage(catalog: MarkdownConventionCatalog) -> None:
     required_keys.extend(f"marker:{marker.name}" for marker in catalog.control_markers)
     required_keys.extend(_geometry_prose_keys())
     required_keys.extend(_kurzentwurf_prose_keys(catalog))
+    required_keys.append("presentation:visibility")
+    required_keys.append("blocks:closing_rule")
 
     missing = [key for key in required_keys if key not in PROSE_SECTIONS]
 
@@ -243,12 +245,20 @@ def _render_option_table(catalog: MarkdownConventionCatalog, block) -> str:
     return "\n".join(lines)
 
 
+def _render_block_insert_example(block) -> str:
+    if not block.insert_snippet:
+        return ""
+    cleaned = block.insert_snippet.replace("\x01", "")
+    return "\n\n**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):\n\n" + _fenced(cleaned)
+
+
 def _render_block_reference(catalog: MarkdownConventionCatalog) -> str:
     parts = []
     for block in catalog.blocks:
         parts.append(
             f"### `{block.name}`\n\n{_prose(f'block:{block.name}')}\n\n"
             + _render_option_table(catalog, block)
+            + _render_block_insert_example(block)
         )
     return "\n\n".join(parts)
 
@@ -340,18 +350,23 @@ def render_worksheet_presentation_guide(catalog: MarkdownConventionCatalog) -> s
         "dasselbe Frontmatter). Sie wird automatisch aus dem Code erzeugt "
         "(`app/core/markdown_conventions.py`) -- Blocktypen, Optionen und Frontmatter-Felder "
         "können hier nicht veralten, weil sie direkt aus den Konstanten stammen, die der "
-        "Validator selbst zur Prüfung verwendet.",
+        "Validator selbst zur Prüfung verwendet. Reine Stilpräferenzen (keine Korrektheitsregeln) "
+        "stehen separat in [`docs/EMPFEHLUNGEN_STIL_ARBEITSBLATT_PRAESENTATION.md`]"
+        "(EMPFEHLUNGEN_STIL_ARBEITSBLATT_PRAESENTATION.md).",
         "## 1. Grundidee\n\n"
         "Ein Blattwerk-Dokument besteht aus YAML-Frontmatter (Pflicht) gefolgt von einer Folge "
         "semantischer `:::blocktyp ...` ... `:::`-Blöcke. Ob ein Dokument als Arbeitsblatt oder "
         "als Präsentation gerendert wird, entscheidet allein das Frontmatter-Feld `mode` -- der "
         "Blockdialekt selbst ist identisch. Sichtbarkeit pro Block wird über `mode=worksheet|"
-        "solution` gesteuert (Standard: in beiden Ausgaben sichtbar).",
+        "solution` gesteuert (Standard: in beiden Ausgaben sichtbar).\n\n"
+        + _prose("blocks:closing_rule"),
         "## 2. Schnellstart: Arbeitsblatt\n\n" + _fenced(worksheet_example),
         "## 3. Schnellstart: Präsentation\n\n" + _fenced(presentation_example)
-        + "\n\n`--#` setzt den Abschnittsnamen für die Footer-Navigation, `-+` erzeugt einen "
-        "neuen Frame, der den bisherigen Folieninhalt beibehält -- siehe Control-Marker-"
-        "Referenz unten.",
+        + "\n\n`--#` setzt den Abschnittsnamen für die Footer-Navigation, `--!` erzwingt eine neue "
+        "Folie -- siehe Control-Marker-Referenz unten für alle Marker (inkl. `-+`, das im "
+        "Gegensatz zu `--!` **keine** neue Folie erzeugt, siehe dortige Warnung).\n\n"
+        "### Sichtbarkeit in Präsentationen\n\n"
+        + _prose("presentation:visibility"),
         "## 4. Frontmatter-Referenz\n\n" + _render_frontmatter_table(catalog)
         + "\n\n" + _render_frontmatter_details(catalog),
         "## 5. Blockreferenz\n\n" + _render_block_reference(catalog),
@@ -385,7 +400,9 @@ def render_kurzentwurf_guide(catalog: MarkdownConventionCatalog) -> str:
         "`:::`-Blockdialekt aus der Arbeitsblatt-/Präsentations-Anleitung. Diese Anleitung wird "
         "automatisch aus dem Code erzeugt (`app/core/markdown_conventions.py`). Fehlermeldungen tragen "
         "stabile Codes wie `KZF011`/`KZF152` -- die vollständige Liste steht in "
-        "[`docs/VALIDATOR.md`](VALIDATOR.md#kurzentwurf-dsl-kzf).",
+        "[`docs/VALIDATOR.md`](VALIDATOR.md#kurzentwurf-dsl-kzf). Reine Schreibkonventionen und "
+        "didaktische Empfehlungen (keine Korrektheitsregeln) stehen separat in "
+        "[`docs/EMPFEHLUNGEN_STIL_KURZENTWURF.md`](EMPFEHLUNGEN_STIL_KURZENTWURF.md).",
         "## 1. Schnellstart\n\n" + _fenced(kurzentwurf_example),
         "## 2. Frontmatter/Identitäts-Metadaten\n\n"
         + _prose("kurzentwurf:identity_meta")

@@ -86,13 +86,19 @@ PROSE_SECTIONS: dict[str, str] = {
     ),
     # -- Control-Marker ----------------------------------------------------
     "marker:pagebreak": (
-        "`--!` auf einer eigenen Zeile erzwingt einen harten Seiten-/Folienumbruch an dieser Stelle."
+        "`--!` auf einer eigenen Zeile erzwingt einen harten Seiten-/Folienumbruch an dieser Stelle "
+        "-- der Marker, um in einer Präsentation gezielt eine **neue** Folie zu beginnen."
     ),
     "marker:framebreak": (
-        "`-+` auf einer eigenen Zeile erzeugt im Präsentationsmodus einen neuen Frame (neue Folie), "
-        "der den bisherigen Folieninhalt beibehält und um den folgenden Inhalt ergänzt -- nützlich, um "
-        "einen Gedanken schrittweise aufzubauen. Der Präsentations-Exportdialog bietet eine Option, "
-        "diese schrittweisen Folien beim Export zu einer einzigen finalen Folie zusammenzufassen."
+        "`-+` auf einer eigenen Zeile erzeugt im Präsentationsmodus einen neuen Frame, der den "
+        "bisherigen Folieninhalt beibehält und um den folgenden Inhalt ergänzt -- für das "
+        "schrittweise Aufbauen **desselben** Gedankens auf **derselben** Folie (z. B. Punkt für "
+        "Punkt aufdecken). Der Präsentations-Exportdialog bietet eine Option, diese schrittweisen "
+        "Folien beim Export zu einer einzigen finalen Folie zusammenzufassen. **`-+` ist kein "
+        "Folientrenner:** wird er anstelle von `--!` verwendet, um inhaltlich neue/andere Folien "
+        "einzuleiten, sammelt sich der gesamte bisherige Inhalt auf einer einzigen, zunehmend "
+        "überfüllten Folie an, statt eine neue zu beginnen -- für einen echten Folienwechsel immer "
+        "`--!` verwenden."
     ),
     "marker:slidechromeoff": (
         "`--hf` auf einer eigenen Zeile blendet auf der aktuellen Folie Mini-Header und Footer "
@@ -114,6 +120,22 @@ PROSE_SECTIONS: dict[str, str] = {
         "Abschnittswechsel, aber zusätzlich mit `1cm` Abstand (per CSS in `assets/worksheet.css`), weil "
         "der Parser sie gar nicht als eigenes Token erkennt."
     ),
+    "blocks:closing_rule": (
+        "**Jeder Block braucht sein eigenes `:::`, bevor der nächste Block beginnt -- Verschachtelung "
+        "ist nicht erlaubt.** Das gilt uneingeschränkt auch für `columns`/`nextcol`/`endcolumns`: das "
+        "sind ganz normale Blocktypen wie jeder andere, kein syntaktischer Sonderfall. Bei fehlendem "
+        "Inhalt kann die Kurzform `:::blockname ... :::` (öffnendes und schließendes `:::` auf "
+        "derselben Zeile) verwendet werden, z. B. `:::nextcol :::`."
+    ),
+    "presentation:visibility": (
+        "In Präsentationen (`mode: presentation`) gibt es **keinen Lösungs-Umschalter**: Blöcke mit "
+        "`mode=solution`/`show=solution` sowie `:::solution ... :::`-Blöcke (nach Blocktyp) werden in "
+        "Präsentationen **immer** ausgeblendet -- unabhängig davon, ob ein Export explizit \"mit "
+        "Lösung\" anfordert. Es gibt keine Möglichkeit, sie in einer Präsentation sichtbar zu machen. "
+        "`mode=worksheet` (oder keine Angabe, Standard `both`) rendert dagegen normal. Praktisch "
+        "bedeutet das: `mode=solution`/`:::solution` in einem Präsentationsdokument zu verwenden "
+        "entspricht \"diesen Block dauerhaft verstecken\", nicht \"Lösungsansicht anbieten\"."
+    ),
     # -- Kurzentwurf ---------------------------------------------------------
     "kurzentwurf:phases": (
         "Ein Kurzentwurf gliedert sich in `#phase`-Abschnitte. Wichtig: der nach `#` getippte Hashtag "
@@ -125,7 +147,10 @@ PROSE_SECTIONS: dict[str, str] = {
         "Zusätzlich gibt es `start=HH:MM` als optionales Attribut im `#phase`-Header: das steuert "
         "**nicht** die Zeitberechnung, sondern ist nur ein Plausibilitäts-Check gegen die aus `t=` "
         "fortlaufend berechnete Startzeit -- weicht `start=` davon ab, wird es ignoriert und es "
-        "erscheint lediglich die Warnung `KZF136`."
+        "erscheint lediglich die Warnung `KZF136`. Jede Phase darf mehrfach im selben Dokument "
+        "vorkommen (Wiederholungen werden automatisch mit römischen Ziffern durchnummeriert, z. B. "
+        "\"Erarbeitung I\"/\"Erarbeitung II\") und es gibt **keine** vorgeschriebene Reihenfolge der "
+        "Phasen -- sie können in beliebiger, auch wiederholter Abfolge auftreten."
     ),
     "kurzentwurf:phase:einstieg": (
         "Aktiviert Vorwissen, schafft Zieltransparenz und weckt Interesse am neuen Thema."
@@ -143,11 +168,14 @@ PROSE_SECTIONS: dict[str, str] = {
     ),
     "kurzentwurf:phase:hausaufgabe": (
         "Beschreibt die Hausaufgabe. Läuft außerhalb der Unterrichtszeit und fließt deshalb nicht in "
-        "die `t=`-Zeitrechnung der Stunde ein."
+        "die `t=`-Zeitrechnung der Stunde ein. **Braucht trotzdem die volle Segment-/"
+        "Zeilenmarker-Struktur** (mindestens ein Segment mit `S>`/`A>`/`s<`/`U>`) -- nur das fehlende "
+        "`t=` ist optional, nicht die Struktur selbst (sonst `KZF048`/`KZF102`)."
     ),
     "kurzentwurf:phase:reserve": (
         "Optionaler Puffer für den Fall, dass mehr Zeit übrig bleibt als geplant. Fließt wie "
-        "`Hausaufgabe` nicht in die `t=`-Zeitrechnung ein."
+        "`Hausaufgabe` nicht in die `t=`-Zeitrechnung ein, braucht aber ebenso die volle "
+        "Segment-/Zeilenmarker-Struktur (sonst `KZF048`/`KZF102`)."
     ),
     "kurzentwurf:identity_meta": (
         "Titel, Untertitel und globale Startzeit können sowohl im YAML-Frontmatter (`---`-Block) als "
@@ -191,10 +219,16 @@ PROSE_SECTIONS: dict[str, str] = {
         "Lernaktivität der Lernenden -- der eigentliche Inhalt der Spalte Lernaktivitäten, folgt "
         "typischerweise auf `A>`. Inhalt in dieser Spalte vor dem ersten `s<` löst `KZF151` aus."
     ),
-    "kurzentwurf:marker:U>": ("Beginnt die Spalte Lernumgebung/Sozialform; Inhalt direkt hinter `U>`."),
+    "kurzentwurf:marker:U>": (
+        "Beginnt die Spalte Lernumgebung/Sozialform; Inhalt direkt hinter `U>`. Materialangaben "
+        "(z. B. welches Arbeitsblatt verwendet wird) gehören strukturell ausschließlich hierhin -- "
+        "keine andere Spalte ist dafür vorgesehen."
+    ),
     "kurzentwurf:marker:ant<": (
-        "Markiert eine antizipierte Schülerreaktion/Fehlvorstellung zum jeweiligen Lernschritt und "
-        "sollte nach jedem `s<` gesetzt werden -- fehlt es, erscheint die Warnung `KZF152`."
+        "Markiert eine antizipierte Schüler:innen-Antwort/-Reaktion zum jeweiligen Lernschritt -- "
+        "**nicht nur Fehlvorstellungen**, sondern gute, neutrale wie falsche erwartete Antworten "
+        "gleichermaßen. Sollte nach jedem `s<` gesetzt werden -- fehlt es, erscheint die Warnung "
+        "`KZF152`."
     ),
     "kurzentwurf:marker:ant>": (
         "**Kein** gültiger Alias von `ant<`, obwohl es vom Zeilenmarker-Muster erkannt wird -- führt "
@@ -276,11 +310,13 @@ PROSE_SECTIONS: dict[str, str] = {
     "block:dots": ("Punktraster-Schreibfeld (z. B. für Übungen zur Feinmotorik/Schrift)."),
     "block:space": ("Freier Leerraum ohne Linien/Raster, z. B. für Zeichnungen."),
     "block:table": (
-        "Tabellen-Antwortfeld mit YAML-Payload. `headers=\"A|B|C\"` setzt Spaltenüberschriften, "
-        "`header_columns=<n>` (Alias `header_cols`) macht die ersten `n` Spalten zu Header-Spalten, "
-        "`row_labels=\"...\"` beschriftet Zeilen, `widths=...` steuert Spaltenbreiten, "
-        "`alignment=left|center|right|justify` (auch Kurzformen `l`/`r`/`c`/`j`, auch pro Spalte) die "
-        "Ausrichtung, `row_height=<css-länge>` die Zeilenhöhe."
+        "Tabellen-Antwortfeld. **Zellinhalte müssen als `cells:`-YAML-Liste-von-Listen im "
+        "Blockinhalt stehen** (siehe Beispiel unten) -- eine native Markdown-Tabelle "
+        "(`| A | B |`) im Blockinhalt wird **nicht** geparst und bleibt unwirksam. "
+        "`headers=\"A|B|C\"` setzt Spaltenüberschriften, `header_columns=<n>` (Alias `header_cols`) "
+        "macht die ersten `n` Spalten zu Header-Spalten, `row_labels=\"...\"` beschriftet Zeilen, "
+        "`widths=...` steuert Spaltenbreiten, `alignment=left|center|right|justify` (auch Kurzformen "
+        "`l`/`r`/`c`/`j`, auch pro Spalte) die Ausrichtung, `row_height=<css-länge>` die Zeilenhöhe."
     ),
     "block:numberline": (
         "Zahlenstrahl-Antwortfeld mit YAML-Payload (`labels`/`answers`/`arcs`/... je Element mit "
@@ -288,9 +324,12 @@ PROSE_SECTIONS: dict[str, str] = {
         "`major_every` und `positive_sign` steuern Wertebereich und Beschriftung."
     ),
     "block:mc": (
-        "Multiple-Choice-/Wahr-Falsch-Antwortfeld. `options` listet die Antwortmöglichkeiten, "
-        "`correct` die richtige(n), `tf`/`true_false` schaltet auf Wahr-Falsch-Layout, `inline` und "
-        "`widths` steuern das Layout."
+        "Multiple-Choice-/Wahr-Falsch-Antwortfeld. **Primärer Weg:** die Antwortmöglichkeiten stehen "
+        "als Markdown-Checkbox-Liste im Blockinhalt (`- [x] Richtige Antwort`, `- [ ] Falsche "
+        "Antwort`) -- siehe Beispiel unten. `tf`/`true_false` schaltet auf Wahr-Falsch-Layout um, "
+        "`inline` und `widths` steuern das Layout. Die Header-Optionen `options=`/`correct=` sind "
+        "ein **Fallback**, der nur greift, wenn der Blockinhalt keine Checkbox-Liste enthält (siehe "
+        "deren Erklärungen unten) -- für neue Dokumente die Checkbox-Liste bevorzugen."
     ),
     "block:cloze": (
         "Lückentext-Antwortfeld. `gap`/`gap_length` steuert den Lückenmodus/-länge, `words`/"
@@ -501,8 +540,16 @@ PROSE_SECTIONS: dict[str, str] = {
         "`richtigfalsch`/`richtig_false` als \"an\"; Standard: aus)."
     ),
     "block:mc.true_false": ("Alias von `tf`."),
-    "block:mc.correct": ("Kennzeichnet die richtige(n) Antwortoption(en)."),
-    "block:mc.options": ("Listet die Antwortmöglichkeiten."),
+    "block:mc.correct": (
+        "**Nur relevant im Fallback-Modus** (kein `- [x]`/`- [ ]` im Blockinhalt): 1-basierter Index "
+        "bzw. `|`-getrennte Indexliste der richtigen Antwortoption(en) aus `options=`. Im "
+        "Wahr-Falsch-Modus (`tf`) stattdessen einfach `true`/`false` (welche Seite richtig ist)."
+    ),
+    "block:mc.options": (
+        "**Nur relevant im Fallback-Modus** (kein `- [x]`/`- [ ]` im Blockinhalt): `|`-getrennte "
+        "Liste der Antwortmöglichkeiten als Header-Option, Alternative zur primären "
+        "Checkbox-Liste im Blockinhalt."
+    ),
     "block:wordsearch.diagonal": (
         "Erlaubt diagonale Wortplatzierung im Rätsel (Standard: aus). Akzeptiert auch eine "
         "Richtungsliste statt eines einfachen Ein/Aus-Werts."

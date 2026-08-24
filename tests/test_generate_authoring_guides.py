@@ -156,7 +156,7 @@ def test_geometry_example_in_generated_guide_actually_validates_and_renders():
     """
     catalog = collect_markdown_conventions()
     guide_text = guide_generator.render_worksheet_presentation_guide(catalog)
-    block_markdown = _extract_fenced_markdown_block(guide_text, ":::geometry")
+    block_markdown = _extract_fenced_markdown_block(guide_text, ":::geometry rows=20")
 
     document = "---\nTitel: T\nFach: M\nThema: X\n---\n" + block_markdown + "\n"
     result = inspect_markdown_text(document)

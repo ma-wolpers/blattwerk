@@ -6,11 +6,13 @@ Neu erzeugen: python tools/docs/generate_authoring_guides.py
 
 # Arbeitsblatt & Präsentation erstellen
 
-Diese Anleitung ist die normative Referenz für den Blattwerk-Markdown-Dialekt, den Arbeitsblätter und Präsentationen gemeinsam nutzen (dieselben `:::`-Blöcke, dasselbe Frontmatter). Sie wird automatisch aus dem Code erzeugt (`app/core/markdown_conventions.py`) -- Blocktypen, Optionen und Frontmatter-Felder können hier nicht veralten, weil sie direkt aus den Konstanten stammen, die der Validator selbst zur Prüfung verwendet.
+Diese Anleitung ist die normative Referenz für den Blattwerk-Markdown-Dialekt, den Arbeitsblätter und Präsentationen gemeinsam nutzen (dieselben `:::`-Blöcke, dasselbe Frontmatter). Sie wird automatisch aus dem Code erzeugt (`app/core/markdown_conventions.py`) -- Blocktypen, Optionen und Frontmatter-Felder können hier nicht veralten, weil sie direkt aus den Konstanten stammen, die der Validator selbst zur Prüfung verwendet. Reine Stilpräferenzen (keine Korrektheitsregeln) stehen separat in [`docs/EMPFEHLUNGEN_STIL_ARBEITSBLATT_PRAESENTATION.md`](EMPFEHLUNGEN_STIL_ARBEITSBLATT_PRAESENTATION.md).
 
 ## 1. Grundidee
 
 Ein Blattwerk-Dokument besteht aus YAML-Frontmatter (Pflicht) gefolgt von einer Folge semantischer `:::blocktyp ...` ... `:::`-Blöcke. Ob ein Dokument als Arbeitsblatt oder als Präsentation gerendert wird, entscheidet allein das Frontmatter-Feld `mode` -- der Blockdialekt selbst ist identisch. Sichtbarkeit pro Block wird über `mode=worksheet|solution` gesteuert (Standard: in beiden Ausgaben sichtbar).
+
+**Jeder Block braucht sein eigenes `:::`, bevor der nächste Block beginnt -- Verschachtelung ist nicht erlaubt.** Das gilt uneingeschränkt auch für `columns`/`nextcol`/`endcolumns`: das sind ganz normale Blocktypen wie jeder andere, kein syntaktischer Sonderfall. Bei fehlendem Inhalt kann die Kurzform `:::blockname ... :::` (öffnendes und schließendes `:::` auf derselben Zeile) verwendet werden, z. B. `:::nextcol :::`.
 
 ## 2. Schnellstart: Arbeitsblatt
 
@@ -48,13 +50,17 @@ Thema: Thema eintragen
 Starte hier mit der ersten Folie.
 :::
 
--+
+--!
 :::task title="Weiterfuehrung"
 Fuehre hier den naechsten Gedanken aus.
 :::
 ```
 
-`--#` setzt den Abschnittsnamen für die Footer-Navigation, `-+` erzeugt einen neuen Frame, der den bisherigen Folieninhalt beibehält -- siehe Control-Marker-Referenz unten.
+`--#` setzt den Abschnittsnamen für die Footer-Navigation, `--!` erzwingt eine neue Folie -- siehe Control-Marker-Referenz unten für alle Marker (inkl. `-+`, das im Gegensatz zu `--!` **keine** neue Folie erzeugt, siehe dortige Warnung).
+
+### Sichtbarkeit in Präsentationen
+
+In Präsentationen (`mode: presentation`) gibt es **keinen Lösungs-Umschalter**: Blöcke mit `mode=solution`/`show=solution` sowie `:::solution ... :::`-Blöcke (nach Blocktyp) werden in Präsentationen **immer** ausgeblendet -- unabhängig davon, ob ein Export explizit "mit Lösung" anfordert. Es gibt keine Möglichkeit, sie in einer Präsentation sichtbar zu machen. `mode=worksheet` (oder keine Angabe, Standard `both`) rendert dagegen normal. Praktisch bedeutet das: `mode=solution`/`:::solution` in einem Präsentationsdokument zu verwenden entspricht "diesen Block dauerhaft verstecken", nicht "Lösungsansicht anbieten".
 
 ## 4. Frontmatter-Referenz
 
@@ -111,6 +117,14 @@ Lückentext-Antwortfeld. `gap`/`gap_length` steuert den Lückenmodus/-länge, `w
 | `words` | Text | -- | nein | -- | Blocktyp-abhängige Bedeutung, siehe Besonderheit unten. *Besonderheit bei `cloze`:* Position der Wortbank relativ zum Lückentext -- nicht die Lückenwörter selbst (die stehen im Blockinhalt). |
 | `words_multi` | Bool | -- | nein | `True` | Erlaubt Mehrfachauswahl in der Wortbank (Standard: an). |
 
+**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
+
+```markdown
+:::cloze gap=fixed words=below
+Text mit {{Lücke}} hier.
+:::
+```
+
 ### `columns`
 
 Spaltenlayout für nebeneinander angeordnete Inhalte. `cols=2..6` (Standard 2) setzt die Spaltenzahl, `widths`/`ratio` die relativen Breiten, `gap=<css-länge>` den Spaltenabstand. Muss mit `:::nextcol` (Spaltenwechsel) und `:::endcolumns` (Ende) strukturiert werden.
@@ -123,6 +137,16 @@ Spaltenlayout für nebeneinander angeordnete Inhalte. `cols=2..6` (Standard 2) s
 | `ratio` | Text | -- | nein | -- | Alias von `widths` -- relative Spaltengewichte. |
 | `widths` | Text | -- | nein | -- | Relative Breiten (Gewichte, z. B. `"2 1"`) oder feste CSS-Breiten für die Spalten/Elemente dieses Blocks. |
 
+**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
+
+```markdown
+:::columns cols=2 widths="1 1" :::
+
+:::nextcol :::
+
+:::endcolumns :::
+```
+
 ### `dots`
 
 Punktraster-Schreibfeld (z. B. für Übungen zur Feinmotorik/Schrift).
@@ -133,6 +157,14 @@ Punktraster-Schreibfeld (z. B. für Übungen zur Feinmotorik/Schrift).
 | `height` | CSS-Länge | -- | nein | `4cm` | Höhe des Antwortfelds als CSS-Länge (z. B. `4cm`, `120px`). Der genaue Standardwert hängt vom Blocktyp ab (siehe Tabelle: Spalte "Standard"). |
 | `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
+
+**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
+
+```markdown
+:::dots height=4cm
+
+:::
+```
 
 ### `endcolumns`
 
@@ -166,6 +198,15 @@ Koordinatensystem für Punkte, Polylinien, Strecken und Funktionsgraphen (siehe 
 | `step_x` | Zahl | -- | nein | `1.0` | Skalierung zwischen mathematischer x-Koordinate und Rasterzellen (Standard `1`), nur bei `axis=true`. |
 | `step_y` | Zahl | -- | nein | `1.0` | Skalierung zwischen mathematischer y-Koordinate und Rasterzellen (Standard `1`), nur bei `axis=true`. |
 
+**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
+
+```markdown
+:::geometry scale=0.5cm axis=true origin="10,10"
+points:
+  - {x: 0, y: 0, label: "A", show: "&"}
+:::
+```
+
 ### `grid`
 
 Kästchen-/Schreibfeld mit einem Textraster. `rows`/`cols` setzen die Rastergröße (ohne `cols` wird die Spaltenzahl automatisch aus verfügbarer Breite und `scale` berechnet), `scale=<css-länge>` die Zellgröße (Standard `0.5cm`). `line=solid|dashed` steuert den Linienstil des Rasters. Marker-/Inline-Text wird wie bei `lines` nach Arbeitsblatt/Lösung gefiltert.
@@ -180,6 +221,14 @@ Kästchen-/Schreibfeld mit einem Textraster. `rows`/`cols` setzen die Rastergrö
 | `scale` | CSS-Länge | -- | nein | `0.5cm` | Zellgröße des Rasters als CSS-Länge (Standard `0.5cm`), z. B. `scale=0.4cm` oder `scale=6mm`. |
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
 
+**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
+
+```markdown
+:::grid scale=0.5cm
+
+:::
+```
+
 ### `help`
 
 Separate Hilfekarte (eigene Ausgabe, nicht Teil des normalen Arbeitsblatts). `level` (1-99) gruppiert Hilfen nach Schwierigkeitsstufe, `tag` beeinflusst die automatische Beschriftung (z. B. `1A`, `1B`), `title` überschreibt den Standardtitel "Hilfe". Kanonischer Blockname; `hilfe` ist ein dokumentierter Alias mit identischen Optionen.
@@ -191,6 +240,14 @@ Separate Hilfekarte (eigene Ausgabe, nicht Teil des normalen Arbeitsblatts). `le
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
 | `tag` | Text | -- | nein | -- | Beeinflusst die automatische Beschriftung mehrerer Hilfekarten zum selben Bezugspunkt (z. B. `tag=1` erzeugt `1A`, `1B`, ...; ein einzelner Buchstabe erzeugt `1<tag>`, `2<tag>`, ...). |
 | `title` | Text | -- | nein | -- | Überschreibt die automatisch erzeugte Standardbeschriftung des Blocks mit einem eigenen Text. |
+
+**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
+
+```markdown
+:::help title="Hilfe" level=1
+Hilfetext hier…
+:::
+```
 
 ### `hilfe`
 
@@ -215,6 +272,14 @@ Hinweisbox mit `type=default|warning|note` für unterschiedliche Hervorhebungsst
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
 | `type` | Enum | `default`, `note`, `warning` | ja | `default` | Hervorhebungsstil der Hinweisbox: `default` (Standard), `warning` oder `note`. |
 
+**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
+
+```markdown
+:::info type=tip
+Hinweis hier…
+:::
+```
+
 ### `lines`
 
 Textbasiertes Antwortfeld mit Linien zum Beschriften. `rows=<n>` setzt die Mindestanzahl sichtbarer Linien (Standard 3); die tatsächliche Anzahl ist `max(rows, sichtbare Inhaltszeilen)`. `height=<css-länge>` steuert die Linienhöhe. Markdown ist im Inhalt erlaubt; `§`/`%`/`&`-Zeilenmarker (bzw. `§{...}`/`%{...}`/`&{...}` inline) steuern, ob eine Zeile nur im Arbeitsblatt, nur in der Lösung oder in beiden erscheint.
@@ -226,6 +291,14 @@ Textbasiertes Antwortfeld mit Linien zum Beschriften. `rows=<n>` setzt die Minde
 | `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
 | `rows` | Ganzzahl | -- | nein | `3` | Anzahl Zeilen des Rasters/der Linien. Der genaue Standardwert und ob eine fehlende Angabe automatisch berechnet wird, hängt vom Blocktyp ab (siehe Tabelle: Spalte "Standard"). |
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
+
+**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
+
+```markdown
+:::lines rows=3
+
+:::
+```
 
 ### `matching`
 
@@ -250,6 +323,22 @@ Zuordnungs-Antwortfeld (YAML-only) mit zwei Seiten (`left`/`right` oder `top`/`b
 | `top` | Text | -- | nein | -- | Obere-Seite-Einträge bei vertikalem Layout, `|`-getrennt. |
 | `worksheet_matches` | Text | -- | nein | -- | Zeigt zusätzlich Beispielverbindungen bereits im Arbeitsblatt (nicht nur in der Lösung). |
 
+**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
+
+```markdown
+:::matching layout=horizontal height_mode=uniform lane_align=center show_guides=false
+left:
+  - "Begriff A"
+  - "Begriff B"
+right:
+  - "Erklärung A"
+  - "Erklärung B"
+matches:
+  - "1-1"
+  - "2-2"
+:::
+```
+
 ### `material`
 
 Kontext- und Erklärmaterial, das vor einer Aufgabe eingeblendet wird. Optionale `title` beschriftet die Box.
@@ -261,21 +350,40 @@ Kontext- und Erklärmaterial, das vor einer Aufgabe eingeblendet wird. Optionale
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
 | `title` | Text | -- | nein | -- | Überschreibt die automatisch erzeugte Standardbeschriftung des Blocks mit einem eigenen Text. |
 
+**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
+
+```markdown
+:::material title="Titel"
+Inhalt hier…
+:::
+```
+
 ### `mc`
 
-Multiple-Choice-/Wahr-Falsch-Antwortfeld. `options` listet die Antwortmöglichkeiten, `correct` die richtige(n), `tf`/`true_false` schaltet auf Wahr-Falsch-Layout, `inline` und `widths` steuern das Layout.
+Multiple-Choice-/Wahr-Falsch-Antwortfeld. **Primärer Weg:** die Antwortmöglichkeiten stehen als Markdown-Checkbox-Liste im Blockinhalt (`- [x] Richtige Antwort`, `- [ ] Falsche Antwort`) -- siehe Beispiel unten. `tf`/`true_false` schaltet auf Wahr-Falsch-Layout um, `inline` und `widths` steuern das Layout. Die Header-Optionen `options=`/`correct=` sind ein **Fallback**, der nur greift, wenn der Blockinhalt keine Checkbox-Liste enthält (siehe deren Erklärungen unten) -- für neue Dokumente die Checkbox-Liste bevorzugen.
 
 | Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
 |---|---|---|---|---|---|
 | `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
-| `correct` | Text | -- | nein | -- | Kennzeichnet die richtige(n) Antwortoption(en). |
+| `correct` | Text | -- | nein | -- | **Nur relevant im Fallback-Modus** (kein `- [x]`/`- [ ]` im Blockinhalt): 1-basierter Index bzw. `|`-getrennte Indexliste der richtigen Antwortoption(en) aus `options=`. Im Wahr-Falsch-Modus (`tf`) stattdessen einfach `true`/`false` (welche Seite richtig ist). |
 | `inline` | Bool | -- | nein | `False` | Schaltet auf ein kompaktes, horizontal fließendes Layout der Antwortoptionen um (Standard: aus). |
 | `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
-| `options` | Text | -- | nein | -- | Listet die Antwortmöglichkeiten. |
+| `options` | Text | -- | nein | -- | **Nur relevant im Fallback-Modus** (kein `- [x]`/`- [ ]` im Blockinhalt): `|`-getrennte Liste der Antwortmöglichkeiten als Header-Option, Alternative zur primären Checkbox-Liste im Blockinhalt. |
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
 | `tf` | Bool | -- | nein | `False` | Schaltet auf Wahr-Falsch-Layout um (akzeptiert u. a. `1`/`true`/`yes`/`on`/`tf`/`richtigfalsch`/`richtig_false` als "an"; Standard: aus). |
 | `true_false` | Bool | -- | nein | `False` | Alias von `tf`. |
 | `widths` | Text | -- | nein | -- | Relative Breiten (Gewichte, z. B. `"2 1"`) oder feste CSS-Breiten für die Spalten/Elemente dieses Blocks. |
+
+**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
+
+```markdown
+:::mc inline=true
+Frage oder Einleitung…
+- [x] Richtige Antwort
+- [ ] Falsche Antwort A
+- [ ] Falsche Antwort B
+:::
+```
 
 ### `nextcol`
 
@@ -309,6 +417,18 @@ Zahlenstrahl-Antwortfeld mit YAML-Payload (`labels`/`answers`/`arcs`/... je Elem
 | `tick_step` | Zahl | -- | nein | -- | Abstand zwischen zwei Tick-Marken in Zahlenraum-Einheiten. |
 | `ticks` | Text | -- | nein | -- | Explizite Liste anzuzeigender Tick-Werte. |
 
+**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
+
+```markdown
+:::numberline min=0 max=10 tick_step=1 major_every=5 height=2cm
+labels:
+  - {value: 0, show: "&"}
+  - {value: 10, show: "&"}
+answers:
+  - {value: 5}
+:::
+```
+
 ### `pagebreak`
 
 Erzwingt einen harten Seiten-/Folienumbruch -- siehe Control-Marker `--!`.
@@ -332,6 +452,12 @@ Klickbarer QR-Code-Link. `url` ist Pflicht (http/https-Link oder relativer Pfad 
 | `url` | URL | -- | ja | -- | Pflichtoption: Ziel-Link des QR-Codes (http/https-URL oder relativer Pfad ohne Leerzeichen). Ungültige Werte werden als `QR002` gemeldet, ein fehlender Wert als `QR001`. |
 | `w` | CSS-Länge | -- | ja | -- | Breite des QR-Codes als CSS-Größe (z. B. `3cm`, `120px`, `60%`, `auto`); ungültige Werte werden als `OP002` gemeldet. |
 | `width` | CSS-Länge | -- | ja | -- | Alias von `w` -- Breite des QR-Codes, siehe `height`/`w`/`h`/`maxw`. |
+
+**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
+
+```markdown
+:::qrcode url=https://example.org w=3cm h=3cm maxw=45% :::
+```
 
 ### `sectionmark`
 
@@ -358,6 +484,14 @@ Musterlösungstext. `label=true|false` (Standard `true`) blendet das Label "Lös
 | `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
 
+**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
+
+```markdown
+:::solution
+Musterlösung hier…
+:::
+```
+
 ### `space`
 
 Freier Leerraum ohne Linien/Raster, z. B. für Zeichnungen.
@@ -368,6 +502,14 @@ Freier Leerraum ohne Linien/Raster, z. B. für Zeichnungen.
 | `height` | CSS-Länge | -- | nein | `3cm` | Höhe des Antwortfelds als CSS-Länge (z. B. `4cm`, `120px`). Der genaue Standardwert hängt vom Blocktyp ab (siehe Tabelle: Spalte "Standard"). |
 | `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
+
+**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
+
+```markdown
+:::space height=3cm
+
+:::
+```
 
 ### `subtask`
 
@@ -382,9 +524,17 @@ Teilaufgabe zu einem vorangehenden `task`. Muss unmittelbar nach dem zugehörige
 | `time` | Text | -- | nein | -- | Geschätzte Bearbeitungszeit, wird als `X min` ausgegeben. Freier Textwert -- üblich, aber nicht erzwungen, ist eine reine Zahl (Minuten). |
 | `work` | Enum | `ea`, `einzel`, `ga`, `group`, `grp`, `gruppe`, `pa`, `partner`, `sgl`, `single` | ja | `single` | Empfohlene Arbeitsform, wird als Emoji + Label gerendert: `single`/`einzel` (👤), `partner` (👥) oder `group`/`gruppe` (👪). Deutsche und englische Schreibweisen sind gleichwertig. Ohne Angabe gilt `single`. |
 
+**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
+
+```markdown
+:::subtask work=single
+Teilaufgabe hier…
+:::
+```
+
 ### `table`
 
-Tabellen-Antwortfeld mit YAML-Payload. `headers="A|B|C"` setzt Spaltenüberschriften, `header_columns=<n>` (Alias `header_cols`) macht die ersten `n` Spalten zu Header-Spalten, `row_labels="..."` beschriftet Zeilen, `widths=...` steuert Spaltenbreiten, `alignment=left|center|right|justify` (auch Kurzformen `l`/`r`/`c`/`j`, auch pro Spalte) die Ausrichtung, `row_height=<css-länge>` die Zeilenhöhe.
+Tabellen-Antwortfeld. **Zellinhalte müssen als `cells:`-YAML-Liste-von-Listen im Blockinhalt stehen** (siehe Beispiel unten) -- eine native Markdown-Tabelle (`| A | B |`) im Blockinhalt wird **nicht** geparst und bleibt unwirksam. `headers="A|B|C"` setzt Spaltenüberschriften, `header_columns=<n>` (Alias `header_cols`) macht die ersten `n` Spalten zu Header-Spalten, `row_labels="..."` beschriftet Zeilen, `widths=...` steuert Spaltenbreiten, `alignment=left|center|right|justify` (auch Kurzformen `l`/`r`/`c`/`j`, auch pro Spalte) die Ausrichtung, `row_height=<css-länge>` die Zeilenhöhe.
 
 | Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
 |---|---|---|---|---|---|
@@ -401,6 +551,17 @@ Tabellen-Antwortfeld mit YAML-Payload. `headers="A|B|C"` setzt Spaltenüberschri
 | `width` | CSS-Länge | -- | nein | -- | Gesamtbreite der Tabelle als CSS-Länge. |
 | `widths` | Text | -- | nein | -- | Relative Breiten (Gewichte, z. B. `"2 1"`) oder feste CSS-Breiten für die Spalten/Elemente dieses Blocks. |
 
+**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
+
+```markdown
+:::table rows=3 cols=3 headers="A|B|C"
+cells:
+  - ["", "", ""]
+  - ["", "", ""]
+  - ["", "", ""]
+:::
+```
+
 ### `task`
 
 Die Hauptaufgabe -- der zentrale Blocktyp eines Arbeitsblatts. `points` vergibt eine Punktzahl, `time` eine Bearbeitungszeit in Minuten (Ausgabe als `X min`). `work` zeigt die empfohlene Arbeitsform (`single`/`partner`/`group`, auch deutsche Aliase wie `einzel`), `action` einen Tätigkeits-Hinweis (`read`/`write`/`calculate`/...) und `hint` einen Lernhinweis (`tip`/`definition`/`remember`/...) -- jeweils mit passendem Emoji gerendert. `title` beschriftet die Aufgabe zusätzlich zur automatischen Nummerierung.
@@ -416,6 +577,14 @@ Die Hauptaufgabe -- der zentrale Blocktyp eines Arbeitsblatts. `points` vergibt 
 | `time` | Text | -- | nein | -- | Geschätzte Bearbeitungszeit, wird als `X min` ausgegeben. Freier Textwert -- üblich, aber nicht erzwungen, ist eine reine Zahl (Minuten). |
 | `title` | Text | -- | nein | -- | Überschreibt die automatisch erzeugte Standardbeschriftung des Blocks mit einem eigenen Text. |
 | `work` | Enum | `ea`, `einzel`, `ga`, `group`, `grp`, `gruppe`, `pa`, `partner`, `sgl`, `single` | ja | `single` | Empfohlene Arbeitsform, wird als Emoji + Label gerendert: `single`/`einzel` (👤), `partner` (👥) oder `group`/`gruppe` (👪). Deutsche und englische Schreibweisen sind gleichwertig. Ohne Angabe gilt `single`. |
+
+**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
+
+```markdown
+:::task work=single action=write
+Aufgabentext hier…
+:::
+```
 
 ### `vspacer`
 
@@ -442,6 +611,16 @@ Wortsuchrätsel-Antwortfeld. `words` listet die zu versteckenden Wörter, `diago
 | `vertical` | Bool | -- | nein | `False` | Erlaubt vertikale Wortplatzierung (Standard: aus). Akzeptiert auch eine Richtungsliste. |
 | `words` | Text | -- | nein | -- | Blocktyp-abhängige Bedeutung, siehe Besonderheit unten. |
 
+**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
+
+```markdown
+:::wordsearch min_size=10x12 diagonal=false
+- Wort1
+- Wort2
+- Wort3
+:::
+```
+
 ## 6. Wertlisten für `work`/`action`/`hint`
 
 **work (Arbeitsform bei task/subtask):** `ea`, `einzel`, `ga`, `group`, `grp`, `gruppe`, `pa`, `partner`, `sgl`, `single`
@@ -452,8 +631,8 @@ Wortsuchrätsel-Antwortfeld. `words` listet die zu versteckenden Wörter, `diago
 
 ## 7. Control-Marker-Referenz
 
-- **framebreak**: `-+` auf einer eigenen Zeile erzeugt im Präsentationsmodus einen neuen Frame (neue Folie), der den bisherigen Folieninhalt beibehält und um den folgenden Inhalt ergänzt -- nützlich, um einen Gedanken schrittweise aufzubauen. Der Präsentations-Exportdialog bietet eine Option, diese schrittweisen Folien beim Export zu einer einzigen finalen Folie zusammenzufassen.
-- **pagebreak**: `--!` auf einer eigenen Zeile erzwingt einen harten Seiten-/Folienumbruch an dieser Stelle.
+- **framebreak**: `-+` auf einer eigenen Zeile erzeugt im Präsentationsmodus einen neuen Frame, der den bisherigen Folieninhalt beibehält und um den folgenden Inhalt ergänzt -- für das schrittweise Aufbauen **desselben** Gedankens auf **derselben** Folie (z. B. Punkt für Punkt aufdecken). Der Präsentations-Exportdialog bietet eine Option, diese schrittweisen Folien beim Export zu einer einzigen finalen Folie zusammenzufassen. **`-+` ist kein Folientrenner:** wird er anstelle von `--!` verwendet, um inhaltlich neue/andere Folien einzuleiten, sammelt sich der gesamte bisherige Inhalt auf einer einzigen, zunehmend überfüllten Folie an, statt eine neue zu beginnen -- für einen echten Folienwechsel immer `--!` verwenden.
+- **pagebreak**: `--!` auf einer eigenen Zeile erzwingt einen harten Seiten-/Folienumbruch an dieser Stelle -- der Marker, um in einer Präsentation gezielt eine **neue** Folie zu beginnen.
 - **sectionmark**: `--# Abschnittsname` setzt den aktuellen Abschnittsnamen für die Footer-Navigation in Präsentationen. Alles nach `--# ` bis Zeilenende wird als Abschnittstitel übernommen.
 - **slidechromeoff**: `--hf` auf einer eigenen Zeile blendet auf der aktuellen Folie Mini-Header und Footer (Phasenübersicht + Folienzähler) aus, ohne das globale Präsentationslayout zu verändern -- nützlich für Folien mit wenig Platz.
 - **soft_section_break**: `--` auf einer eigenen Zeile markiert einen weichen Abschnittswechsel (Solltrennstelle) ohne zusätzlichen vertikalen Abstand. Die normale Markdown-Trennlinie `---` ist demgegenüber **kein** Blattwerk-Kontrollmarker, sondern gewöhnliches Markdown: sie erzeugt ebenfalls einen Abschnittswechsel, aber zusätzlich mit `1cm` Abstand (per CSS in `assets/worksheet.css`), weil der Parser sie gar nicht als eigenes Token erkennt.
