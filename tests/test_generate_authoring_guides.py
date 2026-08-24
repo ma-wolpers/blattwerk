@@ -41,7 +41,7 @@ def test_prose_coverage_detects_missing_block_prose(monkeypatch):
     catalog = collect_markdown_conventions()
     reduced_prose = dict(authoring_guide_prose.PROSE_SECTIONS)
     del reduced_prose["block:task"]
-    monkeypatch.setattr(guide_generator, "PROSE_SECTIONS", reduced_prose)
+    monkeypatch.setattr(authoring_guide_prose, "PROSE_SECTIONS", reduced_prose)
 
     with pytest.raises(guide_generator.ProseCoverageError, match="block:task"):
         guide_generator.assert_prose_coverage(catalog)
@@ -51,7 +51,7 @@ def test_prose_coverage_detects_missing_geometry_section_prose(monkeypatch):
     catalog = collect_markdown_conventions()
     reduced_prose = dict(authoring_guide_prose.PROSE_SECTIONS)
     del reduced_prose["geometry:pairs"]
-    monkeypatch.setattr(guide_generator, "PROSE_SECTIONS", reduced_prose)
+    monkeypatch.setattr(authoring_guide_prose, "PROSE_SECTIONS", reduced_prose)
 
     with pytest.raises(guide_generator.ProseCoverageError, match="geometry:pairs"):
         guide_generator.assert_prose_coverage(catalog)
@@ -61,7 +61,7 @@ def test_prose_coverage_detects_missing_kurzentwurf_phase_prose(monkeypatch):
     catalog = collect_markdown_conventions()
     reduced_prose = dict(authoring_guide_prose.PROSE_SECTIONS)
     del reduced_prose["kurzentwurf:phase:sicherung"]
-    monkeypatch.setattr(guide_generator, "PROSE_SECTIONS", reduced_prose)
+    monkeypatch.setattr(authoring_guide_prose, "PROSE_SECTIONS", reduced_prose)
 
     with pytest.raises(guide_generator.ProseCoverageError, match="kurzentwurf:phase:sicherung"):
         guide_generator.assert_prose_coverage(catalog)
@@ -71,7 +71,7 @@ def test_prose_coverage_detects_missing_kurzentwurf_marker_prose(monkeypatch):
     catalog = collect_markdown_conventions()
     reduced_prose = dict(authoring_guide_prose.PROSE_SECTIONS)
     del reduced_prose["kurzentwurf:marker:ant>"]
-    monkeypatch.setattr(guide_generator, "PROSE_SECTIONS", reduced_prose)
+    monkeypatch.setattr(authoring_guide_prose, "PROSE_SECTIONS", reduced_prose)
 
     with pytest.raises(guide_generator.ProseCoverageError, match=re.escape("kurzentwurf:marker:ant>")):
         guide_generator.assert_prose_coverage(catalog)
@@ -100,7 +100,7 @@ def test_render_worksheet_presentation_guide_changes_when_catalog_changes(monkey
     )
     augmented_prose = dict(authoring_guide_prose.PROSE_SECTIONS)
     augmented_prose["block:task.__test_marker_option__"] = "Testmarker-Erklärung."
-    monkeypatch.setattr(guide_generator, "PROSE_SECTIONS", augmented_prose)
+    monkeypatch.setattr(authoring_guide_prose, "PROSE_SECTIONS", augmented_prose)
 
     modified_blocks = tuple(
         replace(block, options=block.options + (marker_option,))
