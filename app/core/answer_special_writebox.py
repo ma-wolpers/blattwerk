@@ -8,7 +8,7 @@ see `answer_special_mindmap.py`'s module docstring for the full rationale.
 
 from __future__ import annotations
 
-from .answer_special_shared import _new_markdown_converter, _safe_int, normalize_markdown
+from .answer_special_shared import _new_markdown_converter, _safe_int, convert_markdown_with_math
 
 _DEFAULT_LINES = 5
 _MIN_LINES, _MAX_LINES = 1, 20
@@ -32,7 +32,7 @@ def render_writebox_block(options, content):
     prompt_html = ""
     if prompt:
         md = _new_markdown_converter()
-        prompt_html = f"<div class='writebox-prompt'>{md.convert(normalize_markdown(prompt)).strip()}</div>"
+        prompt_html = f"<div class='writebox-prompt'>{convert_markdown_with_math(md, prompt).strip()}</div>"
 
     lines_html = "".join("<div class='line'></div>" for _ in range(line_count))
 

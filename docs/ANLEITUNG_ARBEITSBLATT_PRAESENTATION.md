@@ -14,6 +14,8 @@ Ein Blattwerk-Dokument besteht aus YAML-Frontmatter (Pflicht) gefolgt von einer 
 
 **Jeder Block braucht sein eigenes `:::`, bevor der nächste Block beginnt -- Verschachtelung ist nicht erlaubt.** Das gilt uneingeschränkt auch für `columns`/`nextcol`/`endcolumns`: das sind ganz normale Blocktypen wie jeder andere, kein syntaktischer Sonderfall. Bei fehlendem Inhalt kann die Kurzform `:::blockname ... :::` (öffnendes und schließendes `:::` auf derselben Zeile) verwendet werden, z. B. `:::nextcol :::`.
 
+Überall, wo `**fett**`/`*kursiv*` funktioniert, funktioniert auch `$formel$` (Inline) und `$$formel$$` (freistehend) für mathematische Formeln (LaTeX-Syntax, z. B. `$\frac{a}{b}$`, `$x_i$`). Die Darstellung laedt MathJax von einem CDN nach; ohne Internetverbindung beim PDF-/HTML-Export bleibt die rohe Formel-Quelle als lesbarer Text sichtbar, wird aber nicht als Formel gerendert -- der Editor warnt in diesem Fall nicht-blockierend (`MJ001`). Ein einzelnes, nicht als Formel gemeintes `$`-Zeichen (z. B. `$5`) wird nicht faelschlich als Formelbeginn erkannt, solange kein passendes zweites `$` unmittelbar danach folgt.
+
 ## 2. Schnellstart: Arbeitsblatt
 
 ```markdown

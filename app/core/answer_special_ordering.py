@@ -11,7 +11,7 @@ from __future__ import annotations
 import random
 from html import escape
 
-from .answer_special_shared import _new_markdown_converter, normalize_markdown, parse_bullet_list_lines
+from .answer_special_shared import _new_markdown_converter, convert_markdown_with_math, parse_bullet_list_lines
 from .blatt_kern_shared_blocks import _alpha_label
 
 
@@ -67,7 +67,7 @@ def render_ordering_answer(options, content, include_solutions):
         if include_solutions:
             rank_label = _format_rank_label(rank, numbering_mode)
             box_classes.append("ordering-rank-filled")
-        item_html = md.convert(normalize_markdown(item)).strip()
+        item_html = convert_markdown_with_math(md, item).strip()
         rows_html.append(
             "<div class='ordering-item'>"
             f"<span class='{' '.join(box_classes)}'>{escape(rank_label)}</span>"

@@ -745,7 +745,7 @@ window.MathJax = {{
     }}
 }};
 </script>
-<script defer src=\"https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js\"></script>
+<script defer src=\"https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js\" onerror=\"document.body.classList.add('mathjax-load-failed')\"></script>
 <style>
 {stylesheet}
 </style>
@@ -909,7 +909,7 @@ window.MathJax = {{
     }}
 }};
 </script>
-<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" onerror="document.body.classList.add('mathjax-load-failed')"></script>
 <style>
 {stylesheet}
 </style>

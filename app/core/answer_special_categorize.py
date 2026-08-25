@@ -13,7 +13,7 @@ from html import escape
 
 import yaml
 
-from .answer_special_shared import _new_markdown_converter, _option_is_enabled, normalize_markdown
+from .answer_special_shared import _new_markdown_converter, _option_is_enabled, convert_markdown_with_math
 from .wordbank_position import normalize_wordbank_position, resolve_wordbank_auto_position, wrap_with_wordbank_position
 
 _DEFAULT_PRINTABLE_WIDTH_CM = 18.0
@@ -109,7 +109,7 @@ def render_categorize_answer(options, content, include_solutions):
 
     md = _new_markdown_converter()
     header_html = "".join(
-        f"<th>{md.convert(normalize_markdown(category)).strip()}</th>" for category in categories
+        f"<th>{convert_markdown_with_math(md, category).strip()}</th>" for category in categories
     )
 
     body_rows = []

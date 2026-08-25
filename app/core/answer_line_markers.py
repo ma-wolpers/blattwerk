@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 
-from .blatt_kern_shared import _new_markdown_converter, normalize_markdown
+from .blatt_kern_shared import _new_markdown_converter, convert_markdown_with_math
 
 
 MARKER_SHOW_MODE = {
@@ -147,7 +147,7 @@ def _render_inline_markdown_fragment(text):
         return " "
 
     md = _new_markdown_converter()
-    html = md.convert(normalize_markdown(core)).strip()
+    html = convert_markdown_with_math(md, core).strip()
     paragraph_match = re.fullmatch(r"<p>(.*)</p>", html, flags=re.DOTALL)
     rendered = html
     if paragraph_match:

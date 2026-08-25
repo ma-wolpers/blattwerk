@@ -127,6 +127,15 @@ PROSE_SECTIONS: dict[str, str] = {
         "Inhalt kann die Kurzform `:::blockname ... :::` (öffnendes und schließendes `:::` auf "
         "derselben Zeile) verwendet werden, z. B. `:::nextcol :::`."
     ),
+    "markdown:math_formulas": (
+        "Überall, wo `**fett**`/`*kursiv*` funktioniert, funktioniert auch `$formel$` (Inline) und "
+        "`$$formel$$` (freistehend) für mathematische Formeln (LaTeX-Syntax, z. B. `$\\frac{a}{b}$`, "
+        "`$x_i$`). Die Darstellung laedt MathJax von einem CDN nach; ohne Internetverbindung beim "
+        "PDF-/HTML-Export bleibt die rohe Formel-Quelle als lesbarer Text sichtbar, wird aber nicht "
+        "als Formel gerendert -- der Editor warnt in diesem Fall nicht-blockierend (`MJ001`). Ein "
+        "einzelnes, nicht als Formel gemeintes `$`-Zeichen (z. B. `$5`) wird nicht faelschlich als "
+        "Formelbeginn erkannt, solange kein passendes zweites `$` unmittelbar danach folgt."
+    ),
     "presentation:visibility": (
         "In Präsentationen (`mode: presentation`) gibt es **keinen Lösungs-Umschalter**: Blöcke mit "
         "`mode=solution`/`show=solution` sowie `:::solution ... :::`-Blöcke (nach Blocktyp) werden in "

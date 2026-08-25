@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from html import escape
 
-from .answer_special_shared import _new_markdown_converter, _safe_int, normalize_markdown, parse_bullet_list_lines
+from .answer_special_shared import _new_markdown_converter, _safe_int, convert_markdown_with_math, parse_bullet_list_lines
 
 _MIN_STEPS, _MAX_STEPS, _DEFAULT_STEPS = 2, 7, 3
 _KNOWN_SCALES = frozenset({"smiley", "ampel", "sterne", "zahlen"})
@@ -60,7 +60,7 @@ def render_selfcheck_block(options, content):
     md = _new_markdown_converter()
     rows = []
     for statement in statements:
-        statement_html = md.convert(normalize_markdown(statement)).strip()
+        statement_html = convert_markdown_with_math(md, statement).strip()
         glyphs_html = "".join(f"<span class='selfcheck-glyph'>{escape(glyph)}</span>" for glyph in glyphs)
         rows.append(
             "<div class='selfcheck-row'>"

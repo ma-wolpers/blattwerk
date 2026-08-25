@@ -8,6 +8,8 @@ The format is based on Keep a Changelog.
 
 ### Added
 
+- Formel-Darstellung mit `$formel$` (Inline) und `$$formel$$` (freistehend, LaTeX-Syntax) funktioniert jetzt überall, wo auch `**fett**`/`*kursiv*` funktioniert. Formeln werden weiterhin über MathJax von einem CDN nachgeladen (unverändertes Verhalten) -- ist beim Export keine Internetverbindung vorhanden, bleibt die rohe Formel-Quelle als lesbarer Text sichtbar statt zu verschwinden oder kaputt zu gehen. Der Editor warnt beim Kompilieren nicht-blockierend (`MJ001`), wenn ein Block Formel-Syntax enthält, damit die Internetabhängigkeit nicht überrascht. Ein einzelnes `$`-Zeichen (z. B. in einem Preis wie `$5`) wird weiterhin nicht fälschlich als Formelbeginn interpretiert.
+
 - Drei neue Blocktypen mit eindeutig prüfbarer Lösung:
   - `:::ordering` (Sortier-/Reihenfolge-Aufgabe): Inhalt ist eine Liste der Elemente in der *richtigen* Reihenfolge; im Arbeitsblatt erscheinen sie gemischt mit leeren Nummernfeldern, in der Lösung mit der korrekten Rangzahl (`numbering=numeric|letters`). Ctrl+B-Kürzel `O`.
   - `:::categorize` (Begriffe in Kategorien-Spalten sortieren): YAML mit `categories:`/`items:`; im Arbeitsblatt eine leere Spaltentabelle plus gemischte Wortbank, in der Lösung die korrekt einsortierten Wörter je Spalte. Optionen `position=` (Wortbank-Position) und `shuffle=`. Ctrl+B-Kürzel `J`.

@@ -477,6 +477,36 @@ def test_matching_with_single_item_side_emits_ma001_warning():
     assert "MA001" in codes
 
 
+def test_material_with_inline_math_syntax_emits_mj001_warning():
+    text = _build_document(":::material\nFormel: $x_i$\n:::")
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+    assert "MJ001" in codes
+
+
+def test_material_with_display_math_syntax_emits_mj001_warning():
+    text = _build_document(":::material\nFormel: $$\\frac{a}{b}$$\n:::")
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+    assert "MJ001" in codes
+
+
+def test_material_without_math_syntax_does_not_emit_mj001():
+    text = _build_document(":::material\nKein Formeltext hier.\n:::")
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+    assert "MJ001" not in codes
+
+
+def test_material_with_currency_style_dollar_signs_does_not_emit_mj001():
+    # The single unpaired "$" in a currency amount must not be
+    # misrecognized as the start of a formula (see math_span_protection.py).
+    text = _build_document(":::material\nPreis: $5 und $10.\n:::")
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+    assert "MJ001" not in codes
+
+
 def test_geometry_yaml_marker_show_values_are_accepted():
     text = _build_document(
         ":::geometry rows=4 cols=4\n"

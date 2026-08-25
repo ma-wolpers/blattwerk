@@ -6,12 +6,28 @@ import re
 
 import markdown
 
+from .math_span_protection import convert_markdown_with_math as _convert_markdown_with_math
+
 MARKDOWN_EXTENSIONS = ["tables"]
 
 
 def _new_markdown_converter():
     """Erzeugt eine frische Markdown-Instanz für einen einzelnen Renderlauf."""
     return markdown.Markdown(extensions=MARKDOWN_EXTENSIONS)
+
+
+def convert_markdown_with_math(md, text):
+    """Rendert `text` per `md.convert(normalize_markdown(...))`, mit Mathe-Schutz.
+
+    Duenner Wrapper um `math_span_protection.convert_markdown_with_math`, der
+    dieses Moduls eigenes `normalize_markdown` injiziert -- die
+    Mathe-Schutz-Logik selbst lebt in einem eigenen, von beiden
+    `_new_markdown_converter()`-Fabriken geteilten Modul (siehe dort), da sie
+    unabhaengig davon ist, welche der beiden Fabriken den Konverter erzeugt
+    hat; nur die Duplikation der Fabriken selbst ist eine bestehende,
+    bewusste Entscheidung.
+    """
+    return _convert_markdown_with_math(md, text, normalize_markdown)
 
 
 def _normalize_keyword(value, default=""):

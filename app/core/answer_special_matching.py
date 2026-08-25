@@ -11,7 +11,7 @@ from .answer_special_shared import (
     _as_text_list,
     _new_markdown_converter,
     _normalize_keyword,
-    normalize_markdown,
+    convert_markdown_with_math,
     _parse_option_list,
 )
 
@@ -272,7 +272,7 @@ def _parse_matching_content(options, content):
 
 def _render_matching_item(md, raw_item):
     """Rendert einen einzelnen Matching-Eintrag als HTML."""
-    return md.convert(normalize_markdown(raw_item or "")).strip()
+    return convert_markdown_with_math(md, raw_item or "").strip()
 
 
 def _render_matching_horizontal_svg(

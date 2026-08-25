@@ -11,7 +11,7 @@ from html import escape
 
 import yaml
 
-from .answer_special_shared import _new_markdown_converter, normalize_markdown
+from .answer_special_shared import _new_markdown_converter, convert_markdown_with_math
 
 _CHECKED_GLYPH = "☑"
 _UNCHECKED_GLYPH = "☐"
@@ -80,7 +80,7 @@ def render_checkgrid_answer(options, content, include_solutions):
 
     body_rows = []
     for text, correct_index in rows:
-        statement_html = md.convert(normalize_markdown(text)).strip()
+        statement_html = convert_markdown_with_math(md, text).strip()
         checkbox_cells = []
         for column_index in range(1, len(columns) + 1):
             is_correct = include_solutions and column_index == correct_index

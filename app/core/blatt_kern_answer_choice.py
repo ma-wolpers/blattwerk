@@ -12,7 +12,7 @@ from .blatt_kern_shared import (
     _normalize_keyword,
     _option_is_enabled,
     _safe_int,
-    normalize_markdown,
+    convert_markdown_with_math,
 )
 from .wordbank_position import normalize_wordbank_position, wrap_with_wordbank_position
 
@@ -112,7 +112,7 @@ def _render_inline_markdown_fragment(text):
         return ""
 
     md = _new_markdown_converter()
-    html = md.convert(normalize_markdown(raw)).strip()
+    html = convert_markdown_with_math(md, raw).strip()
 
     paragraph_match = re.fullmatch(r"<p>(.*)</p>", html, flags=re.DOTALL)
     if paragraph_match:
@@ -302,7 +302,7 @@ def _render_cloze_answer(md, options, content, include_solutions):
 
         replacements.append((placeholder, solution_word, replacement_html))
 
-    cloze_html = md.convert(normalize_markdown(templated_content))
+    cloze_html = convert_markdown_with_math(md, templated_content)
     for placeholder, _solution_word, replacement_html in replacements:
         cloze_html = cloze_html.replace(placeholder, replacement_html)
 

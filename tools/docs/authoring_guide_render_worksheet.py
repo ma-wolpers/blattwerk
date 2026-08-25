@@ -184,7 +184,9 @@ def render_worksheet_presentation_guide(catalog: MarkdownConventionCatalog) -> s
         "als Präsentation gerendert wird, entscheidet allein das Frontmatter-Feld `mode` -- der "
         "Blockdialekt selbst ist identisch. Sichtbarkeit pro Block wird über `mode=worksheet|"
         "solution` gesteuert (Standard: in beiden Ausgaben sichtbar).\n\n"
-        + _prose("blocks:closing_rule"),
+        + _prose("blocks:closing_rule")
+        + "\n\n"
+        + _prose("markdown:math_formulas"),
         "## 2. Schnellstart: Arbeitsblatt\n\n" + _fenced(worksheet_example),
         "## 3. Schnellstart: Präsentation\n\n" + _fenced(presentation_example)
         + "\n\n`--#` setzt den Abschnittsnamen für die Footer-Navigation, `--!` erzwingt eine neue "

@@ -21,6 +21,7 @@ from .answer_line_markers import (
     is_effectively_empty_answer_content,
 )
 from .crossword_validation import validate_crossword_payload
+from .math_span_protection import _MATH_SPAN_PATTERN
 from .blatt_validator_constants import (
     ANSWER_BLOCK_TYPES,
     OPTIONAL_FRONTMATTER_FIELDS,
@@ -164,6 +165,22 @@ def _validate_block_type_specifics(diagnostics, index, block_type, content, qrco
     Liefert `True`, wenn `block_type` ein Antwort-Blocktyp ist (dann folgt
     im Orchestrator noch `_validate_yaml_answer_payload`), sonst `False`.
     """
+    if _MATH_SPAN_PATTERN.search(content or ""):
+        diagnostics.append(
+            BuildDiagnostic(
+                code="MJ001",
+                message=(
+                    "Enthaelt Formel-Syntax ($...$/$$...$$). Die Darstellung "
+                    "laedt MathJax von einem CDN und benoetigt daher beim "
+                    "PDF-/HTML-Export eine Internetverbindung; ohne Internet "
+                    "bleibt die rohe Formel-Quelle als lesbarer Text sichtbar, "
+                    "wird aber nicht als Formel gerendert."
+                ),
+                block_index=index,
+                block_type=block_type,
+            )
+        )
+
     if block_type == "qrcode" and not qrcode_url_value:
         diagnostics.append(
             BuildDiagnostic(

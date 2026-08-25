@@ -19,6 +19,7 @@ import markdown
 import yaml
 
 from .blatt_kern_shared_data import CONTROL_MARKERS, MARKDOWN_EXTENSIONS
+from .math_span_protection import convert_markdown_with_math as _convert_markdown_with_math
 
 _BLOCK_START_PATTERN = re.compile(r"^:::(\w+)(.*)$")
 _SELF_CLOSING_BLOCK_PATTERN = re.compile(r"^:::(\w+)(.*?):::$")
@@ -65,6 +66,20 @@ def _parse_inline_control_marker(stripped_line):
 def _new_markdown_converter():
     """Erzeugt eine frische Markdown-Instanz für einen Render-Schritt."""
     return markdown.Markdown(extensions=MARKDOWN_EXTENSIONS)
+
+
+def convert_markdown_with_math(md, text):
+    """Rendert `text` per `md.convert(normalize_markdown(...))`, mit Mathe-Schutz.
+
+    Duenner Wrapper um `math_span_protection.convert_markdown_with_math`,
+    der dieses Moduls eigenes `normalize_markdown` injiziert -- die
+    Mathe-Schutz-Logik selbst lebt bewusst in einem eigenen, von beiden
+    `_new_markdown_converter()`-Fabriken geteilten Modul (siehe dort), da sie
+    unabhaengig davon ist, welche der beiden Fabriken den Konverter erzeugt
+    hat; nur die Duplikation der Fabriken selbst ist eine bestehende,
+    bewusste Entscheidung.
+    """
+    return _convert_markdown_with_math(md, text, normalize_markdown)
 
 
 def split_front_matter(text):

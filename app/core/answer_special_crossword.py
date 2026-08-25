@@ -11,7 +11,7 @@ from __future__ import annotations
 import random
 from html import escape
 
-from .answer_special_shared import _new_markdown_converter, _safe_int, normalize_markdown
+from .answer_special_shared import _new_markdown_converter, _safe_int, convert_markdown_with_math
 from .block_computation_cache import ComputationKey, get_or_compute
 from .crossword_code import validate_crossword_code
 from .crossword_numbering import assign_crossword_numbers, grouped_clues
@@ -193,7 +193,7 @@ def _render_clue_group(label, clues, md):
     if not clues:
         return ""
     items = "".join(
-        f"<li value='{number}'>{md.convert(normalize_markdown(clue)).strip()}</li>"
+        f"<li value='{number}'>{convert_markdown_with_math(md, clue).strip()}</li>"
         for number, _word, clue in clues
     )
     return f"<div class='crossword-clue-group'><h4 class='crossword-clue-heading'>{escape(label)}</h4><ol class='crossword-clues'>{items}</ol></div>"

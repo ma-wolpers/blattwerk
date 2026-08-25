@@ -11,8 +11,8 @@ from .blatt_kern_shared import (
     _help_labels_for_tag,
     _normalize_help_tag,
     _resolve_help_level,
+    convert_markdown_with_math,
     is_hole_punch_layout_enabled,
-    normalize_markdown,
     should_render_block,
 )
 
@@ -158,7 +158,7 @@ def render_help_cards_html(
 
         markdown_converter = _new_markdown_converter()
         body_html = (
-            markdown_converter.convert(normalize_markdown(block_content))
+            convert_markdown_with_math(markdown_converter, block_content)
             if block_content
             else ""
         )
@@ -264,7 +264,7 @@ window.MathJax = {{
     }}
 }};
 </script>
-<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" onerror="document.body.classList.add('mathjax-load-failed')"></script>
 <style>
 {stylesheet}
 

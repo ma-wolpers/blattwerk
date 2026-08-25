@@ -8,6 +8,7 @@ from .blatt_kern_shared import (
     HELP_BLOCK_TYPES,
     _new_markdown_converter,
     _option_is_enabled,
+    convert_markdown_with_math,
     get_task_action_info,
     get_task_hint_info,
     get_work_info,
@@ -102,7 +103,9 @@ def render_block(
     normalized_content = normalize_markdown(content)
 
     if block_type == "raw":
-        return _wrap_with_object_alignment(md.convert(normalized_content), object_alignment)
+        return _wrap_with_object_alignment(
+            convert_markdown_with_math(md, normalized_content), object_alignment
+        )
 
     if block_type == "pagebreak":
         return "<div class='ab-pagebreak' aria-hidden='true'></div>"
@@ -127,7 +130,7 @@ def render_block(
     if block_type == "info":
         info_type = options.get("type", "default")
         return _wrap_with_object_alignment(
-            f"<div class='info {info_type}'>{md.convert(normalized_content)}</div>",
+            f"<div class='info {info_type}'>{convert_markdown_with_math(md, normalized_content)}</div>",
             object_alignment,
         )
 
@@ -176,7 +179,7 @@ def render_block(
         show_label = _option_is_enabled(options.get("label"), default=True)
         label_html = "<div class='solution-label'>Lösung</div>" if show_label else ""
         return _wrap_with_object_alignment(
-            f"<div class='solution'>{label_html}{md.convert(normalized_content)}</div>",
+            f"<div class='solution'>{label_html}{convert_markdown_with_math(md, normalized_content)}</div>",
             object_alignment,
         )
 
@@ -221,7 +224,7 @@ def _render_material_block(md, options, normalized_content):
     html = "<div class='material'>"
     if title:
         html += f"<h3>{title}</h3>"
-    html += md.convert(normalized_content)
+    html += convert_markdown_with_math(md, normalized_content)
     html += "</div>"
     return html
 
@@ -285,7 +288,7 @@ def _render_subtask_block(
         include_solutions=include_solutions,
         default_show="both",
     )
-    body_html = md.convert(normalize_markdown(filtered_content)) if filtered_content.strip() else ""
+    body_html = convert_markdown_with_math(md, filtered_content) if filtered_content.strip() else ""
     subtask_meta_parts = []
     if help_reference_text:
         subtask_meta_parts.append(
@@ -320,7 +323,7 @@ def _render_task_content(
         include_solutions=include_solutions,
         default_show="both",
     )
-    return md.convert(normalize_markdown(filtered_content))
+    return convert_markdown_with_math(md, filtered_content)
 
 
 def _render_task_block(
