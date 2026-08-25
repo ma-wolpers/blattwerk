@@ -1,6 +1,10 @@
+import re
+
 import app.core.answer_special_crossword as crossword_module
 from app.core.answer_special_crossword import estimate_crossword_weight, render_crossword_answer
 from app.core.block_computation_cache import BlockComputationCache
+from app.core.crossword_numbering import assign_crossword_numbers
+from app.core.crossword_placement import CrosswordLayout, CrosswordPlacement
 
 _CONTENT = """
 words:
@@ -70,10 +74,61 @@ def test_render_crossword_answer_has_numbered_cells_with_clue_list():
     assert "Wo man lernt" in html  # clue text rendered
 
 
-def test_render_crossword_answer_grid_cell_count_matches_maxw_times_maxh():
-    html = render_crossword_answer({"maxw": 10, "maxh": 8}, _CONTENT, include_solutions=True)
-    spans = _cell_spans(html)
-    assert len(spans) == 10 * 8
+def test_render_crossword_answer_trims_to_occupied_bounding_box_not_full_search_space():
+    # Regression test for the "huge empty space" bug: CrosswordLayout.rows/
+    # .cols describe the full maxw x maxh search space, not the area the
+    # placed words actually occupy. A hand-built layout whose occupied
+    # cells sit away from (0, 0) and far short of the declared 15x15
+    # search space catches a fix that still naively iterates
+    # range(rows) x range(cols) from the origin -- that would either render
+    # 225 cells (unfixed) or accidentally pass if the occupied area
+    # happened to start at the origin.
+    placements = (
+        CrosswordPlacement(word="TEST", row=3, col=5, direction="H"),
+        CrosswordPlacement(word="TANK", row=3, col=5, direction="V"),
+    )
+    layout = CrosswordLayout(rows=15, cols=15, placements=placements)
+    numbering = assign_crossword_numbers(layout)
+    cells = layout.cells()
+    min_row, max_row, min_col, max_col = crossword_module._occupied_bounding_box(cells)
+
+    assert (min_row, max_row, min_col, max_col) == (3, 6, 5, 8)
+
+    direction_markers = crossword_module._cell_direction_markers(layout)
+    cells_html = crossword_module._render_grid_cells(
+        cells, min_row, max_row, min_col, max_col, direction_markers, numbering, True, set(), set()
+    )
+    spans = re.findall(r"<span class='cw-cell[^>]*>.*?</span>", cells_html)
+
+    assert len(spans) == 16  # 4 rows x 4 cols, not the 15x15 = 225 search space
+    grid_html = f"<div class='crossword-grid' style='--cw-cols:{max_col - min_col + 1}'>{cells_html}</div>"
+    assert "--cw-cols:4" in grid_html
+
+
+def test_render_crossword_answer_grid_trims_realistic_puzzle_well_below_search_space():
+    html = render_crossword_answer({"maxw": 15, "maxh": 15}, _CONTENT, include_solutions=True)
+    match = re.search(r"--cw-cols:(\d+)", html)
+    assert match is not None
+    assert int(match.group(1)) < 15
+
+
+def test_render_crossword_answer_renders_all_cells_when_bounding_box_fills_the_full_grid():
+    # A puzzle whose placed words happen to fill the entire declared search
+    # space must still render every cell correctly (no off-by-one at the
+    # edges from the trim).
+    placements = (CrosswordPlacement(word="AB", row=0, col=0, direction="H"),)
+    layout = CrosswordLayout(rows=1, cols=2, placements=placements)
+    numbering = assign_crossword_numbers(layout)
+    cells = layout.cells()
+    min_row, max_row, min_col, max_col = crossword_module._occupied_bounding_box(cells)
+    direction_markers = crossword_module._cell_direction_markers(layout)
+    cells_html = crossword_module._render_grid_cells(
+        cells, min_row, max_row, min_col, max_col, direction_markers, numbering, True, set(), set()
+    )
+    spans = re.findall(r"<span class='cw-cell[^>]*>.*?</span>", cells_html)
+
+    assert len(spans) == 2
+    assert all("cw-cell-blocked" not in span for span in spans)
 
 
 def test_render_crossword_answer_prefill_reveals_letters_in_worksheet_mode():

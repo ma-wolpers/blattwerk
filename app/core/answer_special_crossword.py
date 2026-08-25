@@ -105,8 +105,24 @@ def render_crossword_answer(options, content, include_solutions):
             if include_solutions:
                 code_html = _render_code_solution(selection)
 
-    cells_html = _render_grid_cells(layout, numbering, include_solutions, prefill_cells, code_cell_positions)
-    grid_html = f"<div class='crossword-grid' style='--cw-cols:{layout.cols}'>{cells_html}</div>"
+    cells = layout.cells()
+    min_row, max_row, min_col, max_col = _occupied_bounding_box(cells)
+    trimmed_cols = max_col - min_col + 1
+    direction_markers = _cell_direction_markers(layout)
+
+    cells_html = _render_grid_cells(
+        cells,
+        min_row,
+        max_row,
+        min_col,
+        max_col,
+        direction_markers,
+        numbering,
+        include_solutions,
+        prefill_cells,
+        code_cell_positions,
+    )
+    grid_html = f"<div class='crossword-grid' style='--cw-cols:{trimmed_cols}'>{cells_html}</div>"
 
     md = _new_markdown_converter()
     horizontal_clues, vertical_clues = grouped_clues(layout, numbering, entries)
@@ -114,7 +130,7 @@ def render_crossword_answer(options, content, include_solutions):
 
     position = normalize_wordbank_position(options.get("position"), default="auto")
     if position == "auto":
-        main_content_width_cm = layout.cols * _CELL_SIZE_CM
+        main_content_width_cm = trimmed_cols * _CELL_SIZE_CM
         position = resolve_wordbank_auto_position(
             main_content_width_cm, printable_width_cm or _DEFAULT_PRINTABLE_WIDTH_CM
         )
@@ -154,13 +170,42 @@ def _cell_direction_markers(layout):
     return markers
 
 
-def _render_grid_cells(layout, numbering, include_solutions, prefill_cells, code_cell_positions):
-    cells = layout.cells()
-    direction_markers = _cell_direction_markers(layout)
+def _occupied_bounding_box(cells):
+    """Returns `(min_row, max_row, min_col, max_col)` spanning every occupied
+    cell in `cells` (a `{(row, col): CrosswordCell}` mapping, as returned by
+    `CrosswordLayout.cells()`).
+
+    `CrosswordLayout.rows`/`.cols` describe the *full search space*
+    (`maxw`/`maxh`), not the area the placed words actually occupy -- a
+    puzzle that only fills a small corner of a generously sized `maxw=15
+    maxh=15` grid would otherwise render 200+ invisible `cw-cell-blocked`
+    cells around it. `_render_grid_cells` uses this bounding box to trim the
+    rendered/CSS-grid size to what's actually there; the layout's own
+    coordinates and cache key are untouched (this is a rendering-only crop).
+    Callers must not call this with an empty `cells` (a successfully built
+    `CrosswordLayout` always has at least one placed word).
+    """
+    rows = [row for row, _col in cells]
+    cols = [col for _row, col in cells]
+    return min(rows), max(rows), min(cols), max(cols)
+
+
+def _render_grid_cells(
+    cells,
+    min_row,
+    max_row,
+    min_col,
+    max_col,
+    direction_markers,
+    numbering,
+    include_solutions,
+    prefill_cells,
+    code_cell_positions,
+):
     parts = []
 
-    for row in range(layout.rows):
-        for col in range(layout.cols):
+    for row in range(min_row, max_row + 1):
+        for col in range(min_col, max_col + 1):
             position = (row, col)
             cell = cells.get(position)
             if cell is None:
