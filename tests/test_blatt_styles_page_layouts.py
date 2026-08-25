@@ -1,4 +1,8 @@
-from app.styles.blatt_styles import build_page_layout_css, resolve_printable_width_cm
+from app.styles.blatt_styles import (
+    build_page_layout_css,
+    resolve_printable_height_cm,
+    resolve_printable_width_cm,
+)
 
 
 def test_a6_portrait_resolves_to_a6_physical_width():
@@ -22,3 +26,27 @@ def test_a6_portrait_unknown_falls_back_to_a4_only_for_missing_keys():
 
     assert "a6_portrait" in PAGE_LAYOUTS
     assert PAGE_LAYOUTS["a6_portrait"]["page_size_css"] == "10.5cm 14.8cm"
+
+
+def test_resolve_printable_height_cm_a4_portrait_is_taller_than_wide():
+    width_cm = resolve_printable_width_cm("a4_portrait")
+    height_cm = resolve_printable_height_cm("a4_portrait")
+    assert height_cm > width_cm
+
+
+def test_resolve_printable_height_cm_landscape_is_wider_than_tall():
+    width_cm = resolve_printable_width_cm("a5_landscape")
+    height_cm = resolve_printable_height_cm("a5_landscape")
+    assert width_cm > height_cm
+
+
+def test_resolve_printable_height_cm_ignores_hole_punch(monkeypatch):
+    # Hole-punch margins only exist for the left/right (binding) side in
+    # PAGE_LAYOUTS -- height must resolve identically either way.
+    without_hole_punch = resolve_printable_height_cm("a4_portrait", hole_punch_enabled=False)
+    with_hole_punch = resolve_printable_height_cm("a4_portrait", hole_punch_enabled=True)
+    assert without_hole_punch == with_hole_punch
+
+
+def test_resolve_printable_height_cm_unknown_format_falls_back_to_a4_portrait():
+    assert resolve_printable_height_cm("does-not-exist") == resolve_printable_height_cm("a4_portrait")

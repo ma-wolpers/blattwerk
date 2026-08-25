@@ -22,6 +22,7 @@ So vermeiden wir Klebercode und Verwirrung.
   - Hier werden fachliche Entscheidungen getroffen.
   - Parse, Validate, Render und Build passieren hier.
   - Dokumenttyp-Routing fuer Arbeitsblatt, Praesentation und Kurzentwurf passiert ebenfalls hier.
+  - Ein gemeinsamer Cache (`block_computation_cache.py`) sorgt dafuer, dass teure Blockberechnungen (z. B. ein Kreuzworträtsel-Raster) nicht doppelt gerechnet werden, wenn Validate und Render kurz hintereinander laufen.
 
 - `app/ui`
   - Hier ist die Oberfläche.

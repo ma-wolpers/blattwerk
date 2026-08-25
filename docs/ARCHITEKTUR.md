@@ -29,6 +29,7 @@ Zusätzliche Kern-Usecases:
 - `document_types.py`, `document_preview_build.py`, `document_export_build.py`, `document_diagnostics.py` (dokumenttypabhaengige Routing-/Diagnostikadapter)
 - `kurzentwurf_runtime/*` (eingebettete Kurzentwurf-DSL-Runtime fuer Parse/Validate/Render/Build)
 - `color_mentions.py` (fachliche BW/Farb-Regel)
+- `block_computation_cache.py` (generischer, blocktyp-unabhaengiger Cache fuer teure deterministische Blockberechnungen; wird von der Anwendungsschicht geoeffnet, nie von `build_worksheet`/`build_help_cards` selbst, und ueber `inspect_markdown_text(..., cache=...)`/`render_html(..., cache=...)` an Validate- und Render-Schritt durchgereicht, damit beide dasselbe Ergebnis wiederverwenden koennen)
 
 ## Schichtenmodell
 

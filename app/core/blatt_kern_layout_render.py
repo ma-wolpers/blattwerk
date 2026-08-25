@@ -5,8 +5,8 @@ from __future__ import annotations
 import re
 from html import escape
 
-from .answer_special import estimate_matching_weight, estimate_wordsearch_weight
-from ..styles.blatt_styles import build_stylesheet, resolve_printable_width_cm
+from .answer_special import estimate_crossword_weight, estimate_matching_weight, estimate_wordsearch_weight
+from ..styles.blatt_styles import build_stylesheet, resolve_printable_height_cm, resolve_printable_width_cm
 from .blatt_kern_shared import (
     _meta_bool_ja_nein,
     _safe_int,
@@ -49,17 +49,22 @@ def _normalize_object_alignment(raw_value):
     return aliases.get(normalized, "")
 
 
-def _with_runtime_layout_options(options, printable_width_cm, cache=None):
+def _with_runtime_layout_options(options, printable_width_cm, printable_height_cm=None, cache=None):
     """Attach render-time layout context for answer blocks.
 
     `cache` is an optional `BlockComputationCache` (see
     `app/core/block_computation_cache.py`), injected as `_computation_cache`
-    the same way `_printable_width_cm` already is -- individual block
-    renderers read it via `options.get("_computation_cache")` rather than
-    needing a dedicated parameter threaded through every dispatch layer.
+    the same way `_printable_width_cm`/`_printable_height_cm` already are --
+    individual block renderers read these via `options.get(...)` rather
+    than needing a dedicated parameter threaded through every dispatch
+    layer. `printable_height_cm` is optional (unlike width) since not every
+    call site has resolved it yet; blocks that need it (e.g. `crossword`'s
+    `maxh` default) fall back on their own when it's absent.
     """
     merged = dict(options or {})
     merged["_printable_width_cm"] = float(printable_width_cm)
+    if printable_height_cm is not None:
+        merged["_printable_height_cm"] = float(printable_height_cm)
     merged["_computation_cache"] = cache
     return merged
 
@@ -177,6 +182,7 @@ def estimate_block_weight(
         "cloze",
         "matching",
         "wordsearch",
+        "crossword",
     }:
         if block_type == "mc":
             base = 1.0 + (text_length / 140.0)
@@ -192,6 +198,9 @@ def estimate_block_weight(
 
         if block_type == "wordsearch":
             return estimate_wordsearch_weight(options, content)
+
+        if block_type == "crossword":
+            return estimate_crossword_weight(options, content)
 
         if include_solutions:
             if text_length == 0:
@@ -275,6 +284,7 @@ def render_columns_container(
     include_solutions,
     document_mode="ws",
     printable_width_cm=18.0,
+    printable_height_cm=None,
     cache=None,
 ):
     """Rendert einen `columns`-Container inklusive automatischer Breitenlogik."""
@@ -308,6 +318,7 @@ def render_columns_container(
             runtime_options = _with_runtime_layout_options(
                 block_options,
                 printable_width_cm,
+                printable_height_cm=printable_height_cm,
                 cache=cache,
             )
             rendered = render_block(
@@ -342,6 +353,7 @@ def render_body_with_columns(
     include_solutions,
     document_mode="ws",
     printable_width_cm=18.0,
+    printable_height_cm=None,
     cache=None,
 ):
     """Rendert den Body und behandelt `columns`/`nextcol`/`endcolumns` Zustände."""
@@ -392,6 +404,7 @@ def render_body_with_columns(
                     include_solutions,
                     document_mode=document_mode,
                     printable_width_cm=printable_width_cm,
+                    printable_height_cm=printable_height_cm,
                     cache=cache,
                 )
             )
@@ -410,6 +423,7 @@ def render_body_with_columns(
         runtime_options = _with_runtime_layout_options(
             options,
             printable_width_cm,
+            printable_height_cm=printable_height_cm,
             cache=cache,
         )
         rendered = render_block(
@@ -785,11 +799,16 @@ def render_html(
         page_format,
         hole_punch_enabled=hole_punch_enabled,
     )
+    printable_height_cm = resolve_printable_height_cm(
+        page_format,
+        hole_punch_enabled=hole_punch_enabled,
+    )
     body = render_body_with_columns(
         enriched_blocks,
         include_solutions=include_solutions,
         document_mode=document_mode,
         printable_width_cm=printable_width_cm,
+        printable_height_cm=printable_height_cm,
         cache=cache,
     )
     sectioned_body = split_sections(body)

@@ -163,6 +163,20 @@ Kreuzworträtsel-Antwortfeld. Der Inhalt ist eine YAML-Liste unter `words:` mit 
 | `prefill` | Ganzzahl | -- | nein | `0` | Anzahl zufällig vorausgefüllter Buchstaben im Arbeitsblatt-Modus (Standard `0`). |
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
 
+**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
+
+```markdown
+:::crossword maxw=15 maxh=15
+words:
+  - word: "Wort1"
+    clue: "Hinweis 1"
+  - word: "Wort2"
+    clue: "Hinweis 2"
+  - word: "Wort3"
+    clue: "Hinweis 3"
+:::
+```
+
 ### `dots`
 
 Punktraster-Schreibfeld (z. B. für Übungen zur Feinmotorik/Schrift).

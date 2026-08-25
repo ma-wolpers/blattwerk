@@ -69,6 +69,7 @@ _EDITOR_BLOCK_MENU_ITEMS: list[tuple[str, str, str]] = [
     ("S", "Teilaufgabe (subtask)", BLOCK_INSERT_SNIPPETS["subtask"]),
     ("T", "Aufgabe (task)", BLOCK_INSERT_SNIPPETS["task"]),
     ("W", "Wortsuchrätsel (wordsearch)", BLOCK_INSERT_SNIPPETS["wordsearch"]),
+    ("X", "Kreuzworträtsel (crossword)", BLOCK_INSERT_SNIPPETS["crossword"]),
     ("Z", "Zuordnung (matching)", BLOCK_INSERT_SNIPPETS["matching"]),
 ]
 

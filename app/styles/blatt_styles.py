@@ -404,6 +404,48 @@ def resolve_printable_width_cm(page_format, hole_punch_enabled=False):
     return max(0.5, page_width_cm - margin_left_cm - margin_right_cm)
 
 
+def _layout_page_height_cm(layout):
+    """Resolve physical page height in centimeters from a layout preset.
+
+    Mirrors `_layout_page_width_cm` exactly, but picks the *other* paper
+    dimension: landscape's height is the shorter side, portrait's height
+    is the longer side (the reverse of width's landscape/portrait pick).
+    """
+    size_text = str((layout or {}).get("page_size_css", "A4 portrait") or "").strip().lower()
+
+    custom_size_match = re.fullmatch(
+        r"(\d+(?:\.\d+)?)cm\s+(\d+(?:\.\d+)?)cm",
+        size_text,
+    )
+    if custom_size_match:
+        return float(custom_size_match.group(2))
+
+    parts = [part for part in size_text.split() if part]
+    paper_key = parts[0] if parts else "a4"
+    paper_dimensions = _PAGE_DIMENSIONS_CM.get(paper_key, _PAGE_DIMENSIONS_CM["a4"])
+
+    if "landscape" in parts:
+        return min(paper_dimensions)
+    return max(paper_dimensions)
+
+
+def resolve_printable_height_cm(page_format, hole_punch_enabled=False):
+    """Resolve printable content height from page format and active margins.
+
+    `hole_punch_enabled` is accepted for signature symmetry with
+    `resolve_printable_width_cm` but has no effect here: `PAGE_LAYOUTS`
+    only defines hole-punch margin overrides for the left/right (binding)
+    margins, never for top/bottom -- this mirrors that intentionally,
+    it isn't an oversight.
+    """
+    layout = PAGE_LAYOUTS.get(page_format, PAGE_LAYOUTS["a4_portrait"])
+    page_height_cm = _layout_page_height_cm(layout)
+
+    margin_top_cm = _css_length_to_cm(layout["page_margin_top_css"], 1.5)
+    margin_bottom_cm = _css_length_to_cm(layout["page_margin_bottom_css"], 1.5)
+    return max(0.5, page_height_cm - margin_top_cm - margin_bottom_cm)
+
+
 def _load_stylesheet_template_text():
     """Lädt die CSS-Vorlage einmalig von der Datei."""
     global _cached_stylesheet_template

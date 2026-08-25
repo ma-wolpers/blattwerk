@@ -14,8 +14,8 @@ from .crossword_code import validate_crossword_code
 from .crossword_placement import (
     _CROSSWORD_ALGORITHM_VERSION,
     _crossword_seed_payload,
-    _normalize_wordsearch_token,
     build_crossword_layout,
+    parse_crossword_code_options,
     parse_crossword_entries,
     resolve_crossword_bounds,
 )
@@ -37,9 +37,7 @@ def validate_crossword_payload(diagnostics, index, block_type, options, content,
         return
 
     maxw, maxh = resolve_crossword_bounds(options)
-    code_word_raw = str(options.get("code") or "").strip()
-    code_word = _normalize_wordsearch_token(code_word_raw) if code_word_raw else ""
-    code_row = str(options.get("code_row") or "").strip().lower() in {"1", "true", "yes", "on"}
+    code_word_raw, code_word, code_row = parse_crossword_code_options(options)
 
     if code_row and not code_word:
         diagnostics.append(

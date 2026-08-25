@@ -32,6 +32,7 @@ ANSWER_BLOCK_TYPES = {
     "cloze",
     "matching",
     "wordsearch",
+    "crossword",
 }
 
 

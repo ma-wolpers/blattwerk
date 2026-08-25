@@ -126,6 +126,17 @@ BLOCK_INSERT_SNIPPETS: dict[str, str] = {
         "- Wort3\n"
         ":::\n"
     ),
+    "crossword": (
+        ":::crossword maxw=15 maxh=15\n"
+        "words:\n"
+        '\x01  - word: "Wort1"\n'
+        '    clue: "Hinweis 1"\n'
+        '  - word: "Wort2"\n'
+        '    clue: "Hinweis 2"\n'
+        '  - word: "Wort3"\n'
+        '    clue: "Hinweis 3"\n'
+        ":::\n"
+    ),
     "matching": (
         ":::matching layout=horizontal height_mode=uniform lane_align=center show_guides=false\n"
         "left:\n"

@@ -176,6 +176,21 @@ def resolve_crossword_bounds(options, cell_size_cm=0.72, printable_width_cm=None
     return maxw, maxh
 
 
+def parse_crossword_code_options(options):
+    """Parses `code=`/`code_row=` identically for validation and rendering.
+
+    Returns `(code_word_raw, code_word_normalized, code_row)` -- shared by
+    `crossword_validation.py` and `answer_special_crossword.py` so both
+    interpret the same option strings the same way (a divergence here
+    would mean the validator's pre-check and the renderer's actual
+    computation could disagree about whether a code is even present).
+    """
+    code_word_raw = str((options or {}).get("code") or "").strip()
+    code_word = _normalize_wordsearch_token(code_word_raw) if code_word_raw else ""
+    code_row = str((options or {}).get("code_row") or "").strip().lower() in {"1", "true", "yes", "on"}
+    return code_word_raw, code_word, code_row
+
+
 def _crossword_seed_payload(entries, maxw, maxh, code_row, code_word):
     """Builds the normalized, JSON-serializable payload shared by the RNG
     seed and the `BlockComputationCache` layout key (see Slice 1) -- kept

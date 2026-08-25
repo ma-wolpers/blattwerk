@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+from .answer_special_crossword import (
+    estimate_crossword_weight,
+    render_crossword_answer,
+)
 from .answer_special_matching import (
     _normalize_matching_layout,
     _parse_matching_content,

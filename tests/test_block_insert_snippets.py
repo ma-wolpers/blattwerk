@@ -31,6 +31,7 @@ _LABEL_TO_BLOCK_TYPE = {
     "Teilaufgabe (subtask)": "subtask",
     "Aufgabe (task)": "task",
     "Wortsuchrätsel (wordsearch)": "wordsearch",
+    "Kreuzworträtsel (crossword)": "crossword",
     "Zuordnung (matching)": "matching",
 }
 _NON_BLOCK_MENU_LABELS = {"Bild (image)"}
