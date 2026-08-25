@@ -1181,3 +1181,79 @@ def test_crossword_without_duplicate_words_does_not_emit_cw004():
     codes = {d.code for d in inspect_markdown_text(text).diagnostics}
 
     assert "CW004" not in codes
+
+
+def _selfcheck_block(options=""):
+    return f":::selfcheck{options}\n- Aussage\n:::"
+
+
+def test_selfcheck_steps_in_gap_of_curated_preset_emits_sc001():
+    # smiley only curates steps={3, 5} -- 4 falls in the gap between them.
+    text = _build_document(_selfcheck_block(" scale=smiley steps=4"))
+    codes = {d.code for d in inspect_markdown_text(text).diagnostics}
+
+    assert "SC001" in codes
+
+
+def test_selfcheck_steps_over_scale_maximum_emits_sc001():
+    # ampel only curates steps=3.
+    text = _build_document(_selfcheck_block(" scale=ampel steps=6"))
+    codes = {d.code for d in inspect_markdown_text(text).diagnostics}
+
+    assert "SC001" in codes
+
+
+def test_selfcheck_steps_over_global_maximum_emits_sc001():
+    text = _build_document(_selfcheck_block(" steps=10"))
+    codes = {d.code for d in inspect_markdown_text(text).diagnostics}
+
+    assert "SC001" in codes
+
+
+def test_selfcheck_steps_under_global_minimum_emits_sc001():
+    text = _build_document(_selfcheck_block(" steps=1"))
+    codes = {d.code for d in inspect_markdown_text(text).diagnostics}
+
+    assert "SC001" in codes
+
+
+def test_selfcheck_steps_out_of_global_range_can_emit_two_independent_sc001_diagnostics():
+    # steps=10 with the default scale=smiley violates both the global
+    # range AND the smiley preset (which doesn't curate 10 either) -- both
+    # conditions fire independently, no artificial merging into one.
+    text = _build_document(_selfcheck_block(" steps=10"))
+    diagnostics = [d for d in inspect_markdown_text(text).diagnostics if d.code == "SC001"]
+
+    assert len(diagnostics) == 2
+
+
+def test_selfcheck_valid_curated_steps_does_not_emit_sc001():
+    text = _build_document(_selfcheck_block(" scale=smiley steps=5"))
+    codes = {d.code for d in inspect_markdown_text(text).diagnostics}
+
+    assert "SC001" not in codes
+
+
+def test_selfcheck_scale_without_curated_cap_does_not_emit_sc001_for_scale_mismatch():
+    # sterne/zahlen have no curated preset dict at all -- only the global
+    # range applies to them, not a scale-specific cap.
+    text = _build_document(_selfcheck_block(" scale=sterne steps=6"))
+    codes = {d.code for d in inspect_markdown_text(text).diagnostics}
+
+    assert "SC001" not in codes
+
+
+def test_selfcheck_unparsable_steps_does_not_emit_sc001():
+    # Treated the same way the renderer treats it (falls back to the
+    # default) -- not itself a bounds violation.
+    text = _build_document(_selfcheck_block(" steps=abc"))
+    codes = {d.code for d in inspect_markdown_text(text).diagnostics}
+
+    assert "SC001" not in codes
+
+
+def test_selfcheck_without_steps_option_does_not_emit_sc001():
+    text = _build_document(_selfcheck_block())
+    codes = {d.code for d in inspect_markdown_text(text).diagnostics}
+
+    assert "SC001" not in codes

@@ -20,6 +20,8 @@ from .answer_line_markers import (
     collect_answer_marker_conflict_lines,
     is_effectively_empty_answer_content,
 )
+from .answer_special_selfcheck import _MAX_STEPS, _MIN_STEPS, _SCALE_GLYPH_PRESETS
+from .answer_special_shared import _safe_int
 from .crossword_validation import validate_crossword_payload
 from .math_span_protection import _MATH_SPAN_PATTERN
 from .blatt_validator_constants import (
@@ -159,12 +161,69 @@ def _validate_frontmatter(meta):
     return diagnostics
 
 
-def _validate_block_type_specifics(diagnostics, index, block_type, content, qrcode_url_value):
+def _validate_selfcheck_options(index, block_type, options):
+    """Checks `:::selfcheck`'s `scale=`/`steps=` combination, returning any
+    non-blocking `SC001` diagnostics (list, possibly empty).
+
+    Parses `steps` itself rather than relying on generic option validation:
+    the generic validator only enforces `kind="enum"` options (verified in
+    `blatt_validator_block_options.py`), so a malformed `steps=abc` is
+    never format-checked anywhere else. An unparsable value is treated the
+    same way the renderer treats it -- falls back to its own in-range
+    default -- so it is *not* itself a bounds violation worth a diagnosis
+    here; only a successfully parsed integer is checked below.
+    """
+    options = options or {}
+    steps = _safe_int(options.get("steps"), None)
+    if steps is None:
+        return []
+
+    diagnostics = []
+    scale = str(options.get("scale") or "smiley").strip().lower()
+
+    # `_SCALE_GLYPH_PRESETS` is sparse (e.g. `smiley` only curates {3, 5},
+    # not every value in between) -- any `steps` not an exact match falls
+    # back to plain numbered circles in the renderer, silently.
+    preset = _SCALE_GLYPH_PRESETS.get(scale)
+    if preset and steps not in preset:
+        supported = ", ".join(str(value) for value in sorted(preset))
+        diagnostics.append(
+            BuildDiagnostic(
+                code="SC001",
+                message=(
+                    f"`scale={scale}` hat kuratierte Symbole nur fuer steps={supported}; "
+                    f"bei steps={steps} erscheinen stattdessen nummerierte Kreise."
+                ),
+                block_index=index,
+                block_type=block_type,
+            )
+        )
+
+    if steps < _MIN_STEPS or steps > _MAX_STEPS:
+        diagnostics.append(
+            BuildDiagnostic(
+                code="SC001",
+                message=(
+                    f"steps={steps} liegt ausserhalb des gueltigen Bereichs "
+                    f"({_MIN_STEPS}-{_MAX_STEPS}) und wird entsprechend begrenzt."
+                ),
+                block_index=index,
+                block_type=block_type,
+            )
+        )
+
+    return diagnostics
+
+
+def _validate_block_type_specifics(diagnostics, index, block_type, options, content, qrcode_url_value):
     """Prüft block-typ-spezifische Invarianten nach der Options-Validierung.
 
     Liefert `True`, wenn `block_type` ein Antwort-Blocktyp ist (dann folgt
     im Orchestrator noch `_validate_yaml_answer_payload`), sonst `False`.
     """
+    if block_type == "selfcheck":
+        diagnostics.extend(_validate_selfcheck_options(index, block_type, options))
+
     if _MATH_SPAN_PATTERN.search(content or ""):
         diagnostics.append(
             BuildDiagnostic(

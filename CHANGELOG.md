@@ -15,6 +15,7 @@ The format is based on Keep a Changelog.
 
 ### Added
 
+- `:::selfcheck` warnt jetzt nicht-blockierend (`SC001`), wenn `steps=` außerhalb des gültigen Bereichs (2-7) liegt oder nicht zu den für die gewählte `scale=` kuratierten Werten passt (z. B. `smiley` hat nur bei `steps=3`/`5` eigene Symbole, dazwischen erscheinen sonst kommentarlos nummerierte Kreise statt der erwarteten Emojis).
 - `:::selfcheck` hat jetzt eine `dual=true`-Option: zeigt zwei unabhängige Skalen-Spalten je Aussage statt einer (z. B. Selbst-/Fremdeinschätzung oder früher/später). `label1=`/`label2=` beschriften optional die beiden Spalten (Standard: keine Beschriftung).
 
 ### Changed
