@@ -1448,6 +1448,7 @@ h1 {
     border-bottom: var(--field-border-width) solid var(--field-border-color);
     border-left: var(--field-border-width) solid var(--field-border-color);
     border-top: var(--field-border-width) solid var(--field-border-color);
+    font-size: calc(var(--cw-cell-size) / 1.8);
     font-weight: 700;
     text-transform: uppercase;
 }
@@ -1459,8 +1460,8 @@ h1 {
 
 .cw-cell-number {
     position: absolute;
-    top: 0.03em;
-    left: 0.05em;
+    top: 0.18em;
+    left: 0.22em;
     font-size: 0.42em;
     font-weight: 400;
     line-height: 1;
