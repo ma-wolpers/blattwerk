@@ -384,8 +384,9 @@ PROSE_SECTIONS: dict[str, str] = {
     "block:mindmap": (
         "Offene Cluster-/Ideensammlung ohne feste Lösung: der Blockinhalt ist das zentrale Thema, "
         "gerendert als radiales SVG-Diagramm mit `branches` leeren Zweig-Feldern für eigene "
-        "Assoziationen. Kein Arbeitsblatt-/Lösungs-Unterschied -- der Block sieht in beiden Modi "
-        "gleich aus."
+        "Assoziationen. Optional (`subbranches=`, Standard aus) bekommt jeder Hauptzweig zusätzlich "
+        "eine eigene kleine Fächer aus Unterzweig-Feldern für ein zweistufiges Mindmap. Kein "
+        "Arbeitsblatt-/Lösungs-Unterschied -- der Block sieht in beiden Modi gleich aus."
     ),
     "block:selfcheck": (
         "Offene Selbsteinschätzung ohne feste Lösung: der Blockinhalt ist eine Liste von Aussagen "
@@ -655,6 +656,10 @@ PROSE_SECTIONS: dict[str, str] = {
     ),
     "block:mindmap.shape": (
         "Form der Zweig-Felder: `oval` (Standard), `rect` oder `cloud`."
+    ),
+    "block:mindmap.subbranches": (
+        "Anzahl kleinerer Unterzweig-Felder je Hauptzweig (0-4, Standard `0` -- aus). "
+        "Ab `subbranches > 0` wird das Diagramm zweistufig gezeichnet."
     ),
     "block:selfcheck.scale": (
         "Symbolsatz der Skala: `smiley` (Standard), `ampel`, `sterne` oder `zahlen`."

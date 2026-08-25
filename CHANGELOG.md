@@ -15,6 +15,7 @@ The format is based on Keep a Changelog.
 
 ### Added
 
+- `:::mindmap` hat jetzt eine optionale `subbranches=`-Option (0-4, Standard `0`/aus): fügt jedem Hauptzweig einen eigenen kleinen Fächer aus Unterzweig-Feldern hinzu, für ein zweistufiges Mindmap statt nur eines einstufigen Sterndiagramms.
 - `:::crossword` hat jetzt eine `scale=`-Option (CSS-Länge, Standard `0.72cm`) zum Vergrößern/Verkleinern des gesamten Rätsels -- Zellen, Buchstaben und Nummern-Badges skalieren gemeinsam. Folgt derselben `scale=`-Konvention wie `grid`/`geometry`/`matching`.
 - Formel-Darstellung mit `$formel$` (Inline) und `$$formel$$` (freistehend, LaTeX-Syntax) funktioniert jetzt überall, wo auch `**fett**`/`*kursiv*` funktioniert. Formeln werden weiterhin über MathJax von einem CDN nachgeladen (unverändertes Verhalten) -- ist beim Export keine Internetverbindung vorhanden, bleibt die rohe Formel-Quelle als lesbarer Text sichtbar statt zu verschwinden oder kaputt zu gehen. Der Editor warnt beim Kompilieren nicht-blockierend (`MJ001`), wenn ein Block Formel-Syntax enthält, damit die Internetabhängigkeit nicht überrascht. Ein einzelnes `$`-Zeichen (z. B. in einem Preis wie `$5`) wird weiterhin nicht fälschlich als Formelbeginn interpretiert.
 

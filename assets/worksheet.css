@@ -1616,6 +1616,18 @@ h1 {
     stroke-width: 1.4;
 }
 
+.mindmap-subspoke {
+    stroke: var(--field-border-color);
+    stroke-width: 1;
+    fill: none;
+}
+
+.mindmap-subbranch {
+    fill: white;
+    stroke: var(--field-border-color);
+    stroke-width: 1;
+}
+
 .mindmap-center-text {
     font-size: 15px;
     font-weight: 700;

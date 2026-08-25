@@ -445,7 +445,7 @@ Frage oder Einleitung…
 
 ### `mindmap`
 
-Offene Cluster-/Ideensammlung ohne feste Lösung: der Blockinhalt ist das zentrale Thema, gerendert als radiales SVG-Diagramm mit `branches` leeren Zweig-Feldern für eigene Assoziationen. Kein Arbeitsblatt-/Lösungs-Unterschied -- der Block sieht in beiden Modi gleich aus.
+Offene Cluster-/Ideensammlung ohne feste Lösung: der Blockinhalt ist das zentrale Thema, gerendert als radiales SVG-Diagramm mit `branches` leeren Zweig-Feldern für eigene Assoziationen. Optional (`subbranches=`, Standard aus) bekommt jeder Hauptzweig zusätzlich eine eigene kleine Fächer aus Unterzweig-Feldern für ein zweistufiges Mindmap. Kein Arbeitsblatt-/Lösungs-Unterschied -- der Block sieht in beiden Modi gleich aus.
 
 | Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
 |---|---|---|---|---|---|
@@ -454,6 +454,7 @@ Offene Cluster-/Ideensammlung ohne feste Lösung: der Blockinhalt ist das zentra
 | `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
 | `shape` | Enum | `cloud`, `oval`, `rect` | nein | `oval` | Form der Zweig-Felder: `oval` (Standard), `rect` oder `cloud`. |
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
+| `subbranches` | Ganzzahl | -- | nein | `0` | Anzahl kleinerer Unterzweig-Felder je Hauptzweig (0-4, Standard `0` -- aus). Ab `subbranches > 0` wird das Diagramm zweistufig gezeichnet. |
 
 **Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
 

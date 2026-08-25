@@ -569,6 +569,7 @@ BLOCK_OPTION_SPECS: dict[str, tuple[BlockOptionSpec, ...]] = {
         _OPT_MODE,
         BlockOptionSpec("branches", "integer", None, False, 6),
         BlockOptionSpec("shape", "enum", frozenset({"oval", "rect", "cloud"}), False, "oval"),
+        BlockOptionSpec("subbranches", "integer", None, False, 0),
         _OPT_ALIGN,
     ),
     "selfcheck": (

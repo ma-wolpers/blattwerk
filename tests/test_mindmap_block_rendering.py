@@ -7,6 +7,10 @@ def _spoke_count(html):
     return len(re.findall(r"<line class='mindmap-spoke'", html))
 
 
+def _subspoke_count(html):
+    return len(re.findall(r"<line class='mindmap-subspoke'", html))
+
+
 def test_render_mindmap_block_empty_topic_returns_empty_string():
     assert render_mindmap_block({}, "") == ""
     assert render_mindmap_block({}, "   \n  ") == ""
@@ -66,6 +70,44 @@ def test_estimate_mindmap_weight_increases_with_branch_count():
     small = estimate_mindmap_weight({"branches": "2"}, "Thema")
     large = estimate_mindmap_weight({"branches": "12"}, "Thema")
     assert large > small
+
+
+def test_render_mindmap_block_default_has_no_subbranches():
+    # Regression: subbranches=0 (default) must render exactly today's
+    # single-tier diagram, no .mindmap-subspoke elements and the default
+    # (smaller) viewBox.
+    html = render_mindmap_block({"branches": "4"}, "Thema")
+    assert _subspoke_count(html) == 0
+    assert "mindmap-subbranch" not in html
+    assert "viewBox='0 0 420 420'" in html
+
+
+def test_render_mindmap_block_subbranches_fan_out_per_main_branch():
+    html = render_mindmap_block({"branches": "4", "subbranches": "2"}, "Thema")
+    assert _subspoke_count(html) == 4 * 2
+    assert "mindmap-subbranch" in html
+
+
+def test_render_mindmap_block_subbranches_use_the_larger_canvas():
+    html = render_mindmap_block({"branches": "4", "subbranches": "1"}, "Thema")
+    assert "viewBox='0 0 560 560'" in html
+
+
+def test_render_mindmap_block_clamps_subbranch_count_to_valid_range():
+    assert _subspoke_count(render_mindmap_block({"branches": "3", "subbranches": "-1"}, "Thema")) == 0
+    assert _subspoke_count(render_mindmap_block({"branches": "3", "subbranches": "99"}, "Thema")) == 3 * 4
+
+
+def test_estimate_mindmap_weight_subbranches_default_does_not_change_weight():
+    without_option = estimate_mindmap_weight({"branches": "4"}, "Thema")
+    with_zero = estimate_mindmap_weight({"branches": "4", "subbranches": "0"}, "Thema")
+    assert without_option == with_zero
+
+
+def test_estimate_mindmap_weight_increases_with_subbranch_count():
+    base = estimate_mindmap_weight({"branches": "4"}, "Thema")
+    with_subbranches = estimate_mindmap_weight({"branches": "4", "subbranches": "2"}, "Thema")
+    assert with_subbranches > base
 
 
 def test_render_mindmap_block_include_solutions_has_no_effect_on_output():
