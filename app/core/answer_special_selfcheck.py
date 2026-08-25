@@ -11,7 +11,13 @@ from __future__ import annotations
 
 from html import escape
 
-from .answer_special_shared import _new_markdown_converter, _safe_int, convert_markdown_with_math, parse_bullet_list_lines
+from .answer_special_shared import (
+    _new_markdown_converter,
+    _option_is_enabled,
+    _safe_int,
+    convert_markdown_with_math,
+    parse_bullet_list_lines,
+)
 
 _MIN_STEPS, _MAX_STEPS, _DEFAULT_STEPS = 2, 7, 3
 _KNOWN_SCALES = frozenset({"smiley", "ampel", "sterne", "zahlen"})
@@ -45,7 +51,15 @@ def _resolve_scale_glyphs(scale, steps):
 
 def render_selfcheck_block(options, content):
     """Renders a `:::selfcheck` block: one row per statement, each with a
-    `steps`-wide scale of selectable symbols and no marked "correct" one."""
+    `steps`-wide scale of selectable symbols and no marked "correct" one.
+
+    `dual=true` renders **two** independent instances of the same scale per
+    row (e.g. a self-assessment and a teacher-assessment column, or an
+    earlier/later self-assessment -- the two use cases the option was
+    requested for) instead of picking one fixed pair of labels. `label1`/
+    `label2` optionally caption the two columns via a header row; without
+    either set (the default), the two columns render unlabeled.
+    """
     statements = parse_bullet_list_lines(content)
     if not statements:
         return ""
@@ -56,17 +70,39 @@ def render_selfcheck_block(options, content):
         scale = "smiley"
     steps = max(_MIN_STEPS, min(_MAX_STEPS, _safe_int(options.get("steps"), _DEFAULT_STEPS)))
     glyphs = _resolve_scale_glyphs(scale, steps)
+    glyphs_html = "".join(f"<span class='selfcheck-glyph'>{escape(glyph)}</span>" for glyph in glyphs)
+
+    dual = _option_is_enabled(options.get("dual"), default=False)
+    single_scale_html = f"<span class='selfcheck-scale'>{glyphs_html}</span>"
+    if dual:
+        scale_html = f"<span class='selfcheck-scale-group'>{single_scale_html}{single_scale_html}</span>"
+    else:
+        scale_html = single_scale_html
+
+    header_html = ""
+    if dual:
+        label1 = str(options.get("label1") or "").strip()
+        label2 = str(options.get("label2") or "").strip()
+        if label1 or label2:
+            header_html = (
+                "<div class='selfcheck-header-row'>"
+                "<span class='selfcheck-statement'></span>"
+                "<span class='selfcheck-scale-group'>"
+                f"<span class='selfcheck-scale-label'>{escape(label1)}</span>"
+                f"<span class='selfcheck-scale-label'>{escape(label2)}</span>"
+                "</span>"
+                "</div>"
+            )
 
     md = _new_markdown_converter()
     rows = []
     for statement in statements:
         statement_html = convert_markdown_with_math(md, statement).strip()
-        glyphs_html = "".join(f"<span class='selfcheck-glyph'>{escape(glyph)}</span>" for glyph in glyphs)
         rows.append(
             "<div class='selfcheck-row'>"
             f"<span class='selfcheck-statement'>{statement_html}</span>"
-            f"<span class='selfcheck-scale'>{glyphs_html}</span>"
+            f"{scale_html}"
             "</div>"
         )
 
-    return f"<div class='selfcheck-block'>{''.join(rows)}</div>"
+    return f"<div class='selfcheck-block'>{header_html}{''.join(rows)}</div>"

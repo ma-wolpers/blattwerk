@@ -1669,6 +1669,34 @@ h1 {
     font-size: 1.1em;
 }
 
+.selfcheck-scale-group {
+    display: flex;
+    align-items: center;
+    gap: 0.6em;
+    flex: 0 0 auto;
+}
+
+.selfcheck-scale-group .selfcheck-scale:first-child {
+    padding-right: 0.6em;
+    border-right: var(--field-border-width) solid var(--field-border-color);
+}
+
+.selfcheck-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6em;
+    padding: 0 0 0.2em 0;
+}
+
+.selfcheck-scale-label {
+    flex: 1;
+    text-align: center;
+    font-size: 0.8em;
+    font-weight: 600;
+    color: var(--header-color);
+}
+
 .writebox-block {
     box-sizing: border-box;
     border: var(--field-border-width) solid var(--field-border-color);

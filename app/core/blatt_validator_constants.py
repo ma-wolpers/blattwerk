@@ -577,6 +577,9 @@ BLOCK_OPTION_SPECS: dict[str, tuple[BlockOptionSpec, ...]] = {
         _OPT_MODE,
         BlockOptionSpec("scale", "enum", frozenset({"smiley", "ampel", "sterne", "zahlen"}), False, "smiley"),
         BlockOptionSpec("steps", "integer", None, False, 3),
+        BlockOptionSpec("dual", "boolean", None, False, False),
+        BlockOptionSpec("label1", "text", None, False, MISSING),
+        BlockOptionSpec("label2", "text", None, False, MISSING),
         _OPT_ALIGN,
     ),
     "writebox": (

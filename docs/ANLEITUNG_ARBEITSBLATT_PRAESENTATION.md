@@ -570,11 +570,14 @@ Setzt den aktuellen Abschnittsnamen für die Präsentations-Footer-Navigation --
 
 ### `selfcheck`
 
-Offene Selbsteinschätzung ohne feste Lösung: der Blockinhalt ist eine Liste von Aussagen (eine pro Zeile), jede mit einer `steps`-stufigen Symbol-Skala ohne markierte "richtige" Antwort. Kein Arbeitsblatt-/Lösungs-Unterschied.
+Offene Selbsteinschätzung ohne feste Lösung: der Blockinhalt ist eine Liste von Aussagen (eine pro Zeile), jede mit einer `steps`-stufigen Symbol-Skala ohne markierte "richtige" Antwort. Optional (`dual=true`, Standard aus) zwei unabhängige Skalen-Spalten pro Aussage (z. B. Selbst-/Fremdeinschätzung oder früher/später), über `label1=`/`label2=` beschriftbar (Standard: keine Beschriftung). Kein Arbeitsblatt-/Lösungs-Unterschied.
 
 | Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
 |---|---|---|---|---|---|
 | `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
+| `dual` | Bool | -- | nein | `False` | Zeigt zwei unabhängige Skalen-Spalten je Aussage statt einer (Standard: aus). |
+| `label1` | Text | -- | nein | -- | Beschriftung der ersten Skalen-Spalte, nur wirksam bei `dual=true` (Standard: keine Beschriftung). |
+| `label2` | Text | -- | nein | -- | Beschriftung der zweiten Skalen-Spalte, nur wirksam bei `dual=true` (Standard: keine Beschriftung). |
 | `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
 | `scale` | Enum | `ampel`, `smiley`, `sterne`, `zahlen` | nein | `smiley` | Symbolsatz der Skala: `smiley` (Standard), `ampel`, `sterne` oder `zahlen`. |
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |

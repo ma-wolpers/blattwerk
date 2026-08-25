@@ -391,7 +391,9 @@ PROSE_SECTIONS: dict[str, str] = {
     "block:selfcheck": (
         "Offene Selbsteinschätzung ohne feste Lösung: der Blockinhalt ist eine Liste von Aussagen "
         "(eine pro Zeile), jede mit einer `steps`-stufigen Symbol-Skala ohne markierte \"richtige\" "
-        "Antwort. Kein Arbeitsblatt-/Lösungs-Unterschied."
+        "Antwort. Optional (`dual=true`, Standard aus) zwei unabhängige Skalen-Spalten pro Aussage "
+        "(z. B. Selbst-/Fremdeinschätzung oder früher/später), über `label1=`/`label2=` beschriftbar "
+        "(Standard: keine Beschriftung). Kein Arbeitsblatt-/Lösungs-Unterschied."
     ),
     "block:writebox": (
         "Offener Rahmen für freies Schreiben ohne feste Lösung: der Blockinhalt ist ein optionaler "
@@ -666,6 +668,17 @@ PROSE_SECTIONS: dict[str, str] = {
     ),
     "block:selfcheck.steps": (
         "Anzahl der Skalenstufen (2-7, Standard `3`)."
+    ),
+    "block:selfcheck.dual": (
+        "Zeigt zwei unabhängige Skalen-Spalten je Aussage statt einer (Standard: aus)."
+    ),
+    "block:selfcheck.label1": (
+        "Beschriftung der ersten Skalen-Spalte, nur wirksam bei `dual=true` (Standard: keine "
+        "Beschriftung)."
+    ),
+    "block:selfcheck.label2": (
+        "Beschriftung der zweiten Skalen-Spalte, nur wirksam bei `dual=true` (Standard: keine "
+        "Beschriftung)."
     ),
     "block:writebox.style": (
         "Dekorativer Rahmenstil: `bubble`, `cloud`, `frame` (Standard) oder `letter`."

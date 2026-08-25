@@ -14,6 +14,14 @@ def _glyphs_in_first_row(html):
     return re.findall(r"<span class='selfcheck-glyph'>(.*?)</span>", first_row)
 
 
+def _scale_groups_in_first_row(html):
+    """Splits the first row's glyphs into one list per `.selfcheck-scale`
+    span (one list normally, two in `dual=true` mode)."""
+    first_row = re.search(r"<div class='selfcheck-row'>.*?</div>", html, re.DOTALL).group(0)
+    scale_spans = re.findall(r"<span class='selfcheck-scale'>.*?</span></span>", first_row, re.DOTALL)
+    return [re.findall(r"<span class='selfcheck-glyph'>(.*?)</span>", span) for span in scale_spans]
+
+
 def test_render_selfcheck_block_empty_content_returns_empty_string():
     assert render_selfcheck_block({}, "") == ""
     assert render_selfcheck_block({}, "   \n  ") == ""
@@ -59,3 +67,47 @@ def test_render_selfcheck_block_scale_without_curated_preset_falls_back_to_numbe
 def test_render_selfcheck_block_statement_text_supports_markdown():
     html = render_selfcheck_block({}, "- Ich kann **fett** schreiben.\n")
     assert "<strong>fett</strong>" in html
+
+
+def test_render_selfcheck_block_dual_false_is_the_default_and_unchanged():
+    # Regression: dual=false / not set must render exactly today's
+    # single-scale markup, no .selfcheck-scale-group / header row.
+    without_option = render_selfcheck_block({}, _CONTENT)
+    with_explicit_false = render_selfcheck_block({"dual": "false"}, _CONTENT)
+    assert without_option == with_explicit_false
+    assert "selfcheck-scale-group" not in without_option
+    assert "selfcheck-header-row" not in without_option
+
+
+def test_render_selfcheck_block_dual_renders_two_independent_scale_columns():
+    html = render_selfcheck_block({"dual": "true", "steps": "3"}, "- Aussage\n")
+    groups = _scale_groups_in_first_row(html)
+    assert len(groups) == 2
+    assert len(groups[0]) == 3
+    assert len(groups[1]) == 3
+    assert groups[0] == groups[1]  # same scale definition rendered twice
+
+
+def test_render_selfcheck_block_dual_without_labels_has_no_header_row():
+    html = render_selfcheck_block({"dual": "true"}, _CONTENT)
+    assert "selfcheck-header-row" not in html
+
+
+def test_render_selfcheck_block_dual_with_labels_renders_one_header_row():
+    html = render_selfcheck_block({"dual": "true", "label1": "Ich", "label2": "Lehrkraft"}, _CONTENT)
+    assert html.count("selfcheck-header-row") == 1
+    header = re.search(r"<div class='selfcheck-header-row'>.*?</div>", html, re.DOTALL).group(0)
+    assert "Ich" in header
+    assert "Lehrkraft" in header
+
+
+def test_render_selfcheck_block_dual_with_only_one_label_still_shows_header():
+    html = render_selfcheck_block({"dual": "true", "label1": "Ich"}, _CONTENT)
+    assert "selfcheck-header-row" in html
+    assert "Ich" in html
+
+
+def test_render_selfcheck_block_labels_without_dual_are_ignored():
+    html = render_selfcheck_block({"label1": "Ich", "label2": "Lehrkraft"}, _CONTENT)
+    assert "selfcheck-header-row" not in html
+    assert "selfcheck-scale-group" not in html

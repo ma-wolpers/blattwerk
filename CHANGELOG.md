@@ -13,6 +13,10 @@ The format is based on Keep a Changelog.
 - `:::crossword`-Rätsel mit zwei Wörtern, die nach interner Normalisierung identisch werden (z. B. gleicher Wortstamm mit unterschiedlicher Ziffer wie `Wort1`/`Wort2`), verwarfen bisher lautlos den zweiten Eintrag samt seines Hinweises. Solche Wörter werden jetzt beide platziert; eine neue, nicht-blockierende Warnung (`CW004`) macht darauf aufmerksam, falls das unbeabsichtigt war.
 - Manuelles Kompilieren (Button "Aktualisieren" oder Leertaste in der Vorschau) bricht jetzt den laufenden automatischen Vorschau-Timer ab, statt ihn im Hintergrund weiterlaufen zu lassen -- bisher konnte kurz nach einem manuellen Kompilieren eine zweite, redundante automatische Kompilierung folgen.
 
+### Added
+
+- `:::selfcheck` hat jetzt eine `dual=true`-Option: zeigt zwei unabhängige Skalen-Spalten je Aussage statt einer (z. B. Selbst-/Fremdeinschätzung oder früher/später). `label1=`/`label2=` beschriften optional die beiden Spalten (Standard: keine Beschriftung).
+
 ### Changed
 
 - `:::writebox`-Rahmenstile deutlicher unterscheidbar gemacht: `bubble` ist jetzt eine echte Sprechblase mit Schwänzchen, `cloud` hat echte Ausbuchtungen am oberen Rand statt nur weicherer Ecken, `letter` hat einen eleganten Briefpapier-Doppelrahmen statt eines schlichten gestrichelten Rahmens. `frame` bleibt unverändert.
