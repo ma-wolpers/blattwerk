@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import atexit
 import sys
 
 from bw_libs.shared_gui_core import ensure_bw_gui_on_path
@@ -34,6 +35,10 @@ def main() -> int:
             "2) pip install -r requirements.txt"
         )
         return 1
+
+    from app.core.block_computation_cache import cleanup_session_caches
+
+    atexit.register(cleanup_session_caches)
 
     run_gui()
     return 0

@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from .blatt_kern_io_build import build_help_cards, build_worksheet
+from .block_computation_cache import BlockComputationCache
 
 
 @dataclass(frozen=True)
@@ -45,6 +46,7 @@ class WorksheetBuildRequest:
     presentation_hide_future_sections: bool = False
     presentation_ignore_framebreaks: bool = False
     diagnostics_out: list | None = None
+    computation_cache: BlockComputationCache | None = None
 
 
 @dataclass(frozen=True)
@@ -65,6 +67,7 @@ class HelpCardsBuildRequest:
     block_on_critical: bool = True
     metadata_defaults: dict[str, str] | None = None
     copyright_text_override: str | None = None
+    computation_cache: BlockComputationCache | None = None
 
 
 def build_worksheet_from_request(request: WorksheetBuildRequest):
@@ -83,6 +86,7 @@ def build_worksheet_from_request(request: WorksheetBuildRequest):
         presentation_hide_future_sections=request.presentation_hide_future_sections,
         presentation_ignore_framebreaks=request.presentation_ignore_framebreaks,
         diagnostics_out=request.diagnostics_out,
+        computation_cache=request.computation_cache,
         **request.design.as_kwargs(),
     )
 
@@ -100,5 +104,6 @@ def build_help_cards_from_request(request: HelpCardsBuildRequest):
         block_on_critical=request.block_on_critical,
         metadata_defaults=request.metadata_defaults,
         copyright_text_override=request.copyright_text_override,
+        computation_cache=request.computation_cache,
         **request.design.as_kwargs(),
     )

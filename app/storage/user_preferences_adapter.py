@@ -93,6 +93,13 @@ PREFERENCE_SPECS = {
         "type": "bool",
         "default": False,
     },
+    "computation_cache_lifetime": {
+        "tab": "general",
+        "label": "Lebensdauer des Berechnungs-Caches",
+        "type": "enum",
+        "default": "session",
+        "values": ["session", "persistent"],
+    },
     # Editor Versvollstaendigung
     "completion_auto_enabled": {
         "tab": "editor_completion",

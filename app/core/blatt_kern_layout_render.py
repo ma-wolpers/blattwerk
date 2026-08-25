@@ -49,10 +49,18 @@ def _normalize_object_alignment(raw_value):
     return aliases.get(normalized, "")
 
 
-def _with_runtime_layout_options(options, printable_width_cm):
-    """Attach render-time layout context for answer blocks."""
+def _with_runtime_layout_options(options, printable_width_cm, cache=None):
+    """Attach render-time layout context for answer blocks.
+
+    `cache` is an optional `BlockComputationCache` (see
+    `app/core/block_computation_cache.py`), injected as `_computation_cache`
+    the same way `_printable_width_cm` already is -- individual block
+    renderers read it via `options.get("_computation_cache")` rather than
+    needing a dedicated parameter threaded through every dispatch layer.
+    """
     merged = dict(options or {})
     merged["_printable_width_cm"] = float(printable_width_cm)
+    merged["_computation_cache"] = cache
     return merged
 
 
@@ -267,6 +275,7 @@ def render_columns_container(
     include_solutions,
     document_mode="ws",
     printable_width_cm=18.0,
+    cache=None,
 ):
     """Rendert einen `columns`-Container inklusive automatischer Breitenlogik."""
     if not columns_blocks:
@@ -299,6 +308,7 @@ def render_columns_container(
             runtime_options = _with_runtime_layout_options(
                 block_options,
                 printable_width_cm,
+                cache=cache,
             )
             rendered = render_block(
                 block_type,
@@ -332,6 +342,7 @@ def render_body_with_columns(
     include_solutions,
     document_mode="ws",
     printable_width_cm=18.0,
+    cache=None,
 ):
     """Rendert den Body und behandelt `columns`/`nextcol`/`endcolumns` Zustände."""
     html_parts = []
@@ -381,6 +392,7 @@ def render_body_with_columns(
                     include_solutions,
                     document_mode=document_mode,
                     printable_width_cm=printable_width_cm,
+                    cache=cache,
                 )
             )
             in_columns = False
@@ -398,6 +410,7 @@ def render_body_with_columns(
         runtime_options = _with_runtime_layout_options(
             options,
             printable_width_cm,
+            cache=cache,
         )
         rendered = render_block(
             block_type,
@@ -716,8 +729,17 @@ def render_html(
     presentation_section_separator="dot",
     presentation_hide_future_sections=False,
     presentation_ignore_framebreaks=False,
+    cache=None,
 ):
-    """Baut das vollständige HTML-Dokument inklusive Styles und Header/Footer."""
+    """Baut das vollständige HTML-Dokument inklusive Styles und Header/Footer.
+
+    `cache` is an optional `BlockComputationCache` opened by the application
+    layer (see `app/core/block_computation_cache.py`); it is threaded down to
+    every block via `_with_runtime_layout_options()` so block renderers can
+    reuse a computation already performed during validation. Presentation
+    documents currently render through a separate path that does not yet
+    consume `cache` (out of scope until a block needing it appears there).
+    """
     document_mode = normalize_document_mode(
         (meta or {}).get("mode"),
         default="worksheet",
@@ -768,6 +790,7 @@ def render_html(
         include_solutions=include_solutions,
         document_mode=document_mode,
         printable_width_cm=printable_width_cm,
+        cache=cache,
     )
     sectioned_body = split_sections(body)
     meta_line = format_meta_line(meta)

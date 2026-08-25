@@ -58,9 +58,15 @@ __all__ = [
 ]
 
 
-def _collect_document_diagnostics(meta, blocks, content_text, content_base_line=1):
+def _collect_document_diagnostics(meta, blocks, content_text, content_base_line=1, cache=None):
     """Orchestriert die vollständige Dokumentprüfung: Marker-Syntax, Frontmatter, je Block Optionen/Typ/YAML,
-    abschließend die dokumentweite `columns`/`nextcol`/`endcolumns`-Paarungsprüfung (`BL007`-`BL011`)."""
+    abschließend die dokumentweite `columns`/`nextcol`/`endcolumns`-Paarungsprüfung (`BL007`-`BL011`).
+
+    `cache` ist ein optionaler `BlockComputationCache` (siehe
+    `app/core/block_computation_cache.py`), der an `_validate_yaml_answer_payload`
+    durchgereicht wird -- Blocktypen mit teurer, deterministischer Validierung
+    (z. B. `crossword`) können damit dasselbe Ergebnis wiederverwenden, das
+    später beim Rendern erneut gebraucht wird, statt es zweimal zu berechnen."""
     diagnostics = _collect_block_marker_syntax_diagnostics(
         content_text, base_line=content_base_line
     )
@@ -122,7 +128,7 @@ def _collect_document_diagnostics(meta, blocks, content_text, content_base_line=
         if not is_answer_block:
             continue
 
-        _validate_yaml_answer_payload(diagnostics, index, block_type, options, content)
+        _validate_yaml_answer_payload(diagnostics, index, block_type, options, content, cache=cache)
 
     diagnostics.extend(_validate_columns_structure(blocks))
     return diagnostics
@@ -165,8 +171,14 @@ def summarize_blocking_diagnostics(diagnostics):
     return "\n".join(lines)
 
 
-def inspect_markdown_text(markdown_text):
-    """Parse markdown text and return parsed document plus diagnostics."""
+def inspect_markdown_text(markdown_text, cache=None):
+    """Parse markdown text and return parsed document plus diagnostics.
+
+    `cache` is an optional `BlockComputationCache`, forwarded to
+    `_collect_document_diagnostics`/`_validate_yaml_answer_payload` -- see
+    `app/core/block_computation_cache.py` for the ownership contract
+    (callers open it, this function only ever receives it).
+    """
     meta, _content_unused = split_front_matter(markdown_text)
     content, content_base_line = _extract_validation_content_and_base_line(markdown_text)
     blocks = parse_blocks(content)
@@ -175,12 +187,13 @@ def inspect_markdown_text(markdown_text):
         blocks,
         content,
         content_base_line=content_base_line,
+        cache=cache,
     )
     return InspectedDocument(meta=meta, blocks=blocks, diagnostics=diagnostics)
 
 
-def inspect_markdown_document(md_path):
+def inspect_markdown_document(md_path, cache=None):
     """Read markdown file and return parsed document plus diagnostics."""
     md_file = Path(md_path)
     text = md_file.read_text(encoding="utf-8")
-    return inspect_markdown_text(text)
+    return inspect_markdown_text(text, cache=cache)

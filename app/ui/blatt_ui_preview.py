@@ -34,6 +34,7 @@ from .preview_geometry import (
     get_zoom_target_size,
     parse_scrollregion,
 )
+from ..core.block_computation_cache import open_block_computation_cache
 from ..core.document_preview_build import build_preview_images_for_document
 from ..core.kurzentwurf_settings import kurzentwurf_runtime_options_from_preferences
 from ..core.document_types import (
@@ -252,6 +253,50 @@ class BlattwerkAppPreviewMixin:
             if tab_id is None:
                 return None
             return self.document_tabs.get(tab_id)
+
+    def _resolve_computation_cache(self, input_path):
+            """Returns the `BlockComputationCache` for the tab holding `input_path`.
+
+            Ownership lives here (the application/GUI layer), never in
+            `build_worksheet()`/`build_help_cards()` -- see
+            `app/core/block_computation_cache.py`. Deliberately looks the
+            tab up **by path** across all open tabs rather than assuming
+            "the active tab", since callers such as the multi-document
+            Lernhilfen export (`blatt_ui_export_multi.py`) resolve a cache
+            for one document at a time while a *different* tab is active.
+            One instance is kept per matching tab in
+            `tab_state["_computation_cache"]` so that a worksheet export
+            followed by a solution export for the same document (or the
+            validation pass followed by rendering within a single build)
+            can reuse the same cached results. Returns `None` when no open
+            tab matches `input_path` (e.g. a headless/CLI-style call, or a
+            test double without a real `document_tabs`), which every
+            downstream consumer already treats as "no cache, compute
+            directly".
+            """
+
+            document_tabs = getattr(self, "document_tabs", None)
+            if not document_tabs:
+                return None
+
+            normalized_path = str(input_path)
+            tab_state = None
+            for candidate in document_tabs.values():
+                if str(candidate.get("path", "")) == normalized_path:
+                    tab_state = candidate
+                    break
+            if tab_state is None:
+                return None
+
+            cached = tab_state.get("_computation_cache")
+            if cached is not None:
+                return cached
+
+            preferences = getattr(self, "user_preferences", {})
+            persist = str(preferences.get("computation_cache_lifetime", "session")) == "persistent"
+            cache = open_block_computation_cache(input_path, persist=persist)
+            tab_state["_computation_cache"] = cache
+            return cache
 
     def _refresh_preview_for_active_tab(self):
             """Refreshes active tab preview while favoring cached pages when possible."""
@@ -517,6 +562,7 @@ class BlattwerkAppPreviewMixin:
                 presentation_section_separator=section_separator,
                 presentation_hide_future_sections=hide_future_sections,
                 kurzentwurf_options=kurzentwurf_options,
+                computation_cache=self._resolve_computation_cache(input_path),
             )
 
     def refresh_preview(self, force_rebuild=False):

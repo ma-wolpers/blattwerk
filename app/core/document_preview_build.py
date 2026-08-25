@@ -12,6 +12,7 @@ from PIL import Image
 from .kurzentwurf_runtime.build import build_preview_images as build_kurzentwerfer_preview_images
 
 from .blatt_validator import BuildDiagnostic
+from .block_computation_cache import BlockComputationCache
 from .build_requests import WorksheetBuildRequest, WorksheetDesignOptions, build_worksheet_from_request
 from .kurzentwurf_settings import resolve_kurzentwurf_runtime_options
 from .document_types import DOCUMENT_TYPE_KURZENTWURF
@@ -32,8 +33,14 @@ def build_preview_images_for_document(
     presentation_hide_future_sections: bool = False,
     presentation_ignore_framebreaks: bool = False,
     kurzentwurf_options: Mapping[str, object] | None = None,
+    computation_cache: BlockComputationCache | None = None,
 ) -> tuple[list[Image.Image], list[BuildDiagnostic]]:
-    """Build preview images for the active document family."""
+    """Build preview images for the active document family.
+
+    `computation_cache` is only meaningful for the worksheet/presentation
+    family (threaded through to `build_worksheet_from_request`); the
+    Kurzentwurf runtime does not use the block computation cache.
+    """
 
     if str(document_type or "").strip().lower() == DOCUMENT_TYPE_KURZENTWURF:
         return _build_kurzentwurf_preview_images(input_path, kurzentwurf_options=kurzentwurf_options)
@@ -50,6 +57,7 @@ def build_preview_images_for_document(
         presentation_section_separator=presentation_section_separator,
         presentation_hide_future_sections=presentation_hide_future_sections,
         presentation_ignore_framebreaks=presentation_ignore_framebreaks,
+        computation_cache=computation_cache,
     )
 
 
@@ -66,6 +74,7 @@ def _build_worksheet_preview_images(
     presentation_section_separator: str,
     presentation_hide_future_sections: bool,
     presentation_ignore_framebreaks: bool = False,
+    computation_cache: BlockComputationCache | None = None,
 ) -> tuple[list[Image.Image], list[BuildDiagnostic]]:
     with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
         temp_pdf_path = Path(tmp.name)
@@ -87,6 +96,7 @@ def _build_worksheet_preview_images(
                 presentation_hide_future_sections=presentation_hide_future_sections,
                 presentation_ignore_framebreaks=presentation_ignore_framebreaks,
                 diagnostics_out=compile_diagnostics,
+                computation_cache=computation_cache,
             )
         )
 

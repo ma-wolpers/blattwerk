@@ -110,11 +110,21 @@ def build_worksheet(
     presentation_section_separator="dot",
     presentation_hide_future_sections=False,
     presentation_ignore_framebreaks=False,
+    computation_cache=None,
 ):
-    """Erstellt aus einer Markdown-Datei eine HTML- oder PDF-Ausgabe."""
+    """Erstellt aus einer Markdown-Datei eine HTML- oder PDF-Ausgabe.
+
+    `computation_cache` ist ein optionaler, bereits von der Anwendungsschicht
+    geöffneter `BlockComputationCache` (siehe
+    `app/core/block_computation_cache.py`) -- diese Funktion erzeugt ihn
+    nicht selbst, sondern reicht ihn nur an den Validierungs- (`inspect_markdown_text`)
+    und den Rendering-Pass (`render_html`) weiter, damit beide dieselben
+    teuren, deterministischen Blockberechnungen (z. B. ein Kreuzworträtsel-Layout)
+    wiederverwenden können, statt sie unabhängig voneinander doppelt zu berechnen.
+    """
     md_file = Path(md_path)
     text = md_file.read_text(encoding="utf-8")
-    inspected = inspect_markdown_text(text)
+    inspected = inspect_markdown_text(text, cache=computation_cache)
     meta = _merge_metadata_defaults(inspected.meta, metadata_defaults)
     document_mode = normalize_document_mode((meta or {}).get("mode"), default="worksheet")
     if document_mode == "presentation":
@@ -137,6 +147,7 @@ def build_worksheet(
         presentation_section_separator=presentation_section_separator,
         presentation_hide_future_sections=presentation_hide_future_sections,
         presentation_ignore_framebreaks=presentation_ignore_framebreaks,
+        cache=computation_cache,
     )
     html = absolutize_local_image_sources(html, md_file.parent)
     html = apply_image_size_options(html)
@@ -187,12 +198,19 @@ def build_help_cards(
     block_on_critical=True,
     metadata_defaults=None,
     copyright_text_override=None,
+    computation_cache=None,
 ):
-    """Erstellt aus Hilfeblöcken einer Markdown-Datei eine HTML- oder PDF-Ausgabe."""
+    """Erstellt aus Hilfeblöcken einer Markdown-Datei eine HTML- oder PDF-Ausgabe.
+
+    `computation_cache` wird nur an den Validierungs-Pass (`inspect_markdown_text`)
+    weitergereicht -- `render_help_cards_html` konsumiert aktuell keinen Cache,
+    da Hilfekarten bisher keine Blocktypen mit teurer, cachbarer Berechnung
+    (z. B. `crossword`) einbetten (siehe `app/core/block_computation_cache.py`).
+    """
 
     md_file = Path(md_path)
     text = md_file.read_text(encoding="utf-8")
-    inspected = inspect_markdown_text(text)
+    inspected = inspect_markdown_text(text, cache=computation_cache)
     meta = _merge_metadata_defaults(inspected.meta, metadata_defaults)
     blocks = inspected.blocks
     if block_on_critical:

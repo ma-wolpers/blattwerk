@@ -243,12 +243,18 @@ def _validate_block_type_specifics(diagnostics, index, block_type, content, qrco
     return True
 
 
-def _validate_yaml_answer_payload(diagnostics, index, block_type, options, content):
+def _validate_yaml_answer_payload(diagnostics, index, block_type, options, content, cache=None):
     """Parst und validiert den YAML-Payload eines Antwortblocks (`AN003`/`AN004`/`AN007`/`MA001`).
 
     Bricht (per `return`) vor der `matching`-Elementzahlprüfung ab, wenn
     das YAML nicht parsebar war — analog zum ursprünglichen `continue` in
     der monolithischen Schleife, das denselben Effekt hatte.
+
+    `cache` ist ein optionaler `BlockComputationCache` (siehe
+    `app/core/block_computation_cache.py`) für Blocktypen mit teurer,
+    deterministischer Validierung (z. B. `crossword`s Platzierungssuche),
+    damit dasselbe Ergebnis beim späteren Rendern nicht erneut berechnet
+    werden muss. Aktuell noch von keinem Zweig konsumiert.
     """
     answer_type = block_type
 

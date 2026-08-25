@@ -278,6 +278,16 @@ class BlattwerkAppExportMixin:
             return path_obj.with_name(base_stem + path_obj.suffix)
         return path_obj
 
+    def _computation_cache_for(self, input_path: Path):
+        """Hasattr-guarded lookup of `_resolve_computation_cache` (defined in the
+        preview mixin, `blatt_ui_preview.py`) -- keeps this mixin usable on its
+        own (e.g. in tests that only combine `BlattwerkAppExportMixin`) without
+        requiring every test double to also implement the preview mixin.
+        `None` is always a safe fallback (every downstream consumer treats it
+        as "no cache, compute directly")."""
+        resolver = getattr(self, "_resolve_computation_cache", None)
+        return resolver(input_path) if resolver is not None else None
+
     def _worksheet_build_request(
         self,
         *,
@@ -317,6 +327,7 @@ class BlattwerkAppExportMixin:
             ),
             presentation_ignore_framebreaks=bool(presentation_ignore_framebreaks),
             diagnostics_out=diagnostics_out,
+            computation_cache=self._computation_cache_for(input_path),
         )
 
     def _help_cards_build_request(
@@ -339,6 +350,7 @@ class BlattwerkAppExportMixin:
             add_running_elements=add_running_elements,
             metadata_defaults=self._metadata_defaults_from_preferences(),
             copyright_text_override=self._copyright_text_from_preferences() or None,
+            computation_cache=self._computation_cache_for(input_path),
         )
 
     def _export_pdf(
@@ -522,6 +534,7 @@ class BlattwerkAppExportMixin:
         if mode == "both":
             worksheet_path = self._without_solution_suffix(output_path)
             solution_path = self._with_solution_suffix(worksheet_path)
+            computation_cache = self._computation_cache_for(input_path)
             out_worksheet = export_document_png(
                 input_path=input_path,
                 output_path=worksheet_path,
@@ -538,6 +551,7 @@ class BlattwerkAppExportMixin:
                 presentation_ignore_framebreaks=presentation_ignore_framebreaks,
                 diagnostics_out=compile_diagnostics,
                 kurzentwurf_options=kurzentwurf_options,
+                computation_cache=computation_cache,
             )
             out_solution = export_document_png(
                 input_path=input_path,
@@ -555,6 +569,7 @@ class BlattwerkAppExportMixin:
                 presentation_ignore_framebreaks=presentation_ignore_framebreaks,
                 diagnostics_out=compile_diagnostics,
                 kurzentwurf_options=kurzentwurf_options,
+                computation_cache=computation_cache,
             )
             return [*out_worksheet, *out_solution]
 
@@ -576,6 +591,7 @@ class BlattwerkAppExportMixin:
             presentation_ignore_framebreaks=presentation_ignore_framebreaks,
             diagnostics_out=compile_diagnostics,
             kurzentwurf_options=kurzentwurf_options,
+            computation_cache=self._computation_cache_for(input_path),
         )
 
     def _export_png_zip(
@@ -601,6 +617,7 @@ class BlattwerkAppExportMixin:
             worksheet_path = self._without_solution_suffix(output_path)
             solution_path = self._with_solution_suffix(worksheet_path)
 
+            computation_cache = self._computation_cache_for(input_path)
             export_document_png_zip(
                 input_path=input_path,
                 output_path=worksheet_path,
@@ -617,6 +634,7 @@ class BlattwerkAppExportMixin:
                 presentation_ignore_framebreaks=presentation_ignore_framebreaks,
                 diagnostics_out=compile_diagnostics,
                 kurzentwurf_options=kurzentwurf_options,
+                computation_cache=computation_cache,
             )
             export_document_png_zip(
                 input_path=input_path,
@@ -634,6 +652,7 @@ class BlattwerkAppExportMixin:
                 presentation_ignore_framebreaks=presentation_ignore_framebreaks,
                 diagnostics_out=compile_diagnostics,
                 kurzentwurf_options=kurzentwurf_options,
+                computation_cache=computation_cache,
             )
             return [worksheet_path, solution_path]
 
@@ -658,6 +677,7 @@ class BlattwerkAppExportMixin:
             presentation_ignore_framebreaks=presentation_ignore_framebreaks,
             diagnostics_out=compile_diagnostics,
             kurzentwurf_options=kurzentwurf_options,
+            computation_cache=self._computation_cache_for(input_path),
         )
         return [out_file]
 

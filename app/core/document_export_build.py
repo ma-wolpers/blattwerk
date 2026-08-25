@@ -12,6 +12,7 @@ from PIL import Image
 from .kurzentwurf_runtime.build import export_pdf_from_source, render_html_from_source
 
 from .blatt_validator import BuildDiagnostic
+from .block_computation_cache import BlockComputationCache
 from .build_requests import WorksheetBuildRequest, build_worksheet_from_request
 from .document_preview_build import build_preview_images_for_document
 from .kurzentwurf_settings import resolve_kurzentwurf_runtime_options
@@ -82,6 +83,7 @@ def export_document_png(
     presentation_ignore_framebreaks: bool = False,
     diagnostics_out: list[BuildDiagnostic] | None = None,
     kurzentwurf_options: Mapping[str, object] | None = None,
+    computation_cache: BlockComputationCache | None = None,
 ) -> list[Path]:
     """Export one document variant as one or more PNG files."""
 
@@ -102,6 +104,7 @@ def export_document_png(
         presentation_hide_future_sections=presentation_hide_future_sections,
         presentation_ignore_framebreaks=presentation_ignore_framebreaks,
         kurzentwurf_options=kurzentwurf_options,
+        computation_cache=computation_cache,
     )
     _extend_diagnostics(diagnostics_out, diagnostics)
     return _save_png_pages(output_path=output_path, pages=pages)
@@ -124,6 +127,7 @@ def export_document_png_zip(
     presentation_ignore_framebreaks: bool = False,
     diagnostics_out: list[BuildDiagnostic] | None = None,
     kurzentwurf_options: Mapping[str, object] | None = None,
+    computation_cache: BlockComputationCache | None = None,
 ) -> Path:
     """Export one document variant as a ZIP archive with page PNGs."""
 
@@ -144,6 +148,7 @@ def export_document_png_zip(
         presentation_hide_future_sections=presentation_hide_future_sections,
         presentation_ignore_framebreaks=presentation_ignore_framebreaks,
         kurzentwurf_options=kurzentwurf_options,
+        computation_cache=computation_cache,
     )
     _extend_diagnostics(diagnostics_out, diagnostics)
     return _save_png_zip(output_path=output_path, pages=pages)
