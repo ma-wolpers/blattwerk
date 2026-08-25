@@ -1678,15 +1678,72 @@ h1 {
 }
 
 .writebox-style-bubble {
-    border-radius: 1.2em;
+    border-radius: 2em;
+    position: relative;
+}
+
+/* Classic bordered-speech-bubble-tail trick: a slightly larger triangle in
+   the border color (::before, painted first/underneath), topped by a
+   slightly smaller triangle in the page's background color (::after,
+   painted last/on top) -- only a thin sliver of the outer triangle shows
+   through, reading as a one-line-thick outlined tail. */
+.writebox-style-bubble::before {
+    content: "";
+    position: absolute;
+    left: 2em;
+    bottom: -0.85em;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 0.7em 0.6em 0 0.6em;
+    border-color: var(--field-border-color) transparent transparent transparent;
+}
+
+.writebox-style-bubble::after {
+    content: "";
+    position: absolute;
+    left: 2.12em;
+    bottom: -0.68em;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 0.56em 0.48em 0 0.48em;
+    border-color: #fff transparent transparent transparent;
 }
 
 .writebox-style-cloud {
-    border-radius: 1.6em 0.6em 1.6em 0.6em / 0.8em 1.4em 0.8em 1.4em;
+    border-radius: 1.8em 2.4em 1.8em 2.4em / 2.2em 1.6em 2.2em 1.6em;
+    position: relative;
+}
+
+/* Two circular bumps peeking above the top edge -- genuine puffy
+   extrusions rather than just a softer border-radius. */
+.writebox-style-cloud::before,
+.writebox-style-cloud::after {
+    content: "";
+    position: absolute;
+    top: -0.7em;
+    width: 2.2em;
+    height: 1.6em;
+    background: #fff;
+    border: var(--field-border-width) solid var(--field-border-color);
+    border-radius: 50%;
+}
+
+.writebox-style-cloud::before {
+    left: 0.9em;
+}
+
+.writebox-style-cloud::after {
+    right: 0.9em;
 }
 
 .writebox-style-letter {
-    border-style: dashed;
+    /* Fine double-rule "stationery" frame instead of a plain dashed border:
+       a slim outer border plus a second, inset outline a few pixels in --
+       classic diploma/letterhead look, no envelope-flap graphics. */
+    outline: var(--field-border-width) solid var(--field-border-color);
+    outline-offset: 3px;
 }
 
 .writebox-prompt p {
