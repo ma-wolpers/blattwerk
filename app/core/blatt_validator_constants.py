@@ -546,6 +546,7 @@ BLOCK_OPTION_SPECS: dict[str, tuple[BlockOptionSpec, ...]] = {
         _OPT_MODE,
         BlockOptionSpec("maxw", "integer", None, False, MISSING),  # Default aus Printable-Width, siehe crossword_placement.py
         BlockOptionSpec("maxh", "integer", None, False, MISSING),  # Default aus Printable-Height, siehe crossword_placement.py
+        BlockOptionSpec("scale", "css_length", None, False, "0.72cm"),
         BlockOptionSpec("prefill", "integer", None, False, 0),
         BlockOptionSpec("position", "enum", frozenset({"left", "right", "above", "below", "auto"}), True, "auto"),
         BlockOptionSpec("code", "text", None, False, MISSING),

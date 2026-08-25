@@ -223,3 +223,42 @@ def test_estimate_crossword_weight_returns_zero_for_no_entries():
 def test_estimate_crossword_weight_is_positive_and_bounded_for_real_content():
     weight = estimate_crossword_weight({"maxw": 15, "maxh": 15}, _CONTENT)
     assert 0.0 < weight <= 7.8
+
+
+def test_render_crossword_answer_scale_option_sets_cw_cell_size():
+    html = render_crossword_answer({"maxw": 15, "maxh": 15, "scale": "1.2cm"}, _CONTENT, include_solutions=True)
+    assert "--cw-cell-size:1.2cm" in html
+
+
+def test_render_crossword_answer_without_scale_keeps_default_cell_size():
+    # Regression: the new `scale=` option must not change anything for
+    # documents that don't set it.
+    html = render_crossword_answer({"maxw": 15, "maxh": 15}, _CONTENT, include_solutions=True)
+    assert "--cw-cell-size:0.72cm" in html
+
+
+def test_render_crossword_answer_invalid_scale_falls_back_to_crossword_default():
+    # Must fall back to crossword's own 0.72cm default, not
+    # answer_grid_plot.py's unrelated 0.5cm default for other blocks.
+    html = render_crossword_answer({"maxw": 15, "maxh": 15, "scale": "banana"}, _CONTENT, include_solutions=True)
+    assert "--cw-cell-size:0.72cm" in html
+
+
+def test_estimate_crossword_weight_ignores_scale_with_explicit_bounds():
+    # estimate_crossword_weight is based on maxw*maxh; with maxw/maxh
+    # given explicitly, cell_size_cm never enters that computation.
+    without_scale = estimate_crossword_weight({"maxw": 10, "maxh": 10}, _CONTENT)
+    with_scale = estimate_crossword_weight({"maxw": 10, "maxh": 10, "scale": "2cm"}, _CONTENT)
+    assert without_scale == with_scale
+
+
+def test_estimate_crossword_weight_ignores_scale_without_explicit_bounds():
+    # estimate_crossword_weight is only ever called (via auto_columns_template)
+    # with raw author options, before _printable_width_cm/_printable_height_cm
+    # get injected -- so even without explicit maxw/maxh, resolve_crossword_bounds
+    # always falls back to the fixed _DEFAULT_CROSSWORD_MAXW/MAXH here,
+    # independent of cell_size_cm. Pinning this so a future change to that
+    # call chain is noticed rather than silently assumed.
+    without_scale = estimate_crossword_weight({}, _CONTENT)
+    with_scale = estimate_crossword_weight({"scale": "2cm"}, _CONTENT)
+    assert without_scale == with_scale

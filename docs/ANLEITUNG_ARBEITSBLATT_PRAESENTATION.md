@@ -188,6 +188,7 @@ Kreuzworträtsel-Antwortfeld. Der Inhalt ist eine YAML-Liste unter `words:` mit 
 | `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
 | `position` | Enum | `above`, `auto`, `below`, `left`, `right` | ja | `auto` | Position einer Sekundärliste (Hinweisliste, Wortbank o. Ä.) relativ zum Hauptinhalt: `left`/`links`, `right`/`rechts`, `above`/`oben`, `below`/`unten` oder `auto` (positioniert rechts, wenn genug Platz neben dem Hauptinhalt bleibt, sonst darunter). *Besonderheit bei `crossword`:* Standard `auto` -- rechts, wenn genug Platz neben dem Raster ist, sonst darunter. |
 | `prefill` | Ganzzahl | -- | nein | `0` | Anzahl zufällig vorausgefüllter Buchstaben im Arbeitsblatt-Modus (Standard `0`). |
+| `scale` | CSS-Länge | -- | nein | `0.72cm` | Zellgröße als CSS-Länge, z. B. `scale=0.4cm` oder `scale=6mm` (Standard variiert je Blocktyp, siehe Besonderheit unten). *Besonderheit bei `crossword`:* Standard `0.72cm`. |
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
 
 **Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
@@ -250,7 +251,7 @@ Koordinatensystem für Punkte, Polylinien, Strecken und Funktionsgraphen (siehe 
 | `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
 | `origin` | Text | -- | nein | -- | Ursprung des Koordinatensystems im Raster, Format `"spalte,zeile"` (z. B. `"10,10"`). **Pflicht, sobald `axis=true` gesetzt ist** -- ohne (oder mit ungültigem) `origin` bleibt der Achsenmodus trotz `axis=true` inaktiv, siehe Besonderheit dort. |
 | `rows` | Ganzzahl | -- | nein | `5` | Anzahl Zeilen des Rasters/der Linien. Der genaue Standardwert und ob eine fehlende Angabe automatisch berechnet wird, hängt vom Blocktyp ab (siehe Tabelle: Spalte "Standard"). |
-| `scale` | CSS-Länge | -- | nein | `0.5cm` | Zellgröße des Rasters als CSS-Länge (Standard `0.5cm`), z. B. `scale=0.4cm` oder `scale=6mm`. |
+| `scale` | CSS-Länge | -- | nein | `0.5cm` | Zellgröße als CSS-Länge, z. B. `scale=0.4cm` oder `scale=6mm` (Standard variiert je Blocktyp, siehe Besonderheit unten). *Besonderheit bei `geometry`:* Standard `0.5cm`. |
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
 | `step_x` | Zahl | -- | nein | `1.0` | Skalierung zwischen mathematischer x-Koordinate und Rasterzellen (Standard `1`), nur bei `axis=true`. |
 | `step_y` | Zahl | -- | nein | `1.0` | Skalierung zwischen mathematischer y-Koordinate und Rasterzellen (Standard `1`), nur bei `axis=true`. |
@@ -275,7 +276,7 @@ Kästchen-/Schreibfeld mit einem Textraster. `rows`/`cols` setzen die Rastergrö
 | `line` | Enum | `dashed`, `solid` | ja | `solid` | Linienstil des Rasterhintergrunds: `solid` (Standard) oder `dashed`. Nur bei `:::grid`/`:::geometry` vorhanden -- nicht zu verwechseln mit dem gleichnamigen `pairs[].line`-Feld in der Geometry-YAML-Payload (dort eigene, unabhängige Einstellung pro Strecke). |
 | `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
 | `rows` | Ganzzahl | -- | nein | `5` | Anzahl Zeilen des Rasters/der Linien. Der genaue Standardwert und ob eine fehlende Angabe automatisch berechnet wird, hängt vom Blocktyp ab (siehe Tabelle: Spalte "Standard"). |
-| `scale` | CSS-Länge | -- | nein | `0.5cm` | Zellgröße des Rasters als CSS-Länge (Standard `0.5cm`), z. B. `scale=0.4cm` oder `scale=6mm`. |
+| `scale` | CSS-Länge | -- | nein | `0.5cm` | Zellgröße als CSS-Länge, z. B. `scale=0.4cm` oder `scale=6mm` (Standard variiert je Blocktyp, siehe Besonderheit unten). *Besonderheit bei `grid`:* Standard `0.5cm`. |
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
 
 **Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
@@ -374,7 +375,7 @@ Zuordnungs-Antwortfeld (YAML-only) mit zwei Seiten (`left`/`right` oder `top`/`b
 | `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
 | `orientation` | Text | -- | nein | -- | Alias von `layout`. |
 | `right` | Text | -- | nein | -- | Rechte-Seite-Einträge bei horizontalem Layout, `|`-getrennt. |
-| `scale` | CSS-Länge | -- | nein | `0.5cm` | Zellgröße des Rasters als CSS-Länge (Standard `0.5cm`), z. B. `scale=0.4cm` oder `scale=6mm`. |
+| `scale` | CSS-Länge | -- | nein | `0.5cm` | Zellgröße als CSS-Länge, z. B. `scale=0.4cm` oder `scale=6mm` (Standard variiert je Blocktyp, siehe Besonderheit unten). *Besonderheit bei `matching`:* Standard `0.5cm`. |
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
 | `show_guides` | Bool | -- | nein | `False` | Blendet gestrichelte Platzhalterblöcke und Canvas-Rand ein (Standard: aus). |
 | `top` | Text | -- | nein | -- | Obere-Seite-Einträge bei vertikalem Layout, `|`-getrennt. |

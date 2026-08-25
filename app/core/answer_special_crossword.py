@@ -11,6 +11,7 @@ from __future__ import annotations
 import random
 from html import escape
 
+from .answer_grid_plot import _grid_cell_size_to_cm, _parse_grid_scale
 from .answer_special_shared import _new_markdown_converter, _safe_int, convert_markdown_with_math
 from .block_computation_cache import ComputationKey, get_or_compute
 from .crossword_code import validate_crossword_code
@@ -45,6 +46,26 @@ def _as_float(value):
         return None
 
 
+def _resolve_cell_size_cm(options):
+    """Resolves the `scale=` option to a cell size in cm.
+
+    Reuses `answer_grid_plot.py`'s generic CSS-length parser/converter
+    (already shared by `grid`/`geometry`'s own `scale=` option) instead of
+    duplicating unit-conversion logic. Falls back to crossword's own
+    default `_CELL_SIZE_CM` (0.72cm) -- not `answer_grid_plot.py`'s
+    unrelated 0.5cm default -- both when `scale=` is absent and when it
+    doesn't parse as a recognized CSS length, so existing crosswords (and
+    ones with a typo'd `scale=`) render at exactly today's size.
+    """
+    raw_scale = str((options or {}).get("scale") or "").strip()
+    if not raw_scale:
+        return _CELL_SIZE_CM
+    validated = _parse_grid_scale(raw_scale)
+    if validated != raw_scale:
+        return _CELL_SIZE_CM
+    return _grid_cell_size_to_cm(validated)
+
+
 def render_crossword_answer(options, content, include_solutions):
     """Renders a `:::crossword` block to HTML for worksheet or solution mode."""
     entries = parse_crossword_entries(content)
@@ -52,11 +73,12 @@ def render_crossword_answer(options, content, include_solutions):
         return ""
 
     options = options or {}
+    cell_size_cm = _resolve_cell_size_cm(options)
     printable_width_cm = _as_float(options.get("_printable_width_cm"))
     printable_height_cm = _as_float(options.get("_printable_height_cm"))
     maxw, maxh = resolve_crossword_bounds(
         options,
-        cell_size_cm=_CELL_SIZE_CM,
+        cell_size_cm=cell_size_cm,
         printable_width_cm=printable_width_cm,
         printable_height_cm=printable_height_cm,
     )
@@ -122,7 +144,10 @@ def render_crossword_answer(options, content, include_solutions):
         prefill_cells,
         code_cell_positions,
     )
-    grid_html = f"<div class='crossword-grid' style='--cw-cols:{trimmed_cols}'>{cells_html}</div>"
+    grid_html = (
+        f"<div class='crossword-grid' style='--cw-cols:{trimmed_cols}; --cw-cell-size:{cell_size_cm}cm'>"
+        f"{cells_html}</div>"
+    )
 
     md = _new_markdown_converter()
     horizontal_clues, vertical_clues = grouped_clues(layout, numbering, entries)
@@ -130,7 +155,7 @@ def render_crossword_answer(options, content, include_solutions):
 
     position = normalize_wordbank_position(options.get("position"), default="auto")
     if position == "auto":
-        main_content_width_cm = trimmed_cols * _CELL_SIZE_CM
+        main_content_width_cm = trimmed_cols * cell_size_cm
         position = resolve_wordbank_auto_position(
             main_content_width_cm, printable_width_cm or _DEFAULT_PRINTABLE_WIDTH_CM
         )
@@ -273,6 +298,7 @@ def estimate_crossword_weight(options, content):
     entries = parse_crossword_entries(content)
     if not entries:
         return 0.0
-    maxw, maxh = resolve_crossword_bounds(options or {}, cell_size_cm=_CELL_SIZE_CM)
+    options = options or {}
+    maxw, maxh = resolve_crossword_bounds(options, cell_size_cm=_resolve_cell_size_cm(options))
     area_estimate = max(36, maxw * maxh)
     return max(2.0, min(7.8, area_estimate / 40.0))

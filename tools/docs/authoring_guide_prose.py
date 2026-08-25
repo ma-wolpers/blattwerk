@@ -485,7 +485,8 @@ PROSE_SECTIONS: dict[str, str] = {
         "dieses Blocks."
     ),
     "option:scale": (
-        "Zellgröße des Rasters als CSS-Länge (Standard `0.5cm`), z. B. `scale=0.4cm` oder `scale=6mm`."
+        "Zellgröße als CSS-Länge, z. B. `scale=0.4cm` oder `scale=6mm` (Standard variiert je Blocktyp, "
+        "siehe Besonderheit unten)."
     ),
     "option:rows": (
         "Anzahl Zeilen des Rasters/der Linien. Der genaue Standardwert und ob eine fehlende Angabe "
@@ -520,6 +521,7 @@ PROSE_SECTIONS: dict[str, str] = {
         "Blocktyp-abhängige Bedeutung, siehe Besonderheit unten."
     ),
     # -- Divergente Optionen: block-eigene Erklärungen (block:<block>.<name>) --
+    "block:matching.scale": ("Standard `0.5cm`."),
     "block:matching.align": (
         "Bei `matching` deutlich enger als die generische `align`-Option: einziger unterstützter "
         "Wert ist `center` (Standard) -- zentriert Inhalte in den Zuordnungs-Blöcken horizontal und "
@@ -556,6 +558,8 @@ PROSE_SECTIONS: dict[str, str] = {
         "Siehe `option:hint` -- bei `task` zusätzlich mit passendem Emoji direkt neben der Aufgabe "
         "gerendert."
     ),
+    "block:grid.scale": ("Standard `0.5cm`."),
+    "block:geometry.scale": ("Standard `0.5cm`."),
     "block:geometry.axis": (
         "Aktiviert ein mathematisches Koordinatensystem mit x-/y-Achse, Tick-Marks und "
         "Achsenbeschriftung (Standard: aus, dann gelten reine Rasterkoordinaten `col`/`row`). "
@@ -625,6 +629,7 @@ PROSE_SECTIONS: dict[str, str] = {
         "Rangbezeichnung in der Lösung: `numeric` (1, 2, 3, ...) oder `letters` (A, B, C, ..., "
         "Standard `numeric`)."
     ),
+    "block:crossword.scale": ("Standard `0.72cm`."),
     "block:crossword.maxw": (
         "Maximale Spaltenzahl des Rätselrasters (Standard: aus der Seitenbreite abgeleitet)."
     ),
