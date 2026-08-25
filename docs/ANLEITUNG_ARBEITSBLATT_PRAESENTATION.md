@@ -147,6 +147,22 @@ Spaltenlayout für nebeneinander angeordnete Inhalte. `cols=2..6` (Standard 2) s
 :::endcolumns :::
 ```
 
+### `crossword`
+
+Kreuzworträtsel-Antwortfeld. Der Inhalt ist eine YAML-Liste unter `words:` mit je `word`/`clue` (bzw. `lösung`/`hinweis`) pro Rätselwort; die Wörter werden automatisch so platziert, dass sie sich möglichst oft kreuzen. `maxw`/`maxh` begrenzen die Rastergröße (Standard: aus der Seitenbreite/-höhe abgeleitet), `prefill` gibt die Anzahl zufällig vorausgefüllter Buchstaben an, `position` steuert, ob die Hinweisliste links/rechts/unterhalb des Rasters steht (Standard `auto`). Optional `code` (ein frei gewähltes Lösungswort ohne eigenen Hinweis, das sich aus Buchstaben der platzierten Wörter zusammensetzen lassen muss) und `code_row=true` (das Codewort läuft als eigene Zeile, alle anderen Wörter kreuzen es senkrecht).
+
+| Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
+|---|---|---|---|---|---|
+| `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
+| `code` | Text | -- | nein | -- | Frei gewähltes Lösungscodewort ohne eigenen Hinweis in der Liste; muss sich aus Buchstaben der platzierten Rätselwörter zusammensetzen lassen. |
+| `code_row` | Bool | -- | nein | `False` | Wenn aktiv, läuft `code` als eigene waagerechte Zeile, die alle anderen Wörter senkrecht kreuzen müssen (Standard: aus). |
+| `maxh` | Ganzzahl | -- | nein | -- | Maximale Zeilenzahl des Rätselrasters (Standard: aus der Seitenhöhe abgeleitet). |
+| `maxw` | Ganzzahl | -- | nein | -- | Maximale Spaltenzahl des Rätselrasters (Standard: aus der Seitenbreite abgeleitet). |
+| `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
+| `position` | Enum | `auto`, `below`, `left`, `right` | ja | `auto` | Position der Hinweisliste relativ zum Raster: `left`/`right`/`below`/`auto` (Standard `auto` -- rechts, wenn genug Platz ist, sonst darunter). |
+| `prefill` | Ganzzahl | -- | nein | `0` | Anzahl zufällig vorausgefüllter Buchstaben im Arbeitsblatt-Modus (Standard `0`). |
+| `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
+
 ### `dots`
 
 Punktraster-Schreibfeld (z. B. für Übungen zur Feinmotorik/Schrift).

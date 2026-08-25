@@ -1015,3 +1015,94 @@ def test_frontmatter_tag_rejects_non_scalar_value_with_fm003():
     codes = {d.code for d in diagnostics}
 
     assert "FM003" in codes
+
+
+def _crossword_block(words_yaml, options=" maxw=15 maxh=15"):
+    return (
+        f":::crossword{options}\n"
+        f"words:\n{words_yaml}"
+        ":::"
+    )
+
+
+def test_crossword_feasible_document_has_no_cw_diagnostics():
+    words_yaml = (
+        "  - word: SCHULE\n    clue: a\n"
+        "  - word: LEHRER\n    clue: b\n"
+        "  - word: KREIDE\n    clue: c\n"
+        "  - word: TAFEL\n    clue: d\n"
+        "  - word: HEFT\n    clue: e\n"
+        "  - word: STIFT\n    clue: f\n"
+        "  - word: PAUSE\n    clue: g\n"
+        "  - word: KLASSE\n    clue: h\n"
+    )
+    text = _build_document(_crossword_block(words_yaml))
+    codes = {d.code for d in inspect_markdown_text(text).diagnostics}
+
+    assert not any(code.startswith("CW") for code in codes)
+
+
+def test_crossword_infeasible_placement_emits_cw001():
+    # HAUS/BAUM/AUTO share the adjacent letter pair "AU", which forces every
+    # crossing arrangement into a forbidden "touching without crossing"
+    # configuration -- see test_crossword_placement.py for the same,
+    # exhaustively-verified infeasible case.
+    words_yaml = (
+        "  - word: HAUS\n    clue: a\n"
+        "  - word: BAUM\n    clue: b\n"
+        "  - word: AUTO\n    clue: c\n"
+    )
+    text = _build_document(_crossword_block(words_yaml, " maxw=12 maxh=12"))
+    codes = {d.code for d in inspect_markdown_text(text).diagnostics}
+
+    assert "CW001" in codes
+
+
+def test_crossword_unassemblable_code_emits_cw002():
+    words_yaml = (
+        "  - word: SCHULE\n    clue: a\n"
+        "  - word: LEHRER\n    clue: b\n"
+        "  - word: KREIDE\n    clue: c\n"
+        "  - word: TAFEL\n    clue: d\n"
+        "  - word: HEFT\n    clue: e\n"
+        "  - word: STIFT\n    clue: f\n"
+        "  - word: PAUSE\n    clue: g\n"
+        "  - word: KLASSE\n    clue: h\n"
+    )
+    # None of these words contain the letter "O".
+    text = _build_document(_crossword_block(words_yaml, " maxw=15 maxh=15 code=HALLO"))
+    codes = {d.code for d in inspect_markdown_text(text).diagnostics}
+
+    assert "CW002" in codes
+
+
+def test_crossword_code_row_without_code_emits_cw003():
+    words_yaml = "  - word: HAUS\n    clue: a\n"
+    text = _build_document(_crossword_block(words_yaml, " maxw=15 maxh=15 code_row=true"))
+    codes = {d.code for d in inspect_markdown_text(text).diagnostics}
+
+    assert "CW003" in codes
+
+
+def test_crossword_code_row_with_too_short_code_emits_cw003():
+    words_yaml = (
+        "  - word: IGEL\n    clue: a\n"
+        "  - word: MOND\n    clue: b\n"
+        "  - word: HUND\n    clue: c\n"
+    )
+    text = _build_document(_crossword_block(words_yaml, " maxw=15 maxh=15 code_row=true code=AB"))
+    codes = {d.code for d in inspect_markdown_text(text).diagnostics}
+
+    assert "CW003" in codes
+
+
+def test_crossword_valid_code_row_has_no_cw_diagnostics():
+    words_yaml = (
+        "  - word: IGEL\n    clue: a\n"
+        "  - word: MOND\n    clue: b\n"
+        "  - word: HUND\n    clue: c\n"
+    )
+    text = _build_document(_crossword_block(words_yaml, " maxw=15 maxh=15 code_row=true code=GEHEIM"))
+    codes = {d.code for d in inspect_markdown_text(text).diagnostics}
+
+    assert not any(code.startswith("CW") for code in codes)

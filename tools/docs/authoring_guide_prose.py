@@ -347,6 +347,17 @@ PROSE_SECTIONS: dict[str, str] = {
         "`diagonal`/`horizontal`/`vertical` steuern erlaubte Richtungen, `min_size`/`min_rows`/"
         "`min_cols` die Mindestrastergröße."
     ),
+    "block:crossword": (
+        "Kreuzworträtsel-Antwortfeld. Der Inhalt ist eine YAML-Liste unter `words:` mit je "
+        "`word`/`clue` (bzw. `lösung`/`hinweis`) pro Rätselwort; die Wörter werden automatisch "
+        "so platziert, dass sie sich möglichst oft kreuzen. `maxw`/`maxh` begrenzen die Rastergröße "
+        "(Standard: aus der Seitenbreite/-höhe abgeleitet), `prefill` gibt die Anzahl zufällig "
+        "vorausgefüllter Buchstaben an, `position` steuert, ob die Hinweisliste links/rechts/unterhalb "
+        "des Rasters steht (Standard `auto`). Optional `code` (ein frei gewähltes Lösungswort ohne "
+        "eigenen Hinweis, das sich aus Buchstaben der platzierten Wörter zusammensetzen lassen muss) "
+        "und `code_row=true` (das Codewort läuft als eigene Zeile, alle anderen Wörter kreuzen es "
+        "senkrecht)."
+    ),
     "block:solution": (
         "Musterlösungstext. `label=true|false` (Standard `true`) blendet das Label \"Lösung\" ein/aus."
     ),
@@ -563,6 +574,27 @@ PROSE_SECTIONS: dict[str, str] = {
     "block:wordsearch.min_size": ("Mindestrastergröße (Zeilen und Spalten gemeinsam)."),
     "block:wordsearch.min_rows": ("Mindestanzahl Zeilen des Rätselrasters."),
     "block:wordsearch.min_cols": ("Mindestanzahl Spalten des Rätselrasters."),
+    "block:crossword.maxw": (
+        "Maximale Spaltenzahl des Rätselrasters (Standard: aus der Seitenbreite abgeleitet)."
+    ),
+    "block:crossword.maxh": (
+        "Maximale Zeilenzahl des Rätselrasters (Standard: aus der Seitenhöhe abgeleitet)."
+    ),
+    "block:crossword.prefill": (
+        "Anzahl zufällig vorausgefüllter Buchstaben im Arbeitsblatt-Modus (Standard `0`)."
+    ),
+    "block:crossword.position": (
+        "Position der Hinweisliste relativ zum Raster: `left`/`right`/`below`/`auto` "
+        "(Standard `auto` -- rechts, wenn genug Platz ist, sonst darunter)."
+    ),
+    "block:crossword.code": (
+        "Frei gewähltes Lösungscodewort ohne eigenen Hinweis in der Liste; muss sich aus "
+        "Buchstaben der platzierten Rätselwörter zusammensetzen lassen."
+    ),
+    "block:crossword.code_row": (
+        "Wenn aktiv, läuft `code` als eigene waagerechte Zeile, die alle anderen Wörter "
+        "senkrecht kreuzen müssen (Standard: aus)."
+    ),
     "block:solution.label": ('Blendet das Label "Lösung" vor dem Text ein/aus (Standard: an).'),
     "block:columns.ratio": ("Alias von `widths` -- relative Spaltengewichte."),
     "block:cloze.gap_length": ("Feste Lückenlänge in Zeichen bei `gap=fixed` (Standard `10`)."),

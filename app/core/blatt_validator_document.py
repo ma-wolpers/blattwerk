@@ -20,6 +20,7 @@ from .answer_line_markers import (
     collect_answer_marker_conflict_lines,
     is_effectively_empty_answer_content,
 )
+from .crossword_validation import validate_crossword_payload
 from .blatt_validator_constants import (
     ANSWER_BLOCK_TYPES,
     OPTIONAL_FRONTMATTER_FIELDS,
@@ -251,10 +252,9 @@ def _validate_yaml_answer_payload(diagnostics, index, block_type, options, conte
     der monolithischen Schleife, das denselben Effekt hatte.
 
     `cache` ist ein optionaler `BlockComputationCache` (siehe
-    `app/core/block_computation_cache.py`) für Blocktypen mit teurer,
-    deterministischer Validierung (z. B. `crossword`s Platzierungssuche),
-    damit dasselbe Ergebnis beim späteren Rendern nicht erneut berechnet
-    werden muss. Aktuell noch von keinem Zweig konsumiert.
+    `app/core/block_computation_cache.py`), den der `crossword`-Zweig nutzt,
+    damit dieselbe Platzierungssuche beim späteren Rendern (Slice 3) nicht
+    erneut berechnet werden muss.
     """
     answer_type = block_type
 
@@ -304,3 +304,6 @@ def _validate_yaml_answer_payload(diagnostics, index, block_type, options, conte
                     block_type=block_type,
                 )
             )
+
+    if answer_type == "crossword":
+        validate_crossword_payload(diagnostics, index, block_type, options, content, cache)

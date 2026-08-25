@@ -72,6 +72,7 @@ KNOWN_BLOCK_TYPES = {
     "cloze",
     "matching",
     "wordsearch",
+    "crossword",
     "solution",
     "columns",
     "nextcol",
@@ -295,6 +296,7 @@ ANSWER_BLOCK_TYPES = {
     "cloze",
     "matching",
     "wordsearch",
+    "crossword",
 }
 KNOWN_ANSWER_TYPES = ANSWER_BLOCK_TYPES
 YAML_ANSWER_TYPES = {
@@ -302,6 +304,7 @@ YAML_ANSWER_TYPES = {
     "numberline",
     "table",
     "matching",
+    "crossword",
 }
 
 @dataclass(frozen=True)
@@ -527,6 +530,17 @@ BLOCK_OPTION_SPECS: dict[str, tuple[BlockOptionSpec, ...]] = {
         BlockOptionSpec("horizontal", "boolean", None, False, False),  # akzeptiert auch Richtungslisten
         BlockOptionSpec("vertical", "boolean", None, False, False),  # akzeptiert auch Richtungslisten
         BlockOptionSpec("words", "text", None, False, MISSING),
+        _OPT_ALIGN,
+    ),
+    "crossword": (
+        _OPT_SHOW,
+        _OPT_MODE,
+        BlockOptionSpec("maxw", "integer", None, False, MISSING),  # Default aus Printable-Width, siehe crossword_placement.py
+        BlockOptionSpec("maxh", "integer", None, False, MISSING),  # Default aus Printable-Height, siehe crossword_placement.py
+        BlockOptionSpec("prefill", "integer", None, False, 0),
+        BlockOptionSpec("position", "enum", frozenset({"left", "right", "below", "auto"}), True, "auto"),
+        BlockOptionSpec("code", "text", None, False, MISSING),
+        BlockOptionSpec("code_row", "boolean", None, False, False),
         _OPT_ALIGN,
     ),
     "solution": (
