@@ -6,10 +6,6 @@ from .answer_special_crossword import (
     estimate_crossword_weight,
     render_crossword_answer,
 )
-from .answer_special_categorize import (
-    estimate_categorize_weight,
-    render_categorize_answer,
-)
 from .answer_special_checkgrid import (
     estimate_checkgrid_weight,
     render_checkgrid_answer,

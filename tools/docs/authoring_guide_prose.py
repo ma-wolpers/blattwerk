@@ -363,14 +363,6 @@ PROSE_SECTIONS: dict[str, str] = {
         "`tf=true` stehen die Spaltenköpfe nur einmal, nicht pro Aussage wiederholt -- kompakter bei "
         "vielen Aussagen mit denselben Spalten."
     ),
-    "block:categorize": (
-        "Kategorisierungs-Antwortfeld. Der Blockinhalt ist YAML mit `categories:` (Liste der "
-        "Spaltenüberschriften) und `items:` (Liste aus `word`/`category`, `category` ist der "
-        "1-basierte Index in `categories`). Im Arbeitsblatt erscheint eine leere Spaltentabelle "
-        "plus eine gemischte Wortbank (`shuffle=false` deaktiviert das Mischen), in der Lösung die "
-        "korrekt einsortierten Wörter je Spalte. `position=left|right|above|below|auto` (Standard "
-        "`below`) positioniert die Wortbank relativ zur Tabelle."
-    ),
     "block:ordering": (
         "Sortier-/Reihenfolge-Antwortfeld. Der Blockinhalt ist eine Liste der Elemente in der "
         "*richtigen* Reihenfolge; im Arbeitsblatt erscheinen sie gemischt mit leeren Nummernfeldern, "
@@ -629,9 +621,6 @@ PROSE_SECTIONS: dict[str, str] = {
     "block:wordsearch.min_size": ("Mindestrastergröße (Zeilen und Spalten gemeinsam)."),
     "block:wordsearch.min_rows": ("Mindestanzahl Zeilen des Rätselrasters."),
     "block:wordsearch.min_cols": ("Mindestanzahl Spalten des Rätselrasters."),
-    "block:categorize.shuffle": (
-        "Ob die Wortbank im Arbeitsblatt-Modus gemischt wird (Standard: an)."
-    ),
     "block:ordering.numbering": (
         "Rangbezeichnung in der Lösung: `numeric` (1, 2, 3, ...) oder `letters` (A, B, C, ..., "
         "Standard `numeric`)."

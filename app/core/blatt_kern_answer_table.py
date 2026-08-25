@@ -6,7 +6,6 @@ import re
 from html import escape
 
 from .answer_special import (
-    render_categorize_answer,
     render_checkgrid_answer,
     render_crossword_answer,
     render_matching_answer,
@@ -343,9 +342,6 @@ def _render_answer_block(block_type, options=None, content=None, include_solutio
 
     if normalized_block_type == "ordering":
         return render_ordering_answer(options, content, include_solutions)
-
-    if normalized_block_type == "categorize":
-        return render_categorize_answer(options, content, include_solutions)
 
     if normalized_block_type == "checkgrid":
         return render_checkgrid_answer(options, content, include_solutions)

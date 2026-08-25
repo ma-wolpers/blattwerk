@@ -33,9 +33,8 @@ def resolve_wordbank_auto_position(main_content_width_cm, printable_width_cm, mi
     horizontal space remains beside the main content, else `"below"`.
 
     Callers compute their own `main_content_width_cm` estimate (a
-    crossword's grid width and a categorize table's width are computed
-    differently) -- this helper stays generic by not trying to introspect
-    rendered HTML for that.
+    crossword's grid width, say) -- this helper stays generic by not
+    trying to introspect rendered HTML for that.
     """
     remaining_width_cm = printable_width_cm - main_content_width_cm
     return "right" if remaining_width_cm >= min_side_width_cm else "below"

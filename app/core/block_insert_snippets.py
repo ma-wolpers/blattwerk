@@ -126,18 +126,6 @@ BLOCK_INSERT_SNIPPETS: dict[str, str] = {
         "- Wort3\n"
         ":::\n"
     ),
-    "categorize": (
-        ":::categorize\n"
-        "categories:\n"
-        '\x01  - "Tiere"\n'
-        '  - "Pflanzen"\n'
-        "items:\n"
-        '  - word: "Hund"\n'
-        "    category: 1\n"
-        '  - word: "Rose"\n'
-        "    category: 2\n"
-        ":::\n"
-    ),
     "ordering": (
         ":::ordering numbering=numeric\n"
         "\x01- Zuerst das Ei kaufen\n"

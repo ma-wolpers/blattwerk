@@ -74,7 +74,6 @@ KNOWN_BLOCK_TYPES = {
     "wordsearch",
     "crossword",
     "ordering",
-    "categorize",
     "checkgrid",
     "mindmap",
     "selfcheck",
@@ -304,7 +303,6 @@ ANSWER_BLOCK_TYPES = {
     "wordsearch",
     "crossword",
     "ordering",
-    "categorize",
     "checkgrid",
 }
 KNOWN_ANSWER_TYPES = ANSWER_BLOCK_TYPES
@@ -314,7 +312,6 @@ YAML_ANSWER_TYPES = {
     "table",
     "matching",
     "crossword",
-    "categorize",
     "checkgrid",
 }
 
@@ -559,13 +556,6 @@ BLOCK_OPTION_SPECS: dict[str, tuple[BlockOptionSpec, ...]] = {
         _OPT_SHOW,
         _OPT_MODE,
         BlockOptionSpec("numbering", "enum", frozenset({"numeric", "letters"}), True, "numeric"),
-        _OPT_ALIGN,
-    ),
-    "categorize": (
-        _OPT_SHOW,
-        _OPT_MODE,
-        BlockOptionSpec("position", "enum", frozenset({"left", "right", "above", "below", "auto"}), True, "below"),
-        BlockOptionSpec("shuffle", "boolean", None, False, True),
         _OPT_ALIGN,
     ),
     "checkgrid": (

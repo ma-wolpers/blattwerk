@@ -33,7 +33,6 @@ _LABEL_TO_BLOCK_TYPE = {
     "Wortsuchrätsel (wordsearch)": "wordsearch",
     "Kreuzworträtsel (crossword)": "crossword",
     "Reihenfolge (ordering)": "ordering",
-    "Kategorisieren (categorize)": "categorize",
     "Ankreuztabelle (checkgrid)": "checkgrid",
     "Zuordnung (matching)": "matching",
     "Mindmap": "mindmap",

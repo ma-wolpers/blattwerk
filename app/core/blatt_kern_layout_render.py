@@ -6,7 +6,6 @@ import re
 from html import escape
 
 from .answer_special import (
-    estimate_categorize_weight,
     estimate_checkgrid_weight,
     estimate_crossword_weight,
     estimate_matching_weight,
@@ -199,7 +198,6 @@ def estimate_block_weight(
         "wordsearch",
         "crossword",
         "ordering",
-        "categorize",
         "checkgrid",
     }:
         if block_type == "mc":
@@ -222,9 +220,6 @@ def estimate_block_weight(
 
         if block_type == "ordering":
             return estimate_ordering_weight(options, content)
-
-        if block_type == "categorize":
-            return estimate_categorize_weight(options, content)
 
         if block_type == "checkgrid":
             return estimate_checkgrid_weight(options, content)

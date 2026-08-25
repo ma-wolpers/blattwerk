@@ -59,7 +59,6 @@ _EDITOR_BLOCK_MENU_ITEMS: list[tuple[str, str, str]] = [
         '![Bildbeschreibung](bild.png "w=80% align=center")\n'
         "\x01"
     )),
-    ("J", "Kategorisieren (categorize)", BLOCK_INSERT_SNIPPETS["categorize"]),
     ("K", "Lückentext (cloze)", BLOCK_INSERT_SNIPPETS["cloze"]),
     ("L", "Linienfeld (lines)", BLOCK_INSERT_SNIPPETS["lines"]),
     ("M", "Material", BLOCK_INSERT_SNIPPETS["material"]),
