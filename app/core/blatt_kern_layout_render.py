@@ -5,7 +5,14 @@ from __future__ import annotations
 import re
 from html import escape
 
-from .answer_special import estimate_crossword_weight, estimate_matching_weight, estimate_wordsearch_weight
+from .answer_special import (
+    estimate_categorize_weight,
+    estimate_checkgrid_weight,
+    estimate_crossword_weight,
+    estimate_matching_weight,
+    estimate_ordering_weight,
+    estimate_wordsearch_weight,
+)
 from ..styles.blatt_styles import build_stylesheet, resolve_printable_height_cm, resolve_printable_width_cm
 from .blatt_kern_shared import (
     _meta_bool_ja_nein,
@@ -183,6 +190,9 @@ def estimate_block_weight(
         "matching",
         "wordsearch",
         "crossword",
+        "ordering",
+        "categorize",
+        "checkgrid",
     }:
         if block_type == "mc":
             base = 1.0 + (text_length / 140.0)
@@ -201,6 +211,15 @@ def estimate_block_weight(
 
         if block_type == "crossword":
             return estimate_crossword_weight(options, content)
+
+        if block_type == "ordering":
+            return estimate_ordering_weight(options, content)
+
+        if block_type == "categorize":
+            return estimate_categorize_weight(options, content)
+
+        if block_type == "checkgrid":
+            return estimate_checkgrid_weight(options, content)
 
         if include_solutions:
             if text_length == 0:

@@ -102,6 +102,58 @@ In Präsentationen (`mode: presentation`) gibt es **keinen Lösungs-Umschalter**
 
 ## 5. Blockreferenz
 
+### `categorize`
+
+Kategorisierungs-Antwortfeld. Der Blockinhalt ist YAML mit `categories:` (Liste der Spaltenüberschriften) und `items:` (Liste aus `word`/`category`, `category` ist der 1-basierte Index in `categories`). Im Arbeitsblatt erscheint eine leere Spaltentabelle plus eine gemischte Wortbank (`shuffle=false` deaktiviert das Mischen), in der Lösung die korrekt einsortierten Wörter je Spalte. `position=left|right|above|below|auto` (Standard `below`) positioniert die Wortbank relativ zur Tabelle.
+
+| Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
+|---|---|---|---|---|---|
+| `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
+| `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
+| `position` | Enum | `above`, `auto`, `below`, `left`, `right` | ja | `below` | Position einer Sekundärliste (Hinweisliste, Wortbank o. Ä.) relativ zum Hauptinhalt: `left`/`links`, `right`/`rechts`, `above`/`oben`, `below`/`unten` oder `auto` (positioniert rechts, wenn genug Platz neben dem Hauptinhalt bleibt, sonst darunter). |
+| `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
+| `shuffle` | Bool | -- | nein | `True` | Ob die Wortbank im Arbeitsblatt-Modus gemischt wird (Standard: an). |
+
+**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
+
+```markdown
+:::categorize
+categories:
+  - "Tiere"
+  - "Pflanzen"
+items:
+  - word: "Hund"
+    category: 1
+  - word: "Rose"
+    category: 2
+:::
+```
+
+### `checkgrid`
+
+Kompakte Ankreuz-Tabelle. Der Blockinhalt ist YAML mit `columns:` (Liste der Spaltenüberschriften, z. B. `richtig`/`falsch`) und `rows:` (Liste aus `text`/`correct`, `correct` ist der 1-basierte Index der richtigen Spalte). Anders als `:::mc` mit `tf=true` stehen die Spaltenköpfe nur einmal, nicht pro Aussage wiederholt -- kompakter bei vielen Aussagen mit denselben Spalten.
+
+| Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
+|---|---|---|---|---|---|
+| `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
+| `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
+| `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
+
+**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
+
+```markdown
+:::checkgrid
+columns:
+  - "richtig"
+  - "falsch"
+rows:
+  - text: "Die Erde ist eine Scheibe."
+    correct: 2
+  - text: "Wasser besteht aus H2O."
+    correct: 1
+:::
+```
+
 ### `cloze`
 
 Lückentext-Antwortfeld. `gap`/`gap_length` steuert den Lückenmodus/-länge, `words`/`words_multi` die Wortbank-Optionen, `layout` das Layout der Wortbank-Position.
@@ -159,7 +211,7 @@ Kreuzworträtsel-Antwortfeld. Der Inhalt ist eine YAML-Liste unter `words:` mit 
 | `maxh` | Ganzzahl | -- | nein | -- | Maximale Zeilenzahl des Rätselrasters (Standard: aus der Seitenhöhe abgeleitet). |
 | `maxw` | Ganzzahl | -- | nein | -- | Maximale Spaltenzahl des Rätselrasters (Standard: aus der Seitenbreite abgeleitet). |
 | `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
-| `position` | Enum | `auto`, `below`, `left`, `right` | ja | `auto` | Position der Hinweisliste relativ zum Raster: `left`/`right`/`below`/`auto` (Standard `auto` -- rechts, wenn genug Platz ist, sonst darunter). |
+| `position` | Enum | `above`, `auto`, `below`, `left`, `right` | ja | `auto` | Position einer Sekundärliste (Hinweisliste, Wortbank o. Ä.) relativ zum Hauptinhalt: `left`/`links`, `right`/`rechts`, `above`/`oben`, `below`/`unten` oder `auto` (positioniert rechts, wenn genug Platz neben dem Hauptinhalt bleibt, sonst darunter). *Besonderheit bei `crossword`:* Standard `auto` -- rechts, wenn genug Platz neben dem Raster ist, sonst darunter. |
 | `prefill` | Ganzzahl | -- | nein | `0` | Anzahl zufällig vorausgefüllter Buchstaben im Arbeitsblatt-Modus (Standard `0`). |
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
 
@@ -459,6 +511,28 @@ answers:
 :::
 ```
 
+### `ordering`
+
+Sortier-/Reihenfolge-Antwortfeld. Der Blockinhalt ist eine Liste der Elemente in der *richtigen* Reihenfolge; im Arbeitsblatt erscheinen sie gemischt mit leeren Nummernfeldern, in der Lösung mit der korrekten Rangnummer -- in derselben (gemischten) Reihenfolge wie im Arbeitsblatt, damit Zeile für Zeile verglichen werden kann. `numbering=numeric|letters` (Standard `numeric`) wählt Zahlen oder Buchstaben (A, B, C, ...) als Rangbezeichnung.
+
+| Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
+|---|---|---|---|---|---|
+| `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
+| `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
+| `numbering` | Enum | `letters`, `numeric` | ja | `numeric` | Rangbezeichnung in der Lösung: `numeric` (1, 2, 3, ...) oder `letters` (A, B, C, ..., Standard `numeric`). |
+| `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
+
+**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
+
+```markdown
+:::ordering numbering=numeric
+- Zuerst das Ei kaufen
+- Dann den Teig anrühren
+- Dann backen
+- Zum Schluss servieren
+:::
+```
+
 ### `pagebreak`
 
 Erzwingt einen harten Seiten-/Folienumbruch -- siehe Control-Marker `--!`.
@@ -637,7 +711,7 @@ Wortsuchrätsel-Antwortfeld. `words` listet die zu versteckenden Wörter, `diago
 | `min_rows` | Ganzzahl | -- | nein | -- | Mindestanzahl Zeilen des Rätselrasters. |
 | `min_size` | Ganzzahl | -- | nein | -- | Mindestrastergröße (Zeilen und Spalten gemeinsam). |
 | `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
-| `position` | Enum | `above`, `auto`, `below`, `left`, `right` | ja | `below` | Position der Wortliste relativ zum Rätselraster: `left`/`right`/`above`/`below`/`auto` (Standard `below` -- bestehende Dokumente bleiben dadurch unverändert). |
+| `position` | Enum | `above`, `auto`, `below`, `left`, `right` | ja | `below` | Position einer Sekundärliste (Hinweisliste, Wortbank o. Ä.) relativ zum Hauptinhalt: `left`/`links`, `right`/`rechts`, `above`/`oben`, `below`/`unten` oder `auto` (positioniert rechts, wenn genug Platz neben dem Hauptinhalt bleibt, sonst darunter). *Besonderheit bei `wordsearch`:* Standard `below`, damit bestehende Dokumente ohne diese Option optisch unverändert bleiben. |
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
 | `vertical` | Bool | -- | nein | `False` | Erlaubt vertikale Wortplatzierung (Standard: aus). Akzeptiert auch eine Richtungsliste. |
 | `words` | Text | -- | nein | -- | Blocktyp-abhängige Bedeutung, siehe Besonderheit unten. |

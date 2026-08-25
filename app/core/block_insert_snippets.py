@@ -126,6 +126,38 @@ BLOCK_INSERT_SNIPPETS: dict[str, str] = {
         "- Wort3\n"
         ":::\n"
     ),
+    "categorize": (
+        ":::categorize\n"
+        "categories:\n"
+        '\x01  - "Tiere"\n'
+        '  - "Pflanzen"\n'
+        "items:\n"
+        '  - word: "Hund"\n'
+        "    category: 1\n"
+        '  - word: "Rose"\n'
+        "    category: 2\n"
+        ":::\n"
+    ),
+    "ordering": (
+        ":::ordering numbering=numeric\n"
+        "\x01- Zuerst das Ei kaufen\n"
+        "- Dann den Teig anrühren\n"
+        "- Dann backen\n"
+        "- Zum Schluss servieren\n"
+        ":::\n"
+    ),
+    "checkgrid": (
+        ":::checkgrid\n"
+        "columns:\n"
+        '\x01  - "richtig"\n'
+        '  - "falsch"\n'
+        "rows:\n"
+        '  - text: "Die Erde ist eine Scheibe."\n'
+        "    correct: 2\n"
+        '  - text: "Wasser besteht aus H2O."\n'
+        "    correct: 1\n"
+        ":::\n"
+    ),
     "crossword": (
         ":::crossword maxw=15 maxh=15\n"
         "words:\n"

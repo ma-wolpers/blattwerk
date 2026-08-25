@@ -347,6 +347,28 @@ PROSE_SECTIONS: dict[str, str] = {
         "`diagonal`/`horizontal`/`vertical` steuern erlaubte Richtungen, `min_size`/`min_rows`/"
         "`min_cols` die Mindestrastergröße."
     ),
+    "block:checkgrid": (
+        "Kompakte Ankreuz-Tabelle. Der Blockinhalt ist YAML mit `columns:` (Liste der "
+        "Spaltenüberschriften, z. B. `richtig`/`falsch`) und `rows:` (Liste aus `text`/`correct`, "
+        "`correct` ist der 1-basierte Index der richtigen Spalte). Anders als `:::mc` mit "
+        "`tf=true` stehen die Spaltenköpfe nur einmal, nicht pro Aussage wiederholt -- kompakter bei "
+        "vielen Aussagen mit denselben Spalten."
+    ),
+    "block:categorize": (
+        "Kategorisierungs-Antwortfeld. Der Blockinhalt ist YAML mit `categories:` (Liste der "
+        "Spaltenüberschriften) und `items:` (Liste aus `word`/`category`, `category` ist der "
+        "1-basierte Index in `categories`). Im Arbeitsblatt erscheint eine leere Spaltentabelle "
+        "plus eine gemischte Wortbank (`shuffle=false` deaktiviert das Mischen), in der Lösung die "
+        "korrekt einsortierten Wörter je Spalte. `position=left|right|above|below|auto` (Standard "
+        "`below`) positioniert die Wortbank relativ zur Tabelle."
+    ),
+    "block:ordering": (
+        "Sortier-/Reihenfolge-Antwortfeld. Der Blockinhalt ist eine Liste der Elemente in der "
+        "*richtigen* Reihenfolge; im Arbeitsblatt erscheinen sie gemischt mit leeren Nummernfeldern, "
+        "in der Lösung mit der korrekten Rangnummer -- in derselben (gemischten) Reihenfolge wie im "
+        "Arbeitsblatt, damit Zeile für Zeile verglichen werden kann. `numbering=numeric|letters` "
+        "(Standard `numeric`) wählt Zahlen oder Buchstaben (A, B, C, ...) als Rangbezeichnung."
+    ),
     "block:crossword": (
         "Kreuzworträtsel-Antwortfeld. Der Inhalt ist eine YAML-Liste unter `words:` mit je "
         "`word`/`clue` (bzw. `lösung`/`hinweis`) pro Rätselwort; die Wörter werden automatisch "
@@ -411,6 +433,11 @@ PROSE_SECTIONS: dict[str, str] = {
         "Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, "
         "`center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische "
         "Schreibweisen gleichwertig)."
+    ),
+    "option:position": (
+        "Position einer Sekundärliste (Hinweisliste, Wortbank o. Ä.) relativ zum Hauptinhalt: "
+        "`left`/`links`, `right`/`rechts`, `above`/`oben`, `below`/`unten` oder `auto` (positioniert "
+        "rechts, wenn genug Platz neben dem Hauptinhalt bleibt, sonst darunter)."
     ),
     "option:work": (
         "Empfohlene Arbeitsform, wird als Emoji + Label gerendert: `single`/`einzel` (👤), "
@@ -572,12 +599,18 @@ PROSE_SECTIONS: dict[str, str] = {
         "Erlaubt vertikale Wortplatzierung (Standard: aus). Akzeptiert auch eine Richtungsliste."
     ),
     "block:wordsearch.position": (
-        "Position der Wortliste relativ zum Rätselraster: `left`/`right`/`above`/`below`/`auto` "
-        "(Standard `below` -- bestehende Dokumente bleiben dadurch unverändert)."
+        "Standard `below`, damit bestehende Dokumente ohne diese Option optisch unverändert bleiben."
     ),
     "block:wordsearch.min_size": ("Mindestrastergröße (Zeilen und Spalten gemeinsam)."),
     "block:wordsearch.min_rows": ("Mindestanzahl Zeilen des Rätselrasters."),
     "block:wordsearch.min_cols": ("Mindestanzahl Spalten des Rätselrasters."),
+    "block:categorize.shuffle": (
+        "Ob die Wortbank im Arbeitsblatt-Modus gemischt wird (Standard: an)."
+    ),
+    "block:ordering.numbering": (
+        "Rangbezeichnung in der Lösung: `numeric` (1, 2, 3, ...) oder `letters` (A, B, C, ..., "
+        "Standard `numeric`)."
+    ),
     "block:crossword.maxw": (
         "Maximale Spaltenzahl des Rätselrasters (Standard: aus der Seitenbreite abgeleitet)."
     ),
@@ -588,8 +621,7 @@ PROSE_SECTIONS: dict[str, str] = {
         "Anzahl zufällig vorausgefüllter Buchstaben im Arbeitsblatt-Modus (Standard `0`)."
     ),
     "block:crossword.position": (
-        "Position der Hinweisliste relativ zum Raster: `left`/`right`/`below`/`auto` "
-        "(Standard `auto` -- rechts, wenn genug Platz ist, sonst darunter)."
+        "Standard `auto` -- rechts, wenn genug Platz neben dem Raster ist, sonst darunter."
     ),
     "block:crossword.code": (
         "Frei gewähltes Lösungscodewort ohne eigenen Hinweis in der Liste; muss sich aus "

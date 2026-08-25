@@ -73,6 +73,9 @@ KNOWN_BLOCK_TYPES = {
     "matching",
     "wordsearch",
     "crossword",
+    "ordering",
+    "categorize",
+    "checkgrid",
     "solution",
     "columns",
     "nextcol",
@@ -297,6 +300,9 @@ ANSWER_BLOCK_TYPES = {
     "matching",
     "wordsearch",
     "crossword",
+    "ordering",
+    "categorize",
+    "checkgrid",
 }
 KNOWN_ANSWER_TYPES = ANSWER_BLOCK_TYPES
 YAML_ANSWER_TYPES = {
@@ -305,6 +311,8 @@ YAML_ANSWER_TYPES = {
     "table",
     "matching",
     "crossword",
+    "categorize",
+    "checkgrid",
 }
 
 @dataclass(frozen=True)
@@ -539,9 +547,27 @@ BLOCK_OPTION_SPECS: dict[str, tuple[BlockOptionSpec, ...]] = {
         BlockOptionSpec("maxw", "integer", None, False, MISSING),  # Default aus Printable-Width, siehe crossword_placement.py
         BlockOptionSpec("maxh", "integer", None, False, MISSING),  # Default aus Printable-Height, siehe crossword_placement.py
         BlockOptionSpec("prefill", "integer", None, False, 0),
-        BlockOptionSpec("position", "enum", frozenset({"left", "right", "below", "auto"}), True, "auto"),
+        BlockOptionSpec("position", "enum", frozenset({"left", "right", "above", "below", "auto"}), True, "auto"),
         BlockOptionSpec("code", "text", None, False, MISSING),
         BlockOptionSpec("code_row", "boolean", None, False, False),
+        _OPT_ALIGN,
+    ),
+    "ordering": (
+        _OPT_SHOW,
+        _OPT_MODE,
+        BlockOptionSpec("numbering", "enum", frozenset({"numeric", "letters"}), True, "numeric"),
+        _OPT_ALIGN,
+    ),
+    "categorize": (
+        _OPT_SHOW,
+        _OPT_MODE,
+        BlockOptionSpec("position", "enum", frozenset({"left", "right", "above", "below", "auto"}), True, "below"),
+        BlockOptionSpec("shuffle", "boolean", None, False, True),
+        _OPT_ALIGN,
+    ),
+    "checkgrid": (
+        _OPT_SHOW,
+        _OPT_MODE,
         _OPT_ALIGN,
     ),
     "solution": (

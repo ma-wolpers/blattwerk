@@ -32,6 +32,9 @@ _LABEL_TO_BLOCK_TYPE = {
     "Aufgabe (task)": "task",
     "Wortsuchrätsel (wordsearch)": "wordsearch",
     "Kreuzworträtsel (crossword)": "crossword",
+    "Reihenfolge (ordering)": "ordering",
+    "Kategorisieren (categorize)": "categorize",
+    "Ankreuztabelle (checkgrid)": "checkgrid",
     "Zuordnung (matching)": "matching",
 }
 _NON_BLOCK_MENU_LABELS = {"Bild (image)"}

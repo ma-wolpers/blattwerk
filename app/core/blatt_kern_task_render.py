@@ -33,6 +33,9 @@ ANSWER_BLOCK_TYPES = {
     "matching",
     "wordsearch",
     "crossword",
+    "ordering",
+    "categorize",
+    "checkgrid",
 }
 
 

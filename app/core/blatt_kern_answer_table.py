@@ -5,7 +5,14 @@ from __future__ import annotations
 import re
 from html import escape
 
-from .answer_special import render_crossword_answer, render_matching_answer, render_wordsearch_answer
+from .answer_special import (
+    render_categorize_answer,
+    render_checkgrid_answer,
+    render_crossword_answer,
+    render_matching_answer,
+    render_ordering_answer,
+    render_wordsearch_answer,
+)
 from .blatt_kern_shared import _new_markdown_converter, _safe_int
 from .answer_grid_plot import (
     render_dots_answer,
@@ -333,6 +340,15 @@ def _render_answer_block(block_type, options=None, content=None, include_solutio
 
     if normalized_block_type == "crossword":
         return render_crossword_answer(options, content, include_solutions)
+
+    if normalized_block_type == "ordering":
+        return render_ordering_answer(options, content, include_solutions)
+
+    if normalized_block_type == "categorize":
+        return render_categorize_answer(options, content, include_solutions)
+
+    if normalized_block_type == "checkgrid":
+        return render_checkgrid_answer(options, content, include_solutions)
 
     if normalized_block_type == "lines":
         base_rows = max(1, _safe_int(options.get("rows", 3), 3))
