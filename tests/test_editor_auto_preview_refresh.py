@@ -85,3 +85,64 @@ def test_run_editor_auto_preview_refresh_skips_preview_when_save_fails():
 
     assert app.save_calls == [True]
     assert app.refresh_calls == []
+
+
+def test_compile_now_cancels_pending_idle_auto_refresh_timer():
+    # This is the exact bug being fixed: manual compile must cancel the
+    # pending debounce timer, not let it fire again redundantly afterward.
+    app = _DummyEditor()
+    app._preview_auto_refresh_after_id = "timer-old"
+
+    app._compile_now()
+
+    assert "timer-old" in app.root.after_cancel_calls
+    assert app._preview_auto_refresh_after_id is None
+
+
+def test_compile_now_flushes_unsaved_changes_before_building():
+    app = _DummyEditor()
+    app._editor_save_after_id = "save-1"
+    app._editor_has_unsaved_changes = True
+
+    app._compile_now()
+
+    assert "save-1" in app.root.after_cancel_calls
+    assert app._editor_save_after_id is None
+    assert app.save_calls == [True]
+    assert app.refresh_calls == [False]
+
+
+def test_compile_now_skips_build_when_save_fails():
+    app = _DummyEditor()
+    app._editor_has_unsaved_changes = True
+    app._save_sets_unsaved_false = False
+
+    app._compile_now()
+
+    assert app.save_calls == [True]
+    assert app.refresh_calls == []
+
+
+def test_compile_now_defaults_to_cache_aware_rebuild():
+    app = _DummyEditor()
+
+    app._compile_now()
+
+    assert app.refresh_calls == [False]
+
+
+def test_compile_now_forwards_force_rebuild_flag():
+    app = _DummyEditor()
+
+    app._compile_now(force_rebuild=True)
+
+    assert app.refresh_calls == [True]
+
+
+def test_compile_now_without_pending_timer_still_builds():
+    app = _DummyEditor()
+    app._preview_auto_refresh_after_id = None
+
+    app._compile_now()
+
+    assert app.refresh_calls == [False]

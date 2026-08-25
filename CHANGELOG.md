@@ -6,6 +6,10 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Fixed
+
+- Manuelles Kompilieren (Button "Aktualisieren" oder Leertaste in der Vorschau) bricht jetzt den laufenden automatischen Vorschau-Timer ab, statt ihn im Hintergrund weiterlaufen zu lassen -- bisher konnte kurz nach einem manuellen Kompilieren eine zweite, redundante automatische Kompilierung folgen.
+
 ### Added
 
 - Formel-Darstellung mit `$formel$` (Inline) und `$$formel$$` (freistehend, LaTeX-Syntax) funktioniert jetzt überall, wo auch `**fett**`/`*kursiv*` funktioniert. Formeln werden weiterhin über MathJax von einem CDN nachgeladen (unverändertes Verhalten) -- ist beim Export keine Internetverbindung vorhanden, bleibt die rohe Formel-Quelle als lesbarer Text sichtbar statt zu verschwinden oder kaputt zu gehen. Der Editor warnt beim Kompilieren nicht-blockierend (`MJ001`), wenn ein Block Formel-Syntax enthält, damit die Internetabhängigkeit nicht überrascht. Ein einzelnes `$`-Zeichen (z. B. in einem Preis wie `$5`) wird weiterhin nicht fälschlich als Formelbeginn interpretiert.

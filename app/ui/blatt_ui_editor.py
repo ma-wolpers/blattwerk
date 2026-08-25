@@ -381,6 +381,31 @@ class BlattwerkAppEditorMixin:
             self._run_editor_auto_preview_refresh,
         )
 
+    def _flush_unsaved_editor_changes(self):
+        """Cancels the pending debounced save and writes unsaved changes now.
+
+        Shared by the idle auto-refresh timer and manual compile
+        (`_compile_now`) -- both need to guarantee the on-disk file matches
+        the editor buffer before triggering a rebuild, since `refresh_preview`
+        reads from disk, not from the editor widget. Returns `True` once it
+        is safe to proceed (no unsaved changes remain), `False` if saving
+        just failed (caller should abort rather than build a stale/broken
+        state).
+        """
+        if self._editor_save_after_id is not None:
+            try:
+                self.root.after_cancel(self._editor_save_after_id)
+            except Exception:
+                pass
+            self._editor_save_after_id = None
+
+        if self._editor_has_unsaved_changes:
+            self._save_editor_content()
+            if self._editor_has_unsaved_changes:
+                return False
+
+        return True
+
     def _run_editor_auto_preview_refresh(self):
         """Runs idle auto-refresh and ensures preview uses persisted editor content."""
 
@@ -392,19 +417,27 @@ class BlattwerkAppEditorMixin:
         if self.editor_widget is None:
             return
 
-        if self._editor_save_after_id is not None:
-            try:
-                self.root.after_cancel(self._editor_save_after_id)
-            except Exception:
-                pass
-            self._editor_save_after_id = None
-
-        if self._editor_has_unsaved_changes:
-            self._save_editor_content()
-            if self._editor_has_unsaved_changes:
-                return
+        if not self._flush_unsaved_editor_changes():
+            return
 
         self.refresh_preview(force_rebuild=True)
+
+    def _compile_now(self, force_rebuild=False):
+        """Manual compile (button / spacebar): cancels the pending idle
+        auto-refresh timer instead of letting it fire again redundantly
+        right after this manual build. Flushes unsaved editor changes to
+        disk first (`refresh_preview` reads the file, not the editor
+        buffer) and aborts without rebuilding if that save fails.
+        `force_rebuild` defaults to `False` here, matching the previous
+        direct `refresh_preview` binding, to keep the cache-hit benefit for
+        manual compiles.
+        """
+        self._cancel_editor_auto_preview_refresh()
+
+        if not self._flush_unsaved_editor_changes():
+            return
+
+        self.refresh_preview(force_rebuild=force_rebuild)
 
     def _on_editor_modified(self, _event=None):
         """Schedules a debounced save after user edits."""

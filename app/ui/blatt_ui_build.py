@@ -384,7 +384,7 @@ class BlattwerkAppBuildMixin:
 
         actions_group_refresh = widgets.Frame(actions_section)
         widgets.Separator(actions_group_refresh, orient="vertical").pack(side="left", fill="y", padx=(0, 12))
-        widgets.Button(actions_group_refresh, text="Aktualisieren", command=self.refresh_preview, style="UtilityAction.TButton").pack(side="left")
+        widgets.Button(actions_group_refresh, text="Aktualisieren", command=self._compile_now, style="UtilityAction.TButton").pack(side="left")
 
         actions_group_lernhilfen = widgets.Frame(actions_section)
         widgets.Separator(actions_group_lernhilfen, orient="vertical").pack(side="left", fill="y", padx=(0, 12))
