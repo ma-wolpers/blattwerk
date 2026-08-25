@@ -114,7 +114,7 @@ Lückentext-Antwortfeld. `gap`/`gap_length` steuert den Lückenmodus/-länge, `w
 | `layout` | Text | -- | nein | -- | Steuert ein Layout-Detail des Blocks -- die genaue Bedeutung ist blocktyp-abhängig, siehe Besonderheit unten. |
 | `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
-| `words` | Text | -- | nein | -- | Blocktyp-abhängige Bedeutung, siehe Besonderheit unten. *Besonderheit bei `cloze`:* Position der Wortbank relativ zum Lückentext -- nicht die Lückenwörter selbst (die stehen im Blockinhalt). |
+| `words` | Text | -- | nein | -- | Blocktyp-abhängige Bedeutung, siehe Besonderheit unten. *Besonderheit bei `cloze`:* Position der Wortbank relativ zum Lückentext -- nicht die Lückenwörter selbst (die stehen im Blockinhalt). `none` (Standard) zeigt keine Wortbank; `above`/`below`/`left`/`right` schalten sie ein und legen die Position fest. |
 | `words_multi` | Bool | -- | nein | `True` | Erlaubt Mehrfachauswahl in der Wortbank (Standard: an). |
 
 **Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
@@ -637,6 +637,7 @@ Wortsuchrätsel-Antwortfeld. `words` listet die zu versteckenden Wörter, `diago
 | `min_rows` | Ganzzahl | -- | nein | -- | Mindestanzahl Zeilen des Rätselrasters. |
 | `min_size` | Ganzzahl | -- | nein | -- | Mindestrastergröße (Zeilen und Spalten gemeinsam). |
 | `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
+| `position` | Enum | `above`, `auto`, `below`, `left`, `right` | ja | `below` | Position der Wortliste relativ zum Rätselraster: `left`/`right`/`above`/`below`/`auto` (Standard `below` -- bestehende Dokumente bleiben dadurch unverändert). |
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
 | `vertical` | Bool | -- | nein | `False` | Erlaubt vertikale Wortplatzierung (Standard: aus). Akzeptiert auch eine Richtungsliste. |
 | `words` | Text | -- | nein | -- | Blocktyp-abhängige Bedeutung, siehe Besonderheit unten. |

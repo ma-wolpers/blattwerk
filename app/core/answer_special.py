@@ -27,6 +27,11 @@ from .answer_special_shared import (
     normalize_markdown,
 )
 from .answer_special_wordsearch import (
+    estimate_wordsearch_weight,
+    parse_wordsearch_words,
+    render_wordsearch_answer,
+)
+from .wordsearch_placement import (
     _assign_wordsearch_directions,
     _build_wordsearch_grid,
     _normalize_wordsearch_token,
@@ -35,7 +40,4 @@ from .answer_special_wordsearch import (
     _wordsearch_dimensions_feasible,
     _wordsearch_place_word,
     _wordsearch_unplace_word,
-    estimate_wordsearch_weight,
-    parse_wordsearch_words,
-    render_wordsearch_answer,
 )

@@ -14,6 +14,7 @@ from .blatt_kern_shared import (
     _safe_int,
     normalize_markdown,
 )
+from .wordbank_position import normalize_wordbank_position, wrap_with_wordbank_position
 
 def _normalize_choice_values(raw_value):
     """Normalisiert kommaseparierte oder pipe-separierte Antwortlisten."""
@@ -218,13 +219,21 @@ def _render_multiple_choice_answer(options, content, include_solutions):
     )
 
 def _normalize_word_position(value):
-    """Normalisiert Position der Lösungswörter beim Lückentext."""
+    """Normalisiert Position der Lösungswörter beim Lückentext.
+
+    `"none"` (Standard) zeigt keine Wortbank. Jeder andere erkannte Wert
+    schaltet die Wortbank ein und legt zugleich ihre Position fest --
+    links/rechts kommen hier über das gemeinsame `wordbank_position`-Modul
+    hinzu (vorher nur oben/unten). `"auto"` fällt bewusst auf `"below"`
+    zurück, statt eine Breitenschätzung für fließenden Lückentext zu raten
+    (anders als z. B. `crossword`s feste Rasterbreite, wo eine sinnvolle
+    Breitenschätzung existiert).
+    """
     normalized = _normalize_keyword(value, default="none")
-    if normalized in {"above", "top", "ueber", "über", "oben"}:
-        return "above"
-    if normalized in {"below", "bottom", "under", "unter", "unten"}:
-        return "below"
-    return "none"
+    if normalized in {"none", "aus", "off", "no", "nein", ""}:
+        return "none"
+    resolved = normalize_wordbank_position(normalized, default="below")
+    return "below" if resolved == "auto" else resolved
 
 def _normalize_gap_mode(value):
     """Normalisiert Lückenlängenmodus auf approx/fixed."""
@@ -308,12 +317,7 @@ def _render_cloze_answer(md, options, content, include_solutions):
         )
         word_bank_html = f"<div class='cloze-wordbank'>{chips}</div>"
 
-    if word_position == "above" and word_bank_html:
-        body_html = f"{word_bank_html}{cloze_html}"
-    elif word_position == "below" and word_bank_html:
-        body_html = f"{cloze_html}{word_bank_html}"
-    else:
-        body_html = cloze_html
+    body_html = wrap_with_wordbank_position(cloze_html, word_bank_html, word_position)
 
     return f"<div class='answer cloze-answer'>{body_html}</div>"
 

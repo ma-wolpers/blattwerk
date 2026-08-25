@@ -571,6 +571,10 @@ PROSE_SECTIONS: dict[str, str] = {
     "block:wordsearch.vertical": (
         "Erlaubt vertikale Wortplatzierung (Standard: aus). Akzeptiert auch eine Richtungsliste."
     ),
+    "block:wordsearch.position": (
+        "Position der Wortliste relativ zum Rätselraster: `left`/`right`/`above`/`below`/`auto` "
+        "(Standard `below` -- bestehende Dokumente bleiben dadurch unverändert)."
+    ),
     "block:wordsearch.min_size": ("Mindestrastergröße (Zeilen und Spalten gemeinsam)."),
     "block:wordsearch.min_rows": ("Mindestanzahl Zeilen des Rätselrasters."),
     "block:wordsearch.min_cols": ("Mindestanzahl Spalten des Rätselrasters."),
@@ -628,7 +632,8 @@ PROSE_SECTIONS: dict[str, str] = {
     ),
     "block:cloze.words": (
         "Position der Wortbank relativ zum Lückentext -- nicht die Lückenwörter selbst (die stehen "
-        "im Blockinhalt)."
+        "im Blockinhalt). `none` (Standard) zeigt keine Wortbank; `above`/`below`/`left`/`right` "
+        "schalten sie ein und legen die Position fest."
     ),
     "block:numberline.min": ("Untere Grenze des dargestellten Zahlenbereichs."),
     "block:numberline.max": ("Obere Grenze des dargestellten Zahlenbereichs."),

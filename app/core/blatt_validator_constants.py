@@ -530,6 +530,7 @@ BLOCK_OPTION_SPECS: dict[str, tuple[BlockOptionSpec, ...]] = {
         BlockOptionSpec("horizontal", "boolean", None, False, False),  # akzeptiert auch Richtungslisten
         BlockOptionSpec("vertical", "boolean", None, False, False),  # akzeptiert auch Richtungslisten
         BlockOptionSpec("words", "text", None, False, MISSING),
+        BlockOptionSpec("position", "enum", frozenset({"left", "right", "above", "below", "auto"}), True, "below"),
         _OPT_ALIGN,
     ),
     "crossword": (

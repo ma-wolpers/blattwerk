@@ -11,7 +11,7 @@ from dataclasses import dataclass
 
 import yaml
 
-from .answer_special_wordsearch import _normalize_wordsearch_token
+from .wordsearch_placement import _normalize_wordsearch_token
 
 _CROSSWORD_ALGORITHM_VERSION = 1
 """Bumped whenever placement/candidate-ranking logic changes, so stale
