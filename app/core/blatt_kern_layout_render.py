@@ -13,6 +13,8 @@ from .answer_special import (
     estimate_ordering_weight,
     estimate_wordsearch_weight,
 )
+from .answer_special_mindmap import estimate_mindmap_weight
+from .answer_special_writebox import estimate_writebox_weight
 from ..styles.blatt_styles import build_stylesheet, resolve_printable_height_cm, resolve_printable_width_cm
 from .blatt_kern_shared import (
     _meta_bool_ja_nein,
@@ -176,6 +178,12 @@ def estimate_block_weight(
             or "3cm"
         )
         return max(1.0, parse_height_cm(size_hint, default_cm=3.0) * 0.85)
+
+    if block_type == "mindmap":
+        return estimate_mindmap_weight(options, content)
+
+    if block_type == "writebox":
+        return estimate_writebox_weight(options, content)
 
     if block_type in {
         "lines",

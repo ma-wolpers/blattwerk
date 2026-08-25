@@ -64,6 +64,7 @@ _EDITOR_BLOCK_MENU_ITEMS: list[tuple[str, str, str]] = [
     ("L", "Linienfeld (lines)", BLOCK_INSERT_SNIPPETS["lines"]),
     ("M", "Material", BLOCK_INSERT_SNIPPETS["material"]),
     ("N", "Zahlengerade (numberline)", BLOCK_INSERT_SNIPPETS["numberline"]),
+    ("U", "Mindmap", BLOCK_INSERT_SNIPPETS["mindmap"]),
     ("O", "Reihenfolge (ordering)", BLOCK_INSERT_SNIPPETS["ordering"]),
     ("P", "Freier Platz (space)", BLOCK_INSERT_SNIPPETS["space"]),
     ("Q", "QR-Code", BLOCK_INSERT_SNIPPETS["qrcode"]),
@@ -73,7 +74,9 @@ _EDITOR_BLOCK_MENU_ITEMS: list[tuple[str, str, str]] = [
     ("V", "Ankreuztabelle (checkgrid)", BLOCK_INSERT_SNIPPETS["checkgrid"]),
     ("W", "Wortsuchrätsel (wordsearch)", BLOCK_INSERT_SNIPPETS["wordsearch"]),
     ("X", "Kreuzworträtsel (crossword)", BLOCK_INSERT_SNIPPETS["crossword"]),
+    ("Y", "Schreibrahmen (writebox)", BLOCK_INSERT_SNIPPETS["writebox"]),
     ("Z", "Zuordnung (matching)", BLOCK_INSERT_SNIPPETS["matching"]),
+    ("Ü", "Selbsteinschätzung (selfcheck)", BLOCK_INSERT_SNIPPETS["selfcheck"]),
 ]
 
 

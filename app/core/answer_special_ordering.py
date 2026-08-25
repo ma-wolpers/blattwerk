@@ -9,27 +9,15 @@ match item-by-item against what's actually printed on the worksheet.
 from __future__ import annotations
 
 import random
-import re
 from html import escape
 
-from .answer_special_shared import _new_markdown_converter, normalize_markdown
+from .answer_special_shared import _new_markdown_converter, normalize_markdown, parse_bullet_list_lines
 from .blatt_kern_shared_blocks import _alpha_label
-
-_BULLET_LINE_RE = re.compile(r"^[-*+]\s+(.*)$")
 
 
 def parse_ordering_items(content):
     """Parses bullet-list items in their author-given (correct) order."""
-    items = []
-    for raw_line in (content or "").splitlines():
-        stripped = raw_line.strip()
-        if not stripped:
-            continue
-        bullet_match = _BULLET_LINE_RE.match(stripped)
-        text = bullet_match.group(1).strip() if bullet_match else stripped
-        if text:
-            items.append(text)
-    return items
+    return parse_bullet_list_lines(content)
 
 
 def _shuffle_ranked_items(ranked_items):

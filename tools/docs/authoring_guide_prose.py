@@ -380,6 +380,22 @@ PROSE_SECTIONS: dict[str, str] = {
         "und `code_row=true` (das Codewort läuft als eigene Zeile, alle anderen Wörter kreuzen es "
         "senkrecht)."
     ),
+    "block:mindmap": (
+        "Offene Cluster-/Ideensammlung ohne feste Lösung: der Blockinhalt ist das zentrale Thema, "
+        "gerendert als radiales SVG-Diagramm mit `branches` leeren Zweig-Feldern für eigene "
+        "Assoziationen. Kein Arbeitsblatt-/Lösungs-Unterschied -- der Block sieht in beiden Modi "
+        "gleich aus."
+    ),
+    "block:selfcheck": (
+        "Offene Selbsteinschätzung ohne feste Lösung: der Blockinhalt ist eine Liste von Aussagen "
+        "(eine pro Zeile), jede mit einer `steps`-stufigen Symbol-Skala ohne markierte \"richtige\" "
+        "Antwort. Kein Arbeitsblatt-/Lösungs-Unterschied."
+    ),
+    "block:writebox": (
+        "Offener Rahmen für freies Schreiben ohne feste Lösung: der Blockinhalt ist ein optionaler "
+        "Schreibimpuls, gefolgt von einem dekorativ umrahmten Bereich mit `lines` Schreiblinien "
+        "(`style=bubble|cloud|frame|letter`). Kein Arbeitsblatt-/Lösungs-Unterschied."
+    ),
     "block:solution": (
         "Musterlösungstext. `label=true|false` (Standard `true`) blendet das Label \"Lösung\" ein/aus."
     ),
@@ -630,6 +646,24 @@ PROSE_SECTIONS: dict[str, str] = {
     "block:crossword.code_row": (
         "Wenn aktiv, läuft `code` als eigene waagerechte Zeile, die alle anderen Wörter "
         "senkrecht kreuzen müssen (Standard: aus)."
+    ),
+    "block:mindmap.branches": (
+        "Anzahl der radial angeordneten Zweig-Felder (2-12, Standard `6`)."
+    ),
+    "block:mindmap.shape": (
+        "Form der Zweig-Felder: `oval` (Standard), `rect` oder `cloud`."
+    ),
+    "block:selfcheck.scale": (
+        "Symbolsatz der Skala: `smiley` (Standard), `ampel`, `sterne` oder `zahlen`."
+    ),
+    "block:selfcheck.steps": (
+        "Anzahl der Skalenstufen (2-7, Standard `3`)."
+    ),
+    "block:writebox.style": (
+        "Dekorativer Rahmenstil: `bubble`, `cloud`, `frame` (Standard) oder `letter`."
+    ),
+    "block:writebox.lines": (
+        "Anzahl der Schreiblinien im Rahmen (1-20, Standard `5`)."
     ),
     "block:solution.label": ('Blendet das Label "Lösung" vor dem Text ein/aus (Standard: an).'),
     "block:columns.ratio": ("Alias von `widths` -- relative Spaltengewichte."),

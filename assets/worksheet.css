@@ -1621,6 +1621,112 @@ h1 {
     background: color-mix(in srgb, var(--theme-accent-main) 22%, white);
 }
 
+/* Open-ended blocks (mindmap/selfcheck/writebox) -- no worksheet/solution
+   divergence, so no `.answer` wrapper class (see answer_special_mindmap.py
+   module docstring for the dispatch rationale). */
+
+.mindmap-block {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 0.45em;
+}
+
+.mindmap-svg {
+    width: 100%;
+    max-width: 12cm;
+    height: auto;
+}
+
+.mindmap-spoke {
+    stroke: var(--field-border-color);
+    stroke-width: 1.4;
+    fill: none;
+}
+
+.mindmap-center {
+    fill: color-mix(in srgb, var(--theme-accent-main) 22%, white);
+    stroke: var(--field-border-color);
+    stroke-width: 1.4;
+}
+
+.mindmap-branch {
+    fill: white;
+    stroke: var(--field-border-color);
+    stroke-width: 1.4;
+}
+
+.mindmap-center-text {
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.selfcheck-block {
+    margin-bottom: 0.45em;
+}
+
+.selfcheck-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6em;
+    padding: 0.25em 0;
+    border-bottom: var(--field-border-width) solid var(--field-border-color);
+}
+
+.selfcheck-row:last-child {
+    border-bottom: 0;
+}
+
+.selfcheck-statement p {
+    margin: 0;
+}
+
+.selfcheck-scale {
+    display: flex;
+    gap: 0.35em;
+    flex: 0 0 auto;
+}
+
+.selfcheck-glyph {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.3em;
+    height: 1.3em;
+    font-size: 1.1em;
+}
+
+.writebox-block {
+    box-sizing: border-box;
+    border: var(--field-border-width) solid var(--field-border-color);
+    border-radius: 0.3em;
+    padding: 0.5em 0.6em;
+    margin-bottom: 0.45em;
+}
+
+.writebox-style-bubble {
+    border-radius: 1.2em;
+}
+
+.writebox-style-cloud {
+    border-radius: 1.6em 0.6em 1.6em 0.6em / 0.8em 1.4em 0.8em 1.4em;
+}
+
+.writebox-style-letter {
+    border-style: dashed;
+}
+
+.writebox-prompt p {
+    margin: 0 0 0.35em 0;
+    font-weight: 600;
+}
+
+.writebox-lines .line {
+    border-bottom: var(--field-border-width) solid var(--field-border-color);
+    height: var(--answer-line-pitch, calc(1.5em + 0.2em));
+    margin-bottom: 0;
+}
+
 .answer-table {
     width: 100%;
     border-collapse: collapse;

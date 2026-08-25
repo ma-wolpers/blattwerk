@@ -169,6 +169,22 @@ BLOCK_INSERT_SNIPPETS: dict[str, str] = {
         '    clue: "Hinweis 3"\n'
         ":::\n"
     ),
+    "mindmap": (
+        ":::mindmap branches=6 shape=oval\n"
+        "\x01Thema\n"
+        ":::\n"
+    ),
+    "selfcheck": (
+        ":::selfcheck scale=smiley steps=3\n"
+        "\x01- Ich kann das Thema erklären.\n"
+        "- Ich kann Aufgaben dazu lösen.\n"
+        ":::\n"
+    ),
+    "writebox": (
+        ":::writebox style=frame lines=5\n"
+        "\x01Schreibimpuls hier…\n"
+        ":::\n"
+    ),
     "matching": (
         ":::matching layout=horizontal height_mode=uniform lane_align=center show_guides=false\n"
         "left:\n"

@@ -467,6 +467,26 @@ Frage oder Einleitung…
 :::
 ```
 
+### `mindmap`
+
+Offene Cluster-/Ideensammlung ohne feste Lösung: der Blockinhalt ist das zentrale Thema, gerendert als radiales SVG-Diagramm mit `branches` leeren Zweig-Feldern für eigene Assoziationen. Kein Arbeitsblatt-/Lösungs-Unterschied -- der Block sieht in beiden Modi gleich aus.
+
+| Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
+|---|---|---|---|---|---|
+| `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
+| `branches` | Ganzzahl | -- | nein | `6` | Anzahl der radial angeordneten Zweig-Felder (2-12, Standard `6`). |
+| `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
+| `shape` | Enum | `cloud`, `oval`, `rect` | nein | `oval` | Form der Zweig-Felder: `oval` (Standard), `rect` oder `cloud`. |
+| `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
+
+**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
+
+```markdown
+:::mindmap branches=6 shape=oval
+Thema
+:::
+```
+
 ### `nextcol`
 
 Spaltenwechsel innerhalb eines `:::columns`-Blocks. Keine eigenen Optionen.
@@ -570,6 +590,27 @@ Setzt den aktuellen Abschnittsnamen für die Präsentations-Footer-Navigation --
 | Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
 |---|---|---|---|---|---|
 | `title` | Text | -- | nein | -- | Überschreibt die automatisch erzeugte Standardbeschriftung des Blocks mit einem eigenen Text. |
+
+### `selfcheck`
+
+Offene Selbsteinschätzung ohne feste Lösung: der Blockinhalt ist eine Liste von Aussagen (eine pro Zeile), jede mit einer `steps`-stufigen Symbol-Skala ohne markierte "richtige" Antwort. Kein Arbeitsblatt-/Lösungs-Unterschied.
+
+| Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
+|---|---|---|---|---|---|
+| `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
+| `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
+| `scale` | Enum | `ampel`, `smiley`, `sterne`, `zahlen` | nein | `smiley` | Symbolsatz der Skala: `smiley` (Standard), `ampel`, `sterne` oder `zahlen`. |
+| `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
+| `steps` | Ganzzahl | -- | nein | `3` | Anzahl der Skalenstufen (2-7, Standard `3`). |
+
+**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
+
+```markdown
+:::selfcheck scale=smiley steps=3
+- Ich kann das Thema erklären.
+- Ich kann Aufgaben dazu lösen.
+:::
+```
 
 ### `slidechromeoff`
 
@@ -723,6 +764,26 @@ Wortsuchrätsel-Antwortfeld. `words` listet die zu versteckenden Wörter, `diago
 - Wort1
 - Wort2
 - Wort3
+:::
+```
+
+### `writebox`
+
+Offener Rahmen für freies Schreiben ohne feste Lösung: der Blockinhalt ist ein optionaler Schreibimpuls, gefolgt von einem dekorativ umrahmten Bereich mit `lines` Schreiblinien (`style=bubble|cloud|frame|letter`). Kein Arbeitsblatt-/Lösungs-Unterschied.
+
+| Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
+|---|---|---|---|---|---|
+| `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
+| `lines` | Ganzzahl | -- | nein | `5` | Anzahl der Schreiblinien im Rahmen (1-20, Standard `5`). |
+| `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
+| `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
+| `style` | Enum | `bubble`, `cloud`, `frame`, `letter` | nein | `frame` | Dekorativer Rahmenstil: `bubble`, `cloud`, `frame` (Standard) oder `letter`. |
+
+**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
+
+```markdown
+:::writebox style=frame lines=5
+Schreibimpuls hier…
 :::
 ```
 

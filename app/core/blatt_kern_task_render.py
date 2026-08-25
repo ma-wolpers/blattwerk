@@ -16,6 +16,9 @@ from .blatt_kern_shared import (
     should_render_block,
 )
 from .answer_line_markers import filter_answer_content_for_mode
+from .answer_special_mindmap import render_mindmap_block
+from .answer_special_selfcheck import render_selfcheck_block
+from .answer_special_writebox import render_writebox_block
 from .blatt_kern_answer_table import _render_answer_block
 from .qrcode_block import render_qrcode_block
 
@@ -179,6 +182,21 @@ def render_block(
 
     if block_type == "qrcode":
         return _wrap_with_object_alignment(render_qrcode_block(options), object_alignment)
+
+    if block_type == "mindmap":
+        return _wrap_with_object_alignment(
+            render_mindmap_block(options, normalized_content), object_alignment
+        )
+
+    if block_type == "selfcheck":
+        return _wrap_with_object_alignment(
+            render_selfcheck_block(options, normalized_content), object_alignment
+        )
+
+    if block_type == "writebox":
+        return _wrap_with_object_alignment(
+            render_writebox_block(options, normalized_content), object_alignment
+        )
 
     if block_type in ANSWER_BLOCK_TYPES:
         return _wrap_with_object_alignment(

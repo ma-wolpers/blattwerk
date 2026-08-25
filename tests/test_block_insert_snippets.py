@@ -36,6 +36,9 @@ _LABEL_TO_BLOCK_TYPE = {
     "Kategorisieren (categorize)": "categorize",
     "Ankreuztabelle (checkgrid)": "checkgrid",
     "Zuordnung (matching)": "matching",
+    "Mindmap": "mindmap",
+    "Selbsteinschätzung (selfcheck)": "selfcheck",
+    "Schreibrahmen (writebox)": "writebox",
 }
 _NON_BLOCK_MENU_LABELS = {"Bild (image)"}
 

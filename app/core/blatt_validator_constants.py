@@ -76,6 +76,9 @@ KNOWN_BLOCK_TYPES = {
     "ordering",
     "categorize",
     "checkgrid",
+    "mindmap",
+    "selfcheck",
+    "writebox",
     "solution",
     "columns",
     "nextcol",
@@ -568,6 +571,27 @@ BLOCK_OPTION_SPECS: dict[str, tuple[BlockOptionSpec, ...]] = {
     "checkgrid": (
         _OPT_SHOW,
         _OPT_MODE,
+        _OPT_ALIGN,
+    ),
+    "mindmap": (
+        _OPT_SHOW,
+        _OPT_MODE,
+        BlockOptionSpec("branches", "integer", None, False, 6),
+        BlockOptionSpec("shape", "enum", frozenset({"oval", "rect", "cloud"}), False, "oval"),
+        _OPT_ALIGN,
+    ),
+    "selfcheck": (
+        _OPT_SHOW,
+        _OPT_MODE,
+        BlockOptionSpec("scale", "enum", frozenset({"smiley", "ampel", "sterne", "zahlen"}), False, "smiley"),
+        BlockOptionSpec("steps", "integer", None, False, 3),
+        _OPT_ALIGN,
+    ),
+    "writebox": (
+        _OPT_SHOW,
+        _OPT_MODE,
+        BlockOptionSpec("style", "enum", frozenset({"bubble", "cloud", "frame", "letter"}), False, "frame"),
+        BlockOptionSpec("lines", "integer", None, False, 5),
         _OPT_ALIGN,
     ),
     "solution": (

@@ -135,6 +135,24 @@ def parse_svg_thickness(raw_value):
     return parsed
 
 
+def parse_bullet_list_lines(content):
+    """Parses simple `- item`/`* item`/`+ item` (or bare) lines into a plain
+    list of item strings, in source order. Shared by any block whose content
+    is just a list of statements/items with no further structure (`ordering`,
+    `selfcheck`) -- not `wordsearch`'s tokenizing variant, which additionally
+    splits on `,;|` and normalizes to uppercase letters."""
+    items = []
+    for raw_line in (content or "").splitlines():
+        stripped = raw_line.strip()
+        if not stripped:
+            continue
+        bullet_match = re.match(r"^[-*+]\s+(.*)$", stripped)
+        text = bullet_match.group(1).strip() if bullet_match else stripped
+        if text:
+            items.append(text)
+    return items
+
+
 def _as_text_list(value):
     """Normalisiert Werte zu einer nicht-leeren Liste aus Strings."""
     if value is None:
