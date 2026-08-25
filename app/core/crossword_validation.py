@@ -1,4 +1,4 @@
-"""Compile-time validation for `:::crossword` blocks (`CW001`-`CW003`).
+"""Compile-time validation for `:::crossword` blocks (`CW001`-`CW004`).
 
 Split out of `blatt_validator_document.py` to keep that file under the
 project's ~300-line convention (see `docs/ARCHITEKTUR.md`) -- this is
@@ -7,6 +7,8 @@ the generic per-block dispatch that file still owns.
 """
 
 from __future__ import annotations
+
+from collections import Counter
 
 from .block_computation_cache import ComputationKey, get_or_compute
 from .blatt_validator_types import BuildDiagnostic
@@ -23,7 +25,7 @@ from .crossword_placement import (
 
 def validate_crossword_payload(diagnostics, index, block_type, options, content, cache):
     """Validates a `:::crossword` block's content/options, appending `CW001`-
-    `CW003` diagnostics as needed.
+    `CW004` diagnostics as needed.
 
     Also populates `cache` (a `BlockComputationCache`, see
     `app/core/block_computation_cache.py`) with the placement and code
@@ -35,6 +37,25 @@ def validate_crossword_payload(diagnostics, index, block_type, options, content,
     entries = parse_crossword_entries(content)
     if not entries:
         return
+
+    word_counts = Counter(entry.word for entry in entries)
+    duplicate_words = sorted(word for word, count in word_counts.items() if count > 1)
+    if duplicate_words:
+        preview = ", ".join(duplicate_words[:5])
+        remainder = len(duplicate_words) - 5
+        remainder_text = f" (+{remainder} weitere)" if remainder > 0 else ""
+        diagnostics.append(
+            BuildDiagnostic(
+                code="CW004",
+                message=(
+                    "Kreuzworträtsel enthält dasselbe Wort mehrfach (nach Normalisierung): "
+                    f"{preview}{remainder_text}. Wird weiterhin platziert und beide Hinweise "
+                    "bleiben erhalten -- prüfen, ob das beabsichtigt ist."
+                ),
+                block_index=index,
+                block_type=block_type,
+            )
+        )
 
     maxw, maxh = resolve_crossword_bounds(options)
     code_word_raw, code_word, code_row = parse_crossword_code_options(options)

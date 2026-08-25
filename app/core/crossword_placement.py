@@ -88,7 +88,7 @@ class CrosswordLayout:
 
 
 def parse_crossword_entries(content: str) -> list[CrosswordEntry]:
-    """Parses the `:::crossword` YAML content into normalized, deduplicated entries.
+    """Parses the `:::crossword` YAML content into normalized entries.
 
     Expected shape (a dict at the YAML root, consistent with every other
     `YAML_ANSWER_TYPES` block type -- a bare list at the root would trip the
@@ -102,9 +102,15 @@ def parse_crossword_entries(content: str) -> list[CrosswordEntry]:
 
     Accepts `words`/`woerter`/`wörter` as the root key and `word`/`wort`/
     `lösung`/`loesung` plus `clue`/`hinweis` as per-entry key aliases.
-    Entries with an empty/unnormalizable word are skipped; duplicate words
-    (after normalization) keep only their first occurrence, matching
-    `parse_wordsearch_words`'s convention.
+    Entries with an empty/unnormalizable word are skipped. Unlike
+    `parse_wordsearch_words`, entries whose normalized word collides with an
+    earlier one are **kept** (not silently dropped) -- the placement
+    algorithm has no word-uniqueness assumption (each entry is placed
+    independently), and silently discarding a duplicate previously also
+    discarded its distinct clue with zero diagnostic. Callers that want to
+    flag likely-accidental duplicates (e.g. two entries whose words differ
+    only by a digit stripped during normalization) do so separately via
+    `CW004` in `crossword_validation.py`.
     """
     if not (content or "").strip():
         return []
@@ -122,16 +128,14 @@ def parse_crossword_entries(content: str) -> list[CrosswordEntry]:
         return []
 
     entries: list[CrosswordEntry] = []
-    seen_words: set[str] = set()
     for raw_entry in raw_entries:
         if not isinstance(raw_entry, dict):
             continue
         raw_word = raw_entry.get("word") or raw_entry.get("wort") or raw_entry.get("lösung") or raw_entry.get("loesung")
         word = _normalize_wordsearch_token(raw_word)
-        if not word or word in seen_words:
+        if not word:
             continue
         clue = str(raw_entry.get("clue") or raw_entry.get("hinweis") or "").strip()
-        seen_words.add(word)
         entries.append(CrosswordEntry(word=word, clue=clue))
 
     return entries

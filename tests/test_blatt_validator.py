@@ -1136,3 +1136,48 @@ def test_crossword_valid_code_row_has_no_cw_diagnostics():
     codes = {d.code for d in inspect_markdown_text(text).diagnostics}
 
     assert not any(code.startswith("CW") for code in codes)
+
+
+def test_crossword_duplicate_normalized_word_emits_cw004():
+    # "Wort1"/"Wort2" collapse to the same "WORT" after digit-stripping
+    # normalization -- the exact real-world case that used to silently
+    # drop the second clue with no diagnostic at all.
+    words_yaml = (
+        "  - word: Wort1\n    clue: erster Hinweis\n"
+        "  - word: Wort2\n    clue: zweiter Hinweis\n"
+    )
+    text = _build_document(_crossword_block(words_yaml, " maxw=15 maxh=15"))
+    codes = {d.code for d in inspect_markdown_text(text).diagnostics}
+
+    assert "CW004" in codes
+
+
+def test_crossword_duplicate_word_still_builds_the_layout():
+    # CW004 is a non-blocking warning -- the duplicate word is placed
+    # anyway (two independent placements), not silently dropped and not
+    # treated as a build-blocking error.
+    words_yaml = (
+        "  - word: SONNE\n    clue: a\n"
+        "  - word: MOND\n    clue: b\n"
+        "  - word: STERN\n    clue: c\n"
+        "  - word: sonne\n    clue: d\n"
+    )
+    text = _build_document(_crossword_block(words_yaml, " maxw=15 maxh=15"))
+    diagnostics = inspect_markdown_text(text).diagnostics
+    codes = {d.code for d in diagnostics}
+    error_codes = {d.code for d in diagnostics if d.severity == "error"}
+
+    assert "CW004" in codes
+    assert "CW001" not in error_codes
+
+
+def test_crossword_without_duplicate_words_does_not_emit_cw004():
+    words_yaml = (
+        "  - word: SONNE\n    clue: a\n"
+        "  - word: MOND\n    clue: b\n"
+        "  - word: STERN\n    clue: c\n"
+    )
+    text = _build_document(_crossword_block(words_yaml, " maxw=15 maxh=15"))
+    codes = {d.code for d in inspect_markdown_text(text).diagnostics}
+
+    assert "CW004" not in codes

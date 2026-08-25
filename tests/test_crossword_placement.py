@@ -36,19 +36,25 @@ woerter:
     assert entries == [CrosswordEntry(word="KATZE", clue="Miaut")]
 
 
-def test_parse_crossword_entries_normalizes_and_dedups_words():
+def test_parse_crossword_entries_normalizes_but_keeps_duplicate_words():
+    # A word repeated after normalization is no longer silently dropped --
+    # both entries (and both distinct clues) are kept; the placement
+    # algorithm has no word-uniqueness assumption. Deliberate duplicates
+    # are flagged separately via CW004 (see crossword_validation.py), not
+    # by discarding content here.
     content = """
 words:
   - word: haus
     clue: erste Nennung
   - word: HAUS
-    clue: zweite Nennung wird verworfen
+    clue: zweite Nennung bleibt erhalten
 """
     entries = parse_crossword_entries(content)
 
-    assert len(entries) == 1
-    assert entries[0].word == "HAUS"
-    assert entries[0].clue == "erste Nennung"
+    assert entries == [
+        CrosswordEntry(word="HAUS", clue="erste Nennung"),
+        CrosswordEntry(word="HAUS", clue="zweite Nennung bleibt erhalten"),
+    ]
 
 
 def test_parse_crossword_entries_rejects_bare_list_root():

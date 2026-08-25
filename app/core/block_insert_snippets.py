@@ -149,12 +149,12 @@ BLOCK_INSERT_SNIPPETS: dict[str, str] = {
     "crossword": (
         ":::crossword maxw=15 maxh=15\n"
         "words:\n"
-        '\x01  - word: "Wort1"\n'
-        '    clue: "Hinweis 1"\n'
-        '  - word: "Wort2"\n'
-        '    clue: "Hinweis 2"\n'
-        '  - word: "Wort3"\n'
-        '    clue: "Hinweis 3"\n'
+        '\x01  - word: "SONNE"\n'
+        '    clue: "Scheint tagsueber am Himmel"\n'
+        '  - word: "MOND"\n'
+        '    clue: "Scheint nachts am Himmel"\n'
+        '  - word: "STERN"\n'
+        '    clue: "Funkelt nachts am Himmel"\n'
         ":::\n"
     ),
     "mindmap": (

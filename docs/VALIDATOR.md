@@ -63,6 +63,7 @@ Einstiegspunkte und eigene Coderaeume, teilen sich aber dieses Referenzdokument.
 - `CW001`: `crossword`-Block konnte mit den gegebenen Woertern nicht innerhalb der `maxw`x`maxh`-Rastergroesse platziert werden.
 - `CW002`: `crossword`-Block: das `code=`-Loesungswort kann aus den Buchstaben der platzierten Woerter nicht gebildet werden.
 - `CW003`: `crossword`-Block: `code_row=true` ohne `code=`-Angabe, oder das Codewort ist kuerzer als die Anzahl der Raetselwoerter.
+- `CW004`: `crossword`-Block enthaelt dasselbe Wort mehrfach (nach Normalisierung) -- wird weiterhin platziert (kein Verwerfen), reiner Hinweis, falls das ein Versehen ist (Warnung).
 - `MA001`: `matching`-Block mit nur einem Element auf einer Seite (1↔N) -- didaktisch nicht sinnvoll (Warnung).
 - `MJ001`: Block-Inhalt enthaelt `$...$`/`$$...$$`-Formel-Syntax -- die Darstellung laedt MathJax von einem CDN und benoetigt daher beim Export eine Internetverbindung; ohne Internet bleibt die rohe Formel-Quelle als Text sichtbar, wird aber nicht gerendert (Warnung, blocktyp-unabhaengig).
 - `PT001`: Absolute lokale Bildpfade in Markdown/HTML-Bildquellen gefunden (Portabilitätswarnung).

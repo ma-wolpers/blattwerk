@@ -195,12 +195,12 @@ Kreuzworträtsel-Antwortfeld. Der Inhalt ist eine YAML-Liste unter `words:` mit 
 ```markdown
 :::crossword maxw=15 maxh=15
 words:
-  - word: "Wort1"
-    clue: "Hinweis 1"
-  - word: "Wort2"
-    clue: "Hinweis 2"
-  - word: "Wort3"
-    clue: "Hinweis 3"
+  - word: "SONNE"
+    clue: "Scheint tagsueber am Himmel"
+  - word: "MOND"
+    clue: "Scheint nachts am Himmel"
+  - word: "STERN"
+    clue: "Funkelt nachts am Himmel"
 :::
 ```
 
