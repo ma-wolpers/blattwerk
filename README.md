@@ -149,19 +149,19 @@ python blattwerk.py
 
 ## Dokumentation
 
-- Nutzerhandbuch (Funktionen/Bedienlogik): `docs/NUTZERHANDBUCH.md`
-- Markdown-Syntax (Arbeitsblatt/Präsentation, automatisch generiert): `docs/ANLEITUNG_ARBEITSBLATT_PRAESENTATION.md`
-- Kurzentwurf-Syntax (automatisch generiert): `docs/ANLEITUNG_KURZENTWURF.md`
-- Formale Grammatik: `docs/GRAMMAR.md`
-- Validator und Diagnosecodes: `docs/VALIDATOR.md`
-- Agent-Setup und Agent-Erstellung: `docs/AGENT_SETUP.md`
+- Nutzerhandbuch (Funktionen/Bedienlogik): `docs/nutzer/NUTZERHANDBUCH.md`
+- Markdown-Syntax (Arbeitsblatt/Präsentation, automatisch generiert): `docs/nutzer/ANLEITUNG_ARBEITSBLATT_PRAESENTATION.md`
+- Kurzentwurf-Syntax (automatisch generiert): `docs/nutzer/ANLEITUNG_KURZENTWURF.md`
+- Formale Grammatik: `docs/nutzer/GRAMMAR.md`
+- Validator und Diagnosecodes: `docs/nutzer/VALIDATOR.md`
+- Agent-Setup und Agent-Erstellung: `docs/intern/AGENT_SETUP.md`
 - Setup Zweiter PC (Blattwerk inkl. integriertem Kurzentwurf): `docs/SETUP_ZWEITER_PC.md`
-- CSS-Anleitung: `docs/CSS_ANLEITUNG.md`
-- Architektur (intern): `docs/ARCHITEKTUR.md`
-- Architektur (einfach): `docs/ARCHITEKTUR_EINFACH.md`
-- Development-Log (technischer Verlauf): `docs/DEVELOPMENT_LOG.md`
+- CSS-Anleitung: `docs/nutzer/CSS_ANLEITUNG.md`
+- Architektur (intern): `docs/intern/ARCHITEKTUR.md`
+- Architektur (einfach): `docs/intern/ARCHITEKTUR_EINFACH.md`
+- Development-Log (technischer Verlauf): `docs/intern/DEVELOPMENT_LOG.md`
 - Changelog (oeffentliche Aenderungen): `CHANGELOG.md`
-- Copilot-Workflow (Prompt- und Review-Standard): `docs/COPILOT_WORKFLOW.md`
+- Copilot-Workflow (Prompt- und Review-Standard): `docs/intern/COPILOT_WORKFLOW.md`
 
 ## Lizenz
 

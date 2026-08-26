@@ -5,8 +5,8 @@ Describe what changed and why.
 ## Checklist
 
 - [ ] Feature or architecture changed
-- [ ] `docs/DEVELOPMENT_LOG.md` updated (required for feature/architecture changes)
-- [ ] `docs/ARCHITEKTUR.md` and `docs/ARCHITEKTUR_EINFACH.md` updated together (if architecture changed)
+- [ ] `docs/intern/DEVELOPMENT_LOG.md` updated (required for feature/architecture changes)
+- [ ] `docs/intern/ARCHITEKTUR.md` and `docs/intern/ARCHITEKTUR_EINFACH.md` updated together (if architecture changed)
 - [ ] `CHANGELOG.md` updated (if user-facing behavior changed)
 - [ ] New shortcuts are registered centrally in `bw_libs/ui_contract/keybinding.py`
 - [ ] New popups follow central policy in `bw_libs/ui_contract/popup.py`

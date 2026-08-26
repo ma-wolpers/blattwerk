@@ -7,16 +7,16 @@ tools: ['read', 'agent', 'edit', 'search', 'web', 'todo']
 
 ## Verbindliche Quellen
 
-1. Formale Grammatik: docs/GRAMMAR.md
-2. Sprachreferenz (Arbeitsblatt/Praesentation, automatisch generiert): docs/ANLEITUNG_ARBEITSBLATT_PRAESENTATION.md
-3. Sprachreferenz (Kurzentwurf, automatisch generiert): docs/ANLEITUNG_KURZENTWURF.md
-4. Validator-Codes und Blocking-Regeln: docs/VALIDATOR.md
+1. Formale Grammatik: docs/nutzer/GRAMMAR.md
+2. Sprachreferenz (Arbeitsblatt/Praesentation, automatisch generiert): docs/nutzer/ANLEITUNG_ARBEITSBLATT_PRAESENTATION.md
+3. Sprachreferenz (Kurzentwurf, automatisch generiert): docs/nutzer/ANLEITUNG_KURZENTWURF.md
+4. Validator-Codes und Blocking-Regeln: docs/nutzer/VALIDATOR.md
 
-Bei Widerspruechen gilt docs/GRAMMAR.md vor docs/ANLEITUNG_ARBEITSBLATT_PRAESENTATION.md.
+Bei Widerspruechen gilt docs/nutzer/GRAMMAR.md vor docs/nutzer/ANLEITUNG_ARBEITSBLATT_PRAESENTATION.md.
 
 ## Arbeitsregeln fuer den Agent
 
-1. Vor jeder inhaltlichen Markdown-Generierung zuerst docs/GRAMMAR.md lesen.
+1. Vor jeder inhaltlichen Markdown-Generierung zuerst docs/nutzer/GRAMMAR.md lesen.
 2. Nur erlaubte Blocktypen/Optionen/Werte verwenden.
 3. Answer-Bloecke immer mit type anlegen.
 4. YAML-basierte answer-Typen nur mit gueltigem Mapping-YAML-Inhalt fuellen.

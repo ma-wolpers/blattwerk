@@ -5,11 +5,11 @@ Arbeite in klarer Dokumenttrennung und halte Guardrails strikt ein.
 Pflichtregeln:
 
 1. Architektur-Referenz
-- `docs/ARCHITEKTUR.md` und `docs/ARCHITEKTUR_EINFACH.md` beschreiben nur den aktuellen Zustand.
+- `docs/intern/ARCHITEKTUR.md` und `docs/intern/ARCHITEKTUR_EINFACH.md` beschreiben nur den aktuellen Zustand.
 - Keine Abschluss-/Historienlisten in Architekturdokumenten.
 
 2. Development-Log
-- Bei Feature- und Architektur-Aenderungen immer `docs/DEVELOPMENT_LOG.md` im selben Zyklus aktualisieren.
+- Bei Feature- und Architektur-Aenderungen immer `docs/intern/DEVELOPMENT_LOG.md` im selben Zyklus aktualisieren.
 - Bugfix-Only-Aenderungen sind davon ausgenommen.
 
 3. Public Changelog

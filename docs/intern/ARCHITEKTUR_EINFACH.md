@@ -3,11 +3,11 @@
 Diese Datei erklärt die Architektur in einfacher Sprache.
 
 Wichtig:
-Sie muss immer zusammen mit [docs/ARCHITEKTUR.md](docs/ARCHITEKTUR.md) geändert werden.
+Sie muss immer zusammen mit [docs/intern/ARCHITEKTUR.md](docs/intern/ARCHITEKTUR.md) geändert werden.
 
 Dokumentrollen:
 - Die beiden Architekturdateien zeigen nur den aktuellen Zustand.
-- Der Aenderungsverlauf steht nur in [docs/DEVELOPMENT_LOG.md](docs/DEVELOPMENT_LOG.md).
+- Der Aenderungsverlauf steht nur in [docs/intern/DEVELOPMENT_LOG.md](docs/intern/DEVELOPMENT_LOG.md).
 
 ## Die Grundidee
 
@@ -126,7 +126,7 @@ Diese Datei ist kein Aenderungsprotokoll.
   - der Validator meldet absolute lokale Bildpfade als `PT001`
   - relative Pfade und Web-URLs bleiben erlaubt
 5. Development-Log ist Pflicht:
-  - keine Feature- oder Architekturänderung ohne Eintrag in [docs/DEVELOPMENT_LOG.md](docs/DEVELOPMENT_LOG.md)
+  - keine Feature- oder Architekturänderung ohne Eintrag in [docs/intern/DEVELOPMENT_LOG.md](docs/intern/DEVELOPMENT_LOG.md)
   - der Eintrag passiert im gleichen Arbeitszyklus
 
 ## Regel vor jedem Merge
@@ -135,4 +135,4 @@ Diese Datei ist kein Aenderungsprotokoll.
 2. Passen die Schichtgrenzen?
 3. Wird eine Brute-Force-Regel verletzt?
 4. Wurden beide Architekturdateien zusammen aktualisiert?
-5. Wurde bei Feature- oder Architekturänderung [docs/DEVELOPMENT_LOG.md](docs/DEVELOPMENT_LOG.md) aktualisiert?
+5. Wurde bei Feature- oder Architekturänderung [docs/intern/DEVELOPMENT_LOG.md](docs/intern/DEVELOPMENT_LOG.md) aktualisiert?

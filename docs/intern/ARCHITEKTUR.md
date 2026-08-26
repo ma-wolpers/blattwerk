@@ -6,12 +6,12 @@ Ziel: klare Schichtung ohne Klebercode. Jede fachliche Entscheidung hat genau ei
 
 Diese Datei ist die technische Architekturfassung.
 
-Sie ist immer synchron mit [docs/ARCHITEKTUR_EINFACH.md](docs/ARCHITEKTUR_EINFACH.md) zu pflegen.
+Sie ist immer synchron mit [docs/intern/ARCHITEKTUR_EINFACH.md](docs/intern/ARCHITEKTUR_EINFACH.md) zu pflegen.
 Änderungen an nur einer der beiden Dateien sind nicht erlaubt.
 
 Dokumentrollen:
-- `docs/ARCHITEKTUR.md` und `docs/ARCHITEKTUR_EINFACH.md` beschreiben nur den aktuellen Architekturzustand.
-- Verlaufs- und Aenderungsdokumentation liegt ausschließlich in `docs/DEVELOPMENT_LOG.md`.
+- `docs/intern/ARCHITEKTUR.md` und `docs/intern/ARCHITEKTUR_EINFACH.md` beschreiben nur den aktuellen Architekturzustand.
+- Verlaufs- und Aenderungsdokumentation liegt ausschließlich in `docs/intern/DEVELOPMENT_LOG.md`.
 
 ## Programmkern
 
@@ -121,7 +121,7 @@ Erlaubt als Ausnahme:
 ## Dokumentationsgrenzen
 
 Diese Architekturdokumente enthalten keine Historie, keine "zuletzt ergänzt"-Notizen und keine Abschlusslisten.
-Historische Änderungen, Migrationsschritte und laufende Arbeitsprotokolle stehen nur im `docs/DEVELOPMENT_LOG.md`.
+Historische Änderungen, Migrationsschritte und laufende Arbeitsprotokolle stehen nur im `docs/intern/DEVELOPMENT_LOG.md`.
 
 ## Guardrails (Build/Export/CI)
 
@@ -142,7 +142,7 @@ Historische Änderungen, Migrationsschritte und laufende Arbeitsprotokolle stehe
    - Validator meldet absolute lokale Bildpfade als `PT001`
    - erlaubt bleiben relative Pfade sowie Web-URLs (`http/https`)
 5. Development-Log-Pflicht:
-   - keine Feature- oder Architekturänderung ohne Update in `docs/DEVELOPMENT_LOG.md`
+   - keine Feature- oder Architekturänderung ohne Update in `docs/intern/DEVELOPMENT_LOG.md`
    - der Log-Eintrag wird im selben Arbeitszyklus gepflegt
 
 ## Merge-Checkliste
@@ -152,4 +152,4 @@ Vor Merge einer Architektur-relevanten Änderung:
 2. Schichtgrenzen gegen diese Datei prüfen.
 3. Prüfen, ob Brute-Force-Regel verletzt wird.
 4. Beide Architekturdateien gemeinsam aktualisieren.
-5. Bei Feature- oder Architekturänderung: `docs/DEVELOPMENT_LOG.md` aktualisieren.
+5. Bei Feature- oder Architekturänderung: `docs/intern/DEVELOPMENT_LOG.md` aktualisieren.

@@ -10,11 +10,11 @@ Ziel in einfachen Worten:
 Verbindliche Regeln:
 
 1. Architektur-Dokumentrollen
-- `docs/ARCHITEKTUR.md` und `docs/ARCHITEKTUR_EINFACH.md` enthalten nur den aktuellen Zustand.
+- `docs/intern/ARCHITEKTUR.md` und `docs/intern/ARCHITEKTUR_EINFACH.md` enthalten nur den aktuellen Zustand.
 - Historie/Abschluesse gehoeren nicht in diese Dateien.
 
 2. Development-Log-Pflicht
-- Bei Feature- und Architektur-Aenderungen muss `docs/DEVELOPMENT_LOG.md` im selben Zyklus aktualisiert werden.
+- Bei Feature- und Architektur-Aenderungen muss `docs/intern/DEVELOPMENT_LOG.md` im selben Zyklus aktualisiert werden.
 - Reine Bugfix-Only-Aenderungen koennen ohne Development-Log-Eintrag erfolgen.
 
 3. Public-Kommunikation

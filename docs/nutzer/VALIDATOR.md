@@ -81,7 +81,7 @@ in `app/core/kurzentwurf_runtime/validator.py`. Ein Dokument mit mindestens eine
 `InspectionResult.has_errors`).
 
 - `KZF010` (error): Ein Blattwerk-`:::`-Blockdialekt-Marker (`:::`, `§{`, `%{`, `&{`) wurde im Kurzentwurf-Dokument gefunden -- diese gehoeren nicht zur Kurzentwurf-DSL.
-- `KZF011` (error): Ungueltiger `#phase`-Hashtag -- entspricht keinem der sechs erlaubten Phasen-Hashtags (siehe `docs/ANLEITUNG_KURZENTWURF.md`, Abschnitt "Phasen").
+- `KZF011` (error): Ungueltiger `#phase`-Hashtag -- entspricht keinem der sechs erlaubten Phasen-Hashtags (siehe `docs/nutzer/ANLEITUNG_KURZENTWURF.md`, Abschnitt "Phasen").
 - `KZF041` (error): Leerer Segmenttrenner `---` ohne Inhalt.
 - `KZF042` (error): Ungueltige Inline-Pipe-Syntax -- nur ein alleinstehendes `|` auf einer eigenen Zeile markiert einen Spaltenwechsel.
 - `KZF045` (error): YAML-Frontmatter wurde nicht mit einem schliessenden `---` beendet.

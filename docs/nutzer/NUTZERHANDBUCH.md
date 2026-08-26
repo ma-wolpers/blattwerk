@@ -108,15 +108,15 @@ Installation/Setup steht bewusst in `README.md`.
 - Sinnvolle Aufteilung:
 	- Layout/Look allgemein in `worksheet.css` pflegen
 	- Format und Druckstärke über die GUI steuern
-- Für tiefergehende CSS-Anpassungen: `docs/CSS_ANLEITUNG.md`.
+- Für tiefergehende CSS-Anpassungen: `docs/nutzer/CSS_ANLEITUNG.md`.
 
 ## 9) Wo finde ich was?
 
 - Setup/Installation: `README.md`
-- Markdown-Syntax (Arbeitsblatt/Präsentation, automatisch generiert): `docs/ANLEITUNG_ARBEITSBLATT_PRAESENTATION.md`
-- Kurzentwurf-Syntax (automatisch generiert): `docs/ANLEITUNG_KURZENTWURF.md`
-- CSS-Anpassung: `docs/CSS_ANLEITUNG.md`
-- Arbeitsblatt-Regeln (Praxis): `docs/ARBEITSBLATT_NOTIZEN.md`
+- Markdown-Syntax (Arbeitsblatt/Präsentation, automatisch generiert): `docs/nutzer/ANLEITUNG_ARBEITSBLATT_PRAESENTATION.md`
+- Kurzentwurf-Syntax (automatisch generiert): `docs/nutzer/ANLEITUNG_KURZENTWURF.md`
+- CSS-Anpassung: `docs/nutzer/CSS_ANLEITUNG.md`
+- Arbeitsblatt-Regeln (Praxis): `docs/intern/ARBEITSBLATT_NOTIZEN.md`
 
 ## 9a) Markdown-Tabellen automatisch umwandeln
 

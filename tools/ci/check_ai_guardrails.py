@@ -20,16 +20,16 @@ GUARDRAIL_RELEVANT_PATHS = {
     ".github/agents/Blattwerker.agent.md",
     ".github/pull_request_template.md",
     ".github/workflows/quality-guardrails.yml",
-    "docs/ARCHITEKTUR.md",
-    "docs/ARCHITEKTUR_EINFACH.md",
-    "docs/AGENT_SETUP.md",
-    "docs/DEVELOPMENT_LOG.md",
-    "docs/GUI_MIGRATION_BACKLOG.md",
-    "docs/VALIDATOR.md",
-    "docs/ANLEITUNG_ARBEITSBLATT_PRAESENTATION.md",
-    "docs/ANLEITUNG_KURZENTWURF.md",
-    "docs/EMPFEHLUNGEN_STIL_ARBEITSBLATT_PRAESENTATION.md",
-    "docs/EMPFEHLUNGEN_STIL_KURZENTWURF.md",
+    "docs/intern/ARCHITEKTUR.md",
+    "docs/intern/ARCHITEKTUR_EINFACH.md",
+    "docs/intern/AGENT_SETUP.md",
+    "docs/intern/DEVELOPMENT_LOG.md",
+    "docs/intern/GUI_MIGRATION_BACKLOG.md",
+    "docs/nutzer/VALIDATOR.md",
+    "docs/nutzer/ANLEITUNG_ARBEITSBLATT_PRAESENTATION.md",
+    "docs/nutzer/ANLEITUNG_KURZENTWURF.md",
+    "docs/nutzer/EMPFEHLUNGEN_STIL_ARBEITSBLATT_PRAESENTATION.md",
+    "docs/nutzer/EMPFEHLUNGEN_STIL_KURZENTWURF.md",
     "CHANGELOG.md",
     "tools/ci/check_ai_guardrails.py",
     "tools/docs/generate_authoring_guides.py",
@@ -81,7 +81,7 @@ FUTURE_GUI_ENTRY_BASELINES: set[str] = {
     # `class BlattwerkApp(...)`) -- der eigentliche, bereits vertragskonforme
     # Shared-Bootstrap lebt in app/ui/blatt_ui_base.py und wird dort separat
     # von _check_shared_ui_contract_hardening geprueft. Siehe
-    # docs/GUI_MIGRATION_BACKLOG.md fuer Begruendung/remove_by.
+    # docs/intern/GUI_MIGRATION_BACKLOG.md fuer Begruendung/remove_by.
     "app/ui/blatt_ui.py",
 }
 FUTURE_GUI_REQUIRED_SHARED_SNIPPETS = (
@@ -97,7 +97,7 @@ UI_BASECLASS_MODULE_ALIASES = {"ui", "widgets", "tui"}
 LEGACY_UI_BASECLASS_ALLOWLIST: set[str] = set()
 SHARED_PRIMITIVE_CLASS_NAMES = {"TkRootHost", "ScrollablePopupWindow", "WrappedTextField"}
 SHARED_PRIMITIVE_CLASS_ALLOWLIST: set[str] = set()
-GUI_MIGRATION_BACKLOG_PATH = "docs/GUI_MIGRATION_BACKLOG.md"
+GUI_MIGRATION_BACKLOG_PATH = "docs/intern/GUI_MIGRATION_BACKLOG.md"
 
 BLAETTWERKER_SOLUTION_RULE = (
     "auch eine sichtbare Loesung vorhanden ist"
@@ -169,7 +169,7 @@ CHANGELOG_CODEV_RELEVANT_PATHS = {
     ".github/copilot-instructions.md",
     ".github/pull_request_template.md",
     "tools/ci/check_ai_guardrails.py",
-    "docs/GUI_MIGRATION_BACKLOG.md",
+    "docs/intern/GUI_MIGRATION_BACKLOG.md",
     "bw_libs/ui_contract/keybinding.py",
     "bw_libs/ui_contract/popup.py",
     "bw_libs/ui_contract/hsm.py",
@@ -333,21 +333,21 @@ def _check_development_log_updated(staged: set[str], errors: list[str]) -> None:
     if not normalized:
         return
 
-    log_touched = "docs/DEVELOPMENT_LOG.md" in normalized
+    log_touched = "docs/intern/DEVELOPMENT_LOG.md" in normalized
 
     requires_log = any(
         path.startswith("app/")
         or path.startswith("bw_libs/")
         or path == ".gitmodules"
         or path == ".github/workflows/quality-guardrails.yml"
-        or path == "docs/ARCHITEKTUR.md"
-        or path == "docs/ARCHITEKTUR_EINFACH.md"
+        or path == "docs/intern/ARCHITEKTUR.md"
+        or path == "docs/intern/ARCHITEKTUR_EINFACH.md"
         for path in normalized
     )
 
     if requires_log and not log_touched:
         errors.append(
-            "docs/DEVELOPMENT_LOG.md missing update: relevant feature/architecture changes require a same-cycle log entry"
+            "docs/intern/DEVELOPMENT_LOG.md missing update: relevant feature/architecture changes require a same-cycle log entry"
         )
 
 
@@ -375,7 +375,7 @@ def _check_marker_token_consistency(errors: list[str]) -> None:
     target_files = (
         "app/ui/blatt_ui_editor.py",
         "vscode-extension/blattwerk-language/syntaxes/blattwerk-injection.tmLanguage.json",
-        "docs/NUTZERHANDBUCH.md",
+        "docs/nutzer/NUTZERHANDBUCH.md",
     )
 
     outdated_patterns = ("[§$&]", "§/$/&")
@@ -564,7 +564,7 @@ def _check_blattwerker_solution_rule(errors: list[str]) -> None:
     """Ensure Blattwerker docs keep the worksheet/solution pairing rule."""
     for rel_path in (
         ".github/agents/Blattwerker.agent.md",
-        "docs/AGENT_SETUP.md",
+        "docs/intern/AGENT_SETUP.md",
     ):
         _require_substring(
             _read(rel_path),
@@ -573,8 +573,8 @@ def _check_blattwerker_solution_rule(errors: list[str]) -> None:
             errors,
         )
 
-    validator_doc = _read("docs/VALIDATOR.md")
-    _require_substring(validator_doc, "AN010", "docs/VALIDATOR.md", errors)
+    validator_doc = _read("docs/nutzer/VALIDATOR.md")
+    _require_substring(validator_doc, "AN010", "docs/nutzer/VALIDATOR.md", errors)
 
 
 def _check_shared_ui_contract_hardening(errors: list[str]) -> None:
@@ -768,7 +768,7 @@ def _extract_kzf_codes_from_runtime_source(errors: list[str]) -> dict[str, str]:
     anderen Checks in dieser Datei. Meldet einen Fehler, wenn derselbe Code
     an verschiedenen Fundstellen mit unterschiedlichem Schweregrad auftaucht
     (aktuell nicht der Fall, aber wuerde eine Ein-Zeile-pro-Code-Doku im
-    Kurzentwurf-Abschnitt von docs/VALIDATOR.md unmoeglich machen).
+    Kurzentwurf-Abschnitt von docs/nutzer/VALIDATOR.md unmoeglich machen).
     """
     codes: dict[str, str] = {}
     root_dir = ROOT / INTEGRATED_KURZENTWURF_RUNTIME_ROOT
@@ -784,17 +784,17 @@ def _extract_kzf_codes_from_runtime_source(errors: list[str]) -> dict[str, str]:
                 errors.append(
                     f"{rel_path}: KZF-Code {code} hat widerspruechliche Schweregrade "
                     f"({existing} vs. {severity}) an verschiedenen Fundstellen -- "
-                    "Ein-Zeile-pro-Code-Dokumentation in docs/VALIDATOR.md nicht mehr moeglich"
+                    "Ein-Zeile-pro-Code-Dokumentation in docs/nutzer/VALIDATOR.md nicht mehr moeglich"
                 )
             codes[code] = severity
     return codes
 
 
 def _check_kurzentwurf_diagnostics_sync(errors: list[str]) -> None:
-    """Ensure every KZF diagnostic code+severity in the runtime matches docs/VALIDATOR.md.
+    """Ensure every KZF diagnostic code+severity in the runtime matches docs/nutzer/VALIDATOR.md.
 
     Hybridmodell wie beim Blattwerk-Validator: Code ist die Wahrheit,
-    `docs/VALIDATOR.md` bleibt redaktionell formuliert (die Erklaerung je
+    `docs/nutzer/VALIDATOR.md` bleibt redaktionell formuliert (die Erklaerung je
     Code muss nicht wortgleich mit der Fehlermeldung im Code sein) --
     geprueft wird nur, dass jeder Code samt Schweregrad in beide Richtungen
     exakt uebereinstimmt (kein fehlender, kein veralteter, kein Code mit
@@ -805,10 +805,10 @@ def _check_kurzentwurf_diagnostics_sync(errors: list[str]) -> None:
     if not code_severity_in_source:
         return
 
-    validator_doc = _read("docs/VALIDATOR.md")
+    validator_doc = _read("docs/nutzer/VALIDATOR.md")
     section_marker = "## Kurzentwurf-DSL (KZF)"
     if section_marker not in validator_doc:
-        errors.append(f"docs/VALIDATOR.md: fehlender Abschnitt '{section_marker}'")
+        errors.append(f"docs/nutzer/VALIDATOR.md: fehlender Abschnitt '{section_marker}'")
         return
     section_text = validator_doc.split(section_marker, 1)[1].split("\n## ", 1)[0]
 
@@ -819,14 +819,14 @@ def _check_kurzentwurf_diagnostics_sync(errors: list[str]) -> None:
     missing_in_doc = sorted(set(code_severity_in_source) - set(code_severity_in_doc))
     if missing_in_doc:
         errors.append(
-            "docs/VALIDATOR.md: KZF-Codes im Code, aber nicht im Kurzentwurf-Abschnitt "
+            "docs/nutzer/VALIDATOR.md: KZF-Codes im Code, aber nicht im Kurzentwurf-Abschnitt "
             f"dokumentiert -> {missing_in_doc}"
         )
 
     stale_in_doc = sorted(set(code_severity_in_doc) - set(code_severity_in_source))
     if stale_in_doc:
         errors.append(
-            "docs/VALIDATOR.md: KZF-Codes im Kurzentwurf-Abschnitt dokumentiert, aber nicht "
+            "docs/nutzer/VALIDATOR.md: KZF-Codes im Kurzentwurf-Abschnitt dokumentiert, aber nicht "
             f"(mehr) im Code -> {stale_in_doc}"
         )
 
@@ -835,7 +835,7 @@ def _check_kurzentwurf_diagnostics_sync(errors: list[str]) -> None:
         code_severity_doc = code_severity_in_doc[code]
         if code_severity_source != code_severity_doc:
             errors.append(
-                f"docs/VALIDATOR.md: {code} hat Schweregrad '{code_severity_doc}' in der Doku, "
+                f"docs/nutzer/VALIDATOR.md: {code} hat Schweregrad '{code_severity_doc}' in der Doku, "
                 f"aber '{code_severity_source}' im Code"
             )
 
@@ -954,38 +954,38 @@ def main() -> int:
     _read("AGENTS.md")
     _read(".github/copilot-instructions.md")
     _read("CHANGELOG.md")
-    _read("docs/DEVELOPMENT_LOG.md")
+    _read("docs/intern/DEVELOPMENT_LOG.md")
     _read("bw_libs/ui_contract/keybinding.py")
     _read("bw_libs/ui_contract/popup.py")
     _read("bw_libs/ui_contract/hsm.py")
     _read("bw_libs/ui_contract/laufkern.py")
     _read("bw_libs/app_paths.py")
 
-    arch_doc = _read("docs/ARCHITEKTUR.md")
+    arch_doc = _read("docs/intern/ARCHITEKTUR.md")
     _require_substring(
         arch_doc,
         "beschreiben nur den aktuellen Architekturzustand",
-        "docs/ARCHITEKTUR.md",
+        "docs/intern/ARCHITEKTUR.md",
         errors,
     )
     _require_substring(
         arch_doc,
-        "docs/DEVELOPMENT_LOG.md",
-        "docs/ARCHITEKTUR.md",
+        "docs/intern/DEVELOPMENT_LOG.md",
+        "docs/intern/ARCHITEKTUR.md",
         errors,
     )
 
-    arch_simple_doc = _read("docs/ARCHITEKTUR_EINFACH.md")
+    arch_simple_doc = _read("docs/intern/ARCHITEKTUR_EINFACH.md")
     _require_substring(
         arch_simple_doc,
         "zeigen nur den aktuellen Zustand",
-        "docs/ARCHITEKTUR_EINFACH.md",
+        "docs/intern/ARCHITEKTUR_EINFACH.md",
         errors,
     )
     _require_substring(
         arch_simple_doc,
-        "docs/DEVELOPMENT_LOG.md",
-        "docs/ARCHITEKTUR_EINFACH.md",
+        "docs/intern/DEVELOPMENT_LOG.md",
+        "docs/intern/ARCHITEKTUR_EINFACH.md",
         errors,
     )
 

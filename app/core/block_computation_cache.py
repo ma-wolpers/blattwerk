@@ -4,7 +4,7 @@ Not part of any specific block's design -- any block type may use this to
 avoid recomputing an expensive, deterministic, JSON-serializable result (e.g.
 a crossword layout) across the separate validation and rendering passes of a
 single build, or across multiple builds within one editing session. See
-`docs/ARCHITEKTUR.md` for the full rationale and cache-key contract.
+`docs/intern/ARCHITEKTUR.md` for the full rationale and cache-key contract.
 """
 
 from __future__ import annotations

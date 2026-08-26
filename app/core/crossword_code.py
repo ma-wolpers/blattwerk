@@ -1,7 +1,7 @@
 """Deterministic code-word cell selection for the `crossword` block's `code=` option.
 
 Split out of `crossword_placement.py` to keep both files well under the
-project's ~300-line convention (see `docs/ARCHITEKTUR.md`) -- placement and
+project's ~300-line convention (see `docs/intern/ARCHITEKTUR.md`) -- placement and
 code-selection are two separate `BlockComputationCache` computations (plan
 Slice 2) and were already conceptually independent.
 """

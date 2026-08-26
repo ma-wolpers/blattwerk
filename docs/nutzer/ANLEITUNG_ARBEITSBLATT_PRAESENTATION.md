@@ -6,7 +6,7 @@ Neu erzeugen: python tools/docs/generate_authoring_guides.py
 
 # Arbeitsblatt & Präsentation erstellen
 
-Diese Anleitung ist die normative Referenz für den Blattwerk-Markdown-Dialekt, den Arbeitsblätter und Präsentationen gemeinsam nutzen (dieselben `:::`-Blöcke, dasselbe Frontmatter). Sie wird automatisch aus dem Code erzeugt (`app/core/markdown_conventions.py`) -- Blocktypen, Optionen und Frontmatter-Felder können hier nicht veralten, weil sie direkt aus den Konstanten stammen, die der Validator selbst zur Prüfung verwendet. Reine Stilpräferenzen (keine Korrektheitsregeln) stehen separat in [`docs/EMPFEHLUNGEN_STIL_ARBEITSBLATT_PRAESENTATION.md`](EMPFEHLUNGEN_STIL_ARBEITSBLATT_PRAESENTATION.md).
+Diese Anleitung ist die normative Referenz für den Blattwerk-Markdown-Dialekt, den Arbeitsblätter und Präsentationen gemeinsam nutzen (dieselben `:::`-Blöcke, dasselbe Frontmatter). Sie wird automatisch aus dem Code erzeugt (`app/core/markdown_conventions.py`) -- Blocktypen, Optionen und Frontmatter-Felder können hier nicht veralten, weil sie direkt aus den Konstanten stammen, die der Validator selbst zur Prüfung verwendet. Reine Stilpräferenzen (keine Korrektheitsregeln) stehen separat in [`docs/nutzer/EMPFEHLUNGEN_STIL_ARBEITSBLATT_PRAESENTATION.md`](EMPFEHLUNGEN_STIL_ARBEITSBLATT_PRAESENTATION.md).
 
 ## 1. Grundidee
 

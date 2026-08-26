@@ -698,7 +698,7 @@ OPTIONAL_FRONTMATTER_FIELDS = (
 `blatt_validator_document.py`) -- ein anderes Vokabular als das der
 bereits bestehenden `FM005`-Felder. `document_type`/`lochen` sind
 funktional genutzt, aber bewusst `validated=False` (siehe
-`docs/ANLEITUNG_ARBEITSBLATT_PRAESENTATION.md`, Vier-Zustands-Raster).
+`docs/nutzer/ANLEITUNG_ARBEITSBLATT_PRAESENTATION.md`, Vier-Zustands-Raster).
 `Stufe`/`worksheet_type`/`font_profile` sind `validated=False` **und**
 werden aktuell an keiner Stelle aus dem Dokument-Meta gelesen (verifiziert
 per Repo-weitem Grep) -- toter, aber weiterhin syntaktisch akzeptierter

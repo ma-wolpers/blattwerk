@@ -11,8 +11,8 @@ Nutze diese Formulierung am Anfang eines Tickets:
 ## Was Copilot dabei automatisch mitziehen soll
 
 1. Code-Aenderung im betroffenen Modul.
-2. `docs/DEVELOPMENT_LOG.md` bei Feature-/Architektur-Aenderung.
-3. `docs/ARCHITEKTUR.md` und `docs/ARCHITEKTUR_EINFACH.md` nur bei echter Architektur-Regelaenderung.
+2. `docs/intern/DEVELOPMENT_LOG.md` bei Feature-/Architektur-Aenderung.
+3. `docs/intern/ARCHITEKTUR.md` und `docs/intern/ARCHITEKTUR_EINFACH.md` nur bei echter Architektur-Regelaenderung.
 4. `CHANGELOG.md` bei nutzerrelevanter Aenderung.
 5. PR-Checkliste in `.github/pull_request_template.md` beachten.
 
@@ -25,7 +25,7 @@ Nutze diese Formulierung am Anfang eines Tickets:
 ## Minimaler Review-Check (30 Sekunden)
 
 1. Sind Code und Doku im selben Zyklus aktualisiert?
-2. Ist `docs/DEVELOPMENT_LOG.md` aktualisiert (falls Feature/Architektur)?
+2. Ist `docs/intern/DEVELOPMENT_LOG.md` aktualisiert (falls Feature/Architektur)?
 3. Ist `CHANGELOG.md` aktualisiert (falls nutzerrelevant)?
 4. Sind die Guardrail-/Test-Checks gruen?
 
@@ -33,6 +33,6 @@ Nutze diese Formulierung am Anfang eines Tickets:
 
 1. Guardrails: `AGENTS.md`
 2. Copilot-Regeln: `.github/copilot-instructions.md`
-3. Architektur Ist-Zustand: `docs/ARCHITEKTUR.md` und `docs/ARCHITEKTUR_EINFACH.md`
-4. Entwicklungsverlauf: `docs/DEVELOPMENT_LOG.md`
+3. Architektur Ist-Zustand: `docs/intern/ARCHITEKTUR.md` und `docs/intern/ARCHITEKTUR_EINFACH.md`
+4. Entwicklungsverlauf: `docs/intern/DEVELOPMENT_LOG.md`
 5. Oeffentliche Kommunikation: `CHANGELOG.md`

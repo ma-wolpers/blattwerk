@@ -1,7 +1,7 @@
 """Compile-time validation for `:::crossword` blocks (`CW001`-`CW004`).
 
 Split out of `blatt_validator_document.py` to keep that file under the
-project's ~300-line convention (see `docs/ARCHITEKTUR.md`) -- this is
+project's ~300-line convention (see `docs/intern/ARCHITEKTUR.md`) -- this is
 already a self-contained concern (crossword-specific diagnostics), unlike
 the generic per-block dispatch that file still owns.
 """

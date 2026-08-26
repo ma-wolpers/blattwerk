@@ -1,6 +1,6 @@
 """Wordsearch grid-placement algorithm (split out of `answer_special_wordsearch.py`
 to keep both files under the project's ~300-line convention, see
-`docs/ARCHITEKTUR.md`) -- pure grid-building, no HTML."""
+`docs/intern/ARCHITEKTUR.md`) -- pure grid-building, no HTML."""
 
 from __future__ import annotations
 

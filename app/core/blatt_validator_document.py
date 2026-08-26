@@ -42,7 +42,7 @@ from .blatt_validator_yaml_entries import (
 # Bewusst getrennt von `OPTIONAL_FRONTMATTER_FIELDS` (dort steht nur, WAS
 # gültig ist -- geteilt mit dem Doku-Collector); dieses Mapping ist reines
 # Validator-Implementierungsdetail (Diagnosecode/Schweregrad sind für die
-# generierte Autorenanleitung nicht relevant, siehe `docs/VALIDATOR.md`).
+# generierte Autorenanleitung nicht relevant, siehe `docs/nutzer/VALIDATOR.md`).
 # `skip_when_empty=True` bei `presentation_layout` bewahrt bestehendes
 # Verhalten: ein leerer Wert (z. B. `presentation_layout:` ohne Inhalt)
 # löst dort keine Diagnose aus, bei `mode` dagegen schon -- eine echte,

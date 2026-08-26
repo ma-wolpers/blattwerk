@@ -6,7 +6,7 @@ Neu erzeugen: python tools/docs/generate_authoring_guides.py
 
 # Kurzentwurf erstellen
 
-Kurzentwurf ist ein eigener Blattwerk-Dokumenttyp mit einer **eigenen DSL** -- nicht dem `:::`-Blockdialekt aus der Arbeitsblatt-/Präsentations-Anleitung. Diese Anleitung wird automatisch aus dem Code erzeugt (`app/core/markdown_conventions.py`). Fehlermeldungen tragen stabile Codes wie `KZF011`/`KZF152` -- die vollständige Liste steht in [`docs/VALIDATOR.md`](VALIDATOR.md#kurzentwurf-dsl-kzf). Reine Schreibkonventionen und didaktische Empfehlungen (keine Korrektheitsregeln) stehen separat in [`docs/EMPFEHLUNGEN_STIL_KURZENTWURF.md`](EMPFEHLUNGEN_STIL_KURZENTWURF.md).
+Kurzentwurf ist ein eigener Blattwerk-Dokumenttyp mit einer **eigenen DSL** -- nicht dem `:::`-Blockdialekt aus der Arbeitsblatt-/Präsentations-Anleitung. Diese Anleitung wird automatisch aus dem Code erzeugt (`app/core/markdown_conventions.py`). Fehlermeldungen tragen stabile Codes wie `KZF011`/`KZF152` -- die vollständige Liste steht in [`docs/nutzer/VALIDATOR.md`](VALIDATOR.md#kurzentwurf-dsl-kzf). Reine Schreibkonventionen und didaktische Empfehlungen (keine Korrektheitsregeln) stehen separat in [`docs/nutzer/EMPFEHLUNGEN_STIL_KURZENTWURF.md`](EMPFEHLUNGEN_STIL_KURZENTWURF.md).
 
 ## 1. Schnellstart
 

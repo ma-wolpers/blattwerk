@@ -216,7 +216,7 @@ class BlattwerkAppEditorCompletionPopupMixin:
         eingefügter Text auf `=` endet (z. B. `rows=`), sollen sofort die
         passenden Wert-Vorschläge nachgeladen werden -- genau das Verhalten,
         das auch beim echten Tippen von `key=` automatisch auftritt
-        (siehe `docs/NUTZERHANDBUCH.md`, Abschnitt 11).
+        (siehe `docs/nutzer/NUTZERHANDBUCH.md`, Abschnitt 11).
         """
         kind = str(candidate.get("kind") or "").strip().lower()
         return kind == "block_option" and insert_text.endswith("=")

@@ -1,7 +1,7 @@
 # Stilempfehlungen: Kurzentwurf
 
 Dieses Dokument sammelt Autor:innen-Empfehlungen für die Kurzentwurf-DSL -- im
-Unterschied zu [`docs/ANLEITUNG_KURZENTWURF.md`](ANLEITUNG_KURZENTWURF.md) handelt es
+Unterschied zu [`docs/nutzer/ANLEITUNG_KURZENTWURF.md`](ANLEITUNG_KURZENTWURF.md) handelt es
 sich hier **nicht** um Regeln, die der Validator durchsetzt oder die für ein technisch
 gültiges Dokument nötig sind. Zwei unterschiedliche Arten von Empfehlungen sind bewusst
 getrennt: reine Schreibkonventionen (wie man den Freitext-Inhalt formatiert) und

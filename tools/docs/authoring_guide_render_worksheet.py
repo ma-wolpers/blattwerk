@@ -1,4 +1,4 @@
-"""Rendert die Arbeitsblatt-/Präsentations-Anleitung (`docs/ANLEITUNG_ARBEITSBLATT_PRAESENTATION.md`).
+"""Rendert die Arbeitsblatt-/Präsentations-Anleitung (`docs/nutzer/ANLEITUNG_ARBEITSBLATT_PRAESENTATION.md`).
 
 Verbraucht ausschließlich `MarkdownConventionCatalog`-Fakten
 (`app/core/markdown_conventions.py`) und redaktionelle Prosa
@@ -176,7 +176,7 @@ def render_worksheet_presentation_guide(catalog: MarkdownConventionCatalog) -> s
         "(`app/core/markdown_conventions.py`) -- Blocktypen, Optionen und Frontmatter-Felder "
         "können hier nicht veralten, weil sie direkt aus den Konstanten stammen, die der "
         "Validator selbst zur Prüfung verwendet. Reine Stilpräferenzen (keine Korrektheitsregeln) "
-        "stehen separat in [`docs/EMPFEHLUNGEN_STIL_ARBEITSBLATT_PRAESENTATION.md`]"
+        "stehen separat in [`docs/nutzer/EMPFEHLUNGEN_STIL_ARBEITSBLATT_PRAESENTATION.md`]"
         "(EMPFEHLUNGEN_STIL_ARBEITSBLATT_PRAESENTATION.md).",
         "## 1. Grundidee\n\n"
         "Ein Blattwerk-Dokument besteht aus YAML-Frontmatter (Pflicht) gefolgt von einer Folge "

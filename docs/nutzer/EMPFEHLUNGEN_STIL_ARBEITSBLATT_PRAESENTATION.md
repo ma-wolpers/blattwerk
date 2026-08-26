@@ -1,7 +1,7 @@
 # Stilempfehlungen: Arbeitsblatt & Präsentation
 
 Dieses Dokument sammelt reine Autor:innen-Stilpräferenzen für den `:::`-Blockdialekt --
-im Unterschied zu [`docs/ANLEITUNG_ARBEITSBLATT_PRAESENTATION.md`](ANLEITUNG_ARBEITSBLATT_PRAESENTATION.md)
+im Unterschied zu [`docs/nutzer/ANLEITUNG_ARBEITSBLATT_PRAESENTATION.md`](ANLEITUNG_ARBEITSBLATT_PRAESENTATION.md)
 handelt es sich hier **nicht** um Regeln, die der Validator durchsetzt oder die für ein
 korrekt funktionierendes Dokument nötig sind. Nichts hier ist "falsch", wenn man es
 anders macht -- es ist einfach die empfohlene Schreibweise für konsistente, gut lesbare

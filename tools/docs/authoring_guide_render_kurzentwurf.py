@@ -1,4 +1,4 @@
-"""Rendert die Kurzentwurf-Anleitung (`docs/ANLEITUNG_KURZENTWURF.md`).
+"""Rendert die Kurzentwurf-Anleitung (`docs/nutzer/ANLEITUNG_KURZENTWURF.md`).
 
 Verbraucht ausschließlich `MarkdownConventionCatalog.kurzentwurf`-Fakten
 (`app/core/markdown_conventions.py`) und redaktionelle Prosa
@@ -53,9 +53,9 @@ def render_kurzentwurf_guide(catalog: MarkdownConventionCatalog) -> str:
         "`:::`-Blockdialekt aus der Arbeitsblatt-/Präsentations-Anleitung. Diese Anleitung wird "
         "automatisch aus dem Code erzeugt (`app/core/markdown_conventions.py`). Fehlermeldungen tragen "
         "stabile Codes wie `KZF011`/`KZF152` -- die vollständige Liste steht in "
-        "[`docs/VALIDATOR.md`](VALIDATOR.md#kurzentwurf-dsl-kzf). Reine Schreibkonventionen und "
+        "[`docs/nutzer/VALIDATOR.md`](VALIDATOR.md#kurzentwurf-dsl-kzf). Reine Schreibkonventionen und "
         "didaktische Empfehlungen (keine Korrektheitsregeln) stehen separat in "
-        "[`docs/EMPFEHLUNGEN_STIL_KURZENTWURF.md`](EMPFEHLUNGEN_STIL_KURZENTWURF.md).",
+        "[`docs/nutzer/EMPFEHLUNGEN_STIL_KURZENTWURF.md`](EMPFEHLUNGEN_STIL_KURZENTWURF.md).",
         "## 1. Schnellstart\n\n" + _fenced(kurzentwurf_example),
         "## 2. Frontmatter/Identitäts-Metadaten\n\n"
         + _prose("kurzentwurf:identity_meta")

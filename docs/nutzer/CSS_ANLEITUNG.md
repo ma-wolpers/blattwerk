@@ -273,7 +273,7 @@ Die beeinflussen Druckseiten und Layoutfluss stark.
 
 - Basis-Design: `assets/worksheet.css`
 - Profil-/Format-Logik: `app/styles/blatt_styles.py`
-- Architekturüberblick: `docs/ARCHITEKTUR.md`
+- Architekturüberblick: `docs/intern/ARCHITEKTUR.md`
 
 ---
 

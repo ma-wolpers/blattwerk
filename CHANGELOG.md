@@ -147,6 +147,8 @@ The format is based on Keep a Changelog.
 - Guardrail-Hardstop entfernt: main-targeted Kontexte werden nicht mehr automatisch blockiert, wenn `kurzentwerfer` als Submodule eingebunden ist.
 - PR-Template/Agent-Instruktionen bereinigt: explizite Side-Thread-Verbotsklausel wurde entfernt.
 
+- Interne Dokumentation neu organisiert: `docs/` ist jetzt in `docs/nutzer/` (Nutzerhandbuch, Autoren-Anleitungen, Grammatik, Validator-Referenz, Stilempfehlungen) und `docs/intern/` (Architektur, Entwicklungslog, Agent-Setup, Prozess-Dokus) aufgeteilt, damit Tools wie das neue Hilfe-Popup einfach alle Dateien aus `docs/nutzer/` laden koennen. AI-Guardrails, Autoren-Anleitungs-Generator und alle Quellcode-/Doku-Verweise wurden auf die neuen Pfade umgestellt.
+
 - Legacy-Sichtbarkeitsmarker in textbasierten Antwortbloecken werden jetzt nur noch am absoluten Zeilenanfang erkannt (`§`, `%`, `&` als eigenes Start-Token). Zeilenende-Formen wie `Text %` bleiben normaler Text.
 - Inline-Sichtbarkeitsmarker mit Klammern (`§{...}`, `%{...}`, `&{...}`) bleiben auch in der Zeilenmitte voll unterstuetzt.
 - Blattwerker-Designpraeferenzen fuer Prozentangaben wurden auf Schreibweise mit Leerzeichen vereinheitlicht (`75 %` statt `75%`) - konsistent fuer Arbeitsblatt- und Praesentationskontext.

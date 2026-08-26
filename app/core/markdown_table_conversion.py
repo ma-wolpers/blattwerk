@@ -10,7 +10,7 @@ top-level prose is scanned -- text inside a `:::block ... :::` fence is
 never rewritten, since a `:::table` block cannot be nested inside another
 block (splitting the surrounding block around the table would, for a type
 like `:::task`, duplicate `points=`/`work=` options and corrupt the
-worksheet's point total -- see docs/DEVELOPMENT_LOG.md).
+worksheet's point total -- see docs/intern/DEVELOPMENT_LOG.md).
 """
 
 from __future__ import annotations
