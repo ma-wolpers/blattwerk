@@ -195,6 +195,9 @@ class BlattwerkAppStyleMixin:
                 if hasattr(self, "_apply_editor_theme_widgets"):
                     self._apply_editor_theme_widgets()
 
+            if hasattr(self, "_apply_help_docs_theme"):
+                self._apply_help_docs_theme()
+
             self._refresh_color_profile_swatches()
 
             if redraw_preview and self.preview_images:
@@ -431,6 +434,12 @@ class BlattwerkAppStyleMixin:
                     "type": "command",
                     "label": "Markdown-Tabellen in Blattwerk-Tabellen umwandeln",
                     "command": self._convert_markdown_tables_in_active_tab,
+                },
+                {"type": "separator"},
+                {
+                    "type": "command",
+                    "label": "Dokumentation…",
+                    "command": self.open_help_docs_dialog,
                 },
             ]
 

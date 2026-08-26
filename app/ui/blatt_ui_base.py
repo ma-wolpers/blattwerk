@@ -215,6 +215,11 @@ class BlattwerkAppBase(BwBaseWindow):
         self._document_tab_path_index = {}
         self._tab_switch_in_progress = False
 
+        self.help_docs_window = None
+        self.help_docs_listbox = None
+        self.help_docs_text = None
+        self.help_docs_catalog = []
+
         self.help_preview_window = None
         self.help_preview_canvas = None
         self.help_preview_text_item = None

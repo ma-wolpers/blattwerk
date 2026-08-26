@@ -11,6 +11,7 @@ from .blatt_ui_editor_completion_ranking import BlattwerkAppEditorCompletionRank
 from .blatt_ui_editor_search import BlattwerkAppEditorSearchMixin
 from .blatt_ui_export import BlattwerkAppExportMixin
 from .blatt_ui_export_multi import BlattwerkAppExportMultiMixin
+from .blatt_ui_help_docs import BlattwerkAppHelpDocsMixin
 from .blatt_ui_help_preview import BlattwerkAppHelpPreviewMixin
 from .blatt_ui_persistence import BlattwerkAppPersistenceMixin
 from .blatt_ui_preview import BlattwerkAppPreviewMixin
@@ -34,6 +35,7 @@ class BlattwerkApp(
     BlattwerkAppEditorSearchMixin,
     BlattwerkAppEditorMixin,
     BlattwerkAppPreviewMixin,
+    BlattwerkAppHelpDocsMixin,
     BlattwerkAppHelpPreviewMixin,
     BlattwerkAppBuildMixin,
     BlattwerkAppPersistenceMixin,
