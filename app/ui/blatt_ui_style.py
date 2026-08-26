@@ -423,6 +423,17 @@ class BlattwerkAppStyleMixin:
                 {"type": "command", "label": "Beenden", "command": self.root.destroy},
             ]
 
+    def _menu_extras_items(self):
+            """Builds rows for top menu Extras."""
+
+            return [
+                {
+                    "type": "command",
+                    "label": "Markdown-Tabellen in Blattwerk-Tabellen umwandeln",
+                    "command": self._convert_markdown_tables_in_active_tab,
+                },
+            ]
+
     def _menu_view_items(self):
             """Builds rows for top menu Ansicht including radio-like entries."""
 

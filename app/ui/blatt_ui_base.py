@@ -76,6 +76,7 @@ class BlattwerkAppBase(BwBaseWindow):
         return [
             section_spec("file", lambda: self._to_shared_menu_items(self._menu_file_items()), label="Datei", alt="d"),
             section_spec("view", lambda: self._to_shared_menu_items(self._menu_view_items()), label="Ansicht", alt="a"),
+            section_spec("extras", lambda: self._to_shared_menu_items(self._menu_extras_items()), label="Extras", alt="e"),
             section_spec("shortcuts", lambda: self._to_shared_menu_items(self._menu_shortcuts_items()), label="Shortcuts", alt="s"),
         ]
 

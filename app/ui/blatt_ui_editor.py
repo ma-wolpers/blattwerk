@@ -20,6 +20,7 @@ from ..core.document_diagnostics import (
     inspect_document_text,
 )
 from ..core.document_types import DOCUMENT_TYPE_KURZENTWURF
+from ..core.markdown_table_conversion import convert_markdown_tables_to_blocks
 from .ui_constants import (
     EDITOR_VIEW_BOTH,
     EDITOR_VIEW_EDITOR_ONLY,
@@ -1203,6 +1204,53 @@ class BlattwerkAppEditorMixin:
         self._queue_editor_diagnostics(immediate=True)
         self._queue_editor_outline(immediate=True)
         return "break"
+
+    def _convert_markdown_tables_in_active_tab(self):
+        """Extras-Menü-Aktion: wandelt alle GFM-Markdown-Tabellen im aktiven Tab in `:::table`-Blöcke um.
+
+        Reine Funktionslogik lebt in `markdown_table_conversion.py`; diese
+        Methode ist nur die Editor-Anbindung (Volltext lesen, Bulk-Ersetzung
+        als ein einziger Undo-Schritt, Rückmeldung). Bei `converted_count == 0`
+        wird der Editor nie angefasst -- auch nicht, wenn Tabellen gefunden,
+        aber alle übersprungen wurden (dann zeigt eine Warnung die Gründe,
+        statt den irreführenden Eindruck zu erwecken, es sei nichts gefunden
+        worden).
+        """
+        if self.editor_widget is None:
+            return
+
+        original_text = self.editor_widget.get("1.0", "end-1c")
+        result = convert_markdown_tables_to_blocks(original_text)
+
+        if result.converted_count == 0:
+            if result.skipped:
+                skip_list = "\n".join(f"- {reason}" for reason in result.skipped)
+                messagebox.showwarning(
+                    "Markdown-Tabellen umwandeln",
+                    f"Keine Tabelle umgewandelt. {len(result.skipped)} Tabelle(n) übersprungen:\n{skip_list}",
+                )
+            else:
+                messagebox.showinfo("Markdown-Tabellen umwandeln", "Keine Markdown-Tabellen gefunden.")
+            return
+
+        scroll_fraction = self.editor_widget.yview()[0]
+        self.editor_widget.configure(autoseparators=False)
+        try:
+            self.editor_widget.delete("1.0", "end")
+            self.editor_widget.insert("1.0", result.new_text)
+            self.editor_widget.edit_separator()
+        finally:
+            self.editor_widget.configure(autoseparators=True)
+        self.editor_widget.yview_moveto(scroll_fraction)
+
+        self.status_var.set(f"{result.converted_count} Markdown-Tabelle(n) umgewandelt.")
+        if result.skipped:
+            skip_list = "\n".join(f"- {reason}" for reason in result.skipped)
+            messagebox.showwarning(
+                "Markdown-Tabellen umwandeln",
+                f"{result.converted_count} Tabelle(n) umgewandelt. "
+                f"{len(result.skipped)} weitere Tabelle(n) übersprungen:\n{skip_list}",
+            )
 
     def _on_editor_mouse_click(self, _event=None):
         """Closes completion popup when user clicks in editor."""
