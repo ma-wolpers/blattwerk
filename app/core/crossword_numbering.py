@@ -61,12 +61,19 @@ def assign_crossword_numbers(layout: CrosswordLayout) -> CrosswordNumbering:
     return CrosswordNumbering(numbers=numbers)
 
 
-def grouped_clues(layout: CrosswordLayout, numbering: CrosswordNumbering, entries):
+def grouped_clues(layout: CrosswordLayout, numbering: CrosswordNumbering):
     """Builds `(horizontal, vertical)` clue lists, each `(number, word, clue)`
     tuples sorted by number -- the shape `answer_special_crossword.py` needs
     for the "Waagerecht"/"Senkrecht" clue lists, without itself having to
-    know about numbering internals."""
-    clue_by_word = {entry.word: entry.clue for entry in entries}
+    know about numbering internals.
+
+    Reads `placement.clue` directly -- **not** a `{word: clue}` lookup
+    built from the original entries -- so two placements that happen to
+    share the same word (deliberately allowed, see
+    `crossword_placement.py::parse_crossword_entries`) each keep their own
+    distinct clue instead of both collapsing onto whichever entry's clue
+    last won a dict-overwrite.
+    """
     horizontal = []
     vertical = []
     for placement in layout.placements:
@@ -75,9 +82,8 @@ def grouped_clues(layout: CrosswordLayout, numbering: CrosswordNumbering, entrie
         number = numbering.numbers.get((placement.row, placement.col))
         if number is None:
             continue
-        clue = clue_by_word.get(placement.word, "")
         target = horizontal if placement.direction == "H" else vertical
-        target.append((number, placement.word, clue))
+        target.append((number, placement.word, placement.clue))
 
     horizontal.sort(key=lambda item: item[0])
     vertical.sort(key=lambda item: item[0])

@@ -10,7 +10,8 @@ The format is based on Keep a Changelog.
 
 - `:::crossword`-Zahlen-Badges in den Rätselzellen wirkten optisch abgeschnitten, weil sie praktisch direkt auf der Zellkante saßen. Der Abstand zur Kante wurde vergrößert.
 - `:::crossword` liess nach dem Rätsel oft eine große leere Fläche stehen -- das Raster wurde bisher in voller `maxw`x`maxh`-Suchraumgröße gerendert (z. B. 15×15 Zellen), auch wenn die platzierten Wörter nur eine kleine Ecke davon belegten. Das Raster wird jetzt auf die tatsächlich belegte Fläche zugeschnitten.
-- `:::crossword`-Rätsel mit zwei Wörtern, die nach interner Normalisierung identisch werden (z. B. gleicher Wortstamm mit unterschiedlicher Ziffer wie `Wort1`/`Wort2`), verwarfen bisher lautlos den zweiten Eintrag samt seines Hinweises. Solche Wörter werden jetzt beide platziert; eine neue, nicht-blockierende Warnung (`CW004`) macht darauf aufmerksam, falls das unbeabsichtigt war.
+- `:::crossword` entfernte bei der internen Normalisierung bisher fälschlich alle Ziffern aus Wörtern -- `Wort1` und `Wort2` wurden dadurch beide zu `WORT` und galten als dasselbe Wort, obwohl sie klar unterschiedlich gemeint sind (genau das mitgelieferte Ctrl+B-Beispiel). Ziffern bleiben jetzt erhalten, da sie Teil der eigentlichen Wortidentität sind.
+- `:::crossword`-Rätsel mit zwei Wörtern, die tatsächlich identisch sind (z. B. gleiche Schreibweise bis auf Groß-/Kleinschreibung), verwarfen bisher lautlos den zweiten Eintrag samt seines Hinweises. Solche Wörter werden jetzt beide platziert und behalten jeweils ihren eigenen Hinweis; eine neue, nicht-blockierende Warnung (`CW004`) macht darauf aufmerksam, falls das unbeabsichtigt war.
 - Manuelles Kompilieren (Button "Aktualisieren" oder Leertaste in der Vorschau) bricht jetzt den laufenden automatischen Vorschau-Timer ab, statt ihn im Hintergrund weiterlaufen zu lassen -- bisher konnte kurz nach einem manuellen Kompilieren eine zweite, redundante automatische Kompilierung folgen.
 
 ### Added

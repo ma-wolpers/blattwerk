@@ -74,6 +74,44 @@ def test_render_crossword_answer_has_numbered_cells_with_clue_list():
     assert "Wo man lernt" in html  # clue text rendered
 
 
+def test_render_crossword_answer_keeps_distinct_clues_for_digit_differing_words():
+    # End-to-end regression for the bundled Ctrl+B example (Wort1/Wort2/Wort3):
+    # crossword normalization must not strip digits (that would collapse all
+    # three onto "WORT" and silently drop two clues -- see
+    # crossword_placement.py::_normalize_crossword_token).
+    content = """
+words:
+  - word: Wort1
+    clue: Erster Hinweis
+  - word: Wort2
+    clue: Zweiter Hinweis
+  - word: Wort3
+    clue: Dritter Hinweis
+"""
+    html = render_crossword_answer({"maxw": 15, "maxh": 15}, content, include_solutions=True)
+
+    assert "Erster Hinweis" in html
+    assert "Zweiter Hinweis" in html
+    assert "Dritter Hinweis" in html
+
+
+def test_render_crossword_answer_keeps_distinct_clues_for_genuine_word_collision():
+    # Even a real collision (case-only difference, no digits) must not lose
+    # a clue -- grouped_clues() reads the clue off each placement directly,
+    # not via a word-text-keyed lookup that would overwrite on collision.
+    content = """
+words:
+  - word: haus
+    clue: Erste Nennung
+  - word: HAUS
+    clue: Zweite Nennung bleibt erhalten
+"""
+    html = render_crossword_answer({"maxw": 15, "maxh": 15}, content, include_solutions=True)
+
+    assert "Erste Nennung" in html
+    assert "Zweite Nennung bleibt erhalten" in html
+
+
 def test_render_crossword_answer_trims_to_occupied_bounding_box_not_full_search_space():
     # Regression test for the "huge empty space" bug: CrosswordLayout.rows/
     # .cols describe the full maxw x maxh search space, not the area the

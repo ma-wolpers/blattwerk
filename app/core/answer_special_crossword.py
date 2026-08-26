@@ -150,7 +150,7 @@ def render_crossword_answer(options, content, include_solutions):
     )
 
     md = _new_markdown_converter()
-    horizontal_clues, vertical_clues = grouped_clues(layout, numbering, entries)
+    horizontal_clues, vertical_clues = grouped_clues(layout, numbering)
     clues_html = _render_clue_lists(horizontal_clues, vertical_clues, md)
 
     position = normalize_wordbank_position(options.get("position"), default="auto")

@@ -7,16 +7,41 @@ rendering and `crossword_numbering.py` for the clue-numbering pass.
 from __future__ import annotations
 
 import random
+import re
 from dataclasses import dataclass
 
 import yaml
 
-from .wordsearch_placement import _normalize_wordsearch_token
-
-_CROSSWORD_ALGORITHM_VERSION = 1
+_CROSSWORD_ALGORITHM_VERSION = 2
 """Bumped whenever placement/candidate-ranking logic changes, so stale
 `BlockComputationCache` entries from an older algorithm version are never
-silently reused (see `app/core/block_computation_cache.py`)."""
+silently reused (see `app/core/block_computation_cache.py`). Bumped to 2
+when word normalization started keeping digits (see
+`_normalize_crossword_token`) -- a cached layout computed under the old,
+digit-stripping normalization must never be served for the new one."""
+
+_CROSSWORD_TOKEN_PATTERN = re.compile(r"[^A-Za-z0-9ÄÖÜäöü]")
+
+
+def _normalize_crossword_token(word):
+    """Normalizes a crossword word/code-word to an upper-case token, keeping digits.
+
+    Deliberately **not** `wordsearch_placement.py::_normalize_wordsearch_token`
+    (which strips digits too) -- for a wordsearch grid every cell is
+    genuinely just a letter, but a crossword answer's digits are part of
+    its actual identity (e.g. distinguishing `Wort1`/`Wort2`, or an answer
+    like `H2O`). Stripping them silently collapsed distinct author-intended
+    words into the same normalized string. Still strips everything else
+    (whitespace, punctuation) -- a placed word is one character per grid
+    cell, so it must stay a single contiguous token either way.
+    """
+    if word is None:
+        return ""
+    text = str(word).strip()
+    text = text.replace("ß", "ss").replace("ẞ", "SS")
+    text = _CROSSWORD_TOKEN_PATTERN.sub("", text)
+    return text.upper()
+
 
 _DIRECTION_DELTAS = {"H": (0, 1), "V": (1, 0)}
 _MAX_CANDIDATES_PER_WORD = 40
@@ -36,17 +61,27 @@ class CrosswordEntry:
 
 @dataclass(frozen=True)
 class CrosswordPlacement:
-    """One placed word: its top-left start cell and reading direction.
+    """One placed word: its top-left start cell, reading direction, and clue.
 
-    `is_code_row` marks the special `code_row=True` code-word placement
-    (see Slice 2 plan section 2.3) -- it has no clue and must be excluded
-    from clue-numbering (`crossword_numbering.py`).
+    `clue` is carried directly from the originating `CrosswordEntry` at
+    placement time (see `build_crossword_layout`), not looked up by word
+    text afterwards -- `crossword_numbering.py::grouped_clues` used to
+    build a `{word: clue}` dict from `entries` and look each placement's
+    clue up by its word string, which silently collapsed two entries that
+    share the same word (deliberately allowed, see `parse_crossword_entries`)
+    onto a single clue. Carrying the clue on the placement itself makes that
+    class of bug structurally impossible: each placement is definitionally
+    tied to the one entry it came from, regardless of what any other entry's
+    word happens to be. `is_code_row` marks the special `code_row=True`
+    code-word placement (see Slice 2 plan section 2.3) -- it has no clue
+    (default `""`) and must be excluded from clue-numbering.
     """
 
     word: str
     row: int
     col: int
     direction: str  # "H" or "V"
+    clue: str = ""
     is_code_row: bool = False
 
 
@@ -104,13 +139,17 @@ def parse_crossword_entries(content: str) -> list[CrosswordEntry]:
     `lösung`/`loesung` plus `clue`/`hinweis` as per-entry key aliases.
     Entries with an empty/unnormalizable word are skipped. Unlike
     `parse_wordsearch_words`, entries whose normalized word collides with an
-    earlier one are **kept** (not silently dropped) -- the placement
-    algorithm has no word-uniqueness assumption (each entry is placed
-    independently), and silently discarding a duplicate previously also
-    discarded its distinct clue with zero diagnostic. Callers that want to
-    flag likely-accidental duplicates (e.g. two entries whose words differ
-    only by a digit stripped during normalization) do so separately via
-    `CW004` in `crossword_validation.py`.
+    earlier one (e.g. two entries genuinely spelled the same way, up to
+    case) are **kept** (not silently dropped) -- the placement algorithm
+    has no word-uniqueness assumption (each entry is placed independently),
+    and silently discarding a duplicate previously also discarded its
+    distinct clue with zero diagnostic. Each placement keeps its own
+    originating clue (`CrosswordPlacement.clue`, set in
+    `build_crossword_layout`) rather than looking it up by word text
+    afterwards, so two entries that do end up with the same word never lose
+    or swap their distinct clues downstream. Callers that want to flag
+    likely-accidental duplicates do so separately via `CW004` in
+    `crossword_validation.py`.
     """
     if not (content or "").strip():
         return []
@@ -132,7 +171,7 @@ def parse_crossword_entries(content: str) -> list[CrosswordEntry]:
         if not isinstance(raw_entry, dict):
             continue
         raw_word = raw_entry.get("word") or raw_entry.get("wort") or raw_entry.get("lösung") or raw_entry.get("loesung")
-        word = _normalize_wordsearch_token(raw_word)
+        word = _normalize_crossword_token(raw_word)
         if not word:
             continue
         clue = str(raw_entry.get("clue") or raw_entry.get("hinweis") or "").strip()
@@ -190,7 +229,7 @@ def parse_crossword_code_options(options):
     computation could disagree about whether a code is even present).
     """
     code_word_raw = str((options or {}).get("code") or "").strip()
-    code_word = _normalize_wordsearch_token(code_word_raw) if code_word_raw else ""
+    code_word = _normalize_crossword_token(code_word_raw) if code_word_raw else ""
     code_row = str((options or {}).get("code_row") or "").strip().lower() in {"1", "true", "yes", "on"}
     return code_word_raw, code_word, code_row
 
@@ -212,7 +251,7 @@ def _crossword_seed_payload(entries, maxw, maxh, code_row, code_word):
         "code_row": bool(code_row),
     }
     if code_row:
-        payload["code_word"] = _normalize_wordsearch_token(code_word)
+        payload["code_word"] = _normalize_crossword_token(code_word)
     return payload
 
 
@@ -335,7 +374,7 @@ def build_crossword_layout(entries, maxw, maxh, code_row=False, code_word=None, 
 
     maxw = max(1, int(maxw))
     maxh = max(1, int(maxh))
-    normalized_code_word = _normalize_wordsearch_token(code_word) if code_row else None
+    normalized_code_word = _normalize_crossword_token(code_word) if code_row else None
 
     if code_row:
         if not normalized_code_word or len(normalized_code_word) > maxw:
@@ -412,7 +451,11 @@ def build_crossword_layout(entries, maxw, maxh, code_row=False, code_word=None, 
                 if grid[start_row + d_row * i][start_col + d_col * i] is not None
             }
             _place(word, start_row, start_col, d_row, d_col)
-            placements.append(CrosswordPlacement(word=word, row=start_row, col=start_col, direction="H" if d_row == 0 else "V"))
+            placements.append(
+                CrosswordPlacement(
+                    word=word, row=start_row, col=start_col, direction="H" if d_row == 0 else "V", clue=entry.clue
+                )
+            )
 
             if _recurse(entry_index + 1):
                 return True
@@ -432,7 +475,8 @@ def build_crossword_layout(entries, maxw, maxh, code_row=False, code_word=None, 
         # that one arbitrary choice -- so multiple spread-out anchors are
         # tried, sharing the same backtracking search (and attempts budget)
         # for the remaining words, stopping at the first full success.
-        first_word = sorted_entries[0].word
+        first_entry = sorted_entries[0]
+        first_word = first_entry.word
         anchors = _first_word_anchor_candidates(first_word, maxh, maxw)
         rng.shuffle(anchors)
         success = False
@@ -444,7 +488,13 @@ def build_crossword_layout(entries, maxw, maxh, code_row=False, code_word=None, 
             attempts_remaining[0] -= 1
             _place(first_word, start_row, start_col, d_row, d_col)
             placements.append(
-                CrosswordPlacement(word=first_word, row=start_row, col=start_col, direction="H" if d_row == 0 else "V")
+                CrosswordPlacement(
+                    word=first_word,
+                    row=start_row,
+                    col=start_col,
+                    direction="H" if d_row == 0 else "V",
+                    clue=first_entry.clue,
+                )
             )
             if _recurse(1):
                 success = True

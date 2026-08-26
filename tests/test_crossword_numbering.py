@@ -1,5 +1,5 @@
 from app.core.crossword_numbering import assign_crossword_numbers, grouped_clues
-from app.core.crossword_placement import CrosswordEntry, CrosswordLayout, CrosswordPlacement
+from app.core.crossword_placement import CrosswordLayout, CrosswordPlacement
 
 
 def test_two_pass_numbering_orders_all_horizontal_starts_before_vertical_starts():
@@ -84,19 +84,14 @@ def test_grouped_clues_splits_by_direction_and_sorts_by_number():
         rows=5,
         cols=5,
         placements=(
-            CrosswordPlacement(word="AB", row=2, col=0, direction="H"),
-            CrosswordPlacement(word="CD", row=0, col=3, direction="H"),
-            CrosswordPlacement(word="EF", row=1, col=0, direction="V"),
+            CrosswordPlacement(word="AB", row=2, col=0, direction="H", clue="Hinweis AB"),
+            CrosswordPlacement(word="CD", row=0, col=3, direction="H", clue="Hinweis CD"),
+            CrosswordPlacement(word="EF", row=1, col=0, direction="V", clue="Hinweis EF"),
         ),
     )
-    entries = [
-        CrosswordEntry(word="AB", clue="Hinweis AB"),
-        CrosswordEntry(word="CD", clue="Hinweis CD"),
-        CrosswordEntry(word="EF", clue="Hinweis EF"),
-    ]
     numbering = assign_crossword_numbers(layout)
 
-    horizontal, vertical = grouped_clues(layout, numbering, entries)
+    horizontal, vertical = grouped_clues(layout, numbering)
 
     assert horizontal == [(1, "CD", "Hinweis CD"), (2, "AB", "Hinweis AB")]
     assert vertical == [(3, "EF", "Hinweis EF")]
@@ -108,13 +103,32 @@ def test_grouped_clues_excludes_code_row_placement():
         cols=6,
         placements=(
             CrosswordPlacement(word="GEHEIM", row=1, col=0, direction="H", is_code_row=True),
-            CrosswordPlacement(word="IG", row=0, col=0, direction="V"),
+            CrosswordPlacement(word="IG", row=0, col=0, direction="V", clue="Hinweis IG"),
         ),
     )
-    entries = [CrosswordEntry(word="IG", clue="Hinweis IG")]
     numbering = assign_crossword_numbers(layout)
 
-    horizontal, vertical = grouped_clues(layout, numbering, entries)
+    horizontal, vertical = grouped_clues(layout, numbering)
 
     assert horizontal == []
     assert vertical == [(1, "IG", "Hinweis IG")]
+
+
+def test_grouped_clues_keeps_each_placements_own_clue_when_words_collide():
+    # Two placements sharing the exact same word (deliberately allowed,
+    # see parse_crossword_entries) must each keep their own clue -- a
+    # word-keyed {word: clue} lookup would collapse both onto one.
+    layout = CrosswordLayout(
+        rows=5,
+        cols=5,
+        placements=(
+            CrosswordPlacement(word="WORT", row=0, col=0, direction="H", clue="Erster Hinweis"),
+            CrosswordPlacement(word="WORT", row=0, col=2, direction="V", clue="Zweiter Hinweis"),
+        ),
+    )
+    numbering = assign_crossword_numbers(layout)
+
+    horizontal, vertical = grouped_clues(layout, numbering)
+
+    assert horizontal == [(1, "WORT", "Erster Hinweis")]
+    assert vertical == [(2, "WORT", "Zweiter Hinweis")]

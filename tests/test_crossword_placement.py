@@ -57,6 +57,26 @@ words:
     ]
 
 
+def test_parse_crossword_entries_keeps_digits_as_distinct_words():
+    # Crossword normalization must NOT strip digits like wordsearch's
+    # does -- "Wort1" and "Wort2" are genuinely different words, not a
+    # collision. (Previously both normalized to "WORT", silently losing
+    # one clue.)
+    content = """
+words:
+  - word: Wort1
+    clue: erster Hinweis
+  - word: Wort2
+    clue: zweiter Hinweis
+"""
+    entries = parse_crossword_entries(content)
+
+    assert entries == [
+        CrosswordEntry(word="WORT1", clue="erster Hinweis"),
+        CrosswordEntry(word="WORT2", clue="zweiter Hinweis"),
+    ]
+
+
 def test_parse_crossword_entries_rejects_bare_list_root():
     # A bare list at the YAML root (instead of a `words:` mapping) is not the
     # expected shape -- consistent with every other YAML_ANSWER_TYPES block,

@@ -1138,13 +1138,27 @@ def test_crossword_valid_code_row_has_no_cw_diagnostics():
     assert not any(code.startswith("CW") for code in codes)
 
 
-def test_crossword_duplicate_normalized_word_emits_cw004():
-    # "Wort1"/"Wort2" collapse to the same "WORT" after digit-stripping
-    # normalization -- the exact real-world case that used to silently
-    # drop the second clue with no diagnostic at all.
+def test_crossword_words_differing_only_by_digit_stay_distinct_no_cw004():
+    # Crossword normalization keeps digits (unlike wordsearch's) -- "Wort1"
+    # and "Wort2" are genuinely different words now, not a collision at
+    # all. This is the exact real-world case that used to silently drop
+    # the second clue with no diagnostic; it must no longer trigger CW004
+    # (there is no duplicate to warn about) and both clues must survive.
     words_yaml = (
         "  - word: Wort1\n    clue: erster Hinweis\n"
         "  - word: Wort2\n    clue: zweiter Hinweis\n"
+    )
+    text = _build_document(_crossword_block(words_yaml, " maxw=15 maxh=15"))
+    codes = {d.code for d in inspect_markdown_text(text).diagnostics}
+
+    assert "CW004" not in codes
+
+
+def test_crossword_duplicate_normalized_word_emits_cw004():
+    # A genuine collision (case-only difference, no digits involved).
+    words_yaml = (
+        "  - word: haus\n    clue: erster Hinweis\n"
+        "  - word: HAUS\n    clue: zweiter Hinweis\n"
     )
     text = _build_document(_crossword_block(words_yaml, " maxw=15 maxh=15"))
     codes = {d.code for d in inspect_markdown_text(text).diagnostics}
