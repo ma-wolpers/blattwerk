@@ -8,6 +8,7 @@ The format is based on Keep a Changelog.
 
 ### Fixed
 
+- Formeln (`$...$`/`$$...$$`) mit Backslash-Befehlen (`\frac`, `\sqrt`, `\mid`, `\alpha`, `\cdot`, …) wurden in Aufgabentexten, Unteraufgaben und Tabellenzellen verstümmelt dargestellt -- die Backslashes gingen verloren, bevor MathJax die Formel überhaupt zu sehen bekam (z. B. wurde `$\mid$` zu `$mid$`). Behoben.
 - `:::crossword`-Zahlen-Badges in den Rätselzellen wirkten optisch abgeschnitten, weil sie praktisch direkt auf der Zellkante saßen. Der Abstand zur Kante wurde vergrößert.
 - `:::crossword` liess nach dem Rätsel oft eine große leere Fläche stehen -- das Raster wurde bisher in voller `maxw`x`maxh`-Suchraumgröße gerendert (z. B. 15×15 Zellen), auch wenn die platzierten Wörter nur eine kleine Ecke davon belegten. Das Raster wird jetzt auf die tatsächlich belegte Fläche zugeschnitten.
 - `:::crossword` entfernte bei der internen Normalisierung bisher fälschlich alle Ziffern aus Wörtern -- `Wort1` und `Wort2` wurden dadurch beide zu `WORT` und galten als dasselbe Wort, obwohl sie klar unterschiedlich gemeint sind (genau das mitgelieferte Ctrl+B-Beispiel). Ziffern bleiben jetzt erhalten, da sie Teil der eigentlichen Wortidentität sind.

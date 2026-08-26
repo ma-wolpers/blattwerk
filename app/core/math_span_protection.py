@@ -74,26 +74,49 @@ def protect_math_spans(text):
     return _MATH_SPAN_PATTERN.sub(_replace, text), spans
 
 
-def restore_math_spans(html, spans):
-    """Setzt die von `protect_math_spans` platzierten Platzhalter durch die Original-Formel-Quelle zurueck.
+def _restore_math_spans(text, spans, escape_fn):
+    """Gemeinsame Platzhalter-Rueckersetzung fuer `restore_math_spans`/`restore_math_spans_as_text`.
 
     Nutzt ein exaktes Platzhalter-Pattern (kein blindes Teilstring-Replace)
-    -- ein zufaellig aehnlich aussehender String im gerenderten HTML kann
-    daher nie faelschlich ersetzt werden. Ein Index ausserhalb von `spans`
-    (sollte bei korrekter Verwendung nie vorkommen) laesst den Platzhalter
-    unveraendert, statt einen Fehler zu werfen -- defensiv, kein
-    Kompilierabbruch wegen einer reinen Rendering-Hilfsfunktion.
+    -- ein zufaellig aehnlich aussehender String im Text kann daher nie
+    faelschlich ersetzt werden. Ein Index ausserhalb von `spans` (sollte bei
+    korrekter Verwendung nie vorkommen) laesst den Platzhalter unveraendert,
+    statt einen Fehler zu werfen -- defensiv, kein Kompilierabbruch wegen
+    einer reinen Rendering-Hilfsfunktion.
     """
     if not spans:
-        return html
+        return text
 
     def _restore(match):
         index = int(match.group(1))
         if index >= len(spans):
             return match.group(0)
-        return escape(spans[index])
+        return escape_fn(spans[index])
 
-    return _MATH_PLACEHOLDER_PATTERN.sub(_restore, html)
+    return _MATH_PLACEHOLDER_PATTERN.sub(_restore, text)
+
+
+def restore_math_spans(html, spans):
+    """Setzt die von `protect_math_spans` platzierten Platzhalter durch die Original-Formel-Quelle zurueck.
+
+    HTML-escaped die wiederhergestellte Formel-Quelle -- fuer Aufrufer, die
+    direkt fertiges HTML produzieren (z. B. `convert_markdown_with_math`).
+    """
+    return _restore_math_spans(html, spans, escape)
+
+
+def restore_math_spans_as_text(text, spans):
+    """Wie `restore_math_spans`, aber ohne HTML-Escaping.
+
+    Fuer Aufrufer, deren Ergebnis noch **kein** finales HTML ist, sondern
+    selbst spaeter noch durch `convert_markdown_with_math` laeuft (z. B.
+    `answer_line_markers.py::parse_answer_line_visibility`, das der
+    Marker-Sichtbarkeits-Schicht vorgelagert ist) -- HTML-Escaping an dieser
+    Stelle wuerde doppelt escapen (`$a < b$` wuerde als `$a &lt; b$` in die
+    Formel eingebettet, statt erst beim finalen HTML-Rendering escaped zu
+    werden).
+    """
+    return _restore_math_spans(text, spans, lambda value: value)
 
 
 def convert_markdown_with_math(md, text, normalize_fn):

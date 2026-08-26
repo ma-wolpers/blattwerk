@@ -11,7 +11,8 @@ import pytest
 
 from app.core import answer_special_shared
 from app.core import blatt_kern_shared_parsing
-from app.core.math_span_protection import protect_math_spans, restore_math_spans
+from app.core.answer_line_markers import filter_answer_content_for_mode
+from app.core.math_span_protection import protect_math_spans, restore_math_spans, restore_math_spans_as_text
 
 _WRAPPER_MODULES = [answer_special_shared, blatt_kern_shared_parsing]
 
@@ -116,3 +117,32 @@ def test_restore_leaves_html_without_placeholders_untouched():
 def test_empty_and_none_input_do_not_crash_protect_math_spans():
     assert protect_math_spans("") == ("", [])
     assert protect_math_spans(None) == (None, [])
+
+
+def test_restore_as_text_does_not_html_escape_the_recovered_formula_source():
+    # Unlike restore_math_spans, this variant is for callers whose result is
+    # NOT yet final HTML (it will itself be run through convert_markdown_with_math
+    # later) -- HTML-escaping here would double-escape, e.g. turning `$a < b$`
+    # into the literal text `$a &lt; b$` instead of `$a < b$`.
+    protected, spans = protect_math_spans("$a < b$")
+    restored = restore_math_spans_as_text(protected, spans)
+    assert restored == "$a < b$"
+
+
+def test_restore_as_text_leaves_text_without_placeholders_untouched():
+    assert restore_math_spans_as_text("plain text", []) == "plain text"
+
+
+def test_task_body_pipeline_preserves_backslash_commands_in_formulas():
+    # End-to-end regression for the originally reported bug: the real
+    # task/subtask rendering pipeline runs filter_answer_content_for_mode()
+    # (answer_line_markers.py) BEFORE convert_markdown_with_math() -- see
+    # blatt_kern_task_render.py::_render_task_content/_render_subtask_body.
+    # Backslash LaTeX commands must survive that composition unmangled.
+    content = r"Loese: $\frac{a}{b} = \mid c \mid$"
+    filtered = filter_answer_content_for_mode(content, include_solutions=False, default_show="both")
+
+    md = blatt_kern_shared_parsing._new_markdown_converter()
+    html = blatt_kern_shared_parsing.convert_markdown_with_math(md, filtered)
+
+    assert r"$\frac{a}{b} = \mid c \mid$" in html

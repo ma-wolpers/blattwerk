@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 
 from .blatt_kern_shared import _new_markdown_converter, convert_markdown_with_math
+from .math_span_protection import protect_math_spans, restore_math_spans_as_text
 
 
 MARKER_SHOW_MODE = {
@@ -44,7 +45,17 @@ def _extract_leading_line_marker(line):
 
 
 def parse_answer_line_visibility(raw_line, default_show="both"):
-    """Parse one line with legacy line markers and optional inline visibility tokens."""
+    """Parse one line with legacy line markers and optional inline visibility tokens.
+
+    Protects `$...$`/`$$...$$` formula spans (`math_span_protection.py`)
+    before the character-by-character marker-escape loop below runs, and
+    restores them (as plain text, not HTML-escaped -- callers still run the
+    result through `convert_markdown_with_math` later) into each segment's
+    text afterward. Without this, the loop's own `\\`-escape handling (meant
+    for `\\ ` and marker braces) would blindly eat every backslash in the
+    line, including ones that are actually LaTeX commands like `\\frac`/
+    `\\mid` inside a formula -- this is the fix for that bug.
+    """
     line = "" if raw_line is None else str(raw_line)
 
     # Legacy syntax support: marker token at absolute line start controls full-line visibility.
@@ -54,7 +65,7 @@ def parse_answer_line_visibility(raw_line, default_show="both"):
     has_conflict = False
     line_default_show = MARKER_SHOW_MODE.get(selected_line_marker, default_show)
 
-    line = after_leading
+    line, math_spans = protect_math_spans(after_leading)
     segments = []
     plain_buffer = []
     index = 0
@@ -118,6 +129,10 @@ def parse_answer_line_visibility(raw_line, default_show="both"):
 
     if plain_buffer:
         segments.append(_new_segment("".join(plain_buffer), line_default_show))
+
+    if math_spans:
+        for segment in segments:
+            segment["text"] = restore_math_spans_as_text(segment["text"], math_spans)
 
     visible_text = "".join(segment["text"] for segment in segments)
     return {
