@@ -118,6 +118,12 @@ Installation/Setup steht bewusst in `README.md`.
 - CSS-Anpassung: `docs/CSS_ANLEITUNG.md`
 - Arbeitsblatt-Regeln (Praxis): `docs/ARBEITSBLATT_NOTIZEN.md`
 
+## 9a) Markdown-Tabellen automatisch umwandeln
+
+- Menü `Extras > Markdown-Tabellen in Blattwerk-Tabellen umwandeln` erkennt gewöhnliche GFM-Markdown-Tabellen (Kopfzeile, `---`-Trennzeile, Datenzeilen) im gerade geöffneten Tab und wandelt sie automatisch in native `:::table`-Blöcke um -- ungewöhnlich formatierte oder sehr exotische Tabellen werden dabei bewusst übersprungen statt riskant falsch umgewandelt (eine Meldung nennt dann den Grund).
+- **Ein einziges Ctrl+Z macht den gesamten Umwandlungsvorgang in einem Schritt rückgängig**, egal wie viele Tabellen dabei umgewandelt wurden.
+- Betrifft nur Tabellen außerhalb von `:::`-Blöcken. Eine Tabelle mitten im Text eines `:::task`/`:::info`/`:::material`/`:::solution`/`:::help`-Blocks bleibt unangetastet -- sie ließe sich nicht ohne Aufsplitten des umschließenden Blocks umwandeln.
+
 ## 10) Schreibbereich mit Live-Diagnostik
 
 - Beim Tippen im Schreibbereich wird die Diagnostik automatisch mit kurzer Verzögerung aktualisiert.

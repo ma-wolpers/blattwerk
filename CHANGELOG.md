@@ -17,6 +17,7 @@ The format is based on Keep a Changelog.
 
 ### Added
 
+- Neues Menü "Extras" mit dem Eintrag "Markdown-Tabellen in Blattwerk-Tabellen umwandeln": erkennt gewöhnliche GFM-Markdown-Tabellen (Kopfzeile, `---`-Trennzeile, Datenzeilen) im gerade geöffneten Tab und wandelt sie automatisch in native `:::table`-Blöcke um -- praktisch beim Einfügen einer aus anderer Quelle kopierten Tabelle. Ungewöhnlich formatierte oder sehr exotische Tabellen werden dabei bewusst übersprungen (mit Begründung) statt riskant falsch umgewandelt. Betrifft nur Tabellen außerhalb von `:::`-Blöcken -- eine Tabelle mitten in einem `:::task`-Text bleibt unangetastet, da sie sich nicht ohne Aufsplitten des umschließenden Blocks umwandeln ließe. **Ein einziges Ctrl+Z macht den kompletten Umwandlungsvorgang in einem Schritt rückgängig.**
 - `:::selfcheck` warnt jetzt nicht-blockierend (`SC001`), wenn `steps=` außerhalb des gültigen Bereichs (2-7) liegt oder nicht zu den für die gewählte `scale=` kuratierten Werten passt (z. B. `smiley` hat nur bei `steps=3`/`5` eigene Symbole, dazwischen erscheinen sonst kommentarlos nummerierte Kreise statt der erwarteten Emojis).
 - `:::selfcheck` hat jetzt eine `dual=true`-Option: zeigt zwei unabhängige Skalen-Spalten je Aussage statt einer (z. B. Selbst-/Fremdeinschätzung oder früher/später). `label1=`/`label2=` beschriften optional die beiden Spalten (Standard: keine Beschriftung).
 
