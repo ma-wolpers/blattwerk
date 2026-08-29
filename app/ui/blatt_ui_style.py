@@ -60,6 +60,8 @@ class BlattwerkAppStyleMixin:
     def _on_worksheet_design_changed(self):
             """On worksheet design changed."""
             self._refresh_color_profile_swatches()
+            self._sync_font_profile_combo()
+            self._sync_font_size_profile_combo()
             self._save_ui_settings()
             self.refresh_preview()
 
