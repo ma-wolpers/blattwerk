@@ -1,4 +1,6 @@
+import app.core.answer_special_wordsearch as wordsearch_module
 from app.core.answer_special_wordsearch import render_wordsearch_answer
+from app.core.block_computation_cache import BlockComputationCache
 
 _CONTENT = "- HAUS\n- BAUM\n- ZUG\n"
 
@@ -38,3 +40,27 @@ def test_wordsearch_grid_and_words_are_both_present_regardless_of_position():
         html = render_wordsearch_answer({"position": position}, _CONTENT, include_solutions=False)
         assert "wordsearch-grid" in html
         assert "<li" in html  # word list items still rendered
+
+
+def test_render_wordsearch_answer_reuses_a_cached_layout_without_recomputing(monkeypatch):
+    calls = []
+    original = wordsearch_module._build_wordsearch_grid
+
+    def counting(*args, **kwargs):
+        calls.append(1)
+        return original(*args, **kwargs)
+
+    monkeypatch.setattr(wordsearch_module, "_build_wordsearch_grid", counting)
+
+    cache = BlockComputationCache()
+    options = {"_computation_cache": cache}
+
+    render_wordsearch_answer(options, _CONTENT, include_solutions=False)
+    assert len(calls) == 1
+
+    # Rendering again with the same cache instance and only a cosmetic-only
+    # difference (position affects wrapper markup, not the grid placement)
+    # must hit the cache, not recompute the placement.
+    cosmetic_options = {"_computation_cache": cache, "position": "right"}
+    render_wordsearch_answer(cosmetic_options, _CONTENT, include_solutions=True)
+    assert len(calls) == 1

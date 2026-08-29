@@ -41,6 +41,7 @@ from bw_gui.contracts.popup import POPUP_KIND_MODAL, POPUP_KIND_NON_MODAL, Popup
 from bw_gui.laufkern import aggregate_completion, emit_tracking_artifact, verify_manifest, verify_reachability
 from .laufkern_manifest_provider import build_runtime_shortcut_manifest
 from .ui_theme import DEFAULT_THEME
+from ..storage.user_preferences_adapter import normalize_user_preferences
 from ..styles.blatt_styles import DEFAULT_FONT_PROFILE, DEFAULT_FONT_SIZE_PROFILE
 from ..styles.worksheet_design import (
     CONTRAST_PROFILE_ORDER,
@@ -103,6 +104,7 @@ class BlattwerkAppBase(BwBaseWindow):
         self.editor_view_mode_var = ui.StringVar(value=EDITOR_VIEW_PREVIEW_ONLY)
         self.design_color_profile_var = ui.StringVar(value=DEFAULT_COLOR_PROFILE)
         self.design_font_profile_var = ui.StringVar(value=DEFAULT_FONT_PROFILE)
+        self._font_profile_menu_var = ui.StringVar(value=DEFAULT_FONT_PROFILE)
         self.design_font_size_profile_var = ui.StringVar(value=DEFAULT_FONT_SIZE_PROFILE)
         self.theme_var = ui.StringVar(value=DEFAULT_THEME)
 
@@ -885,7 +887,7 @@ class BlattwerkAppBase(BwBaseWindow):
         if document_mode == "presentation" or document_type == "kurzentwurf":
             preview_mode = "worksheet"
 
-        return {
+        tab_state = {
             "path": normalized_path,
             "document_mode": document_mode,
             "document_type": document_type,
@@ -905,6 +907,21 @@ class BlattwerkAppBase(BwBaseWindow):
             "preview_cache_key": None,
             "preview_images": [],
         }
+        if self._font_size_profile_is_per_tab():
+            tab_state["font_size_profile"] = self.design_font_size_profile_var.get()
+        return tab_state
+
+    def _font_size_profile_is_per_tab(self) -> bool:
+        """Whether font size should be saved/restored per document tab (togglable, see Einstellungen).
+
+        Reverted once before (commit 6b0bd6c, "keep font-size class stable
+        across tab switches") after the size selection flipped implicitly on
+        tab switches -- kept as an opt-out preference this time instead of an
+        unconditional re-introduction, so a recurrence has an immediate
+        fallback without a code change.
+        """
+        preferences = normalize_user_preferences(getattr(self, "user_preferences", {}))
+        return bool(preferences.get("font_size_profile_per_tab", True))
 
     def _persist_active_document_tab_state(self):
         """Writes current control values back into the active tab state."""
@@ -936,6 +953,8 @@ class BlattwerkAppBase(BwBaseWindow):
         tab_state["contrast"] = self.preview_contrast_var.get()
         tab_state["color_profile"] = self.design_color_profile_var.get()
         tab_state["font_profile"] = self.design_font_profile_var.get()
+        if self._font_size_profile_is_per_tab():
+            tab_state["font_size_profile"] = self.design_font_size_profile_var.get()
         tab_state["fit_mode"] = self.preview_fit_mode_var.get()
         tab_state["layout_mode"] = self.preview_layout_mode_var.get()
         tab_state["zoom_percent"] = int(round(self.zoom_percent))
@@ -1011,6 +1030,10 @@ class BlattwerkAppBase(BwBaseWindow):
             self.preview_contrast_var.set(tab_state.get("contrast", self.preview_contrast_var.get()))
             self.design_color_profile_var.set(tab_state.get("color_profile", self.design_color_profile_var.get()))
             self.design_font_profile_var.set(tab_state.get("font_profile", self.design_font_profile_var.get()))
+            if self._font_size_profile_is_per_tab():
+                self.design_font_size_profile_var.set(
+                    tab_state.get("font_size_profile", self.design_font_size_profile_var.get())
+                )
             self.preview_fit_mode_var.set(tab_state.get("fit_mode", self.preview_fit_mode_var.get()))
             self.preview_layout_mode_var.set(tab_state.get("layout_mode", self.preview_layout_mode_var.get()))
             self.zoom_percent = int(str(tab_state.get("zoom_percent", int(round(self.zoom_percent))) or self.zoom_percent))

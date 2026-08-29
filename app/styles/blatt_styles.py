@@ -70,25 +70,109 @@ PRINT_PROFILE_ALIASES = {
 
 
 FONT_PROFILE_PRESETS = {
+    # "label": shown in the font picker (Teil 4).
+    # "css_family": full CSS fallback stack, used for export CSS generation only.
+    # "tk_family": one real font name, used for the on-screen live preview
+    #   (Teil 4) -- Tk silently falls back to a default font if not installed.
     "segoe": {
         "label": "Segoe UI",
-        "font_family": "'Segoe UI', 'Arial', sans-serif",
+        "css_family": "'Segoe UI', 'Arial', sans-serif",
+        "tk_family": "Segoe UI",
     },
     "calibri": {
         "label": "Calibri",
-        "font_family": "Calibri, 'Segoe UI', Arial, sans-serif",
+        "css_family": "Calibri, 'Segoe UI', Arial, sans-serif",
+        "tk_family": "Calibri",
     },
     "arial": {
         "label": "Arial",
-        "font_family": "Arial, 'Helvetica Neue', Helvetica, sans-serif",
+        "css_family": "Arial, 'Helvetica Neue', Helvetica, sans-serif",
+        "tk_family": "Arial",
     },
     "verdana": {
         "label": "Verdana",
-        "font_family": "Verdana, 'Segoe UI', Arial, sans-serif",
+        "css_family": "Verdana, 'Segoe UI', Arial, sans-serif",
+        "tk_family": "Verdana",
     },
     "tahoma": {
         "label": "Tahoma",
-        "font_family": "Tahoma, 'Segoe UI', Arial, sans-serif",
+        "css_family": "Tahoma, 'Segoe UI', Arial, sans-serif",
+        "tk_family": "Tahoma",
+    },
+    "times_new_roman": {
+        "label": "Times New Roman",
+        "css_family": "'Times New Roman', Times, serif",
+        "tk_family": "Times New Roman",
+    },
+    "georgia": {
+        "label": "Georgia",
+        "css_family": "Georgia, 'Times New Roman', serif",
+        "tk_family": "Georgia",
+    },
+    "cambria": {
+        "label": "Cambria",
+        "css_family": "Cambria, Georgia, serif",
+        "tk_family": "Cambria",
+    },
+    "garamond": {
+        "label": "Garamond",
+        "css_family": "Garamond, 'Times New Roman', serif",
+        "tk_family": "Garamond",
+    },
+    "book_antiqua": {
+        "label": "Book Antiqua",
+        "css_family": "'Book Antiqua', 'Palatino Linotype', serif",
+        "tk_family": "Book Antiqua",
+    },
+    "constantia": {
+        "label": "Constantia",
+        "css_family": "Constantia, Georgia, serif",
+        "tk_family": "Constantia",
+    },
+    "century_gothic": {
+        "label": "Century Gothic",
+        "css_family": "'Century Gothic', 'Segoe UI', sans-serif",
+        "tk_family": "Century Gothic",
+    },
+    "trebuchet_ms": {
+        "label": "Trebuchet MS",
+        "css_family": "'Trebuchet MS', 'Segoe UI', sans-serif",
+        "tk_family": "Trebuchet MS",
+    },
+    "comic_sans_ms": {
+        "label": "Comic Sans MS",
+        "css_family": "'Comic Sans MS', 'Comic Sans', sans-serif",
+        "tk_family": "Comic Sans MS",
+    },
+    "bahnschrift": {
+        "label": "Bahnschrift",
+        "css_family": "Bahnschrift, 'Segoe UI', sans-serif",
+        "tk_family": "Bahnschrift",
+    },
+    "corbel": {
+        "label": "Corbel",
+        "css_family": "Corbel, 'Segoe UI', sans-serif",
+        "tk_family": "Corbel",
+    },
+    "candara": {
+        "label": "Candara",
+        "css_family": "Candara, 'Segoe UI', sans-serif",
+        "tk_family": "Candara",
+    },
+    "franklin_gothic_medium": {
+        "label": "Franklin Gothic Medium",
+        "css_family": "'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif",
+        "tk_family": "Franklin Gothic Medium",
+    },
+    "lucida_sans": {
+        "label": "Lucida Sans",
+        "css_family": "'Lucida Sans', 'Lucida Sans Unicode', Verdana, sans-serif",
+        "tk_family": "Lucida Sans",
+    },
+    "rockwell": {
+        "label": "Rockwell",
+        "css_family": "Rockwell, Georgia, serif",
+        "tk_family": "Rockwell",
     },
 }
 
@@ -283,7 +367,7 @@ def build_font_profile_css(font_profile):
     profile = FONT_PROFILE_PRESETS[profile_key]
     return f"""
 :root {{
-    --font-family-base: {profile["font_family"]};
+    --font-family-base: {profile["css_family"]};
 }}
 """
 

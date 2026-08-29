@@ -27,6 +27,7 @@ from .ui_theme import get_theme
 from ..styles.blatt_styles import (
     FONT_PROFILE_LABELS,
     FONT_PROFILE_ORDER,
+    FONT_PROFILE_PRESETS,
     FONT_SIZE_PROFILE_LABELS,
     FONT_SIZE_PROFILE_ORDER,
 )
@@ -164,6 +165,7 @@ class BlattwerkAppBuildMixin:
         self._preview_controls_frame = preview_controls
 
         self._responsive_sections = []
+        self._responsive_hidden_groups = set()
 
         format_section = widgets.Frame(preview_controls)
         format_section.pack(fill="x", pady=(0, 8))
@@ -233,39 +235,27 @@ class BlattwerkAppBuildMixin:
         )
         self.preview_page_format_btn_4_3.pack(side="left", padx=(10, 0))
 
-        format_group_black = widgets.Frame(format_section)
+        format_group_black = self.format_group_black = widgets.Frame(format_section)
         widgets.Separator(format_group_black, orient="vertical").pack(side="left", fill="y", padx=(0, 12))
         widgets.Label(format_group_black, text="Black-Screen:").pack(side="left")
-        widgets.Radiobutton(
-            format_group_black,
-            text="Aus",
-            value="none",
-            variable=self.preview_black_screen_var,
-            command=self.refresh_preview,
-        ).pack(side="left", padx=(6, 0))
-        widgets.Radiobutton(
-            format_group_black,
-            text="Vorher",
-            value="before",
-            variable=self.preview_black_screen_var,
-            command=self.refresh_preview,
-        ).pack(side="left", padx=(6, 0))
-        widgets.Radiobutton(
-            format_group_black,
-            text="Nachher",
-            value="after",
-            variable=self.preview_black_screen_var,
-            command=self.refresh_preview,
-        ).pack(side="left", padx=(6, 0))
-        widgets.Radiobutton(
-            format_group_black,
-            text="Beides",
-            value="both",
-            variable=self.preview_black_screen_var,
-            command=self.refresh_preview,
-        ).pack(side="left", padx=(6, 0))
+        self.preview_black_screen_buttons = []
+        for label, value in (
+            ("Aus", "none"),
+            ("Vorher", "before"),
+            ("Nachher", "after"),
+            ("Beides", "both"),
+        ):
+            btn = widgets.Radiobutton(
+                format_group_black,
+                text=label,
+                value=value,
+                variable=self.preview_black_screen_var,
+                command=self.refresh_preview,
+            )
+            btn.pack(side="left", padx=(6, 0))
+            self.preview_black_screen_buttons.append(btn)
 
-        format_group_phase = widgets.Frame(format_section)
+        format_group_phase = self.format_group_phase = widgets.Frame(format_section)
         widgets.Separator(format_group_phase, orient="vertical").pack(side="left", fill="y", padx=(0, 12))
         widgets.Label(format_group_phase, text="Phasen:").pack(side="left")
         self.preview_phase_separator_btn_dot = widgets.Radiobutton(
@@ -300,7 +290,7 @@ class BlattwerkAppBuildMixin:
             gap_px=12,
         )
 
-        design_section = widgets.Frame(preview_controls)
+        design_section = self.design_section = widgets.Frame(preview_controls)
         design_section.pack(fill="x", pady=(0, 8))
         design_group_main = widgets.Frame(design_section)
         widgets.Label(design_group_main, text="Gestaltung:", width=16).pack(side="left")
@@ -337,15 +327,20 @@ class BlattwerkAppBuildMixin:
         design_group_font = widgets.Frame(design_section)
         widgets.Separator(design_group_font, orient="vertical").pack(side="left", fill="y", padx=(0, 12))
         widgets.Label(design_group_font, text="Schrift: ").pack(side="left")
-        self.font_profile_combo = widgets.Combobox(
-            design_group_font,
-            state="readonly",
-            width=14,
-            values=[FONT_PROFILE_LABELS[key] for key in FONT_PROFILE_ORDER],
-        )
-        self.font_profile_combo.pack(side="left", padx=(8, 0))
+        self.font_profile_menubutton = widgets.Menubutton(design_group_font, width=14)
+        font_profile_menu = ui.Menu(self.font_profile_menubutton, tearoff=False)
+        for key in FONT_PROFILE_ORDER:
+            profile = FONT_PROFILE_PRESETS[key]
+            font_profile_menu.add_radiobutton(
+                label=profile["label"],
+                value=key,
+                variable=self._font_profile_menu_var,
+                font=(profile["tk_family"], 11),
+                command=lambda k=key: self._set_font_profile(k),
+            )
+        self.font_profile_menubutton.configure(menu=font_profile_menu)
+        self.font_profile_menubutton.pack(side="left", padx=(8, 0))
         self._sync_font_profile_combo()
-        self.font_profile_combo.bind("<<ComboboxSelected>>", self._on_font_profile_selected)
 
         widgets.Label(design_group_font, text="Größe:").pack(side="left", padx=(12, 0))
         self.font_size_profile_combo = widgets.Combobox(
@@ -366,7 +361,7 @@ class BlattwerkAppBuildMixin:
             gap_px=12,
         )
 
-        actions_section = widgets.Frame(preview_controls)
+        actions_section = self.actions_section = widgets.Frame(preview_controls)
         actions_section.pack(fill="x", pady=(0, 8))
 
         actions_group_main = widgets.Frame(actions_section)
@@ -501,10 +496,27 @@ class BlattwerkAppBuildMixin:
 
         main_group.grid(row=0, column=0, sticky="w")
         for index, group in enumerate(optional_groups, start=1):
+            if group in self._responsive_hidden_groups:
+                continue
             group.grid(row=0, column=index, sticky="w", padx=(gap_px, 0))
 
         self._responsive_sections.append(section)
         container.bind("<Configure>", lambda _event, s=section: self._reflow_responsive_section(s))
+
+    def _set_responsive_group_hidden(self, group, hidden: bool) -> None:
+        """Permanently hides/shows a responsive-section group across resize reflows.
+
+        A plain `grid_forget()` isn't enough here -- `_reflow_responsive_section`
+        re-grids every registered group unconditionally on each `<Configure>`
+        event, so a hidden group would reappear on the next window resize.
+        """
+
+        if hidden:
+            self._responsive_hidden_groups.add(group)
+            group.grid_forget()
+        else:
+            self._responsive_hidden_groups.discard(group)
+        self._reflow_responsive_sections()
 
     def _reflow_responsive_sections(self):
         """Reflows all responsive sections after UI creation."""
@@ -531,8 +543,10 @@ class BlattwerkAppBuildMixin:
 
         main_group.grid(row=0, column=0, sticky="w")
 
+        visible_groups = [group for group in optional_groups if group not in self._responsive_hidden_groups]
+
         if not bool(getattr(self, "_responsive_controls_wrap_enabled", True)):
-            for index, group in enumerate(optional_groups, start=1):
+            for index, group in enumerate(visible_groups, start=1):
                 group.grid(row=0, column=index, sticky="w", padx=(gap_px, 0), pady=(0, 0))
             return
 
@@ -540,7 +554,7 @@ class BlattwerkAppBuildMixin:
         current_col = 1
         used_width = main_group.winfo_reqwidth()
 
-        for group in optional_groups:
+        for group in visible_groups:
             group_width = group.winfo_reqwidth()
             if current_row == 0:
                 pad_left = gap_px

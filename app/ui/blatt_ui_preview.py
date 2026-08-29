@@ -94,6 +94,30 @@ class BlattwerkAppPreviewMixin:
             self._last_preview_page_format_by_mode = remembered
             return resolved
 
+    @staticmethod
+    def _preview_toolbar_capabilities(document_type: str, document_mode: str) -> dict[str, bool]:
+            """Decides which preview-toolbar controls are meaningful for the active tab.
+
+            Centralizes the document-type/mode gating logic in one place so it
+            isn't re-derived separately in each toolbar-control function.
+            Kurzentwurf documents don't use the `:::`-block worksheet/presentation
+            dialect at all, so page format, black-screen, phase separators, and
+            worksheet design controls (contrast/color profile/font) have no
+            effect on them -- verified against the actual render dispatch in
+            `app/core/document_preview_build.py`, not assumed from naming.
+            """
+            is_kurzentwurf = document_type == DOCUMENT_TYPE_KURZENTWURF
+            is_presentation = (not is_kurzentwurf) and document_mode == "presentation"
+            return {
+                "show_solution_toggle": not is_kurzentwurf and not is_presentation,
+                "show_page_format": not is_kurzentwurf,
+                "show_phase_controls": not is_kurzentwurf,
+                "phase_controls_enabled": is_presentation,
+                "show_black_screen": not is_kurzentwurf,
+                "black_screen_enabled": is_presentation,
+                "show_design_controls": not is_kurzentwurf,
+            }
+
     def _toggle_preview_page_format_button(self, button, visible: bool, *, padx=(10, 0)):
             """Shows or hides a page-format radiobutton without breaking pack order."""
             if button is None:
@@ -107,8 +131,20 @@ class BlattwerkAppPreviewMixin:
             if button.winfo_manager():
                 button.pack_forget()
 
-    def _apply_preview_page_format_controls_for_document_mode(self, document_mode: str):
-            """Shows only valid page-format options for the active document mode."""
+    def _apply_preview_page_format_controls_for_document_mode(self, document_mode: str, document_type: str):
+            """Shows only valid page-format options for the active document type/mode."""
+            capabilities = self._preview_toolbar_capabilities(document_type, document_mode)
+            if not capabilities["show_page_format"]:
+                for name in (
+                    "preview_page_format_btn_a4",
+                    "preview_page_format_btn_a5",
+                    "preview_page_format_btn_16_9",
+                    "preview_page_format_btn_16_10",
+                    "preview_page_format_btn_4_3",
+                ):
+                    self._toggle_preview_page_format_button(getattr(self, name, None), False)
+                return
+
             is_presentation = document_mode == "presentation"
 
             self._toggle_preview_page_format_button(
@@ -137,8 +173,9 @@ class BlattwerkAppPreviewMixin:
                 padx=(10, 0),
             )
 
-    def _apply_preview_mode_controls_for_document_mode(self, document_mode: str):
-            """Enable/disable worksheet-solution controls based on document mode."""
+    def _apply_preview_mode_controls_for_document_mode(self, document_mode: str, document_type: str):
+            """Adapts the Aufgabe/Lösung toggle, Phasen, Black-Screen and Gestaltung controls to the active tab."""
+            capabilities = self._preview_toolbar_capabilities(document_type, document_mode)
             worksheet_btn = getattr(self, "preview_mode_btn_worksheet", None)
             solution_btn = getattr(self, "preview_mode_btn_solution", None)
             static_label = getattr(self, "preview_mode_static_label", None)
@@ -147,42 +184,63 @@ class BlattwerkAppPreviewMixin:
                 getattr(self, "preview_phase_separator_btn_arrow", None),
                 getattr(self, "preview_phase_hide_future_check", None),
             ]
-            controls = [worksheet_btn, solution_btn]
+            solution_controls = [worksheet_btn, solution_btn]
+            black_screen_buttons = getattr(self, "preview_black_screen_buttons", [])
 
-            if document_mode == "presentation":
-                for control in controls:
+            is_kurzentwurf = document_type == DOCUMENT_TYPE_KURZENTWURF
+
+            if not capabilities["show_solution_toggle"]:
+                for control in solution_controls:
                     if control is None:
                         continue
                     control.configure(state="disabled")
                     if control.winfo_manager():
                         control.pack_forget()
-
-                if static_label is not None and not static_label.winfo_manager():
-                    static_label.pack(side="left")
-
-                for control in phase_controls:
+                if static_label is not None:
+                    static_label.configure(text="Kurzentwurf" if is_kurzentwurf else "Präsentation")
+                    if not static_label.winfo_manager():
+                        static_label.pack(side="left")
+            else:
+                if static_label is not None and static_label.winfo_manager():
+                    static_label.pack_forget()
+                if worksheet_btn is not None and not worksheet_btn.winfo_manager():
+                    worksheet_btn.pack(side="left")
+                if solution_btn is not None and not solution_btn.winfo_manager():
+                    solution_btn.pack(side="left", padx=(10, 0))
+                for control in solution_controls:
                     if control is None:
                         continue
                     control.configure(state="normal")
-                return
 
-            if static_label is not None and static_label.winfo_manager():
-                static_label.pack_forget()
-
-            if worksheet_btn is not None and not worksheet_btn.winfo_manager():
-                worksheet_btn.pack(side="left")
-            if solution_btn is not None and not solution_btn.winfo_manager():
-                solution_btn.pack(side="left", padx=(10, 0))
-
-            for control in controls:
-                if control is None:
-                    continue
-                control.configure(state="normal")
-
+            format_group_phase = getattr(self, "format_group_phase", None)
+            if format_group_phase is not None:
+                self._set_responsive_group_hidden(format_group_phase, not capabilities["show_phase_controls"])
+            phase_state = "normal" if capabilities["phase_controls_enabled"] else "disabled"
             for control in phase_controls:
                 if control is None:
                     continue
-                control.configure(state="disabled")
+                control.configure(state=phase_state)
+
+            format_group_black = getattr(self, "format_group_black", None)
+            if format_group_black is not None:
+                self._set_responsive_group_hidden(format_group_black, not capabilities["show_black_screen"])
+            black_screen_state = "normal" if capabilities["black_screen_enabled"] else "disabled"
+            for button in black_screen_buttons:
+                button.configure(state=black_screen_state)
+
+            self._apply_design_section_visibility(capabilities["show_design_controls"])
+
+    def _apply_design_section_visibility(self, visible: bool) -> None:
+            """Shows/hides the whole Gestaltung row (Kontrast/Farbprofil/Schrift/Größe) as one unit."""
+            design_section = getattr(self, "design_section", None)
+            if design_section is None:
+                return
+            if visible:
+                if not design_section.winfo_manager():
+                    design_section.pack(fill="x", pady=(0, 8), before=self.actions_section)
+            else:
+                if design_section.winfo_manager():
+                    design_section.pack_forget()
 
     def _build_preview_cache_key(
             self,
@@ -584,8 +642,8 @@ class BlattwerkAppPreviewMixin:
                 document_type = self._read_document_type(input_path)
                 self._current_preview_document_mode = document_mode
                 self._current_preview_document_type = document_type
-                self._apply_preview_mode_controls_for_document_mode(document_mode)
-                self._apply_preview_page_format_controls_for_document_mode(document_mode)
+                self._apply_preview_mode_controls_for_document_mode(document_mode, document_type)
+                self._apply_preview_page_format_controls_for_document_mode(document_mode, document_type)
 
                 if document_mode == "presentation" or document_type == DOCUMENT_TYPE_KURZENTWURF:
                     include_solutions = False

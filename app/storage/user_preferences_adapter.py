@@ -285,6 +285,12 @@ PREFERENCE_SPECS = {
         "values": list(CONTRAST_PROFILE_ORDER),
         "live_apply": True,
     },
+    "font_size_profile_per_tab": {
+        "tab": "design_theme",
+        "label": "Schriftgroesse pro Tab merken",
+        "type": "bool",
+        "default": True,
+    },
     # Export
     "default_export_page_format_worksheet": {
         "tab": "export",

@@ -204,6 +204,7 @@ def test_build_document_tab_state_forces_worksheet_preview_for_kurzentwurf(tmp_p
         (),
         {
             "_normalize_document_path": staticmethod(BlattwerkAppBase._normalize_document_path),
+            "_font_size_profile_is_per_tab": BlattwerkAppBase._font_size_profile_is_per_tab,
             "preview_mode_var": _DummyVar("solution"),
             "preview_page_format_var": _DummyVar("a4_portrait"),
             "preview_section_separator_var": _DummyVar("dot"),
@@ -211,6 +212,7 @@ def test_build_document_tab_state_forces_worksheet_preview_for_kurzentwurf(tmp_p
             "preview_contrast_var": _DummyVar("standard"),
             "design_color_profile_var": _DummyVar("indigo"),
             "design_font_profile_var": _DummyVar("segoe"),
+            "design_font_size_profile_var": _DummyVar("normal"),
             "preview_fit_mode_var": _DummyVar("fit_width"),
             "preview_layout_mode_var": _DummyVar("single"),
             "zoom_percent": 100,

@@ -10,8 +10,14 @@ import re
 from html import escape
 
 from .answer_special_shared import _as_text_list
+from .block_computation_cache import ComputationKey, get_or_compute
 from .wordbank_position import normalize_wordbank_position, resolve_wordbank_auto_position, wrap_with_wordbank_position
-from .wordsearch_placement import _build_wordsearch_grid, _normalize_wordsearch_token
+from .wordsearch_placement import (
+    _WORDSEARCH_ALGORITHM_VERSION,
+    _build_wordsearch_grid,
+    _normalize_wordsearch_token,
+    _wordsearch_seed_payload,
+)
 
 
 _WORDSEARCH_CELL_SIZE_CM = 0.68
@@ -67,7 +73,13 @@ def render_wordsearch_answer(options, content, include_solutions):
     if not words:
         return ""
 
-    generated = _build_wordsearch_grid(words, options)
+    cache = options.get("_computation_cache")
+    layout_key = ComputationKey(
+        block_type="wordsearch",
+        version=_WORDSEARCH_ALGORITHM_VERSION,
+        payload=_wordsearch_seed_payload(words, options),
+    )
+    generated = get_or_compute(cache, layout_key, lambda: _build_wordsearch_grid(words, options))
     if not generated:
         return ""
 

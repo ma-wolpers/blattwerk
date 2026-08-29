@@ -178,6 +178,13 @@ class BlattwerkAppExportMixin:
             self._active_lernhilfen_available = False
             return
 
+        if self._read_document_type(active_input_path) == DOCUMENT_TYPE_KURZENTWURF:
+            # Intentional gate, not just the incidental "0 :::-blocks found" side
+            # effect below -- Kurzentwurf has no Lernhilfen concept at all.
+            button.config(state="disabled")
+            self._active_lernhilfen_available = False
+            return
+
         if include_solutions is None:
             include_solutions = self.preview_mode_var.get() == "solution"
 

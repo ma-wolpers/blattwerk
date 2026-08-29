@@ -20,7 +20,9 @@ class _DummyBase:
     _persist_active_document_tab_state = BlattwerkAppBase._persist_active_document_tab_state
     _apply_document_tab_state = BlattwerkAppBase._apply_document_tab_state
 
-    def __init__(self):
+    _font_size_profile_is_per_tab = BlattwerkAppBase._font_size_profile_is_per_tab
+
+    def __init__(self, *, font_size_profile_per_tab=True):
         self.input_var = _Var("")
         self.preview_mode_var = _Var("worksheet")
         self.preview_page_format_var = _Var("a4_portrait")
@@ -39,6 +41,7 @@ class _DummyBase:
         self.document_tabs = {}
         self._active_document_tab_id = None
         self._tab_switch_in_progress = False
+        self.user_preferences = {"font_size_profile_per_tab": font_size_profile_per_tab}
 
     @staticmethod
     def _clean_path_text(value: str) -> str:
@@ -63,8 +66,73 @@ class _DummyBase:
         return None
 
 
-def test_new_document_tab_state_does_not_store_font_size_profile(tmp_path):
+# -- font_size_profile_per_tab=True (default): mirrors the font_profile pattern --
+
+
+def test_new_document_tab_state_stores_font_size_profile_by_default(tmp_path):
     dummy = _DummyBase()
+    md_file = tmp_path / "doc.md"
+    md_file.write_text("# x\n", encoding="utf-8")
+
+    tab_state = dummy._build_document_tab_state(md_file)
+
+    assert tab_state["font_size_profile"] == "normal"
+
+
+def test_apply_document_tab_state_restores_font_size_profile_by_default(tmp_path):
+    dummy = _DummyBase()
+    md_file = tmp_path / "doc.md"
+    md_file.write_text("# x\n", encoding="utf-8")
+    normalized = dummy._normalize_document_path(md_file)
+
+    dummy.design_font_size_profile_var.set("large")
+    dummy.document_tabs["tab-1"] = {
+        "path": normalized,
+        "preview_mode": "worksheet",
+        "page_format": "a4_portrait",
+        "section_separator": "dot",
+        "hide_future_sections": False,
+        "contrast": "standard",
+        "color_profile": "indigo",
+        "font_profile": "segoe",
+        "font_size_profile": "small",
+        "fit_mode": "fit_width",
+        "layout_mode": "single",
+        "zoom_percent": 110,
+        "current_page_index": 0,
+    }
+
+    dummy._apply_document_tab_state("tab-1")
+
+    assert dummy.design_font_size_profile_var.get() == "small"
+
+
+def test_persist_active_tab_state_rewrites_font_size_profile_by_default(tmp_path):
+    dummy = _DummyBase()
+    md_file = tmp_path / "doc.md"
+    md_file.write_text("# x\n", encoding="utf-8")
+    normalized = dummy._normalize_document_path(md_file)
+
+    dummy.input_var.set(str(md_file))
+    dummy._active_document_tab_id = "tab-1"
+    dummy.document_tabs["tab-1"] = {
+        "path": normalized,
+        "font_size_profile": "small",
+    }
+    dummy.design_font_size_profile_var.set("large")
+
+    dummy._persist_active_document_tab_state()
+
+    assert dummy.document_tabs["tab-1"].get("font_size_profile") == "large"
+
+
+# -- font_size_profile_per_tab=False (opt-out): byte-identical to the historical
+# fallback behavior from commit 6b0bd6c ("keep font-size class stable across
+# tab switches") -- kept as an escape hatch if the old flip ever recurs.
+
+
+def test_new_document_tab_state_does_not_store_font_size_profile_when_opted_out(tmp_path):
+    dummy = _DummyBase(font_size_profile_per_tab=False)
     md_file = tmp_path / "doc.md"
     md_file.write_text("# x\n", encoding="utf-8")
 
@@ -73,8 +141,8 @@ def test_new_document_tab_state_does_not_store_font_size_profile(tmp_path):
     assert "font_size_profile" not in tab_state
 
 
-def test_apply_document_tab_state_ignores_legacy_font_size_profile(tmp_path):
-    dummy = _DummyBase()
+def test_apply_document_tab_state_ignores_legacy_font_size_profile_when_opted_out(tmp_path):
+    dummy = _DummyBase(font_size_profile_per_tab=False)
     md_file = tmp_path / "doc.md"
     md_file.write_text("# x\n", encoding="utf-8")
     normalized = dummy._normalize_document_path(md_file)
@@ -101,8 +169,8 @@ def test_apply_document_tab_state_ignores_legacy_font_size_profile(tmp_path):
     assert dummy.design_font_size_profile_var.get() == "large"
 
 
-def test_persist_active_tab_state_does_not_rewrite_legacy_font_size_profile(tmp_path):
-    dummy = _DummyBase()
+def test_persist_active_tab_state_does_not_rewrite_legacy_font_size_profile_when_opted_out(tmp_path):
+    dummy = _DummyBase(font_size_profile_per_tab=False)
     md_file = tmp_path / "doc.md"
     md_file.write_text("# x\n", encoding="utf-8")
     normalized = dummy._normalize_document_path(md_file)

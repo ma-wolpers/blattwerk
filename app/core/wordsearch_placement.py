@@ -188,27 +188,38 @@ def _wordsearch_dimensions_feasible(rows, cols, words, directions_by_word):
     return True
 
 
+_WORDSEARCH_ALGORITHM_VERSION = 1
+"""Bumped whenever placement logic changes, so stale `BlockComputationCache`
+entries from an older algorithm version are never silently reused (see
+`app/core/block_computation_cache.py`)."""
+
+
+def _wordsearch_seed_payload(words, options):
+    """Builds the normalized, JSON-serializable payload shared by the RNG
+    seed and the `BlockComputationCache` layout key, so seed and cache key
+    can never silently diverge (mirrors
+    `crossword_placement.py::_crossword_seed_payload`). Deliberately excludes
+    purely cosmetic options (font, contrast, color profile) -- those must
+    never invalidate this placement cache.
+    """
+    return {
+        "words": list(words),
+        "min_size": str(options.get("min_size") or options.get("size") or options.get("min") or ""),
+        "min_rows": str(options.get("min_rows") or options.get("rows") or ""),
+        "min_cols": str(options.get("min_cols") or options.get("cols") or ""),
+        "diagonal": str(options.get("diagonal") or ""),
+        "horizontal": str(options.get("horizontal") or ""),
+        "vertical": str(options.get("vertical") or ""),
+    }
+
+
 def _build_wordsearch_grid(words, options):
     """Baut das Raster für die Wortsuche auf."""
     if not words:
         return None
 
-    seed_value = "|".join(
-        [
-            ",".join(words),
-            str(
-                options.get("min_size")
-                or options.get("size")
-                or options.get("min")
-                or ""
-            ),
-            str(options.get("min_rows") or options.get("rows") or ""),
-            str(options.get("min_cols") or options.get("cols") or ""),
-            str(options.get("diagonal") or ""),
-            str(options.get("horizontal") or ""),
-            str(options.get("vertical") or ""),
-        ]
-    )
+    seed_payload = _wordsearch_seed_payload(words, options)
+    seed_value = "|".join(str(value) for value in seed_payload.values())
     rng = random.Random(seed_value)
     allow_diagonal = _option_is_enabled(options.get("diagonal"), default=False)
     min_rows, min_cols = _parse_min_wordsearch_size(options)

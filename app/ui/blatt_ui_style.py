@@ -96,23 +96,6 @@ class BlattwerkAppStyleMixin:
             self.design_font_profile_var.set(normalized_key)
             self._on_worksheet_design_changed()
 
-    def _on_font_profile_selected(self, _event=None):
-            """On font profile selected."""
-            if not hasattr(self, "font_profile_combo"):
-                return
-
-            selected_label = (self.font_profile_combo.get() or "").strip()
-            selected_key = None
-            for profile_key in FONT_PROFILE_ORDER:
-                if FONT_PROFILE_LABELS.get(profile_key) == selected_label:
-                    selected_key = profile_key
-                    break
-
-            if selected_key is None:
-                selected_key = DEFAULT_FONT_PROFILE
-
-            self._set_font_profile(selected_key)
-
     def _set_font_size_profile(self, profile_key: str):
             """Set font size profile."""
             normalized_key = normalize_font_size_profile(profile_key)
@@ -140,12 +123,15 @@ class BlattwerkAppStyleMixin:
             self._set_font_size_profile(selected_key)
 
     def _sync_font_profile_combo(self):
-            """Sync font profile combo."""
-            if not hasattr(self, "font_profile_combo"):
+            """Reflects the current font profile onto the Schrift menu button/menu-radio state."""
+            if not hasattr(self, "font_profile_menubutton"):
                 return
 
             current_key = normalize_font_profile(self.design_font_profile_var.get())
-            self.font_profile_combo.set(FONT_PROFILE_LABELS.get(current_key, FONT_PROFILE_LABELS[DEFAULT_FONT_PROFILE]))
+            self._font_profile_menu_var.set(current_key)
+            self.font_profile_menubutton.configure(
+                text=FONT_PROFILE_LABELS.get(current_key, FONT_PROFILE_LABELS[DEFAULT_FONT_PROFILE])
+            )
 
     def _sync_font_size_profile_combo(self):
             """Sync font size profile combo."""
