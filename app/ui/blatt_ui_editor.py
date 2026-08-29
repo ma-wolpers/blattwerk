@@ -639,13 +639,19 @@ class BlattwerkAppEditorMixin:
         self._editor_block_pairs_cache = list(structure["pairs"])
 
         last_line = int(self.editor_widget.index("end-1c").split(".")[0] or 1)
+        # Both `full_text` and `last_line` come from the same "end-1c" Tk index
+        # taken here, so `text_lines` always has exactly `last_line` entries --
+        # no per-line widget round-trip needed (verified: `full_text.split("\n")`
+        # matches `widget.get(f"{n}.0", f"{n}.end")` line-for-line, including for
+        # an empty buffer and a trailing newline).
+        text_lines = full_text.split("\n")
         in_frontmatter = False
         frontmatter_delim_seen = 0
 
         for line_no in range(1, max(1, last_line) + 1):
             line_start = f"{line_no}.0"
             line_end = f"{line_no}.end"
-            line_text = self.editor_widget.get(line_start, line_end)
+            line_text = text_lines[line_no - 1]
             stripped = line_text.strip()
 
             if stripped == "---":
@@ -1020,12 +1026,12 @@ class BlattwerkAppEditorMixin:
             return
 
         if event.keysym in {"Up", "Down", "Left", "Right"}:
-            self._refresh_editor_block_pair_highlight()
+            self._queue_editor_block_pair_highlight()
             return
 
         preferences = getattr(self, "user_preferences", {})
         if not bool(preferences.get("completion_auto_enabled", True)):
-            self._refresh_editor_block_pair_highlight()
+            self._queue_editor_block_pair_highlight()
             return
 
         trigger_chars = {"_", " "}
@@ -1048,7 +1054,7 @@ class BlattwerkAppEditorMixin:
         else:
             self._close_editor_completion()
 
-        self._refresh_editor_block_pair_highlight()
+        self._queue_editor_block_pair_highlight()
 
     def _on_editor_insert_triple_pair(self, _event=None):
         """Inserts `::: :::` and opens completion at center cursor position."""
@@ -1286,6 +1292,9 @@ class BlattwerkAppEditorMixin:
             return
 
         line_count = int(self.editor_widget.index("end-1c").split(".")[0] or 1)
+        # See `_refresh_editor_highlighting` for why splitting the bulk-fetched
+        # text is equivalent to (and far cheaper than) a per-line widget `.get()`.
+        text_lines = self.editor_widget.get("1.0", "end-1c").split("\n")
         items = []
         frontmatter_count = 0
         block_stack = []
@@ -1293,7 +1302,7 @@ class BlattwerkAppEditorMixin:
         opening_pattern = re.compile(r"^:::(\w+)(.*)$")
 
         for line_no in range(1, max(1, line_count) + 1):
-            line_text = self.editor_widget.get(f"{line_no}.0", f"{line_no}.end")
+            line_text = text_lines[line_no - 1]
             stripped = line_text.strip()
 
             if stripped == "---":
@@ -1376,9 +1385,29 @@ class BlattwerkAppEditorMixin:
         if hasattr(self, "root"):
             self.root.after_idle(self._on_editor_outline_selected)
 
+    def _queue_editor_block_pair_highlight(self, immediate: bool = False):
+        """Schedules a block-pair highlight refresh (debounced on KeyRelease)."""
+
+        if self.editor_widget is None:
+            return
+
+        if self._editor_block_pair_after_id is not None:
+            self.root.after_cancel(self._editor_block_pair_after_id)
+            self._editor_block_pair_after_id = None
+
+        if immediate:
+            self._refresh_editor_block_pair_highlight()
+            return
+
+        self._editor_block_pair_after_id = self.root.after(
+            self._editor_block_pair_delay_ms,
+            self._refresh_editor_block_pair_highlight,
+        )
+
     def _refresh_editor_block_pair_highlight(self):
         """Highlights opening/closing marker pair for block at current cursor line."""
 
+        self._editor_block_pair_after_id = None
         if self.editor_widget is None:
             return
 

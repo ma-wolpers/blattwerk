@@ -139,6 +139,8 @@ class BlattwerkAppBase(BwBaseWindow):
         self._editor_outline_after_id = None
         self._editor_outline_delay_ms = 220
         self._editor_outline_items = []
+        self._editor_block_pair_after_id = None
+        self._editor_block_pair_delay_ms = 120
         self._preview_auto_refresh_after_id = None
         self._preview_auto_refresh_on_edit_idle_enabled = False
         self._preview_auto_refresh_on_edit_idle_delay_ms = 1200
