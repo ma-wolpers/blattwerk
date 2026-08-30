@@ -12,12 +12,13 @@ Nicht codegeneriert (rein redaktionell) und nicht Teil der `assert_prose_coverag
 ## Schreibkonventionen
 
 **Mehrschritt-Aufgaben und Mittel-zum-Zweck-Schritte in einer `s<`-Zeile bündeln.** Ein
-Zwischenschritt wie "Koordinatensystem erstellen" ist selten eine eigene Lernaktivität,
-sondern Mittel zum Zweck -- mit Konjunktionen (`und`/`indem`/`durch`) in die Hauptaktivität
+Zwischenschritt wie "Koordinatensystem erstellen" ist in oberen Jahrgangsstufen selten eine eigene Lernaktivität,
+sondern nur noch ein Mittel zum Zweck -- mit Konjunktionen (`und`/`indem`/`durch`) in die Hauptaktivität
 integrieren statt in mehrere `s<`-Zeilen zu zerlegen:
 
 - Weniger hilfreich: drei separate `s<`-Zeilen für "Koordinatensystem erstellen",
   "Begriffe markieren", "Markierungen beschriften"
+  (außer: es ist ein eigenständiger, didaktisch relevanter Schritt, z. B. für das Lernen, wie man einen Graphen korrekt zeichnet)
 - Besser: `s< markieren ihre Begriffe in einem Koordinatensystem und beschriften die
   Markierungen.`
 
@@ -40,7 +41,7 @@ s< erstellen ein Diagramm zum Graphen.
 ```
 
 **Mehrere Antizipationen als Liste darstellen.** Gibt es zu einem Lernschritt mehrere
-erwartete Antworten (z. B. eine gute, eine mittelmäßige, eine falsche), diese als
+erwartete Antworten (z. B. eine gute, eine mittelmäßige, eine falsche, eine abwägige, ...), diese als
 Markdown-Liste innerhalb von `ant<` schreiben statt als einzelnen Fließtext-Satz:
 
 ```markdown
@@ -78,15 +79,16 @@ oder "Diskussion", die offenlassen, wer eigentlich mit wem spricht:
 - `LSG` (Lehrer-Schüler-Gespräch) -- die Lehrkraft moderiert, Schüler:innen antworten.
 - `SSG` (Schüler-Schüler-Gespräch) -- Lernende geben sich gegenseitig Feedback, ohne dass
   die Lehrkraft moderiert.
-- `Gruppenarbeit` -- Lernende arbeiten in Kleingruppen.
-- `Einzelarbeit` -- Lernende arbeiten allein.
+- `GA` -- Lernende arbeiten in Kleingruppen.
+- `PA` -- Lernende arbeiten in Paaren.
+- `EA` -- Lernende arbeiten allein.
 
 **Material stets mit konkretem Dateinamen -- und `U>`-Angaben jede Phase erneut nennen.**
 `U>` ist die richtige Spalte für Materialangaben (siehe Hauptanleitung) -- innerhalb dieser
 Spalte so konkret sein, dass klar ist, was tatsächlich vorzubereiten ist:
 
-- Weniger hilfreich: `U> Gruppenarbeit; Arbeitsblatt` / `U> Papier` / `U> Stifte`
-- Besser: `U> Gruppenarbeit; Arbeitsblatt_Photosynthese_V2.pdf` / `U> kariertes Heft für
+- Weniger hilfreich: `U> GA; Arbeitsblatt` / `U> Papier` / `U> Stifte`
+- Besser: `U> GA; Arbeitsblatt_Photosynthese_V2.pdf` / `U> kariertes Heft für
   die Tabelle` / `U> Buntstifte; Bleistift; Lineal; A3-Papier`
 
 Das gilt in **jeder** Phase erneut, auch wenn Sozialform/Material sich von der vorherigen
@@ -115,7 +117,7 @@ Anleitung, Qualitätskriterien (z. B. "mindestens 5 relevante Fachbegriffe") dir
 gegenseitige Hilfe selbst der fachliche Fokus der Einheit, kann sie sehr wohl eine eigene
 Lernaktivität sein.
 
-**Antizipationen als Sprechakte, nicht als Fragen formulieren.** `ant<` sollte lauten wie
+**Antizipationen als Sprechakte der Lernenden formulieren.** `ant<` sollte lauten wie
 etwas, das Lernende selbst sagen könnten -- nicht wie eine Frage der Lehrkraft:
 
 - Nicht: `ant< "Was ist besonders klar dargestellt?"`
