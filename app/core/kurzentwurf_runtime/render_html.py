@@ -3,12 +3,9 @@
 import re
 from html import escape
 
+from ..inline_markup import render_inline_markup
 from .model import KurzentwurfDocument, KurzentwurfPhaseBlock, KurzentwurfSegment
 
-_HIGHLIGHT_RE = re.compile(r"==(.+?)==")
-_BOLD_RE = re.compile(r"(\*\*(.+?)\*\*)|(__(.+?)__)")
-_ITALIC_STAR_RE = re.compile(r"(?<!\*)\*([^*\n]+?)\*(?!\*)")
-_ITALIC_UNDERSCORE_RE = re.compile(r"(?<!_)_([^_\n]+?)_(?!_)")
 _ORDERED_DIGIT_RE = re.compile(r"^\d+[.)]\s+(.+)$")
 _ORDERED_ALPHA_RE = re.compile(r"^([a-zA-Z])[.)]\s+(.+)$")
 
@@ -262,6 +259,51 @@ def render_document_html(
 
     em {{
       font-style: italic;
+    }}
+
+    u {{
+      text-decoration: underline;
+    }}
+
+    del {{
+      text-decoration: line-through;
+    }}
+
+    sub {{
+      vertical-align: sub;
+      font-size: smaller;
+    }}
+
+    sup {{
+      vertical-align: super;
+      font-size: smaller;
+    }}
+
+    code {{
+      font-family: "Consolas", "Courier New", monospace;
+      background: #f0f0f0;
+      padding: 0.05em 0.3em;
+      border-radius: 3px;
+    }}
+
+    pre {{
+      font-family: "Consolas", "Courier New", monospace;
+      background: #f0f0f0;
+      padding: 0.5em 0.7em;
+      border-radius: 4px;
+      overflow-x: auto;
+    }}
+
+    pre code {{
+      background: none;
+      padding: 0;
+    }}
+
+    .bw-spoiler {{
+      color: inherit;
+      background-color: currentColor;
+      border-radius: 2px;
+      padding: 0 0.15em;
     }}
   </style>
 </head>
@@ -660,19 +702,15 @@ def _extract_bullet_text(line: str) -> tuple[str, str | None] | None:
 
 
 def _render_inline_markup(text: str) -> str:
-    escaped_text = escape(text)
+    """Rendert Inline-Markup über das zentrale `inline_markup`-Paket.
 
-    escaped_text = _HIGHLIGHT_RE.sub(lambda match: f"<mark>{match.group(1)}</mark>", escaped_text)
-
-    def bold_replace(match: re.Match[str]) -> str:
-        value = match.group(2) if match.group(2) is not None else match.group(4) or ""
-        return f"<strong>{value}</strong>"
-
-    escaped_text = _BOLD_RE.sub(bold_replace, escaped_text)
-    escaped_text = _ITALIC_STAR_RE.sub(lambda match: f"<em>{match.group(1)}</em>", escaped_text)
-    escaped_text = _ITALIC_UNDERSCORE_RE.sub(lambda match: f"<em>{match.group(1)}</em>", escaped_text)
-
-    return escaped_text
+    Dünner Namens-Alias auf `inline_markup.render_inline_markup`, damit
+    bestehende Aufrufstellen (`_render_text`, `_render_legacy_row`)
+    unverändert bleiben -- keine eigene Marker-Erkennung mehr in diesem
+    Modul. Escaping (inkl. `&`/`<`/`>`) übernimmt das zentrale Paket selbst
+    pro Run; hier darf NICHT zusätzlich vorab escaped werden.
+    """
+    return render_inline_markup(text or "")
 
 
 

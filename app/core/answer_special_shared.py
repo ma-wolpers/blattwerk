@@ -6,14 +6,22 @@ import re
 
 import markdown
 
+from .inline_markup.markdown_bridge import register_inline_markup_bridge
 from .math_span_protection import convert_markdown_with_math as _convert_markdown_with_math
 
 MARKDOWN_EXTENSIONS = ["tables"]
 
 
 def _new_markdown_converter():
-    """Erzeugt eine frische Markdown-Instanz für einen einzelnen Renderlauf."""
-    return markdown.Markdown(extensions=MARKDOWN_EXTENSIONS)
+    """Erzeugt eine frische Markdown-Instanz für einen einzelnen Renderlauf.
+
+    Registriert denselben zentralen `inline_markup`-Preprocessor wie
+    `blatt_kern_shared_parsing.py` (siehe dort) -- keine eigene
+    Marker-Interpretation in diesem Modul.
+    """
+    md = markdown.Markdown(extensions=MARKDOWN_EXTENSIONS)
+    register_inline_markup_bridge(md)
+    return md
 
 
 def convert_markdown_with_math(md, text):

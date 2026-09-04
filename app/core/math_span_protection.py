@@ -119,6 +119,32 @@ def restore_math_spans_as_text(text, spans):
     return _restore_math_spans(text, spans, lambda value: value)
 
 
+def find_math_span_ranges(text):
+    """Liefert `(start, end)`-Zeichenoffsets (in `text`) fuer jeden `$...$`/`$$...$$`-Span.
+
+    Reiner Lesezugriff auf `_MATH_SPAN_PATTERN`, fuer Aufrufer, die nur
+    wissen muessen WO ein Formel-Span im rohen (noch nicht geschuetzten)
+    Text liegt -- z. B. `app/ui/blatt_ui_editor.py`, um vor einer
+    Marker-Tasten-Aktion zu pruefen, ob die aktuelle Editor-Selektion eine
+    Formelgrenze ueberschneidet. Keine Verhaltensaenderung an diesem Modul.
+    """
+    if not text:
+        return []
+    return [match.span() for match in _MATH_SPAN_PATTERN.finditer(text)]
+
+
+def find_math_placeholder(text, start=0):
+    """Sucht das naechste Mathe-Platzhalter-Token ab `start`.
+
+    Duenner, rein lesender Zugriff auf `_MATH_PLACEHOLDER_PATTERN` fuer
+    `app/core/inline_markup/emphasis.py`, das nach dem Marker-Parsing
+    verbliebene Platzhalter wieder in dedizierte Mathe-Runs auflösen muss
+    -- keine Verhaltensaenderung an diesem Modul, nur ein zusaetzlicher
+    lesender Einstiegspunkt neben `restore_math_spans`.
+    """
+    return _MATH_PLACEHOLDER_PATTERN.search(text, start)
+
+
 def convert_markdown_with_math(md, text, normalize_fn):
     """Rendert `text` per `md.convert(normalize_fn(...))`, mit Mathe-Schutz.
 
