@@ -19,7 +19,7 @@ from app.core.document_types import (
 from app.core.markdown_conventions import MarkdownConventionCatalog
 
 from authoring_guide_coverage import _option_prose_keys
-from authoring_guide_render_shared import _AUTOGEN_HEADER, _fenced, _prose
+from authoring_guide_render_shared import _AUTOGEN_HEADER, _fenced, _prose, _render_inline_marks_section
 
 
 def _kind_label(kind: str) -> str:
@@ -210,6 +210,12 @@ def render_worksheet_presentation_guide(catalog: MarkdownConventionCatalog) -> s
         "`§`/`%`/`&` (am Zeilenanfang) bzw. Inline-Token `§{...}`/`%{...}`/`&{...}` "
         "(mitten in der Zeile), ob ein Textteil nur im Arbeitsblatt, nur in der Lösung oder in "
         "beiden erscheint. Text ohne Marker ist standardmäßig in beiden Modi sichtbar.",
+        "## 10. Inline-Formatierung\n\n"
+        "Text im Editor markieren und eine Marker-Taste drücken formatiert die Auswahl direkt -- "
+        "ohne Auswahl tippt dieselbe Taste normalen Text. Dieselbe Syntax funktioniert überall, wo "
+        "Markdown-Text vorkommt (Absätze, Antwortfelder, Kurzentwurf-Zellen), da sie zentral in "
+        "`app/core/inline_markup/` interpretiert wird.\n\n"
+        + _render_inline_marks_section(catalog, "worksheet"),
     ]
 
     return _AUTOGEN_HEADER + "\n\n".join(sections) + "\n"

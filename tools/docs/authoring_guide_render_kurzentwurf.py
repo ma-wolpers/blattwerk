@@ -11,7 +11,7 @@ from __future__ import annotations
 from app.core.document_types import DOCUMENT_TYPE_KURZENTWURF, build_new_document_content
 from app.core.markdown_conventions import MarkdownConventionCatalog
 
-from authoring_guide_render_shared import _AUTOGEN_HEADER, _fenced, _prose
+from authoring_guide_render_shared import _AUTOGEN_HEADER, _fenced, _prose, _render_inline_marks_section
 
 
 def _render_kurzentwurf_phase_table(catalog: MarkdownConventionCatalog) -> str:
@@ -72,6 +72,12 @@ def render_kurzentwurf_guide(catalog: MarkdownConventionCatalog) -> str:
         + _prose("kurzentwurf:legacy_detection_only")
         + "\n\n"
         + _render_kurzentwurf_legacy_field_details(catalog),
+        "## 6. Inline-Formatierung in Zellentext\n\n"
+        "Innerhalb von Zelleninhalten (Schritte/Aktivitäten/Umgebung) gilt dieselbe zentrale "
+        "Inline-Formatierung wie im Arbeitsblatt-Editor -- Text markieren und eine Marker-Taste "
+        "drücken. Die Hervorhebungsfarbe (`==...==`) ist in Kurzentwurf-Dokumenten fest, da "
+        "Kurzentwurf kein eigenes Farbprofil hat.\n\n"
+        + _render_inline_marks_section(catalog, "kurzentwurf"),
     ]
 
     return _AUTOGEN_HEADER + "\n\n".join(sections) + "\n"

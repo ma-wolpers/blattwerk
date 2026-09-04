@@ -38,6 +38,13 @@ Quellen im Einzelnen:
   die **nur** zur Alt-Erkennung beitragen, nicht zur funktionalen DSL
   gehören -- werden deshalb separat als `legacy_detection_only_keys`
   geführt, nicht mit den echten Identitäts-Keys vermischt.
+- `inline_markup/syntax.py` (`MARKER_SPECS`): die Inline-Formatierungs-
+  Marker (fett/kursiv/unterstrichen/Hervorhebung/durchgestrichen/Hoch-
+  /Tiefstellung/Code/Spoiler/Kommentar) samt ihrer Eskalationsstufen --
+  dieselbe Tabelle, die `app/core/inline_markup/emphasis.py` (Parser) und
+  `app/ui/editor_marker_shortcuts.py` (Editor-Tasten) tatsächlich
+  verwenden. Hier direkt unverändert durchgereicht (`MarkerSpec` ist
+  bereits eine eigene, normative Dataclass -- keine zweite Hülle nötig).
 """
 
 from __future__ import annotations
@@ -60,6 +67,7 @@ from .blatt_validator_constants import (
     FrontmatterFieldSpec,
 )
 from .document_types import KURZENTWURF_LEGACY_DETECTION_SUPPORT_KEYS
+from .inline_markup.syntax import MARKER_SPECS, MarkerSpec
 from .kurzentwurf_runtime.dsl_frontmatter import START_KEYS, SUBTITLE_KEYS, TITLE_KEYS
 from .kurzentwurf_runtime.model import ALLOWED_PHASES, LINE_MARKER_SPECS, PHASE_SPECS, LineMarkerSpec, PhaseSpec
 
@@ -143,6 +151,7 @@ class MarkdownConventionCatalog:
     control_markers: tuple[ControlMarkerSpec, ...]
     geometry: GeometrySpec
     kurzentwurf: KurzentwurfSpec
+    inline_marks: tuple[MarkerSpec, ...]
 
 
 def collect_markdown_conventions() -> MarkdownConventionCatalog:
@@ -189,4 +198,5 @@ def collect_markdown_conventions() -> MarkdownConventionCatalog:
             identity_meta_keys=frozenset(TITLE_KEYS | SUBTITLE_KEYS | START_KEYS),
             legacy_detection_only_keys=frozenset(KURZENTWURF_LEGACY_DETECTION_SUPPORT_KEYS),
         ),
+        inline_marks=MARKER_SPECS,
     )

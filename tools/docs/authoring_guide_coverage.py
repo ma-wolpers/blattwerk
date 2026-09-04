@@ -112,6 +112,7 @@ def assert_prose_coverage(catalog: MarkdownConventionCatalog) -> None:
     required_keys.extend(f"marker:{marker.name}" for marker in catalog.control_markers)
     required_keys.extend(_geometry_prose_keys())
     required_keys.extend(_kurzentwurf_prose_keys(catalog))
+    required_keys.extend(f"inline_mark:{mark.name}" for mark in catalog.inline_marks)
     required_keys.append("presentation:visibility")
     required_keys.append("blocks:closing_rule")
 

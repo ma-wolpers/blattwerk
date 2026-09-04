@@ -76,6 +76,9 @@ Zusatz im Kern:
 - Typisierte Build-Anfragen (`build_requests.py`)
 - Dokumenttyp-Routing und Diagnostikadapter (`document_types.py`, `document_preview_build.py`, `document_export_build.py`, `document_diagnostics.py`)
 - Eingebettete Kurzentwurf-Runtime (`app/core/kurzentwurf_runtime`)
+- Zentrale Inline-Formatierung -- fett/kursiv/unterstrichen/Hervorhebung/durchgestrichen/Hoch-/
+  Tiefstellung/Code/Spoiler/Kommentar (`app/core/inline_markup`); alle Renderpfade und der
+  Editor lesen dieselbe Marker-Tabelle statt eigenen Code dafür zu besitzen
 - Fachregel für BW/Farbhinweise (`color_mentions.py`)
 
 ## Was ist verboten?

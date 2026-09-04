@@ -10,10 +10,28 @@ Diese Datei definiert die kanonische Grammatik fuer Blattwerk-Markdown.
 - `BLOCK_CLOSE` := `:::` auf eigener Zeile
 - `SECTION_BREAK` := `---` oder `--` ausserhalb des Frontmatters
 - `SELF_CLOSING_BLOCK` := `:::name ... :::`
+- Inline-Formatierungs-Marker (zentral in `app/core/inline_markup/`, siehe Abschnitt 10 der
+  Arbeitsblatt-Anleitung fuer alle Details/Beispiele):
+    - `EMPHASIS_STAR` := `*text*` | `**text**` | `***text***`
+    - `EMPHASIS_UNDERSCORE` := `_text_` | `__text__`
+    - `HIGHLIGHT` := `==text==`
+    - `STRIKE` := `~~text~~`
+    - `SUBSCRIPT` := `~x` | `~{text}`
+    - `SUPERSCRIPT` := `^x` | `^{text}`
+    - `CODE_SPAN` := `` `text` ``
+    - `FENCED_CODE` := ` ``` ` auf eigener Zeile ... ` ``` ` auf eigener Zeile
+    - `SPOILER` := `||text||`
+    - `COMMENT` := `%%text%%` (kein sichtbarer Output; escaped `\%\%` innerhalb einer Formel
+      ist KEIN Kommentar-Trenner)
 
 Hinweise:
 - Optionen werden als `key=value` gelesen; Trennzeichen ist Leerraum.
 - Alles ausserhalb erkannter Bloecke bleibt Raw-Markdown.
+- Auswertungsreihenfolge fuer Inline-Formatierung (autoritativ in
+  `app/core/inline_markup/syntax.py`): `COMMENT` zuerst verworfen, danach
+  `$...$`/`$$...$$`-Mathematik geschuetzt, danach `CODE_SPAN`/`FENCED_CODE`
+  geschuetzt, erst danach die restlichen Marker geparst -- Mathematik und
+  Code-Inhalt werden dadurch nie als Formatierung fehlinterpretiert.
 
 ## 2. Dokument-Grammatik (EBNF-nahe)
 

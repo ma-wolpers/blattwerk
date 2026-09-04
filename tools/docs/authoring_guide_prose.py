@@ -752,4 +752,61 @@ PROSE_SECTIONS: dict[str, str] = {
     ),
     "block:qrcode.maxw": ("Maximale Breite des QR-Codes als CSS-Größe, gleiche Regeln wie `w`."),
     "block:qrcode.max-width": ("Alias von `maxw`."),
+    # -- Inline-Formatierung -------------------------------------------------
+    "inline_mark:emphasis_star": (
+        "`*text*` kursiv, `**text**` fett, `***text***` fett und kursiv zugleich -- im Editor per "
+        "Auswahl markieren und wiederholt `*` drücken: erster Druck kursiv, zweiter fett, dritter "
+        "fett+kursiv, vierter entfernt die Formatierung wieder."
+    ),
+    "inline_mark:emphasis_underscore": (
+        "`_text_` kursiv (Alias zu `*text*`), `__text__` unterstrichen -- im Editor per Auswahl "
+        "markieren und wiederholt `_` drücken: erster Druck kursiv, zweiter unterstrichen, dritter "
+        "entfernt die Formatierung wieder. Anders als bei `*` bedeutet der doppelte Marker hier "
+        "**nicht** Fett, sondern Unterstreichung."
+    ),
+    "inline_mark:highlight": (
+        "`==text==` hebt Text farbig hervor (`<mark>`). Im Editor markiert ein Tastendruck auf `=` "
+        "die Auswahl direkt mit `==...==`; erneutes Drücken entfernt die Hervorhebung wieder. Die "
+        "Farbe richtet sich im Arbeitsblatt/in der Präsentation nach dem aktiven Farbprofil, in "
+        "Kurzentwurf-Dokumenten ist sie fest (Kurzentwurf hat kein eigenes Farbprofil)."
+    ),
+    "inline_mark:subscript": (
+        "`~x` (einzelnes Zeichen) oder `~{mehrere Zeichen}` stellt Text tief -- z. B. für chemische "
+        "Formeln wie `H~2` oder `H~{2}O`. Im Editor fügt ein Tastendruck auf `~` bei einzeichiger "
+        "Auswahl das Präfix ohne Klammern ein, bei mehrzeichiger Auswahl automatisch mit Klammern."
+    ),
+    "inline_mark:strike": (
+        "`~~text~~` streicht Text durch. Im Editor: dieselbe `~`-Taste wie für Tiefstellung, aber "
+        "ein zweiter Druck auf eine bereits tiefgestellte Auswahl eskaliert zu Durchstreichen; "
+        "erneutes Drücken entfernt die Formatierung wieder."
+    ),
+    "inline_mark:superscript": (
+        "`^x` (einzelnes Zeichen) oder `^{mehrere Zeichen}` stellt Text hoch -- z. B. für Exponenten "
+        "wie `x^2` oder `x^{23}`. Im Editor fügt ein Tastendruck auf `^` bei einzeichiger Auswahl das "
+        "Präfix ohne Klammern ein, bei mehrzeichiger Auswahl automatisch mit Klammern; erneutes "
+        "Drücken entfernt die Formatierung wieder."
+    ),
+    "inline_mark:code": (
+        "`` `code` `` stellt kurzen Text als Inline-Code dar (Monospace-Schrift). Markup-Zeichen "
+        "innerhalb der Backticks (`*`, `_`, `==`, ...) werden dabei **nicht** ausgewertet."
+    ),
+    "inline_mark:fenced_code": (
+        "Ein mit ` ``` ` auf eigener Zeile eingeleiteter und beendeter Block stellt mehrzeiligen Text "
+        "als Codeblock dar. Im Editor fügt ein Tastendruck auf `` ` `` bei mehrzeiliger Auswahl "
+        "automatisch die Fence-Zeilen vor und nach der Auswahl ein."
+    ),
+    "inline_mark:spoiler": (
+        "`||text||` versteckt Text hinter einer Markierung derselben Farbe wie der Text selbst -- "
+        "lesbar erst, wenn die Stelle im PDF markiert/kopiert wird. Im Editor markiert ein "
+        "Tastendruck auf `|` die Auswahl direkt mit `||...||`; erneutes Drücken entfernt den Spoiler "
+        "wieder."
+    ),
+    "inline_mark:comment": (
+        "`%%Text%%` markiert einen Autor:innen-Kommentar: der eingeschlossene Text erscheint in "
+        "**keiner** Ausgabe (weder Vorschau noch PDF) und darf beliebiges Markup oder Formeln "
+        "enthalten, ohne dass diese ausgewertet werden. Ein `%%` ohne passendes schließendes `%%` "
+        "wird als normaler Text behandelt (keine Formatierung, aber auch kein Verschlucken "
+        "nachfolgenden Inhalts) und als Diagnose-Hinweis gemeldet. Aktuell ohne eigene Editor-Taste "
+        "-- von Hand eingetippt."
+    ),
 }

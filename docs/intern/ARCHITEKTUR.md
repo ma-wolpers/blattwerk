@@ -28,6 +28,7 @@ Zusätzliche Kern-Usecases:
 - `build_requests.py` (typisierte Build-Schnittstelle)
 - `document_types.py`, `document_preview_build.py`, `document_export_build.py`, `document_diagnostics.py` (dokumenttypabhaengige Routing-/Diagnostikadapter)
 - `kurzentwurf_runtime/*` (eingebettete Kurzentwurf-DSL-Runtime fuer Parse/Validate/Render/Build)
+- `inline_markup/*` (einzige Quelle fuer Inline-Formatierungs-Semantik -- fett/kursiv/unterstrichen/Hervorhebung/durchgestrichen/Hoch-/Tiefstellung/Code/Spoiler/Kommentar; Kurzentwurf ruft sie direkt auf, `blatt_kern_shared_parsing.py`/`answer_special_shared.py` binden sie als python-markdown-Preprocessor ein (`inline_markup/markdown_bridge.py`); `app/ui/editor_marker_shortcuts.py` liest dieselbe Marker-Tabelle fuer die Editor-Tasten, `markdown_conventions.py` fuer die generierte Doku)
 - `color_mentions.py` (fachliche BW/Farb-Regel)
 - `block_computation_cache.py` (generischer, blocktyp-unabhaengiger Cache fuer teure deterministische Blockberechnungen; wird von der Anwendungsschicht geoeffnet, nie von `build_worksheet`/`build_help_cards` selbst, und ueber `inspect_markdown_text(..., cache=...)`/`render_html(..., cache=...)` an Validate- und Render-Schritt durchgereicht, damit beide dasselbe Ergebnis wiederverwenden koennen)
 
