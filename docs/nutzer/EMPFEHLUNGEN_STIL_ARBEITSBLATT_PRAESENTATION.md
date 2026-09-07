@@ -41,3 +41,16 @@ statt ihn mit einem generischeren Block nachzubauen. Zum Beispiel:
 Die dedizierten Blocktypen bringen automatisches Layout, konsistente Lösungsdarstellung
 und (wo zutreffend) Validierung mit -- ein nachgebauter Block über einen generischeren
 Typ verliert diese Vorteile, auch wenn er optisch ähnlich aussehen mag.
+
+## `:::task` nur für echte Arbeitsaufträge
+
+`:::task` sollte reserviert bleiben für das, was SuS tatsächlich tun sollen (lesen,
+schreiben, entscheiden, ausprobieren, ...). Reine Übersichten, Ablaufzusammenfassungen
+oder Zwischenansagen ohne eigene Handlung sind kein Arbeitsauftrag und gehören in
+`:::info` (oder `:::material`, wenn es sich um Kontext/Beispielmaterial vor einer
+Aufgabe handelt). Besonders relevant in Präsentationen: eine Folie wie "Unser Ablauf"
+oder "Weiter geht's mit Arbeitsblatt 3" ist eine Übersicht, kein Auftrag -- auch wenn
+sie wie ein `:::task` aussehen könnte, weil sie in einer Aufgaben-lastigen Präsentation
+steht. Faustregel: Steht in der Folie ein Verb, das SuS jetzt konkret ausführen sollen
+("Lest", "Notiert", "Diskutiert"), ist es `:::task`. Steht dort nur, was gerade passiert
+oder was als Nächstes kommt, ist es `:::info`.

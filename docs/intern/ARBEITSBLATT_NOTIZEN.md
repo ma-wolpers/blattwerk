@@ -21,3 +21,13 @@ Alle Arbeitsblätter in `Material` speichern, am besten in einem Unterordner mit
 3. Gibt es Trenner `---` zwischen den Hauptaufgaben?
 4. Ist die Schülerkopfzeile aktiviert?
 5. Enthalten Aufgaben Punkte?
+
+## Aufgabendesign
+
+- Definitions-/Begriffsübungen (Kreuzworträtsel, Zuordnungen, Lückentexte, ...) sollen verschiedene mathematische Darstellungsformen mischen (Gleichung, Graph, Zuordnung/Symbolik), nicht nur eine Perspektive (z. B. nur Alltagssprache) – sonst wird Wiedererkennen statt echtes Definitionsverständnis geprüft.
+- `:::matching`-Aufgaben dürfen nie positionsoffensichtlich sein: die rechte/untere Liste so mischen, dass `matches` nicht `1-1, 2-2, 3-3, ...` ist – sonst lässt sich rein über die Position lösen, ohne den Inhalt zu verstehen.
+- Bei Antwortmöglichkeiten und Beschriftungen (Labels an Graphen/Geometrien, Matching-Texten, MC-Optionen) immer prüfen, wie offensichtlich sie die Lösung verraten. Kein pauschales Label-Verbot, aber: ein Label, das den gesuchten Fachbegriff schon im Text nennt (z. B. ein markierter Punkt mit Label "Nullstelle" in einer Aufgabe, die genau das erkennen lassen soll), macht die Aufgabe trivial.
+- Sachaufgaben/Modellierungskontexte wo möglich mit konkreten Zahlen/Daten ausstatten statt abstrakter Prosa ohne Werte – das macht sie weniger abstrakt und leichter zugänglich.
+- Ein Codewort bei `:::crossword` (`code=`) ist meistens ein sinnvolles Extra.
+- `:::selfcheck`-/Reflexionsblöcke müssen zu den tatsächlich umgesetzten Aufgaben passen, nicht zu ursprünglich geplanten Zielen – bei nachträglichen Änderungen am Blatt immer auch die Selbsteinschätzung nachziehen.
+- Ab der Oberstufe: Aufgaben-Operatoren nach der offiziellen Abitur-Operatorenliste verwenden (exakt wie dort definiert), statt freier Fragen zu formulieren. *(Liste noch zu ergänzen/verlinken.)*
