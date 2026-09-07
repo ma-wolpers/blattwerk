@@ -18,6 +18,7 @@ richtigen Reihenfolge auf.
 
 from __future__ import annotations
 
+from dataclasses import replace
 from pathlib import Path
 
 from .blatt_kern_shared import parse_blocks, split_front_matter
@@ -131,7 +132,47 @@ def _collect_document_diagnostics(meta, blocks, content_text, content_base_line=
         _validate_yaml_answer_payload(diagnostics, index, block_type, options, content, cache=cache)
 
     diagnostics.extend(_validate_columns_structure(blocks))
-    return diagnostics
+    return _collapse_mj001_diagnostics(diagnostics)
+
+
+def _collapse_mj001_diagnostics(diagnostics):
+    """Kollabiert mehrfache `MJ001` (Formel-Syntax-Hinweis) auf ein Vorkommen pro Dokument.
+
+    `MJ001` wird pro Block emittiert (siehe `_validate_block_type_specifics` in
+    `blatt_validator_document.py`), war aber nie als dokumentweit einmalige
+    Meldung gedacht -- die einzige "einmalig"-Logik im Repo betraf bisher nur
+    das Popup-Signature-Gedächtnis in `blatt_ui_preview.py` (verhindert ein
+    erneutes Modal bei unverändertem Dokument, zählt aber keine Vorkommen).
+    Bewusst eine eng auf `MJ001` zugeschnittene Regel, kein allgemeiner
+    Diagnostic-Deduplicator: der erste `MJ001`-Eintrag bleibt an seiner
+    ursprünglichen Position (gleicher `block_index`, gleiche relative
+    Reihenfolge zu allen anderen Diagnosen), jeder weitere wird entfernt und
+    seine Anzahl der Message des ersten angehängt. Alle anderen Codes bleiben
+    unverändert.
+    """
+    collapsed = []
+    mj001_seen = False
+    extra_mj001_count = 0
+    for diagnostic in diagnostics:
+        if diagnostic.code != "MJ001":
+            collapsed.append(diagnostic)
+            continue
+        if not mj001_seen:
+            mj001_seen = True
+            collapsed.append(diagnostic)
+        else:
+            extra_mj001_count += 1
+
+    if extra_mj001_count:
+        for position, diagnostic in enumerate(collapsed):
+            if diagnostic.code == "MJ001":
+                collapsed[position] = replace(
+                    diagnostic,
+                    message=diagnostic.message + f" (+{extra_mj001_count} weitere Vorkommen im Dokument)",
+                )
+                break
+
+    return collapsed
 
 
 def has_blocking_diagnostics(diagnostics):

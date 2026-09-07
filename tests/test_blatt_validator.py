@@ -491,6 +491,40 @@ def test_material_with_display_math_syntax_emits_mj001_warning():
     assert "MJ001" in codes
 
 
+def test_single_block_with_formula_emits_exactly_one_mj001():
+    text = _build_document(":::material\nFormel: $$\\frac{a}{b}$$\n:::")
+    inspected = inspect_markdown_text(text)
+    mj001_entries = [d for d in inspected.diagnostics if d.code == "MJ001"]
+    assert len(mj001_entries) == 1
+    assert "weitere Vorkommen" not in mj001_entries[0].message
+
+
+def test_three_blocks_with_formula_collapse_to_one_mj001_with_count():
+    text = _build_document(
+        ":::material\nFormel: $$a$$\n:::\n"
+        ":::material\nFormel: $$b$$\n:::\n"
+        ":::material\nFormel: $$c$$\n:::"
+    )
+    inspected = inspect_markdown_text(text)
+    mj001_entries = [d for d in inspected.diagnostics if d.code == "MJ001"]
+    assert len(mj001_entries) == 1
+    assert "+2 weitere Vorkommen im Dokument" in mj001_entries[0].message
+    assert mj001_entries[0].block_index == 0
+
+
+def test_three_blocks_with_formula_and_another_diagnostic_leave_it_untouched():
+    text = _build_document(
+        ":::material\nFormel: $$a$$\n:::\n"
+        ":::material\nFormel: $$b$$\n:::\n"
+        ":::material\nFormel: $$c$$\n:::\n"
+        ":::keinbekannterblocktyp\nx\n:::"
+    )
+    inspected = inspect_markdown_text(text)
+    codes = [d.code for d in inspected.diagnostics]
+    assert codes.count("MJ001") == 1
+    assert codes.count("BL001") == 1
+
+
 def test_material_without_math_syntax_does_not_emit_mj001():
     text = _build_document(":::material\nKein Formeltext hier.\n:::")
     inspected = inspect_markdown_text(text)
