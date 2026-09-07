@@ -691,7 +691,11 @@ OPTIONAL_FRONTMATTER_FIELDS = (
     ),
     FrontmatterFieldSpec("lochen", "boolean", JA_NEIN_BOOLEAN_TOKENS, False, False),
     FrontmatterFieldSpec("copyright", "free_text", None, MISSING, False),
-    FrontmatterFieldSpec("Stufe", "free_text", None, MISSING, False),
+    FrontmatterFieldSpec(
+        "Stufe", "enum",
+        frozenset({"5", "6", "7", "8", "9", "10", "11", "12", "13", "e", "q1", "q2", "sek1", "sek2"}),
+        MISSING, True,
+    ),
     FrontmatterFieldSpec("worksheet_type", "free_text", None, MISSING, False),
     FrontmatterFieldSpec("font_profile", "free_text", None, MISSING, False),
 )
@@ -704,7 +708,13 @@ OPTIONAL_FRONTMATTER_FIELDS = (
 bereits bestehenden `FM005`-Felder. `document_type`/`lochen` sind
 funktional genutzt, aber bewusst `validated=False` (siehe
 `docs/nutzer/ANLEITUNG_ARBEITSBLATT_PRAESENTATION.md`, Vier-Zustands-Raster).
-`Stufe`/`worksheet_type`/`font_profile` sind `validated=False` **und**
-werden aktuell an keiner Stelle aus dem Dokument-Meta gelesen (verifiziert
-per Repo-weitem Grep) -- toter, aber weiterhin syntaktisch akzeptierter
-Frontmatter-Inhalt."""
+`worksheet_type`/`font_profile` sind `validated=False` **und** werden
+aktuell an keiner Stelle aus dem Dokument-Meta gelesen (verifiziert per
+Repo-weitem Grep) -- toter, aber weiterhin syntaktisch akzeptierter
+Frontmatter-Inhalt. `Stufe` ist dagegen jetzt `validated=True` mit einem
+festen (aber inhaltlich bedeutungslosen) Wertebereich und wird von
+`app/core/operator_legend.py` gelesen, um Operatoren-Definitionen
+(`data/operatoren/*.json`) nach den dort selbst definierten
+Stufengruppen zu filtern -- der Kern kennt hier nur, dass dies gültige
+Strings sind, nicht wofür sie stehen (siehe DEVELOPMENT_LOG.md,
+Haus/Garage-Prinzip)."""

@@ -81,7 +81,7 @@ In Präsentationen (`mode: presentation`) gibt es **keinen Lösungs-Umschalter**
 | `document_type` | nein | enum | `kurzentwurf`, `presentation`, `worksheet` | nein |
 | `lochen` | nein | boolean | `0`, `1`, `false`, `j`, `ja`, `n`, `nein`, `no`, `off`, `on`, `true`, `yes` | nein |
 | `copyright` | nein | free_text | -- | nein |
-| `Stufe` | nein | free_text | -- | nein |
+| `Stufe` | nein | enum | `10`, `11`, `12`, `13`, `5`, `6`, `7`, `8`, `9`, `e`, `q1`, `q2`, `sek1`, `sek2` | ja |
 | `worksheet_type` | nein | free_text | -- | nein |
 | `font_profile` | nein | free_text | -- | nein |
 
@@ -853,3 +853,4 @@ Text im Editor markieren und eine Marker-Taste drücken formatiert die Auswahl d
 - **``` / code / ```**: Ein mit ` ``` ` auf eigener Zeile eingeleiteter und beendeter Block stellt mehrzeiligen Text als Codeblock dar. Im Editor fügt ein Tastendruck auf `` ` `` bei mehrzeiliger Auswahl automatisch die Fence-Zeilen vor und nach der Auswahl ein.
 - **||spoiler||**: `||text||` versteckt Text hinter einer Markierung derselben Farbe wie der Text selbst -- lesbar erst, wenn die Stelle im PDF markiert/kopiert wird. Im Editor markiert ein Tastendruck auf `|` die Auswahl direkt mit `||...||`; erneutes Drücken entfernt den Spoiler wieder.
 - **%%Kommentar%%**: `%%Text%%` markiert einen Autor:innen-Kommentar: der eingeschlossene Text erscheint in **keiner** Ausgabe (weder Vorschau noch PDF) und darf beliebiges Markup oder Formeln enthalten, ohne dass diese ausgewertet werden. Ein `%%` ohne passendes schließendes `%%` wird als normaler Text behandelt (keine Formatierung, aber auch kein Verschlucken nachfolgenden Inhalts) und als Diagnose-Hinweis gemeldet. Aktuell ohne eigene Editor-Taste -- von Hand eingetippt.
+- **!!Bestimme!!**: `!!Text!!` markiert einen Aufgaben-Operator (z. B. `!!Bestimme!! die Nullstellen.`) -- sichtbar identisch zu `**fett**`, aber zusätzlich semantisch als Operator erkennbar. Wird im Frontmatter ein `Fach` mit passender Operatoren-Datei (`data/operatoren/`) verwendet, erscheint am Ende des Arbeitsblatts automatisch eine Legende mit den Definitionen aller tatsächlich verwendeten Operatoren (nicht in der Lösung, nicht im Kurzentwurf). Aktuell ohne eigene Editor-Taste -- von Hand eingetippt.

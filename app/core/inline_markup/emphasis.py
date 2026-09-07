@@ -1,4 +1,4 @@
-"""Der Marker-/Eskalationsparser: `*`/`_`/`==`/`~~`/`~`/`^`/`||` auf bereits geschütztem Text.
+"""Der Marker-/Eskalationsparser: `*`/`_`/`==`/`~~`/`~`/`^`/`||`/`!!` auf bereits geschütztem Text.
 
 Läuft auf Text, aus dem `spans.py` bereits Kommentare entfernt und
 Mathematik/Code als neutrale Platzhalter ausgelagert hat (Schritte 1-3 der
@@ -170,8 +170,14 @@ def _expand_runs(runs: list[Run], matcher) -> list[Run]:
     return expanded
 
 
-def _simple_pair_matcher(delimiter: str, flag_name: str):
-    """Baut einen Matcher für einfache, nicht-eskalierende Paar-Marker (`==`, `~~`, `||`)."""
+def _simple_pair_matcher(delimiter: str, **flags: bool):
+    """Baut einen Matcher für einfache, nicht-eskalierende Paar-Marker (`==`, `~~`, `||`, `@@`).
+
+    Nimmt beliebig viele Flags entgegen (statt nur eines) -- `!!...!!`
+    braucht sowohl `bold=True` (sichtbar identisch zu `**fett**`) als auch
+    `operator=True` (semantische Markierung für `operator_legend.py`), im
+    Gegensatz zu `==`/`~~`/`||`, die je nur ein Flag setzen.
+    """
     pattern = re.compile(r"(?<!\\)" + re.escape(delimiter) + r"(.+?)(?<!\\)" + re.escape(delimiter))
 
     def matcher(text: str) -> list[Run]:
@@ -182,7 +188,7 @@ def _simple_pair_matcher(delimiter: str, flag_name: str):
                 continue
             if match.start() > last_end:
                 result.append(Run(kind="text", text=text[last_end : match.start()]))
-            result.append(Run(kind="text", text=match.group(1), **{flag_name: True}))
+            result.append(Run(kind="text", text=match.group(1), **flags))
             last_end = match.end()
         if last_end < len(text):
             result.append(Run(kind="text", text=text[last_end:]))
@@ -221,9 +227,10 @@ def _prefix_matcher(marker_char: str, flag_name: str):
     return matcher
 
 
-_HIGHLIGHT_MATCHER = _simple_pair_matcher("==", "highlight")
-_STRIKE_MATCHER = _simple_pair_matcher("~~", "strike")
-_SPOILER_MATCHER = _simple_pair_matcher("||", "spoiler")
+_HIGHLIGHT_MATCHER = _simple_pair_matcher("==", highlight=True)
+_STRIKE_MATCHER = _simple_pair_matcher("~~", strike=True)
+_SPOILER_MATCHER = _simple_pair_matcher("||", spoiler=True)
+_OPERATOR_MATCHER = _simple_pair_matcher("!!", bold=True, operator=True)
 _SUBSCRIPT_MATCHER = _prefix_matcher("~", "subscript")
 _SUPERSCRIPT_MATCHER = _prefix_matcher("^", "superscript")
 
@@ -234,8 +241,8 @@ def parse_emphasis(protected_text: str, math_spans: list[str], code_spans: list)
     Reihenfolge der Durchläufe: Backslash-Escapes schützen (`escaping.py`)
     -> `*` (Delimiter-Stack) -> `_` (Delimiter-Stack) -> `==` -> `~~` (VOR
     `~`, damit `~~x~~` nicht zuerst als zwei `~`-Präfixe fehlinterpretiert
-    wird) -> `~` (Präfix) -> `^` (Präfix) -> `||` -> Platzhalter-Expansion
-    (`placeholders.py`).
+    wird) -> `~` (Präfix) -> `^` (Präfix) -> `||` -> `!!` -> Platzhalter-
+    Expansion (`placeholders.py`).
 
     WICHTIG: Escape-Platzhalter werden hier bewusst NICHT aufgelöst -- die
     zurückgegebenen `Run.text`-Werte können noch Platzhalter-Zeichen
@@ -252,5 +259,6 @@ def parse_emphasis(protected_text: str, math_spans: list[str], code_spans: list)
     runs = _expand_runs(runs, _SUBSCRIPT_MATCHER)
     runs = _expand_runs(runs, _SUPERSCRIPT_MATCHER)
     runs = _expand_runs(runs, _SPOILER_MATCHER)
+    runs = _expand_runs(runs, _OPERATOR_MATCHER)
     runs = expand_placeholders(runs, math_spans, code_spans)
     return [run for run in runs if run.text]

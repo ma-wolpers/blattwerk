@@ -154,6 +154,17 @@ MARKER_SPECS: tuple[MarkerSpec, ...] = (
         editor_shortcut=False,
         applies_to=ALL_DOCUMENT_TYPES,
     ),
+    MarkerSpec(
+        name="operator",
+        key="!!",
+        levels=(
+            EscalationLevel(
+                "!!", "!!Bestimme!!", ("bold", "operator"), "Aufgaben-Operator (sichtbar wie Fett)"
+            ),
+        ),
+        editor_shortcut=False,
+        applies_to=ALL_DOCUMENT_TYPES,
+    ),
 )
 
 

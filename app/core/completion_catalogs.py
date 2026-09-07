@@ -142,6 +142,30 @@ def get_completion_option_value_abbreviation_hints(
     return {}
 
 
+def get_completion_frontmatter_field_values(field_name: str) -> tuple[str, ...]:
+    """Returns the value catalog for an optional enum-kind frontmatter field.
+
+    Mirrors `get_completion_option_values`'s shape for `BlockOptionSpec`,
+    just one level up (`FrontmatterFieldSpec.allowed_values`,
+    `OPTIONAL_FRONTMATTER_FIELDS`) -- both read `allowed_values` directly
+    from the single normative catalog, so this can never suggest a value
+    the validator itself would reject. Returns an empty tuple for
+    non-`enum` fields (`free_text`/`boolean`/`scalar_nonempty`) or an
+    unknown field name -- no exception either way. Field-name matching is
+    case-sensitive (unlike block option keys): frontmatter field names like
+    `Stufe` are themselves case-sensitive in `OPTIONAL_FRONTMATTER_FIELDS`.
+    """
+
+    for spec in validator.OPTIONAL_FRONTMATTER_FIELDS:
+        if spec.name != field_name:
+            continue
+        if spec.kind != "enum" or not spec.allowed_values:
+            return ()
+        return tuple(sorted(spec.allowed_values))
+
+    return ()
+
+
 def get_self_closing_block_types() -> frozenset[str]:
     """Returns block types that are always self-closing markers without a body."""
 

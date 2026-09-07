@@ -4,8 +4,9 @@ Schlanker Einstiegspunkt: definiert die öffentlichen Funktionen
 (`inspect_markdown_text`, `inspect_markdown_document`,
 `has_blocking_diagnostics`, `summarize_blocking_diagnostics`) sowie die
 Re-Exports `BuildDiagnostic`/`InspectedDocument`/`BLOCK_OPTION_SPECS`/
-`KNOWN_ANSWER_TYPES`, die externer Code (u. a. `completion_catalogs.py`
-als `validator.BLOCK_OPTION_SPECS`/`validator.KNOWN_ANSWER_TYPES`)
+`OPTIONAL_FRONTMATTER_FIELDS`/`KNOWN_ANSWER_TYPES`, die externer Code (u. a.
+`completion_catalogs.py` als `validator.BLOCK_OPTION_SPECS`/
+`validator.OPTIONAL_FRONTMATTER_FIELDS`/`validator.KNOWN_ANSWER_TYPES`)
 weiterhin unverändert aus `app.core.blatt_validator` importiert. Die
 eigentliche Prüflogik ist auf Nachbarmodule verteilt: Konstanten
 (`blatt_validator_constants.py`), Regex-Muster (`blatt_validator_patterns.py`),
@@ -30,6 +31,7 @@ from .blatt_validator_constants import (
     KNOWN_ANSWER_TYPES,
     KNOWN_BLOCK_TYPES,
     OPTION_VALUE_STYLE_CATALOGS,
+    OPTIONAL_FRONTMATTER_FIELDS,
 )
 from .blatt_validator_block_options import _validate_block_options
 from .blatt_validator_columns import _validate_columns_structure
@@ -44,6 +46,7 @@ from .blatt_validator_value_helpers import (
     _collect_absolute_image_paths,
     _extract_validation_content_and_base_line,
 )
+from .operator_legend import collect_used_operators
 
 __all__ = [
     "BuildDiagnostic",
@@ -51,6 +54,7 @@ __all__ = [
     "BLOCK_OPTION_SPECS",
     "BLOCK_OPTION_KEY_ALIASES",
     "OPTION_VALUE_STYLE_CATALOGS",
+    "OPTIONAL_FRONTMATTER_FIELDS",
     "KNOWN_ANSWER_TYPES",
     "has_blocking_diagnostics",
     "summarize_blocking_diagnostics",
@@ -132,6 +136,8 @@ def _collect_document_diagnostics(meta, blocks, content_text, content_base_line=
         _validate_yaml_answer_payload(diagnostics, index, block_type, options, content, cache=cache)
 
     diagnostics.extend(_validate_columns_structure(blocks))
+    _, operator_diagnostics = collect_used_operators(blocks, meta)
+    diagnostics.extend(operator_diagnostics)
     return _collapse_mj001_diagnostics(diagnostics)
 
 

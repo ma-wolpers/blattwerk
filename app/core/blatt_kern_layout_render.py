@@ -14,6 +14,7 @@ from .answer_special import (
 )
 from .answer_special_mindmap import estimate_mindmap_weight
 from .answer_special_writebox import estimate_writebox_weight
+from .operator_legend import collect_used_operators, render_operator_legend_html
 from ..styles.blatt_styles import build_stylesheet, resolve_printable_height_cm, resolve_printable_width_cm
 from .blatt_kern_shared import (
     _meta_bool_ja_nein,
@@ -775,6 +776,13 @@ def render_html(
     reuse a computation already performed during validation. Presentation
     documents currently render through a separate path that does not yet
     consume `cache` (out of scope until a block needing it appears there).
+
+    Appends the Operatoren-Legende (`operator_legend.py`, the "Garage" in
+    the Haus/Garage split -- this function itself stays fach-/stufen-
+    neutral) only when `include_solutions=False`; the presentation branch
+    above returns before this point, so Kurzentwurf/presentation documents
+    never see it either. A document with no `!!...!!`-marked operator is
+    an unaffected no-op (see `collect_used_operators`'s cheap guard).
     """
     document_mode = normalize_document_mode(
         (meta or {}).get("mode"),
@@ -834,6 +842,12 @@ def render_html(
         cache=cache,
     )
     sectioned_body = split_sections(body)
+
+    operator_legend_html = ""
+    if not include_solutions:
+        matched_operators, _operator_diagnostics = collect_used_operators(blocks, meta)
+        operator_legend_html = render_operator_legend_html(matched_operators)
+
     meta_line = format_meta_line(meta)
     school_year_label = escape(get_current_school_year_label())
     right_header_label = "Lösungsversion" if include_solutions else school_year_label
@@ -918,6 +932,8 @@ window.MathJax = {{
 <h1>{meta.get("Titel", "")}</h1>
 
 {sectioned_body}
+
+{operator_legend_html}
 
 <!-- Footer wird nach PDF-Erzeugung einheitlich per PyMuPDF gesetzt. -->
 

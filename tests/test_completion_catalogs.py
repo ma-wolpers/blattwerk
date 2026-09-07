@@ -1,4 +1,5 @@
 from app.core.completion_catalogs import (
+    get_completion_frontmatter_field_values,
     get_completion_option_value_abbreviation_hints,
     get_completion_option_values,
     get_completion_options_for_block,
@@ -125,3 +126,27 @@ def test_completion_options_for_block_key_alias_filtering_is_block_scoped():
 def test_completion_options_for_block_columns_excludes_ratio_alias():
     columns_options = get_completion_options_for_block("columns")
     assert "widths" in columns_options and "ratio" not in columns_options
+
+
+def test_frontmatter_field_completion_returns_stufe_values():
+    assert get_completion_frontmatter_field_values("Stufe") == (
+        "10", "11", "12", "13", "5", "6", "7", "8", "9", "e", "q1", "q2", "sek1", "sek2",
+    )
+
+
+def test_frontmatter_field_completion_returns_existing_enum_fields_unaffected():
+    # Regression: adding Stufe must not change already-working enum fields.
+    assert get_completion_frontmatter_field_values("mode") == (
+        "presentation", "solution", "test", "worksheet", "ws",
+    )
+    assert get_completion_frontmatter_field_values("document_type") == (
+        "kurzentwurf", "presentation", "worksheet",
+    )
+
+
+def test_frontmatter_field_completion_empty_for_non_enum_field():
+    assert get_completion_frontmatter_field_values("copyright") == ()
+
+
+def test_frontmatter_field_completion_empty_for_unknown_field():
+    assert get_completion_frontmatter_field_values("does_not_exist") == ()

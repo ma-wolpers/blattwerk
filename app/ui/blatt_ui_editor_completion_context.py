@@ -14,6 +14,7 @@ import re
 
 from ..core.completion_catalogs import (
     get_completion_block_types,
+    get_completion_frontmatter_field_values,
     get_completion_option_value_abbreviation_hints,
     get_completion_option_values,
     get_completion_options_for_block,
@@ -30,6 +31,7 @@ _EDITOR_FRONTMATTER_KEYS = (
     "mode",
     "lochen",
     "copyright",
+    "Stufe",
 )
 
 
@@ -233,6 +235,24 @@ class BlattwerkAppEditorCompletionContextMixin:
                     }
 
         if self._editor_cursor_in_frontmatter(line_no):
+            field_value_match = re.match(r"^(\s*)([A-Za-z_][A-Za-z0-9_\-]*):\s*([^\s]*)$", left_text)
+            if field_value_match:
+                field_name = field_value_match.group(2)
+                value_prefix = field_value_match.group(3) or ""
+                suggestions = self._build_frontmatter_value_suggestions(
+                    field_name=field_name, value_prefix=value_prefix
+                )
+                if suggestions:
+                    value_start = field_value_match.start(3)
+                    value_end = field_value_match.end(3)
+                    return {
+                        "suggestions": suggestions,
+                        "replace_start": f"{line_no}.{value_start}",
+                        "replace_end": f"{line_no}.{value_end}",
+                        "kind": "frontmatter_value",
+                        "meta": {"field_name": field_name},
+                    }
+
             frontmatter_match = re.match(r"^(\s*)([A-Za-z_][A-Za-z0-9_\-]*)?$", left_text)
             if frontmatter_match:
                 key_prefix = frontmatter_match.group(2) or ""
@@ -354,6 +374,32 @@ class BlattwerkAppEditorCompletionContextMixin:
                 "kind": "option_value",
                 "block_type": block_type_norm,
                 "option_key": option_key_norm,
+            }
+            for value in filtered
+        ]
+
+    def _build_frontmatter_value_suggestions(self, *, field_name: str, value_prefix: str):
+        """Builds value candidates for an enum-kind frontmatter field (`Stufe:`, `mode:`, `document_type:`, ...).
+
+        Mirrors `_build_option_value_suggestions`'s shape one level up, but
+        deliberately simpler -- no learned-ranking/abbreviation-style
+        catalog lookup, since those are specific to block options'
+        German/English concept catalogs (`work`/`action`/`align`/`hint`),
+        which frontmatter fields don't have. Any field the validator
+        doesn't know as `kind="enum"` (or an unknown field name) yields no
+        suggestions, matching `get_completion_frontmatter_field_values`'s
+        contract.
+        """
+
+        prefix_norm = str(value_prefix or "").strip().lower()
+        values = get_completion_frontmatter_field_values(field_name)
+        filtered = [value for value in values if value.lower().startswith(prefix_norm)]
+        return [
+            {
+                "label": value,
+                "insert_text": value,
+                "kind": "frontmatter_value",
+                "field_name": field_name,
             }
             for value in filtered
         ]

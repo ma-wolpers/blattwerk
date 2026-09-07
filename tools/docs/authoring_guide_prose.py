@@ -828,4 +828,12 @@ PROSE_SECTIONS: dict[str, str] = {
         "nachfolgenden Inhalts) und als Diagnose-Hinweis gemeldet. Aktuell ohne eigene Editor-Taste "
         "-- von Hand eingetippt."
     ),
+    "inline_mark:operator": (
+        "`!!Text!!` markiert einen Aufgaben-Operator (z. B. `!!Bestimme!! die Nullstellen.`) -- "
+        "sichtbar identisch zu `**fett**`, aber zusätzlich semantisch als Operator erkennbar. Wird "
+        "im Frontmatter ein `Fach` mit passender Operatoren-Datei (`data/operatoren/`) verwendet, "
+        "erscheint am Ende des Arbeitsblatts automatisch eine Legende mit den Definitionen aller "
+        "tatsächlich verwendeten Operatoren (nicht in der Lösung, nicht im Kurzentwurf). Aktuell "
+        "ohne eigene Editor-Taste -- von Hand eingetippt."
+    ),
 }

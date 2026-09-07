@@ -21,12 +21,18 @@ Nur ein nicht geschlossener Kommentar hinterlässt Spuren, als
 `ParseDiagnostic`, nicht als Run.
 
 Alle Stil-Flags sind unabhängige, frei kombinierbare Dimensionen (bold,
-italic, underline, highlight, strike, subscript, superscript, spoiler) --
-kein exklusiver Zustand wie z. B. eine Textausrichtung. Ein Run mit
-`subscript=True, superscript=True` ist ein seltener, aber wohldefinierter
-Fall (z. B. `~^x^~` handgeschrieben verschachtelt), kein ungültiger
-Zustand. Die einzige echte Exklusivität liegt in `kind`, das als Enum statt
-als Flag modelliert ist -- Stil-Flags existieren nur bei `kind="text"`.
+italic, underline, highlight, strike, subscript, superscript, spoiler,
+operator) -- kein exklusiver Zustand wie z. B. eine Textausrichtung. Ein Run
+mit `subscript=True, superscript=True` ist ein seltener, aber
+wohldefinierter Fall (z. B. `~^x^~` handgeschrieben verschachtelt), kein
+ungültiger Zustand. Die einzige echte Exklusivität liegt in `kind`, das als
+Enum statt als Flag modelliert ist -- Stil-Flags existieren nur bei
+`kind="text"`. `operator` ist rein semantisch (kein eigener HTML-Tag, siehe
+Feld-Docstring unten), verhält sich aber mechanisch wie jedes andere Flag,
+damit es die mehrstufige Marker-Pipeline in `emphasis.py` (`_expand_runs`)
+unbeschadet übersteht -- ohne Aufnahme in `STYLE_FLAG_NAMES` würde ein
+späterer Matcher-Durchlauf (z. B. `==`/`~~`) es beim Neuaufbau des Runs
+stillschweigend verlieren.
 """
 
 from __future__ import annotations
@@ -55,6 +61,13 @@ class Run:
     subscript: bool = False
     superscript: bool = False
     spoiler: bool = False
+    operator: bool = False
+    """Semantisches Flag für den `!!...!!`-Aufgaben-Operator-Marker (siehe
+    `operator_legend.py`). Rein informativ für den Sammelpass, der daraus
+    die Operatoren-Legende baut -- erzeugt selbst KEINEN eigenen HTML-Tag
+    (nicht in `html_renderer.py::_TAG_ORDER`); der Marker setzt zusätzlich
+    immer `bold=True`, sodass die sichtbare Ausgabe identisch zu normalem
+    `**fett**` bleibt."""
     is_block: bool = False
     """Nur bedeutsam für `kind="code"`: unterscheidet einen mehrzeiligen
     Fenced-Code-Block (rendert als `<pre><code>`) von einem einzeiligen
@@ -71,7 +84,10 @@ class Run:
         (formatiert, Code, Mathe) werden gerendert und gestasht.
         """
         return self.kind == "text" and not any(
-            (self.bold, self.italic, self.underline, self.highlight, self.strike, self.subscript, self.superscript, self.spoiler)
+            (
+                self.bold, self.italic, self.underline, self.highlight, self.strike,
+                self.subscript, self.superscript, self.spoiler, self.operator,
+            )
         )
 
     def with_flags(self, **extra_flags: bool) -> "Run":
@@ -87,6 +103,7 @@ class Run:
             "subscript": self.subscript,
             "superscript": self.superscript,
             "spoiler": self.spoiler,
+            "operator": self.operator,
         }
         for key, value in extra_flags.items():
             merged[key] = merged[key] or value
@@ -123,9 +140,10 @@ STYLE_FLAG_NAMES = (
     "subscript",
     "superscript",
     "spoiler",
+    "operator",
 )
 
 
 def style_flags(run: Run) -> dict:
-    """Liefert die acht Stil-Flags eines Runs als Dict -- gemeinsamer Helfer für `emphasis.py`/`placeholders.py`."""
+    """Liefert die Stil-Flags eines Runs als Dict -- gemeinsamer Helfer für `emphasis.py`/`placeholders.py`."""
     return {name: getattr(run, name) for name in STYLE_FLAG_NAMES}

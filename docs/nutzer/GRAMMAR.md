@@ -23,6 +23,8 @@ Diese Datei definiert die kanonische Grammatik fuer Blattwerk-Markdown.
     - `SPOILER` := `||text||`
     - `COMMENT` := `%%text%%` (kein sichtbarer Output; escaped `\%\%` innerhalb einer Formel
       ist KEIN Kommentar-Trenner)
+    - `OPERATOR` := `!!text!!` (sichtbar wie `**text**`, zusätzlich semantisch als
+      Aufgaben-Operator markiert -- siehe `operator_legend.py`)
 
 Hinweise:
 - Optionen werden als `key=value` gelesen; Trennzeichen ist Leerraum.

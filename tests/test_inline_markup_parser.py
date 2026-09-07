@@ -135,6 +135,7 @@ class TestParityBetweenDirectAndBridgeConsumption:
             "~2 und ^3",
             "||spoiler||",
             "`code`",
+            "!!Bestimme!! die Nullstellen.",
         ],
     )
     def test_same_runs_regardless_of_consumer(self, text):

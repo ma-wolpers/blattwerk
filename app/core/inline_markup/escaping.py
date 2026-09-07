@@ -1,4 +1,4 @@
-"""Backslash-Escape-Schutz für die eigenen Marker-Zeichen (`\\*`, `\\_`, `\\=`, `\\~`, `\\^`, `\\|`, `` \\` ``, `\\%`).
+"""Backslash-Escape-Schutz für die eigenen Marker-Zeichen (`\\*`, `\\_`, `\\=`, `\\~`, `\\^`, `\\|`, `` \\` ``, `\\%`, `\\!`).
 
 `protect_escapes()` läuft in `emphasis.py::parse_emphasis` als allererster
 Schritt, VOR jedem Marker-Durchlauf: jedes Escape wird durch ein eigenes
@@ -21,7 +21,7 @@ from __future__ import annotations
 
 import re
 
-ESCAPABLE_CHARS = "*_=~^|`%"
+ESCAPABLE_CHARS = "*_=~^|`%!"
 _ESCAPE_PLACEHOLDER_BASE = 0xF020
 _ESCAPE_PLACEHOLDERS = {ch: chr(_ESCAPE_PLACEHOLDER_BASE + i) for i, ch in enumerate(ESCAPABLE_CHARS)}
 _ESCAPE_PLACEHOLDERS_REVERSE = {placeholder: ch for ch, placeholder in _ESCAPE_PLACEHOLDERS.items()}

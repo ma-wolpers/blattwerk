@@ -34,6 +34,7 @@ Einstiegspunkte und eigene Coderaeume, teilen sich aber dieses Referenzdokument.
 - `FM004`: Ungueltiger Frontmatter-Wert fuer `presentation_layout`.
 - `FM005`: Ungueltiger boolescher Frontmatter-Wert fuer `presentation_show_mini_header`/`presentation_show_section_footer`.
 - `FM006`: Ungueltiger boolescher Frontmatter-Wert fuer `show_student_header`/`show_document_header`. Eigenes Boolean-Vokabular (`_meta_bool_ja_nein`/`JA_NEIN_BOOLEAN_TOKENS`), getrennt von `FM005` (`_is_truthy_meta_bool`/`TRUTHY_META_BOOLEAN_TOKENS`) -- beide akzeptieren nicht exakt dieselben Schreibweisen.
+- `FM007`: Ungueltiger Frontmatter-Wert fuer `Stufe` (erlaubt, gross-/kleinschreibungsunabhaengig: `5`-`13`, `E`, `Q1`, `Q2`, `Sek1`, `Sek2`). Nicht gesetzt bleibt gueltig (Warnung, kein Pflichtfeld).
 - `BL001`: Unbekannter Blocktyp.
 - `BL002`: Leerzeichen direkt nach `:::` im Marker (`::: block`) ist ungueltig.
 - `BL003`: Schliessender Marker `:::` ohne passenden offenen Block.

@@ -1,0 +1,25 @@
+{
+  "_hinweis": "Schema-/Entwicklungsdatensatz -- KEINE vollständige/verbindliche Abitur-Operatorenliste. Platzhalter-Einträge zum Testen von Formen-Matching und Stufengruppen; die reale Liste wird nachgeliefert.",
+  "stufengruppen": {
+    "Sekundarstufe I": ["5", "6", "7", "8", "9", "10", "Sek1"],
+    "Oberstufe": ["11", "12", "13", "E", "Q1", "Q2", "Sek2"]
+  },
+  "operatoren": [
+    {
+      "key": "Bestimmen",
+      "formen": ["bestimme", "bestimmen"],
+      "definition": "Ergebnis(se) ohne ausführliche Begründung ermitteln und angeben."
+    },
+    {
+      "key": "Darstellen",
+      "formen": ["darstellen", "darstelle", "stelle"],
+      "definition": "Sachverhalte, Ergebnisse o. Ä. in angemessener Form wiedergeben (z. B. grafisch, tabellarisch)."
+    },
+    {
+      "key": "Begründen",
+      "formen": ["begründe", "begründen"],
+      "definition": "Aussagen durch nachvollziehbare Argumente auf gesicherte Zusammenhänge oder Kriterien zurückführen.",
+      "stufen": ["Oberstufe"]
+    }
+  ]
+}
