@@ -13,6 +13,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from .blatt_kern_shared_data import JA_NEIN_BOOLEAN_TOKENS
+from .crossword_symbol_presets import SYMBOL_THEME_NAMES
 from .document_types import KNOWN_DOCUMENT_TYPES
 
 REQUIRED_FRONTMATTER_FIELDS = ("Titel", "Fach", "Thema")
@@ -551,6 +552,10 @@ BLOCK_OPTION_SPECS: dict[str, tuple[BlockOptionSpec, ...]] = {
         BlockOptionSpec("position", "enum", frozenset({"left", "right", "above", "below", "auto"}), True, "auto"),
         BlockOptionSpec("code", "text", None, False, MISSING),
         BlockOptionSpec("code_row", "boolean", None, False, False),
+        BlockOptionSpec("numbering", "enum", frozenset({"numeric", "letters", "symbols"}), True, "numeric"),
+        BlockOptionSpec("symbol_set", "enum", SYMBOL_THEME_NAMES, True, "fruits"),
+        BlockOptionSpec("code_numbering", "enum", frozenset({"none", "numeric", "letters", "symbols"}), True, "none"),
+        BlockOptionSpec("code_symbol_set", "enum", SYMBOL_THEME_NAMES, True, "fruits"),
         _OPT_ALIGN,
     ),
     "ordering": (

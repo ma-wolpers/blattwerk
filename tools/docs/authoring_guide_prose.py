@@ -653,6 +653,25 @@ PROSE_SECTIONS: dict[str, str] = {
         "Wenn aktiv, läuft `code` als eigene waagerechte Zeile, die alle anderen Wörter "
         "senkrecht kreuzen müssen (Standard: aus)."
     ),
+    "block:crossword.numbering": (
+        "Darstellungsstil der Hinweis-Nummern: `numeric` (1, 2, 3, ...), `letters` "
+        "(A, B, C, ...) oder `symbols` (kindgerechte Emoji-Reihe, siehe `symbol_set`); "
+        "Standard `numeric`."
+    ),
+    "block:crossword.symbol_set": (
+        "Emoji-Thema für `numbering=symbols`: `fruits`, `animals` oder `plants` "
+        "(Standard `fruits`); ohne Wirkung bei `numbering=numeric`/`letters`."
+    ),
+    "block:crossword.code_numbering": (
+        "Optionale Positionsmarkierung je Codewort-Zelle (die wievielte Stelle im "
+        "Lösungswort), unabhängig vom Stil der Hinweis-Nummern wählbar: `none` "
+        "(keine Markierung, Standard), `numeric`, `letters` oder `symbols` (siehe "
+        "`code_symbol_set`)."
+    ),
+    "block:crossword.code_symbol_set": (
+        "Emoji-Thema für `code_numbering=symbols`: `fruits`, `animals` oder `plants` "
+        "(Standard `fruits`); ohne Wirkung bei anderen `code_numbering`-Werten."
+    ),
     "block:mindmap.branches": (
         "Anzahl der radial angeordneten Zweig-Felder (2-12, Standard `6`)."
     ),

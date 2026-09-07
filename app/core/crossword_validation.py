@@ -1,4 +1,4 @@
-"""Compile-time validation for `:::crossword` blocks (`CW001`-`CW004`).
+"""Compile-time validation for `:::crossword` blocks (`CW001`-`CW005`).
 
 Split out of `blatt_validator_document.py` to keep that file under the
 project's ~300-line convention (see `docs/intern/ARCHITEKTUR.md`) -- this is
@@ -13,6 +13,7 @@ from collections import Counter
 from .block_computation_cache import ComputationKey, get_or_compute
 from .blatt_validator_types import BuildDiagnostic
 from .crossword_code import validate_crossword_code
+from .crossword_numbering import assign_crossword_numbers
 from .crossword_placement import (
     _CROSSWORD_ALGORITHM_VERSION,
     _crossword_seed_payload,
@@ -21,6 +22,7 @@ from .crossword_placement import (
     parse_crossword_entries,
     resolve_crossword_bounds,
 )
+from .crossword_symbol_presets import symbol_theme_by_name
 
 
 def validate_crossword_payload(diagnostics, index, block_type, options, content, cache):
@@ -114,6 +116,29 @@ def validate_crossword_payload(diagnostics, index, block_type, options, content,
         )
         return
 
+    numbering_style = str((options or {}).get("numbering") or "numeric").strip().lower()
+    if numbering_style == "symbols":
+        symbol_set_name = str((options or {}).get("symbol_set") or "fruits").strip().lower()
+        theme = symbol_theme_by_name(symbol_set_name)
+        if theme is not None:
+            numbering = assign_crossword_numbers(layout)
+            highest_number = max(numbering.numbers.values(), default=0)
+            if highest_number > len(theme.labels):
+                diagnostics.append(
+                    BuildDiagnostic(
+                        code="CW005",
+                        message=(
+                            f"`numbering=symbols` mit `symbol_set={symbol_set_name}`: "
+                            f"{highest_number} Hinweisnummern benötigt, aber nur "
+                            f"{len(theme.labels)} Symbole in diesem Set verfügbar. "
+                            "Anderes `symbol_set=` wählen oder `numbering=numeric`/`letters` verwenden."
+                        ),
+                        severity="error",
+                        block_index=index,
+                        block_type=block_type,
+                    )
+                )
+
     if not code_word:
         return
 
@@ -137,3 +162,24 @@ def validate_crossword_payload(diagnostics, index, block_type, options, content,
                 block_type=block_type,
             )
         )
+        return
+
+    code_numbering_style = str((options or {}).get("code_numbering") or "none").strip().lower()
+    if code_numbering_style == "symbols":
+        code_symbol_set_name = str((options or {}).get("code_symbol_set") or "fruits").strip().lower()
+        theme = symbol_theme_by_name(code_symbol_set_name)
+        if theme is not None and len(selection.letters) > len(theme.labels):
+            diagnostics.append(
+                BuildDiagnostic(
+                    code="CW005",
+                    message=(
+                        f"`code_numbering=symbols` mit `code_symbol_set={code_symbol_set_name}`: "
+                        f"{len(selection.letters)} Codewort-Positionen benötigt, aber nur "
+                        f"{len(theme.labels)} Symbole in diesem Set verfügbar. "
+                        "Anderes `code_symbol_set=` wählen oder `code_numbering=numeric`/`letters` verwenden."
+                    ),
+                    severity="error",
+                    block_index=index,
+                    block_type=block_type,
+                )
+            )

@@ -1518,6 +1518,18 @@ h1 {
     letter-spacing: -0.05em;
 }
 
+.cw-cell-code-position {
+    position: absolute;
+    top: 0.18em;
+    right: 0.22em;
+    font-size: 0.42em;
+    font-weight: 400;
+    line-height: 1;
+    white-space: nowrap;
+    max-width: 0.9em;
+    overflow: hidden;
+}
+
 .cw-cell-code {
     background: color-mix(in srgb, var(--theme-accent-main) 22%, white);
 }

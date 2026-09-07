@@ -182,14 +182,18 @@ Kreuzworträtsel-Antwortfeld. Der Inhalt ist eine YAML-Liste unter `words:` mit 
 |---|---|---|---|---|---|
 | `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
 | `code` | Text | -- | nein | -- | Frei gewähltes Lösungscodewort ohne eigenen Hinweis in der Liste; muss sich aus Buchstaben der platzierten Rätselwörter zusammensetzen lassen. |
+| `code_numbering` | Enum | `letters`, `none`, `numeric`, `symbols` | ja | `none` | Optionale Positionsmarkierung je Codewort-Zelle (die wievielte Stelle im Lösungswort), unabhängig vom Stil der Hinweis-Nummern wählbar: `none` (keine Markierung, Standard), `numeric`, `letters` oder `symbols` (siehe `code_symbol_set`). |
 | `code_row` | Bool | -- | nein | `False` | Wenn aktiv, läuft `code` als eigene waagerechte Zeile, die alle anderen Wörter senkrecht kreuzen müssen (Standard: aus). |
+| `code_symbol_set` | Enum | `animals`, `fruits`, `plants` | ja | `fruits` | Emoji-Thema für `code_numbering=symbols`: `fruits`, `animals` oder `plants` (Standard `fruits`); ohne Wirkung bei anderen `code_numbering`-Werten. |
 | `maxh` | Ganzzahl | -- | nein | -- | Maximale Zeilenzahl des Rätselrasters (Standard: aus der Seitenhöhe abgeleitet). |
 | `maxw` | Ganzzahl | -- | nein | -- | Maximale Spaltenzahl des Rätselrasters (Standard: aus der Seitenbreite abgeleitet). |
 | `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
+| `numbering` | Enum | `letters`, `numeric`, `symbols` | ja | `numeric` | Darstellungsstil der Hinweis-Nummern: `numeric` (1, 2, 3, ...), `letters` (A, B, C, ...) oder `symbols` (kindgerechte Emoji-Reihe, siehe `symbol_set`); Standard `numeric`. |
 | `position` | Enum | `above`, `auto`, `below`, `left`, `right` | ja | `auto` | Position einer Sekundärliste (Hinweisliste, Wortbank o. Ä.) relativ zum Hauptinhalt: `left`/`links`, `right`/`rechts`, `above`/`oben`, `below`/`unten` oder `auto` (positioniert rechts, wenn genug Platz neben dem Hauptinhalt bleibt, sonst darunter). *Besonderheit bei `crossword`:* Standard `auto` -- rechts, wenn genug Platz neben dem Raster ist, sonst darunter. |
 | `prefill` | Ganzzahl | -- | nein | `0` | Anzahl zufällig vorausgefüllter Buchstaben im Arbeitsblatt-Modus (Standard `0`). |
 | `scale` | CSS-Länge | -- | nein | `0.72cm` | Zellgröße als CSS-Länge, z. B. `scale=0.4cm` oder `scale=6mm` (Standard variiert je Blocktyp, siehe Besonderheit unten). *Besonderheit bei `crossword`:* Standard `0.72cm`. |
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
+| `symbol_set` | Enum | `animals`, `fruits`, `plants` | ja | `fruits` | Emoji-Thema für `numbering=symbols`: `fruits`, `animals` oder `plants` (Standard `fruits`); ohne Wirkung bei `numbering=numeric`/`letters`. |
 
 **Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
 

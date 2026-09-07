@@ -13,6 +13,7 @@ from html import escape
 
 from .answer_grid_plot import _grid_cell_size_to_cm, _parse_grid_scale
 from .answer_special_shared import _new_markdown_converter, _safe_int, convert_markdown_with_math
+from .blatt_kern_shared_blocks import _alpha_label
 from .block_computation_cache import ComputationKey, get_or_compute
 from .crossword_code import validate_crossword_code
 from .crossword_numbering import assign_crossword_numbers, grouped_clues
@@ -24,6 +25,7 @@ from .crossword_placement import (
     parse_crossword_entries,
     resolve_crossword_bounds,
 )
+from .crossword_symbol_presets import symbol_theme_by_name
 from .wordbank_position import (
     normalize_wordbank_position,
     resolve_wordbank_auto_position,
@@ -64,6 +66,27 @@ def _resolve_cell_size_cm(options):
     if validated != raw_scale:
         return _CELL_SIZE_CM
     return _grid_cell_size_to_cm(validated)
+
+
+def _format_number_label(index, style, symbol_set_name):
+    """Formats a 1-based position `index` as `numeric`/`letters`/`symbols`.
+
+    `letters` reuses the existing spreadsheet-style `_alpha_label` helper
+    (already shared with `:::ordering numbering=letters`), `symbols` looks
+    up the 1-based `index` directly into the chosen `SymbolTheme`'s ordered
+    label list -- no second counting/traversal, `index` is always the
+    position already assigned by the existing numbering/code-selection
+    order (see `crossword_numbering.py`/`crossword_code.py`). Callers must
+    ensure `index` is within the theme's bounds (validated ahead of time by
+    `CW005`, see `crossword_validation.py`) -- this function does not
+    fall back or wrap around on overflow.
+    """
+    if style == "letters":
+        return _alpha_label(index)
+    if style == "symbols":
+        theme = symbol_theme_by_name(symbol_set_name)
+        return theme.labels[index - 1]
+    return str(index)
 
 
 def render_crossword_answer(options, content, include_solutions):
@@ -110,10 +133,15 @@ def render_crossword_answer(options, content, include_solutions):
         )
 
     numbering = assign_crossword_numbers(layout)
+    numbering_style = str(options.get("numbering") or "numeric").strip().lower()
+    symbol_set_name = str(options.get("symbol_set") or "fruits").strip().lower()
+    code_numbering_style = str(options.get("code_numbering") or "none").strip().lower()
+    code_symbol_set_name = str(options.get("code_symbol_set") or "fruits").strip().lower()
     prefill_count = max(0, _safe_int(options.get("prefill"), 0))
     prefill_cells = _resolve_prefill_cells(layout, layout_key, prefill_count) if not include_solutions else set()
 
     code_cell_positions = set()
+    code_cell_numbers = {}
     code_html = ""
     if code_word:
         code_key = ComputationKey(
@@ -124,6 +152,9 @@ def render_crossword_answer(options, content, include_solutions):
         selection = get_or_compute(cache, code_key, lambda: validate_crossword_code(layout, code_word))
         if selection is not None:
             code_cell_positions = {(entry.row, entry.col) for entry in selection.letters}
+            code_cell_numbers = {
+                (entry.row, entry.col): index + 1 for index, entry in enumerate(selection.letters)
+            }
             if include_solutions:
                 code_html = _render_code_solution(selection)
 
@@ -143,6 +174,11 @@ def render_crossword_answer(options, content, include_solutions):
         include_solutions,
         prefill_cells,
         code_cell_positions,
+        numbering_style=numbering_style,
+        symbol_set_name=symbol_set_name,
+        code_numbering_style=code_numbering_style,
+        code_symbol_set_name=code_symbol_set_name,
+        code_cell_numbers=code_cell_numbers,
     )
     grid_html = (
         f"<div class='crossword-grid' style='--cw-cols:{trimmed_cols}; --cw-cell-size:{cell_size_cm}cm'>"
@@ -226,7 +262,13 @@ def _render_grid_cells(
     include_solutions,
     prefill_cells,
     code_cell_positions,
+    numbering_style="numeric",
+    symbol_set_name="fruits",
+    code_numbering_style="none",
+    code_symbol_set_name="fruits",
+    code_cell_numbers=None,
 ):
+    code_cell_numbers = code_cell_numbers or {}
     parts = []
 
     for row in range(min_row, max_row + 1):
@@ -250,11 +292,21 @@ def _render_grid_cells(
                     arrow += _ARROW_HORIZONTAL
                 if "V" in directions:
                     arrow += _ARROW_VERTICAL
-                number_html = f"<span class='cw-cell-number'>{arrow}{number}</span>"
+                label = _format_number_label(number, numbering_style, symbol_set_name)
+                number_html = f"<span class='cw-cell-number'>{arrow}{label}</span>"
+
+            code_position_html = ""
+            if code_numbering_style != "none":
+                code_number = code_cell_numbers.get(position)
+                if code_number is not None:
+                    code_label = _format_number_label(code_number, code_numbering_style, code_symbol_set_name)
+                    code_position_html = f"<span class='cw-cell-code-position'>{code_label}</span>"
 
             show_letter = include_solutions or position in prefill_cells
             letter_html = escape(cell.letter) if show_letter else ""
-            parts.append(f"<span class='{' '.join(css_classes)}'>{number_html}{letter_html}</span>")
+            parts.append(
+                f"<span class='{' '.join(css_classes)}'>{number_html}{code_position_html}{letter_html}</span>"
+            )
 
     return "".join(parts)
 

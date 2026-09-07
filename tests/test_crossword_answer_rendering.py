@@ -32,19 +32,26 @@ def test_render_crossword_answer_returns_empty_string_for_no_entries():
 
 
 def test_render_crossword_answer_worksheet_mode_hides_letters():
-    html = render_crossword_answer({"maxw": 15, "maxh": 15}, _CONTENT, include_solutions=False)
+    # Also exercises code_numbering alongside the existing hint numbers, so
+    # the letter-stripping below must account for BOTH span types -- a
+    # leaked code-position label would otherwise silently pass as "text".
+    options = {"maxw": 15, "maxh": 15, "code": "HERR", "code_numbering": "numeric"}
+    html = render_crossword_answer(options, _CONTENT, include_solutions=False)
 
     assert "crossword-grid" in html
+    assert "cw-cell-code-position" in html
     spans = _cell_spans(html)
     occupied = [s for s in spans if "cw-cell-blocked" not in s]
     assert occupied
     # No bare uppercase letter should appear as cell text content in worksheet mode.
     for span in occupied:
-        # Strip any nested cw-cell-number span, then check remaining text is empty.
+        # Strip any nested cw-cell-number/cw-cell-code-position span, then
+        # check remaining text is empty.
         import re
 
-        without_number = re.sub(r"<span class='cw-cell-number'>.*?</span>", "", span)
-        text_only = re.sub(r"<[^>]+>", "", without_number)
+        without_badges = re.sub(r"<span class='cw-cell-number'>.*?</span>", "", span)
+        without_badges = re.sub(r"<span class='cw-cell-code-position'>.*?</span>", "", without_badges)
+        text_only = re.sub(r"<[^>]+>", "", without_badges)
         assert text_only == ""
 
 
@@ -219,6 +226,53 @@ def test_render_crossword_answer_shows_code_solution_only_in_solution_mode():
     assert "crossword-code" not in worksheet_html
     assert "crossword-code" in solution_html
     assert "cw-cell-code" in solution_html
+
+
+def test_render_crossword_answer_code_numbering_none_adds_no_extra_span():
+    # code_numbering=none is the default -- must be a pure no-op, not just
+    # "empty label", so existing documents render byte-identically.
+    options = {"maxw": 15, "maxh": 15, "code": "HERR"}
+    html = render_crossword_answer(options, _CONTENT, include_solutions=True)
+    assert "cw-cell-code-position" not in html
+
+
+def test_render_crossword_answer_code_numbering_numeric_shows_position_labels():
+    options = {"maxw": 15, "maxh": 15, "code": "HERR", "code_numbering": "numeric"}
+    html = render_crossword_answer(options, _CONTENT, include_solutions=True)
+    assert "<span class='cw-cell-code-position'>1</span>" in html
+    assert "<span class='cw-cell-code-position'>4</span>" in html
+
+
+def test_render_crossword_answer_code_numbering_letters_shows_position_labels():
+    options = {"maxw": 15, "maxh": 15, "code": "HERR", "code_numbering": "letters"}
+    html = render_crossword_answer(options, _CONTENT, include_solutions=True)
+    assert "<span class='cw-cell-code-position'>A</span>" in html
+    assert "<span class='cw-cell-code-position'>D</span>" in html
+
+
+def test_render_crossword_answer_code_numbering_symbols_shows_position_labels():
+    from app.core.crossword_symbol_presets import symbol_theme_by_name
+
+    theme = symbol_theme_by_name("animals")
+    options = {
+        "maxw": 15,
+        "maxh": 15,
+        "code": "HERR",
+        "code_numbering": "symbols",
+        "code_symbol_set": "animals",
+    }
+    html = render_crossword_answer(options, _CONTENT, include_solutions=True)
+    assert f"<span class='cw-cell-code-position'>{theme.labels[0]}</span>" in html
+    assert f"<span class='cw-cell-code-position'>{theme.labels[3]}</span>" in html
+
+
+def test_render_crossword_answer_code_numbering_labels_appear_in_worksheet_mode_too():
+    # Position badges are a structural grid aid, not "the answer" -- they
+    # must show in worksheet mode exactly like the existing cw-cell-number
+    # hint numbers do, independent of include_solutions.
+    options = {"maxw": 15, "maxh": 15, "code": "HERR", "code_numbering": "numeric"}
+    html = render_crossword_answer(options, _CONTENT, include_solutions=False)
+    assert "<span class='cw-cell-code-position'>1</span>" in html
 
 
 def test_render_crossword_answer_position_option_controls_wrapper_class():
