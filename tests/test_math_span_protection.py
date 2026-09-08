@@ -145,13 +145,13 @@ def test_explicit_bold_wrap_around_display_math_produces_boldsymbol(module):
     # LaTeX source itself must gain a `\boldsymbol{...}` wrap (see
     # `_wrap_math_span_bold`/`_BOLD_MATH_PLACEHOLDER_PATTERN`).
     html = _convert(module, r"**$$x^2 + y^2$$**")
-    assert r"<strong>$${\boldsymbol{x^2 + y^2}}$$</strong>" in html
+    assert r"<strong>$$\boldsymbol{x^2 + y^2}$$</strong>" in html
 
 
 @pytest.mark.parametrize("module", _WRAPPER_MODULES)
 def test_explicit_bold_wrap_around_inline_math_produces_boldsymbol(module):
     html = _convert(module, r"Ergebnis: **$a+b$** Ende.")
-    assert r"<strong>${\boldsymbol{a+b}}$</strong>" in html
+    assert r"<strong>$\boldsymbol{a+b}$</strong>" in html
 
 
 @pytest.mark.parametrize("module", _WRAPPER_MODULES)
@@ -167,12 +167,12 @@ def test_math_without_explicit_bold_marker_stays_plain(module):
 def test_bold_and_plain_math_side_by_side_are_distinguished(module):
     html = _convert(module, r"$a$ ist normal, **$$b$$** ist fett.")
     assert r"$a$ ist normal" in html
-    assert r"<strong>$${\boldsymbol{b}}$$</strong>" in html
+    assert r"<strong>$$\boldsymbol{b}$$</strong>" in html
 
 
 def test_wrap_math_span_bold_keeps_delimiters_outside_boldsymbol():
-    assert _wrap_math_span_bold("$x$") == r"${\boldsymbol{x}}$"
-    assert _wrap_math_span_bold("$$x^2$$") == r"$${\boldsymbol{x^2}}$$"
+    assert _wrap_math_span_bold("$x$") == r"$\boldsymbol{x}$"
+    assert _wrap_math_span_bold("$$x^2$$") == r"$$\boldsymbol{x^2}$$"
 
 
 def test_wrap_math_span_bold_leaves_malformed_span_unchanged():

@@ -87,9 +87,9 @@ def _wrap_math_span_bold(span):
     stammenden Werten nie vorkommen; defensiv statt eines Crashs).
     """
     if span.startswith("$$") and span.endswith("$$") and len(span) >= 4:
-        return f"$${{\\boldsymbol{{{span[2:-2]}}}}}$$"
+        return "$$\\boldsymbol{" + span[2:-2] + "}$$"
     if span.startswith("$") and span.endswith("$") and len(span) >= 2:
-        return f"${{\\boldsymbol{{{span[1:-1]}}}}}$"
+        return "$\\boldsymbol{" + span[1:-1] + "}$"
     return span
 
 
