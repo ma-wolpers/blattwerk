@@ -138,6 +138,7 @@ class BlattwerkAppBase(BwBaseWindow):
         self._editor_diagnostics_after_id = None
         self._editor_diagnostics_delay_ms = 350
         self._editor_diagnostics_items = []
+        self._editor_diagnostics_by_row_id = {}
         self._editor_outline_after_id = None
         self._editor_outline_delay_ms = 220
         self._editor_outline_items = []

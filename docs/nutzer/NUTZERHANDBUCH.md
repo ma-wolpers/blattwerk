@@ -131,6 +131,8 @@ Installation/Setup steht bewusst in `README.md`.
 - Unter dem Editor steht eine Diagnostikliste mit Zeile, Code und Meldung.
 - Klick auf einen Eintrag springt direkt zur betroffenen Zeile (auch bei erneutem Klick auf denselben Eintrag).
 - Beim Laden und Speichern einer Datei wird die Diagnostik ebenfalls neu berechnet.
+- Warnungen (nicht Fehler) lassen sich per Klick auf die Checkbox links in der Liste als gelesen abhaken; Rechtsklick auf einen Eintrag bietet zusätzlich "Als gelesen markieren"/"Wieder anzeigen" sowie "Alle in diesem Dokument wieder anzeigen". Abgehakte Warnungen bleiben sichtbar (nur grau dargestellt), erscheinen aber beim Kompilieren/Exportieren nicht mehr als Popup -- außer die Warnung verschwindet zwischenzeitlich (z. B. weil die Ursache behoben wurde) und tritt später erneut auf, dann gilt sie wieder als neu.
+- Der Abhak-Zustand ist an "Zuletzt geöffnet" gekoppelt: fällt ein Dokument aus dieser Liste, kann sein Abhak-Zustand verschwinden. Ein noch nie gespeichertes Dokument merkt sich Abgehaktes nur bis zum Schließen des Tabs.
 
 ## 11) Syntax-Highlighting und Completion im Schreibbereich
 

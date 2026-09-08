@@ -570,8 +570,7 @@ class BlattwerkAppEditorMixin:
             "borderwidth": 0,
         }
 
-        if self.editor_diagnostics_listbox is not None:
-            self.editor_diagnostics_listbox.configure(**listbox_kwargs)
+        self._apply_editor_diagnostics_theme_widgets()
 
         if self.editor_outline_listbox is not None:
             self.editor_outline_listbox.configure(**listbox_kwargs)

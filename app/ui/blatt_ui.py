@@ -6,6 +6,7 @@ from .blatt_ui_base import BlattwerkAppBase
 from .blatt_ui_build import BlattwerkAppBuildMixin
 from .blatt_ui_editor import BlattwerkAppEditorMixin
 from .blatt_ui_editor_diagnostics import BlattwerkAppEditorDiagnosticsMixin
+from .blatt_ui_editor_diagnostics_ack import BlattwerkAppEditorDiagnosticsAckMixin
 from .blatt_ui_editor_completion_context import BlattwerkAppEditorCompletionContextMixin
 from .blatt_ui_editor_completion_popup import BlattwerkAppEditorCompletionPopupMixin
 from .blatt_ui_editor_completion_ranking import BlattwerkAppEditorCompletionRankingMixin
@@ -36,6 +37,7 @@ class BlattwerkApp(
     BlattwerkAppEditorSearchMixin,
     BlattwerkAppEditorMixin,
     BlattwerkAppEditorDiagnosticsMixin,
+    BlattwerkAppEditorDiagnosticsAckMixin,
     BlattwerkAppPreviewMixin,
     BlattwerkAppHelpDocsMixin,
     BlattwerkAppHelpPreviewMixin,

@@ -42,6 +42,7 @@ So vermeiden wir Klebercode und Verwirrung.
   - Das Hauptfenster kann Vorschau und Schreibbereich einzeln oder zusammen anzeigen.
   - Der Schreibbereich speichert Aenderungen debounced direkt in die Markdown-Datei.
   - Der Schreibbereich zeigt Live-Diagnostik aus dem Programmkern passend zum Dokumenttyp und markiert nur betroffene Zeilen in der UI.
+  - Warnungen in dieser Diagnostik-Liste koennen einzeln als gelesen abgehakt werden (Checkbox, Rechtsklick-Menue). Der Abhak-Zustand wird in `app/storage` gespeichert und ist an "Zuletzt geoeffnet" gekoppelt. Der Programmkern greift auf diesen Speicher nur ueber eine kleine Schnittstelle zu, nie direkt -- so bleibt die Regel "Kern kennt keine Speicherdetails" auch hier eingehalten.
   - Syntax-Highlighting und Completion sind UI-Funktionen; ihre fachlichen Vorschlagsquellen kommen weiterhin aus dem Programmkern.
   - Completion-Kandidaten kommen zentral aus `app/core/completion_catalogs.py`; die UI hält dafür keine eigenen statischen Fachlisten.
   - Als Folding-Ersatz gibt es eine Struktur-Outline im UI, die direkt zu Frontmatter/Blockstellen springt.
@@ -80,6 +81,7 @@ Zusatz im Kern:
   Tiefstellung/Code/Spoiler/Kommentar (`app/core/inline_markup`); alle Renderpfade und der
   Editor lesen dieselbe Marker-Tabelle statt eigenen Code dafür zu besitzen
 - Fachregel für BW/Farbhinweise (`color_mentions.py`)
+- Generische Identitaet fuer abgehakte Warnungen (`diagnostic_identity.py`/`diagnostic_acknowledgment.py`) -- kennt keine Blocktypen oder Dokumentarten, jede Diagnosequelle liefert ihre eigene Region/Anker selbst
 
 ## Was ist verboten?
 

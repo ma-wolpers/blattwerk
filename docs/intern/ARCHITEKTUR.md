@@ -30,6 +30,7 @@ Zusätzliche Kern-Usecases:
 - `kurzentwurf_runtime/*` (eingebettete Kurzentwurf-DSL-Runtime fuer Parse/Validate/Render/Build)
 - `inline_markup/*` (einzige Quelle fuer Inline-Formatierungs-Semantik -- fett/kursiv/unterstrichen/Hervorhebung/durchgestrichen/Hoch-/Tiefstellung/Code/Spoiler/Kommentar; Kurzentwurf ruft sie direkt auf, `blatt_kern_shared_parsing.py`/`answer_special_shared.py` binden sie als python-markdown-Preprocessor ein (`inline_markup/markdown_bridge.py`); `app/ui/editor_marker_shortcuts.py` liest dieselbe Marker-Tabelle fuer die Editor-Tasten, `markdown_conventions.py` fuer die generierte Doku)
 - `color_mentions.py` (fachliche BW/Farb-Regel)
+- `diagnostic_identity.py`/`diagnostic_acknowledgment.py` (generische, dokumenttypunabhaengige Occurrence-Identitaet fuer abgehakte Warnungen im Editor -- kennt keine Blocktypen/Codes/Dokumentfamilien, nur `code`/`region_id`/`anchor`; jede Diagnosequelle liefert ihre eigene Region/Anker, z. B. `blatt_validator_region.py` fuer Arbeitsblatt-`:::`-Bloecke, `kurzentwurf_runtime/region.py` fuer Kurzentwurf-Phasen)
 - `block_computation_cache.py` (generischer, blocktyp-unabhaengiger Cache fuer teure deterministische Blockberechnungen; wird von der Anwendungsschicht geoeffnet, nie von `build_worksheet`/`build_help_cards` selbst, und ueber `inspect_markdown_text(..., cache=...)`/`render_html(..., cache=...)` an Validate- und Render-Schritt durchgereicht, damit beide dasselbe Ergebnis wiederverwenden koennen)
 
 ## Schichtenmodell
@@ -38,7 +39,7 @@ Zusätzliche Kern-Usecases:
 |---|---|---|---|
 | `app/core` | Fachregeln, Parse/Validate/Render/Build | UI-Dialoge, Persistenzdetails | `blatt_kern_io_build.py`, `blatt_validator.py`, `blatt_kern_layout_render.py` |
 | `app/ui` | Input, View-State, Anzeige | Fachregel-Ownership, Persistenzpolicy | `blatt_ui_*.py` |
-| `app/storage` | Laden/Speichern, Persistenzformat, Pfad-/Systemadapter | Render-/Validierungslogik | `local_config_store.py`, `history_paths_adapter.py`, `system_settings_adapter.py` |
+| `app/storage` | Laden/Speichern, Persistenzformat, Pfad-/Systemadapter | Render-/Validierungslogik | `local_config_store.py`, `history_paths_adapter.py`, `system_settings_adapter.py`, `acknowledged_warnings_store.py` |
 | `app/styles` | Profilauflösung, Designnormalisierung, CSS | Dokumentdiagnostik, Persistenzentscheidungen | `blatt_styles.py`, `worksheet_design.py`, `ui_profile_adapter.py` |
 | `app/cli` | Adapter auf Kern-API | Regelduplikation | `blatt_diagnostics_cli.py` |
 
@@ -63,6 +64,7 @@ UI-Zuschnitt im Hauptfenster:
 - Ein Folding-Äquivalent wird in `app/ui` als Outline-Navigation umgesetzt (Struktur lesen, Einträge anspringen), ohne den Parser im Kern zu duplizieren.
 - Die Vorschau bleibt weiterhin explizit manuell aktualisiert und bezieht ihren Inhalt wie bisher ausschließlich aus dem aktuellen Dateisystemstand.
 - `app/core` rendert dokumenttyp- und dokumentmodusabhaengig: Arbeitsblatt-/Loesungsseiten im Worksheet-Pfad, folienbasiertes Rendering im Praesentationspfad (`mode: presentation`) und Kurzentwurf ueber die eingebettete DSL-Runtime.
+- Warnungen in der Diagnostik-Treeview unter dem Schreibbereich lassen sich einzeln als gelesen abhaken (Checkbox-Spalte, Kontextmenue). Persistiert wird ueber `app/storage/acknowledged_warnings_store.py`, gekoppelt an "Zuletzt geoeffnet" (Eintrag verschwindet, wenn das Dokument aus `recent_files` faellt). `app/core` erreicht diese Persistenz ausschliesslich ueber den injizierten `AcknowledgedWarningsRepository`-Port (`diagnostic_acknowledgment.py`) -- niemals per Direktimport aus `app/storage`; die UI-Schicht (`blatt_ui_preview.py`/`blatt_ui_export.py`) uebergibt die konkrete Store-Implementierung. Erste Anwendung dieses Port-Musters im Projekt, als Referenz fuer kuenftige core→storage-Anbindungen.
 
 ## Ablauf-Invarianten
 

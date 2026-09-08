@@ -1,10 +1,11 @@
-"""Editor mixin for the "Diagnostik" panel: live diagnostics list and line markers.
+"""Editor mixin for the "Diagnostik" panel: computes and renders the live diagnostics list/line markers.
 
 Mechanically extracted from `blatt_ui_editor.py` (Schritt 1 of the
 "Warnungen abhaken"-Feature, siehe `docs/intern/DEVELOPMENT_LOG.md`) --
-pure move, no behavior change. Kept as its own mixin so the
-acknowledgment feature (Schritt 2/3) has a focused, sub-300-line home
-instead of growing the already large editor mixin further.
+pure move, no behavior change. The interactive "als gelesen markieren"
+actions on top of this Treeview (checkbox click, context menu, clearing
+a document) live in the sibling `blatt_ui_editor_diagnostics_ack.py`,
+split out to keep both files under the project's ~300-line convention.
 """
 
 from __future__ import annotations
@@ -12,7 +13,7 @@ from __future__ import annotations
 from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 
 ensure_bw_gui_on_path()
-from bw_gui.runtime import ui, widgets
+from bw_gui.runtime import widgets
 
 import re
 
@@ -21,6 +22,8 @@ from ..core.blatt_validator_types import BuildDiagnostic
 from ..core.diagnostic_identity import compute_diagnostic_identity
 from ..core.document_diagnostics import inspect_document_text
 from ..core.document_types import DOCUMENT_TYPE_KURZENTWURF
+from ..storage import acknowledged_warnings_store
+from .ui_theme import get_theme
 
 _DOCUMENT_TEXT_REGION_ID = "worksheet:document-text"
 
@@ -39,35 +42,57 @@ class BlattwerkAppEditorDiagnosticsMixin:
     """Adds the "Diagnostik" panel (list + line markers) below the editor."""
 
     def _build_editor_diagnostics_panel(self, parent):
-        """Creates the diagnostics list widget and wires selection/click events."""
+        """Creates the diagnostics Treeview (with an "als gelesen" checkbox column) and wires its events.
+
+        Follows the same `columns=`/`show="headings"` pattern already used
+        by `shortcut_debug_table` (`blatt_ui_base.py`) -- deliberately left
+        out of `_apply_editor_theme_widgets`'s tk-`Listbox` recoloring
+        (`ttk.Treeview` doesn't accept those options), same as that table.
+        """
 
         diagnostics_frame = widgets.LabelFrame(parent, text="Diagnostik")
         diagnostics_frame.pack(fill="x", padx=8, pady=(0, 8))
-        diagnostics_frame.columnconfigure(2, weight=1)
+        diagnostics_frame.columnconfigure(0, weight=1)
 
-        widgets.Label(diagnostics_frame, text="Zeile").grid(row=0, column=0, sticky="w", padx=(8, 6), pady=(6, 4))
-        widgets.Label(diagnostics_frame, text="Code").grid(row=0, column=1, sticky="w", padx=(0, 6), pady=(6, 4))
-        widgets.Label(diagnostics_frame, text="Hinweis").grid(row=0, column=2, sticky="w", padx=(0, 8), pady=(6, 4))
-
-        self.editor_diagnostics_listbox = ui.Listbox(
+        self.editor_diagnostics_listbox = widgets.Treeview(
             diagnostics_frame,
-            activestyle="none",
-            borderwidth=0,
-            highlightthickness=0,
+            columns=("ack", "line", "code", "message"),
+            show="headings",
             height=6,
         )
-        self.editor_diagnostics_listbox.grid(row=1, column=0, columnspan=3, sticky="nsew", padx=(8, 0), pady=(0, 8))
-        self.editor_diagnostics_listbox.bind("<<ListboxSelect>>", self._on_editor_diagnostic_selected)
+        self.editor_diagnostics_listbox.heading("ack", text="")
+        self.editor_diagnostics_listbox.heading("line", text="Zeile")
+        self.editor_diagnostics_listbox.heading("code", text="Code")
+        self.editor_diagnostics_listbox.heading("message", text="Hinweis")
+        self.editor_diagnostics_listbox.column("ack", width=26, anchor="center", stretch=False)
+        self.editor_diagnostics_listbox.column("line", width=50, anchor="e", stretch=False)
+        self.editor_diagnostics_listbox.column("code", width=60, anchor="w", stretch=False)
+        self.editor_diagnostics_listbox.column("message", width=400, anchor="w", stretch=True)
+        self.editor_diagnostics_listbox.grid(row=0, column=0, sticky="nsew", padx=(8, 0), pady=(6, 8))
+        self.editor_diagnostics_listbox.bind("<<TreeviewSelect>>", self._on_editor_diagnostic_selected)
         self.editor_diagnostics_listbox.bind("<ButtonRelease-1>", self._on_editor_diagnostic_click)
+        self.editor_diagnostics_listbox.bind("<Button-1>", self._on_editor_diagnostics_ack_column_click)
+        self.editor_diagnostics_listbox.bind("<Button-3>", self._on_editor_diagnostics_context_menu)
+        self.editor_diagnostics_listbox.tag_configure("ack_done", foreground="gray")
 
         diagnostics_scrollbar = widgets.Scrollbar(
             diagnostics_frame,
             orient="vertical",
             command=self.editor_diagnostics_listbox.yview,
         )
-        diagnostics_scrollbar.grid(row=1, column=3, sticky="ns", padx=(0, 8), pady=(0, 8))
+        diagnostics_scrollbar.grid(row=0, column=1, sticky="ns", padx=(0, 8), pady=(6, 8))
         self.editor_diagnostics_listbox.configure(yscrollcommand=diagnostics_scrollbar.set)
-        diagnostics_frame.rowconfigure(1, weight=1)
+        diagnostics_frame.rowconfigure(0, weight=1)
+
+        self._editor_diagnostics_by_row_id = {}
+
+    def _apply_editor_diagnostics_theme_widgets(self):
+        """Recolors the "gelesen"-Tag to match the current theme's muted foreground."""
+
+        if self.editor_diagnostics_listbox is None:
+            return
+        theme = get_theme(self.theme_var.get() if hasattr(self, "theme_var") else None)
+        self.editor_diagnostics_listbox.tag_configure("ack_done", foreground=theme["fg_muted"])
 
     def _queue_editor_diagnostics(self, immediate: bool = False):
         """Schedules a debounced diagnostics refresh for current editor text."""
@@ -262,7 +287,14 @@ class BlattwerkAppEditorDiagnosticsMixin:
         return content_for_validation, max(1, base_line)
 
     def _set_editor_diagnostics(self, items):
-        """Renders diagnostics into listbox and colored line tags."""
+        """Renders diagnostics into the Treeview and colored line tags.
+
+        Live refresh only *reads* acknowledgment state (`get_acknowledged`)
+        for the checkbox glyph -- it never reconciles/persists. Reconciling
+        stale acknowledgments (a warning that stopped being reported) stays
+        exclusive to the compile-/export-triggered `build_warning_payload`
+        path, so typing in the editor never writes to the config file.
+        """
 
         preferences = getattr(self, "user_preferences", {})
         threshold = str(preferences.get("diagnostics_severity_threshold", "warning"))
@@ -299,20 +331,41 @@ class BlattwerkAppEditorDiagnosticsMixin:
                 end = f"{safe_line}.0 lineend+1c"
                 self.editor_widget.tag_add(tag_name, start, end)
 
-        if self.editor_diagnostics_listbox is None:
+        tree = self.editor_diagnostics_listbox
+        if tree is None:
             return
 
-        self.editor_diagnostics_listbox.delete(0, "end")
+        tree.delete(*tree.get_children())
+        self._editor_diagnostics_by_row_id = {}
+
         if not self._editor_diagnostics_items:
-            self.editor_diagnostics_listbox.insert("end", "Keine Diagnostik")
+            tree.insert("", "end", values=("", "", "", "Keine Diagnostik"))
             return
 
-        for item in self._editor_diagnostics_items:
-            severity_label = "Fehler" if item["severity"] == "error" else "Warnung"
-            self.editor_diagnostics_listbox.insert(
+        acknowledged = set()
+        document_path = self._current_document_path_for_ack()
+        if document_path:
+            try:
+                acknowledged = acknowledged_warnings_store.get_acknowledged(document_path)
+            except Exception:
+                acknowledged = set()
+
+        for index, item in enumerate(self._editor_diagnostics_items):
+            severity = item["severity"]
+            identity = item.get("identity")
+            is_ackable = severity == "warning" and identity is not None
+            is_acked = is_ackable and identity in acknowledged
+            glyph = ("☑" if is_acked else "☐") if is_ackable else ""
+            severity_label = "Fehler" if severity == "error" else "Warnung"
+            row_id = f"row-{index}"
+            tree.insert(
+                "",
                 "end",
-                f"{item['line']:>4}  {item['code']:<5}  {severity_label}: {item['message']}",
+                iid=row_id,
+                values=(glyph, item["line"], item["code"], f"{severity_label}: {item['message']}"),
+                tags=("ack_done",) if is_acked else (),
             )
+            self._editor_diagnostics_by_row_id[row_id] = item
 
     def _on_editor_diagnostic_selected(self, _event=None):
         """Jumps to selected diagnostic line and moves cursor to that location."""
@@ -320,23 +373,31 @@ class BlattwerkAppEditorDiagnosticsMixin:
         if self.editor_widget is None or self.editor_diagnostics_listbox is None:
             return
 
-        selection = self.editor_diagnostics_listbox.curselection()
+        selection = self.editor_diagnostics_listbox.selection()
         if not selection:
             return
 
-        index = selection[0]
-        if index >= len(self._editor_diagnostics_items):
+        item = self._editor_diagnostics_by_row_id.get(selection[0])
+        if item is None:
             return
 
-        line = self._editor_diagnostics_items[index]["line"]
+        line = item["line"]
         line_index = f"{max(1, int(line))}.0"
         self.editor_widget.mark_set("insert", line_index)
         self.editor_widget.see(line_index)
         self.editor_widget.focus_set()
         self._refresh_editor_block_pair_highlight()
 
-    def _on_editor_diagnostic_click(self, _event=None):
-        """Ensures click on already selected diagnostic still triggers jump."""
+    def _on_editor_diagnostic_click(self, event=None):
+        """Ensures click on already selected diagnostic still triggers jump.
+
+        Skipped for a click on the checkbox column -- that column never
+        navigates, only toggles (`_on_editor_diagnostics_ack_column_click`).
+        """
+
+        tree = self.editor_diagnostics_listbox
+        if tree is not None and event is not None and tree.identify_column(event.x) == "#1":
+            return
 
         if hasattr(self, "root"):
             self.root.after_idle(self._on_editor_diagnostic_selected)
