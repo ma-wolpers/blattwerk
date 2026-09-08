@@ -134,7 +134,11 @@ PROSE_SECTIONS: dict[str, str] = {
         "PDF-/HTML-Export bleibt die rohe Formel-Quelle als lesbarer Text sichtbar, wird aber nicht "
         "als Formel gerendert -- der Editor warnt in diesem Fall nicht-blockierend (`MJ001`). Ein "
         "einzelnes, nicht als Formel gemeintes `$`-Zeichen (z. B. `$5`) wird nicht faelschlich als "
-        "Formelbeginn erkannt, solange kein passendes zweites `$` unmittelbar danach folgt."
+        "Formelbeginn erkannt, solange kein passendes zweites `$` unmittelbar danach folgt. "
+        "`**$formel$**`/`**$$formel$$**` setzt die Formel selbst fett (nicht nur Text drumherum) -- "
+        "praktisch, um z. B. ein Endergebnis hervorzuheben. Das funktioniert nicht für eine ganze "
+        "mehrzeilige LaTeX-Umgebung in Fett (z. B. `$$\\begin{aligned}...\\end{aligned}$$`); dort "
+        "stattdessen nur Teile der Formel oder den umgebenden Text fett setzen."
     ),
     "presentation:visibility": (
         "In Präsentationen (`mode: presentation`) gibt es **keinen Lösungs-Umschalter**: Blöcke mit "

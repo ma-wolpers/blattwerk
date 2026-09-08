@@ -12,7 +12,12 @@ import pytest
 from app.core import answer_special_shared
 from app.core import blatt_kern_shared_parsing
 from app.core.answer_line_markers import filter_answer_content_for_mode
-from app.core.math_span_protection import protect_math_spans, restore_math_spans, restore_math_spans_as_text
+from app.core.math_span_protection import (
+    _wrap_math_span_bold,
+    protect_math_spans,
+    restore_math_spans,
+    restore_math_spans_as_text,
+)
 
 _WRAPPER_MODULES = [answer_special_shared, blatt_kern_shared_parsing]
 
@@ -131,6 +136,50 @@ def test_restore_as_text_does_not_html_escape_the_recovered_formula_source():
 
 def test_restore_as_text_leaves_text_without_placeholders_untouched():
     assert restore_math_spans_as_text("plain text", []) == "plain text"
+
+
+@pytest.mark.parametrize("module", _WRAPPER_MODULES)
+def test_explicit_bold_wrap_around_display_math_produces_boldsymbol(module):
+    # `**$$formel$$**` must make the FORMULA itself render bold. Wrapping
+    # `<strong>` alone has no visible effect on MathJax's SVG output, so the
+    # LaTeX source itself must gain a `\boldsymbol{...}` wrap (see
+    # `_wrap_math_span_bold`/`_BOLD_MATH_PLACEHOLDER_PATTERN`).
+    html = _convert(module, r"**$$x^2 + y^2$$**")
+    assert r"<strong>$${\boldsymbol{x^2 + y^2}}$$</strong>" in html
+
+
+@pytest.mark.parametrize("module", _WRAPPER_MODULES)
+def test_explicit_bold_wrap_around_inline_math_produces_boldsymbol(module):
+    html = _convert(module, r"Ergebnis: **$a+b$** Ende.")
+    assert r"<strong>${\boldsymbol{a+b}}$</strong>" in html
+
+
+@pytest.mark.parametrize("module", _WRAPPER_MODULES)
+def test_math_without_explicit_bold_marker_stays_plain(module):
+    # Regression guard: plain (non-bold) math must never pick up
+    # `\boldsymbol` just because *other*, unrelated text nearby is bold.
+    html = _convert(module, r"$a+b$ und **fett** Text.")
+    assert r"$a+b$" in html
+    assert "boldsymbol" not in html
+
+
+@pytest.mark.parametrize("module", _WRAPPER_MODULES)
+def test_bold_and_plain_math_side_by_side_are_distinguished(module):
+    html = _convert(module, r"$a$ ist normal, **$$b$$** ist fett.")
+    assert r"$a$ ist normal" in html
+    assert r"<strong>$${\boldsymbol{b}}$$</strong>" in html
+
+
+def test_wrap_math_span_bold_keeps_delimiters_outside_boldsymbol():
+    assert _wrap_math_span_bold("$x$") == r"${\boldsymbol{x}}$"
+    assert _wrap_math_span_bold("$$x^2$$") == r"$${\boldsymbol{x^2}}$$"
+
+
+def test_wrap_math_span_bold_leaves_malformed_span_unchanged():
+    # Defensive fallback for a value that -- by construction from
+    # `protect_math_spans` -- should always start/end with `$`/`$$`; kept
+    # as a safety net rather than crashing on unexpected input.
+    assert _wrap_math_span_bold("no dollars here") == "no dollars here"
 
 
 def test_task_body_pipeline_preserves_backslash_commands_in_formulas():

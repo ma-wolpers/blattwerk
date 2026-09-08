@@ -731,17 +731,21 @@ def _render_presentation_html(
 <title>{title_text}</title>
 <script>
 window.MathJax = {{
+    loader: {{
+        load: ['[tex]/boldsymbol']
+    }},
     tex: {{
         inlineMath: [['$', '$']],
         displayMath: [['$$', '$$']],
         processEscapes: true,
+        packages: {{'[+]': ['boldsymbol']}},
     }},
     svg: {{
         fontCache: 'none'
     }}
 }};
 </script>
-<script defer src=\"https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js\" onerror=\"document.body.classList.add('mathjax-load-failed')\"></script>
+<script defer src=\"https://cdn.jsdelivr.net/npm/mathjax@4/tex-svg.js\" onerror=\"document.body.classList.add('mathjax-load-failed')\"></script>
 <style>
 {stylesheet}
 </style>
@@ -908,17 +912,21 @@ def render_html(
 <title>{meta.get("Titel", "Arbeitsblatt")}</title>
 <script>
 window.MathJax = {{
+    loader: {{
+        load: ['[tex]/boldsymbol']
+    }},
     tex: {{
         inlineMath: [['$', '$']],
         displayMath: [['$$', '$$']],
         processEscapes: true,
+        packages: {{'[+]': ['boldsymbol']}},
     }},
     svg: {{
         fontCache: 'none'
     }}
 }};
 </script>
-<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" onerror="document.body.classList.add('mathjax-load-failed')"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-svg.js" onerror="document.body.classList.add('mathjax-load-failed')"></script>
 <style>
 {stylesheet}
 </style>

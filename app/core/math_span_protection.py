@@ -52,6 +52,46 @@ _MATH_PLACEHOLDER_PATTERN = re.compile(
     f"{_MATH_PLACEHOLDER_START}(\\d+){_MATH_PLACEHOLDER_END}"
 )
 
+_BOLD_MATH_PLACEHOLDER_PATTERN = re.compile(
+    f"<strong>\\s*{_MATH_PLACEHOLDER_START}(\\d+){_MATH_PLACEHOLDER_END}\\s*</strong>"
+)
+"""Erkennt einen Formel-Platzhalter, der als alleiniger Inhalt eines `<strong>`-Elements dasteht.
+
+Entsteht aus `**$$formel$$**`/`**$formel$**`: `python-markdown`s Emphasis-
+Verarbeitung wickelt den (noch unaufgeloesten) Platzhalter in `<strong>...
+</strong>`, bevor `restore_math_spans` unten die eigentliche Formel-Quelle
+einsetzt. Fuer echtes fettes Rendering reicht das `<strong>` allein nicht --
+MathJax zeichnet Formeln als SVG-Pfade, auf die `font-weight`/`<strong>`
+keinen Einfluss hat. `restore_math_spans` nutzt dieses Pattern daher, um
+zusaetzlich die LaTeX-Quelle selbst in `\\boldsymbol{...}` einzupacken (siehe
+`_wrap_math_span_bold`), waehrend das `<strong>` als harmloser Text-Fallback
+(z. B. wenn MathJax nicht laedt) erhalten bleibt."""
+
+
+def _wrap_math_span_bold(span):
+    """Packt den LaTeX-Inhalt eines rohen Formel-Spans in `\\boldsymbol{...}`, die `$`-Begrenzer bleiben aussen.
+
+    `span` ist ein Element aus `spans` wie von `protect_math_spans`
+    geliefert, also inklusive `$`/`$$`-Begrenzer. Wandelt `$$x^2$$` in
+    `$$\\boldsymbol{x^2}$$` und `$x$` in `$\\boldsymbol{x}$` -- MathJax
+    rendert Text in `\\boldsymbol{}` mit den fetten Glyphen-Varianten
+    seiner Formel-Schriftart, was (anders als umgebendes `<strong>`/CSS)
+    tatsaechlich sichtbar ist, da Formeln als SVG-Pfade gezeichnet werden.
+
+    Bekannte Grenze: bricht `\\boldsymbol{}` um eine ganze
+    `\\begin{...}...\\end{...}`-Umgebung (z. B. `aligned` mit `\\\\`-Zeilen-
+    umbruechen), da `\\boldsymbol` ein einzelnes Formel-Argument erwartet,
+    keine Umgebung -- siehe `docs/nutzer/ANLEITUNG_ARBEITSBLATT_PRAESENTATION.md`.
+    Unveraendert (kein Wrap) fuer jeden Span, der nicht mit den erwarteten
+    `$`/`$$`-Begrenzern beginnt/endet (sollte bei korrekt aus `spans`
+    stammenden Werten nie vorkommen; defensiv statt eines Crashs).
+    """
+    if span.startswith("$$") and span.endswith("$$") and len(span) >= 4:
+        return f"$${{\\boldsymbol{{{span[2:-2]}}}}}$$"
+    if span.startswith("$") and span.endswith("$") and len(span) >= 2:
+        return f"${{\\boldsymbol{{{span[1:-1]}}}}}$"
+    return span
+
 
 def protect_math_spans(text):
     """Ersetzt jeden `$...$`/`$$...$$`-Formel-Span in `text` durch einen Platzhalter.
@@ -96,12 +136,43 @@ def _restore_math_spans(text, spans, escape_fn):
     return _MATH_PLACEHOLDER_PATTERN.sub(_restore, text)
 
 
+def _restore_bold_math_spans(html, spans):
+    """Loest `<strong>PLATZHALTER</strong>`-Vorkommen vorab auf, mit `\\boldsymbol`-Wrap statt reinem Text-Restore.
+
+    Laeuft VOR der generischen Platzhalter-Ersetzung in `restore_math_spans`,
+    damit ein Formel-Platzhalter, der als alleiniger Inhalt eines
+    `<strong>`-Elements steht (aus `**$$formel$$**`/`**$formel$**`, siehe
+    `_BOLD_MATH_PLACEHOLDER_PATTERN`), tatsaechlich fett gerendert wird --
+    der `<strong>`-Tag selbst bleibt als Text-Fallback erhalten, wirkt sich
+    aber auf MathJax' SVG-Ausgabe nicht aus (siehe `_wrap_math_span_bold`).
+    Alle anderen (nicht fett markierten) Platzhalter laesst dieser Schritt
+    unveraendert stehen, fuer die anschliessende generische Ersetzung.
+    """
+    if not spans:
+        return html
+
+    def _restore_bold(match):
+        index = int(match.group(1))
+        if index >= len(spans):
+            return match.group(0)
+        return f"<strong>{escape(_wrap_math_span_bold(spans[index]))}</strong>"
+
+    return _BOLD_MATH_PLACEHOLDER_PATTERN.sub(_restore_bold, html)
+
+
 def restore_math_spans(html, spans):
     """Setzt die von `protect_math_spans` platzierten Platzhalter durch die Original-Formel-Quelle zurueck.
 
     HTML-escaped die wiederhergestellte Formel-Quelle -- fuer Aufrufer, die
     direkt fertiges HTML produzieren (z. B. `convert_markdown_with_math`).
+
+    Behandelt einen Platzhalter, der als alleiniger Inhalt eines
+    `<strong>`-Elements dasteht (`**$$formel$$**`/`**$formel$**`), zuerst
+    gesondert ueber `_restore_bold_math_spans`, damit die Formel dort
+    tatsaechlich fett (via `\\boldsymbol`) statt nur textuell/wirkungslos
+    umwickelt gerendert wird -- siehe `_BOLD_MATH_PLACEHOLDER_PATTERN`.
     """
+    html = _restore_bold_math_spans(html, spans)
     return _restore_math_spans(html, spans, escape)
 
 
