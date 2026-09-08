@@ -37,7 +37,7 @@ def test_collect_used_operators_matches_and_deduplicates():
         _blocks("!!Bestimme!! die Nullstellen. Danach !!bestimme!! die Extrema."),
         {"Fach": "Mathematik"},
     )
-    assert [m.key for m in matched] == ["Bestimmen"]
+    assert [m.key for m in matched] == ["Bestimmen/Ermitteln"]
     assert diagnostics == []
 
 
@@ -45,7 +45,7 @@ def test_collect_used_operators_separable_verb_form_resolves_to_darstellen():
     matched, diagnostics = collect_used_operators(
         _blocks("!!Stelle!! den Sachverhalt grafisch dar."), {"Fach": "Mathematik"}
     )
-    assert [m.key for m in matched] == ["Darstellen"]
+    assert [m.key for m in matched] == ["Grafisch darstellen/Zeichnen"]
     assert diagnostics == []
 
 
@@ -65,7 +65,7 @@ def test_collect_used_operators_missing_fach_file_emits_opr003():
 
 def test_collect_used_operators_no_stufe_keeps_all_operators_available():
     matched, _ = collect_used_operators(_blocks("!!Begründe!! deine Antwort."), {"Fach": "Mathematik"})
-    assert [m.key for m in matched] == ["Begründen"]
+    assert [m.key for m in matched] == ["Begründen/Nachweisen/Zeigen"]
 
 
 def test_collect_used_operators_stufe_outside_required_group_excludes_operator():
@@ -80,7 +80,7 @@ def test_collect_used_operators_stufe_inside_required_group_includes_operator():
     matched, diagnostics = collect_used_operators(
         _blocks("!!Begründe!! deine Antwort."), {"Fach": "Mathematik", "Stufe": "Q1"}
     )
-    assert [m.key for m in matched] == ["Begründen"]
+    assert [m.key for m in matched] == ["Begründen/Nachweisen/Zeigen"]
     assert diagnostics == []
 
 
