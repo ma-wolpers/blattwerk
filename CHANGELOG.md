@@ -8,6 +8,7 @@ The format is based on Keep a Changelog.
 
 ### Fixed
 
+- Ein Arbeitsblatt mit unquoted `Stufe: 11` (statt `Stufe: "11"`) im Frontmatter führte zu einem Absturz, sobald ein `!!Operator!!`-Marker im Dokument verwendet wurde. Behoben -- `Stufe` funktioniert jetzt unabhängig davon, ob der Wert in Anführungszeichen steht.
 - Der Hinweis "Enthaelt Formel-Syntax" (`MJ001`) erschien bisher für jeden einzelnen Block mit `$...$`/`$$...$$`, auch wenn ein Dokument viele solcher Blöcke enthielt. Er erscheint jetzt nur noch einmal pro Dokument, mit einem Hinweis auf die Anzahl weiterer Vorkommen.
 - Formeln (`$...$`/`$$...$$`) mit Backslash-Befehlen (`\frac`, `\sqrt`, `\mid`, `\alpha`, `\cdot`, …) wurden in Aufgabentexten, Unteraufgaben und Tabellenzellen verstümmelt dargestellt -- die Backslashes gingen verloren, bevor MathJax die Formel überhaupt zu sehen bekam (z. B. wurde `$\mid$` zu `$mid$`). Behoben.
 - `:::crossword`-Zahlen-Badges in den Rätselzellen wirkten optisch abgeschnitten, weil sie praktisch direkt auf der Zellkante saßen. Der Abstand zur Kante wurde vergrößert.

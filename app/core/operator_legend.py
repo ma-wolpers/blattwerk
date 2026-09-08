@@ -74,10 +74,17 @@ class MatchedOperator:
     definition: str
 
 
-def _slugify_fach(fach: str) -> str:
+def _slugify_fach(fach) -> str:
     """Normalizes a `Fach` name to the lowercase, filesystem-safe slug used
-    as `data/operatoren/<slug>.json`'s filename (e.g. "Mathematik" -> "mathematik")."""
-    return "".join(ch if ch.isalnum() else "_" for ch in (fach or "").strip().lower())
+    as `data/operatoren/<slug>.json`'s filename (e.g. "Mathematik" -> "mathematik").
+
+    `str(...)`-wrapped before any string method: YAML parses an unquoted
+    numeric-looking frontmatter value as an `int`, not a `str` (the same
+    issue that made `Stufe: 11` unquoted crash `_resolve_matched_groups`
+    below), so `fach` isn't guaranteed to already be a string here.
+    """
+    text = str(fach or "").strip().lower()
+    return "".join(ch if ch.isalnum() else "_" for ch in text)
 
 
 def load_operator_data(fach: str) -> OperatorDataset | None:
@@ -121,10 +128,15 @@ def _resolve_matched_groups(stufe_value, stufengruppen):
     (`q1`/`Q1` both valid), so the raw frontmatter value can arrive in
     either case -- group names/values authored in the JSON keep their
     original display casing, only the comparison itself is lowercased.
+
+    `str(...)`-wrapped before `.strip()`: YAML parses an unquoted numeric
+    frontmatter value like `Stufe: 11` as an `int`, not a `str` -- without
+    this, `stufe_value.strip()` raised `AttributeError` for exactly that
+    (real-world-found) case.
     """
     if not stufe_value:
         return set()
-    normalized_stufe = stufe_value.strip().lower()
+    normalized_stufe = str(stufe_value).strip().lower()
     if not stufengruppen:
         return {normalized_stufe}
     return {

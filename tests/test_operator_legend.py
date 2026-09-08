@@ -9,6 +9,7 @@ from app.core.blatt_validator import inspect_markdown_text
 from app.core.operator_legend import (
     _operator_available,
     _resolve_matched_groups,
+    _slugify_fach,
     collect_used_operators,
     render_operator_legend_html,
 )
@@ -16,6 +17,24 @@ from app.core.operator_legend import (
 
 def _blocks(*contents):
     return [("task", {}, content) for content in contents]
+
+
+def test_collect_used_operators_survives_unquoted_yaml_stufe_int():
+    # Stufe: 11 (unquoted) parses as a YAML int, not a str -- real bug found
+    # by the user, previously crashed with AttributeError in
+    # _resolve_matched_groups (stufe_value.strip() on an int).
+    matched_int, diagnostics_int = collect_used_operators(
+        _blocks("!!Begründe!! deine Antwort."), {"Fach": "Mathematik", "Stufe": 11}
+    )
+    matched_str, diagnostics_str = collect_used_operators(
+        _blocks("!!Begründe!! deine Antwort."), {"Fach": "Mathematik", "Stufe": "11"}
+    )
+    assert matched_int == matched_str
+    assert [d.code for d in diagnostics_int] == [d.code for d in diagnostics_str]
+
+
+def test_slugify_fach_handles_non_string_input():
+    assert _slugify_fach(123) == "123"
 
 
 def test_collect_used_operators_is_a_pure_no_op_without_any_marker(monkeypatch):
@@ -118,6 +137,24 @@ def test_render_operator_legend_html_lists_key_and_definition():
     assert "operator-legend" in html
     assert "Bestimmen" in html
     assert "Ergebnis ermitteln." in html
+
+
+def test_full_pipeline_survives_unquoted_stufe_int_in_frontmatter(tmp_path):
+    md_path = tmp_path / "doc.md"
+    md_path.write_text(
+        "---\nTitel: T\nFach: Mathematik\nThema: X\nStufe: 11\n---\n"
+        ":::task\n!!Begründe!! deine Antwort.\n:::\n",
+        encoding="utf-8",
+    )
+    html_path = tmp_path / "doc.html"
+
+    diagnostics = inspect_markdown_text(md_path.read_text(encoding="utf-8")).diagnostics
+    assert not any(d.code == "OPR001" for d in diagnostics)
+
+    build_worksheet(str(md_path), str(html_path), include_solutions=False)
+    html = html_path.read_text(encoding="utf-8")
+    assert "operator-legend" in html
+    assert "Begründen/Nachweisen/Zeigen" in html
 
 
 def test_render_html_legend_appears_only_in_worksheet_mode_not_solution(tmp_path):
