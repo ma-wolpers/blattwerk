@@ -24,6 +24,7 @@ from .blatt_validator_patterns import (
     _MARKDOWN_IMAGE_PATH_RE,
     _HTML_IMAGE_SRC_RE,
 )
+from .blatt_validator_region import compute_block_region_id
 from .blatt_validator_types import BuildDiagnostic
 
 
@@ -215,7 +216,7 @@ def _extract_validation_content_and_base_line(markdown_text):
 
 
 def _append_invalid_option_value(
-    diagnostics, block_index, block_type, option, value, allowed
+    diagnostics, block_index, block_type, option, value, allowed, options=None
 ):
     """Hängt eine `OP002`-Diagnose (ungültiger Options-Wert) an `diagnostics` an."""
     diagnostics.append(
@@ -227,6 +228,8 @@ def _append_invalid_option_value(
             ),
             block_index=block_index,
             block_type=block_type,
+            region_id=compute_block_region_id(block_type, options or {}),
+            anchor=option,
         )
     )
 
@@ -238,6 +241,7 @@ def _append_invalid_yaml_show_diagnostic(
     section,
     position,
     value,
+    options=None,
 ):
     """Hängt eine `AN007`-Diagnose (ungültiger YAML-`show`-Marker) an `diagnostics` an."""
     diagnostics.append(
@@ -251,5 +255,7 @@ def _append_invalid_yaml_show_diagnostic(
             severity="error",
             block_index=block_index,
             block_type=answer_type,
+            region_id=compute_block_region_id(answer_type, options or {}),
+            anchor=f"{section}[{position}].show",
         )
     )

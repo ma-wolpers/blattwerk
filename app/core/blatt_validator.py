@@ -41,6 +41,7 @@ from .blatt_validator_document import (
     _validate_yaml_answer_payload,
 )
 from .blatt_validator_marker_syntax import _collect_block_marker_syntax_diagnostics
+from .blatt_validator_region import compute_block_region_id
 from .blatt_validator_types import BuildDiagnostic, InspectedDocument
 from .blatt_validator_value_helpers import (
     _collect_absolute_image_paths,
@@ -108,6 +109,8 @@ def _collect_document_diagnostics(meta, blocks, content_text, content_base_line=
                     ),
                     block_index=index,
                     block_type=block_type,
+                    region_id=compute_block_region_id(block_type, options),
+                    anchor="",
                 )
             )
 
@@ -118,6 +121,8 @@ def _collect_document_diagnostics(meta, blocks, content_text, content_base_line=
                     message=f"Unbekannter Blocktyp `{block_type}` wird ignoriert.",
                     block_index=index,
                     block_type=block_type,
+                    region_id=compute_block_region_id(block_type, options),
+                    anchor="",
                 )
             )
             continue

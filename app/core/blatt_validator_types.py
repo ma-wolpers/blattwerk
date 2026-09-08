@@ -18,7 +18,14 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class BuildDiagnostic:
-    """Nicht-blockierende oder blockierende Diagnose aus Parsing/Validierung."""
+    """Nicht-blockierende oder blockierende Diagnose aus Parsing/Validierung.
+
+    `region_id`/`anchor` beschreiben die Occurrence dieser Diagnose fürs
+    Abhaken ("als gelesen markieren"): von der jeweiligen Diagnosequelle
+    selbst gesetzt (siehe `blatt_validator_region.py`, `kurzentwurf_runtime`),
+    nicht von der Acknowledgment-Infrastruktur erraten. `None` bleibt der
+    Default für nicht-ackbare bzw. bisher nicht angepasste Konstruktionsstellen.
+    """
 
     code: str
     message: str
@@ -26,6 +33,8 @@ class BuildDiagnostic:
     block_index: int | None = None
     block_type: str | None = None
     line_number: int | None = None
+    region_id: str | None = None
+    anchor: str | None = None
 
 
 @dataclass(frozen=True)

@@ -26,6 +26,7 @@ from ..core.blatt_kern_shared import normalize_document_mode, split_front_matter
 from ..core.blatt_kern_io_html import absolutize_local_image_sources, apply_image_size_options
 from ..core.blatt_kern_io_pdf import write_pdf_from_html
 from ..core.diagnostic_warnings import build_warning_payload
+from ..storage import acknowledged_warnings_store
 from ..core.document_export_build import (
     export_document_html,
     export_document_pdf,
@@ -245,7 +246,9 @@ class BlattwerkAppExportMixin:
         if not bool(preferences.get("pre_export_diagnostics_enabled", True)):
             return
 
-        warning_payload = build_warning_payload(input_path, "Export")
+        warning_payload = build_warning_payload(
+            input_path, "Export", acknowledged_repo=acknowledged_warnings_store
+        )
         if warning_payload is None or warning_payload["count"] <= 0:
             return
 

@@ -45,6 +45,7 @@ from ..core.document_types import (
 )
 from ..core.blatt_kern_shared import normalize_document_mode, split_front_matter
 from ..core.diagnostic_warnings import build_warning_payload
+from ..storage import acknowledged_warnings_store
 from ..styles.blatt_styles import invalidate_stylesheet_template_cache
 
 class BlattwerkAppPreviewMixin:
@@ -489,7 +490,9 @@ class BlattwerkAppPreviewMixin:
 
     def _show_document_diagnostics(self, input_path: Path, context_label: str):
             """Zeigt nicht-blockierende Blattwerk-Warnungen einmalig pro Dokumentzustand."""
-            warning_payload = build_warning_payload(input_path, context_label)
+            warning_payload = build_warning_payload(
+                input_path, context_label, acknowledged_repo=acknowledged_warnings_store
+            )
             if warning_payload is None:
                 return
 

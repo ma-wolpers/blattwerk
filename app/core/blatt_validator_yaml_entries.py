@@ -20,6 +20,7 @@ from .blatt_validator_constants import (
     MARKER_SHOW_SECTIONS_BY_ANSWER_TYPE,
     NUMBERLINE_ANSWER_TYPES,
 )
+from .blatt_validator_region import compute_block_region_id
 from .blatt_validator_types import BuildDiagnostic
 from .blatt_validator_value_helpers import _append_invalid_yaml_show_diagnostic
 
@@ -31,7 +32,7 @@ def _canonical_yaml_answer_type(answer_type):
     return answer_type
 
 
-def _validate_payload_show_markers(diagnostics, block_index, answer_type, parsed_payload):
+def _validate_payload_show_markers(diagnostics, block_index, answer_type, parsed_payload, options=None):
     """Validiert Marker-only `show`-Werte in YAML-Antwort-Sektionen (`AN007`)."""
     if not isinstance(parsed_payload, dict):
         return
@@ -61,10 +62,11 @@ def _validate_payload_show_markers(diagnostics, block_index, answer_type, parsed
                     section,
                     idx,
                     raw_show,
+                    options,
                 )
 
 
-def _validate_geometry_entry_fields(diagnostics, block_index, answer_type, parsed_payload):
+def _validate_geometry_entry_fields(diagnostics, block_index, answer_type, parsed_payload, options=None):
     """Validiert Objekt-Felder in `geometry`-YAML-Sektionen: unbekannte Keys, ungültige `line`/`color`/`thickness`.
 
     Iteriert über alle vier Sektionen aus `GEOMETRY_ENTRY_ALLOWED_KEYS`
@@ -96,6 +98,8 @@ def _validate_geometry_entry_fields(diagnostics, block_index, answer_type, parse
             if not isinstance(entry, dict):
                 continue
 
+            region_id = compute_block_region_id(answer_type, options or {})
+
             for key in entry:
                 if key not in allowed_keys:
                     diagnostics.append(
@@ -107,6 +111,8 @@ def _validate_geometry_entry_fields(diagnostics, block_index, answer_type, parse
                             ),
                             block_index=block_index,
                             block_type=answer_type,
+                            region_id=region_id,
+                            anchor=f"{section}[{idx}].{key}",
                         )
                     )
 
@@ -124,6 +130,8 @@ def _validate_geometry_entry_fields(diagnostics, block_index, answer_type, parse
                             severity="error",
                             block_index=block_index,
                             block_type=answer_type,
+                            region_id=region_id,
+                            anchor=f"{section}[{idx}].line",
                         )
                     )
 
@@ -137,6 +145,8 @@ def _validate_geometry_entry_fields(diagnostics, block_index, answer_type, parse
                         ),
                         block_index=block_index,
                         block_type=answer_type,
+                        region_id=region_id,
+                        anchor=f"{section}[{idx}].color",
                     )
                 )
 
@@ -151,5 +161,7 @@ def _validate_geometry_entry_fields(diagnostics, block_index, answer_type, parse
                         ),
                         block_index=block_index,
                         block_type=answer_type,
+                        region_id=region_id,
+                        anchor=f"{section}[{idx}].thickness",
                     )
                 )

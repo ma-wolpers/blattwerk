@@ -4,6 +4,7 @@ from collections import Counter, defaultdict
 import re
 
 from .dsl import parse_kurzentwerfer_text
+from .region import compute_phase_region_id
 from .model import (
     ALLOWED_PHASES,
     FORBIDDEN_BLATTWERK_MARKERS,
@@ -300,6 +301,8 @@ def _resolve_phase_times(
                                 "start=... passt nicht zur fortlaufenden t=...-Berechnung und wird ignoriert."
                             ),
                             line=line,
+                            region_id=compute_phase_region_id(phase, duration, start_text),
+                            anchor="",
                         )
                     )
 

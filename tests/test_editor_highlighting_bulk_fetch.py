@@ -16,6 +16,7 @@ from __future__ import annotations
 import re
 
 from app.ui.blatt_ui_editor import BlattwerkAppEditorMixin
+from app.ui.blatt_ui_editor_diagnostics import BlattwerkAppEditorDiagnosticsMixin
 
 
 class _FakeRoot:
@@ -73,7 +74,7 @@ class _FakeKeyEvent:
         self.char = char
 
 
-class _DummyEditor(BlattwerkAppEditorMixin):
+class _DummyEditor(BlattwerkAppEditorDiagnosticsMixin, BlattwerkAppEditorMixin):
     def __init__(self, content: str):
         self.root = _FakeRoot()
         self.editor_widget = _FakeTextWidget(content)

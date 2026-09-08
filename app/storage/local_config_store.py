@@ -10,6 +10,8 @@ from pathlib import Path
 
 from bw_libs.app_paths import atomic_write_json
 
+from . import acknowledged_warnings_schema
+
 DEFAULT_MAX_RECENT_FILES = 5
 MIN_MAX_RECENT_FILES = 1
 MAX_MAX_RECENT_FILES = 20
@@ -27,6 +29,7 @@ UI_SETTINGS_KEY = "ui_settings"
 RECENT_FILES_KEY = "recent_files"
 COMPLETION_STATS_KEY = "completion_stats"
 USER_PREFERENCES_KEY = "user_preferences"
+ACKNOWLEDGED_WARNINGS_KEY = "acknowledged_warnings"
 
 _COMPLETION_DECAY_HALF_LIFE_DAYS = 14.0
 _SECONDS_PER_DAY = 86400.0
@@ -55,6 +58,7 @@ DEFAULT_LOCAL_CONFIG = {
         "option_value_usage": {},
     },
     USER_PREFERENCES_KEY: {},
+    ACKNOWLEDGED_WARNINGS_KEY: {},
 }
 
 
@@ -170,6 +174,9 @@ def normalize_local_config(raw: object) -> dict[str, object]:
     base[RECENT_FILES_KEY] = _normalize_recent_files(raw.get(RECENT_FILES_KEY), max_recent_files)
     base[COMPLETION_STATS_KEY] = _normalize_completion_stats(raw.get(COMPLETION_STATS_KEY))
     base[USER_PREFERENCES_KEY] = _normalize_user_preferences(raw.get(USER_PREFERENCES_KEY))
+    base[ACKNOWLEDGED_WARNINGS_KEY] = acknowledged_warnings_schema.normalize_acknowledged_warnings(
+        raw.get(ACKNOWLEDGED_WARNINGS_KEY), base[RECENT_FILES_KEY]
+    )
     return base
 
 

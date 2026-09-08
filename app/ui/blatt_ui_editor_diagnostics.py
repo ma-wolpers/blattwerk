@@ -17,8 +17,22 @@ from bw_gui.runtime import ui, widgets
 import re
 
 from ..core.blatt_kern_shared import build_block_index_line_map
+from ..core.blatt_validator_types import BuildDiagnostic
+from ..core.diagnostic_identity import compute_diagnostic_identity
 from ..core.document_diagnostics import inspect_document_text
 from ..core.document_types import DOCUMENT_TYPE_KURZENTWURF
+
+_DOCUMENT_TEXT_REGION_ID = "worksheet:document-text"
+
+
+def _block_type_region_id(block_type: str | None) -> str:
+    """Same convention as `blatt_validator_marker_syntax.py`'s helper of the same
+    name -- kept as its own small copy here since these two diagnoses (`SY001`/
+    `SY002`) are editor-only and never reach the markdown-validator module."""
+
+    if block_type is None:
+        return _DOCUMENT_TEXT_REGION_ID
+    return f"worksheet:block-type:{block_type}"
 
 
 class BlattwerkAppEditorDiagnosticsMixin:
@@ -109,8 +123,36 @@ class BlattwerkAppEditorDiagnosticsMixin:
         index_line_map = self._build_editor_diagnostics_line_map(text)
         structure = self._analyze_editor_block_structure(text)
         self._editor_block_pairs_cache = list(structure["pairs"])
+
+        source_diagnostics: list[BuildDiagnostic] = list(inspected.diagnostics)
+
+        if inspected.document_type != DOCUMENT_TYPE_KURZENTWURF:
+            for line_no, block_type in structure["close_suffix_lines"]:
+                source_diagnostics.append(
+                    BuildDiagnostic(
+                        code="SY001",
+                        message="Nach schließendem ::: ist kein weiterer Text erlaubt.",
+                        severity="error",
+                        line_number=max(1, int(line_no)),
+                        region_id=_block_type_region_id(block_type),
+                        anchor="",
+                    )
+                )
+
+            for line_no, block_type in structure["unclosed_open_lines"]:
+                source_diagnostics.append(
+                    BuildDiagnostic(
+                        code="SY002",
+                        message="Block ist geöffnet, aber nicht mit ::: geschlossen.",
+                        severity="error",
+                        line_number=max(1, int(line_no)),
+                        region_id=_block_type_region_id(block_type),
+                        anchor="",
+                    )
+                )
+
         items = []
-        for diagnostic in inspected.diagnostics:
+        for diagnostic in source_diagnostics:
             if diagnostic.line_number is not None:
                 line = diagnostic.line_number
             elif diagnostic.block_index is None:
@@ -118,41 +160,33 @@ class BlattwerkAppEditorDiagnosticsMixin:
             else:
                 line = index_line_map.get(diagnostic.block_index, 1)
 
+            try:
+                identity = compute_diagnostic_identity(diagnostic)
+            except ValueError:
+                identity = None
+
             items.append(
                 {
                     "line": max(1, int(line)),
                     "code": diagnostic.code,
                     "severity": diagnostic.severity,
                     "message": diagnostic.message,
+                    "identity": identity,
                 }
             )
-
-        if inspected.document_type != DOCUMENT_TYPE_KURZENTWURF:
-            for line_no in structure["close_suffix_lines"]:
-                items.append(
-                    {
-                        "line": max(1, int(line_no)),
-                        "code": "SY001",
-                        "severity": "error",
-                        "message": "Nach schließendem ::: ist kein weiterer Text erlaubt.",
-                    }
-                )
-
-            for line_no in structure["unclosed_open_lines"]:
-                items.append(
-                    {
-                        "line": max(1, int(line_no)),
-                        "code": "SY002",
-                        "severity": "error",
-                        "message": "Block ist geöffnet, aber nicht mit ::: geschlossen.",
-                    }
-                )
 
         self._set_editor_diagnostics(items)
 
     @staticmethod
     def _analyze_editor_block_structure(markdown_text: str) -> dict:
-        """Parses block openings/closings to drive mapping, outline and pair matching."""
+        """Parses block openings/closings to drive mapping, outline and pair matching.
+
+        `close_suffix_lines`/`unclosed_open_lines` carry `(line_no, block_type)`
+        pairs (not bare line numbers) so `SY001`/`SY002` can anchor their
+        acknowledgment region to the actually-open block type instead of a
+        generic document-wide bucket -- that block type was already known
+        here, just discarded before the acknowledge-warnings feature.
+        """
 
         pairs = []
         close_suffix_lines = []
@@ -176,12 +210,12 @@ class BlattwerkAppEditorDiagnosticsMixin:
                 continue
 
             if stripped.startswith(":::") and block_stack:
-                _open_type, open_line = block_stack.pop()
+                open_type, open_line = block_stack.pop()
                 pairs.append((open_line, line_no))
                 if stripped != ":::":
-                    close_suffix_lines.append(line_no)
+                    close_suffix_lines.append((line_no, open_type))
 
-        unclosed_open_lines = [line_no for _block_type, line_no in block_stack]
+        unclosed_open_lines = [(line_no, block_type) for block_type, line_no in block_stack]
 
         return {
             "pairs": pairs,

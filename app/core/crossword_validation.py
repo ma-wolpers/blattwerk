@@ -11,6 +11,7 @@ from __future__ import annotations
 from collections import Counter
 
 from .block_computation_cache import ComputationKey, get_or_compute
+from .blatt_validator_region import compute_block_region_id
 from .blatt_validator_types import BuildDiagnostic
 from .crossword_code import validate_crossword_code
 from .crossword_numbering import assign_crossword_numbers
@@ -40,6 +41,8 @@ def validate_crossword_payload(diagnostics, index, block_type, options, content,
     if not entries:
         return
 
+    region_id = compute_block_region_id(block_type, options or {})
+
     word_counts = Counter(entry.word for entry in entries)
     duplicate_words = sorted(word for word, count in word_counts.items() if count > 1)
     if duplicate_words:
@@ -56,6 +59,8 @@ def validate_crossword_payload(diagnostics, index, block_type, options, content,
                 ),
                 block_index=index,
                 block_type=block_type,
+                region_id=region_id,
+                anchor=",".join(duplicate_words),
             )
         )
 
@@ -70,6 +75,8 @@ def validate_crossword_payload(diagnostics, index, block_type, options, content,
                 severity="error",
                 block_index=index,
                 block_type=block_type,
+                region_id=region_id,
+                anchor="",
             )
         )
         return
@@ -85,6 +92,8 @@ def validate_crossword_payload(diagnostics, index, block_type, options, content,
                 severity="error",
                 block_index=index,
                 block_type=block_type,
+                region_id=region_id,
+                anchor="",
             )
         )
         return
@@ -112,6 +121,8 @@ def validate_crossword_payload(diagnostics, index, block_type, options, content,
                 severity="error",
                 block_index=index,
                 block_type=block_type,
+                region_id=region_id,
+                anchor="",
             )
         )
         return
@@ -136,6 +147,8 @@ def validate_crossword_payload(diagnostics, index, block_type, options, content,
                         severity="error",
                         block_index=index,
                         block_type=block_type,
+                        region_id=region_id,
+                        anchor="numbering",
                     )
                 )
 
@@ -160,6 +173,8 @@ def validate_crossword_payload(diagnostics, index, block_type, options, content,
                 severity="error",
                 block_index=index,
                 block_type=block_type,
+                region_id=region_id,
+                anchor="",
             )
         )
         return
@@ -181,5 +196,7 @@ def validate_crossword_payload(diagnostics, index, block_type, options, content,
                     severity="error",
                     block_index=index,
                     block_type=block_type,
+                    region_id=region_id,
+                    anchor="code_numbering",
                 )
             )

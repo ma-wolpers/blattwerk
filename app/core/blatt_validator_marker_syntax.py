@@ -21,6 +21,22 @@ from .blatt_validator_patterns import (
 )
 from .blatt_validator_types import BuildDiagnostic
 
+_DOCUMENT_TEXT_REGION_ID = "worksheet:document-text"
+
+
+def _block_type_region_id(block_type: str | None) -> str:
+    """Region for marker-syntax diagnostics anchored to a known enclosing block type.
+
+    Falls back to the document-wide bucket when no enclosing block is
+    known -- these diagnostics arise exactly because the surrounding
+    structure doesn't parse cleanly, so there is nothing more concrete
+    available (see `docs/intern/ARCHITEKTUR.md`).
+    """
+
+    if block_type is None:
+        return _DOCUMENT_TEXT_REGION_ID
+    return f"worksheet:block-type:{block_type}"
+
 
 def _collect_block_marker_syntax_diagnostics(content_text, base_line=1):
     """Validiert `:::`-Marker-Syntax direkt auf den Quellzeilen.
@@ -53,6 +69,8 @@ def _collect_block_marker_syntax_diagnostics(content_text, base_line=1):
                     ),
                     severity="error",
                     line_number=absolute_line_no,
+                    region_id=_block_type_region_id(block_stack[-1] if block_stack else None),
+                    anchor=stripped_line,
                 )
             )
 
@@ -69,6 +87,8 @@ def _collect_block_marker_syntax_diagnostics(content_text, base_line=1):
                             ),
                             severity="error",
                             line_number=absolute_line_no,
+                            region_id=_DOCUMENT_TEXT_REGION_ID,
+                            anchor=stripped_line,
                         )
                     )
                 if stripped_line.startswith("-=") and not _VALID_VSPACER_MARK_PATTERN.match(stripped_line):
@@ -82,6 +102,8 @@ def _collect_block_marker_syntax_diagnostics(content_text, base_line=1):
                             ),
                             severity="error",
                             line_number=absolute_line_no,
+                            region_id=_DOCUMENT_TEXT_REGION_ID,
+                            anchor=stripped_line,
                         )
                     )
                 if stripped_line.startswith("--hf") and not _VALID_SLIDE_CHROME_OFF_PATTERN.match(stripped_line):
@@ -95,6 +117,8 @@ def _collect_block_marker_syntax_diagnostics(content_text, base_line=1):
                             ),
                             severity="error",
                             line_number=absolute_line_no,
+                            region_id=_DOCUMENT_TEXT_REGION_ID,
+                            anchor=stripped_line,
                         )
                     )
             continue
@@ -110,6 +134,8 @@ def _collect_block_marker_syntax_diagnostics(content_text, base_line=1):
                     ),
                     severity="error",
                     line_number=absolute_line_no,
+                    region_id=_block_type_region_id(block_stack[-1] if block_stack else None),
+                    anchor=stripped_line,
                 )
             )
             continue
@@ -125,6 +151,8 @@ def _collect_block_marker_syntax_diagnostics(content_text, base_line=1):
                         ),
                         severity="error",
                         line_number=absolute_line_no,
+                        region_id=_DOCUMENT_TEXT_REGION_ID,
+                        anchor=stripped_line,
                     )
                 )
             else:
@@ -149,6 +177,8 @@ def _collect_block_marker_syntax_diagnostics(content_text, base_line=1):
                         ),
                         severity="error",
                         line_number=absolute_line_no,
+                        region_id=_block_type_region_id(open_type),
+                        anchor=stripped_line,
                     )
                 )
             continue
@@ -177,6 +207,8 @@ def _collect_block_marker_syntax_diagnostics(content_text, base_line=1):
                         ),
                         severity="error",
                         line_number=absolute_line_no,
+                        region_id=_block_type_region_id(open_type),
+                        anchor=stripped_line,
                     )
                 )
                 continue

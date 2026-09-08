@@ -3,6 +3,25 @@ from pathlib import Path
 from app.core.diagnostic_warnings import build_warning_payload
 
 
+class _NoAcknowledgmentsRepo:
+    """Minimal `AcknowledgedWarningsRepository` fake: nothing is ever acknowledged."""
+
+    def get_acknowledged(self, document_path):
+        return set()
+
+    def set_acknowledged(self, document_path, identity, acknowledged):
+        return set()
+
+    def clear_acknowledged(self, document_path):
+        return None
+
+    def reconcile_acknowledged_warnings(self, document_path, current_identities):
+        return set()
+
+
+_NO_ACK = _NoAcknowledgmentsRepo()
+
+
 def test_build_warning_payload_contains_signature_and_count_for_valid_document(tmp_path):
     doc_path = tmp_path / "ok.md"
     doc_path.write_text(
@@ -15,7 +34,7 @@ def test_build_warning_payload_contains_signature_and_count_for_valid_document(t
         encoding="utf-8",
     )
 
-    payload = build_warning_payload(doc_path, "Vorschau")
+    payload = build_warning_payload(doc_path, "Vorschau", acknowledged_repo=_NO_ACK)
 
     assert payload is not None
     assert payload["count"] == 0
@@ -36,7 +55,7 @@ def test_build_warning_payload_formats_first_diagnostic_line(tmp_path):
         encoding="utf-8",
     )
 
-    payload = build_warning_payload(doc_path, "Export")
+    payload = build_warning_payload(doc_path, "Export", acknowledged_repo=_NO_ACK)
 
     assert payload is not None
     assert payload["count"] >= 1
@@ -59,7 +78,7 @@ def test_build_warning_payload_formats_kurzentwurf_warning_line(tmp_path):
         encoding="utf-8",
     )
 
-    payload = build_warning_payload(doc_path, "Vorschau")
+    payload = build_warning_payload(doc_path, "Vorschau", acknowledged_repo=_NO_ACK)
 
     assert payload is not None
     assert payload["count"] >= 1

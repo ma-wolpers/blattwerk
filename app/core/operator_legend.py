@@ -32,6 +32,11 @@ from .inline_markup import parse_inline_markup
 
 OPERATOR_DATA_DIR = PROJECT_ROOT / "data" / "operatoren"
 
+# Operator-Diagnosen sind dokumentweit (Fach/Stufe-getrieben, nicht an einen
+# einzelnen Block gebunden) -- derselbe generische Dokument-Bucket wie bei
+# den strukturellen Marker-Syntax-Diagnosen (`blatt_validator_marker_syntax.py`).
+_OPERATOR_REGION_ID = "worksheet:document-text"
+
 
 @dataclass(frozen=True)
 class OperatorEntry:
@@ -182,6 +187,8 @@ def collect_used_operators(blocks, meta):
                     f"`!!...!!`-Operator-Marker verwendet, aber keine Operatoren-Datei für "
                     f"Fach „{fach}“ gefunden (`data/operatoren/`)."
                 ),
+                region_id=_OPERATOR_REGION_ID,
+                anchor="",
             )
         ]
 
@@ -208,6 +215,8 @@ def collect_used_operators(blocks, meta):
                             f"Operator-Marker „{run.text}“ passt zu keinem bekannten Operator "
                             f"(Fach „{fach}“)."
                         ),
+                        region_id=_OPERATOR_REGION_ID,
+                        anchor=_normalize_marked_text(run.text),
                     )
                 )
                 continue

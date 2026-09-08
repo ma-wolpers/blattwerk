@@ -19,6 +19,7 @@ eigenständiges Problem und wird unabhängig vom `erroneous`-Flag gemeldet.
 
 from __future__ import annotations
 
+from .blatt_validator_region import compute_block_region_id
 from .blatt_validator_types import BuildDiagnostic
 
 _PRESENTATION_SCOPE_RESET_BLOCK_TYPES = frozenset({"pagebreak"})
@@ -33,13 +34,14 @@ für diese Folie also ohnehin toleriert automatisch). Bewusst OHNE
 class _ColumnsFrame:
     """Ein offener `:::columns`-Rahmen im Validierungs-Stack."""
 
-    __slots__ = ("open_index", "expected_cols", "nextcol_count", "erroneous")
+    __slots__ = ("open_index", "expected_cols", "nextcol_count", "erroneous", "options")
 
-    def __init__(self, open_index, expected_cols, erroneous=False):
+    def __init__(self, open_index, expected_cols, erroneous=False, options=None):
         self.open_index = open_index
         self.expected_cols = expected_cols
         self.nextcol_count = 0
         self.erroneous = erroneous
+        self.options = options or {}
 
 
 def _resolve_expected_columns(options):
@@ -101,9 +103,9 @@ def _validate_columns_structure(blocks):
                     )
                 )
                 stack[-1].erroneous = True
-                stack.append(_ColumnsFrame(index, _resolve_expected_columns(options), erroneous=True))
+                stack.append(_ColumnsFrame(index, _resolve_expected_columns(options), erroneous=True, options=options))
             else:
-                stack.append(_ColumnsFrame(index, _resolve_expected_columns(options)))
+                stack.append(_ColumnsFrame(index, _resolve_expected_columns(options), options=options))
             continue
 
         if block_type == "nextcol":
@@ -152,6 +154,8 @@ def _validate_columns_structure(blocks):
                             ),
                             block_index=frame.open_index,
                             block_type="columns",
+                            region_id=compute_block_region_id("columns", frame.options),
+                            anchor="",
                         )
                     )
             continue

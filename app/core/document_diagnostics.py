@@ -77,4 +77,6 @@ def _normalize_kurzentwurf_diagnostic(diagnostic) -> BuildDiagnostic:
         message=str(getattr(diagnostic, "message", "Kurzentwurf-Fehler") or "Kurzentwurf-Fehler"),
         severity=str(getattr(diagnostic, "severity", "warning") or "warning"),
         line_number=int(line_number) if isinstance(line_number, int) else None,
+        region_id=getattr(diagnostic, "region_id", None),
+        anchor=getattr(diagnostic, "anchor", None),
     )

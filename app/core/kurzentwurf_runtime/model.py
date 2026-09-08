@@ -79,12 +79,20 @@ LEGACY_ROW_MARKERS: tuple[str, ...] = (
 
 @dataclass(frozen=True)
 class Diagnostic:
-    """Static diagnostic output from parser/validator/export stages."""
+    """Static diagnostic output from parser/validator/export stages.
+
+    `region_id`/`anchor` describe this diagnostic's acknowledgment
+    occurrence (see `app.core.diagnostic_identity`) -- set by the
+    Kurzentwurf validator itself for its one ackable code (`KZF136`),
+    left `None` for the (currently all-error) rest.
+    """
 
     code: str
     severity: str
     message: str
     line: int | None = None
+    region_id: str | None = None
+    anchor: str | None = None
 
 
 @dataclass(frozen=True)

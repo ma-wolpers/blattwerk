@@ -1,4 +1,5 @@
 from app.ui.blatt_ui_editor import BlattwerkAppEditorMixin
+from app.ui.blatt_ui_editor_diagnostics import BlattwerkAppEditorDiagnosticsMixin
 
 
 class _FakeEditorWidget:
@@ -20,7 +21,7 @@ class _FakeEditorWidget:
         return f"{line_count}.0"
 
 
-class _DummyDiagnosticsEditor(BlattwerkAppEditorMixin):
+class _DummyDiagnosticsEditor(BlattwerkAppEditorDiagnosticsMixin, BlattwerkAppEditorMixin):
     def __init__(self, text):
         self.editor_widget = _FakeEditorWidget(text)
         self.editor_diagnostics_listbox = None

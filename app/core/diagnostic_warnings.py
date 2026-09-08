@@ -4,13 +4,25 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from .diagnostic_acknowledgment import AcknowledgedWarningsRepository, filter_unacknowledged
+from .diagnostic_identity import compute_diagnostic_identity
 from .document_diagnostics import document_warning_title, inspect_document_path
 
 
-def build_warning_payload(input_path: Path, context_label: str, max_items: int = 8):
+def build_warning_payload(
+    input_path: Path,
+    context_label: str,
+    *,
+    acknowledged_repo: AcknowledgedWarningsRepository,
+    max_items: int = 8,
+):
     """Create warning title/message/signature for non-blocking diagnostics.
 
-    Returns None when there are no diagnostics or the document cannot be inspected.
+    Returns None when there are no diagnostics or the document cannot be
+    inspected. Already-acknowledged warnings are filtered out here, via
+    `acknowledged_repo` (see `app.core.diagnostic_acknowledgment` for the
+    port this must satisfy) -- `app/core` never imports the concrete
+    `app/storage` implementation, the caller (UI layer) injects it.
     """
 
     try:
@@ -23,6 +35,21 @@ def build_warning_payload(input_path: Path, context_label: str, max_items: int =
         for diagnostic in inspected.diagnostics
         if str(getattr(diagnostic, "severity", "warning")).lower() != "error"
     ]
+
+    try:
+        document_path = str(input_path)
+        identities = [compute_diagnostic_identity(d) for d in diagnostics]
+        ackable_identities = {
+            identity for d, identity in zip(diagnostics, identities) if d.severity == "warning"
+        }
+        acknowledged = acknowledged_repo.reconcile_acknowledged_warnings(document_path, ackable_identities)
+        diagnostics = filter_unacknowledged(diagnostics, identities, acknowledged)
+    except Exception:
+        # Ack-Filterung ist rein additiv -- ein Fehler dabei (z. B. eine
+        # Diagnosequelle ohne region_id) darf die Warnungen selbst nicht
+        # verschlucken, nur das Abhaken bleibt fuer diesen Aufruf wirkungslos.
+        pass
+
     signature = (
         str(Path(input_path).resolve()),
         inspected.document_type,

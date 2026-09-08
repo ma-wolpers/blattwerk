@@ -13,6 +13,7 @@ from dataclasses import dataclass
 
 from .dsl_phases import _PhaseBuilder
 from .model import Diagnostic, RawSegment
+from .region import compute_phase_region_id
 
 _MARKER_RE = re.compile(r"^(?P<marker>S>|A>|U>|s<|ant<|ant>)\s*(?P<value>.*)$", re.IGNORECASE)
 
@@ -117,6 +118,10 @@ def _finalize_segment(
                     "Fuege ant< fuer Antizipation in dieser Segmentzeile hinzu."
                 ),
                 line=segment_builder.line,
+                region_id=compute_phase_region_id(
+                    phase_builder.phase, phase_builder.duration_minutes, phase_builder.start_time
+                ),
+                anchor=str(segment_builder.line),
             )
         )
 

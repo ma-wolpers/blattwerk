@@ -621,7 +621,7 @@ class BlattwerkAppEditorMixin:
         full_text = self.editor_widget.get("1.0", "end-1c")
         structure = self._analyze_editor_block_structure(full_text)
         closing_lines = {line_no for _open, line_no in structure["pairs"]}
-        closing_suffix_lines = set(structure["close_suffix_lines"])
+        closing_suffix_lines = {line_no for line_no, _block_type in structure["close_suffix_lines"]}
         self._editor_block_pairs_cache = list(structure["pairs"])
 
         last_line = int(self.editor_widget.index("end-1c").split(".")[0] or 1)

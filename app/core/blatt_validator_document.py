@@ -31,7 +31,10 @@ from .blatt_validator_constants import (
     YAML_ANSWER_TYPES,
 )
 from .blatt_validator_marker_syntax import _has_explicit_worksheet_marker_without_solution
+from .blatt_validator_region import compute_block_region_id
 from .blatt_validator_types import BuildDiagnostic
+
+_FRONTMATTER_REGION_ID = "worksheet:frontmatter"
 from .blatt_validator_value_helpers import _get_matching_item_counts
 from .blatt_validator_yaml_entries import (
     _validate_geometry_entry_fields,
@@ -77,6 +80,8 @@ def _validate_optional_enum_field(field, raw_value):
             f"Erlaubt: {', '.join(sorted(field.allowed_values))}."
         ),
         severity=rules["severity"],
+        region_id=_FRONTMATTER_REGION_ID,
+        anchor=field.name,
     )
 
 
@@ -95,6 +100,8 @@ def _validate_optional_boolean_field(field, raw_value):
             "Erlaubt sind boolesche Werte (z. B. true/false, ja/nein, 1/0)."
         ),
         severity="error",
+        region_id=_FRONTMATTER_REGION_ID,
+        anchor=field.name,
     )
 
 
@@ -108,6 +115,8 @@ def _validate_optional_scalar_nonempty_field(field, raw_value):
                 "Erlaubt ist ein einfacher Textwert (z. B. `1`, `A`, `TAG`)."
             ),
             severity="error",
+            region_id=_FRONTMATTER_REGION_ID,
+            anchor=field.name,
         )
     if not str(raw_value).strip():
         return BuildDiagnostic(
@@ -116,6 +125,8 @@ def _validate_optional_scalar_nonempty_field(field, raw_value):
                 f"Ungueltiger Frontmatter-Wert fuer `{field.name}`: leerer Wert ist nicht erlaubt."
             ),
             severity="error",
+            region_id=_FRONTMATTER_REGION_ID,
+            anchor=field.name,
         )
     return None
 
@@ -139,6 +150,8 @@ def _validate_frontmatter(meta):
                 BuildDiagnostic(
                     code="FM001",
                     message=f"Pflichtfeld im Frontmatter fehlt oder ist leer: `{required_key}`.",
+                    region_id=_FRONTMATTER_REGION_ID,
+                    anchor=required_key,
                 )
             )
 
@@ -197,6 +210,8 @@ def _validate_selfcheck_options(index, block_type, options):
                 ),
                 block_index=index,
                 block_type=block_type,
+                region_id=compute_block_region_id(block_type, options),
+                anchor="preset",
             )
         )
 
@@ -210,6 +225,8 @@ def _validate_selfcheck_options(index, block_type, options):
                 ),
                 block_index=index,
                 block_type=block_type,
+                region_id=compute_block_region_id(block_type, options),
+                anchor="range",
             )
         )
 
@@ -238,6 +255,8 @@ def _validate_block_type_specifics(diagnostics, index, block_type, options, cont
                 ),
                 block_index=index,
                 block_type=block_type,
+                region_id=compute_block_region_id(block_type, options),
+                anchor="",
             )
         )
 
@@ -249,6 +268,8 @@ def _validate_block_type_specifics(diagnostics, index, block_type, options, cont
                 severity="error",
                 block_index=index,
                 block_type=block_type,
+                region_id=compute_block_region_id(block_type, options),
+                anchor="",
             )
         )
 
@@ -266,6 +287,8 @@ def _validate_block_type_specifics(diagnostics, index, block_type, options, cont
                 ),
                 block_index=index,
                 block_type=block_type,
+                region_id=compute_block_region_id(block_type, options),
+                anchor="",
             )
         )
 
@@ -282,6 +305,8 @@ def _validate_block_type_specifics(diagnostics, index, block_type, options, cont
                 ),
                 block_index=index,
                 block_type=block_type,
+                region_id=compute_block_region_id(block_type, options),
+                anchor="",
             )
         )
 
@@ -300,6 +325,8 @@ def _validate_block_type_specifics(diagnostics, index, block_type, options, cont
                 ),
                 block_index=index,
                 block_type=block_type,
+                region_id=compute_block_region_id(block_type, options),
+                anchor="",
             )
         )
 
@@ -315,6 +342,8 @@ def _validate_block_type_specifics(diagnostics, index, block_type, options, cont
                 ),
                 block_index=index,
                 block_type=block_type,
+                region_id=compute_block_region_id(block_type, options),
+                anchor="",
             )
         )
 
@@ -346,6 +375,8 @@ def _validate_yaml_answer_payload(diagnostics, index, block_type, options, conte
                     severity="error",
                     block_index=index,
                     block_type=block_type,
+                    region_id=compute_block_region_id(block_type, options),
+                    anchor="",
                 )
             )
             return
@@ -360,12 +391,14 @@ def _validate_yaml_answer_payload(diagnostics, index, block_type, options, conte
                     ),
                     block_index=index,
                     block_type=block_type,
+                    region_id=compute_block_region_id(block_type, options),
+                    anchor="",
                 )
             )
 
         if isinstance(parsed, dict):
-            _validate_payload_show_markers(diagnostics, index, answer_type, parsed)
-            _validate_geometry_entry_fields(diagnostics, index, answer_type, parsed)
+            _validate_payload_show_markers(diagnostics, index, answer_type, parsed, options)
+            _validate_geometry_entry_fields(diagnostics, index, answer_type, parsed, options)
 
     if answer_type == "matching":
         first_count, second_count = _get_matching_item_counts(options, content)
@@ -379,6 +412,8 @@ def _validate_yaml_answer_payload(diagnostics, index, block_type, options, conte
                     ),
                     block_index=index,
                     block_type=block_type,
+                    region_id=compute_block_region_id(block_type, options),
+                    anchor="",
                 )
             )
 

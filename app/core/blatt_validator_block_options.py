@@ -25,6 +25,7 @@ from .blatt_validator_constants import (
     OBJECT_ALIGN_VALUE_HINT,
     QRCODE_SIZE_OPTION_KEYS,
 )
+from .blatt_validator_region import compute_block_region_id
 from .blatt_validator_types import BuildDiagnostic
 from .blatt_validator_value_helpers import (
     _append_invalid_option_value,
@@ -46,7 +47,7 @@ def _lookup_option_spec(block_type, option_key):
     return None
 
 
-def _validate_generic_enum_option(diagnostics, index, block_type, option_key, option_value, normalized_value):
+def _validate_generic_enum_option(diagnostics, index, block_type, option_key, option_value, normalized_value, options):
     """Prüft eine Option generisch gegen `BLOCK_OPTION_SPECS`, wenn ihr Katalogeintrag ein validiertes Enum ist.
 
     Deckt `mode`/`work`/`action`/`hint` (blockübergreifend) sowie `line`
@@ -59,7 +60,7 @@ def _validate_generic_enum_option(diagnostics, index, block_type, option_key, op
         return
     if normalized_value not in spec.allowed_values:
         _append_invalid_option_value(
-            diagnostics, index, block_type, option_key, option_value, spec.allowed_values
+            diagnostics, index, block_type, option_key, option_value, spec.allowed_values, options
         )
 
 
@@ -85,6 +86,8 @@ def _validate_block_options(diagnostics, index, block_type, options, allowed_opt
                     severity="error",
                     block_index=index,
                     block_type=block_type,
+                    region_id=compute_block_region_id(block_type, options),
+                    anchor=option_key,
                 )
             )
             continue
@@ -96,6 +99,8 @@ def _validate_block_options(diagnostics, index, block_type, options, allowed_opt
                     message=f"Unbekannte Option `{option_key}` in Block `{block_type}`.",
                     block_index=index,
                     block_type=block_type,
+                    region_id=compute_block_region_id(block_type, options),
+                    anchor=option_key,
                 )
             )
             continue
@@ -103,7 +108,7 @@ def _validate_block_options(diagnostics, index, block_type, options, allowed_opt
         normalized_value = _normalize_value(option_value)
         if option_key == "show" and normalized_value not in KNOWN_SHOW_VALUES:
             _append_invalid_option_value(
-                diagnostics, index, block_type, option_key, option_value, KNOWN_SHOW_VALUES
+                diagnostics, index, block_type, option_key, option_value, KNOWN_SHOW_VALUES, options
             )
         elif option_key == "show":
             diagnostics.append(
@@ -115,11 +120,13 @@ def _validate_block_options(diagnostics, index, block_type, options, allowed_opt
                     ),
                     block_index=index,
                     block_type=block_type,
+                    region_id=compute_block_region_id(block_type, options),
+                    anchor=option_key,
                 )
             )
         elif option_key in _GENERIC_VALIDATED_ENUM_OPTION_NAMES:
             _validate_generic_enum_option(
-                diagnostics, index, block_type, option_key, option_value, normalized_value
+                diagnostics, index, block_type, option_key, option_value, normalized_value, options
             )
         elif (
             option_key in {"align", "alignment"}
@@ -136,6 +143,8 @@ def _validate_block_options(diagnostics, index, block_type, options, allowed_opt
                     ),
                     block_index=index,
                     block_type=block_type,
+                    region_id=compute_block_region_id(block_type, options),
+                    anchor=option_key,
                 )
             )
         elif block_type == "qrcode" and option_key in QRCODE_SIZE_OPTION_KEYS:
@@ -150,6 +159,8 @@ def _validate_block_options(diagnostics, index, block_type, options, allowed_opt
                         ),
                         block_index=index,
                         block_type=block_type,
+                        region_id=compute_block_region_id(block_type, options),
+                        anchor=option_key,
                     )
                 )
         elif block_type == "qrcode" and option_key == "url":
@@ -165,6 +176,8 @@ def _validate_block_options(diagnostics, index, block_type, options, allowed_opt
                         severity="error",
                         block_index=index,
                         block_type=block_type,
+                        region_id=compute_block_region_id(block_type, options),
+                        anchor=option_key,
                     )
                 )
 
