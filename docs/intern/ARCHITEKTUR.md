@@ -32,6 +32,7 @@ Zusätzliche Kern-Usecases:
 - `color_mentions.py` (fachliche BW/Farb-Regel)
 - `diagnostic_identity.py`/`diagnostic_acknowledgment.py` (generische, dokumenttypunabhaengige Occurrence-Identitaet fuer abgehakte Warnungen im Editor -- kennt keine Blocktypen/Codes/Dokumentfamilien, nur `code`/`region_id`/`anchor`; jede Diagnosequelle liefert ihre eigene Region/Anker, z. B. `blatt_validator_region.py` fuer Arbeitsblatt-`:::`-Bloecke, `kurzentwurf_runtime/region.py` fuer Kurzentwurf-Phasen)
 - `block_computation_cache.py` (generischer, blocktyp-unabhaengiger Cache fuer teure deterministische Blockberechnungen; wird von der Anwendungsschicht geoeffnet, nie von `build_worksheet`/`build_help_cards` selbst, und ueber `inspect_markdown_text(..., cache=...)`/`render_html(..., cache=...)` an Validate- und Render-Schritt durchgereicht, damit beide dasselbe Ergebnis wiederverwenden koennen)
+- `operator_legend.py` (einzige Stelle, die weiss, was ein `!!...!!`-Aufgaben-Operator, ein Fach->Operatorenliste- und ein Stufe->Gruppe-Bezug fachlich bedeuten; laedt `data/operatoren/<fach>.json`, versorgt Validator (`OPR001`/`OPR003`), Arbeitsblatt-Legende und Editor-Autocomplete aus demselben `OperatorDataset`/derselben Verfuegbarkeits-Logik. Bewusst **nicht** weiter aufgeteilt trotz > 300 Zeilen -- die drei Konsumenten sind eine fachlich eng zusammengehoerige Einheit; eine Aufteilung (z. B. `operator_catalog.py`/`operator_matching.py`) erfolgt erst bei einem tatsaechlich unabhaengigen zweiten Verantwortungsbereich, nicht vorsorglich)
 
 ## Schichtenmodell
 

@@ -1,7 +1,14 @@
-"""Completion catalog queries sourced from core validation constants."""
+"""Completion catalog queries for the editor -- one import path for the UI layer.
+
+Mostly sourced from core validation constants (`blatt_validator`), plus a
+thin pass-through to `operator_legend.py`'s operator-suggestion data
+(`get_completion_operator_forms`) so the UI never needs to import that
+module directly.
+"""
 
 from __future__ import annotations
 
+from . import operator_legend
 from . import blatt_validator as validator
 
 _SELF_CLOSING_BLOCK_TYPES = frozenset(
@@ -164,6 +171,20 @@ def get_completion_frontmatter_field_values(field_name: str) -> tuple[str, ...]:
         return tuple(sorted(spec.allowed_values))
 
     return ()
+
+
+def get_completion_operator_forms(fach, stufe) -> tuple[str, ...]:
+    """Returns the official `!!...!!`-operator suggestion labels for `fach`/`stufe`.
+
+    Thin pass-through to `operator_legend.list_operator_suggestions` -- the
+    only place that knows what an operator or a Stufe-group means (see
+    that module's docstring). Kept here so the UI layer imports operator
+    data through the same catalog module as everything else, never
+    `operator_legend` directly. Empty tuple for an unknown `fach` or when
+    `fach`/`stufe` filtering leaves nothing available -- no exception.
+    """
+
+    return operator_legend.list_operator_suggestions(fach, stufe)
 
 
 def get_self_closing_block_types() -> frozenset[str]:

@@ -11,6 +11,8 @@ from app.core.operator_legend import (
     _resolve_matched_groups,
     _slugify_fach,
     collect_used_operators,
+    list_operator_suggestions,
+    load_operator_data,
     render_operator_legend_html,
 )
 
@@ -201,3 +203,126 @@ def test_kurzentwurf_runtime_never_imports_operator_legend():
     # future change can't silently make the legend leak into Kurzentwurf.
     render_html_source = Path("app/core/kurzentwurf_runtime/render_html.py").read_text(encoding="utf-8")
     assert "operator_legend" not in render_html_source
+
+
+def test_list_operator_suggestions_returns_official_forms_for_mathematik():
+    suggestions = list_operator_suggestions("Mathematik", None)
+    assert "Bestimmen" in suggestions
+    assert "Ermitteln" in suggestions
+    assert suggestions == tuple(sorted(suggestions))  # alphabetically sorted
+
+
+def test_list_operator_suggestions_unknown_fach_returns_empty_tuple():
+    assert list_operator_suggestions("Chemie", None) == ()
+
+
+def test_list_operator_suggestions_unknown_fach_and_stufe_together_no_exception():
+    assert list_operator_suggestions("Chemie", "q1") == ()
+
+
+def test_list_operator_suggestions_excludes_operator_outside_stufe():
+    with_q1 = list_operator_suggestions("Mathematik", "Q1")
+    with_7 = list_operator_suggestions("Mathematik", "7")
+    assert "Begründen" in with_q1
+    assert "Begründen" not in with_7
+
+
+def test_list_operator_suggestions_only_returns_vorschlag_not_all_formen_variants():
+    # "Bestimmen/Ermitteln" has 6 conjugated formen (bestimmen, bestimme,
+    # bestimmt, ermitteln, ermittle, ermittelt) but only 2 official
+    # vorschlag entries -- autocomplete must never leak the conjugations.
+    suggestions = list_operator_suggestions("Mathematik", None)
+    assert "Bestimmen" in suggestions
+    assert "Ermitteln" in suggestions
+    for leaked_conjugation in ("bestimme", "bestimmt", "ermittle", "ermittelt"):
+        assert leaked_conjugation not in suggestions
+
+
+def test_legend_and_autocomplete_agree_on_stufe_availability():
+    # Architecture test: collect_used_operators (legend/validator) and
+    # list_operator_suggestions (autocomplete) must never structurally
+    # diverge on which operators are available for a given Stufe, because
+    # both call the same _resolve_matched_groups/_operator_available.
+    for stufe, should_be_available in (("7", False), ("Q1", True)):
+        matched, diagnostics = collect_used_operators(
+            _blocks("!!Begründe!! deine Antwort."), {"Fach": "Mathematik", "Stufe": stufe}
+        )
+        legend_available = bool(matched) and not any(d.code == "OPR001" for d in diagnostics)
+        suggestions = list_operator_suggestions("Mathematik", stufe)
+        autocomplete_available = "Begründen" in suggestions
+        assert legend_available == should_be_available
+        assert autocomplete_available == should_be_available
+
+
+def test_load_operator_data_caches_by_path_not_by_fach_slug(tmp_path, monkeypatch):
+    import app.core.operator_legend as operator_legend_module
+
+    data_dir_a = tmp_path / "a"
+    data_dir_b = tmp_path / "b"
+    data_dir_a.mkdir()
+    data_dir_b.mkdir()
+    (data_dir_a / "testfach.json").write_text(
+        '{"operatoren": [{"key": "A", "vorschlag": ["A"], "formen": ["a"], "definition": "von a"}]}',
+        encoding="utf-8",
+    )
+    (data_dir_b / "testfach.json").write_text(
+        '{"operatoren": [{"key": "B", "vorschlag": ["B"], "formen": ["b"], "definition": "von b"}]}',
+        encoding="utf-8",
+    )
+
+    monkeypatch.setattr(operator_legend_module, "OPERATOR_DATA_DIR", data_dir_a)
+    dataset_a = load_operator_data("Testfach")
+    assert dataset_a is not None
+    assert dataset_a.operatoren[0].key == "A"
+
+    # Same Fach slug ("testfach"), but a DIFFERENT directory/path -- a
+    # string-keyed cache (keyed by fach_slug alone) would incorrectly
+    # return dataset_a's cached entry here instead of loading data_dir_b's
+    # actual file.
+    monkeypatch.setattr(operator_legend_module, "OPERATOR_DATA_DIR", data_dir_b)
+    dataset_b = load_operator_data("Testfach")
+    assert dataset_b is not None
+    assert dataset_b.operatoren[0].key == "B"
+
+
+def test_load_operator_data_reuses_cache_when_file_unchanged(tmp_path, monkeypatch):
+    import app.core.operator_legend as operator_legend_module
+
+    data_dir = tmp_path / "cache_test"
+    data_dir.mkdir()
+    (data_dir / "testfach2.json").write_text(
+        '{"operatoren": [{"key": "A", "vorschlag": ["A"], "formen": ["a"], "definition": "x"}]}',
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(operator_legend_module, "OPERATOR_DATA_DIR", data_dir)
+
+    calls = []
+    original = operator_legend_module._load_operator_dataset_from_path
+
+    def counting(path):
+        calls.append(path)
+        return original(path)
+
+    monkeypatch.setattr(operator_legend_module, "_load_operator_dataset_from_path", counting)
+
+    first = load_operator_data("Testfach2")
+    second = load_operator_data("Testfach2")
+    assert first == second
+    assert len(calls) == 1  # second call hit the cache, no re-parse
+
+
+def test_new_fach_is_pluggable_via_data_layer_alone(tmp_path, monkeypatch):
+    # A brand-new Fach becomes available purely by adding a data file --
+    # no change to completion_catalogs.py or the UI layer is needed.
+    import app.core.operator_legend as operator_legend_module
+
+    data_dir = tmp_path / "new_fach_dir"
+    data_dir.mkdir()
+    (data_dir / "geschichte.json").write_text(
+        '{"operatoren": [{"key": "Erörtern", "vorschlag": ["Erörtern"], '
+        '"formen": ["erörtern"], "definition": "Eine Streitfrage abwägend beurteilen."}]}',
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(operator_legend_module, "OPERATOR_DATA_DIR", data_dir)
+
+    assert list_operator_suggestions("Geschichte", None) == ("Erörtern",)

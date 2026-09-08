@@ -23,6 +23,7 @@ So vermeiden wir Klebercode und Verwirrung.
   - Parse, Validate, Render und Build passieren hier.
   - Dokumenttyp-Routing fuer Arbeitsblatt, Praesentation und Kurzentwurf passiert ebenfalls hier.
   - Ein gemeinsamer Cache (`block_computation_cache.py`) sorgt dafuer, dass teure Blockberechnungen (z. B. ein Kreuzworträtsel-Raster) nicht doppelt gerechnet werden, wenn Validate und Render kurz hintereinander laufen.
+  - `operator_legend.py` weiss als einzige Stelle, was ein `!!Operator!!`-Marker fachlich bedeutet (Fach-Operatorenliste, Stufen-Verfuegbarkeit) und versorgt Validierung, Arbeitsblatt-Legende und Editor-Autocomplete aus denselben Daten.
 
 - `app/ui`
   - Hier ist die Oberfläche.

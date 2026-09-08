@@ -1,5 +1,6 @@
 from app.core.completion_catalogs import (
     get_completion_frontmatter_field_values,
+    get_completion_operator_forms,
     get_completion_option_value_abbreviation_hints,
     get_completion_option_values,
     get_completion_options_for_block,
@@ -150,3 +151,18 @@ def test_frontmatter_field_completion_empty_for_non_enum_field():
 
 def test_frontmatter_field_completion_empty_for_unknown_field():
     assert get_completion_frontmatter_field_values("does_not_exist") == ()
+
+
+def test_operator_forms_completion_returns_official_labels_for_mathematik():
+    suggestions = get_completion_operator_forms("Mathematik", None)
+    assert "Bestimmen" in suggestions
+    assert "Ermitteln" in suggestions
+
+
+def test_operator_forms_completion_filters_by_stufe():
+    assert "Begründen" in get_completion_operator_forms("Mathematik", "Q1")
+    assert "Begründen" not in get_completion_operator_forms("Mathematik", "7")
+
+
+def test_operator_forms_completion_empty_for_unknown_fach():
+    assert get_completion_operator_forms("Chemie", None) == ()

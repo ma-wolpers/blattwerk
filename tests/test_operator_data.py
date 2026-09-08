@@ -80,3 +80,26 @@ def test_operator_data_file_every_operator_has_key_definition_and_forms(data_fil
         assert entry.get("key")
         assert entry.get("definition")
         assert entry.get("formen"), f"{data_file.name}: operator {entry.get('key')!r} has no formen"
+
+
+def test_operator_data_file_every_operator_has_a_vorschlag(data_file):
+    # vorschlag is what editor autocomplete offers -- distinct from formen
+    # (matching), see DEVELOPMENT_LOG.md. Missing it just means "no
+    # suggestion", not a crash, but it should be an explicit oversight to
+    # catch, not a silent gap.
+    raw = json.loads(data_file.read_text(encoding="utf-8"))
+    for entry in raw.get("operatoren", []):
+        assert entry.get("vorschlag"), f"{data_file.name}: operator {entry.get('key')!r} has no vorschlag"
+
+
+def test_operator_data_file_has_no_duplicate_vorschlag_across_keys(data_file):
+    raw = json.loads(data_file.read_text(encoding="utf-8"))
+    vorschlag_to_key = {}
+    for entry in raw.get("operatoren", []):
+        key = entry["key"]
+        for label in entry.get("vorschlag", []):
+            existing_key = vorschlag_to_key.get(label)
+            assert existing_key is None or existing_key == key, (
+                f"vorschlag {label!r} claimed by both {existing_key!r} and {key!r} in {data_file.name}"
+            )
+            vorschlag_to_key[label] = key

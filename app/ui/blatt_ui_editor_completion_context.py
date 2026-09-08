@@ -12,15 +12,23 @@ from __future__ import annotations
 
 import re
 
+from ..core.blatt_kern_shared_parsing import split_front_matter
 from ..core.completion_catalogs import (
     get_completion_block_types,
     get_completion_frontmatter_field_values,
+    get_completion_operator_forms,
     get_completion_option_value_abbreviation_hints,
     get_completion_option_values,
     get_completion_options_for_block,
     get_self_closing_block_types,
 )
 from ..storage.local_config_store import get_option_value_decay_scores
+
+_FRONTMATTER_SCAN_LINE_LIMIT = 60
+"""Sicherheitsnetz für `_editor_read_frontmatter_meta`: grosszügig über jeder
+realistischen Frontmatter-Grösse, verhindert bei einem Dokument ohne
+schliessendes `---` (kaputtes/fehlendes Frontmatter), dass der Scan
+versehentlich das gesamte (potenziell sehr lange) Dokument liest."""
 
 _EDITOR_FRONTMATTER_KEYS = (
     "Titel",
@@ -276,6 +284,28 @@ class BlattwerkAppEditorCompletionContextMixin:
                     "kind": "frontmatter_key",
                 }
 
+        operator_delimiters = list(re.finditer(r"!!", left_text))
+        if len(operator_delimiters) % 2 == 1 and not self._editor_cursor_in_frontmatter(line_no):
+            # Odd count = the last `!!` opened a marker that's still open at
+            # the cursor. An even count means every `!!` on this line
+            # before the cursor is already paired off (e.g. cursor sits
+            # right after a closed "!!Bestimmen!! ") -- a naive
+            # "last !! to end of line" regex would wrongly treat the
+            # trailing plain text as an open marker's partial content.
+            partial_start = operator_delimiters[-1].end()
+            partial = left_text[partial_start:]
+            meta = self._editor_read_frontmatter_meta()
+            suggestions = self._build_operator_suggestions(
+                fach=meta.get("Fach"), stufe=meta.get("Stufe"), value_prefix=partial
+            )
+            if suggestions:
+                return {
+                    "suggestions": suggestions,
+                    "replace_start": f"{line_no}.{partial_start}",
+                    "replace_end": f"{line_no}.{cursor_col}",
+                    "kind": "operator_value",
+                }
+
         return None
 
     def _editor_get_enclosing_block_type(self, target_line_no: int) -> str | None:
@@ -327,6 +357,49 @@ class BlattwerkAppEditorCompletionContextMixin:
                 frontmatter_delim_count += 1
 
         return frontmatter_delim_count == 1
+
+    def _editor_read_frontmatter_meta(self):
+        """Reads and parses ONLY the frontmatter block (line 1 up to the second `---`),
+        not the whole buffer -- the single place in the completion layer that
+        extracts actual frontmatter VALUES (`Fach`, `Stufe`, ...), as opposed
+        to `_editor_cursor_in_frontmatter`/`_editor_document_has_frontmatter`
+        above, which only answer boundary questions and never read values. A
+        future need for another frontmatter value should go through this
+        method, not a fifth scan function.
+
+        Cost scales with frontmatter size (typically <15 lines), not
+        document length -- deliberately NOT `split_front_matter(self.editor_widget.get("1.0", "end-1c"))`
+        on the full buffer, which would scale with a growing task body
+        below it for no reason. `_FRONTMATTER_SCAN_LINE_LIMIT` is a safety
+        net for a document with no closing `---` (broken/missing
+        frontmatter) -- the scan gives up and returns `{}` rather than
+        reading the rest of a potentially very long document.
+
+        No debounce, no extra caching: this method is only reached from the
+        already-narrow "cursor sits inside an open `!!...!!`" branch, and a
+        bounded scan of a handful of lines is cheap enough on every
+        keystroke without either -- the same "make it cheap by
+        construction" standard the rest of completion already relies on.
+        """
+        if self.editor_widget is None:
+            return {}
+
+        lines = []
+        delimiter_count = 0
+        for line_no in range(1, _FRONTMATTER_SCAN_LINE_LIMIT + 1):
+            if self.editor_widget.compare(f"{line_no}.0", ">=", "end-1c"):
+                break  # reached end of document before a second `---`
+            text = self.editor_widget.get(f"{line_no}.0", f"{line_no}.end")
+            lines.append(text)
+            if text.strip() == "---":
+                delimiter_count += 1
+                if delimiter_count == 2:
+                    break
+
+        if delimiter_count < 2:
+            return {}
+        meta, _rest = split_front_matter("\n".join(lines))
+        return meta or {}
 
     def _build_option_value_suggestions(self, *, block_type: str, option_key: str, value_prefix: str):
         """Builds option value candidates with optional learned ranking data."""
@@ -401,6 +474,24 @@ class BlattwerkAppEditorCompletionContextMixin:
                 "kind": "frontmatter_value",
                 "field_name": field_name,
             }
+            for value in filtered
+        ]
+
+    def _build_operator_suggestions(self, *, fach, stufe, value_prefix: str):
+        """Builds `!!...!!`-operator suggestion candidates for the document's `Fach`/`Stufe`.
+
+        Mirrors `_build_frontmatter_value_suggestions`'s shape and
+        simplicity -- no learned-ranking, no abbreviation catalog. Reads
+        `get_completion_operator_forms` (the official `vorschlag` labels,
+        never the full `formen` conjugation list -- see
+        `operator_legend.py`), filtered by the already-typed prefix.
+        """
+
+        prefix_norm = str(value_prefix or "").strip().lower()
+        suggestions = get_completion_operator_forms(fach, stufe)
+        filtered = [value for value in suggestions if value.lower().startswith(prefix_norm)]
+        return [
+            {"label": value, "insert_text": value, "kind": "operator_value"}
             for value in filtered
         ]
 
