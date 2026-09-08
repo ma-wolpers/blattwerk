@@ -1883,6 +1883,31 @@ h1 {
     font-weight: inherit;
 }
 
+.operator-legend {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+    font-size: 0.85em;
+    margin-top: var(--block-gap-regular);
+    break-inside: avoid-page;
+    page-break-inside: avoid;
+}
+
+.operator-legend td {
+    border: var(--field-border-width) solid var(--material-border-color);
+    padding: 0.3em 0.5em;
+    vertical-align: top;
+}
+
+.operator-legend-key {
+    width: 18%;
+    font-weight: 700;
+}
+
+.operator-legend-definition {
+    width: 82%;
+}
+
 .mjx-container {
     margin: 0;
 }

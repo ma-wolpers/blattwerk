@@ -134,9 +134,17 @@ def test_render_operator_legend_html_lists_key_and_definition():
     from app.core.operator_legend import MatchedOperator
 
     html = render_operator_legend_html([MatchedOperator(key="Bestimmen", definition="Ergebnis ermitteln.")])
-    assert "operator-legend" in html
-    assert "Bestimmen" in html
+    assert "<table class='operator-legend'>" in html
+    assert "<td class='operator-legend-key'>Bestimmen</td>" in html
     assert "Ergebnis ermitteln." in html
+
+
+def test_render_operator_legend_html_has_no_heading():
+    from app.core.operator_legend import MatchedOperator
+
+    html = render_operator_legend_html([MatchedOperator(key="Bestimmen", definition="Ergebnis ermitteln.")])
+    assert "<h4" not in html
+    assert "Operatoren<" not in html
 
 
 def test_full_pipeline_survives_unquoted_stufe_int_in_frontmatter(tmp_path):
@@ -153,7 +161,7 @@ def test_full_pipeline_survives_unquoted_stufe_int_in_frontmatter(tmp_path):
 
     build_worksheet(str(md_path), str(html_path), include_solutions=False)
     html = html_path.read_text(encoding="utf-8")
-    assert "operator-legend" in html
+    assert "<table class='operator-legend'>" in html
     assert "Begründen/Nachweisen/Zeigen" in html
 
 
@@ -168,11 +176,14 @@ def test_render_html_legend_appears_only_in_worksheet_mode_not_solution(tmp_path
 
     build_worksheet(str(md_path), str(html_path), include_solutions=False)
     worksheet_html = html_path.read_text(encoding="utf-8")
-    assert "operator-legend" in worksheet_html
+    assert "<table class='operator-legend'>" in worksheet_html
 
     build_worksheet(str(md_path), str(html_path), include_solutions=True)
     solution_html = html_path.read_text(encoding="utf-8")
-    assert "operator-legend" not in solution_html
+    # The .operator-legend CSS class is embedded in every document's
+    # <style> block regardless of whether the legend renders -- only the
+    # actual <table> element must be absent in solution mode.
+    assert "<table class='operator-legend'>" not in solution_html
 
 
 def test_opr_diagnostics_surface_through_document_validation():

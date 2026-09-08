@@ -240,17 +240,17 @@ def collect_used_operators(blocks, meta):
 
 
 def render_operator_legend_html(matched_operators):
-    """Renders the Arbeitsblatt-only operator legend as a simple `key: definition` list."""
+    """Renders the Arbeitsblatt-only operator legend as a two-column table
+    (operator | definition), matching the source PDF's layout. No heading --
+    the table is self-explanatory next to the marked-up operators above it.
+    """
     if not matched_operators:
         return ""
-    items = "".join(
-        f"<li><span class='operator-legend-key'>{escape(operator.key)}</span>: "
-        f"<span class='operator-legend-definition'>{escape(operator.definition)}</span></li>"
+    rows = "".join(
+        "<tr>"
+        f"<td class='operator-legend-key'>{escape(operator.key)}</td>"
+        f"<td class='operator-legend-definition'>{escape(operator.definition)}</td>"
+        "</tr>"
         for operator in matched_operators
     )
-    return (
-        "<div class='operator-legend'>"
-        "<h4 class='operator-legend-heading'>Operatoren</h4>"
-        f"<ul class='operator-legend-list'>{items}</ul>"
-        "</div>"
-    )
+    return f"<table class='operator-legend'><tbody>{rows}</tbody></table>"
