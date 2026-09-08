@@ -8,7 +8,7 @@ Diese Datei sammelt feste Standards für Arbeitsblätter, die bei der Inhaltsers
 - Aufgaben ohne Punkte: bei `:::task` kein Parameter `points`
 - Operatoren in Aufgaben fett setzen, z. B. **Beschreibt**, **Vergleicht**, **Begründet**
 - Umlaute konsequent verwenden (ä, ö, ü, Ä, Ö, Ü, ß), nicht als ae/oe/ue umschreiben
-- Zwischen zwei Hauptaufgaben immer `---` als Trenner setzen, wenn kein gemeinsamer Seitenzwang besteht
+- Zwischen zwei Hauptaufgaben (und generell überall, was nicht zwingend auf derselben Seite stehen muss) `--` als Trenner setzen – NICHT `---` (das fügt zusätzlich 1cm Abstand ein und ist eigentlich nur eine normale Markdown-Trennlinie, kein Blattwerk-Kontrollmarker). Ausnahmen: zwischen einer Aufgabe und ihrem direkt zugehörigen `:::material` sowie innerhalb von `:::columns`/`:::nextcol`/`:::endcolumns`-Konstrukten keinen Trenner einfügen.
 
 ## Speicherort
 
@@ -18,7 +18,7 @@ Alle Arbeitsblätter in `Material` speichern, am besten in einem Unterordner mit
 
 1. Sind alle Operatoren fett gesetzt?
 2. Sind Umlaute korrekt geschrieben?
-3. Gibt es Trenner `---` zwischen den Hauptaufgaben?
+3. Gibt es Trenner `--` (nicht `---`) zwischen den Hauptaufgaben?
 4. Ist die Schülerkopfzeile aktiviert?
 5. Enthalten Aufgaben Punkte?
 
