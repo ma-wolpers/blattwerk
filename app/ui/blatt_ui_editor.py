@@ -768,7 +768,7 @@ class BlattwerkAppEditorMixin:
             self._queue_editor_block_pair_highlight()
             return
 
-        trigger_chars = {"_", " "}
+        trigger_chars = {"_", " ", "!"}
         if bool(preferences.get("completion_trigger_colon", True)):
             trigger_chars.add(":")
         if bool(preferences.get("completion_trigger_equals", True)):

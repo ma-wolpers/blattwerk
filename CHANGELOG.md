@@ -8,6 +8,7 @@ The format is based on Keep a Changelog.
 
 ### Fixed
 
+- `!!...!!`-Operator-Vorschläge erschienen bisher erst, sobald nach `!!` mindestens ein Buchstabe getippt wurde -- direkt nach `!!` blieb das Popup noch leer. Es öffnet sich jetzt sofort mit der vollständigen, für `Fach`/`Stufe` passenden Operatorenliste.
 - Das Ctrl+B-Einfügemenü und die Anleitung zeigten für Info-Boxen als Beispiel `:::info type=tip` -- `tip` war aber gar kein gültiger Wert für `type` (nur `default`, `warning`, `note`). Wer das Beispiel per Snippet übernommen hat, bekam dadurch eine Warnung. Snippet, Anleitung und Beispieldatei nutzen jetzt `type=note`; eine bestehende Snippet-Prüfung im Testsuite wurde zusätzlich verschärft, damit ein ungültiger `type=`/Options-Wert in einem Ctrl+B-Snippet künftig automatisch auffällt.
 - Text in einer dauerhaft hervorgehobenen Editor-Zeile (Diagnose-Warnung/-Fehler, Suchtreffer, Block-Paar-Markierung) ließ sich zwar mit der Maus markieren, die Markierung war aber unsichtbar, weil die Zeilenhervorhebung die Selektionsfarbe farblich überdeckte. Behoben.
 - Die Operatoren-Legende am Ende des Arbeitsblatts erscheint jetzt als übersichtliche zweispaltige Tabelle (Operator | Erläuterung, wie im Original-Dokument) statt als Liste, und wird beim PDF-Export nicht mehr mitten zwischen zwei Seiten zerschnitten.
