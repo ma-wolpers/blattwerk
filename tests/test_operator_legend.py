@@ -11,6 +11,7 @@ from app.core.operator_legend import (
     _resolve_matched_groups,
     _slugify_fach,
     collect_used_operators,
+    list_operator_suggestion_details,
     list_operator_suggestions,
     load_operator_data,
     render_operator_legend_html,
@@ -236,6 +237,39 @@ def test_list_operator_suggestions_only_returns_vorschlag_not_all_formen_variant
     assert "Ermitteln" in suggestions
     for leaked_conjugation in ("bestimme", "bestimmt", "ermittle", "ermittelt"):
         assert leaked_conjugation not in suggestions
+
+
+def test_list_operator_suggestion_details_covers_every_suggestion_label():
+    # The detail overlay must never be able to show a definition for a
+    # label the suggestion list itself wouldn't offer, and vice versa --
+    # both read from the same `_resolve_available_entries()` call.
+    labels = list_operator_suggestions("Mathematik", None)
+    details = list_operator_suggestion_details("Mathematik", None)
+    assert set(details.keys()) == set(labels)
+
+
+def test_list_operator_suggestion_details_returns_real_definition_text():
+    details = list_operator_suggestion_details("Mathematik", None)
+    assert "Bestimmen" in details
+    assert details["Bestimmen"]  # non-empty redactional text, not a placeholder
+
+
+def test_list_operator_suggestion_details_grouped_operators_share_one_definition():
+    # "Bestimmen" and "Ermitteln" come from the same combined dataset entry
+    # ("Bestimmen/Ermitteln") and therefore share one `definition` string.
+    details = list_operator_suggestion_details("Mathematik", None)
+    assert details["Bestimmen"] == details["Ermitteln"]
+
+
+def test_list_operator_suggestion_details_unknown_fach_returns_empty_dict():
+    assert list_operator_suggestion_details("Chemie", None) == {}
+
+
+def test_list_operator_suggestion_details_excludes_operator_outside_stufe():
+    with_q1 = list_operator_suggestion_details("Mathematik", "Q1")
+    with_7 = list_operator_suggestion_details("Mathematik", "7")
+    assert "Begründen" in with_q1
+    assert "Begründen" not in with_7
 
 
 def test_legend_and_autocomplete_agree_on_stufe_availability():

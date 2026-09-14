@@ -266,6 +266,34 @@ def list_operator_suggestions(fach, stufe) -> tuple[str, ...]:
     return tuple(sorted(suggestions))
 
 
+def list_operator_suggestion_details(fach, stufe) -> dict[str, str]:
+    """Returns `{vorschlag_label: definition}` for every operator available
+    under `fach`/`stufe` -- the explanation text behind the editor
+    autocomplete's detail overlay (see `blatt_ui_editor_completion_popup.py`
+    / `completion_catalogs.py::get_completion_operator_details`).
+
+    Mirrors `list_operator_suggestions`'s availability resolution exactly
+    (same `_resolve_available_entries()` call), so the detail overlay can
+    never show a definition for a label the suggestion list itself would
+    not offer. `{}` for the same cases `list_operator_suggestions` returns
+    `()` for.
+
+    When multiple entries share the same `vorschlag` label (possible for
+    grouped operators, e.g. two dataset entries both suggesting
+    "Bestimmen"), the first one encountered wins -- deterministic (dataset
+    order), but not claimed to be semantically the "right" one for that
+    edge case; it simply avoids depending on dict-iteration order.
+    """
+    available_entries = _resolve_available_entries(fach, stufe)
+    if available_entries is None:
+        return {}
+    details: dict[str, str] = {}
+    for entry in available_entries:
+        for label in entry.vorschlag:
+            details.setdefault(label, entry.definition)
+    return details
+
+
 def collect_used_operators(blocks, meta):
     """Scans `blocks` for `!!...!!`-marked operator text and resolves it
     against the `Fach`/`Stufe`-appropriate operator dataset.

@@ -11,8 +11,8 @@ _TOOLS_DOCS_DIR = Path(__file__).resolve().parents[1] / "tools" / "docs"
 if str(_TOOLS_DOCS_DIR) not in sys.path:
     sys.path.insert(0, str(_TOOLS_DOCS_DIR))
 
-import authoring_guide_prose  # noqa: E402
 import generate_authoring_guides as guide_generator  # noqa: E402
+from app.core import authoring_guide_prose  # noqa: E402
 from app.core.answer_grid_plot import render_geometry_answer  # noqa: E402
 from app.core.blatt_validator import inspect_markdown_text  # noqa: E402
 from app.core.blatt_validator_constants import BlockOptionSpec  # noqa: E402

@@ -8,8 +8,7 @@ Verbraucht ausschließlich `MarkdownConventionCatalog`-Fakten
 
 from __future__ import annotations
 
-import authoring_guide_prose
-
+from app.core import authoring_guide_prose
 from app.core.blatt_validator_constants import MISSING
 from app.core.document_types import (
     DOCUMENT_TYPE_PRESENTATION,

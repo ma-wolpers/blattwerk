@@ -16,6 +16,15 @@ Sektion, Kurzentwurf-Aspekt) hier einen Eintrag hat -- neue DSL-Elemente im
 Code zwingen dadurch zu einem manuellen Doku-Update, bevor CI grün wird.
 Geprüft wird nur *Existenz*, nicht inhaltliche Korrektheit (keine
 Automatisierung natürlicher Sprache).
+
+Lebt bewusst in `app/core` statt in `tools/docs` (wo diese Datei ursprünglich
+lag): `tools/docs/generate_authoring_guides.py` konsumiert `PROSE_SECTIONS`
+für die generierten Anleitungen, aber inzwischen auch die Editor-Completion
+(`app/ui/blatt_ui_editor_completion_context.py`, über
+`get_completion_frontmatter_field_detail`/`get_completion_block_type_detail`
+in `completion_catalogs.py`) für die Erklärungs-Overlay-Spalte im
+Autocomplete-Popup. `app/core` darf nie von `tools/docs` abhängen -- nur
+umgekehrt --, deshalb muss die gemeinsam genutzte Prosa hier liegen, nicht dort.
 """
 
 from __future__ import annotations

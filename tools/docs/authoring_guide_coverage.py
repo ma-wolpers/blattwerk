@@ -15,9 +15,8 @@ from __future__ import annotations
 
 from collections import Counter
 
-import authoring_guide_prose
-
-from app.core.markdown_conventions import MarkdownConventionCatalog  # noqa: E402
+from app.core import authoring_guide_prose
+from app.core.markdown_conventions import MarkdownConventionCatalog
 
 
 class ProseCoverageError(Exception):

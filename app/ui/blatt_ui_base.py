@@ -149,6 +149,9 @@ class BlattwerkAppBase(BwBaseWindow):
         self._preview_auto_refresh_on_edit_idle_delay_ms = 1200
         self._editor_completion_popup = None
         self._editor_completion_listbox = None
+        self._editor_completion_detail_frame = None
+        self._editor_completion_detail_title_label = None
+        self._editor_completion_detail_body_label = None
         self._editor_completion_items = []
         self._editor_completion_replace_start = None
         self._editor_completion_replace_end = None

@@ -8,12 +8,33 @@ module directly.
 
 from __future__ import annotations
 
+from typing import TypedDict
+
+from . import authoring_guide_prose
 from . import operator_legend
 from . import blatt_validator as validator
+from .blatt_validator_constants import MISSING
 
 _SELF_CLOSING_BLOCK_TYPES = frozenset(
     {"nextcol", "endcolumns", "pagebreak", "framebreak", "slidechromeoff", "sectionmark", "vspacer"}
 )
+
+
+class CompletionDetail(TypedDict):
+    """Optional explanation for the autocomplete popup's detail overlay
+    column (`blatt_ui_editor_completion_popup.py`), shown for whichever
+    suggestion is currently highlighted.
+
+    `value_hint`, when present, already carries its display prefix
+    (`"Standard: …"`/`"Möglicher Wert: …"`) -- that distinction is decided
+    once, here in the catalog layer, where the underlying normative data
+    (`FrontmatterFieldSpec.default` vs. `.allowed_values`) is still in
+    scope; the popup itself never re-derives it from a raw value.
+    """
+
+    title: str
+    description: str
+    value_hint: str | None
 """Blocktypen ohne eigenen Body, die immer als Einzeiler mit schließendem
 `:::` auf derselben Zeile geschrieben werden (siehe die self-closing
 Regel `_SELF_CLOSING_BLOCK_PATTERN` in `blatt_kern_shared_parsing.py`).
@@ -185,6 +206,88 @@ def get_completion_operator_forms(fach, stufe) -> tuple[str, ...]:
     """
 
     return operator_legend.list_operator_suggestions(fach, stufe)
+
+
+def get_completion_operator_details(fach, stufe) -> dict[str, CompletionDetail]:
+    """Returns `{label: CompletionDetail}` for exactly the operator labels
+    `get_completion_operator_forms` would offer for the same `fach`/`stufe`.
+
+    Thin pass-through to `operator_legend.list_operator_suggestion_details`,
+    same reasoning as `get_completion_operator_forms` above: the UI layer
+    never imports `operator_legend` directly. No `value_hint` -- an
+    operator label isn't a `key: value` pair.
+    """
+
+    return {
+        label: CompletionDetail(title=label, description=definition, value_hint=None)
+        for label, definition in operator_legend.list_operator_suggestion_details(fach, stufe).items()
+    }
+
+
+def _format_frontmatter_value_hint(spec) -> str | None:
+    """Builds the display-ready value hint for one `FrontmatterFieldSpec`.
+
+    A real `default` is shown as `"Standard: …"` -- boolean defaults as
+    `ja`/`nein` (the vocabulary the field itself accepts as input, not
+    Python's `True`/`False`), enum defaults verbatim. Without a `default`
+    but with `allowed_values`, the alphabetically first value is shown as
+    `"Möglicher Wert: …"` -- deliberately NOT labelled "Beispiel": picking
+    `allowed_values`'s first entry is an arbitrary-but-valid choice, not a
+    redactionally curated example. `None` for fields with neither
+    (`free_text`/`scalar_nonempty`, or an `enum` with empty
+    `allowed_values`) -- no invented hint.
+    """
+
+    if spec.default is not MISSING:
+        if spec.kind == "boolean":
+            return f"Standard: {'ja' if spec.default else 'nein'}"
+        return f"Standard: {spec.default}"
+
+    if spec.allowed_values:
+        return f"Möglicher Wert: {sorted(spec.allowed_values)[0]}"
+
+    return None
+
+
+def get_completion_frontmatter_field_detail(field_name: str) -> CompletionDetail | None:
+    """Returns the autocomplete detail overlay content for a frontmatter key.
+
+    Description comes from `PROSE_SECTIONS["frontmatter:<field_name>"]`
+    (`authoring_guide_prose.py`) -- the same redactional text the generated
+    author's guide already shows for this field, never a second, separately
+    maintained copy. `None` only if no such prose section exists (shouldn't
+    happen for any field `_EDITOR_FRONTMATTER_KEYS` offers, given
+    `assert_prose_coverage()`, but this stays defensive rather than
+    assuming that invariant here too -- an unrecognised field silently gets
+    no detail panel instead of a `KeyError`).
+    """
+
+    description = authoring_guide_prose.PROSE_SECTIONS.get(f"frontmatter:{field_name}")
+    if description is None:
+        return None
+
+    value_hint = None
+    for spec in validator.OPTIONAL_FRONTMATTER_FIELDS:
+        if spec.name == field_name:
+            value_hint = _format_frontmatter_value_hint(spec)
+            break
+
+    return CompletionDetail(title=field_name, description=description, value_hint=value_hint)
+
+
+def get_completion_block_type_detail(block_type: str) -> CompletionDetail | None:
+    """Returns the autocomplete detail overlay content for a block type.
+
+    Description comes from `PROSE_SECTIONS["block:<block_type>"]` -- same
+    source and completeness guarantee as
+    `get_completion_frontmatter_field_detail`. No `value_hint`: a block
+    type isn't a `key: value` pair, there is nothing to hint at.
+    """
+
+    description = authoring_guide_prose.PROSE_SECTIONS.get(f"block:{block_type}")
+    if description is None:
+        return None
+    return CompletionDetail(title=block_type, description=description, value_hint=None)
 
 
 def get_self_closing_block_types() -> frozenset[str]:

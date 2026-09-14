@@ -16,7 +16,7 @@ import re
 from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 
 ensure_bw_gui_on_path()
-from bw_gui.runtime import ui
+from bw_gui.runtime import ui, widgets
 
 
 class BlattwerkAppEditorCompletionPopupMixin:
@@ -41,6 +41,7 @@ class BlattwerkAppEditorCompletionPopupMixin:
         self._editor_completion_listbox.selection_set(new_index)
         self._editor_completion_listbox.activate(new_index)
         self._editor_completion_listbox.see(new_index)
+        self._update_editor_completion_detail_panel()
         return "break"
 
     def _on_editor_completion_move_down(self, _event=None):
@@ -57,6 +58,7 @@ class BlattwerkAppEditorCompletionPopupMixin:
         self._editor_completion_listbox.selection_set(new_index)
         self._editor_completion_listbox.activate(new_index)
         self._editor_completion_listbox.see(new_index)
+        self._update_editor_completion_detail_panel()
         return "break"
 
     def _on_editor_completion_enter(self, _event=None):
@@ -122,19 +124,50 @@ class BlattwerkAppEditorCompletionPopupMixin:
             popup.overrideredirect(True)
             popup.transient(self.root)
 
+            content_row = ui.Frame(popup)
+            content_row.pack(fill="both", expand=True)
+
             listbox = ui.Listbox(
-                popup,
+                content_row,
                 activestyle="none",
                 height=min(8, len(suggestions)),
                 width=72,
             )
-            listbox.pack(fill="both", expand=True)
+            listbox.pack(side="left", fill="both", expand=True)
             listbox.bind("<Double-Button-1>", self._on_editor_completion_accept)
             listbox.bind("<Return>", self._on_editor_completion_accept)
             listbox.bind("<Escape>", lambda _event: self._close_editor_completion())
+            listbox.bind("<<ListboxSelect>>", self._on_editor_completion_selection_changed)
+
+            detail_column = ui.Frame(content_row)
+            # Not packed here -- `_update_editor_completion_detail_panel` packs
+            # (or unpacks) this whole column depending on whether the
+            # highlighted candidate actually has detail data, so an empty
+            # column never shows.
+
+            detail_title_label = widgets.Label(
+                detail_column,
+                style="Muted.TLabel",
+                font=("TkDefaultFont", 9, "bold"),
+                justify="left",
+                anchor="nw",
+            )
+            detail_title_label.pack(side="top", fill="x", anchor="nw")
+
+            detail_body_label = widgets.Label(
+                detail_column,
+                style="Muted.TLabel",
+                wraplength=280,
+                justify="left",
+                anchor="nw",
+            )
+            detail_body_label.pack(side="top", fill="x", anchor="nw", pady=(2, 0))
 
             self._editor_completion_popup = popup
             self._editor_completion_listbox = listbox
+            self._editor_completion_detail_frame = detail_column
+            self._editor_completion_detail_title_label = detail_title_label
+            self._editor_completion_detail_body_label = detail_body_label
 
         if self._editor_completion_listbox is None:
             return
@@ -161,6 +194,7 @@ class BlattwerkAppEditorCompletionPopupMixin:
         self._editor_completion_listbox.selection_clear(0, "end")
         self._editor_completion_listbox.selection_set(0)
         self._editor_completion_listbox.activate(0)
+        self._update_editor_completion_detail_panel()
 
         caret_box = self.editor_widget.bbox("insert")
         if caret_box is None:
@@ -286,3 +320,49 @@ class BlattwerkAppEditorCompletionPopupMixin:
         if not self._editor_completion_popup.winfo_exists():
             return False
         return self._editor_completion_popup.state() != "withdrawn"
+
+    def _on_editor_completion_selection_changed(self, _event=None):
+        """Keeps the detail overlay in sync when the listbox selection changes via mouse click.
+
+        Keyboard navigation (`_on_editor_completion_move_up`/`_down`) already
+        calls `_update_editor_completion_detail_panel()` itself after moving
+        the selection programmatically -- Tk's `<<ListboxSelect>>` virtual
+        event does not fire for a `selection_set()` call, only for
+        user-driven selection changes, so mouse clicks need this separate
+        binding to reach the same update.
+        """
+
+        self._update_editor_completion_detail_panel()
+
+    def _update_editor_completion_detail_panel(self):
+        """Shows or hides the detail overlay column for the currently highlighted candidate.
+
+        Fully unpacks the column when the candidate carries no `"detail"`
+        data -- an empty column is never shown just because the feature
+        exists for other suggestion kinds (see "Keine Details" in the
+        implementation plan: block-option/option-value/frontmatter-value
+        suggestions have no detail data yet).
+        """
+
+        detail_column = self._editor_completion_detail_frame
+        if detail_column is None:
+            return
+
+        selection = self._editor_completion_listbox.curselection() if self._editor_completion_listbox else ()
+        index = selection[0] if selection else None
+        detail = None
+        if index is not None and 0 <= index < len(self._editor_completion_items):
+            detail = self._editor_completion_items[index].get("detail")
+
+        if not detail:
+            detail_column.pack_forget()
+            return
+
+        self._editor_completion_detail_title_label.configure(text=detail.get("title") or "")
+        body_text = detail.get("description") or ""
+        value_hint = detail.get("value_hint")
+        if value_hint:
+            body_text = f"{body_text}\n\n{value_hint}" if body_text else value_hint
+        self._editor_completion_detail_body_label.configure(text=body_text)
+
+        detail_column.pack(side="left", fill="y", padx=(8, 8), pady=(4, 4))

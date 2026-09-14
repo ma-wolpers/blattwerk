@@ -14,8 +14,11 @@ import re
 
 from ..core.blatt_kern_shared_parsing import split_front_matter
 from ..core.completion_catalogs import (
+    get_completion_block_type_detail,
     get_completion_block_types,
+    get_completion_frontmatter_field_detail,
     get_completion_frontmatter_field_values,
+    get_completion_operator_details,
     get_completion_operator_forms,
     get_completion_option_value_abbreviation_hints,
     get_completion_option_values,
@@ -121,6 +124,7 @@ class BlattwerkAppEditorCompletionContextMixin:
                         ),
                         "kind": "block_type",
                         "block_type": block_type,
+                        "detail": get_completion_block_type_detail(block_type),
                     }
                     for block_type in get_completion_block_types()
                     if block_type.startswith(block_prefix)
@@ -272,6 +276,7 @@ class BlattwerkAppEditorCompletionContextMixin:
                         "label": field_name,
                         "insert_text": field_name,
                         "kind": "frontmatter_key",
+                        "detail": get_completion_frontmatter_field_detail(field_name),
                     }
                     for field_name in _EDITOR_FRONTMATTER_KEYS
                     if field_name.lower().startswith(key_prefix.lower())
@@ -490,8 +495,14 @@ class BlattwerkAppEditorCompletionContextMixin:
         prefix_norm = str(value_prefix or "").strip().lower()
         suggestions = get_completion_operator_forms(fach, stufe)
         filtered = [value for value in suggestions if value.lower().startswith(prefix_norm)]
+        details = get_completion_operator_details(fach, stufe)
         return [
-            {"label": value, "insert_text": value, "kind": "operator_value"}
+            {
+                "label": value,
+                "insert_text": value,
+                "kind": "operator_value",
+                "detail": details.get(value),
+            }
             for value in filtered
         ]
 

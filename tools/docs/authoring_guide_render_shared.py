@@ -10,7 +10,7 @@ Prosa-Abschnitte und das Fencen von Markdown-Beispielen.
 
 from __future__ import annotations
 
-import authoring_guide_prose
+from app.core import authoring_guide_prose
 
 _AUTOGEN_HEADER = (
     "<!--\n"

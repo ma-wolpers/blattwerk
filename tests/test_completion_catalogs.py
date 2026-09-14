@@ -1,5 +1,8 @@
 from app.core.completion_catalogs import (
+    get_completion_block_type_detail,
+    get_completion_frontmatter_field_detail,
     get_completion_frontmatter_field_values,
+    get_completion_operator_details,
     get_completion_operator_forms,
     get_completion_option_value_abbreviation_hints,
     get_completion_option_values,
@@ -166,3 +169,73 @@ def test_operator_forms_completion_filters_by_stufe():
 
 def test_operator_forms_completion_empty_for_unknown_fach():
     assert get_completion_operator_forms("Chemie", None) == ()
+
+
+def test_operator_details_completion_covers_every_suggested_label():
+    labels = get_completion_operator_forms("Mathematik", None)
+    details = get_completion_operator_details("Mathematik", None)
+    assert set(details.keys()) == set(labels)
+    assert details["Bestimmen"]["title"] == "Bestimmen"
+    assert details["Bestimmen"]["description"]  # real, non-empty prose
+    assert details["Bestimmen"]["value_hint"] is None
+
+
+def test_operator_details_completion_empty_for_unknown_fach():
+    assert get_completion_operator_details("Chemie", None) == {}
+
+
+def test_frontmatter_field_detail_enum_with_default_shows_standard_hint():
+    detail = get_completion_frontmatter_field_detail("mode")
+    assert detail is not None
+    assert detail["title"] == "mode"
+    assert detail["description"]
+    assert detail["value_hint"] == "Standard: worksheet"
+
+
+def test_frontmatter_field_detail_enum_without_default_shows_moeglicher_wert_hint():
+    # `Stufe` has allowed_values but no `default` -- must never be labelled
+    # "Beispiel", only the neutral "Möglicher Wert".
+    detail = get_completion_frontmatter_field_detail("Stufe")
+    assert detail is not None
+    assert detail["value_hint"] is not None
+    assert detail["value_hint"].startswith("Möglicher Wert: ")
+    assert "Beispiel" not in detail["value_hint"]
+
+
+def test_frontmatter_field_detail_boolean_default_renders_as_ja_nein_not_python_bool():
+    detail = get_completion_frontmatter_field_detail("show_student_header")
+    assert detail is not None
+    assert detail["value_hint"] == "Standard: nein"
+
+
+def test_frontmatter_field_detail_free_text_field_has_no_value_hint():
+    detail = get_completion_frontmatter_field_detail("copyright")
+    assert detail is not None
+    assert detail["description"]
+    assert detail["value_hint"] is None
+
+
+def test_frontmatter_field_detail_required_field_has_description_but_no_value_hint():
+    # "Titel"/"Fach"/"Thema" aren't in OPTIONAL_FRONTMATTER_FIELDS at all
+    # (they're required, not optional) -- still get a description from
+    # PROSE_SECTIONS, just no default/allowed_values to hint at.
+    detail = get_completion_frontmatter_field_detail("Titel")
+    assert detail is not None
+    assert detail["description"]
+    assert detail["value_hint"] is None
+
+
+def test_frontmatter_field_detail_unknown_field_returns_none():
+    assert get_completion_frontmatter_field_detail("does_not_exist") is None
+
+
+def test_block_type_detail_returns_description_without_value_hint():
+    detail = get_completion_block_type_detail("info")
+    assert detail is not None
+    assert detail["title"] == "info"
+    assert detail["description"]
+    assert detail["value_hint"] is None
+
+
+def test_block_type_detail_unknown_type_returns_none():
+    assert get_completion_block_type_detail("does-not-exist") is None

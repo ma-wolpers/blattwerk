@@ -33,7 +33,7 @@ GUARDRAIL_RELEVANT_PATHS = {
     "CHANGELOG.md",
     "tools/ci/check_ai_guardrails.py",
     "tools/docs/generate_authoring_guides.py",
-    "tools/docs/authoring_guide_prose.py",
+    "app/core/authoring_guide_prose.py",
     "tools/docs/authoring_guide_coverage.py",
     "tools/docs/authoring_guide_render_shared.py",
     "tools/docs/authoring_guide_render_worksheet.py",
