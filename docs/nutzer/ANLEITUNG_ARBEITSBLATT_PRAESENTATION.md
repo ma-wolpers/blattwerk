@@ -337,7 +337,7 @@ Hinweisbox mit `type=default|warning|note` für unterschiedliche Hervorhebungsst
 **Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
 
 ```markdown
-:::info type=tip
+:::info type=note
 Hinweis hier…
 :::
 ```

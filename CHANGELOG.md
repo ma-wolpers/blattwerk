@@ -8,6 +8,7 @@ The format is based on Keep a Changelog.
 
 ### Fixed
 
+- Das Ctrl+B-Einfügemenü und die Anleitung zeigten für Info-Boxen als Beispiel `:::info type=tip` -- `tip` war aber gar kein gültiger Wert für `type` (nur `default`, `warning`, `note`). Wer das Beispiel per Snippet übernommen hat, bekam dadurch eine Warnung. Snippet, Anleitung und Beispieldatei nutzen jetzt `type=note`; eine bestehende Snippet-Prüfung im Testsuite wurde zusätzlich verschärft, damit ein ungültiger `type=`/Options-Wert in einem Ctrl+B-Snippet künftig automatisch auffällt.
 - Die Operatoren-Legende am Ende des Arbeitsblatts erscheint jetzt als übersichtliche zweispaltige Tabelle (Operator | Erläuterung, wie im Original-Dokument) statt als Liste, und wird beim PDF-Export nicht mehr mitten zwischen zwei Seiten zerschnitten.
 - Ein Arbeitsblatt mit unquoted `Stufe: 11` (statt `Stufe: "11"`) im Frontmatter führte zu einem Absturz, sobald ein `!!Operator!!`-Marker im Dokument verwendet wurde. Behoben -- `Stufe` funktioniert jetzt unabhängig davon, ob der Wert in Anführungszeichen steht.
 - Der Hinweis "Enthaelt Formel-Syntax" (`MJ001`) erschien bisher für jeden einzelnen Block mit `$...$`/`$$...$$`, auch wenn ein Dokument viele solcher Blöcke enthielt. Er erscheint jetzt nur noch einmal pro Dokument, mit einem Hinweis auf die Anzahl weiterer Vorkommen.

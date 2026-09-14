@@ -73,6 +73,11 @@ def test_every_block_insert_snippet_is_valid_markdown():
     nicht von Autor:innen vorbefüllt) und lösen dafür berechtigterweise die
     nicht-blockierende Best-Practice-Warnung `AN005` aus -- das ist kein
     Snippet-Fehler.
+
+    `OP002` (ungültiger Options-Wert) ist zusätzlich explizit verboten, obwohl
+    es nur `severity="warning"` ist: ein Snippet mit ungültigem Options-Wert
+    (z. B. ein nicht existierender `type=`) ist immer ein Snippet-Fehler, nie
+    eine akzeptable Best-Practice-Warnung wie `AN005`.
     """
     for block_type, snippet in BLOCK_INSERT_SNIPPETS.items():
         cleaned = snippet.replace("\x01", "")
@@ -80,6 +85,8 @@ def test_every_block_insert_snippet_is_valid_markdown():
         diagnostics = inspect_markdown_text(document).diagnostics
         error_diagnostics = [d for d in diagnostics if d.severity == "error"]
         assert error_diagnostics == [], f"Snippet für {block_type!r} validiert nicht sauber: {error_diagnostics}"
+        op002_diagnostics = [d for d in diagnostics if d.code == "OP002"]
+        assert op002_diagnostics == [], f"Snippet für {block_type!r} enthält ungültigen Options-Wert: {op002_diagnostics}"
 
 
 def test_catalog_block_spec_insert_snippet_matches_source_dict():

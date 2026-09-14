@@ -57,7 +57,7 @@ BLOCK_INSERT_SNIPPETS: dict[str, str] = {
         ":::\n"
     ),
     "info": (
-        ":::info type=tip\n"
+        ":::info type=note\n"
         "\x01Hinweis hier…\n"
         ":::\n"
     ),

@@ -47,7 +47,7 @@ Dieser Block ist nur fuer Loesungen gedacht und darf in Praesentationen nicht si
 
 -=1.2cm
 
-:::info type=tip
+:::info type=note
 Nutze den Abstand oberhalb bewusst, um den Blick auf die naechste Aussage zu lenken.
 :::
 
