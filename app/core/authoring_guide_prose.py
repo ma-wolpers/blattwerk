@@ -81,8 +81,11 @@ PROSE_SECTIONS: dict[str, str] = {
         "automatisch ein Standardtext mit aktuellem Jahr eingesetzt."
     ),
     "frontmatter:Stufe": (
-        "Rein informatives Feld für die Jahrgangsstufe. **Hinweis:** wird aktuell an keiner Stelle aus "
-        "dem Dokument gelesen oder angezeigt -- ohne Wirkung im Build-/Render-Pfad."
+        "Die Jahrgangsstufe -- schränkt ein, welche `!!Operator!!`-Bezeichnungen für dieses Dokument "
+        "gültig sind und im Editor vorgeschlagen werden (siehe `data/operatoren/<fach>.json`, "
+        "`stufengruppen`). Ohne `Stufe` gelten alle für `Fach` hinterlegten Operatoren als verfügbar, "
+        "unabhängig von ihrer Stufenzuordnung. Hat aktuell keine Wirkung außerhalb der "
+        "Operatoren-Verfügbarkeit (kein Einfluss auf Layout/Rendering)."
     ),
     "frontmatter:worksheet_type": (
         "Rein informatives Feld für eine Dokumentart-Bezeichnung. **Hinweis:** wird aktuell an keiner "

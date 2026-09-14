@@ -15,6 +15,7 @@ import shutil
 from .dialog_services import messagebox
 
 from ..core.block_insert_snippets import BLOCK_INSERT_SNIPPETS
+from ..core.completion_catalogs import get_completion_block_type_detail
 from ..core.markdown_table_conversion import convert_markdown_tables_to_blocks
 from .editor_marker_shortcuts import (
     apply_backtick_marker,
@@ -83,6 +84,21 @@ _EDITOR_BLOCK_MENU_ITEMS: list[tuple[str, str, str]] = [
     ("Z", "Zuordnung (matching)", BLOCK_INSERT_SNIPPETS["matching"]),
     ("Ü", "Selbsteinschätzung (selfcheck)", BLOCK_INSERT_SNIPPETS["selfcheck"]),
 ]
+
+
+def _derive_block_type_from_snippet(snippet: str) -> str | None:
+    """Returns the `:::`-block type a Ctrl+B menu snippet inserts, or `None` for a non-block entry.
+
+    Derived from the snippet itself rather than a second, separately
+    maintained label->type mapping -- every `_EDITOR_BLOCK_MENU_ITEMS`
+    snippet except "Bild (image)" (plain markdown image syntax, not a
+    `:::`-block) already starts with `:::<type>`. Used to look up the same
+    `get_completion_block_type_detail()` explanation the `:::`-autocomplete
+    popup shows, for the Ctrl+B menu's block-explanation tooltip.
+    """
+
+    match = re.match(r"^:::(\w+)", snippet)
+    return match.group(1) if match else None
 
 
 class BlattwerkAppEditorMixin:
@@ -1007,9 +1023,23 @@ class BlattwerkAppEditorMixin:
         return "break"
 
     def _show_block_insert_menu(self, event=None):
-        """Opens the block-insertion dropdown at the cursor position (Ctrl+B)."""
+        """Opens the block-insertion dropdown at the cursor position (Ctrl+B).
+
+        Each entry's block type is derived from its own snippet (`^:::(\\w+)`)
+        rather than a second, separately maintained label->type mapping --
+        "Bild (image)" isn't a `:::`-block at all and simply yields `None`
+        (no detail tooltip for it). Reused to look up
+        `get_completion_block_type_detail()` for the block-explanation
+        tooltip (`_on_block_insert_menu_select`) -- the same detail data the
+        `:::`-autocomplete popup already shows, just for this second entry
+        point into block insertion.
+        """
         if self.editor_widget is None:
             return "break"
+
+        item_block_types = [
+            _derive_block_type_from_snippet(snippet) for _letter, _label, snippet in _EDITOR_BLOCK_MENU_ITEMS
+        ]
 
         menu = ui.Menu(self.editor_widget, tearoff=0)
         for letter, label, snippet in _EDITOR_BLOCK_MENU_ITEMS:
@@ -1018,6 +1048,8 @@ class BlattwerkAppEditorMixin:
                 underline=0,
                 command=lambda s=snippet: self._insert_editor_snippet(s),
             )
+        menu.bind("<<MenuSelect>>", lambda _e: self._on_block_insert_menu_select(menu, item_block_types))
+        menu.bind("<Unmap>", lambda _e: self._hide_block_insert_menu_tooltip())
 
         try:
             bbox = self.editor_widget.bbox("insert")
@@ -1035,8 +1067,61 @@ class BlattwerkAppEditorMixin:
             menu.tk_popup(x, y, 0)
         finally:
             menu.grab_release()
+            self._hide_block_insert_menu_tooltip()
 
         return "break"
+
+    def _on_block_insert_menu_select(self, menu, item_block_types):
+        """Shows/updates the block-explanation tooltip for the currently highlighted Ctrl+B menu entry."""
+
+        active_index = menu.index("active")
+        if active_index is None or not (0 <= active_index < len(item_block_types)):
+            self._hide_block_insert_menu_tooltip()
+            return
+
+        block_type = item_block_types[active_index]
+        detail = get_completion_block_type_detail(block_type) if block_type else None
+        if detail is None:
+            self._hide_block_insert_menu_tooltip()
+            return
+
+        self._hide_block_insert_menu_tooltip()
+
+        tooltip = ui.Toplevel(self.root)
+        tooltip.overrideredirect(True)
+        label = widgets.Label(
+            tooltip,
+            text=detail["description"],
+            style="Muted.TLabel",
+            padding=(8, 6),
+            wraplength=320,
+            justify="left",
+        )
+        label.pack()
+        tooltip.update_idletasks()
+
+        x_pos = menu.winfo_rootx() + menu.winfo_width() + 4
+        y_pos = menu.winfo_rooty() + menu.yposition(active_index)
+
+        screen_width = max(1, int(self.root.winfo_screenwidth()))
+        tip_width = max(1, int(tooltip.winfo_reqwidth()))
+        if x_pos + tip_width > screen_width:
+            x_pos = max(0, menu.winfo_rootx() - tip_width - 4)
+
+        tooltip.geometry(f"+{x_pos}+{y_pos}")
+        self._block_insert_menu_tooltip = tooltip
+
+    def _hide_block_insert_menu_tooltip(self):
+        """Destroys the block-explanation tooltip, if one is currently shown."""
+
+        tooltip = getattr(self, "_block_insert_menu_tooltip", None)
+        if tooltip is not None:
+            try:
+                if tooltip.winfo_exists():
+                    tooltip.destroy()
+            except Exception:
+                pass
+            self._block_insert_menu_tooltip = None
 
     def _insert_editor_snippet(self, template: str):
         """Inserts a block snippet at the cursor. \\x01 in template marks cursor landing position."""

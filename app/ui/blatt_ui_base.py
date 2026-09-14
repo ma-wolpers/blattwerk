@@ -157,6 +157,7 @@ class BlattwerkAppBase(BwBaseWindow):
         self._editor_completion_replace_end = None
         self._editor_completion_context_kind = None
         self._editor_completion_context_meta = {}
+        self._block_insert_menu_tooltip = None
         self._editor_search_frame = None
         self._editor_search_replace_row = None
         self._editor_search_before_widget = None
