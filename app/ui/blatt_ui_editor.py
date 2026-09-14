@@ -177,6 +177,7 @@ class BlattwerkAppEditorMixin:
 
         self._configure_editor_diagnostic_tags()
         self._configure_editor_syntax_tags()
+        self.editor_widget.tag_raise("sel")
 
     def _load_editor_content(self, input_path: Path):
         """Loads the selected markdown file into the editor widget."""
