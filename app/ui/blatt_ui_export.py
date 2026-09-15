@@ -257,12 +257,19 @@ class BlattwerkAppExportMixin:
             "Export laeuft weiter, aber es gibt Warnungen:\n\n" + warning_payload["message"],
         )
 
+    _SURFACED_COMPILE_WARNING_CODES = {"PT002", "PPTX001", "PPTX002"}
+    """`PT002` (Präsentations-Overflow) plus die beiden Fallback-Diagnosen des
+    experimentellen editierbaren PPTX-Exports (`blatt_kern_pptx_export.py`):
+    `PPTX001` (einzelne Folie gerastert) und `PPTX002` (kompletter Fallback
+    auf den Raster-Export). Ein interner Fallback darf nie unsichtbar
+    bleiben -- deshalb hier mit aufgenommen, statt nur PT002 zu zeigen."""
+
     def _show_compile_overflow_warnings(self, diagnostics, context_label: str = "Export"):
-        """Zeigt PT002-Warnungen aus dem Compile-/Render-Schritt."""
+        """Zeigt PT002-/PPTX001-/PPTX002-Warnungen aus dem Compile-/Render-Schritt."""
 
         overflow_warnings = [
             diag for diag in (diagnostics or [])
-            if str(getattr(diag, "code", "")) == "PT002"
+            if str(getattr(diag, "code", "")) in self._SURFACED_COMPILE_WARNING_CODES
         ]
         if not overflow_warnings:
             return
@@ -701,8 +708,13 @@ class BlattwerkAppExportMixin:
         black_screen_mode: str = "none",
         presentation_ignore_framebreaks: bool = False,
         compile_diagnostics=None,
+        editable_pptx: bool = False,
     ):
-        """Export as PPTX (one slide per page/slide, rendered at 200 DPI)."""
+        """Export as PPTX. `editable_pptx=True` attempts the experimental
+        editable export (real text-boxes/image-shapes, see
+        `blatt_kern_pptx_export_editable.py`) with an automatic fallback
+        to the raster path (one slide-image per page, 200 DPI) -- default
+        `False` always uses the raster path directly."""
         worksheet_design = self._worksheet_design_options()
         section_separator, hide_future_sections = (
             self._current_presentation_footer_export_options()
@@ -735,6 +747,7 @@ class BlattwerkAppExportMixin:
                     metadata_defaults=metadata_defaults,
                     copyright_text_override=copyright_override,
                     diagnostics_out=compile_diagnostics,
+                    editable=editable_pptx,
                 )
             return [worksheet_path, solution_path]
 
@@ -759,6 +772,7 @@ class BlattwerkAppExportMixin:
             metadata_defaults=metadata_defaults,
             copyright_text_override=copyright_override,
             diagnostics_out=compile_diagnostics,
+            editable=editable_pptx,
         )
         return [target]
 
@@ -1083,6 +1097,7 @@ class BlattwerkAppExportMixin:
             "none",
         )
         ignore_framebreaks = bool(dialog.result.get("ignore_framebreaks", False))
+        editable_pptx = bool(dialog.result.get("editable_pptx", False))
         page_format = str(self.preview_page_format_var.get() or "").strip()
         if page_format not in _ALLOWED_PRESENTATION_PAGE_FORMATS:
             page_format = default_page_format
@@ -1139,6 +1154,7 @@ class BlattwerkAppExportMixin:
                     black_screen_mode=black_screen_mode,
                     presentation_ignore_framebreaks=ignore_framebreaks,
                     compile_diagnostics=compile_diagnostics,
+                    editable_pptx=editable_pptx,
                 )
             else:
                 out_files = self._export_png_zip(

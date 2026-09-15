@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from html import escape
 
 from .blatt_kern_shared import (
@@ -81,6 +82,36 @@ def _wrap_with_object_alignment(html, alignment):
     return f"<div class='bw-object-align bw-object-align-{alignment}'>{html}</div>"
 
 
+_ROOT_TAG_PATTERN = re.compile(r"^(\s*<[a-zA-Z][^\s>]*)")
+
+
+def _tag_root_element_with_block_type(html: str, block_type: str) -> str:
+    """Adds `data-block-type="{block_type}"` to `html`'s own root element, without introducing a wrapper.
+
+    Read exclusively by the experimental editable-PPTX export
+    (`blatt_kern_pptx_export_editable.py`) to find each block's DOM root
+    during Playwright-driven extraction. Deliberately does NOT wrap `html`
+    in a new element (e.g. `f"<div data-block-type='{block_type}'>{html}</div>"`)
+    -- that would shift existing CSS child-combinator rules that assume
+    render_block()'s current DOM shape (e.g. `.column > *:first-child` in
+    `assets/worksheet.css`). The attribute rides on whichever element is
+    already `html`'s own root, so it's inert for every other consumer
+    (PDF/PNG/HTML export, print CSS): just an unused `data-*` attribute.
+
+    No-op for empty `html` (blocks that render nothing) or content that
+    doesn't start with a tag (shouldn't happen for any real block, but
+    stays defensive rather than producing malformed markup).
+    """
+
+    if not html:
+        return html
+    match = _ROOT_TAG_PATTERN.match(html)
+    if not match:
+        return html
+    insert_at = match.end(1)
+    return f"{html[:insert_at]} data-block-type=\"{block_type}\"{html[insert_at:]}"
+
+
 def render_block(
     block_type,
     options,
@@ -88,7 +119,30 @@ def render_block(
     include_solutions=False,
     document_mode="ws",
 ):
-    """Rendert einen einzelnen Blocktyp nach HTML."""
+    """Rendert einen einzelnen Blocktyp nach HTML.
+
+    Thin wrapper around `_render_block_body()` (all the actual dispatch
+    logic, unchanged) that tags the result's root element with
+    `data-block-type` -- kept as a wrapper rather than threading the
+    tagging into every one of `_render_block_body`'s ~15 branches/`return`
+    statements, so the existing dispatch logic stays untouched and this
+    stays a two-line, easily-reviewed addition.
+    """
+
+    html = _render_block_body(
+        block_type, options, content, include_solutions=include_solutions, document_mode=document_mode
+    )
+    return _tag_root_element_with_block_type(html, block_type)
+
+
+def _render_block_body(
+    block_type,
+    options,
+    content,
+    include_solutions=False,
+    document_mode="ws",
+):
+    """Rendert einen einzelnen Blocktyp nach HTML (ohne `data-block-type`-Tagging, siehe `render_block()`)."""
     if not should_render_block(
         block_type,
         options,

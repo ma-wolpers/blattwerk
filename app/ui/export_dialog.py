@@ -7,6 +7,7 @@ ensure_bw_gui_on_path()
 from bw_gui.runtime import ui, widgets
 from bw_gui.shortcuts import compose_hover_text as compose_shared_hover_text
 
+from ..core.blatt_kern_pptx_export_editable import is_editable_pptx_available
 from .dialog_services import filedialog, messagebox
 from .ui_theme import apply_window_theme, configure_ttk_theme, get_theme
 
@@ -344,6 +345,8 @@ class PresentationExportDialog(_BaseExportDialog):
         self.format_var = ui.StringVar(value=default_format)
         self.black_screen_var = ui.StringVar(value=black_screen_default)
         self.ignore_framebreaks_var = ui.BooleanVar(value=False)
+        self.editable_pptx_var = ui.BooleanVar(value=False)
+        self._editable_pptx_available = is_editable_pptx_available()
 
         self.window.title("Praesentation exportieren")
         self._build_ui()
@@ -384,11 +387,29 @@ class PresentationExportDialog(_BaseExportDialog):
             variable=self.ignore_framebreaks_var,
         ).pack(side="left")
 
+        self.editable_pptx_row = widgets.Frame(outer)
+        self.editable_pptx_checkbutton = widgets.Checkbutton(
+            self.editable_pptx_row,
+            text="Editierbare Text-/Bildelemente (experimentell)",
+            variable=self.editable_pptx_var,
+        )
+        self.editable_pptx_checkbutton.pack(side="left")
+        self.editable_pptx_hint_label = widgets.Label(
+            self.editable_pptx_row,
+            text="(benoetigt: pip install -r requirements-editable-pptx.txt)",
+            style="Muted.TLabel",
+        )
+        if not self._editable_pptx_available:
+            self.editable_pptx_checkbutton.configure(state="disabled")
+            self.editable_pptx_hint_label.pack(side="left", padx=(8, 0))
+
         out_row = widgets.Frame(outer)
+        self._editable_pptx_row_anchor = out_row
         out_row.pack(fill="x", pady=(10, 4))
         widgets.Label(out_row, text="Ausgabe:", width=15).pack(side="left")
         widgets.Entry(out_row, textvariable=self.output_var).pack(side="left", fill="x", expand=True, padx=(0, 8))
         widgets.Button(out_row, text="Durchsuchen…", style="SecondaryAction.TButton", command=self._pick_output).pack(side="left")
+        self._sync_editable_pptx_row_visibility()
 
         actions = widgets.Frame(outer)
         actions.pack(fill="x", pady=(12, 0))
@@ -482,11 +503,30 @@ class PresentationExportDialog(_BaseExportDialog):
 
     def _refresh_output_suggestion(self, force=False):
         current = self.output_var.get().strip()
+        self._sync_editable_pptx_row_visibility()
         if current and not force:
             return
 
         stem = self.input_path.with_suffix("")
         self.output_var.set(str(stem) + self._extension())
+
+    def _sync_editable_pptx_row_visibility(self):
+        """Shows the "Editierbare Text-/Bildelemente"-row only for PPTX exports.
+
+        Kept as an always-inert-when-hidden row (rather than not creating
+        it at all for non-PPTX formats) so `self.editable_pptx_var` stays
+        a stable, always-present attribute `_confirm()` can read
+        unconditionally. `before=` anchors it right above the output row
+        every time -- plain `pack()` after a `pack_forget()` would append
+        it at the END of the current pack order instead of restoring its
+        original position, visibly jumping it below "Ausgabe"/the action
+        buttons after toggling the format radio buttons back and forth.
+        """
+
+        if self.format_var.get() == "pptx":
+            self.editable_pptx_row.pack(fill="x", pady=(4, 4), before=self._editable_pptx_row_anchor)
+        else:
+            self.editable_pptx_row.pack_forget()
 
     def _pick_output(self):
         ext = self._extension()
@@ -525,6 +565,7 @@ class PresentationExportDialog(_BaseExportDialog):
             "mode": "worksheet",
             "black_screen": self.black_screen_var.get(),
             "ignore_framebreaks": bool(self.ignore_framebreaks_var.get()),
+            "editable_pptx": bool(self.editable_pptx_var.get()),
             "output_path": out_path,
         }
         self.window.destroy()

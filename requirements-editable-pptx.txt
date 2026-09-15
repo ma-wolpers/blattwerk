@@ -1,0 +1,17 @@
+# Nur erforderlich fuer den experimentellen editierbaren PPTX-Export
+# ("Editierbare Text-/Bildelemente (experimentell)" im PPTX-Export-Dialog).
+#
+# Nicht in requirements.txt, damit diese Abhaengigkeit optional bleibt --
+# ohne sie laeuft Blattwerk vollstaendig weiter, PPTX-Exporte fallen
+# automatisch auf den bewaehrten Raster-Export zurueck (siehe
+# app/core/blatt_kern_pptx_export_editable.py).
+#
+# Installation: pip install -r requirements-editable-pptx.txt
+#
+# Kein "playwright install" noetig: Blattwerk startet den bereits
+# installierten System-Browser (Microsoft Edge oder Google Chrome, siehe
+# find_chromium_executable() in app/core/blatt_kern_io_pdf.py) ueber
+# Playwrights `executable_path`-Option, laedt also keinen eigenen
+# Browser herunter.
+
+playwright>=1.40

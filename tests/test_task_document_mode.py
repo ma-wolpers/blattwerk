@@ -346,7 +346,12 @@ def test_render_html_presentation_framebreak_keeps_raw_markdown_line_spacing():
     assert "B" not in slide_bodies[0]
     assert "A" in slide_bodies[1]
     assert "B" in slide_bodies[1]
-    assert slide_bodies[1].count("<blockquote>") == 1
+    # `.count("<blockquote")` (not the bare literal "<blockquote>") tolerates
+    # the block's `data-block-type="raw"` attribute (added by
+    # render_block()'s root-element tagging for the experimental editable-
+    # PPTX export).
+    assert slide_bodies[1].count("<blockquote") == 1
+    assert '<blockquote data-block-type="raw">' in slide_bodies[1]
 
 
 def test_parse_blocks_supports_slide_chrome_off_marker():

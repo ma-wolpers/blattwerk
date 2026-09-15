@@ -18,8 +18,14 @@ def test_raw_double_newline_renders_as_paragraph_break():
 def test_raw_multiple_blank_lines_collapse_to_one_paragraph_break():
     html = render_block("raw", {}, "Absatz A\n\n\n\nAbsatz B")
 
-    assert html.count("<p>") == 2
+    # `.count("<p")` (not the bare literal "<p>") tolerates the first
+    # paragraph's `data-block-type="raw"` attribute (added by
+    # render_block()'s root-element tagging for the experimental editable-
+    # PPTX export) without weakening what this test actually checks: still
+    # exactly two `<p...>` opening tags, never a merged/collapsed one.
+    assert html.count("<p") == 2
     assert "<p></p>" not in html
+    assert '<p data-block-type="raw">' in html
 
 
 def test_block_types_share_single_newline_semantics():
