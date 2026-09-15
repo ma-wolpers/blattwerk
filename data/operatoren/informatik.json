@@ -1,0 +1,261 @@
+{
+  "_quelle": "Niedersächsisches Kultusministerium, Kerncurriculum für das Gymnasium – gymnasiale Oberstufe, die Gesamtschule – gymnasiale Oberstufe, das Kolleg, Informatik (2017), Anhang A1 „Liste der Operatoren für das Fach Informatik\" (S. 24 f.).",
+  "_hinweis_stufen": "Das Kerncurriculum Informatik für den Sekundarbereich I (Schuljahrgänge 5-10, 2014) definiert selbst keine eigene Operatorenliste mit Definitionen -- nur Kompetenzformulierungen. Auf Nutzerwunsch gilt diese (ursprünglich für die Oberstufe formulierte) Liste daher bewusst ohne `stufen`-Einschränkung für alle Jahrgänge.",
+  "_hinweis_formen": "Enthält bewusst KEINE 'Verb Sie'-Formen (z. B. 'bestimmen sie'): die Konvention ist, nur das Operator-Wort selbst zu markieren, nie das Höflichkeitspronomen (siehe ARBEITSBLATT_NOTIZEN.md). Für reguläre Verben ist die Sie-Imperativform ohnehin identisch zum Infinitiv, der schon in der Liste steht. Bei trennbaren Verben (abschätzen/anwenden/darstellen/angeben) stehen sowohl die volle Sie-Stammform mit abgetrenntem Präfix (z. B. 'wende an') als auch die eigenständige Sie-Stammform ohne Präfix (z. B. 'geben' bei 'angeben') separat, weil letztere -- anders als bei regulären Verben -- vom Infinitiv abweicht.",
+  "operatoren": [
+    {
+      "key": "Abschätzen",
+      "vorschlag": [
+        "Abschätzen"
+      ],
+      "definition": "Durch begründete Überlegungen Größenordnungen angeben.",
+      "formen": [
+        "abschätzen",
+        "schätze ab",
+        "schätzt ab",
+        "schätze",
+        "schätzen",
+        "schätzt"
+      ]
+    },
+    {
+      "key": "Analysieren/Untersuchen",
+      "vorschlag": [
+        "Analysieren",
+        "Untersuchen"
+      ],
+      "definition": "Unter einer gegebenen Fragestellung wichtige Bestandteile oder Eigenschaften nach fachlich üblichen Kriterien herausarbeiten.",
+      "formen": [
+        "analysieren",
+        "analysiere",
+        "analysiert",
+        "untersuchen",
+        "untersuche",
+        "untersucht"
+      ]
+    },
+    {
+      "key": "Anwenden",
+      "vorschlag": [
+        "Anwenden"
+      ],
+      "definition": "Ein gegebenes Verfahren unter Berücksichtigung konkreter Werte durchführen.",
+      "formen": [
+        "anwenden",
+        "wende an",
+        "wendet an",
+        "wende",
+        "wenden",
+        "wendet"
+      ]
+    },
+    {
+      "key": "Begründen/Zeigen",
+      "vorschlag": [
+        "Begründen",
+        "Zeigen"
+      ],
+      "definition": "Einen Sachverhalt auf Gesetzmäßigkeiten bzw. kausale Zusammenhänge zurückführen.",
+      "formen": [
+        "begründen",
+        "begründe",
+        "begründet",
+        "zeigen",
+        "zeige",
+        "zeigt"
+      ]
+    },
+    {
+      "key": "Berechnen",
+      "vorschlag": [
+        "Berechnen"
+      ],
+      "definition": "Ergebnisse durch Rechenoperationen gewinnen.",
+      "formen": [
+        "berechnen",
+        "berechne",
+        "berechnet"
+      ]
+    },
+    {
+      "key": "Beschreiben",
+      "vorschlag": [
+        "Beschreiben"
+      ],
+      "definition": "Sachverhalte oder Verfahren in Textform unter Verwendung der Fachsprache in eigenen Worten wiedergeben.",
+      "formen": [
+        "beschreiben",
+        "beschreibe",
+        "beschreibt"
+      ]
+    },
+    {
+      "key": "Bestimmen",
+      "vorschlag": [
+        "Bestimmen"
+      ],
+      "definition": "Einen Lösungsweg darstellen und das Ergebnis formulieren.",
+      "formen": [
+        "bestimmen",
+        "bestimme",
+        "bestimmt"
+      ]
+    },
+    {
+      "key": "Beurteilen",
+      "vorschlag": [
+        "Beurteilen"
+      ],
+      "definition": "Zu einem Sachverhalt ein selbstständiges Urteil unter Verwendung von Fachwissen und Fachmethoden formulieren und begründen.",
+      "formen": [
+        "beurteilen",
+        "beurteile",
+        "beurteilt"
+      ]
+    },
+    {
+      "key": "Darstellen",
+      "vorschlag": [
+        "Darstellen"
+      ],
+      "definition": "Sachverhalte, Zusammenhänge und Algorithmen strukturiert in ggf. fachspezifischer Form wiedergeben.",
+      "formen": [
+        "darstellen",
+        "stelle dar",
+        "stellt dar",
+        "stelle",
+        "stellen",
+        "stellt"
+      ]
+    },
+    {
+      "key": "Erörtern",
+      "vorschlag": [
+        "Erörtern"
+      ],
+      "definition": "Argumente zu einer Aussage oder These einander gegenüberstellen und abwägen.",
+      "formen": [
+        "erörtern",
+        "erörtere",
+        "erörtert"
+      ]
+    },
+    {
+      "key": "Entwerfen/Entwickeln",
+      "vorschlag": [
+        "Entwerfen",
+        "Entwickeln"
+      ],
+      "definition": "Nach vorgegebenen Bedingungen ein Modell bzw. einen Algorithmus selbstständig planen und erarbeiten.",
+      "formen": [
+        "entwerfen",
+        "entwirf",
+        "entwerft",
+        "entwickeln",
+        "entwickle",
+        "entwickelt"
+      ]
+    },
+    {
+      "key": "Ergänzen/Erweitern/Verändern",
+      "vorschlag": [
+        "Ergänzen",
+        "Erweitern",
+        "Verändern"
+      ],
+      "definition": "Eine vorgegebene Problemlösung unter Berücksichtigung vorgegebener Kriterien anpassen.",
+      "formen": [
+        "ergänzen",
+        "ergänze",
+        "ergänzt",
+        "erweitern",
+        "erweitere",
+        "erweitert",
+        "verändern",
+        "verändere",
+        "verändert"
+      ]
+    },
+    {
+      "key": "Erläutern",
+      "vorschlag": [
+        "Erläutern"
+      ],
+      "definition": "Einen Sachverhalt durch zusätzliche Informationen veranschaulichen und verständlich machen.",
+      "formen": [
+        "erläutern",
+        "erläutere",
+        "erläutert"
+      ]
+    },
+    {
+      "key": "Erstellen",
+      "vorschlag": [
+        "Erstellen"
+      ],
+      "definition": "Bekannte Verfahren zur Lösung eines neuen Problems aus einem bekannten Problemkreis anwenden.",
+      "formen": [
+        "erstellen",
+        "erstelle",
+        "erstellt"
+      ]
+    },
+    {
+      "key": "Implementieren",
+      "vorschlag": [
+        "Implementieren"
+      ],
+      "definition": "Erarbeiten und Codieren eines Algorithmus oder einer Datenstruktur.",
+      "formen": [
+        "implementieren",
+        "implementiere",
+        "implementiert"
+      ]
+    },
+    {
+      "key": "Nennen/Angeben",
+      "vorschlag": [
+        "Nennen",
+        "Angeben"
+      ],
+      "definition": "Ohne Erläuterungen und Begründungen aufzählen.",
+      "formen": [
+        "nennen",
+        "nenne",
+        "nennt",
+        "angeben",
+        "gib an",
+        "gebt an",
+        "geben",
+        "gib",
+        "gebt"
+      ]
+    },
+    {
+      "key": "Vergleichen",
+      "vorschlag": [
+        "Vergleichen"
+      ],
+      "definition": "Nach vorgegebenen oder selbst gewählten Gesichtspunkten Gemeinsamkeiten, Ähnlichkeiten und Unterschiede ermitteln und darstellen.",
+      "formen": [
+        "vergleichen",
+        "vergleiche",
+        "vergleicht"
+      ]
+    },
+    {
+      "key": "Zeichnen/Grafisch darstellen",
+      "vorschlag": [
+        "Zeichnen",
+        "Grafisch darstellen"
+      ],
+      "definition": "Die wesentlichen Eigenschaften eines Verfahrens bzw. eines Modells übersichtlich in einer Zeichnung darstellen.",
+      "formen": [
+        "zeichnen",
+        "zeichne",
+        "zeichnet",
+        "grafisch darstellen"
+      ]
+    }
+  ]
+}
