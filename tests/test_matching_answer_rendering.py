@@ -1,4 +1,4 @@
-from app.core.blatt_kern_answer_table import _render_answer_block
+from app.core.blatt_kern_answer_dispatch import _render_answer_block
 
 
 def test_matching_shows_worksheet_example_pairs_only_in_worksheet_mode():

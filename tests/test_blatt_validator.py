@@ -115,7 +115,34 @@ def test_table_alignment_option_is_allowed_without_op001():
     assert "OP001" not in codes
 
 
-def test_table_header_columns_option_is_allowed_without_op001():
+def test_table_column_headers_option_is_allowed_without_op001():
+    text = _build_document(
+        ':::table rows=2 cols=2 column_headers="A|B"\n'
+        "cells:\n"
+        "  - ['A', 'B']\n"
+        "  - ['C', 'D']\n"
+        ":::"
+    )
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+    assert "OP001" not in codes
+
+
+def test_table_row_headers_option_is_allowed_without_op001():
+    text = _build_document(
+        ':::table rows=2 cols=2 row_headers="R1|R2"\n'
+        "cells:\n"
+        "  - ['A', 'B']\n"
+        "  - ['C', 'D']\n"
+        ":::"
+    )
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+    assert "OP001" not in codes
+
+
+def test_table_header_columns_option_now_triggers_op001():
+    """Regression guard: `header_columns` wurde ersatzlos entfernt, kein Alias/Backcompat."""
     text = _build_document(
         ":::table rows=2 cols=2 header_columns=1\n"
         "cells:\n"
@@ -125,7 +152,7 @@ def test_table_header_columns_option_is_allowed_without_op001():
     )
     inspected = inspect_markdown_text(text)
     codes = {diagnostic.code for diagnostic in inspected.diagnostics}
-    assert "OP001" not in codes
+    assert "OP001" in codes
 
 
 def test_lines_height_option_is_allowed_without_op001():
@@ -290,7 +317,6 @@ def test_newly_curated_align_abbreviations_are_valid(align_abbreviation):
     [
         ":::qrcode url=https://example.org width=3cm\n:::",
         ":::columns cols=2 ratio='1 1'\n:::raw\nA\n:::\n:::nextcol:::\n:::raw\nB\n:::\n:::endcolumns:::",
-        ":::table header_cols=1\n| a |\n|---|\n:::",
     ],
 )
 def test_key_aliases_remain_valid_syntax_without_op001(block_snippet):

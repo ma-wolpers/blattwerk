@@ -3,6 +3,7 @@
 from app.ui.editor_marker_shortcuts import (
     apply_backtick_marker,
     apply_caret_marker,
+    apply_dollar_marker,
     apply_highlight_marker,
     apply_pipe_marker,
     apply_star_marker,
@@ -81,6 +82,16 @@ class TestPipeMarker:
     def test_second_press_toggles_off(self):
         edit = apply_pipe_marker("||", "text", "||")
         assert edit.replacement == "text"
+
+
+class TestDollarMarker:
+    def test_first_press_wraps_in_single_dollar_directly(self):
+        edit = apply_dollar_marker("", "x^2", "")
+        assert edit.replacement == "$x^2$"
+
+    def test_second_press_toggles_off(self):
+        edit = apply_dollar_marker("$", "x^2", "$")
+        assert edit.replacement == "x^2"
 
 
 class TestTildeMarker:

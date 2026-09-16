@@ -32,7 +32,7 @@ _UNESCAPED_PIPE_PATTERN = re.compile(r"(?<!\\)\|")
 _DELIMITER_CELL_PATTERN = re.compile(r"^(:?)-+(:?)$")
 _UNSAFE_HEADER_CHARS = re.compile(r'[|,"]')
 """Characters a header cell must not contain to be safely representable in
-the target `headers="H1|H2|..."` option -- `_parse_option_list`
+the target `column_headers="H1|H2|..."` option -- `_parse_positional_option_list`
 (`blatt_kern_answer_table.py`) naively replaces `,` with `|` and splits on
 `|`, with no escape mechanism at all."""
 
@@ -166,7 +166,7 @@ def _convert_tables_in_run(run_lines, start_line_number):
         if unsafe_cell is not None:
             skipped.append(
                 f"Tabelle ab Zeile {table_line_number} übersprungen: Kopfzeile enthält ein "
-                f'Zeichen (|, , oder "), das im headers=-Format nicht sicher darstellbar ist.'
+                f'Zeichen (|, , oder "), das im column_headers=-Format nicht sicher darstellbar ist.'
             )
             output.extend(run_lines[index:body_end])
             index = body_end
@@ -265,7 +265,7 @@ def _render_table_block(header_cells, body_rows, alignment_tokens, line_ending):
     option_parts = [
         f"rows={len(body_rows)}",
         f"cols={len(header_cells)}",
-        f'headers="{"|".join(header_cells)}"',
+        f'column_headers="{"|".join(header_cells)}"',
     ]
     if alignment_tokens is not None:
         option_parts.append(f'alignment="{" ".join(alignment_tokens)}"')

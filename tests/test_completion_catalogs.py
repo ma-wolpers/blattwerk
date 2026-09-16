@@ -124,7 +124,6 @@ def test_completion_options_for_block_key_alias_filtering_is_block_scoped():
     # ist primaer/kanonisch und darf nicht mitverschwinden.
     table_options = get_completion_options_for_block("table")
     assert "width" in table_options
-    assert "header_columns" in table_options and "header_cols" not in table_options
 
 
 def test_completion_options_for_block_columns_excludes_ratio_alias():

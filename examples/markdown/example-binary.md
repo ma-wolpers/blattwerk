@@ -75,7 +75,7 @@ Mögliche richtige Aussagen:
 :::material
 ### Beispiel: Binärzahlen
 
-:::table rows=6 cols=2 row_height=1.0cm headers=Dezimal|Binär alignment=right
+:::table rows=6 cols=2 row_height=1.0cm column_headers=Dezimal|Binär alignment=right
 cells:
 	-
 		- { text: "Beispielwerte", colspan: 2 }

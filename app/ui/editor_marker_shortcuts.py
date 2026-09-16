@@ -1,4 +1,4 @@
-"""Reine Editor-Logik für die Marker-Tasten (`*`/`_`/`=`/`~`/`^`/`` ` ``/`|`).
+"""Reine Editor-Logik für die Marker-Tasten (`*`/`_`/`=`/`~`/`^`/`` ` ``/`|`/`$`).
 
 Kein Tkinter-Import -- testbar ohne GUI. Beantwortet ausschließlich "welche
 Operation soll dieser Tastendruck auf diese Selektion anwenden": die
@@ -32,10 +32,13 @@ _STRIKE_DELIMITER = marker_spec_by_name("strike").levels[0].delimiter
 _SUPERSCRIPT_CHAR = marker_spec_by_name("superscript").key
 _CODE_DELIMITER = marker_spec_by_name("code").levels[0].delimiter
 _FENCED_CODE_DELIMITER = marker_spec_by_name("fenced_code").levels[0].delimiter
+_MATH_DELIMITER = "$"
 """Delimiter-Zeichen/Stufenzahlen kommen ausschließlich aus `syntax.py`s
 `MARKER_SPECS` -- dieses Modul definiert keine eigene Kopie der
 Marker-Semantik, nur die davon unabhängige UX-Frage ("welche Operation löst
-ein Tastendruck aus")."""
+ein Tastendruck aus"). Ausnahme `_MATH_DELIMITER`: `$...$`-Formel-Markup ist
+bewusst kein `MARKER_SPECS`-Eintrag (eigene Pipeline-Stufe, siehe
+`math_span_protection.py`), daher hier als eigenständiges Literal geführt."""
 
 
 @dataclass(frozen=True)
@@ -160,6 +163,11 @@ def apply_highlight_marker(before: str, selected: str, after: str) -> MarkerEdit
 def apply_pipe_marker(before: str, selected: str, after: str) -> MarkerEdit:
     """`|` -> `||Spoiler||` direkt beim ersten Druck; zweiter Druck entfernt wieder."""
     return _toggle_pair(before, selected, after, _SPOILER_DELIMITER)
+
+
+def apply_dollar_marker(before: str, selected: str, after: str) -> MarkerEdit:
+    """`$` -> `$Formel$` direkt beim ersten Druck; zweiter Druck entfernt wieder."""
+    return _toggle_pair(before, selected, after, _MATH_DELIMITER)
 
 
 def _prefix_wrapped(before: str, selected: str, after: str, char: str) -> tuple[bool, int, int]:

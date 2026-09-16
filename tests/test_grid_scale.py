@@ -1,6 +1,6 @@
 import re
 
-from app.core.blatt_kern_answer_table import _render_answer_block
+from app.core.blatt_kern_answer_dispatch import _render_answer_block
 from app.styles.blatt_styles import resolve_printable_width_cm
 
 

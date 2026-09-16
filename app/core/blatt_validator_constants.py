@@ -269,7 +269,6 @@ zugehörigen `KNOWN_*_VALUES`-Menge enthalten sein -- per Guardrail-Test
 abgesichert (`tests/test_blatt_validator_constants.py`)."""
 
 BLOCK_OPTION_KEY_ALIASES = {
-    "table": frozenset({"header_cols"}),
     "numberline": frozenset({"minimum", "maximum", "signed_positive"}),
     "mc": frozenset({"true_false"}),
     "matching": frozenset({"orientation", "links"}),
@@ -460,10 +459,8 @@ BLOCK_OPTION_SPECS: dict[str, tuple[BlockOptionSpec, ...]] = {
             MISSING,
         ),  # eigene Semantik (auch pro Spalte, Kurzformen l/r/c/j) -- NICHT über _is_valid_object_align geprüft
         BlockOptionSpec("row_height", "css_length", None, False, MISSING),
-        BlockOptionSpec("headers", "text", None, False, MISSING),
-        BlockOptionSpec("header_columns", "integer", None, False, MISSING),
-        BlockOptionSpec("header_cols", "integer", None, False, MISSING),  # Alias von header_columns
-        BlockOptionSpec("row_labels", "text", None, False, MISSING),
+        BlockOptionSpec("column_headers", "text", None, False, MISSING),
+        BlockOptionSpec("row_headers", "text", None, False, MISSING),
     ),
     "numberline": (
         _OPT_SHOW,

@@ -1871,10 +1871,7 @@ h1 {
     height: var(--table-row-height, 1.9cm);
 }
 
-.answer-table td.table-row-label,
-.answer-table th.table-row-label {
-    font-weight: 600;
-    background: var(--theme-accent-secondary-soft, #f3f3f3);
+.answer-table th.table-row-header {
     text-align: left;
 }
 

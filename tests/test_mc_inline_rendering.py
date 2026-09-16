@@ -1,4 +1,4 @@
-from app.core.blatt_kern_answer_table import _render_answer_block
+from app.core.blatt_kern_answer_dispatch import _render_answer_block
 
 
 def test_mc_inline_without_question_renders_non_inline_group():

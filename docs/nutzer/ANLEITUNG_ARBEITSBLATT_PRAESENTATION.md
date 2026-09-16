@@ -663,18 +663,16 @@ Teilaufgabe hier…
 
 ### `table`
 
-Tabellen-Antwortfeld. **Zellinhalte müssen als `cells:`-YAML-Liste-von-Listen im Blockinhalt stehen** (siehe Beispiel unten) -- eine native Markdown-Tabelle (`| A | B |`) im Blockinhalt wird **nicht** geparst und bleibt unwirksam. `headers="A|B|C"` setzt Spaltenüberschriften, `header_columns=<n>` (Alias `header_cols`) macht die ersten `n` Spalten zu Header-Spalten, `row_labels="..."` beschriftet Zeilen, `widths=...` steuert Spaltenbreiten, `alignment=left|center|right|justify` (auch Kurzformen `l`/`r`/`c`/`j`, auch pro Spalte) die Ausrichtung, `row_height=<css-länge>` die Zeilenhöhe.
+Tabellen-Antwortfeld. **Zellinhalte müssen als `cells:`-YAML-Liste-von-Listen im Blockinhalt stehen** (siehe Beispiel unten) -- eine native Markdown-Tabelle (`| A | B |`) im Blockinhalt wird **nicht** geparst und bleibt unwirksam. `column_headers="A|B|C"` setzt Spaltenüberschriften, `row_headers="..."` beschriftet Zeilen in einer eigenen, zusätzlichen ersten Spalte (zählt nicht zu `cols`, überschreibt nie `cells:`-Inhalte); sind beide gesetzt, bleibt die Eck-Zelle oben links automatisch leer. Beide unterstützen `|`-getrennt gezielt leere Zellen (z. B. `column_headers="A||C"` lässt die zweite Kopfzelle leer). `widths=...` steuert die Breite der Datenspalten, `alignment=left|center|right|justify` (auch Kurzformen `l`/`r`/`c`/`j`, auch pro Spalte) deren Ausrichtung, `row_height=<css-länge>` die Zeilenhöhe.
 
 | Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
 |---|---|---|---|---|---|
 | `alignment` | Enum | `c`, `center`, `j`, `justify`, `l`, `left`, `r`, `right` | nein | -- | Eigene, von der generischen `align`-Option unabhängige Semantik: steuert die Textausrichtung je Tabellenspalte, auch als Kurzform pro Spalte (z. B. `alignment="l r c c"` mit `l`/`r`/`c`/`j` für links/rechts/zentriert/Blocksatz). Aktuell nicht vom Validator geprüft. |
 | `cols` | Ganzzahl | -- | nein | -- | Anzahl Spalten des Rasters. Der genaue Standardwert und ob eine fehlende Angabe automatisch aus verfügbarer Breite berechnet wird, hängt vom Blocktyp ab (siehe Tabelle: Spalte "Standard"). |
-| `header_cols` | Ganzzahl | -- | nein | -- | Alias von `header_columns`. |
-| `header_columns` | Ganzzahl | -- | nein | -- | Rendert die ersten `n` Spalten im Tabellenkörper als Header-Spalten. |
-| `headers` | Text | -- | nein | -- | Spaltenüberschriften, `|`-getrennt (z. B. `headers="A|B|C"`). |
+| `column_headers` | Text | -- | nein | -- | Spaltenüberschriften, `|`-getrennt (z. B. `column_headers="A|B|C"`); leere Positionen (z. B. `"A||C"`) lassen einzelne Kopfzellen bewusst leer. |
 | `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
+| `row_headers` | Text | -- | nein | -- | Zeilenbeschriftungen in einer eigenen, zusätzlichen ersten Spalte, `|`-getrennt (z. B. `row_headers="Zeile 1|Zeile 2"`); zählt zusätzlich zur Spaltenanzahl und kollidiert nie mit `cells:`-Inhalten. Sind `column_headers` und `row_headers` beide gesetzt, bleibt die Eck-Zelle oben links automatisch leer. |
 | `row_height` | CSS-Länge | -- | nein | -- | Zeilenhöhe als CSS-Länge. |
-| `row_labels` | Text | -- | nein | -- | Zeilenbeschriftungen, `|`-getrennt (z. B. `row_labels="Zeile 1|Zeile 2"`). |
 | `rows` | Ganzzahl | -- | nein | -- | Anzahl Zeilen des Rasters/der Linien. Der genaue Standardwert und ob eine fehlende Angabe automatisch berechnet wird, hängt vom Blocktyp ab (siehe Tabelle: Spalte "Standard"). |
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
 | `width` | CSS-Länge | -- | nein | -- | Gesamtbreite der Tabelle als CSS-Länge. |
@@ -683,7 +681,7 @@ Tabellen-Antwortfeld. **Zellinhalte müssen als `cells:`-YAML-Liste-von-Listen i
 **Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
 
 ```markdown
-:::table rows=3 cols=3 headers="A|B|C"
+:::table rows=3 cols=3 column_headers="A|B|C"
 cells:
   - ["", "", ""]
   - ["", "", ""]

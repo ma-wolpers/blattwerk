@@ -1,4 +1,4 @@
-from app.core.blatt_kern_answer_table import _render_answer_block
+from app.core.blatt_kern_answer_dispatch import _render_answer_block
 
 
 def test_lines_answer_shows_worksheet_marker_text_only_in_worksheet_mode():
@@ -311,7 +311,7 @@ def test_table_alignment_per_column_shorthand_is_applied():
         "rows": "1",
         "cols": "4",
         "alignment": "l r c c",
-        "headers": "A|B|C|D",
+        "column_headers": "A|B|C|D",
     }
     content = "cells:\n  - ['1', '2', '3', '4']"
 
@@ -343,28 +343,84 @@ def test_table_alignment_per_column_uses_long_aliases_too():
     assert "<td style='text-align:center'>C</td>" in html
 
 
-def test_table_header_columns_render_body_cells_as_row_headers():
+def test_table_row_headers_render_in_dedicated_column_never_overwritten_by_cell_data():
     options = {
         "type": "table",
         "rows": "2",
-        "cols": "3",
-        "headers": "A|B|C",
-        "header_columns": "1",
+        "cols": "2",
+        "row_headers": "R1|R2",
     }
-    content = "cells:\n  - ['R1', '10', '20']\n  - ['R2', '30', '40']"
+    content = "cells:\n  - ['10', '20']\n  - ['30', '40']"
 
     html = _render_answer_block(options, content, include_solutions=False)
 
-    assert "<th scope='row'>R1</th>" in html
-    assert "<th scope='row'>R2</th>" in html
+    assert "<th scope='row' class='table-row-header'>R1</th>" in html
+    assert "<th scope='row' class='table-row-header'>R2</th>" in html
     assert "<td>10</td>" in html
+    assert "<td>30</td>" in html
 
 
-def test_table_header_cols_alias_is_supported():
-    options = {"type": "table", "rows": "1", "cols": "2", "header_cols": "1"}
-    content = "cells:\n  - ['Name', 'Wert']"
+def test_table_row_headers_add_one_extra_column_without_inflating_data_cols():
+    options = {"type": "table", "rows": "1", "cols": "2", "row_headers": "R1"}
+    content = "cells:\n  - ['10', '20']"
 
     html = _render_answer_block(options, content, include_solutions=False)
 
-    assert "<th scope='row'>Name</th>" in html
-    assert "<td>Wert</td>" in html
+    row_html = html.split("<tbody>")[1].split("</tbody>")[0]
+    assert row_html.count("<th") + row_html.count("<td") == 3
+
+
+def test_table_column_headers_supports_positional_empty_cells():
+    options = {"type": "table", "rows": "1", "cols": "4", "column_headers": "dfs || jj |"}
+    content = "cells:\n  - ['1', '2', '3', '4']"
+
+    html = _render_answer_block(options, content, include_solutions=False)
+
+    head_html = html.split("<thead>")[1].split("</thead>")[0]
+    assert head_html == "<tr><th>dfs</th><th></th><th>jj</th><th></th></tr>"
+
+
+def test_table_row_headers_supports_positional_empty_cells():
+    options = {"type": "table", "rows": "3", "cols": "1", "row_headers": "A||B"}
+    content = "cells:\n  - ['1']\n  - ['2']\n  - ['3']"
+
+    html = _render_answer_block(options, content, include_solutions=False)
+
+    assert "<th scope='row' class='table-row-header'>A</th>" in html
+    assert "<th scope='row' class='table-row-header'></th>" in html
+    assert "<th scope='row' class='table-row-header'>B</th>" in html
+
+
+def test_table_corner_cell_is_automatic_when_both_header_kinds_present():
+    options = {
+        "type": "table",
+        "rows": "1",
+        "cols": "1",
+        "column_headers": "A",
+        "row_headers": "R1",
+    }
+    content = "cells:\n  - ['1']"
+
+    html = _render_answer_block(options, content, include_solutions=False)
+
+    head_html = html.split("<thead>")[1].split("</thead>")[0]
+    assert head_html == "<tr><th></th><th>A</th></tr>"
+
+
+def test_table_no_corner_cell_when_only_column_headers_present():
+    options = {"type": "table", "rows": "1", "cols": "2", "column_headers": "A|B"}
+    content = "cells:\n  - ['1', '2']"
+
+    html = _render_answer_block(options, content, include_solutions=False)
+
+    head_html = html.split("<thead>")[1].split("</thead>")[0]
+    assert head_html.count("<th") == 2
+
+
+def test_table_no_corner_cell_when_only_row_headers_present():
+    options = {"type": "table", "rows": "1", "cols": "1", "row_headers": "R1"}
+    content = "cells:\n  - ['1']"
+
+    html = _render_answer_block(options, content, include_solutions=False)
+
+    assert "<thead>" not in html

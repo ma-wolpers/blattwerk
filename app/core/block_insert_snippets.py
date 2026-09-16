@@ -31,7 +31,7 @@ BLOCK_INSERT_SNIPPETS: dict[str, str] = {
         ":::\n"
     ),
     "table": (
-        ':::table rows=3 cols=3 headers="A|B|C"\n'
+        ':::table rows=3 cols=3 column_headers="A|B|C"\n'
         "cells:\n"
         '\x01  - ["", "", ""]\n'
         '  - ["", "", ""]\n'

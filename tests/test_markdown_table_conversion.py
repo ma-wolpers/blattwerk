@@ -19,7 +19,7 @@ def test_simple_table_converts_to_table_block_with_round_trippable_cells():
 
     assert result.converted_count == 1
     assert result.skipped == []
-    assert ":::table rows=2 cols=2 headers=\"Name|Alter\"" in result.new_text
+    assert ":::table rows=2 cols=2 column_headers=\"Name|Alter\"" in result.new_text
 
     body = _extract_block_body(result.new_text)
     cells, _ = parse_table_content_payload(body)
@@ -83,7 +83,7 @@ def test_header_with_pipe_comma_or_quote_is_skipped_not_corrupted():
         assert result.converted_count == 0
         assert result.new_text == doc
         assert len(result.skipped) == 1
-        assert "headers=" in result.skipped[0]
+        assert "column_headers=" in result.skipped[0]
 
 
 def test_table_without_data_rows_is_skipped_not_synthesized():

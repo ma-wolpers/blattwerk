@@ -124,13 +124,13 @@ answers:
 Vervollständigt die Tabelle. Inhalte in `%{...}` sind nur für die Lösung gedacht.
 :::
 
-:::table rows=5 cols=3 row_height=1.8cm headers="Signal|Bauteil|Funktion" header_columns=1 alignment="l c r"
+:::table rows=5 cols=2 row_height=1.8cm column_headers="Bauteil|Funktion" row_headers="Taster|LED||Sensor|" alignment="c r"
 cells:
-  - ["Taster", "Eingabe", "%{startet den Stromkreis}"]
-  - ["LED", "Ausgabe", "%{zeigt den Zustand an}"]
-  - ["", "Widerstand", "begrenzt Strom"]
-  - ["Sensor", "%{Eingabe}", "liefert Messwert"]
-  - ["", "", ""]
+  - ["Eingabe", "%{startet den Stromkreis}"]
+  - ["Ausgabe", "%{zeigt den Zustand an}"]
+  - ["Widerstand", "begrenzt Strom"]
+  - ["%{Eingabe}", "liefert Messwert"]
+  - ["", ""]
 solution: |
   Zusatzhinweis (nur in der Lösungsversion):
   Prüft besonders die Fachbegriffe **Eingabe**, **Ausgabe** und **Signalfluss**.

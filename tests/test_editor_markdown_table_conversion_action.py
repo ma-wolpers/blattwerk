@@ -87,7 +87,7 @@ def test_all_tables_skipped_leaves_document_untouched_and_shows_warning(monkeypa
         lambda title, message: warning_calls.append((title, message)),
     )
 
-    # A header containing "," can never be safely represented in headers=,
+    # A header containing "," can never be safely represented in column_headers=,
     # so this table is a real find that gets skipped -- not "nothing found".
     text = "| A, B | C |\n| --- | --- |\n| x | y |\n"
     editor = _DummyEditor(text)

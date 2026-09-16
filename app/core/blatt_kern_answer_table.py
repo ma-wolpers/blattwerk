@@ -1,43 +1,26 @@
-"""Table/grid/space answer rendering helpers and answer dispatcher."""
+"""Table-Antwort-Rendering: Optionen-Parsing (Header/Breiten/Ausrichtung) und
+`_render_table_answer` selbst. Der blocktyp-übergreifende Dispatcher
+(`_render_answer_block`) lebt in `blatt_kern_answer_dispatch.py`, damit diese
+Datei auf die Tabellen-spezifische Logik begrenzt bleibt."""
 
 from __future__ import annotations
 
 import re
 from html import escape
 
-from .answer_special import (
-    render_checkgrid_answer,
-    render_crossword_answer,
-    render_matching_answer,
-    render_ordering_answer,
-    render_wordsearch_answer,
-)
-from .blatt_kern_shared import _new_markdown_converter, _safe_int
-from .answer_grid_plot import (
-    render_dots_answer,
-    render_geometry_answer,
-    render_grid_answer,
-)
-from .answer_numberline import render_number_line_answer
+from .blatt_kern_shared import _safe_int
 from .answer_table_content import parse_table_content_payload, render_solution_marked_cell_text
-from .answer_line_markers import (
-    count_visible_answer_lines,
-    render_answer_line_rows_html_for_mode,
-)
-from .blatt_kern_answer_choice import (
-    _normalize_choice_values,
-    _render_answer_solution_text,
-    _render_cloze_answer,
-    _render_multiple_choice_answer,
-)
+from .blatt_kern_answer_choice import _render_answer_solution_text
 
-def _parse_option_list(raw_value):
-    """Parst Listenwerte aus `a|b|c` oder `a,b,c`."""
+def _parse_positional_option_list(raw_value):
+    """Parst Listenwerte aus `a|b|c` oder `a,b,c` positionsgetreu -- leere
+    Einträge (z. B. durch `||`) bleiben als eigene Position erhalten, damit
+    Header-Optionen gezielt einzelne Zellen leer lassen können."""
     if not raw_value:
         return []
 
     normalized = str(raw_value).replace(",", "|")
-    return [item.strip() for item in normalized.split("|") if item.strip()]
+    return [item.strip() for item in normalized.split("|")]
 
 def _parse_css_size(value, default_value):
     """Liest sichere CSS-Längenangaben (z. B. `2.4cm`)."""
@@ -153,19 +136,19 @@ def _parse_table_alignment(raw_value, expected_cols):
 
 
 def _render_table_answer(options, content, include_solutions):
-    """Rendert eine ausfüllbare Tabelle mit optionalen Zeilenlabels."""
+    """Rendert eine ausfüllbare Tabelle mit optionalen Spalten-/Zeilenüberschriften."""
 
     cols = max(1, _safe_int(options.get("cols", 2), 2))
     rows = max(1, _safe_int(options.get("rows", 4), 4))
     row_height = _parse_css_size(options.get("row_height"), "1.9cm")
 
-    headers = _parse_option_list(options.get("headers"))
-    if headers:
-        cols = max(cols, len(headers))
+    column_headers = _parse_positional_option_list(options.get("column_headers"))
+    if column_headers:
+        cols = max(cols, len(column_headers))
 
-    row_labels = _parse_option_list(options.get("row_labels"))
-    if row_labels:
-        rows = max(rows, len(row_labels))
+    row_headers = _parse_positional_option_list(options.get("row_headers"))
+    if row_headers:
+        rows = max(rows, len(row_headers))
 
     cells_matrix, extra_solution_text = parse_table_content_payload(content)
     if cells_matrix:
@@ -173,10 +156,7 @@ def _render_table_answer(options, content, include_solutions):
         max_payload_cols = max((len(row) for row in cells_matrix), default=0)
         cols = max(cols, max_payload_cols)
 
-    header_columns_raw = options.get("header_columns")
-    if header_columns_raw is None:
-        header_columns_raw = options.get("header_cols")
-    header_columns = max(0, min(cols, _safe_int(header_columns_raw, 0)))
+    has_row_header_column = bool(row_headers)
 
     table_alignment, column_alignments = _parse_table_alignment(
         options.get("alignment"), cols
@@ -186,14 +166,22 @@ def _render_table_answer(options, content, include_solutions):
 
     colgroup = ""
     if widths:
-        colgroup = "<colgroup>" + "".join(f"<col style='width:{escape(part)}'>" for part in widths) + "</colgroup>"
+        col_tags = "".join(f"<col style='width:{escape(part)}'>" for part in widths)
+        if has_row_header_column:
+            # Ungewichtete Extra-Spalte für die Row-Header-Spalte, damit `widths=`
+            # weiterhin auf die Datenspalten trifft und nicht um eine Spalte verrutscht.
+            col_tags = "<col>" + col_tags
+        colgroup = f"<colgroup>{col_tags}</colgroup>"
 
     thead = ""
-    if headers:
-        if len(headers) < cols:
-            headers.extend([""] * (cols - len(headers)))
+    if column_headers:
+        if len(column_headers) < cols:
+            column_headers = column_headers + [""] * (cols - len(column_headers))
         thead_cells = []
-        for col_index, text in enumerate(headers[:cols]):
+        if has_row_header_column:
+            # Schnittzelle Zeile 0/Spalte 0 hat keinen Datenbezug -- automatisch leer.
+            thead_cells.append("<th></th>")
+        for col_index, text in enumerate(column_headers[:cols]):
             alignment_style = ""
             if column_alignments:
                 alignment_style = (
@@ -205,11 +193,16 @@ def _render_table_answer(options, content, include_solutions):
     body_rows = []
     blocked_columns = [0] * cols
     for row_index in range(rows):
-        first_label = row_labels[row_index] if row_index < len(row_labels) else ""
         source_row = cells_matrix[row_index] if row_index < len(cells_matrix) else []
         source_cursor = 0
         col_index = 0
         cells = []
+
+        if has_row_header_column:
+            row_header_text = row_headers[row_index] if row_index < len(row_headers) else ""
+            cells.append(
+                f"<th scope='row' class='table-row-header'>{escape(row_header_text)}</th>"
+            )
 
         while col_index < cols:
             if blocked_columns[col_index] > 0:
@@ -241,39 +234,23 @@ def _render_table_answer(options, content, include_solutions):
             colspan = min(requested_colspan, max_free_colspan)
             rowspan = min(requested_rowspan, rows - row_index)
 
-            if source_text:
-                cell_content = render_solution_marked_cell_text(source_text, include_solutions)
-            elif col_index == 0 and first_label and colspan == 1:
-                cell_content = escape(first_label)
-            else:
-                cell_content = ""
+            cell_content = (
+                render_solution_marked_cell_text(source_text, include_solutions)
+                if source_text
+                else ""
+            )
 
-            is_row_label_cell = col_index == 0 and first_label and colspan == 1
-            css_class = " class='table-row-label'" if is_row_label_cell else ""
             span_attrs = ""
             style_attr = ""
-            tag_name = "td"
-            scope_attr = ""
             if colspan > 1:
                 span_attrs += f" colspan='{colspan}'"
             if rowspan > 1:
                 span_attrs += f" rowspan='{rowspan}'"
 
-            in_header_columns = (
-                header_columns > 0
-                and col_index < header_columns
-                and (col_index + colspan) <= header_columns
-            )
-            if in_header_columns:
-                tag_name = "th"
-                scope_attr = " scope='row'"
-
-            if column_alignments and not is_row_label_cell:
+            if column_alignments:
                 style_attr = f" style='text-align:{escape(column_alignments[col_index])}'"
 
-            cells.append(
-                f"<{tag_name}{css_class}{span_attrs}{scope_attr}{style_attr}>{cell_content}</{tag_name}>"
-            )
+            cells.append(f"<td{span_attrs}{style_attr}>{cell_content}</td>")
 
             if rowspan > 1:
                 for span_col in range(col_index, col_index + colspan):
@@ -305,146 +282,3 @@ def _wrap_answer_with_solution(base_answer_html, solution_text_html):
         return base_answer_html
 
     return f"<div class='answer-with-solution'>{solution_text_html}{base_answer_html}</div>"
-
-def _render_answer_block(block_type, options=None, content=None, include_solutions=False):
-    """Rendert dedizierte Antwort-Blocktypen (lines/grid/geometry/...)."""
-    if isinstance(block_type, dict) and isinstance(options, str):
-        # Legacy helper-Aufruf aus Unit-Tests: _render_answer_block(options, content, ...)
-        legacy_options = block_type
-        block_type = legacy_options.get("type", "")
-        content = options
-        options = legacy_options
-
-    options = options or {}
-    content = content or ""
-    normalized_block_type = (block_type or "").strip().lower()
-    if not normalized_block_type:
-        return ""
-
-    if normalized_block_type == "mc":
-        return _render_multiple_choice_answer(options, content, include_solutions)
-
-    if normalized_block_type == "cloze":
-        md = _new_markdown_converter()
-        return _render_cloze_answer(md, options, content, include_solutions)
-
-    if normalized_block_type == "table":
-        return _render_table_answer(options, content, include_solutions)
-
-    if normalized_block_type == "matching":
-        return render_matching_answer(options, content, include_solutions)
-
-    if normalized_block_type == "wordsearch":
-        return render_wordsearch_answer(options, content, include_solutions)
-
-    if normalized_block_type == "crossword":
-        return render_crossword_answer(options, content, include_solutions)
-
-    if normalized_block_type == "ordering":
-        return render_ordering_answer(options, content, include_solutions)
-
-    if normalized_block_type == "checkgrid":
-        return render_checkgrid_answer(options, content, include_solutions)
-
-    if normalized_block_type == "lines":
-        base_rows = max(1, _safe_int(options.get("rows", 3), 3))
-        line_pitch = _parse_css_size(options.get("height"), "")
-        lines_style_attr = (
-            f" style='--answer-line-pitch:{escape(line_pitch)}'"
-            if line_pitch
-            else ""
-        )
-
-        if include_solutions:
-            solution_rows_html, _solution_visible_rows = render_answer_line_rows_html_for_mode(
-                content,
-                include_solutions=True,
-                default_show="both",
-                highlight_solution_segments=True,
-            )
-            if solution_rows_html:
-                solution_visible_rows = count_visible_answer_lines(
-                    content,
-                    include_solutions=True,
-                    default_show="both",
-                )
-                solution_rows = max(
-                    1,
-                    max(base_rows, solution_visible_rows),
-                )
-                lines = "".join(
-                    "<div class='line'></div>" for _ in range(solution_rows)
-                )
-                return (
-                    f"<div class='answer lines answer-overlay-container'{lines_style_attr}>"
-                    f"{lines}<div class='answer-overlay-text lines-overlay-text'>"
-                    f"<div class='answer-solution-text lines-row-stack'>{solution_rows_html}</div>"
-                    "</div>"
-                    "</div>"
-                )
-            return ""
-
-        worksheet_visible_rows = count_visible_answer_lines(
-            content,
-            include_solutions=False,
-            default_show="both",
-        )
-        worksheet_rows = max(base_rows, worksheet_visible_rows)
-        lines = "".join("<div class='line'></div>" for _ in range(worksheet_rows))
-
-        worksheet_rows_html, _worksheet_visible_rows = render_answer_line_rows_html_for_mode(
-            content,
-            include_solutions=False,
-            default_show="both",
-            highlight_solution_segments=True,
-        )
-        if worksheet_rows_html:
-            return (
-                f"<div class='answer lines answer-overlay-container'{lines_style_attr}>"
-                f"{lines}<div class='answer-overlay-text lines-overlay-text'>"
-                f"<div class='answer-solution-text lines-row-stack'>{worksheet_rows_html}</div>"
-                "</div>"
-                "</div>"
-            )
-
-        return f"<div class='answer lines'{lines_style_attr}>{lines}</div>"
-
-    if normalized_block_type == "grid":
-        return render_grid_answer(
-            options, content, include_solutions, _render_answer_solution_text
-        )
-
-    if normalized_block_type == "geometry":
-        return render_geometry_answer(
-            options, content, include_solutions, _render_answer_solution_text
-        )
-
-    if normalized_block_type == "numberline":
-        return render_number_line_answer(options, content, include_solutions, _render_answer_solution_text)
-
-    if normalized_block_type == "dots":
-        return render_dots_answer(options, content, include_solutions, _render_answer_solution_text)
-
-    if normalized_block_type == "space":
-        height = options.get("height", "3cm")
-        base_html = f"<div class='answer space' style='height:{height}'></div>"
-
-        if include_solutions:
-            solution_text = _render_answer_solution_text(
-                content,
-                include_solutions=True,
-            )
-            if not solution_text:
-                return ""
-            return _wrap_answer_with_solution(base_html, solution_text)
-
-        worksheet_text = _render_answer_solution_text(
-            content,
-            include_solutions=False,
-        )
-        if worksheet_text:
-            return _wrap_answer_with_solution(base_html, worksheet_text)
-
-        return base_html
-
-    return ""

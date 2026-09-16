@@ -20,6 +20,7 @@ from ..core.markdown_table_conversion import convert_markdown_tables_to_blocks
 from .editor_marker_shortcuts import (
     apply_backtick_marker,
     apply_caret_marker,
+    apply_dollar_marker,
     apply_highlight_marker,
     apply_pipe_marker,
     apply_star_marker,
@@ -162,6 +163,7 @@ class BlattwerkAppEditorMixin:
             self.editor_widget.bind("<KeyPress-asciitilde>", lambda e: self._on_editor_marker_key(e, "~"))
             self.editor_widget.bind("<KeyPress-asciicircum>", lambda e: self._on_editor_marker_key(e, "^"))
             self.editor_widget.bind("<KeyPress-bar>", lambda e: self._on_editor_marker_key(e, "|"))
+            self.editor_widget.bind("<KeyPress-dollar>", lambda e: self._on_editor_marker_key(e, "$"))
             self.editor_widget.bind("<KeyPress-grave>", self._on_editor_backtick_key)
 
         self._build_editor_diagnostics_panel(parent)
@@ -829,6 +831,7 @@ class BlattwerkAppEditorMixin:
         "~": apply_tilde_marker,
         "^": apply_caret_marker,
         "|": apply_pipe_marker,
+        "$": apply_dollar_marker,
     }
     """Marker-Tasten mit einheitlicher `(before, selected, after) -> MarkerEdit`-
     Signatur. `` ` `` fehlt hier absichtlich -- es braucht zusätzlich das
@@ -910,7 +913,7 @@ class BlattwerkAppEditorMixin:
 
         Liefert `None` (fällt auf normales Zeichen-Einfügen zurück), wenn
         nichts selektiert ist -- so bleibt Tippen von `*`/`_`/`=`/`~`/`^`/
-        `|` außerhalb des dokumentierten "Text markieren, Taste drücken"-
+        `|`/`$` außerhalb des dokumentierten "Text markieren, Taste drücken"-
         Ablaufs unverändert normales Verhalten. Verweigert die Aktion
         (ohne Textänderung), wenn die Selektion eine `$...$`-Formelgrenze
         überschneidet -- die konkrete Umsetzung der geforderten Absicherung

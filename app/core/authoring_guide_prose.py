@@ -338,10 +338,13 @@ PROSE_SECTIONS: dict[str, str] = {
         "Tabellen-Antwortfeld. **Zellinhalte müssen als `cells:`-YAML-Liste-von-Listen im "
         "Blockinhalt stehen** (siehe Beispiel unten) -- eine native Markdown-Tabelle "
         "(`| A | B |`) im Blockinhalt wird **nicht** geparst und bleibt unwirksam. "
-        "`headers=\"A|B|C\"` setzt Spaltenüberschriften, `header_columns=<n>` (Alias `header_cols`) "
-        "macht die ersten `n` Spalten zu Header-Spalten, `row_labels=\"...\"` beschriftet Zeilen, "
-        "`widths=...` steuert Spaltenbreiten, `alignment=left|center|right|justify` (auch Kurzformen "
-        "`l`/`r`/`c`/`j`, auch pro Spalte) die Ausrichtung, `row_height=<css-länge>` die Zeilenhöhe."
+        "`column_headers=\"A|B|C\"` setzt Spaltenüberschriften, `row_headers=\"...\"` beschriftet "
+        "Zeilen in einer eigenen, zusätzlichen ersten Spalte (zählt nicht zu `cols`, überschreibt "
+        "nie `cells:`-Inhalte); sind beide gesetzt, bleibt die Eck-Zelle oben links automatisch leer. "
+        "Beide unterstützen `|`-getrennt gezielt leere Zellen (z. B. `column_headers=\"A||C\"` lässt "
+        "die zweite Kopfzelle leer). `widths=...` steuert die Breite der Datenspalten, "
+        "`alignment=left|center|right|justify` (auch Kurzformen `l`/`r`/`c`/`j`, auch pro Spalte) "
+        "deren Ausrichtung, `row_height=<css-länge>` die Zeilenhöhe."
     ),
     "block:numberline": (
         "Zahlenstrahl-Antwortfeld mit YAML-Payload (`labels`/`answers`/`arcs`/... je Element mit "
@@ -602,12 +605,16 @@ PROSE_SECTIONS: dict[str, str] = {
         "Skalierung zwischen mathematischer y-Koordinate und Rasterzellen (Standard `1`), nur bei "
         "`axis=true`."
     ),
-    "block:table.headers": ('Spaltenüberschriften, `|`-getrennt (z. B. `headers="A|B|C"`).'),
-    "block:table.header_columns": (
-        "Rendert die ersten `n` Spalten im Tabellenkörper als Header-Spalten."
+    "block:table.column_headers": (
+        "Spaltenüberschriften, `|`-getrennt (z. B. `column_headers=\"A|B|C\"`); leere Positionen "
+        "(z. B. `\"A||C\"`) lassen einzelne Kopfzellen bewusst leer."
     ),
-    "block:table.header_cols": ("Alias von `header_columns`."),
-    "block:table.row_labels": ('Zeilenbeschriftungen, `|`-getrennt (z. B. `row_labels="Zeile 1|Zeile 2"`).'),
+    "block:table.row_headers": (
+        "Zeilenbeschriftungen in einer eigenen, zusätzlichen ersten Spalte, `|`-getrennt "
+        "(z. B. `row_headers=\"Zeile 1|Zeile 2\"`); zählt zusätzlich zur Spaltenanzahl und "
+        "kollidiert nie mit `cells:`-Inhalten. Sind `column_headers` und `row_headers` beide "
+        "gesetzt, bleibt die Eck-Zelle oben links automatisch leer."
+    ),
     "block:table.row_height": ("Zeilenhöhe als CSS-Länge."),
     "block:mc.inline": (
         "Schaltet auf ein kompaktes, horizontal fließendes Layout der Antwortoptionen um "

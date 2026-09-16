@@ -7,7 +7,7 @@ den Nachbarmodulen `answer_grid_svg_frame.py` (Viewport/Hintergrundraster),
 `answer_grid_axis.py` (Achsen-Geometrie), `answer_grid_entries.py`
 (Geometrie-Objekt-Parsing) und `answer_grid_primitives.py`
 (Geometrie-Objekt-Rendering) — dieses Modul bleibt bewusst der schlanke
-öffentliche Einstiegspunkt, den `blatt_kern_answer_table.py` importiert.
+öffentliche Einstiegspunkt, den `blatt_kern_answer_dispatch.py` importiert.
 """
 
 from __future__ import annotations
