@@ -26,6 +26,47 @@ Einstiegspunkte und eigene Coderaeume, teilen sich aber dieses Referenzdokument.
   - Exportziel-Guardrails: `app/core/export_path_guardrails.py`
 - CLI Bridge (JSON): `python -m app.cli.blatt_diagnostics_cli --file <datei.md>`
 
+## Headless-Nutzung (ohne GUI)
+
+Für Skripte, CI oder Agents, die eine `.md`-Datei pruefen oder exportieren wollen, ohne die
+Qt-App zu starten:
+
+```bash
+# Nur validieren, Diagnosen als JSON auf stdout
+python -m app.cli.blatt_diagnostics_cli --file datei.md --pretty --mode standard
+# --fail-on-blocking gibt Exit-Code 3 zurueck, wenn `mode` blockierende Diagnosen enthaelt
+```
+
+```python
+# Programmatisch validieren
+from pathlib import Path
+from app.core.blatt_validator import inspect_markdown_document, has_blocking_diagnostics
+
+result = inspect_markdown_document(Path("datei.md"))
+for d in result.diagnostics:
+    print(d.code, d.severity, d.message)
+print("blocking:", has_blocking_diagnostics(result.diagnostics))
+```
+
+```python
+# Headless nach PDF exportieren (nutzt intern per subprocess einen lokal installierten
+# Chromium/Edge/Chrome/Brave im --headless=new-Modus, kein Qt/GUI noetig; endet der
+# out_path auf .html statt .pdf, wird gar kein Browser gebraucht)
+from app.core.blatt_kern_io_build import build_worksheet
+
+diagnostics = []
+build_worksheet(
+    "datei.md", "ausgabe.pdf",
+    include_solutions=False,   # True fuer die Loesungsansicht
+    diagnostics_out=diagnostics,
+    block_on_critical=True,     # wirft bei blockierenden Diagnosen eine Exception
+)
+```
+
+Analog existiert `build_help_cards(...)` fuer den Hilfekarten-Export. Aufrufmuster ohne
+Subprozess siehe `tests/test_blatt_diagnostics_cli.py` (Validator) sowie
+`tests/test_operator_legend.py`/`tests/test_core_wiring.py` (`build_worksheet`).
+
 ## Stabiler Diagnosekatalog
 
 - `FM001`: Pflichtfeld im Frontmatter fehlt oder ist leer (`Titel`/`Fach`/`Thema`).
