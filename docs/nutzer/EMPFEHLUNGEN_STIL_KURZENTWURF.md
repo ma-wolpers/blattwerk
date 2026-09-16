@@ -61,6 +61,17 @@ ant< - "Drei Männer, die sich die Hand geben."
       - "Das sind alles drei die gleiche Funktion."
 ```
 
+**Antizipationen als unabhängige Einzelaussagen, nicht als verkettete Reaktion.** Auch
+innerhalb einer Liste steht jeder Eintrag für sich, als könnte er von einer anderen Person
+stammen -- keine Verknüpfungswörter wie "oder" oder "kann auch sein", die einen Eintrag
+explizit als Alternative zum vorherigen ausweisen:
+
+- Nicht: `ant< - "Der Server ist kaputt." \n      - "Oder der Router spinnt."`
+- Sondern: `ant< - "Der Server ist kaputt." \n      - "Der Router spinnt schon wieder."`
+
+(Ausnahme: eine bewusst dargestellte *Progression*, siehe oben -- dort ist die Abfolge
+selbst der Punkt und keine lose Alternativen-Aufzählung.)
+
 **Kein "Schüler:innen"-Subjekt nach `S>`/`s<`.** Der Marker selbst steht bereits für das
 Subjekt ("die Lernenden") -- es noch einmal auszuschreiben ist redundant. Prädikat direkt,
 klein geschrieben, 3. Person Plural:
@@ -138,6 +149,19 @@ ist ein flexibel platzierter Puffer, kein fester Stundenabschluss -- sie kann z.
 einer Sicherung und der folgenden Vertiefung stehen, wenn dort am ehesten Zeit übrig bleibt,
 oder an jeder anderen Stelle, die zur Stundenlogik passt. Ein Dokumentende suggeriert
 dagegen fälschlich, `Reserve` sei eine reguläre, feste Abschlussphase.
+
+**`Reserve` nie von unsicheren Fakten abhängig machen.** Der Inhalt einer `Reserve`-Phase
+muss unabhängig vom tatsächlichen Verlauf der Stunde ausführbar sein -- nicht auf Dinge
+setzen, die vielleicht gar nicht eintreten ("falls noch unzugeteiltes Material übrig ist",
+"falls Lernenden spontan ein Beispiel einfällt"). Stattdessen auf garantiert vorhandenes
+Material zurückgreifen, z. B. eigene Arbeitsergebnisse aus einer früheren Phase oder
+Stunde, die in jedem Fall existieren.
+
+**Gesamtzeit muss der tatsächlichen Stundenlänge entsprechen.** Die Summe der `t=`-Angaben
+aller zeitpflichtigen Phasen (Einstieg/Erarbeitung/Ergebnissicherung/Vertiefung -- Hausaufgabe
+und Reserve zählen nicht mit) muss der geplanten Gesamtdauer entsprechen, z. B. 90 Minuten
+bei einer Doppelstunde, nicht nur einem Teil davon. Nach dem Verteilen der einzelnen `t=`-Werte
+die Summe gegenrechnen, bevor der Kurzentwurf als fertig gilt.
 
 Faustregel für die Phasenlänge: möglichst nicht unter ~5 Minuten (`t=2` ist fast immer ein
 Signal, dass der Inhalt eigentlich zu einer Nachbarphase gehört) -- sonst wirkt der
