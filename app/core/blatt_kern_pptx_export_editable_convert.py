@@ -89,6 +89,15 @@ _CLASSIFY_JS = """
             entry.fontWeight = style.fontWeight;
             entry.color = style.color;
             entry.textAlign = style.textAlign;
+        } else if (el.tagName === 'IMG') {
+            // Only a real <img> has a meaningful "original asset" to fetch
+            // instead of screenshotting -- MathJax/SVG/canvas/chrome/table
+            // images have no such source and stay on the screenshot path
+            // (Python only reads `src` for `kind === 'image'` entries that
+            // actually have it). `currentSrc` reflects e.g. `srcset`-
+            // selected/lazy-loaded state; `src` is the plain fallback.
+            const resolvedSrc = el.currentSrc || el.src;
+            if (resolvedSrc) entry.src = resolvedSrc;
         }
         results.push(entry);
     }
@@ -222,11 +231,14 @@ def build_slide_elements(raw_slide: dict, slide_width_emu: int, slide_height_emu
     return value for one slide) into EMU-positioned dicts.
 
     `kind="image"` entries still carry only `index` (not `image_bytes`
-    yet) -- filling that in needs a live Playwright element-handle
-    screenshot, which only `extract_slide_elements` (the caller, which
-    has the `page`) can do. Kept as a plain function with no Playwright
-    dependency so the EMU-scaling math itself is unit-testable without a
-    browser.
+    yet) -- filling that in needs either a live Playwright element-handle
+    screenshot or a fetch of the `src` URI, both of which only
+    `extract_slide_elements` (the caller, which has the `page`) can do.
+    `src` is passed through as-is when present (a real `<img>` -- see
+    `_CLASSIFY_JS::mark()`), so the caller can prefer reading/fetching the
+    original asset bytes over rasterizing a screenshot of it. Kept as a
+    plain function with no Playwright dependency so the EMU-scaling math
+    itself is unit-testable without a browser.
 
     `.ab-slide` sizes itself via `min-height:100vh`/`width:100%` (see
     `assets/worksheet.css`), not a fixed cm box, so there is no fixed
@@ -260,16 +272,18 @@ def build_slide_elements(raw_slide: dict, slide_width_emu: int, slide_height_emu
             continue
 
         if entry.get("kind") == "image":
-            built.append(
-                {
-                    "kind": "image",
-                    "index": entry.get("index"),
-                    "left_emu": left_emu,
-                    "top_emu": top_emu,
-                    "width_emu": width_emu,
-                    "height_emu": height_emu,
-                }
-            )
+            built_image = {
+                "kind": "image",
+                "index": entry.get("index"),
+                "left_emu": left_emu,
+                "top_emu": top_emu,
+                "width_emu": width_emu,
+                "height_emu": height_emu,
+            }
+            src = entry.get("src")
+            if src:
+                built_image["src"] = src
+            built.append(built_image)
             continue
 
         text = str(entry.get("text") or "").strip()

@@ -17,7 +17,8 @@ der HTML-/CSS-Darstellung. Unterstützungsmatrix:
 | Inhalt                                               | Ergebnis in v1 |
 |-------------------------------------------------------|----------------|
 | Fließtext (Absätze, Überschriften, einfache Listen)    | echte Textbox |
-| `<img>`, MathJax-Formeln (`<mjx-container>`), rohes `<svg>`/`<canvas>` | eigenes Bild-Shape (zugeschnitten) |
+| `<img>` mit lesbarer Quelle (`data:`/`file:`/`http(s):`) | eigenes Bild-Shape, **Original-Asset-Bytes** (kein Screenshot-Reencode) |
+| MathJax-Formeln (`<mjx-container>`), rohes `<svg>`/`<canvas>`, `<img>` ohne lesbare Quelle | eigenes Bild-Shape (Screenshot, zugeschnitten) |
 | `:::table`, `:::geometry`, `:::grid`, `:::dots`, `:::crossword`, `:::wordsearch`, `:::qrcode`, `:::matching`, `:::mindmap`, `:::selfcheck`, `:::numberline`, `:::checkgrid`, `:::lines`, `:::space`, `raw`-Blöcke | eigenes Bild-Shape (ganzer Block, kein Zell-/Element-Mapping) |
 | gemischte Inline-Formatierung (`**fett** normal`)      | eine Formatierung pro Textbox (die des ganzen Absatzes), keine gemischten Runs |
 | CSS-Gradients, Schatten, `border-radius`               | nicht übertragen (nur Flächenfarbe, falls überhaupt) |
@@ -53,9 +54,11 @@ pauschales `except Exception`.
 
 from __future__ import annotations
 
+import urllib.request
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
+from urllib.parse import urlparse
 
 from .blatt_kern_pptx_export_editable_convert import _CLASSIFY_JS, _IMAGE_ONLY_BLOCK_TYPES, build_slide_elements
 
@@ -139,17 +142,66 @@ def _resolve_playwright_executable_path() -> str:
     return executable
 
 
+def _fetch_image_src(src: str, page) -> bytes | None:
+    """Reads the ORIGINAL bytes of a real `<img>` source instead of
+    rasterizing a screenshot of it -- `data:`/`file:` URIs are read
+    directly (both natively supported by `urllib.request.urlopen`, no
+    manual base64/path parsing needed); `http(s):` URIs are fetched via
+    Playwright's own request API (reuses the browser's context rather than
+    a separate, unauthenticated HTTP client). `None` for any other/
+    unrecognised scheme, letting the caller fall back to a screenshot --
+    geometry/positioning is unaffected either way, `add_picture(...,
+    width=, height=)` sets display size independent of source pixels.
+    """
+
+    scheme = urlparse(src).scheme.lower()
+    if scheme in {"data", "file"}:
+        with urllib.request.urlopen(src) as response:  # noqa: S310 -- scheme allow-listed above
+            return response.read()
+    if scheme in {"http", "https"}:
+        response = page.request.get(src)
+        return response.body() if response.ok else None
+    return None
+
+
+def _resolve_image_bytes(built: dict, page) -> bytes | None:
+    """Prefers the original asset (`_fetch_image_src`) for entries that
+    carry a `src` (real `<img>` elements, see `_CLASSIFY_JS::mark()`),
+    falling back to an element-handle screenshot -- both for entries
+    without `src` (MathJax/SVG/canvas/chrome/table) and when fetching the
+    original hits an EXPECTED, infrastructure-level failure (broken/
+    unreadable local reference, network error). Only those specific,
+    known exception types are caught here; anything else propagates as a
+    real bug, per this module's fallback philosophy.
+    """
+
+    from playwright.sync_api import Error as PlaywrightError
+    from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
+
+    src = built.get("src")
+    if src:
+        try:
+            image_bytes = _fetch_image_src(src, page)
+            if image_bytes:
+                return image_bytes
+        except (OSError, ValueError, PlaywrightError, PlaywrightTimeoutError):
+            pass  # falls through to the screenshot fallback below
+
+    handle = page.query_selector(f'[data-pptx-index="{built["index"]}"]')
+    return handle.screenshot() if handle is not None else None
+
+
 def _renderable_elements_from_built(built_entries: list[dict], page) -> list[RenderableElement]:
     """Turns `build_slide_elements()`'s plain dicts into `RenderableElement`s,
-    filling in `image_bytes` for `kind="image"` entries via a live
-    Playwright element-handle screenshot (the one piece `build_slide_elements`
-    itself cannot do, since it has no `page`)."""
+    filling in `image_bytes` for `kind="image"` entries -- preferring the
+    original asset bytes over a screenshot where possible
+    (`_resolve_image_bytes`), the one piece `build_slide_elements` itself
+    cannot do, since it has no `page`."""
 
     elements: list[RenderableElement] = []
     for built in built_entries:
         if built["kind"] == "image":
-            handle = page.query_selector(f'[data-pptx-index="{built["index"]}"]')
-            image_bytes = handle.screenshot() if handle is not None else None
+            image_bytes = _resolve_image_bytes(built, page)
             if not image_bytes:
                 continue
             elements.append(
