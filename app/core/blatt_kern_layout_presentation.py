@@ -250,12 +250,27 @@ def _render_presentation_html(
                 f"Folie {logical_slide_number}/{logical_slide_total}"
                 "</div>"
             )
+        # `data-block-type="chrome"` marks these two regions for the
+        # experimental editable-PPTX export (`blatt_kern_pptx_export_editable_convert.py`,
+        # `_IMAGE_ONLY_BLOCK_TYPES`) so they become one small image each
+        # instead of fragmenting into a separate shape per header/footer/
+        # counter `<div>`. Two regions, not one: the mini-header sits
+        # *before* `.ab-slide-body` and the footer/counter sit *after* it
+        # in the existing DOM order, which stays untouched here (reordering
+        # them into one contiguous wrapper would risk shifting the visual
+        # flex-column layout for every export, not just the experimental
+        # one) -- both regions share the same "chrome" type, so the
+        # extractor treats them identically even though they're two shapes.
+        top_chrome_html = f"<div data-block-type='chrome'>{mini_header_html}</div>" if mini_header_html else ""
+        bottom_chrome_source = f"{section_footer_html}{slide_counter_html}"
+        bottom_chrome_html = (
+            f"<div data-block-type='chrome'>{bottom_chrome_source}</div>" if bottom_chrome_source else ""
+        )
         slide_html_parts.append(
             "<section class='ab-slide'>"
-            f"{mini_header_html}"
+            f"{top_chrome_html}"
             f"<div class='ab-slide-body'>{slide.get('body', '')}</div>"
-            f"{section_footer_html}"
-            f"{slide_counter_html}"
+            f"{bottom_chrome_html}"
             "</section>"
         )
 

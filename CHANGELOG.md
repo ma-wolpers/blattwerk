@@ -27,6 +27,7 @@ The format is based on Keep a Changelog.
 
 ### Added
 
+- Der experimentelle editierbare PPTX-Export (siehe Eintrag weiter unten) erfasst jetzt auch Folien-Chrome (Mini-Header, Abschnitts-Footer, Folienzähler) als eigene Bild-Shapes statt sie komplett zu ignorieren.
 - Die Erklärungs-Overlay-Spalte im Autocomplete-Popup zeigt jetzt auch für Block-Optionen (z. B. `rows=` in `:::lines`, `work=` in `:::task`), deren Werte (z. B. `work=einzel|partner|gruppe`) und Frontmatter-Werte (z. B. `Stufe: 11`) eine Erklärung -- bisher nur bei Operatoren, Frontmatter-Schlüsseln und Blocktypen vorhanden. Werte zeigen dieselbe Erklärung wie ihre zugehörige Option/ihr Feld, mit einem Hinweis nur wenn der konkrete Wert tatsächlich der Standard ist.
 - Neben Mathematik liegt jetzt auch für das Fach Informatik eine vollständige, offizielle Operatorenliste bei (`data/operatoren/informatik.json`, Niedersächsisches Kultusministerium, Anhang A1 der Kerncurricula gymnasiale Oberstufe) -- `!!Operator!!`-Marker funktionieren damit auch in Informatik-Arbeitsblättern samt Legende und Editor-Autocomplete. Da das Kerncurriculum Informatik Sekundarbereich I (Schuljahrgänge 5-10) selbst keine eigene Operatorenliste definiert, gilt diese Liste bewusst ohne `Stufe`-Einschränkung für alle Jahrgänge, nicht nur die Oberstufe.
 - Das Ctrl+B-Einfügemenü zeigt jetzt beim Durchgehen der Einträge (Pfeiltasten oder Maus) dieselbe Blocktyp-Erklärung als kleinen Tooltip neben dem Menü, die auch die `:::`-Autocomplete-Erklärungsspalte nutzt (z. B. bei "Infobox / Hinweis (info)").

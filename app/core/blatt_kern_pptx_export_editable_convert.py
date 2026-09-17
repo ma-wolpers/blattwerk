@@ -33,6 +33,7 @@ _IMAGE_ONLY_BLOCK_TYPES = frozenset(
         "mindmap",
         "selfcheck",
         "qrcode",
+        "chrome",
     }
 )
 """Blocktypen, deren gesamter Subtree als EIN zugeschnittenes Bild exportiert
@@ -44,7 +45,13 @@ diese Menge hier ist eine reine PPTX-Export-Entscheidung ("ist primär
 visuell/grafisch, kein sinnvoll editierbarer Fließtext"). `mc`/`cloze`/
 `ordering`/`task`/`subtask`/`info`/`material`/`solution`/`writebox`/`help`
 bleiben bewusst text-fähig -- ihr Inhalt ist überwiegend Text, auch wenn
-sie Checkboxen/Lückenlinien/Rahmen verlieren (dokumentierte v1-Grenze)."""
+sie Checkboxen/Lückenlinien/Rahmen verlieren (dokumentierte v1-Grenze).
+
+`"chrome"` ist kein echter `:::`-Blocktyp, sondern das
+`data-block-type="chrome"`-Attribut, das `blatt_kern_layout_presentation.py`
+auf Mini-Header- und Fußzeilen-/Folienzähler-Bereiche setzt (zwei Regionen,
+nicht drei Einzel-Shapes -- Mini-Header liegt vor, Fußzeile+Zähler liegen
+nach `.ab-slide-body` im bestehenden DOM, absichtlich nicht umsortiert)."""
 
 _CLASSIFY_JS = """
 (imageBlockTypes) => {

@@ -22,7 +22,7 @@ der HTML-/CSS-Darstellung. Unterstützungsmatrix:
 | gemischte Inline-Formatierung (`**fett** normal`)      | eine Formatierung pro Textbox (die des ganzen Absatzes), keine gemischten Runs |
 | CSS-Gradients, Schatten, `border-radius`               | nicht übertragen (nur Flächenfarbe, falls überhaupt) |
 | `position:absolute`/`z-index` außerhalb der Bild-Blöcke | Stapelreihenfolge nur über Dokumentreihenfolge, keine CSS-Stacking-Garantie |
-| Folien-Chrome (Mini-Header, Abschnitts-Footer)         | nicht enthalten (kein `data-block-type`) |
+| Folien-Chrome (Mini-Header, Abschnitts-Footer, Folienzähler) | eigenes Bild-Shape (zwei Regionen: vor/nach dem Folieninhalt) |
 
 Diese Liste ist bewusst unvollständig und kann mit wachsender Unterstützung
 erweitert werden -- sie ist kein Versprechen auf vollständige Abdeckung.

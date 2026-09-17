@@ -403,6 +403,63 @@ def test_render_html_presentation_slide_chrome_off_hides_header_and_footer_only_
     assert "Slide 2" in slide_bodies[1]
 
 
+def test_presentation_slide_chrome_is_wrapped_in_exactly_two_data_block_type_chrome_regions():
+    # For the experimental editable-PPTX export: mini-header (before
+    # .ab-slide-body) and footer+counter (after it) must each be wrapped in
+    # a `data-block-type="chrome"` region -- two regions, not three
+    # fragmented ones (footer and counter share one region).
+    meta = {"Titel": "T", "Fach": "M", "Thema": "X", "mode": "presentation"}
+    blocks = parse_blocks(
+        "--# Einstieg\n"
+        ":::task\n"
+        "Slide 1\n"
+        ":::\n"
+    )
+
+    html = render_html(meta, blocks, include_solutions=False)
+    slide_bodies = re.findall(r"<section class='ab-slide'>(.*?)</section>", html, flags=re.DOTALL)
+
+    assert len(slide_bodies) == 1
+    body = slide_bodies[0]
+
+    # Exactly two chrome-wrapper openings (nested divs inside each region
+    # make naive regex extraction of their *content* unreliable, so this
+    # checks structural ordering by string position instead).
+    assert body.count("<div data-block-type='chrome'>") == 2
+
+    mini_header_pos = body.index("presentation-mini-header")
+    slide_body_pos = body.index("ab-slide-body")
+    section_footer_pos = body.index("presentation-section-footer")
+    slide_counter_pos = body.index("presentation-slide-counter")
+    first_chrome_pos = body.index("<div data-block-type='chrome'>")
+    second_chrome_pos = body.rindex("<div data-block-type='chrome'>")
+
+    # Mini-header sits inside the FIRST chrome region, before the body;
+    # footer+counter sit inside the SECOND chrome region, after the body.
+    assert first_chrome_pos < mini_header_pos < slide_body_pos
+    assert slide_body_pos < second_chrome_pos < section_footer_pos < slide_counter_pos
+
+
+def test_presentation_slide_without_chrome_has_no_chrome_regions():
+    # `slidechromeoff` hides all three chrome pieces -- no empty
+    # `data-block-type="chrome"` wrapper should appear for nothing.
+    meta = {"Titel": "T", "Fach": "M", "Thema": "X", "mode": "presentation"}
+    blocks = parse_blocks(
+        "--!\n"
+        ":::slidechromeoff\n"
+        ":::\n"
+        ":::task\n"
+        "Slide 1\n"
+        ":::\n"
+    )
+
+    html = render_html(meta, blocks, include_solutions=False)
+    slide_bodies = re.findall(r"<section class='ab-slide'>(.*?)</section>", html, flags=re.DOTALL)
+
+    assert len(slide_bodies) == 1
+    assert "data-block-type='chrome'" not in slide_bodies[0]
+
+
 def test_task_content_supports_marker_visibility_by_output_mode():
     content = "§ Nur Arbeitsblatt\n% Nur Loesung\nIn beiden"
     options = {"work": "single", "_show_task_label": "1"}

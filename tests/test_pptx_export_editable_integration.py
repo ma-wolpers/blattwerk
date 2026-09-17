@@ -126,6 +126,64 @@ def test_extract_slide_elements_table_block_becomes_a_single_image(rendered_pres
     assert any(img.width_emu > 0 and img.height_emu > 0 and img.image_bytes for img in second_slide_images)
 
 
+_CHROME_ONLY_MARKDOWN = """---
+Titel: Testfolien
+Fach: Mathematik
+Thema: PPTX-Chrome
+mode: presentation
+---
+
+# Erste Folie
+
+:::task title="Nur Text"
+Ein einfacher, rein textueller Aufgabentext ohne Bilder/Tabellen/Formeln.
+:::
+"""
+
+
+@pytest.fixture
+def rendered_chrome_only_html(tmp_path) -> Path:
+    if not _browser_available():
+        pytest.skip("kein installierter Chromium-Browser gefunden (find_chromium_executable())")
+
+    md_path = tmp_path / "chrome_only.md"
+    md_path.write_text(_CHROME_ONLY_MARKDOWN, encoding="utf-8")
+    html_path = tmp_path / "chrome_only.html"
+    build_worksheet(
+        str(md_path), str(html_path), page_format="presentation_16_9",
+        **WorksheetDesignOptions("indigo", "segoe", "normal").as_kwargs(),
+    )
+    return html_path
+
+
+def test_extract_slide_elements_captures_slide_chrome_as_two_images(rendered_chrome_only_html):
+    # Confirms `data-block-type="chrome"` (blatt_kern_layout_presentation.py)
+    # is actually picked up by the extractor, not silently invisible.
+    # Does NOT assume chrome is the ONLY source of images on the slide --
+    # a plain `:::task` already renders its own work-symbol icon as a
+    # separate image (discovered while writing this test), so this looks
+    # specifically for wide-and-short "chrome-shaped" images (near full
+    # slide width, well under a quarter of slide height) rather than
+    # asserting an exact total image count.
+    from app.core.blatt_kern_pptx_export_editable import extract_slide_elements
+
+    width_emu, height_emu = _slide_size_emu("presentation_16_9")
+    results = extract_slide_elements(rendered_chrome_only_html, width_emu, height_emu, mathjax_wait_ms=1000)
+
+    assert len(results) == 1
+    images = [el for el in (results[0].elements or []) if el.kind == "image"]
+    chrome_shaped = [
+        img for img in images
+        if img.image_bytes and img.width_emu > width_emu * 0.8 and img.height_emu < height_emu * 0.25
+    ]
+    assert len(chrome_shaped) >= 2
+
+    top_region = min(chrome_shaped, key=lambda img: img.top_emu)
+    bottom_region = max(chrome_shaped, key=lambda img: img.top_emu)
+    assert top_region.top_emu < height_emu * 0.3
+    assert bottom_region.top_emu > height_emu * 0.6
+
+
 def test_extract_slide_elements_positions_stay_within_slide_bounds(rendered_presentation_html):
     from app.core.blatt_kern_pptx_export_editable import extract_slide_elements
 
