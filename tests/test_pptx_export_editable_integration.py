@@ -14,8 +14,9 @@ every dev/CI environment is guaranteed to have. Manually verified once
 against real Chrome during implementation (`find_chromium_executable()`
 resolved to an installed Chrome, Playwright launched it via
 `executable_path`, correctly extracted text -- including text split
-around an inline MathJax formula -- and screenshotted a table/QR-style
-image block).
+around an inline MathJax formula -- and screenshotted a QR-style image
+block; `:::table` becomes a real cell-based PPTX table since B4, not a
+screenshot).
 """
 
 from pathlib import Path
@@ -176,16 +177,86 @@ def test_extract_slide_elements_captures_mixed_bold_italic_text_as_ordered_runs(
     assert runs.index(bold_runs[0]) < runs.index(italic_runs[0])
 
 
-def test_extract_slide_elements_table_block_becomes_a_single_image(rendered_presentation_html):
+def test_extract_slide_elements_table_block_becomes_a_real_table(rendered_presentation_html):
+    # B4: `:::table` used to become a single screenshot image -- it is now
+    # a real `kind="table"` element with actual cell content/geometry
+    # (`cells: [["A", "B"], ["1", "2"]]` from `_SAMPLE_MARKDOWN`), not a
+    # picture.
     from app.core.blatt_kern_pptx_export_editable import extract_slide_elements
 
     width_emu, height_emu = _slide_size_emu("presentation_16_9")
     results = extract_slide_elements(rendered_presentation_html, width_emu, height_emu, mathjax_wait_ms=3000)
 
-    second_slide_images = [el for el in (results[1].elements or []) if el.kind == "image"]
-    # Border-bar decoration + the table block itself -- at least one
-    # image with non-trivial size (the table), not zero.
-    assert any(img.width_emu > 0 and img.height_emu > 0 and img.image_bytes for img in second_slide_images)
+    table_elements = [el for el in (results[1].elements or []) if el.kind == "table"]
+    assert len(table_elements) == 1
+    table = table_elements[0].table
+    assert table is not None
+    # `:::table` (no explicit `rows=`) defaults to 4 rows (`_render_table_answer`'s
+    # own default) even though the `cells:` payload only fills the first
+    # two -- the remaining rows come back as real, empty-text cells, not
+    # be dropped.
+    assert table.cols == 2 and table.rows >= 2
+    cells_by_text = {cell.text: cell for cell in table.cells if cell.text}
+    assert set(cells_by_text) == {"A", "B", "1", "2"}
+    assert cells_by_text["A"].row == 0 and cells_by_text["A"].col == 0
+    assert cells_by_text["B"].row == 0 and cells_by_text["B"].col == 1
+    assert cells_by_text["1"].row == 1 and cells_by_text["1"].col == 0
+    assert cells_by_text["2"].row == 1 and cells_by_text["2"].col == 1
+
+
+_MERGED_TABLE_MARKDOWN = """---
+Titel: Testfolien
+Fach: Mathematik
+Thema: PPTX-Tabelle
+mode: presentation
+---
+
+:::table
+cells:
+  - [{text: "Ueberschrift", colspan: 2}, "C"]
+  - ["1", "2", "3"]
+:::
+"""
+
+
+def test_extract_slide_elements_table_with_merged_cell_roundtrips_through_real_pptx(tmp_path):
+    # Full pipeline (markdown -> build_presentation_pptx(editable=True) ->
+    # real .pptx read back via python-pptx), not just the extraction step
+    # -- proves a `:::table` with an actual merged (colspan) cell survives
+    # end to end: correct cell texts AND the merge itself, matching the
+    # plan's explicit B4 verification requirement.
+    if not _browser_available():
+        pytest.skip("kein installierter Chromium-Browser gefunden (find_chromium_executable())")
+
+    from pptx import Presentation as PptxPresentation
+
+    from app.core.blatt_kern_pptx_export import build_presentation_pptx
+
+    md_path = tmp_path / "merged_table.md"
+    md_path.write_text(_MERGED_TABLE_MARKDOWN, encoding="utf-8")
+    out_path = tmp_path / "merged_table.pptx"
+    diagnostics = []
+
+    build_presentation_pptx(
+        md_path, out_path, page_format="presentation_16_9",
+        design=WorksheetDesignOptions("indigo", "segoe", "normal"),
+        editable=True, diagnostics_out=diagnostics,
+    )
+
+    assert out_path.exists()
+    assert not any(d.code in {"PPTX001", "PPTX002"} for d in diagnostics)
+
+    prs = PptxPresentation(str(out_path))
+    table_shapes = [shape for shape in prs.slides[0].shapes if shape.has_table]
+    assert len(table_shapes) == 1
+    table = table_shapes[0].table
+
+    assert table.cell(0, 0).text == "Ueberschrift"
+    assert table.cell(0, 0).is_spanned is False
+    assert table.cell(0, 0).span_width == 2
+    assert table.cell(0, 1).is_spanned is True
+    assert table.cell(0, 2).text == "C"
+    assert [table.cell(1, col).text for col in range(3)] == ["1", "2", "3"]
 
 
 _CHROME_ONLY_MARKDOWN = """---

@@ -19,8 +19,9 @@ der HTML-/CSS-Darstellung. Unterstützungsmatrix:
 | Fließtext (Absätze, Überschriften, einfache Listen)    | echte Textbox |
 | `<img>` mit lesbarer Quelle (`data:`/`file:`/`http(s):`) | eigenes Bild-Shape, **Original-Asset-Bytes** (kein Screenshot-Reencode) |
 | MathJax-Formeln (`<mjx-container>`), rohes `<svg>`/`<canvas>`, `<img>` ohne lesbare Quelle | eigenes Bild-Shape (Screenshot, zugeschnitten) |
-| `:::table`, `:::geometry`, `:::grid`, `:::dots`, `:::crossword`, `:::wordsearch`, `:::qrcode`, `:::matching`, `:::mindmap`, `:::selfcheck`, `:::numberline`, `:::checkgrid`, `:::lines`, `:::space`, `raw`-Blöcke | eigenes Bild-Shape (ganzer Block, kein Zell-/Element-Mapping) |
+| `:::geometry`, `:::grid`, `:::dots`, `:::crossword`, `:::wordsearch`, `:::qrcode`, `:::matching`, `:::mindmap`, `:::selfcheck`, `:::numberline`, `:::checkgrid`, `:::lines`, `:::space`, `raw`-Blöcke | eigenes Bild-Shape (ganzer Block, kein Zell-/Element-Mapping) |
 | gemischte Inline-Formatierung (`**fett** normal`)      | echte, mehrere PowerPoint-Runs in einer Textbox (fett/kursiv je Run) |
+| `:::table`                                             | echte, zellbasierte PPTX-Tabelle (`add_table`): Text, Fett (zellweit, kein Run-Zerfall innerhalb einer Zelle), Ausrichtung, Hintergrundfarbe, `colspan`/`rowspan`-Zusammenführung -- Rahmen/-Farben/-Breiten, Zellmargen, vertikale Ausrichtung nicht übertragen |
 | CSS-Gradients, Schatten, `border-radius`               | nicht übertragen (nur Flächenfarbe, falls überhaupt) |
 | `position:absolute`/`z-index` außerhalb der Bild-Blöcke | Stapelreihenfolge nur über Dokumentreihenfolge, keine CSS-Stacking-Garantie |
 | Folien-Chrome (Mini-Header, Abschnitts-Footer, Folienzähler) | eigenes Bild-Shape (zwei Regionen: vor/nach dem Folieninhalt) |
@@ -89,6 +90,56 @@ class TextRun:
 
 
 @dataclass(frozen=True)
+class TableCell:
+    """Eine einzelne Zelle einer echten PPTX-Tabelle (B4) -- `row`/`col`
+    sind die LOGISCHEN Gitterindizes (nicht Pixelposition), `row_span`/
+    `col_span` > 1 markieren eine über mehrere Gitterzeilen/-spalten
+    zusammengeführte Zelle (siehe `merge_nearby_grid_edges()`/
+    `_build_table_data()` in `blatt_kern_pptx_export_editable_convert.py`
+    für die geometrische Rekonstruktion).
+
+    `text` ist bewusst EIN flacher String, KEINE `TextRun`-Liste wie bei
+    `RenderableElement.runs` (B3) -- gemischte Inline-Formatierung
+    *innerhalb* einer Tabellenzelle (z. B. `**fett**` mitten im Zellinhalt)
+    wird v1 nicht in mehrere PPTX-Runs zerlegt, sondern bleibt einfacher
+    Text ohne Formatierung dieser Stelle. Bewusste, dokumentierte v1-Grenze,
+    kein zweiter, eigenständiger Run-Parser neben B3s Absatz-Modell.
+    `bold` gilt für die GANZE Zelle (z. B. eine `<th>`- oder einheitlich
+    fett formatierte Zelle) -- keine Scheingenauigkeit bei gemischter
+    Formatierung innerhalb der Zelle. `background_rgb` ist `None`, wenn der
+    Browser keine sichtbare eigene Hintergrundfarbe gerendert hat (die
+    PPTX-Zelle behält dann PowerPoints eigene Standardfüllung, statt
+    fälschlich z. B. Schwarz zu erzwingen)."""
+
+    row: int
+    col: int
+    row_span: int
+    col_span: int
+    text: str
+    bold: bool
+    align: Literal["left", "center", "right", "justify"] | None
+    background_rgb: tuple[int, int, int] | None
+
+
+@dataclass(frozen=True)
+class TableData:
+    """Das vollständige Gitter einer `kind="table"`-`RenderableElement`.
+
+    `column_widths_emu`/`row_heights_emu` sind bereits EMU-skaliert und in
+    Gitter-Reihenfolge (Index 0 = erste Spalte/Zeile) -- direkt für
+    `python-pptx`s `table.columns[i].width`/`table.rows[j].height`
+    verwendbar. `rows`/`cols` sind die LOGISCHE Gittergröße (Anzahl
+    Gitterlinien minus eins je Achse), nicht die Anzahl `<tr>`/`<td>`-
+    Elemente im Quell-HTML (die bei Colspan/Rowspan geringer wäre)."""
+
+    rows: int
+    cols: int
+    column_widths_emu: list[int]
+    row_heights_emu: list[int]
+    cells: list[TableCell]
+
+
+@dataclass(frozen=True)
 class RenderableElement:
     """Ein einzelnes, platzierbares PPTX-Shape -- die Trennlinie zwischen
     DOM-Extraktion (dieses Modul) und reinem `python-pptx`-Bau
@@ -98,9 +149,11 @@ class RenderableElement:
     `kind="text"` trägt IMMER eine `runs`-Liste (nie ein separates flaches
     `text`/Style-Feld) -- ein einzeln formatierter Absatz ist einfach eine
     Ein-Element-Liste, keine Sonderform. `align` gilt für die ganze
-    Textbox (Absatz-Ebene), nicht pro Run."""
+    Textbox (Absatz-Ebene), nicht pro Run. `kind="table"` (B4) trägt
+    stattdessen `table: TableData` -- eine echte, zellbasierte PPTX-Tabelle
+    statt eines Bild-Shapes wie in v1 vor B4."""
 
-    kind: Literal["text", "image"]
+    kind: Literal["text", "image", "table"]
     left_emu: int
     top_emu: int
     width_emu: int
@@ -108,6 +161,7 @@ class RenderableElement:
     align: Literal["left", "center", "right", "justify"] | None = None
     runs: list[TextRun] | None = None
     image_bytes: bytes | None = None
+    table: TableData | None = None
 
 
 @dataclass(frozen=True)
@@ -226,6 +280,36 @@ def _renderable_elements_from_built(built_entries: list[dict], page) -> list[Ren
                     width_emu=built["width_emu"],
                     height_emu=built["height_emu"],
                     image_bytes=image_bytes,
+                )
+            )
+        elif built["kind"] == "table":
+            table = built["table"]
+            elements.append(
+                RenderableElement(
+                    kind="table",
+                    left_emu=built["left_emu"],
+                    top_emu=built["top_emu"],
+                    width_emu=built["width_emu"],
+                    height_emu=built["height_emu"],
+                    table=TableData(
+                        rows=table["rows"],
+                        cols=table["cols"],
+                        column_widths_emu=table["column_widths_emu"],
+                        row_heights_emu=table["row_heights_emu"],
+                        cells=[
+                            TableCell(
+                                row=cell["row"],
+                                col=cell["col"],
+                                row_span=cell["row_span"],
+                                col_span=cell["col_span"],
+                                text=cell["text"],
+                                bold=cell["bold"],
+                                align=cell["align"],
+                                background_rgb=cell["background_rgb"],
+                            )
+                            for cell in table["cells"]
+                        ],
+                    ),
                 )
             )
         else:

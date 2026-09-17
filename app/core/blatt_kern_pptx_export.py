@@ -227,12 +227,20 @@ def _build_presentation_pptx_editable(
 def build_editable_slide(slide, elements) -> None:
     """Adds `elements` (a `list[RenderableElement]`, already EMU-positioned
     by `blatt_kern_pptx_export_editable.py`) to an existing (blank)
-    python-pptx `slide` as text boxes and pictures -- pure `python-pptx`
-    construction, no DOM/browser logic. Shapes are added in the order
-    `elements` is given in (document order, from extraction), which
-    approximates normal non-overlapping CSS document-flow stacking; no
-    stronger z-index/stacking guarantee is made (see the editable-export
+    python-pptx `slide` as text boxes, pictures and tables -- pure
+    `python-pptx` construction, no DOM/browser logic. Shapes are added in
+    the order `elements` is given in (document order, from extraction),
+    which approximates normal non-overlapping CSS document-flow stacking;
+    no stronger z-index/stacking guarantee is made (see the editable-export
     module's support matrix).
+
+    `kind="table"` (B4) uses `python-pptx`'s `shapes.add_table(...)` --
+    column widths/row heights come straight from `TableData` (already
+    EMU-scaled), each `TableCell`'s text/alignment/bold/background is
+    applied to its GRID ORIGIN cell, and cells with `row_span`/`col_span`
+    > 1 are merged via `.merge()` afterwards. `TableCell.text` is flat
+    (no inline-run list, unlike `element.runs` for `kind="text"` -- see
+    `TableCell`'s docstring for why).
     """
 
     from pptx.dml.color import RGBColor
@@ -257,6 +265,45 @@ def build_editable_slide(slide, elements) -> None:
                 width=Emu(element.width_emu),
                 height=Emu(element.height_emu),
             )
+            continue
+
+        if element.kind == "table":
+            table_data = element.table
+            if table_data and table_data.cells:
+                graphic_frame = slide.shapes.add_table(
+                    table_data.rows,
+                    table_data.cols,
+                    Emu(element.left_emu),
+                    Emu(element.top_emu),
+                    Emu(element.width_emu),
+                    Emu(element.height_emu),
+                )
+                pptx_table = graphic_frame.table
+                for column_index, column_width_emu in enumerate(table_data.column_widths_emu):
+                    pptx_table.columns[column_index].width = Emu(column_width_emu)
+                for row_index, row_height_emu in enumerate(table_data.row_heights_emu):
+                    pptx_table.rows[row_index].height = Emu(row_height_emu)
+                # Text/formatting/fill are set on the merge ORIGIN cell
+                # (its own row/col) BEFORE calling `.merge()` -- python-pptx
+                # exposes every cell within a merged span as the same
+                # underlying `_Cell`, so writing to the origin is enough
+                # and merging last avoids writing into an already-merged,
+                # non-origin cell.
+                for cell_data in table_data.cells:
+                    pptx_cell = pptx_table.cell(cell_data.row, cell_data.col)
+                    pptx_cell.text_frame.text = cell_data.text
+                    paragraph = pptx_cell.text_frame.paragraphs[0]
+                    paragraph.alignment = align_map.get(cell_data.align, PP_ALIGN.LEFT)
+                    if paragraph.runs:
+                        paragraph.runs[0].font.bold = cell_data.bold
+                    if cell_data.background_rgb:
+                        pptx_cell.fill.solid()
+                        pptx_cell.fill.fore_color.rgb = RGBColor(*cell_data.background_rgb)
+                    if cell_data.row_span > 1 or cell_data.col_span > 1:
+                        other_cell = pptx_table.cell(
+                            cell_data.row + cell_data.row_span - 1, cell_data.col + cell_data.col_span - 1
+                        )
+                        pptx_cell.merge(other_cell)
             continue
 
         if not element.runs:

@@ -8,8 +8,10 @@ from app.core.blatt_kern_pptx_export_editable_convert import (
     _IMAGE_ONLY_BLOCK_TYPES,
     _is_bold,
     _is_italic,
+    _parse_background_rgb,
     _parse_rgb,
     build_slide_elements,
+    merge_nearby_grid_edges,
 )
 
 # A 16:9 slide's EMU size, matching `_PAGE_SIZE_CM["presentation_16_9"]`.
@@ -207,5 +209,176 @@ def test_image_only_block_types_excludes_text_capable_answer_and_content_blocks(
 
 
 def test_image_only_block_types_includes_documented_visual_blocks():
-    for block_type in ("table", "geometry", "grid", "dots", "crossword", "wordsearch", "qrcode"):
+    for block_type in ("geometry", "grid", "dots", "crossword", "wordsearch", "qrcode"):
         assert block_type in _IMAGE_ONLY_BLOCK_TYPES
+
+
+def test_image_only_block_types_no_longer_includes_table():
+    # B4: `:::table` gets a real, cell-based PPTX table now, not a
+    # screenshot -- regression guard against accidentally re-adding it.
+    assert "table" not in _IMAGE_ONLY_BLOCK_TYPES
+
+
+def _table_cell(x, y, width, height, text="Zelle", weight="400", align="left", background="rgba(0, 0, 0, 0)"):
+    return {
+        "rect": {"x": x, "y": y, "width": width, "height": height},
+        "text": text, "fontWeight": weight, "textAlign": align, "backgroundColor": background,
+    }
+
+
+def _table_entry(index, x, y, width, height, cells):
+    return {"index": index, "kind": "table", "rect": {"x": x, "y": y, "width": width, "height": height}, "cells": cells}
+
+
+def test_merge_nearby_grid_edges_collapses_subpixel_clusters_but_keeps_distinct_lines():
+    edges = [100.0, 100.02, 199.999, 200.001, 300.0]
+
+    merged = merge_nearby_grid_edges(edges, tolerance=0.5)
+
+    assert merged == [100.0, 199.999, 300.0]
+
+
+def test_merge_nearby_grid_edges_handles_empty_and_single_edge():
+    assert merge_nearby_grid_edges([]) == []
+    assert merge_nearby_grid_edges([42.0]) == [42.0]
+
+
+def test_parse_background_rgb_reads_opaque_color():
+    assert _parse_background_rgb("rgb(230, 230, 250)") == (230, 230, 250)
+
+
+def test_parse_background_rgb_returns_none_for_fully_transparent():
+    # Chromium's default computed backgroundColor for an element with no
+    # own `background-color` -- must NOT be read as literal black.
+    assert _parse_background_rgb("rgba(0, 0, 0, 0)") is None
+
+
+def test_parse_background_rgb_returns_none_for_unparseable_input():
+    assert _parse_background_rgb("") is None
+    assert _parse_background_rgb(None) is None
+
+
+def test_build_slide_elements_reconstructs_simple_table_grid():
+    raw_slide = {
+        "slideWidth": 1000, "slideHeight": 562.5,
+        "elements": [
+            _table_entry(0, x=0, y=0, width=200, height=100, cells=[
+                _table_cell(0, 0, 100, 50, text="A"),
+                _table_cell(100, 0, 100, 50, text="B"),
+                _table_cell(0, 50, 100, 50, text="C"),
+                _table_cell(100, 50, 100, 50, text="D"),
+            ])
+        ],
+    }
+
+    built = build_slide_elements(raw_slide, _SLIDE_WIDTH_EMU, _SLIDE_HEIGHT_EMU)
+
+    assert len(built) == 1
+    table = built[0]["table"]
+    assert table["rows"] == 2 and table["cols"] == 2
+    assert len(table["column_widths_emu"]) == 2
+    assert len(table["row_heights_emu"]) == 2
+    cells_by_text = {cell["text"]: cell for cell in table["cells"]}
+    assert cells_by_text["A"]["row"] == 0 and cells_by_text["A"]["col"] == 0
+    assert cells_by_text["B"]["row"] == 0 and cells_by_text["B"]["col"] == 1
+    assert cells_by_text["C"]["row"] == 1 and cells_by_text["C"]["col"] == 0
+    assert cells_by_text["D"]["row"] == 1 and cells_by_text["D"]["col"] == 1
+    assert all(cell["row_span"] == 1 and cell["col_span"] == 1 for cell in table["cells"])
+    # Flat text only -- no per-cell inline-run list, the deliberate v1
+    # distinction from `kind="text"`'s `runs` model (B3).
+    assert all("runs" not in cell for cell in table["cells"])
+
+
+def test_build_slide_elements_reconstructs_grid_with_colspan_and_rowspan_from_geometry():
+    # Row 0 has ONE cell spanning both columns (colspan=2 in the source
+    # HTML) -- its own rect alone reveals nothing about the 2-column grid
+    # underneath, so the column boundary must come from row 1's cells
+    # instead. Also one rowspan-2 cell in column 0 spanning both rows.
+    # A first-row/first-column-only heuristic would get this wrong.
+    raw_slide = {
+        "slideWidth": 1000, "slideHeight": 562.5,
+        "elements": [
+            _table_entry(0, x=0, y=0, width=300, height=100, cells=[
+                _table_cell(0, 0, 300, 50, text="Ueberschrift"),  # row 0, colspan 2
+                _table_cell(0, 50, 100, 50, text="Links"),         # row 1, col 0 (rowspan irrelevant here)
+                _table_cell(100, 50, 200, 50, text="Rechts"),      # row 1, col 1
+            ])
+        ],
+    }
+
+    built = build_slide_elements(raw_slide, _SLIDE_WIDTH_EMU, _SLIDE_HEIGHT_EMU)
+
+    table = built[0]["table"]
+    assert table["rows"] == 2 and table["cols"] == 2
+    cells_by_text = {cell["text"]: cell for cell in table["cells"]}
+    header = cells_by_text["Ueberschrift"]
+    assert header["row"] == 0 and header["col"] == 0
+    assert header["col_span"] == 2 and header["row_span"] == 1
+    assert cells_by_text["Links"]["row"] == 1 and cells_by_text["Links"]["col"] == 0
+    assert cells_by_text["Rechts"]["row"] == 1 and cells_by_text["Rechts"]["col"] == 1
+
+
+def test_build_slide_elements_table_cell_style_reads_bold_align_and_background():
+    raw_slide = {
+        "slideWidth": 1000, "slideHeight": 562.5,
+        "elements": [
+            _table_entry(0, x=0, y=0, width=100, height=50, cells=[
+                _table_cell(0, 0, 100, 50, text="Kopf", weight="600", align="center", background="rgb(230, 230, 250)"),
+            ])
+        ],
+    }
+
+    built = build_slide_elements(raw_slide, _SLIDE_WIDTH_EMU, _SLIDE_HEIGHT_EMU)
+
+    cell = built[0]["table"]["cells"][0]
+    assert cell["bold"] is True
+    assert cell["align"] == "center"
+    assert cell["background_rgb"] == (230, 230, 250)
+
+
+def test_build_slide_elements_table_cell_without_background_stays_none():
+    raw_slide = {
+        "slideWidth": 1000, "slideHeight": 562.5,
+        "elements": [
+            _table_entry(0, x=0, y=0, width=100, height=50, cells=[
+                _table_cell(0, 0, 100, 50, text="Daten", background="rgba(0, 0, 0, 0)"),
+            ])
+        ],
+    }
+
+    built = build_slide_elements(raw_slide, _SLIDE_WIDTH_EMU, _SLIDE_HEIGHT_EMU)
+
+    assert built[0]["table"]["cells"][0]["background_rgb"] is None
+
+
+def test_build_slide_elements_drops_table_entry_with_no_usable_cells():
+    raw_slide = {
+        "slideWidth": 1000, "slideHeight": 562.5,
+        "elements": [_table_entry(0, x=0, y=0, width=100, height=50, cells=[])],
+    }
+
+    assert build_slide_elements(raw_slide, _SLIDE_WIDTH_EMU, _SLIDE_HEIGHT_EMU) == []
+
+
+def test_build_slide_elements_table_grid_merges_subpixel_shared_edges():
+    # The shared edge between the two cells is reported as 99.999 by the
+    # left cell and 100.001 by the right cell (realistic sub-pixel layout
+    # rounding) -- must still resolve to ONE grid line, i.e. a 2-column
+    # table, not three columns with a hairline gap column between them.
+    raw_slide = {
+        "slideWidth": 1000, "slideHeight": 562.5,
+        "elements": [
+            _table_entry(0, x=0, y=0, width=200, height=50, cells=[
+                _table_cell(0, 0, 99.999, 50, text="Links"),
+                _table_cell(100.001, 0, 99.999, 50, text="Rechts"),
+            ])
+        ],
+    }
+
+    built = build_slide_elements(raw_slide, _SLIDE_WIDTH_EMU, _SLIDE_HEIGHT_EMU)
+
+    table = built[0]["table"]
+    assert table["cols"] == 2
+    cells_by_text = {cell["text"]: cell for cell in table["cells"]}
+    assert cells_by_text["Links"]["col"] == 0
+    assert cells_by_text["Rechts"]["col"] == 1

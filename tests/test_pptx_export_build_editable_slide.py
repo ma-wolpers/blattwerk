@@ -9,7 +9,7 @@ from pptx.enum.shapes import MSO_SHAPE_TYPE
 from pptx.enum.text import PP_ALIGN
 
 from app.core.blatt_kern_pptx_export import build_editable_slide
-from app.core.blatt_kern_pptx_export_editable import RenderableElement, TextRun
+from app.core.blatt_kern_pptx_export_editable import RenderableElement, TableCell, TableData, TextRun
 
 _ONE_PX_PNG = (
     b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01"
@@ -39,6 +39,19 @@ def _image_element(image_bytes=_ONE_PX_PNG):
         kind="image",
         left_emu=50_000, top_emu=60_000, width_emu=400_000, height_emu=500_000,
         image_bytes=image_bytes,
+    )
+
+
+def _table_element(cells, rows=2, cols=2, column_widths_emu=None, row_heights_emu=None):
+    return RenderableElement(
+        kind="table",
+        left_emu=100_000, top_emu=200_000, width_emu=2_000_000, height_emu=1_000_000,
+        table=TableData(
+            rows=rows, cols=cols,
+            column_widths_emu=column_widths_emu or [1_000_000] * cols,
+            row_heights_emu=row_heights_emu or [500_000] * rows,
+            cells=cells,
+        ),
     )
 
 
@@ -153,5 +166,94 @@ def test_image_element_without_bytes_is_skipped_not_crashed():
 def test_empty_element_list_produces_no_shapes():
     slide = _blank_slide()
     build_editable_slide(slide, [])
+
+    assert list(slide.shapes) == []
+
+
+def test_table_element_becomes_a_real_pptx_table_with_correct_geometry():
+    element = _table_element(cells=[
+        TableCell(row=0, col=0, row_span=1, col_span=1, text="A", bold=False, align="left", background_rgb=None),
+        TableCell(row=0, col=1, row_span=1, col_span=1, text="B", bold=False, align="left", background_rgb=None),
+        TableCell(row=1, col=0, row_span=1, col_span=1, text="C", bold=False, align="left", background_rgb=None),
+        TableCell(row=1, col=1, row_span=1, col_span=1, text="D", bold=False, align="left", background_rgb=None),
+    ])
+    slide = _blank_slide()
+
+    build_editable_slide(slide, [element])
+
+    shapes = list(slide.shapes)
+    assert len(shapes) == 1
+    assert shapes[0].has_table
+    assert shapes[0].left == element.left_emu and shapes[0].top == element.top_emu
+    assert shapes[0].width == element.width_emu and shapes[0].height == element.height_emu
+    table = shapes[0].table
+    assert table.cell(0, 0).text == "A"
+    assert table.cell(0, 1).text == "B"
+    assert table.cell(1, 0).text == "C"
+    assert table.cell(1, 1).text == "D"
+
+
+def test_table_element_column_widths_and_row_heights_are_applied():
+    element = _table_element(
+        cells=[TableCell(row=0, col=0, row_span=1, col_span=1, text="X", bold=False, align="left", background_rgb=None)],
+        column_widths_emu=[600_000, 1_400_000],
+        row_heights_emu=[300_000, 700_000],
+    )
+    slide = _blank_slide()
+
+    build_editable_slide(slide, [element])
+
+    table = list(slide.shapes)[0].table
+    assert table.columns[0].width == 600_000 and table.columns[1].width == 1_400_000
+    assert table.rows[0].height == 300_000 and table.rows[1].height == 700_000
+
+
+def test_table_element_carries_bold_alignment_and_background_per_cell():
+    element = _table_element(cells=[
+        TableCell(row=0, col=0, row_span=1, col_span=1, text="Kopf", bold=True, align="center", background_rgb=(230, 230, 250)),
+        TableCell(row=1, col=0, row_span=1, col_span=1, text="Daten", bold=False, align="right", background_rgb=None),
+    ], rows=2, cols=1)
+    slide = _blank_slide()
+
+    build_editable_slide(slide, [element])
+
+    table = list(slide.shapes)[0].table
+    header_cell = table.cell(0, 0)
+    assert header_cell.text_frame.paragraphs[0].runs[0].font.bold is True
+    assert header_cell.text_frame.paragraphs[0].alignment == PP_ALIGN.CENTER
+    assert header_cell.fill.fore_color.rgb == (230, 230, 250)
+
+    data_cell = table.cell(1, 0)
+    assert data_cell.text_frame.paragraphs[0].runs[0].font.bold is not True
+    assert data_cell.text_frame.paragraphs[0].alignment == PP_ALIGN.RIGHT
+
+
+def test_table_element_merges_spanning_cell_across_rows_and_columns():
+    # A colspan=2 "header" cell (logical row 0, spans both columns) above
+    # two plain data cells in row 1 -- proves `.merge()` is actually wired
+    # up, using ALL cells' row/col_span, not just a single-cell table.
+    element = _table_element(cells=[
+        TableCell(row=0, col=0, row_span=1, col_span=2, text="Ueberschrift", bold=False, align="left", background_rgb=None),
+        TableCell(row=1, col=0, row_span=1, col_span=1, text="Links", bold=False, align="left", background_rgb=None),
+        TableCell(row=1, col=1, row_span=1, col_span=1, text="Rechts", bold=False, align="left", background_rgb=None),
+    ])
+    slide = _blank_slide()
+
+    build_editable_slide(slide, [element])
+
+    table = list(slide.shapes)[0].table
+    assert table.cell(0, 0).text == "Ueberschrift"
+    assert table.cell(0, 0).is_spanned is False
+    assert table.cell(0, 0).span_width == 2
+    assert table.cell(0, 1).is_spanned is True
+    assert table.cell(1, 0).text == "Links"
+    assert table.cell(1, 1).text == "Rechts"
+
+
+def test_table_element_without_cells_produces_no_shape():
+    element = _table_element(cells=[])
+    slide = _blank_slide()
+
+    build_editable_slide(slide, [element])
 
     assert list(slide.shapes) == []
