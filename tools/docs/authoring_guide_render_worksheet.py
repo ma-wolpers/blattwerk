@@ -16,8 +16,8 @@ from app.core.document_types import (
     build_new_document_content,
 )
 from app.core.markdown_conventions import MarkdownConventionCatalog
+from app.core.option_prose_resolution import build_majority_variant_map, resolve_option_prose_key
 
-from authoring_guide_coverage import _option_prose_keys
 from authoring_guide_render_shared import _AUTOGEN_HEADER, _fenced, _prose, _render_inline_marks_section
 
 
@@ -42,9 +42,11 @@ def _default_label(default: object) -> str:
 
 
 def _option_explanation(catalog: MarkdownConventionCatalog, block_name: str, spec: object) -> str:
-    key, allow_supplement = _option_prose_keys(catalog, block_name, spec)
-    text = _prose(key)
-    if not allow_supplement:
+    resolution = resolve_option_prose_key(
+        block_name, spec, majority_variants=build_majority_variant_map(catalog)
+    )
+    text = _prose(resolution.key)
+    if not resolution.allow_block_supplement:
         return text
 
     supplement_key = f"block:{block_name}.{spec.name}"

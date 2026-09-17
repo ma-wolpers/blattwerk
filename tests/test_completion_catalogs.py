@@ -1,10 +1,13 @@
 from app.core.completion_catalogs import (
+    get_completion_block_option_detail,
     get_completion_block_type_detail,
     get_completion_frontmatter_field_detail,
     get_completion_frontmatter_field_values,
+    get_completion_frontmatter_value_detail,
     get_completion_operator_details,
     get_completion_operator_forms,
     get_completion_option_value_abbreviation_hints,
+    get_completion_option_value_detail,
     get_completion_option_values,
     get_completion_options_for_block,
     get_self_closing_block_types,
@@ -238,3 +241,79 @@ def test_block_type_detail_returns_description_without_value_hint():
 
 def test_block_type_detail_unknown_type_returns_none():
     assert get_completion_block_type_detail("does-not-exist") is None
+
+
+def test_block_option_detail_shared_concept_shows_generic_prose_and_default_hint():
+    # "work" is used identically across many blocks -- generic `option:work`
+    # prose, default "single" (English canonical form).
+    detail = get_completion_block_option_detail("task", "work")
+    assert detail is not None
+    assert detail["title"] == "work"
+    assert detail["description"]
+    assert detail["value_hint"] == "Standard: single"
+
+
+def test_block_option_detail_diverging_variant_shows_block_specific_prose_only():
+    # "alignment" diverges between table/qrcode -- no generic reuse, no
+    # "*Besonderheit bei*"-supplement sentence glued onto a generic text
+    # that would be wrong for this block.
+    detail = get_completion_block_option_detail("table", "alignment")
+    assert detail is not None
+    assert "Besonderheit bei" not in detail["description"]
+
+
+def test_block_option_detail_unknown_option_returns_none():
+    assert get_completion_block_option_detail("task", "does-not-exist") is None
+
+
+def test_block_option_detail_unknown_block_type_returns_none():
+    assert get_completion_block_option_detail("does-not-exist", "work") is None
+
+
+def test_option_value_detail_reuses_option_description_without_value_hint_for_non_default():
+    key_detail = get_completion_block_option_detail("task", "work")
+    value_detail = get_completion_option_value_detail("task", "work", "gruppe")
+    assert value_detail is not None
+    assert value_detail["description"] == key_detail["description"]
+    assert value_detail["value_hint"] is None
+
+
+def test_option_value_detail_marks_the_actual_default_value():
+    detail = get_completion_option_value_detail("info", "type", "default")
+    assert detail is not None
+    assert detail["value_hint"] == "Standard: default"
+
+
+def test_option_value_detail_never_guesses_a_possible_value_for_a_concrete_candidate():
+    # Unlike the key-row hint, a specific offered value must never get a
+    # "Möglicher Wert" label -- the value itself already IS the row.
+    detail = get_completion_option_value_detail("table", "alignment", "center")
+    assert detail is not None
+    assert detail["value_hint"] is None
+
+
+def test_option_value_detail_unknown_option_returns_none():
+    assert get_completion_option_value_detail("task", "does-not-exist", "x") is None
+
+
+def test_frontmatter_value_detail_reuses_field_description():
+    key_detail = get_completion_frontmatter_field_detail("Stufe")
+    value_detail = get_completion_frontmatter_value_detail("Stufe", "11")
+    assert value_detail is not None
+    assert value_detail["description"] == key_detail["description"]
+
+
+def test_frontmatter_value_detail_marks_actual_default_value():
+    detail = get_completion_frontmatter_value_detail("mode", "worksheet")
+    assert detail is not None
+    assert detail["value_hint"] == "Standard: worksheet"
+
+
+def test_frontmatter_value_detail_non_default_value_has_no_hint():
+    detail = get_completion_frontmatter_value_detail("mode", "presentation")
+    assert detail is not None
+    assert detail["value_hint"] is None
+
+
+def test_frontmatter_value_detail_unknown_field_returns_none():
+    assert get_completion_frontmatter_value_detail("does_not_exist", "x") is None

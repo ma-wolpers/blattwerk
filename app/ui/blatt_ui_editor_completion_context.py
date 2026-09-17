@@ -14,13 +14,16 @@ import re
 
 from ..core.blatt_kern_shared_parsing import split_front_matter
 from ..core.completion_catalogs import (
+    get_completion_block_option_detail,
     get_completion_block_type_detail,
     get_completion_block_types,
     get_completion_frontmatter_field_detail,
     get_completion_frontmatter_field_values,
+    get_completion_frontmatter_value_detail,
     get_completion_operator_details,
     get_completion_operator_forms,
     get_completion_option_value_abbreviation_hints,
+    get_completion_option_value_detail,
     get_completion_option_values,
     get_completion_options_for_block,
     get_self_closing_block_types,
@@ -170,14 +173,7 @@ class BlattwerkAppEditorCompletionContextMixin:
                         }
 
                 if after_fence == f"{block_token} ":
-                    suggestions = [
-                        {
-                            "label": option,
-                            "insert_text": f"{option}=",
-                            "kind": "block_option",
-                        }
-                        for option in block_allowed_options
-                    ]
+                    suggestions = self._build_block_option_key_suggestions(block_token, block_allowed_options)
                     if auto and not suggestions:
                         return None
 
@@ -193,24 +189,13 @@ class BlattwerkAppEditorCompletionContextMixin:
                         match.group(1).strip().lower()
                         for match in re.finditer(r"\b([A-Za-z_][A-Za-z0-9_]*)=", left_text)
                     }
-                    suggestions = [
-                        {
-                            "label": option,
-                            "insert_text": f"{option}=",
-                            "kind": "block_option",
-                        }
-                        for option in block_allowed_options
-                        if option.lower() not in used_option_keys
-                    ]
+                    suggestions = self._build_block_option_key_suggestions(
+                        block_token, block_allowed_options, exclude=used_option_keys
+                    )
                     if not suggestions:
-                        suggestions = [
-                            {
-                                "label": option,
-                                "insert_text": f"{option}=",
-                                "kind": "block_option",
-                            }
-                            for option in block_allowed_options
-                        ]
+                        # Every option is already used on this line -- re-offer
+                        # all of them rather than an empty popup.
+                        suggestions = self._build_block_option_key_suggestions(block_token, block_allowed_options)
 
                     if auto and not suggestions:
                         return None
@@ -228,15 +213,9 @@ class BlattwerkAppEditorCompletionContextMixin:
                     if auto and len(key_prefix) < 1:
                         return None
 
-                    suggestions = [
-                        {
-                            "label": option,
-                            "insert_text": f"{option}=",
-                            "kind": "block_option",
-                        }
-                        for option in block_allowed_options
-                        if option.startswith(key_prefix)
-                    ]
+                    suggestions = self._build_block_option_key_suggestions(
+                        block_token, block_allowed_options, prefix=key_prefix
+                    )
                     if self._is_single_exact_completion_match(key_prefix, suggestions):
                         return None
                     return {
@@ -406,6 +385,32 @@ class BlattwerkAppEditorCompletionContextMixin:
         meta, _rest = split_front_matter("\n".join(lines))
         return meta or {}
 
+    def _build_block_option_key_suggestions(self, block_type: str, options, *, prefix: str = "", exclude=()):
+        """Builds `key=` completion candidates for block option KEYS.
+
+        Shared by all three block-option trigger points in
+        `_collect_editor_completion_context` (right after `:::block `, a
+        partially-typed key, or after a trailing space with already-used
+        keys excluded) -- previously three near-identical list
+        comprehensions, now one place that also attaches `"detail"`.
+        `prefix` matching is deliberately case-sensitive (option keys are
+        always declared lowercase in `BLOCK_OPTION_SPECS`, unlike
+        frontmatter field names); `exclude` is compared case-insensitively
+        against already-used keys on the line.
+        """
+
+        exclude_norm = {str(key).strip().lower() for key in exclude}
+        return [
+            {
+                "label": option,
+                "insert_text": f"{option}=",
+                "kind": "block_option",
+                "detail": get_completion_block_option_detail(block_type, option),
+            }
+            for option in options
+            if option.startswith(prefix) and option.lower() not in exclude_norm
+        ]
+
     def _build_option_value_suggestions(self, *, block_type: str, option_key: str, value_prefix: str):
         """Builds option value candidates with optional learned ranking data."""
 
@@ -452,6 +457,7 @@ class BlattwerkAppEditorCompletionContextMixin:
                 "kind": "option_value",
                 "block_type": block_type_norm,
                 "option_key": option_key_norm,
+                "detail": get_completion_option_value_detail(block_type_norm, option_key_norm, value),
             }
             for value in filtered
         ]
@@ -478,6 +484,7 @@ class BlattwerkAppEditorCompletionContextMixin:
                 "insert_text": value,
                 "kind": "frontmatter_value",
                 "field_name": field_name,
+                "detail": get_completion_frontmatter_value_detail(field_name, value),
             }
             for value in filtered
         ]

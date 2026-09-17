@@ -8,12 +8,13 @@ module directly.
 
 from __future__ import annotations
 
-from typing import TypedDict
+from typing import Protocol, TypedDict
 
 from . import authoring_guide_prose
 from . import operator_legend
 from . import blatt_validator as validator
-from .blatt_validator_constants import MISSING
+from .blatt_validator_constants import MISSING, BlockOptionSpec, FrontmatterFieldSpec
+from .option_prose_resolution import resolve_option_prose_key
 
 _SELF_CLOSING_BLOCK_TYPES = frozenset(
     {"nextcol", "endcolumns", "pagebreak", "framebreak", "slidechromeoff", "sectionmark", "vspacer"}
@@ -224,8 +225,20 @@ def get_completion_operator_details(fach, stufe) -> dict[str, CompletionDetail]:
     }
 
 
-def _format_frontmatter_value_hint(spec) -> str | None:
-    """Builds the display-ready value hint for one `FrontmatterFieldSpec`.
+class _HasValueHintFields(Protocol):
+    """Structural contract `_format_value_hint()` needs -- satisfied by both
+    `FrontmatterFieldSpec` and `BlockOptionSpec` without unifying those two
+    validator dataclasses themselves (they stay the validator's own,
+    separately-owned normative types; this Protocol only names the subset
+    of fields shared between them that value-hint formatting cares about)."""
+
+    kind: str
+    default: object
+    allowed_values: frozenset[str] | None
+
+
+def _format_value_hint(spec: _HasValueHintFields) -> str | None:
+    """Builds the display-ready value hint for one option/frontmatter-field spec.
 
     A real `default` is shown as `"Standard: …"` -- boolean defaults as
     `ja`/`nein` (the vocabulary the field itself accepts as input, not
@@ -236,6 +249,11 @@ def _format_frontmatter_value_hint(spec) -> str | None:
     redactionally curated example. `None` for fields with neither
     (`free_text`/`scalar_nonempty`, or an `enum` with empty
     `allowed_values`) -- no invented hint.
+
+    Works identically for `FrontmatterFieldSpec` and `BlockOptionSpec` --
+    both carry the same relevant fields (`kind`/`default`/`allowed_values`),
+    just in different dataclasses/field orders, so this stays one shared
+    formatter rather than two near-duplicates.
     """
 
     if spec.default is not MISSING:
@@ -246,6 +264,44 @@ def _format_frontmatter_value_hint(spec) -> str | None:
     if spec.allowed_values:
         return f"Möglicher Wert: {sorted(spec.allowed_values)[0]}"
 
+    return None
+
+
+def _format_selected_value_hint(spec: _HasValueHintFields, value: str) -> str | None:
+    """Builds the value hint for ONE already-offered candidate value (`option_value`/
+    `frontmatter_value` completion kinds), as opposed to `_format_value_hint()`'s
+    key-row hint (`get_completion_block_option_detail`/`get_completion_frontmatter_field_detail`).
+
+    The candidate `value` IS already the suggestion line -- unlike the key
+    row, there is nothing left to guess an example for. Only marks it
+    `"Standard: …"` when it genuinely equals the spec's own default;
+    otherwise `None`, never a re-derived "Möglicher Wert" (that label only
+    makes sense when picking a representative value out of many for a
+    *key*'s overview row, not when the value itself is the row).
+    """
+
+    if spec.default is MISSING:
+        return None
+
+    if spec.kind == "boolean":
+        default_text = "ja" if spec.default else "nein"
+    else:
+        default_text = str(spec.default)
+
+    return f"Standard: {value}" if str(value) == default_text else None
+
+
+def _find_frontmatter_field_spec(field_name: str) -> FrontmatterFieldSpec | None:
+    for spec in validator.OPTIONAL_FRONTMATTER_FIELDS:
+        if spec.name == field_name:
+            return spec
+    return None
+
+
+def _find_block_option_spec(block_type: str, option_key: str) -> BlockOptionSpec | None:
+    for spec in validator.BLOCK_OPTION_SPECS.get(str(block_type or "").strip().lower(), ()):
+        if spec.name == option_key:
+            return spec
     return None
 
 
@@ -266,11 +322,30 @@ def get_completion_frontmatter_field_detail(field_name: str) -> CompletionDetail
     if description is None:
         return None
 
-    value_hint = None
-    for spec in validator.OPTIONAL_FRONTMATTER_FIELDS:
-        if spec.name == field_name:
-            value_hint = _format_frontmatter_value_hint(spec)
-            break
+    spec = _find_frontmatter_field_spec(field_name)
+    value_hint = _format_value_hint(spec) if spec is not None else None
+
+    return CompletionDetail(title=field_name, description=description, value_hint=value_hint)
+
+
+def get_completion_frontmatter_value_detail(field_name: str, value: str) -> CompletionDetail | None:
+    """Returns the autocomplete detail overlay content for ONE offered frontmatter VALUE
+    (e.g. `Stufe: 11`) -- reuses the field's own description
+    (`get_completion_frontmatter_field_detail`'s source), since there is no
+    separate per-value prose anywhere in the codebase and none should be
+    invented (see `option_prose_resolution.py`'s module docstring: prose
+    exists per field/option, never per individual value). `value_hint`
+    marks only whether `value` happens to be the field's actual default,
+    never a re-derived "Möglicher Wert" (the value itself already IS the
+    suggestion row).
+    """
+
+    description = authoring_guide_prose.PROSE_SECTIONS.get(f"frontmatter:{field_name}")
+    if description is None:
+        return None
+
+    spec = _find_frontmatter_field_spec(field_name)
+    value_hint = _format_selected_value_hint(spec, value) if spec is not None else None
 
     return CompletionDetail(title=field_name, description=description, value_hint=value_hint)
 
@@ -288,6 +363,71 @@ def get_completion_block_type_detail(block_type: str) -> CompletionDetail | None
     if description is None:
         return None
     return CompletionDetail(title=block_type, description=description, value_hint=None)
+
+
+def _resolve_block_option_description(block_type: str, option_key: str, spec: BlockOptionSpec) -> str | None:
+    """Resolves + combines a block option's prose exactly like
+    `tools/docs/authoring_guide_render_worksheet.py::_option_explanation`
+    does for the generated guide (generic `option:<name>` text, plus an
+    optional `block:<block>.<name>` supplement) -- shared by
+    `get_completion_block_option_detail`/`get_completion_option_value_detail`
+    so the two don't each re-implement the same combination."""
+
+    resolution = resolve_option_prose_key(block_type, spec)
+    description = authoring_guide_prose.PROSE_SECTIONS.get(resolution.key)
+    if description is None:
+        return None
+
+    if resolution.allow_block_supplement:
+        supplement = authoring_guide_prose.PROSE_SECTIONS.get(f"block:{block_type}.{option_key}")
+        if supplement:
+            description = f"{description} *Besonderheit bei `{block_type}`:* {supplement}"
+
+    return description
+
+
+def get_completion_block_option_detail(block_type: str, option_key: str) -> CompletionDetail | None:
+    """Returns the autocomplete detail overlay content for a block option key
+    (e.g. `rows=` inside `:::lines`, `work=` inside `:::task`).
+
+    Resolves the same `option:<name>` (generic, shared concept) vs.
+    `block:<block>.<name>` (block-specific) prose key the generated
+    author's guide already uses (`option_prose_resolution.resolve_option_prose_key`,
+    moved from `tools/docs/authoring_guide_coverage.py` -- single source,
+    not a completion-specific copy).
+    """
+
+    spec = _find_block_option_spec(block_type, option_key)
+    if spec is None:
+        return None
+
+    description = _resolve_block_option_description(block_type, option_key, spec)
+    if description is None:
+        return None
+
+    return CompletionDetail(title=option_key, description=description, value_hint=_format_value_hint(spec))
+
+
+def get_completion_option_value_detail(block_type: str, option_key: str, value: str) -> CompletionDetail | None:
+    """Returns the autocomplete detail overlay content for ONE offered option VALUE
+    (e.g. `work=einzel`) -- reuses the option's own description
+    (`get_completion_block_option_detail`'s source), no separate per-value
+    prose (same reasoning as `get_completion_frontmatter_value_detail`).
+    `value_hint` marks only whether `value` happens to be the option's
+    actual default.
+    """
+
+    spec = _find_block_option_spec(block_type, option_key)
+    if spec is None:
+        return None
+
+    description = _resolve_block_option_description(block_type, option_key, spec)
+    if description is None:
+        return None
+
+    return CompletionDetail(
+        title=option_key, description=description, value_hint=_format_selected_value_hint(spec, value)
+    )
 
 
 def get_self_closing_block_types() -> frozenset[str]:
