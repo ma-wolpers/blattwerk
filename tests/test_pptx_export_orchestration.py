@@ -23,7 +23,7 @@ from app.core.blatt_kern_pptx_export_editable import (
     EditableExportUnavailable,
     RenderableElement,
     SlideExtractionResult,
-    TextStyle,
+    TextRun,
 )
 from app.core.build_requests import WorksheetDesignOptions
 
@@ -39,7 +39,8 @@ _ONE_PX_PNG = (
 def _text_element(text="Hallo"):
     return RenderableElement(
         kind="text", left_emu=1000, top_emu=1000, width_emu=500_000, height_emu=100_000,
-        text=text, style=TextStyle(font_size_pt=12.0, bold=False, color_rgb=(0, 0, 0), align="left"),
+        align="left",
+        runs=[TextRun(text=text, font_size_pt=12.0, bold=False, italic=False, color_rgb=(0, 0, 0))],
     )
 
 

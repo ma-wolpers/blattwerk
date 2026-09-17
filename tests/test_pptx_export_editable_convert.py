@@ -7,6 +7,7 @@ needed -- these feed `build_slide_elements` the same shape of dict
 from app.core.blatt_kern_pptx_export_editable_convert import (
     _IMAGE_ONLY_BLOCK_TYPES,
     _is_bold,
+    _is_italic,
     _parse_rgb,
     build_slide_elements,
 )
@@ -16,11 +17,16 @@ _SLIDE_WIDTH_EMU = 12_192_120
 _SLIDE_HEIGHT_EMU = 6_858_000
 
 
-def _text_entry(index, x, y, width, height, text="Hallo", font_size_px=16, weight="400", color="rgb(17, 17, 17)", align="left"):
+def _run(text="Hallo", font_size_px=16, weight="400", style="normal", color="rgb(17, 17, 17)"):
+    return {"text": text, "fontSizePx": font_size_px, "fontWeight": weight, "fontStyle": style, "color": color}
+
+
+def _text_entry(index, x, y, width, height, text="Hallo", font_size_px=16, weight="400", color="rgb(17, 17, 17)", align="left", runs=None):
     return {
         "index": index, "kind": "text",
         "rect": {"x": x, "y": y, "width": width, "height": height},
-        "text": text, "fontSizePx": font_size_px, "fontWeight": weight, "color": color, "textAlign": align,
+        "align": align,
+        "runs": runs if runs is not None else [_run(text=text, font_size_px=font_size_px, weight=weight, color=color)],
     }
 
 
@@ -52,6 +58,13 @@ def test_is_bold_recognizes_keyword_and_numeric_weights():
     assert _is_bold(None) is False
 
 
+def test_is_italic_recognizes_italic_and_oblique_keywords():
+    assert _is_italic("italic") is True
+    assert _is_italic("oblique") is True
+    assert _is_italic("normal") is False
+    assert _is_italic(None) is False
+
+
 def test_build_slide_elements_scales_position_and_size_proportionally():
     # A 1000px-wide "viewport" slide -> half-width EMU box should land at
     # exactly half of the target EMU width, regardless of the arbitrary
@@ -78,7 +91,7 @@ def test_build_slide_elements_font_size_scales_with_geometry():
 
     scale = _SLIDE_WIDTH_EMU / 1000
     expected_pt = 20 * scale / 12700
-    assert built[0]["font_size_pt"] == expected_pt
+    assert built[0]["runs"][0]["font_size_pt"] == expected_pt
 
 
 def test_build_slide_elements_drops_zero_size_elements():
@@ -99,7 +112,7 @@ def test_build_slide_elements_drops_zero_size_elements():
 def test_build_slide_elements_drops_text_entries_with_empty_text():
     raw_slide = {
         "slideWidth": 1000, "slideHeight": 562.5,
-        "elements": [_text_entry(0, x=0, y=0, width=50, height=50, text="   ")],
+        "elements": [_text_entry(0, x=0, y=0, width=50, height=50, runs=[_run(text="")])],
     }
 
     built = build_slide_elements(raw_slide, _SLIDE_WIDTH_EMU, _SLIDE_HEIGHT_EMU)
@@ -142,6 +155,48 @@ def test_build_slide_elements_maps_text_align_values():
     built = build_slide_elements(raw_slide, _SLIDE_WIDTH_EMU, _SLIDE_HEIGHT_EMU)
 
     assert [entry["align"] for entry in built] == ["left", "right", "center", "justify", "left"]
+
+
+def test_build_slide_elements_preserves_multiple_runs_in_order_with_own_formatting():
+    # A paragraph with "**fett** normal *kursiv*" -- _CLASSIFY_JS would emit
+    # one run per formatting span, each carrying its OWN computed style
+    # (see `buildRuns` in blatt_kern_pptx_export_editable_convert.py). This
+    # proves the Python-side conversion keeps run order, text, and the
+    # bold/italic flags per-run rather than collapsing to the paragraph's
+    # own style (the pre-B3 behaviour this replaces).
+    raw_slide = {
+        "slideWidth": 1000, "slideHeight": 562.5,
+        "elements": [
+            _text_entry(
+                0, x=0, y=0, width=200, height=50,
+                runs=[
+                    _run(text="fett", weight="bold", style="normal"),
+                    _run(text=" normal ", weight="400", style="normal"),
+                    _run(text="kursiv", weight="400", style="italic"),
+                ],
+            )
+        ],
+    }
+
+    built = build_slide_elements(raw_slide, _SLIDE_WIDTH_EMU, _SLIDE_HEIGHT_EMU)
+
+    assert len(built) == 1
+    runs = built[0]["runs"]
+    assert [run["text"] for run in runs] == ["fett", " normal ", "kursiv"]
+    assert [run["bold"] for run in runs] == [True, False, False]
+    assert [run["italic"] for run in runs] == [False, False, True]
+
+
+def test_build_slide_elements_single_run_paragraph_stays_a_one_element_run_list():
+    raw_slide = {
+        "slideWidth": 1000, "slideHeight": 562.5,
+        "elements": [_text_entry(0, x=0, y=0, width=200, height=50, text="Unformatiert")],
+    }
+
+    built = build_slide_elements(raw_slide, _SLIDE_WIDTH_EMU, _SLIDE_HEIGHT_EMU)
+
+    assert len(built[0]["runs"]) == 1
+    assert built[0]["runs"][0]["text"] == "Unformatiert"
 
 
 def test_image_only_block_types_excludes_text_capable_answer_and_content_blocks():

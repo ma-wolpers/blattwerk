@@ -79,17 +79,14 @@ _CLASSIFY_JS = """
     }
 
     function mark(el, kind, originRect, results, counter) {
+        // Only ever called with kind='image' now (text entries go through
+        // `markRuns`/`markTextRange` below, both of which always emit a
+        // `runs` array -- ONE uniform shape for every kind="text" entry,
+        // never a parallel flat text/style representation).
         const index = counter.next++;
         el.setAttribute('data-pptx-index', String(index));
         const entry = { index: index, kind: kind, rect: relRect(el, originRect) };
-        if (kind === 'text') {
-            const style = getComputedStyle(el);
-            entry.text = el.textContent.replace(/\\s+/g, ' ').trim();
-            entry.fontSizePx = parseFloat(style.fontSize) || 12;
-            entry.fontWeight = style.fontWeight;
-            entry.color = style.color;
-            entry.textAlign = style.textAlign;
-        } else if (el.tagName === 'IMG') {
+        if (el.tagName === 'IMG') {
             // Only a real <img> has a meaningful "original asset" to fetch
             // instead of screenshotting -- MathJax/SVG/canvas/chrome/table
             // images have no such source and stay on the screenshot path
@@ -102,37 +99,81 @@ _CLASSIFY_JS = """
         results.push(entry);
     }
 
+    function runFromStyle(text, styleEl) {
+        const style = getComputedStyle(styleEl);
+        return {
+            text: text,
+            fontSizePx: parseFloat(style.fontSize) || 12,
+            fontWeight: style.fontWeight,
+            fontStyle: style.fontStyle,
+            color: style.color,
+        };
+    }
+
+    function buildRuns(el) {
+        // `el` already satisfies `isLeafTextElement` (only inline-
+        // formatting descendants, no images/blocks) -- walks every
+        // descendant text node, using ITS OWN direct parent element for
+        // `getComputedStyle()` (the cascade already resolves inherited +
+        // own styles at any nesting depth, e.g. <strong><em>...</em></strong>
+        // correctly reports both bold AND italic on the innermost text
+        // node's parent -- no manual style-merging needed).
+        const runs = [];
+        function walk(node) {
+            if (node.nodeType === Node.TEXT_NODE) {
+                const text = node.textContent.replace(/\\s+/g, ' ');
+                if (text) runs.push(runFromStyle(text, node.parentElement || el));
+            } else if (node.nodeType === Node.ELEMENT_NODE) {
+                for (const child of Array.from(node.childNodes)) walk(child);
+            }
+        }
+        for (const child of Array.from(el.childNodes)) walk(child);
+
+        if (runs.length > 0) {
+            runs[0].text = runs[0].text.replace(/^\\s+/, '');
+            runs[runs.length - 1].text = runs[runs.length - 1].text.replace(/\\s+$/, '');
+        }
+        return runs.filter(function (run) { return run.text.length > 0; });
+    }
+
+    function markRuns(el, runs, originRect, results, counter) {
+        const index = counter.next++;
+        el.setAttribute('data-pptx-index', String(index));
+        results.push({
+            index: index, kind: 'text',
+            rect: relRect(el, originRect),
+            align: getComputedStyle(el).textAlign,
+            runs: runs,
+        });
+    }
+
     function markTextRange(range, parentEl, originRect, results, counter, text) {
         // A bare text node between e.g. a formula and a bold word has no
         // element of its own to tag with data-pptx-index (Range isn't an
         // Element) -- doesn't matter, kind is always "text" here, which
         // never needs a later page.query_selector('[data-pptx-index]')
-        // lookup for a screenshot the way "image" entries do.
+        // lookup for a screenshot the way "image" entries do. Still a
+        // one-item `runs` array, same uniform shape as `markRuns`.
         const r = range.getBoundingClientRect();
-        const style = getComputedStyle(parentEl);
         const index = counter.next++;
         results.push({
             index: index, kind: 'text',
             rect: { x: r.x - originRect.x, y: r.y - originRect.y, width: r.width, height: r.height },
-            text: text,
-            fontSizePx: parseFloat(style.fontSize) || 12,
-            fontWeight: style.fontWeight,
-            color: style.color,
-            textAlign: style.textAlign,
+            align: getComputedStyle(parentEl).textAlign,
+            runs: [runFromStyle(text, parentEl)],
         });
     }
 
     function walkTextCapable(el, originRect, results, handled, counter) {
         if (isImageLikeElement(el)) { mark(el, 'image', originRect, results, counter); return; }
         if (el.hasAttribute('data-block-type')) { processWrapper(el, originRect, results, handled, counter); return; }
-        if (el.children.length === 0) {
-            const text = el.textContent.replace(/\\s+/g, ' ').trim();
-            if (text) mark(el, 'text', originRect, results, counter);
-            return;
-        }
         if (isLeafTextElement(el)) {
-            const text = el.textContent.replace(/\\s+/g, ' ').trim();
-            if (text) mark(el, 'text', originRect, results, counter);
+            // Covers both a childless leaf (a lone text node) and mixed
+            // inline formatting (bold/italic/... children) -- a childless
+            // element vacuously satisfies "every child is an inline tag",
+            // so this replaces what used to be two separate branches.
+            const runs = buildRuns(el);
+            if (runs.length > 0) markRuns(el, runs, originRect, results, counter);
             return;
         }
         // Mixed content: at least one child is neither inline-formatting
@@ -217,6 +258,11 @@ def _parse_rgb(css_color) -> tuple[int, int, int]:
 
 
 def _is_bold(font_weight) -> bool:
+    """v1 reduces every CSS weight to a binary bold/not-bold -- `400`/`500`
+    both count as not-bold, `600`+ as bold. Finer weight gradations aren't
+    reconstructed (documented v1 limitation, not silently approximated as
+    if it were exact)."""
+
     text = str(font_weight or "").strip().lower()
     if text in {"bold", "bolder"}:
         return True
@@ -224,6 +270,10 @@ def _is_bold(font_weight) -> bool:
         return int(text) >= 600
     except ValueError:
         return False
+
+
+def _is_italic(font_style) -> bool:
+    return str(font_style or "").strip().lower() in {"italic", "oblique"}
 
 
 def build_slide_elements(raw_slide: dict, slide_width_emu: int, slide_height_emu: int) -> list[dict]:
@@ -251,6 +301,16 @@ def build_slide_elements(raw_slide: dict, slide_width_emu: int, slide_height_emu
     `scale_x`≈`scale_y` by construction) -- keeps text sized consistently
     relative to the slide regardless of which viewport pixel width was
     used to render it.
+
+    `kind="text"` entries always carry a `"runs"` list (one dict per
+    formatting span: `text`/`font_size_pt`/`bold`/`italic`/`color_rgb`)
+    plus one shared `"align"` -- a single, uniform representation for
+    every text entry, whether it came from a plain paragraph (one run) or
+    one with inline `**bold**`/`*italic*` formatting (several runs, each
+    with the actual computed style of its own span, not the paragraph's).
+    A `raw_run` with empty text (possible after `_CLASSIFY_JS`'s
+    leading/trailing-whitespace trim) is dropped; an entry left with zero
+    runs is dropped entirely, same as the old "no text, no entry" rule.
     """
 
     slide_width_px = float(raw_slide.get("slideWidth") or 0)
@@ -286,10 +346,23 @@ def build_slide_elements(raw_slide: dict, slide_width_emu: int, slide_height_emu
             built.append(built_image)
             continue
 
-        text = str(entry.get("text") or "").strip()
-        if not text:
+        runs = []
+        for raw_run in entry.get("runs") or []:
+            run_text = str(raw_run.get("text") or "")
+            if not run_text:
+                continue
+            runs.append(
+                {
+                    "text": run_text,
+                    "font_size_pt": max(1.0, float(raw_run.get("fontSizePx") or 12) * scale_x / EMU_PER_PT),
+                    "bold": _is_bold(raw_run.get("fontWeight")),
+                    "italic": _is_italic(raw_run.get("fontStyle")),
+                    "color_rgb": _parse_rgb(raw_run.get("color")),
+                }
+            )
+        if not runs:
             continue
-        font_size_pt = max(1.0, float(entry.get("fontSizePx") or 12) * scale_x / EMU_PER_PT)
+
         built.append(
             {
                 "kind": "text",
@@ -297,11 +370,8 @@ def build_slide_elements(raw_slide: dict, slide_width_emu: int, slide_height_emu
                 "top_emu": top_emu,
                 "width_emu": width_emu,
                 "height_emu": height_emu,
-                "text": text,
-                "font_size_pt": font_size_pt,
-                "bold": _is_bold(entry.get("fontWeight")),
-                "color_rgb": _parse_rgb(entry.get("color")),
-                "align": _ALIGN_MAP.get(str(entry.get("textAlign") or "left").lower(), "left"),
+                "align": _ALIGN_MAP.get(str(entry.get("align") or "left").lower(), "left"),
+                "runs": runs,
             }
         )
     return built

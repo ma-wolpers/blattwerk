@@ -20,7 +20,7 @@ der HTML-/CSS-Darstellung. Unterstützungsmatrix:
 | `<img>` mit lesbarer Quelle (`data:`/`file:`/`http(s):`) | eigenes Bild-Shape, **Original-Asset-Bytes** (kein Screenshot-Reencode) |
 | MathJax-Formeln (`<mjx-container>`), rohes `<svg>`/`<canvas>`, `<img>` ohne lesbare Quelle | eigenes Bild-Shape (Screenshot, zugeschnitten) |
 | `:::table`, `:::geometry`, `:::grid`, `:::dots`, `:::crossword`, `:::wordsearch`, `:::qrcode`, `:::matching`, `:::mindmap`, `:::selfcheck`, `:::numberline`, `:::checkgrid`, `:::lines`, `:::space`, `raw`-Blöcke | eigenes Bild-Shape (ganzer Block, kein Zell-/Element-Mapping) |
-| gemischte Inline-Formatierung (`**fett** normal`)      | eine Formatierung pro Textbox (die des ganzen Absatzes), keine gemischten Runs |
+| gemischte Inline-Formatierung (`**fett** normal`)      | echte, mehrere PowerPoint-Runs in einer Textbox (fett/kursiv je Run) |
 | CSS-Gradients, Schatten, `border-radius`               | nicht übertragen (nur Flächenfarbe, falls überhaupt) |
 | `position:absolute`/`z-index` außerhalb der Bild-Blöcke | Stapelreihenfolge nur über Dokumentreihenfolge, keine CSS-Stacking-Garantie |
 | Folien-Chrome (Mini-Header, Abschnitts-Footer, Folienzähler) | eigenes Bild-Shape (zwei Regionen: vor/nach dem Folieninhalt) |
@@ -72,11 +72,20 @@ class EditableExportUnavailable(Exception):
 
 
 @dataclass(frozen=True)
-class TextStyle:
+class TextRun:
+    """Eine einzelne, einheitlich formatierte Textspanne innerhalb einer
+    Textbox -- ein unformatierter Absatz wird genau eine `TextRun`, ein
+    Absatz mit `**fett**`/`*kursiv*`-Formatierung mehrere, je mit ihrem
+    eigenen tatsächlichen `getComputedStyle()` (siehe `buildRuns()` in
+    `blatt_kern_pptx_export_editable_convert.py::_CLASSIFY_JS`). CSS-
+    Schriftgewichte werden v1 binär auf `bold` reduziert (`_is_bold()`) --
+    feinere Abstufungen (400/500/600/700 ...) werden nicht nachgebildet."""
+
+    text: str
     font_size_pt: float
     bold: bool
+    italic: bool
     color_rgb: tuple[int, int, int]
-    align: Literal["left", "center", "right", "justify"]
 
 
 @dataclass(frozen=True)
@@ -84,15 +93,20 @@ class RenderableElement:
     """Ein einzelnes, platzierbares PPTX-Shape -- die Trennlinie zwischen
     DOM-Extraktion (dieses Modul) und reinem `python-pptx`-Bau
     (`build_editable_slide` in `blatt_kern_pptx_export.py`), der selbst
-    keine Browser-/DOM-Logik mehr sieht."""
+    keine Browser-/DOM-Logik mehr sieht.
+
+    `kind="text"` trägt IMMER eine `runs`-Liste (nie ein separates flaches
+    `text`/Style-Feld) -- ein einzeln formatierter Absatz ist einfach eine
+    Ein-Element-Liste, keine Sonderform. `align` gilt für die ganze
+    Textbox (Absatz-Ebene), nicht pro Run."""
 
     kind: Literal["text", "image"]
     left_emu: int
     top_emu: int
     width_emu: int
     height_emu: int
-    text: str | None = None
-    style: TextStyle | None = None
+    align: Literal["left", "center", "right", "justify"] | None = None
+    runs: list[TextRun] | None = None
     image_bytes: bytes | None = None
 
 
@@ -222,13 +236,17 @@ def _renderable_elements_from_built(built_entries: list[dict], page) -> list[Ren
                     top_emu=built["top_emu"],
                     width_emu=built["width_emu"],
                     height_emu=built["height_emu"],
-                    text=built["text"],
-                    style=TextStyle(
-                        font_size_pt=built["font_size_pt"],
-                        bold=built["bold"],
-                        color_rgb=built["color_rgb"],
-                        align=built["align"],
-                    ),
+                    align=built["align"],
+                    runs=[
+                        TextRun(
+                            text=run["text"],
+                            font_size_pt=run["font_size_pt"],
+                            bold=run["bold"],
+                            italic=run["italic"],
+                            color_rgb=run["color_rgb"],
+                        )
+                        for run in built["runs"]
+                    ],
                 )
             )
     return elements

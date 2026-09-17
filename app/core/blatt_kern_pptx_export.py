@@ -259,7 +259,7 @@ def build_editable_slide(slide, elements) -> None:
             )
             continue
 
-        if not element.text or element.style is None:
+        if not element.runs:
             continue
         textbox = slide.shapes.add_textbox(
             Emu(element.left_emu), Emu(element.top_emu), Emu(element.width_emu), Emu(element.height_emu)
@@ -272,12 +272,17 @@ def build_editable_slide(slide, elements) -> None:
         text_frame.margin_top = 0
         text_frame.margin_bottom = 0
         paragraph = text_frame.paragraphs[0]
-        paragraph.alignment = align_map.get(element.style.align, PP_ALIGN.LEFT)
-        run = paragraph.add_run()
-        run.text = element.text
-        run.font.size = Pt(element.style.font_size_pt)
-        run.font.bold = element.style.bold
-        run.font.color.rgb = RGBColor(*element.style.color_rgb)
+        paragraph.alignment = align_map.get(element.align, PP_ALIGN.LEFT)
+        # One `add_run()` per `TextRun` -- python-pptx supports multiple
+        # runs per paragraph unrestricted; a plain, unformatted paragraph
+        # is simply a one-run list, no special-casing needed here.
+        for text_run in element.runs:
+            run = paragraph.add_run()
+            run.text = text_run.text
+            run.font.size = Pt(text_run.font_size_pt)
+            run.font.bold = text_run.bold
+            run.font.italic = text_run.italic
+            run.font.color.rgb = RGBColor(*text_run.color_rgb)
 
 
 def _build_presentation_pptx_raster(

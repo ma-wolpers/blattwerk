@@ -107,11 +107,73 @@ def test_extract_slide_elements_captures_full_sentence_around_inline_formula(ren
     results = extract_slide_elements(rendered_presentation_html, width_emu, height_emu, mathjax_wait_ms=3000)
 
     all_text = " ".join(
-        element.text for result in results for element in (result.elements or []) if element.kind == "text"
+        run.text
+        for result in results
+        for element in (result.elements or [])
+        if element.kind == "text"
+        for run in (element.runs or [])
     )
     assert "Formuliere eine klare Aussage in" in all_text
     assert "einem" in all_text
     assert "Satz zur Funktion" in all_text
+
+
+_MIXED_FORMATTING_MARKDOWN = """---
+Titel: Testfolien
+Fach: Mathematik
+Thema: PPTX-Inline-Formatierung
+mode: presentation
+---
+
+:::task title="Formatierter Text"
+Zuerst **fett gedruckt** dann normaler Text dann *kursiv gesetzt* am Ende.
+:::
+"""
+
+
+@pytest.fixture
+def rendered_mixed_formatting_html(tmp_path) -> Path:
+    if not _browser_available():
+        pytest.skip("kein installierter Chromium-Browser gefunden (find_chromium_executable())")
+
+    md_path = tmp_path / "mixed_formatting.md"
+    md_path.write_text(_MIXED_FORMATTING_MARKDOWN, encoding="utf-8")
+    html_path = tmp_path / "mixed_formatting.html"
+    build_worksheet(
+        str(md_path), str(html_path), page_format="presentation_16_9",
+        **WorksheetDesignOptions("indigo", "segoe", "normal").as_kwargs(),
+    )
+    return html_path
+
+
+def test_extract_slide_elements_captures_mixed_bold_italic_text_as_ordered_runs(rendered_mixed_formatting_html):
+    # B3: "**fett gedruckt** dann normaler Text dann *kursiv gesetzt* am
+    # Ende" must come back as ONE text element with several `TextRun`s
+    # (not three unrelated text elements, and not one run carrying the
+    # whole paragraph's flat style) -- in document order, each run's own
+    # bold/italic flag correct, with no lost/duplicated text or whitespace
+    # across the run boundaries.
+    from app.core.blatt_kern_pptx_export_editable import extract_slide_elements
+
+    width_emu, height_emu = _slide_size_emu("presentation_16_9")
+    results = extract_slide_elements(rendered_mixed_formatting_html, width_emu, height_emu, mathjax_wait_ms=1000)
+
+    assert len(results) == 1
+    text_elements = [el for el in (results[0].elements or []) if el.kind == "text"]
+    matching = [el for el in text_elements if el.runs and "fett gedruckt" in "".join(r.text for r in el.runs)]
+    assert len(matching) == 1
+    runs = matching[0].runs
+    assert len(runs) >= 3
+
+    full_text = "".join(run.text for run in runs)
+    assert full_text == "Zuerst fett gedruckt dann normaler Text dann kursiv gesetzt am Ende."
+
+    bold_runs = [run for run in runs if run.bold]
+    italic_runs = [run for run in runs if run.italic]
+    assert bold_runs and all(run.text.strip() == "fett gedruckt" for run in bold_runs)
+    assert italic_runs and all(run.text.strip() == "kursiv gesetzt" for run in italic_runs)
+    # The bold run must precede the italic run (document order preserved).
+    assert runs.index(bold_runs[0]) < runs.index(italic_runs[0])
 
 
 def test_extract_slide_elements_table_block_becomes_a_single_image(rendered_presentation_html):

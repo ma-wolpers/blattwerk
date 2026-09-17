@@ -9,7 +9,7 @@ from pptx.enum.shapes import MSO_SHAPE_TYPE
 from pptx.enum.text import PP_ALIGN
 
 from app.core.blatt_kern_pptx_export import build_editable_slide
-from app.core.blatt_kern_pptx_export_editable import RenderableElement, TextStyle
+from app.core.blatt_kern_pptx_export_editable import RenderableElement, TextRun
 
 _ONE_PX_PNG = (
     b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01"
@@ -23,12 +23,14 @@ def _blank_slide():
     return prs.slides.add_slide(prs.slide_layouts[6])
 
 
-def _text_element(text="Hallo Welt", align="left", bold=False, color=(17, 17, 17), font_size_pt=12.0):
+def _text_element(
+    text="Hallo Welt", align="left", bold=False, italic=False, color=(17, 17, 17), font_size_pt=12.0
+):
     return RenderableElement(
         kind="text",
         left_emu=100_000, top_emu=200_000, width_emu=1_000_000, height_emu=300_000,
-        text=text,
-        style=TextStyle(font_size_pt=font_size_pt, bold=bold, color_rgb=color, align=align),
+        align=align,
+        runs=[TextRun(text=text, font_size_pt=font_size_pt, bold=bold, italic=italic, color_rgb=color)],
     )
 
 
@@ -73,6 +75,36 @@ def test_text_element_carries_font_size_bold_color_and_alignment():
     assert run.font.color.rgb == (255, 0, 0)
     assert round(run.font.size.pt, 1) == 18.5
     assert list(slide.shapes)[0].text_frame.paragraphs[0].alignment == PP_ALIGN.CENTER
+
+
+def test_text_element_carries_italic_flag():
+    slide = _blank_slide()
+    build_editable_slide(slide, [_text_element(italic=True)])
+
+    run = list(slide.shapes)[0].text_frame.paragraphs[0].runs[0]
+    assert run.font.italic is True
+
+
+def test_multiple_runs_produce_multiple_paragraph_runs_with_own_formatting():
+    slide = _blank_slide()
+    element = RenderableElement(
+        kind="text",
+        left_emu=100_000, top_emu=200_000, width_emu=1_000_000, height_emu=300_000,
+        align="left",
+        runs=[
+            TextRun(text="fett", font_size_pt=12.0, bold=True, italic=False, color_rgb=(0, 0, 0)),
+            TextRun(text=" normal ", font_size_pt=12.0, bold=False, italic=False, color_rgb=(0, 0, 0)),
+            TextRun(text="kursiv", font_size_pt=12.0, bold=False, italic=True, color_rgb=(0, 0, 0)),
+        ],
+    )
+
+    build_editable_slide(slide, [element])
+
+    runs = list(slide.shapes)[0].text_frame.paragraphs[0].runs
+    assert [run.text for run in runs] == ["fett", " normal ", "kursiv"]
+    assert runs[0].font.bold is True and runs[0].font.italic is not True
+    assert runs[1].font.bold is not True and runs[1].font.italic is not True
+    assert runs[2].font.bold is not True and runs[2].font.italic is True
 
 
 def test_text_element_word_wrap_enabled_and_auto_size_disabled():
