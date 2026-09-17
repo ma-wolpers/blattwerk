@@ -29,6 +29,9 @@ from .editor_marker_shortcuts import (
     selection_crosses_math_boundary,
 )
 from .ui_constants import (
+    EDITOR_DOCUMENT_LOADED,
+    EDITOR_DOCUMENT_LOADING,
+    EDITOR_DOCUMENT_NOT_LOADED,
     EDITOR_VIEW_BOTH,
     EDITOR_VIEW_EDITOR_ONLY,
     EDITOR_VIEW_PREVIEW_ONLY,
@@ -196,6 +199,33 @@ class BlattwerkAppEditorMixin:
         self._configure_editor_diagnostic_tags()
         self._configure_editor_syntax_tags()
         self.editor_widget.tag_raise("sel")
+        self._set_editor_document_state(EDITOR_DOCUMENT_NOT_LOADED)
+
+    def _set_editor_document_state(self, state: str):
+        """Updates the editor's load state and applies the resulting UI treatment.
+
+        `state` is one of EDITOR_DOCUMENT_NOT_LOADED, _LOADING or _LOADED
+        (ui_constants.py). Only EDITOR_DOCUMENT_LOADED is interactive: the
+        Text widget is editable and can receive focus. NOT_LOADED and LOADING
+        both render as disabled/inactive -- LOADING is a transient, purely
+        synchronous state (the file read and content insert happen within a
+        single call, so it is never actually rendered on screen) that exists
+        so a failed read can never be mistaken for a successful load, and so
+        a future asynchronous loader could hook into it without further
+        modeling. This is the single source of truth for whether the editor
+        is currently usable; callers must not infer that from `input_var`,
+        the active document tab, or the editor's text content, none of which
+        are guaranteed to match (e.g. a tab can be selected before its file
+        has been confirmed loadable).
+        """
+
+        self._editor_document_state = state
+        interactive = state == EDITOR_DOCUMENT_LOADED
+        self.editor_widget.configure(
+            state="normal" if interactive else "disabled",
+            takefocus=1 if interactive else 0,
+        )
+        self._apply_editor_widget_theme_colors()
 
     def _load_editor_content(self, input_path: Path):
         """Loads the selected markdown file into the editor widget."""
@@ -203,11 +233,30 @@ class BlattwerkAppEditorMixin:
         if self.editor_widget is None:
             return
 
+        same_document = input_path == self._editor_last_loaded_path
+        self._set_editor_document_state(EDITOR_DOCUMENT_LOADING)
         try:
             content = input_path.read_text(encoding="utf-8")
         except Exception as error:
-            messagebox.showerror("Datei konnte nicht gelesen werden", str(error))
-            self.status_var.set("Datei konnte nicht gelesen werden")
+            if same_document:
+                self._set_editor_document_state(EDITOR_DOCUMENT_LOADED)
+            else:
+                self._editor_loading_content = True
+                try:
+                    self.editor_widget.delete("1.0", "end")
+                    self.editor_widget.edit_modified(False)
+                finally:
+                    self._editor_loading_content = False
+                self._editor_last_loaded_path = None
+                self._set_editor_document_state(EDITOR_DOCUMENT_NOT_LOADED)
+
+            status = (
+                "Datei im Tab existiert nicht mehr"
+                if isinstance(error, FileNotFoundError)
+                else "Datei konnte nicht gelesen werden"
+            )
+            messagebox.showerror(status, str(error))
+            self.status_var.set(status)
             return
 
         self._editor_loading_content = True
@@ -224,6 +273,7 @@ class BlattwerkAppEditorMixin:
             self._queue_editor_outline(immediate=True)
         finally:
             self._editor_loading_content = False
+        self._set_editor_document_state(EDITOR_DOCUMENT_LOADED)
 
     @staticmethod
     def _format_external_change_age(file_mtime_ns: int) -> str:
@@ -1469,10 +1519,25 @@ class BlattwerkAppEditorMixin:
             self._focus_preview_canvas_if_available()
 
     def _focus_editor_widget_if_available(self):
-        """Moves keyboard focus into the editor text widget, if it currently exists."""
+        """Moves keyboard focus into the editor text widget, if a document is loaded.
 
-        if self.editor_widget is not None and bool(self.editor_widget.winfo_exists()):
+        Never focuses the editor while it is disabled (no document loaded, or
+        still loading) -- doing so would make it the "text input focused"
+        target for the global shortcut gating in shortcut_manager.py/
+        keybinding.py, silently swallowing shortcuts like open-file ('o') and
+        open-recent ('z') even though there is no text to protect from being
+        overwritten. Falls back to the root window so those shortcuts keep
+        firing right after a view switch.
+        """
+
+        if (
+            self._editor_document_state == EDITOR_DOCUMENT_LOADED
+            and self.editor_widget is not None
+            and bool(self.editor_widget.winfo_exists())
+        ):
             self.editor_widget.focus_set()
+        elif self.root is not None:
+            self.root.focus_set()
 
     def _focus_preview_canvas_if_available(self):
         """Moves keyboard focus onto the preview canvas so the editor text field no longer holds it."""

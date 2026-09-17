@@ -16,6 +16,8 @@ from app.bootstrap.wiring import AppDependencies
 from .blatt_shortcuts import build_preview_keybinding_registry, build_preview_shortcuts
 from .shortcut_manager import ShortcutManager
 from .ui_constants import (
+    EDITOR_DOCUMENT_LOADED,
+    EDITOR_DOCUMENT_NOT_LOADED,
     EDITOR_VIEW_BOTH,
     EDITOR_VIEW_EDITOR_ONLY,
     EDITOR_VIEW_PREVIEW_ONLY,
@@ -173,6 +175,7 @@ class BlattwerkAppBase(BwBaseWindow):
         self._editor_search_match_count_var = ui.StringVar(value="0/0")
         self._editor_last_saved_block_type_counts = {}
         self._editor_last_loaded_path = None
+        self._editor_document_state = EDITOR_DOCUMENT_NOT_LOADED
         self._editor_has_unsaved_changes = False
         self._editor_last_known_source_path = None
         self._editor_last_known_source_mtime_ns = None
@@ -985,10 +988,6 @@ class BlattwerkAppBase(BwBaseWindow):
         except Exception:
             return
 
-        if not input_path.exists():
-            self.status_var.set("Datei im Tab existiert nicht mehr")
-            return
-
         if hasattr(self, "_read_document_mode"):
             try:
                 tab_state["document_mode"] = str(self._read_document_mode(input_path) or "worksheet")
@@ -1050,6 +1049,11 @@ class BlattwerkAppBase(BwBaseWindow):
         self._sync_font_size_profile_combo()
         self._refresh_color_profile_swatches()
         self._load_editor_content(input_path)
+        if self._editor_document_state != EDITOR_DOCUMENT_LOADED:
+            # _load_editor_content() already reported the failure (e.g. file
+            # missing/unreadable); avoid a second, duplicate error dialog
+            # from refresh_preview()'s own _validate_input() check.
+            return
         self._warn_if_bw_mode_has_color_mentions()
         if hasattr(self, "_refresh_preview_for_active_tab"):
             self._refresh_preview_for_active_tab()

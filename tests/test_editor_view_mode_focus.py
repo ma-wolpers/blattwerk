@@ -1,5 +1,7 @@
 from app.ui.blatt_ui_editor import BlattwerkAppEditorMixin
 from app.ui.ui_constants import (
+    EDITOR_DOCUMENT_LOADED,
+    EDITOR_DOCUMENT_NOT_LOADED,
     EDITOR_VIEW_BOTH,
     EDITOR_VIEW_EDITOR_ONLY,
     EDITOR_VIEW_PREVIEW_ONLY,
@@ -64,6 +66,7 @@ class _DummyViewModeEditor(BlattwerkAppEditorMixin):
         self.editor_widget = _FakeFocusableWidget()
         self.preview_canvas = _FakeFocusableWidget()
         self.root = _FakeRoot()
+        self._editor_document_state = EDITOR_DOCUMENT_LOADED
         self._editor_search_visible = False
         self._equal_split_attempts = 0
         self._reduce_motion = True
@@ -148,3 +151,23 @@ def test_focus_editor_widget_if_available_noop_when_editor_widget_is_none():
 
     # Darf nicht abstuerzen, obwohl kein editor_widget existiert.
     editor._apply_editor_view_mode()
+
+
+def test_editor_only_mode_does_not_focus_editor_widget_when_no_document_loaded():
+    editor = _DummyViewModeEditor(EDITOR_VIEW_EDITOR_ONLY)
+    editor._editor_document_state = EDITOR_DOCUMENT_NOT_LOADED
+
+    editor._apply_editor_view_mode()
+
+    assert editor.editor_widget.focus_calls == 0
+    assert editor.root.focus_calls == 1
+
+
+def test_both_mode_does_not_focus_editor_widget_when_no_document_loaded():
+    editor = _DummyViewModeEditor(EDITOR_VIEW_BOTH)
+    editor._editor_document_state = EDITOR_DOCUMENT_NOT_LOADED
+
+    editor._apply_editor_view_mode()
+
+    assert editor.editor_widget.focus_calls == 0
+    assert editor.root.focus_calls == 1

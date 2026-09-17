@@ -41,6 +41,7 @@ So vermeiden wir Klebercode und Verwirrung.
   - Tabs werden direkt im Tabtitel per `×` geschlossen; die UI fuehrt das als reine Oberflaechenaktion aus.
   - Alle Oeffnungswege (Dateidialog, Recent-Menue, Shortcut `Z`) laufen ueber denselben UI-Dispatcher; bereits offene Dateien werden fokussiert statt doppelt geoeffnet.
   - Das Hauptfenster kann Vorschau und Schreibbereich einzeln oder zusammen anzeigen.
+  - Der Schreibbereich ist gesperrt und deaktiviert dargestellt, solange kein Dokument geladen ist -- er bekommt dann auch beim Wechsel der Ansicht keinen Tastaturfokus, damit globale Kurzbefehle wie "Datei oeffnen" zuverlaessig funktionieren.
   - Der Schreibbereich speichert Aenderungen debounced direkt in die Markdown-Datei.
   - Der Schreibbereich zeigt Live-Diagnostik aus dem Programmkern passend zum Dokumenttyp und markiert nur betroffene Zeilen in der UI.
   - Warnungen in dieser Diagnostik-Liste koennen einzeln als gelesen abgehakt werden (Checkbox, Rechtsklick-Menue). Der Abhak-Zustand wird in `app/storage` gespeichert und ist an "Zuletzt geoeffnet" gekoppelt. Der Programmkern greift auf diesen Speicher nur ueber eine kleine Schnittstelle zu, nie direkt -- so bleibt die Regel "Kern kennt keine Speicherdetails" auch hier eingehalten.

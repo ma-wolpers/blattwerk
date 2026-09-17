@@ -11,6 +11,7 @@ ensure_bw_gui_on_path()
 from bw_gui.runtime import BwBaseWindow, widgets
 
 from .dialog_services import messagebox
+from .ui_constants import EDITOR_DOCUMENT_NOT_LOADED
 from .ui_theme import normalize_theme_key
 from ..storage.local_config_store import (
     add_recent_file,
@@ -119,6 +120,8 @@ class BlattwerkAppPersistenceMixin:
                     self.editor_widget.edit_modified(False)
                 finally:
                     self._editor_loading_content = False
+                self._editor_last_loaded_path = None
+                self._set_editor_document_state(EDITOR_DOCUMENT_NOT_LOADED)
 
     def _close_document_tab(self, tab_id: str):
             """Closes a specific document tab and restores another tab if available."""

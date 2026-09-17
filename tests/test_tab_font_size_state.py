@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from app.ui.blatt_ui_base import BlattwerkAppBase
+from app.ui.ui_constants import EDITOR_DOCUMENT_LOADED
 
 
 class _Var:
@@ -41,6 +42,7 @@ class _DummyBase:
         self.document_tabs = {}
         self._active_document_tab_id = None
         self._tab_switch_in_progress = False
+        self._editor_document_state = EDITOR_DOCUMENT_LOADED
         self.user_preferences = {"font_size_profile_per_tab": font_size_profile_per_tab}
 
     @staticmethod

@@ -29,6 +29,7 @@ from ..styles.worksheet_design import (
 )
 from .preview_geometry import clamp, get_fit_scales
 from .ui_constants import (
+    EDITOR_DOCUMENT_LOADED,
     EDITOR_VIEW_BOTH,
     EDITOR_VIEW_EDITOR_ONLY,
     EDITOR_VIEW_PREVIEW_ONLY,
@@ -143,6 +144,46 @@ class BlattwerkAppStyleMixin:
             current_key = normalize_font_size_profile(self.design_font_size_profile_var.get())
             self.font_size_profile_combo.set(FONT_SIZE_PROFILE_LABELS.get(current_key, FONT_SIZE_PROFILE_LABELS[DEFAULT_FONT_SIZE_PROFILE]))
 
+    def _editor_widget_colors(self, theme: dict, interactive: bool) -> dict:
+            """Returns the Text-widget color kwargs for the editor, themed and state-aware.
+
+            `interactive=True` reproduces the editor's normal, active look for
+            the given theme. `interactive=False` reuses the same theme's own
+            "muted" tokens (bg_main/fg_muted, already used elsewhere for
+            de-emphasized UI such as TLabelframe.Label) instead of a hardcoded
+            gray, so the disabled look stays correct across every theme.
+            """
+            if interactive:
+                return dict(
+                    background=theme["bg_surface"],
+                    foreground=theme["fg_primary"],
+                    insertbackground=theme["fg_primary"],
+                    selectbackground=theme["accent_soft"],
+                    selectforeground=theme["fg_primary"],
+                )
+            return dict(
+                background=theme["bg_main"],
+                foreground=theme["fg_muted"],
+                insertbackground=theme["fg_muted"],
+                selectbackground=theme["accent_soft"],
+                selectforeground=theme["fg_muted"],
+            )
+
+    def _apply_editor_widget_theme_colors(self):
+            """Applies theme- and document-state-aware colors to the editor widget.
+
+            Called both on theme switches and on every editor document-state
+            transition, so the two never fall out of sync -- a theme change
+            while no document is loaded must not accidentally restore the
+            "active" colors.
+            """
+            if getattr(self, "editor_widget", None) is None:
+                return
+
+            theme = get_theme(self.theme_var.get())
+            interactive = getattr(self, "_editor_document_state", None) == EDITOR_DOCUMENT_LOADED
+            self.editor_widget.configure(**self._editor_widget_colors(theme, interactive))
+
     def _apply_theme(self, redraw_preview=True):
             """Wendet das aktive Theme auf Canvas, Editor und Zusatzfenster an.
 
@@ -169,13 +210,7 @@ class BlattwerkAppStyleMixin:
                 configure_ttk_theme(self.help_preview_window, theme_key)
 
             if getattr(self, "editor_widget", None) is not None:
-                self.editor_widget.configure(
-                    background=theme["bg_surface"],
-                    foreground=theme["fg_primary"],
-                    insertbackground=theme["fg_primary"],
-                    selectbackground=theme["accent_soft"],
-                    selectforeground=theme["fg_primary"],
-                )
+                self._apply_editor_widget_theme_colors()
                 if hasattr(self, "_configure_editor_diagnostic_tags"):
                     self._configure_editor_diagnostic_tags()
                 if hasattr(self, "_configure_editor_syntax_tags"):

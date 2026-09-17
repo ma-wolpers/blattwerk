@@ -37,6 +37,13 @@ EDITOR_VIEW_MODE_LABELS = {
     EDITOR_VIEW_EDITOR_ONLY: "Nur Schreibbereich",
 }
 
+# Lade-Zustand des Schreibbereichs (editor_widget). Nur EDITOR_DOCUMENT_LOADED
+# gilt als interaktiv (editierbar/fokussierbar) -- siehe
+# BlattwerkAppEditorMixin._set_editor_document_state.
+EDITOR_DOCUMENT_NOT_LOADED = "not_loaded"
+EDITOR_DOCUMENT_LOADING = "loading"
+EDITOR_DOCUMENT_LOADED = "loaded"
+
 PREVIEW_PAGE_GAP_PX = 28
 PREVIEW_PAGE_MARGIN_PX = 20
 
