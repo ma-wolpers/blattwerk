@@ -138,6 +138,7 @@ class BlattwerkAppEditorCompletionPopupMixin:
             listbox.bind("<Return>", self._on_editor_completion_accept)
             listbox.bind("<Escape>", lambda _event: self._close_editor_completion())
             listbox.bind("<<ListboxSelect>>", self._on_editor_completion_selection_changed)
+            listbox.bind("<Motion>", self._on_editor_completion_hover)
 
             detail_column = ui.Frame(content_row)
             # Not packed here -- `_update_editor_completion_detail_panel` packs
@@ -332,6 +333,38 @@ class BlattwerkAppEditorCompletionPopupMixin:
         binding to reach the same update.
         """
 
+        self._update_editor_completion_detail_panel()
+
+    def _on_editor_completion_hover(self, event):
+        """Highlights the suggestion under the mouse as it moves, without requiring a click.
+
+        A stock Tk Listbox only changes its selection on click/drag or
+        keyboard navigation -- plain mouse movement never touches it, unlike
+        the Ctrl+B insert menu's native `Menu` widget, whose `<<MenuSelect>>`
+        fires on hover for free. Reproduces the same feel here by
+        programmatically selecting the entry under the cursor
+        (`listbox.nearest(event.y)`) and refreshing the detail panel exactly
+        like the keyboard handlers do -- `selection_set()` does not raise
+        `<<ListboxSelect>>` (see `_on_editor_completion_selection_changed`),
+        so this must trigger the same follow-up itself. Skips the update
+        when the hovered row is already the active one, since `<Motion>`
+        fires continuously for every pixel of mouse movement.
+        """
+
+        listbox = self._editor_completion_listbox
+        if listbox is None or not self._editor_completion_items:
+            return
+
+        index = listbox.nearest(event.y)
+        if not (0 <= index < len(self._editor_completion_items)):
+            return
+
+        if listbox.curselection() == (index,):
+            return
+
+        listbox.selection_clear(0, "end")
+        listbox.selection_set(index)
+        listbox.activate(index)
         self._update_editor_completion_detail_panel()
 
     def _update_editor_completion_detail_panel(self):

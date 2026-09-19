@@ -16,8 +16,9 @@ from app.ui.blatt_ui_editor_completion_popup import BlattwerkAppEditorCompletion
 
 
 class _FakeListbox:
-    def __init__(self, selected_index=0):
+    def __init__(self, selected_index=0, nearest_index=0):
         self._selected_index = selected_index
+        self._nearest_index = nearest_index
         self.selection_clear_calls = []
         self.selection_set_calls = []
         self.activate_calls = []
@@ -38,6 +39,14 @@ class _FakeListbox:
 
     def see(self, index):
         self.see_calls.append(index)
+
+    def nearest(self, y):
+        return self._nearest_index
+
+
+class _FakeMotionEvent:
+    def __init__(self, y):
+        self.y = y
 
 
 class _FakeWidget:
@@ -60,8 +69,8 @@ class _FakeWidget:
 
 
 class _DummyDetailPanelEditor(BlattwerkAppEditorCompletionPopupMixin):
-    def __init__(self, items, selected_index=0):
-        self._editor_completion_listbox = _FakeListbox(selected_index)
+    def __init__(self, items, selected_index=0, nearest_index=0):
+        self._editor_completion_listbox = _FakeListbox(selected_index, nearest_index)
         self._editor_completion_items = items
         self._editor_completion_detail_frame = _FakeWidget()
         self._editor_completion_detail_title_label = _FakeWidget()
@@ -173,3 +182,56 @@ def test_selection_changed_handler_updates_detail_panel_for_mouse_click():
     editor._on_editor_completion_selection_changed()
 
     assert editor._editor_completion_detail_frame.packed is True
+
+
+def test_hover_selects_and_previews_the_entry_under_the_cursor():
+    editor = _DummyDetailPanelEditor(
+        [
+            {"label": "rows", "detail": None},
+            {"label": "mode", "detail": _DETAIL_WITH_HINT},
+        ],
+        selected_index=0,
+        nearest_index=1,
+    )
+
+    editor._on_editor_completion_hover(_FakeMotionEvent(y=42))
+
+    assert editor._editor_completion_listbox.selection_set_calls == [1]
+    assert editor._editor_completion_detail_frame.packed is True
+    assert editor._editor_completion_detail_title_label.configure_calls[-1] == {"text": "mode"}
+
+
+def test_hover_over_already_active_entry_is_a_no_op():
+    """<Motion> fires continuously for every pixel of mouse movement -- must
+    not repeatedly reselect/reconfigure the already-highlighted entry."""
+
+    editor = _DummyDetailPanelEditor(
+        [{"label": "mode", "detail": _DETAIL_WITH_HINT}],
+        selected_index=0,
+        nearest_index=0,
+    )
+    editor._editor_completion_detail_title_label.configure_calls.clear()
+
+    editor._on_editor_completion_hover(_FakeMotionEvent(y=5))
+
+    assert editor._editor_completion_listbox.selection_set_calls == []
+    assert editor._editor_completion_detail_title_label.configure_calls == []
+
+
+def test_hover_is_a_no_op_before_popup_creation():
+    editor = _DummyDetailPanelEditor([])
+    editor._editor_completion_listbox = None
+
+    editor._on_editor_completion_hover(_FakeMotionEvent(y=0))  # must not raise
+
+
+def test_hover_ignores_out_of_range_nearest_index():
+    editor = _DummyDetailPanelEditor(
+        [{"label": "mode", "detail": _DETAIL_WITH_HINT}],
+        selected_index=0,
+        nearest_index=5,
+    )
+
+    editor._on_editor_completion_hover(_FakeMotionEvent(y=999))
+
+    assert editor._editor_completion_listbox.selection_set_calls == []
