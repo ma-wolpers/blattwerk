@@ -282,10 +282,6 @@ class BlattwerkAppBase(BwBaseWindow):
         if hasattr(self, "_maybe_apply_startup_file_preference"):
             self._maybe_apply_startup_file_preference()
 
-        self.editor_view_mode_var.set(EDITOR_VIEW_PREVIEW_ONLY)
-        if hasattr(self, "_apply_editor_view_mode"):
-            self._apply_editor_view_mode()
-
     def open_settings(self) -> None:
         self._open_local_settings_dialog()
 

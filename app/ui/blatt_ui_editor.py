@@ -7,6 +7,7 @@ from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 ensure_bw_gui_on_path()
 from bw_gui.runtime import ui, widgets
 
+from contextlib import contextmanager
 from pathlib import Path
 from datetime import datetime
 import re
@@ -217,6 +218,15 @@ class BlattwerkAppEditorMixin:
         the active document tab, or the editor's text content, none of which
         are guaranteed to match (e.g. a tab can be selected before its file
         has been confirmed loadable).
+
+        On a transition to NOT_LOADED specifically, any focus the editor
+        currently holds is actively taken away (state="disabled" and
+        takefocus=0 alone do not do this for an already-focused widget).
+        LOADING deliberately does NOT do this -- it is a transient, never
+        actually rendered step (see above), so evicting focus on entry and
+        having to artificially restore it on a subsequent LOADED would be
+        pure overhead; an existing focus is simply left untouched while
+        LOADING is in effect.
         """
 
         self._editor_document_state = state
@@ -225,31 +235,120 @@ class BlattwerkAppEditorMixin:
             state="normal" if interactive else "disabled",
             takefocus=1 if interactive else 0,
         )
+        if state == EDITOR_DOCUMENT_NOT_LOADED and self.root.focus_get() is self.editor_widget:
+            self.root.focus_set()
         self._apply_editor_widget_theme_colors()
 
+    @contextmanager
+    def _editor_widget_unlocked_for_mutation(self):
+        """Temporarily makes the Text widget programmatically writable.
+
+        Tk's Text widget silently no-ops insert()/delete() while
+        state="disabled" (verified empirically) -- any code that
+        programmatically rewrites the editor's content must run inside this
+        block. This is a self-contained, exception-safe technical primitive:
+        it saves the widget's current -state and the current
+        _editor_loading_content flag, forces state="normal" and
+        _editor_loading_content=True for the block's duration, and restores
+        both previous values in `finally` regardless of success or exception
+        -- callers never need to reason about what it changed. It says
+        nothing about the editor's *document* state;
+        _set_editor_document_state() remains the sole place that decides the
+        regular resting state once the caller has determined the outcome
+        (loaded / not loaded).
+        """
+
+        previous_widget_state = str(self.editor_widget.cget("state"))
+        previous_loading_content = self._editor_loading_content
+        self.editor_widget.configure(state="normal")
+        self._editor_loading_content = True
+        try:
+            yield
+        finally:
+            self._editor_loading_content = previous_loading_content
+            self.editor_widget.configure(state=previous_widget_state)
+
+    @staticmethod
+    def _get_editor_source_snapshot(input_path: Path) -> tuple[Path, int]:
+        """Computes (path, mtime_ns) for a document's on-disk source snapshot.
+
+        Pure computation, no object mutation -- raises if the file cannot be
+        stat()ed (e.g. deleted between a successful read and this call).
+        Shared by _load_editor_content()'s Phase A (where a failure here
+        means the whole load failed, see below) and
+        _update_editor_source_snapshot() (used after saving, where a failure
+        is tolerated and simply skipped), so load and save never diverge on
+        how a snapshot is computed.
+        """
+
+        return input_path, int(input_path.stat().st_mtime_ns)
+
+    def _reset_editor_widget_to_empty(self):
+        """Clears the editor and marks no document as loaded.
+
+        Core recovery (content, all load baselines, document state) always
+        runs first and is simple/low-risk -- it never needs to roll back a
+        *partial* new baseline, because _load_editor_content()'s Phase A
+        only ever commits baselines after complete success; on any failure
+        there, nothing new was written yet, so this just resets everything
+        to the neutral "no document" baseline. The trailing
+        diagnostics/outline/highlighting refresh is derived UI sync -- if it
+        fails, the exception propagates, but core recovery has already
+        committed by that point, so the editor's resting state stays correct
+        regardless.
+        """
+
+        with self._editor_widget_unlocked_for_mutation():
+            self.editor_widget.delete("1.0", "end")
+            self.editor_widget.edit_modified(False)
+        self._editor_last_loaded_path = None
+        self._editor_last_known_source_path = None
+        self._editor_last_known_source_mtime_ns = None
+        self._editor_last_saved_block_type_counts = {}
+        self._set_editor_document_state(EDITOR_DOCUMENT_NOT_LOADED)
+
+        self._queue_editor_highlighting(immediate=True)
+        self._queue_editor_diagnostics(immediate=True)
+        self._queue_editor_outline(immediate=True)
+
     def _load_editor_content(self, input_path: Path):
-        """Loads the selected markdown file into the editor widget."""
+        """Loads the selected markdown file into the editor widget.
+
+        Phase A (this method's main try block) is the primary load
+        transaction: read the file, prepare the source-snapshot and
+        block-type-counts baselines as local values (without touching the
+        persistent fields yet), replace the widget content, and only then
+        commit everything together in one uninterrupted block of plain
+        attribute assignments. A failure anywhere in Phase A -- including a
+        failing source-snapshot lookup -- therefore never leaves a partially
+        updated document identity; recovery just resets to the neutral
+        "nothing loaded" baseline. `same_document` only decides what happens
+        when `read_text()` itself fails (before Phase A is even entered);
+        once reading succeeds, every call goes through the same Phase A,
+        including a same-document re-sync.
+
+        Phase B (after EDITOR_DOCUMENT_LOADED) recomputes purely derived
+        display state (highlighting/diagnostics/outline) from the
+        already-successfully-loaded content; a failure there must not undo
+        the primary content that Phase A already committed.
+        """
 
         if self.editor_widget is None:
             return
 
         same_document = input_path == self._editor_last_loaded_path
         self._set_editor_document_state(EDITOR_DOCUMENT_LOADING)
+
         try:
             content = input_path.read_text(encoding="utf-8")
         except Exception as error:
             if same_document:
+                # Re-Sync/Reload desselben, bereits angezeigten Dokuments
+                # fehlgeschlagen -- Widget wurde nie angefasst, Inhalt bleibt
+                # unangetastet und gueltig.
                 self._set_editor_document_state(EDITOR_DOCUMENT_LOADED)
             else:
-                self._editor_loading_content = True
-                try:
-                    self.editor_widget.delete("1.0", "end")
-                    self.editor_widget.edit_modified(False)
-                finally:
-                    self._editor_loading_content = False
-                self._editor_last_loaded_path = None
-                self._set_editor_document_state(EDITOR_DOCUMENT_NOT_LOADED)
-
+                self._reset_editor_widget_to_empty()
             status = (
                 "Datei im Tab existiert nicht mehr"
                 if isinstance(error, FileNotFoundError)
@@ -259,21 +358,46 @@ class BlattwerkAppEditorMixin:
             self.status_var.set(status)
             return
 
-        self._editor_loading_content = True
+        # Phase A: fachliche Baselines zunaechst NUR lokal berechnen -- der
+        # persistente Zustand bleibt bis zum gemeinsamen Commit unten
+        # unangetastet. Jeder Teilschritt (Snapshot, Block-Type-Counts,
+        # Widget-Mutation) muss vollstaendig gelingen; keiner davon wird
+        # einzeln toleriert.
         try:
-            self.editor_widget.delete("1.0", "end")
-            self.editor_widget.insert("1.0", content)
-            self.editor_widget.edit_modified(False)
+            new_source_path, new_source_mtime_ns = self._get_editor_source_snapshot(input_path)
+            new_block_type_counts = self._collect_editor_block_type_counts(content)
+
+            with self._editor_widget_unlocked_for_mutation():
+                self.editor_widget.delete("1.0", "end")
+                self.editor_widget.insert("1.0", content)
+                self.editor_widget.edit_modified(False)
+
+            # Ab hier ist alles Vorbereitete UND die Widget-Mutation
+            # erfolgreich abgeschlossen -- gemeinsamer, unterbrechungsfreier
+            # Commit. Kein I/O und keine weitere Berechnung mehr zwischen
+            # diesen Zeilen und EDITOR_DOCUMENT_LOADED.
             self._editor_has_unsaved_changes = False
             self._editor_last_loaded_path = input_path
-            self._update_editor_source_snapshot(input_path)
-            self._editor_last_saved_block_type_counts = self._collect_editor_block_type_counts(content)
-            self._queue_editor_highlighting(immediate=True)
-            self._queue_editor_diagnostics(immediate=True)
-            self._queue_editor_outline(immediate=True)
-        finally:
-            self._editor_loading_content = False
-        self._set_editor_document_state(EDITOR_DOCUMENT_LOADED)
+            self._editor_last_known_source_path = new_source_path
+            self._editor_last_known_source_mtime_ns = new_source_mtime_ns
+            self._editor_last_saved_block_type_counts = new_block_type_counts
+        except Exception:
+            # Nichts von alledem wurde committed (siehe oben) -- Inhalt kann
+            # trotzdem unvollstaendig im Widget stehen (falls die Mutation
+            # selbst betroffen war) und darf unter keiner Identitaet als
+            # "geladen" gelten. Fehler wird NICHT verschluckt, nur der
+            # UI-Zustand vorher garantiert konsistent gemacht.
+            self._reset_editor_widget_to_empty()
+            raise
+        else:
+            self._set_editor_document_state(EDITOR_DOCUMENT_LOADED)
+
+        # Phase B: rein abgeleitete Darstellung, bewusst ausserhalb des
+        # Recovery-Pfads -- ein Fehler hier darf den bereits erfolgreich
+        # geladenen Editor nicht zuruecknehmen.
+        self._queue_editor_highlighting(immediate=True)
+        self._queue_editor_diagnostics(immediate=True)
+        self._queue_editor_outline(immediate=True)
 
     @staticmethod
     def _format_external_change_age(file_mtime_ns: int) -> str:
@@ -297,12 +421,12 @@ class BlattwerkAppEditorMixin:
         """Stores the latest known source timestamp for the active editor file."""
 
         try:
-            file_stat = input_path.stat()
+            path, mtime_ns = self._get_editor_source_snapshot(input_path)
         except Exception:
             return
 
-        self._editor_last_known_source_path = input_path
-        self._editor_last_known_source_mtime_ns = int(file_stat.st_mtime_ns)
+        self._editor_last_known_source_path = path
+        self._editor_last_known_source_mtime_ns = mtime_ns
 
     def _show_editor_source_conflict_dialog(self, *, input_path: Path, age_text: str) -> str:
         """Shows a modal conflict dialog and returns discard, overwrite, or cancel."""
@@ -1255,7 +1379,21 @@ class BlattwerkAppEditorMixin:
             )
 
     def _on_editor_mouse_click(self, _event=None):
-        """Closes completion popup when user clicks in editor."""
+        """Closes completion popup when user clicks in editor.
+
+        Returns "break" while no document is loaded, which stops Tk's
+        built-in Text class binding for <Button-1> from running -- that
+        binding unconditionally moves keyboard focus into the widget
+        regardless of its `-state` (verified empirically: state="disabled"
+        and takefocus=0 alone do not prevent click-to-focus). Without this
+        guard, clicking the disabled editor would still focus it and make
+        it the "text input focused" target for the global shortcut gating
+        in shortcut_manager.py/keybinding.py, silently blocking shortcuts
+        like open-file ('o') and open-recent ('z').
+        """
+
+        if self._editor_document_state != EDITOR_DOCUMENT_LOADED:
+            return "break"
 
         self._close_editor_completion()
         if hasattr(self, "root"):
