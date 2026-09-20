@@ -340,8 +340,9 @@ class BlattwerkAppEditorCompletionPopupMixin:
 
         A stock Tk Listbox only changes its selection on click/drag or
         keyboard navigation -- plain mouse movement never touches it, unlike
-        the Ctrl+B insert menu's native `Menu` widget, whose `<<MenuSelect>>`
-        fires on hover for free. Reproduces the same feel here by
+        `bw_gui`'s themed menu popups (e.g. the "Einfügen" menu),
+        which highlight on hover for free via `<Enter>` row bindings.
+        Reproduces the same feel here by
         programmatically selecting the entry under the cursor
         (`listbox.nearest(event.y)`) and refreshing the detail panel exactly
         like the keyboard handlers do -- `selection_set()` does not raise

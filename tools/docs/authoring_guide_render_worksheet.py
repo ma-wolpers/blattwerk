@@ -95,15 +95,16 @@ def _render_option_table(catalog: MarkdownConventionCatalog, block) -> str:
 
 
 def _render_block_insert_example(block) -> str:
-    """Rendert das Ctrl+B-Beispiel eines Blocks als gefencten Codeblock, falls vorhanden.
+    """Rendert das Beispiel eines Blocks aus dem Menü "Einfügen" als gefencten
+    Codeblock, falls vorhanden.
 
     Entfernt den `\x01`-Cursor-Marker (nur für den Editor relevant) und gibt
-    `""` zurück, wenn der Block keinen Ctrl+B-Menüeintrag hat.
+    `""` zurück, wenn der Block keinen Eintrag im Einfügemenü hat.
     """
     if not block.insert_snippet:
         return ""
     cleaned = block.insert_snippet.replace("\x01", "")
-    return "\n\n**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):\n\n" + _fenced(cleaned)
+    return '\n\n**Beispiel** (identisch mit dem Menü "Einfügen" (Alt+I) im Editor):\n\n' + _fenced(cleaned)
 
 
 def _render_block_reference(catalog: MarkdownConventionCatalog) -> str:

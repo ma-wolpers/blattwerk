@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from .blatt_ui_base import BlattwerkAppBase
+from .blatt_ui_block_insert_menu import BlattwerkAppBlockInsertMenuMixin
 from .blatt_ui_build import BlattwerkAppBuildMixin
 from .blatt_ui_editor import BlattwerkAppEditorMixin
 from .blatt_ui_editor_diagnostics import BlattwerkAppEditorDiagnosticsMixin
@@ -36,6 +37,7 @@ class BlattwerkApp(
     BlattwerkAppEditorCompletionPopupMixin,
     BlattwerkAppEditorSearchMixin,
     BlattwerkAppEditorMixin,
+    BlattwerkAppBlockInsertMenuMixin,
     BlattwerkAppEditorDiagnosticsMixin,
     BlattwerkAppEditorDiagnosticsAckMixin,
     BlattwerkAppPreviewMixin,

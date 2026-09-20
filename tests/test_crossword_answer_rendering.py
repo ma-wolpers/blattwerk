@@ -82,7 +82,7 @@ def test_render_crossword_answer_has_numbered_cells_with_clue_list():
 
 
 def test_render_crossword_answer_keeps_distinct_clues_for_digit_differing_words():
-    # End-to-end regression for the bundled Ctrl+B example (Wort1/Wort2/Wort3):
+    # End-to-end regression for the bundled block-insert-menu example (Wort1/Wort2/Wort3):
     # crossword normalization must not strip digits (that would collapse all
     # three onto "WORT" and silently drop two clues -- see
     # crossword_placement.py::_normalize_crossword_token).

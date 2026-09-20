@@ -388,6 +388,7 @@ class BlattwerkAppStyleMixin:
                         command=item.get("command"),
                         checked=bool(item.get("checked", False)),
                         items=sub_items,
+                        description=item.get("description"),
                     )
                 )
 

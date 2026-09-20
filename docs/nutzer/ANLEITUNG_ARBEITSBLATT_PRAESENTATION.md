@@ -114,7 +114,7 @@ Kompakte Ankreuz-Tabelle. Der Blockinhalt ist YAML mit `columns:` (Liste der Spa
 | `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
 
-**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
+**Beispiel** (identisch mit dem Menü "Einfügen" (Alt+I) im Editor):
 
 ```markdown
 :::checkgrid
@@ -144,7 +144,7 @@ Lückentext-Antwortfeld. `gap`/`gap_length` steuert den Lückenmodus/-länge, `w
 | `words` | Text | -- | nein | -- | Blocktyp-abhängige Bedeutung, siehe Besonderheit unten. *Besonderheit bei `cloze`:* Position der Wortbank relativ zum Lückentext -- nicht die Lückenwörter selbst (die stehen im Blockinhalt). `none` (Standard) zeigt keine Wortbank; `above`/`below`/`left`/`right` schalten sie ein und legen die Position fest. |
 | `words_multi` | Bool | -- | nein | `True` | Erlaubt Mehrfachauswahl in der Wortbank (Standard: an). |
 
-**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
+**Beispiel** (identisch mit dem Menü "Einfügen" (Alt+I) im Editor):
 
 ```markdown
 :::cloze gap=fixed words=below
@@ -164,7 +164,7 @@ Spaltenlayout für nebeneinander angeordnete Inhalte. `cols=2..6` (Standard 2) s
 | `ratio` | Text | -- | nein | -- | Alias von `widths` -- relative Spaltengewichte. |
 | `widths` | Text | -- | nein | -- | Relative Breiten (Gewichte, z. B. `"2 1"`) oder feste CSS-Breiten für die Spalten/Elemente dieses Blocks. |
 
-**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
+**Beispiel** (identisch mit dem Menü "Einfügen" (Alt+I) im Editor):
 
 ```markdown
 :::columns cols=2 widths="1 1" :::
@@ -195,7 +195,7 @@ Kreuzworträtsel-Antwortfeld. Der Inhalt ist eine YAML-Liste unter `words:` mit 
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
 | `symbol_set` | Enum | `animals`, `fruits`, `plants` | ja | `fruits` | Emoji-Thema für `numbering=symbols`: `fruits`, `animals` oder `plants` (Standard `fruits`); ohne Wirkung bei `numbering=numeric`/`letters`. |
 
-**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
+**Beispiel** (identisch mit dem Menü "Einfügen" (Alt+I) im Editor):
 
 ```markdown
 :::crossword maxw=15 maxh=15
@@ -220,7 +220,7 @@ Punktraster-Schreibfeld (z. B. für Übungen zur Feinmotorik/Schrift).
 | `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
 
-**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
+**Beispiel** (identisch mit dem Menü "Einfügen" (Alt+I) im Editor):
 
 ```markdown
 :::dots height=4cm
@@ -260,7 +260,7 @@ Koordinatensystem für Punkte, Polylinien, Strecken und Funktionsgraphen (siehe 
 | `step_x` | Zahl | -- | nein | `1.0` | Skalierung zwischen mathematischer x-Koordinate und Rasterzellen (Standard `1`), nur bei `axis=true`. |
 | `step_y` | Zahl | -- | nein | `1.0` | Skalierung zwischen mathematischer y-Koordinate und Rasterzellen (Standard `1`), nur bei `axis=true`. |
 
-**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
+**Beispiel** (identisch mit dem Menü "Einfügen" (Alt+I) im Editor):
 
 ```markdown
 :::geometry scale=0.5cm axis=true origin="10,10"
@@ -283,7 +283,7 @@ Kästchen-/Schreibfeld mit einem Textraster. `rows`/`cols` setzen die Rastergrö
 | `scale` | CSS-Länge | -- | nein | `0.5cm` | Zellgröße als CSS-Länge, z. B. `scale=0.4cm` oder `scale=6mm` (Standard variiert je Blocktyp, siehe Besonderheit unten). *Besonderheit bei `grid`:* Standard `0.5cm`. |
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
 
-**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
+**Beispiel** (identisch mit dem Menü "Einfügen" (Alt+I) im Editor):
 
 ```markdown
 :::grid scale=0.5cm
@@ -303,7 +303,7 @@ Separate Hilfekarte (eigene Ausgabe, nicht Teil des normalen Arbeitsblatts). `le
 | `tag` | Text | -- | nein | -- | Beeinflusst die automatische Beschriftung mehrerer Hilfekarten zum selben Bezugspunkt (z. B. `tag=1` erzeugt `1A`, `1B`, ...; ein einzelner Buchstabe erzeugt `1<tag>`, `2<tag>`, ...). |
 | `title` | Text | -- | nein | -- | Überschreibt die automatisch erzeugte Standardbeschriftung des Blocks mit einem eigenen Text. |
 
-**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
+**Beispiel** (identisch mit dem Menü "Einfügen" (Alt+I) im Editor):
 
 ```markdown
 :::help title="Hilfe" level=1
@@ -334,7 +334,7 @@ Hinweisbox mit `type=default|warning|note` für unterschiedliche Hervorhebungsst
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
 | `type` | Enum | `default`, `note`, `warning` | ja | `default` | Hervorhebungsstil der Hinweisbox: `default` (Standard), `warning` oder `note`. |
 
-**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
+**Beispiel** (identisch mit dem Menü "Einfügen" (Alt+I) im Editor):
 
 ```markdown
 :::info type=note
@@ -354,7 +354,7 @@ Textbasiertes Antwortfeld mit Linien zum Beschriften. `rows=<n>` setzt die Minde
 | `rows` | Ganzzahl | -- | nein | `3` | Anzahl Zeilen des Rasters/der Linien. Der genaue Standardwert und ob eine fehlende Angabe automatisch berechnet wird, hängt vom Blocktyp ab (siehe Tabelle: Spalte "Standard"). |
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
 
-**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
+**Beispiel** (identisch mit dem Menü "Einfügen" (Alt+I) im Editor):
 
 ```markdown
 :::lines rows=3
@@ -385,7 +385,7 @@ Zuordnungs-Antwortfeld (YAML-only) mit zwei Seiten (`left`/`right` oder `top`/`b
 | `top` | Text | -- | nein | -- | Obere-Seite-Einträge bei vertikalem Layout, `|`-getrennt. |
 | `worksheet_matches` | Text | -- | nein | -- | Zeigt zusätzlich Beispielverbindungen bereits im Arbeitsblatt (nicht nur in der Lösung). |
 
-**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
+**Beispiel** (identisch mit dem Menü "Einfügen" (Alt+I) im Editor):
 
 ```markdown
 :::matching layout=horizontal height_mode=uniform lane_align=center show_guides=false
@@ -412,7 +412,7 @@ Kontext- und Erklärmaterial, das vor einer Aufgabe eingeblendet wird. Optionale
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
 | `title` | Text | -- | nein | -- | Überschreibt die automatisch erzeugte Standardbeschriftung des Blocks mit einem eigenen Text. |
 
-**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
+**Beispiel** (identisch mit dem Menü "Einfügen" (Alt+I) im Editor):
 
 ```markdown
 :::material title="Titel"
@@ -436,7 +436,7 @@ Multiple-Choice-/Wahr-Falsch-Antwortfeld. **Primärer Weg:** die Antwortmöglich
 | `true_false` | Bool | -- | nein | `False` | Alias von `tf`. |
 | `widths` | Text | -- | nein | -- | Relative Breiten (Gewichte, z. B. `"2 1"`) oder feste CSS-Breiten für die Spalten/Elemente dieses Blocks. |
 
-**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
+**Beispiel** (identisch mit dem Menü "Einfügen" (Alt+I) im Editor):
 
 ```markdown
 :::mc inline=true
@@ -460,7 +460,7 @@ Offene Cluster-/Ideensammlung ohne feste Lösung: der Blockinhalt ist das zentra
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
 | `subbranches` | Ganzzahl | -- | nein | `0` | Anzahl kleinerer Unterzweig-Felder je Hauptzweig (0-4, Standard `0` -- aus). Ab `subbranches > 0` wird das Diagramm zweistufig gezeichnet. |
 
-**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
+**Beispiel** (identisch mit dem Menü "Einfügen" (Alt+I) im Editor):
 
 ```markdown
 :::mindmap branches=6 shape=oval
@@ -500,7 +500,7 @@ Zahlenstrahl-Antwortfeld mit YAML-Payload (`labels`/`answers`/`arcs`/... je Elem
 | `tick_step` | Zahl | -- | nein | -- | Abstand zwischen zwei Tick-Marken in Zahlenraum-Einheiten. |
 | `ticks` | Text | -- | nein | -- | Explizite Liste anzuzeigender Tick-Werte. |
 
-**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
+**Beispiel** (identisch mit dem Menü "Einfügen" (Alt+I) im Editor):
 
 ```markdown
 :::numberline min=0 max=10 tick_step=1 major_every=5 height=2cm
@@ -523,7 +523,7 @@ Sortier-/Reihenfolge-Antwortfeld. Der Blockinhalt ist eine Liste der Elemente in
 | `numbering` | Enum | `letters`, `numeric` | ja | `numeric` | Rangbezeichnung in der Lösung: `numeric` (1, 2, 3, ...) oder `letters` (A, B, C, ..., Standard `numeric`). |
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
 
-**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
+**Beispiel** (identisch mit dem Menü "Einfügen" (Alt+I) im Editor):
 
 ```markdown
 :::ordering numbering=numeric
@@ -558,7 +558,7 @@ Klickbarer QR-Code-Link. `url` ist Pflicht (http/https-Link oder relativer Pfad 
 | `w` | CSS-Länge | -- | ja | -- | Breite des QR-Codes als CSS-Größe (z. B. `3cm`, `120px`, `60%`, `auto`); ungültige Werte werden als `OP002` gemeldet. |
 | `width` | CSS-Länge | -- | ja | -- | Alias von `w` -- Breite des QR-Codes, siehe `height`/`w`/`h`/`maxw`. |
 
-**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
+**Beispiel** (identisch mit dem Menü "Einfügen" (Alt+I) im Editor):
 
 ```markdown
 :::qrcode url=https://example.org w=3cm h=3cm maxw=45% :::
@@ -587,7 +587,7 @@ Offene Selbsteinschätzung ohne feste Lösung: der Blockinhalt ist eine Liste vo
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
 | `steps` | Ganzzahl | -- | nein | `3` | Anzahl der Skalenstufen (2-7, Standard `3`). |
 
-**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
+**Beispiel** (identisch mit dem Menü "Einfügen" (Alt+I) im Editor):
 
 ```markdown
 :::selfcheck scale=smiley steps=3
@@ -613,7 +613,7 @@ Musterlösungstext. `label=true|false` (Standard `true`) blendet das Label "Lös
 | `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
 
-**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
+**Beispiel** (identisch mit dem Menü "Einfügen" (Alt+I) im Editor):
 
 ```markdown
 :::solution
@@ -632,7 +632,7 @@ Freier Leerraum ohne Linien/Raster, z. B. für Zeichnungen.
 | `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
 
-**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
+**Beispiel** (identisch mit dem Menü "Einfügen" (Alt+I) im Editor):
 
 ```markdown
 :::space height=3cm
@@ -653,7 +653,7 @@ Teilaufgabe zu einem vorangehenden `task`. Muss unmittelbar nach dem zugehörige
 | `time` | Text | -- | nein | -- | Geschätzte Bearbeitungszeit, wird als `X min` ausgegeben. Freier Textwert -- üblich, aber nicht erzwungen, ist eine reine Zahl (Minuten). |
 | `work` | Enum | `ea`, `einzel`, `ga`, `group`, `grp`, `gruppe`, `pa`, `partner`, `sgl`, `single` | ja | `single` | Empfohlene Arbeitsform, wird als Emoji + Label gerendert: `single`/`einzel` (👤), `partner` (👥) oder `group`/`gruppe` (👪). Deutsche und englische Schreibweisen sind gleichwertig. Ohne Angabe gilt `single`. |
 
-**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
+**Beispiel** (identisch mit dem Menü "Einfügen" (Alt+I) im Editor):
 
 ```markdown
 :::subtask work=single
@@ -678,7 +678,7 @@ Tabellen-Antwortfeld. **Zellinhalte müssen als `cells:`-YAML-Liste-von-Listen i
 | `width` | CSS-Länge | -- | nein | -- | Gesamtbreite der Tabelle als CSS-Länge. |
 | `widths` | Text | -- | nein | -- | Relative Breiten (Gewichte, z. B. `"2 1"`) oder feste CSS-Breiten für die Spalten/Elemente dieses Blocks. |
 
-**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
+**Beispiel** (identisch mit dem Menü "Einfügen" (Alt+I) im Editor):
 
 ```markdown
 :::table rows=3 cols=3 column_headers="A|B|C"
@@ -705,7 +705,7 @@ Die Hauptaufgabe -- der zentrale Blocktyp eines Arbeitsblatts. `points` vergibt 
 | `title` | Text | -- | nein | -- | Überschreibt die automatisch erzeugte Standardbeschriftung des Blocks mit einem eigenen Text. |
 | `work` | Enum | `ea`, `einzel`, `ga`, `group`, `grp`, `gruppe`, `pa`, `partner`, `sgl`, `single` | ja | `single` | Empfohlene Arbeitsform, wird als Emoji + Label gerendert: `single`/`einzel` (👤), `partner` (👥) oder `group`/`gruppe` (👪). Deutsche und englische Schreibweisen sind gleichwertig. Ohne Angabe gilt `single`. |
 
-**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
+**Beispiel** (identisch mit dem Menü "Einfügen" (Alt+I) im Editor):
 
 ```markdown
 :::task work=single action=write
@@ -739,7 +739,7 @@ Wortsuchrätsel-Antwortfeld. `words` listet die zu versteckenden Wörter, `diago
 | `vertical` | Bool | -- | nein | `False` | Erlaubt vertikale Wortplatzierung (Standard: aus). Akzeptiert auch eine Richtungsliste. |
 | `words` | Text | -- | nein | -- | Blocktyp-abhängige Bedeutung, siehe Besonderheit unten. |
 
-**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
+**Beispiel** (identisch mit dem Menü "Einfügen" (Alt+I) im Editor):
 
 ```markdown
 :::wordsearch min_size=10x12 diagonal=false
@@ -761,7 +761,7 @@ Offener Rahmen für freies Schreiben ohne feste Lösung: der Blockinhalt ist ein
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
 | `style` | Enum | `bubble`, `cloud`, `frame`, `letter` | nein | `frame` | Dekorativer Rahmenstil: `bubble`, `cloud`, `frame` (Standard) oder `letter`. |
 
-**Beispiel** (identisch mit dem Ctrl+B-Einfügemenü im Editor):
+**Beispiel** (identisch mit dem Menü "Einfügen" (Alt+I) im Editor):
 
 ```markdown
 :::writebox style=frame lines=5

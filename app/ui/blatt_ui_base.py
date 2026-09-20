@@ -78,6 +78,7 @@ class BlattwerkAppBase(BwBaseWindow):
     def build_menu(self) -> list:
         return [
             section_spec("file", lambda: self._to_shared_menu_items(self._menu_file_items()), label="Datei", alt="d"),
+            section_spec("insert_block", lambda: self._to_shared_menu_items(self._menu_insert_block_items()), label="Einfügen", alt="i"),
             section_spec("view", lambda: self._to_shared_menu_items(self._menu_view_items()), label="Ansicht", alt="a"),
             section_spec("extras", lambda: self._to_shared_menu_items(self._menu_extras_items()), label="Extras", alt="e"),
             section_spec("shortcuts", lambda: self._to_shared_menu_items(self._menu_shortcuts_items()), label="Shortcuts", alt="s"),
@@ -159,7 +160,6 @@ class BlattwerkAppBase(BwBaseWindow):
         self._editor_completion_replace_end = None
         self._editor_completion_context_kind = None
         self._editor_completion_context_meta = {}
-        self._block_insert_menu_tooltip = None
         self._editor_search_frame = None
         self._editor_search_replace_row = None
         self._editor_search_before_widget = None

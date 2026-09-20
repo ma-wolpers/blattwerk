@@ -1,17 +1,20 @@
-"""Einzige Quelle für die Ctrl+B-Block-Einfüge-Vorlagen des Editors.
+"""Einzige Quelle für die Block-Einfüge-Vorlagen des Editor-Menüs "Einfügen".
 
-`BLOCK_INSERT_SNIPPETS` enthält für jeden Blocktyp mit einem Ctrl+B-
-Menüeintrag (`app/ui/blatt_ui_editor.py`, `_EDITOR_BLOCK_MENU_ITEMS`) exakt
-den Text, der beim Einfügen per Shortcut in den Editor geschrieben wird --
-inklusive `\x01`-Cursor-Marker (derselbe Vertrag wie bisher im Editor).
+`BLOCK_INSERT_SNIPPETS` enthält für jeden Blocktyp mit einem Eintrag im Menü
+"Einfügen" (Alt+I; Menüstruktur in
+`app/core/block_insert_menu_families.py`, Anbindung in
+`app/ui/blatt_ui_block_insert_menu.py`) exakt den Text, der beim Einfügen per
+Klick in den Editor geschrieben wird -- inklusive `\x01`-Cursor-Marker
+(derselbe Vertrag wie bisher im Editor).
 
 **Wichtig:** Ein Snippet ist ein *minimales, bequemes Beispiel* für die
 Verwendung eines Blocktyps -- nicht die vollständige Grammatikspezifikation
 (die liefern `BLOCK_OPTION_SPECS`/die Options-Tabelle in der generierten
-Anleitung). Konsumenten: der Editor (Ctrl+B-Menü) und der Doku-Generator
-(`tools/docs/generate_authoring_guides.py`, als belegtes "Beispiel" pro
-Block). Reine Datendatei, keine Logik -- bewusst in `app/core`, damit die
-Doku-Pipeline sie ohne GUI-Abhängigkeit (`bw_gui`) importieren kann.
+Anleitung). Konsumenten: der Editor (Menü "Einfügen") und der
+Doku-Generator (`tools/docs/generate_authoring_guides.py`, als belegtes
+"Beispiel" pro Block). Reine Datendatei, keine Logik -- bewusst in
+`app/core`, damit die Doku-Pipeline sie ohne GUI-Abhängigkeit (`bw_gui`)
+importieren kann.
 
 Nicht jeder Blocktyp aus `KNOWN_BLOCK_TYPES` hat hier einen Eintrag (z. B.
 `nextcol`/`endcolumns`/`hilfe`/die Control-Marker-Pseudoblöcke) -- fehlende

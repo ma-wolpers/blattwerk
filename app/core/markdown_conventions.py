@@ -21,9 +21,10 @@ Quellen im Einzelnen:
 - `blatt_kern_shared_data.py`: Control-Marker-Syntax (`CONTROL_MARKERS`) --
   dieselbe Quelle, die auch der Parser (`blatt_kern_shared_parsing.py`) und
   der Validator (`blatt_validator_patterns.py`) verwenden.
-- `block_insert_snippets.py` (`BLOCK_INSERT_SNIPPETS`): dieselben Ctrl+B-
-  Einfüge-Vorlagen, die der Editor (`app/ui/blatt_ui_editor.py`) tatsächlich
-  einfügt -- re-verpackt als `BlockSpec.insert_snippet`.
+- `block_insert_snippets.py` (`BLOCK_INSERT_SNIPPETS`): dieselben Einfüge-
+  Vorlagen des Menüs "Einfügen", die der Editor
+  (`app/ui/blatt_ui_editor.py::_insert_editor_snippet`) tatsächlich einfügt
+  -- re-verpackt als `BlockSpec.insert_snippet`.
 - `answer_grid_entries.py`: Geometry-Objekt-Felder (`GEOMETRY_ENTRY_ALLOWED_KEYS`)
   -- dieselbe Quelle, die auch Renderer und Validator (`AN011`-`AN014`)
   verwenden.
@@ -80,9 +81,10 @@ class BlockSpec:
     zusätzlichen Felder wie `requires`/`mutually_exclusive`, da diese
     Informationen im Code nirgends normativ existieren. `insert_snippet`
     ist die reine Re-Verpackung von `BLOCK_INSERT_SNIPPETS.get(name)` --
-    ein *minimales, bequemes Beispiel* (dasselbe, das Ctrl+B im Editor
-    einfügt), keine vollständige Grammatikspezifikation; `None`, wenn der
-    Blocktyp keinen Ctrl+B-Menüeintrag hat.
+    ein *minimales, bequemes Beispiel* (dasselbe, das der Editor über das
+    Menü "Einfügen" einfügt), keine vollständige
+    Grammatikspezifikation; `None`, wenn der Blocktyp keinen Eintrag im
+    Einfügemenü hat.
     """
 
     name: str
