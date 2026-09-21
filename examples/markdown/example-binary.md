@@ -14,7 +14,7 @@ Ein **Bit** kann genau zwei Zustände annehmen:
 - 0 (aus)
 - 1 (an)
 
-Mehrere Bits zusammen nennt man eine **Binärzahl**.
+Mehrere Bits zusammen nennt man eine **??Binärzahl|Zahl, die nur aus den Ziffern 0 und 1 besteht??**.
 :::
 
 :::columns cols=2 widths="2 1" gap=1cm :::
@@ -43,7 +43,7 @@ Die Potenzen von 2:
 :::nextcol :::
 
 :::task points=1 work=partner action=exchange hint=tip
-Ordne den Potenzen passende Binärstellen zu.
+Ordne den ??Potenzen|Zahlen der Form 2 hoch n?? passende Binärstellen zu.
 :::
 
 :::lines rows=3
@@ -58,7 +58,7 @@ Ordne den Potenzen passende Binärstellen zu.
 ---
 
 :::task points=2 work=single action=read hint=remember
-Kreuze an, welche der folgenden Aussagen richtig sind.
+Kreuze an, welche der folgenden ??Aussagen|Sätze, die entweder wahr oder falsch sind?? richtig sind.
 :::
 
 :::grid rows=4

@@ -21,6 +21,8 @@ Mini-Merkhilfe:
 - Codepunkt = Nummer eines Zeichens (z. B. U+0041 für A)
 - UTF-8 = Speicherformat für diese Nummern
 - ASCII = alte Teilmenge für Basiszeichen
+- Byte = ??Byte|Gruppe aus 8 Bits, z. B. 01000001??
+- Wörtlicher senkrechter Strich in einer Worterklärung: ??Pipe|Das Zeichen \| trennt hier Begriff und Erklärung??
 :::
 
 ---
