@@ -18,6 +18,7 @@ eigene Sonderlogik -- echte Blockausnahmen, kein sauberer generischer Fall.
 
 from __future__ import annotations
 
+from .answer_grid_axis import _resolve_axis_state
 from .blatt_validator_constants import (
     ANSWER_BLOCK_TYPES,
     BLOCK_OPTION_SPECS,
@@ -63,6 +64,39 @@ def _validate_generic_enum_option(diagnostics, index, block_type, option_key, op
         _append_invalid_option_value(
             diagnostics, index, block_type, option_key, option_value, spec.allowed_values, options
         )
+
+
+def _validate_geometry_axis_origin_pair(diagnostics, index, block_type, options):
+    """Prüft `:::geometry axis=true` ohne gültiges `origin` (`OP005`).
+
+    Nutzt exakt `_resolve_axis_state` (`answer_grid_axis.py`), dieselbe
+    Funktion, die auch der Renderer (`render_geometry_answer`,
+    `_render_grid_primitives_svg`) für dieselbe Entscheidung aufruft --
+    Validator und Renderer können dadurch strukturell nicht auseinander-
+    laufen. `severity="error"`, weil der praktische Effekt der totale,
+    stille Verlust des gesamten Geometry-Payloads dieses Blocks ist (kein
+    Achsenkreuz, keine Shapes, keine Labels, in keinem Koordinatenmodus --
+    siehe `_render_grid_primitives_svg`'s `"broken"`-Frühausstieg), nicht
+    nur eine kosmetische Abweichung.
+    """
+    axis_state, _origin = _resolve_axis_state(options)
+    if axis_state != "broken":
+        return
+    diagnostics.append(
+        BuildDiagnostic(
+            code="OP005",
+            message=(
+                "`axis=true` ohne gueltiges `origin` (Format \"col,row\"). Der gesamte "
+                "Geometry-Payload dieses Blocks (alle Sektionen) wird dadurch nicht "
+                "gerendert -- kein stiller Ruecksfall auf Rasterkoordinaten."
+            ),
+            severity="error",
+            block_index=index,
+            block_type=block_type,
+            region_id=compute_block_region_id(block_type, options),
+            anchor="axis",
+        )
+    )
 
 
 def _validate_block_options(diagnostics, index, block_type, options, allowed_options):
@@ -181,5 +215,8 @@ def _validate_block_options(diagnostics, index, block_type, options, allowed_opt
                         anchor=option_key,
                     )
                 )
+
+    if block_type == "geometry":
+        _validate_geometry_axis_origin_pair(diagnostics, index, block_type, options)
 
     return qrcode_url_value

@@ -15,9 +15,9 @@ from __future__ import annotations
 import math
 import re
 
-from .answer_special_shared import _option_is_enabled, _safe_int
+from .answer_special_shared import _safe_int
 from .answer_yaml_payload import parse_yaml_answer_payload_with_solution
-from .answer_grid_axis import _parse_origin, _resolve_axis_name
+from .answer_grid_axis import _resolve_axis_name, _resolve_axis_state
 from .answer_grid_entries import _parse_positive_float
 from .answer_grid_primitives import _render_grid_primitives_svg
 from .answer_grid_svg_frame import (
@@ -195,10 +195,8 @@ def render_geometry_answer(options, content, include_solutions, render_solution_
         max(1, _safe_int(width_option, _DEFAULT_GEOMETRY_COLS)) if has_explicit_width else _DEFAULT_GEOMETRY_COLS
     )
 
-    axis_enabled = _option_is_enabled(options.get("axis"), default=False)
-    logical_origin = _parse_origin(options.get("origin"), width_units, height_units) if axis_enabled else None
-    if axis_enabled and logical_origin is None:
-        axis_enabled = False
+    axis_state, logical_origin = _resolve_axis_state(options)
+    axis_enabled = axis_state == "active"
     step_x = _parse_positive_float(options.get("step_x"), 1.0)
     step_y = _parse_positive_float(options.get("step_y"), 1.0)
     axis_label_x = _resolve_axis_name(

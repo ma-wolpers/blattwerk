@@ -16,7 +16,7 @@ import math
 from .answer_grid_entries import _inside_grid
 
 
-def _sample_function_points(expr, x_min, x_max, origin, step_x, step_y, cols, rows):
+def _sample_function_points(expr, x_min, x_max, coord_system, cols, rows):
     """Samplet einen Funktionsgraphen und bildet die Punkte auf Grid-Koordinaten ab.
 
     Die Sample-Anzahl skaliert mit der Breite des Definitionsbereichs
@@ -24,9 +24,11 @@ def _sample_function_points(expr, x_min, x_max, origin, step_x, step_y, cols, ro
     glatte Kurve ergeben, ohne bei extremen Domains unbegrenzt viele Punkte
     zu erzeugen. Punkte mit `NaN`/`Inf`-Ergebnis (z. B. bei Polstellen) oder
     außerhalb des sichtbaren Rasters werden übersprungen statt die Kurve
-    abzubrechen.
+    abzubrechen. Nutzt `coord_system.point()` (`answer_grid_entries.py`)
+    statt einer eigenen Kopie der Koordinatenformel -- vorher hier separat
+    dupliziert.
     """
-    if origin is None:
+    if coord_system.origin is None:
         return []
 
     sample_count = max(24, min(360, int((x_max - x_min) * 24)))
@@ -37,8 +39,7 @@ def _sample_function_points(expr, x_min, x_max, origin, step_x, step_y, cols, ro
         if y_value is None or math.isnan(y_value) or math.isinf(y_value):
             continue
 
-        gx = origin[0] + (x_value / step_x)
-        gy = origin[1] - (y_value / step_y)
+        gx, gy = coord_system.point(x_value, y_value)
         if _inside_grid(gx, gy, cols, rows):
             points.append((gx, gy))
 

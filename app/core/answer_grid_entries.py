@@ -5,10 +5,13 @@ Normative Quelle für "was ist ein gültiger YAML-Eintrag" je Geometry-Sektion
 (`answer_grid_primitives.py`) als auch der Validator
 (`blatt_validator_yaml_entries.py`) beziehen ihr Wissen über erlaubte Felder
 von hier, damit keine zweite, potenziell abweichende Kopie dieser Liste
-entsteht.
+entsteht. Enthält außerdem `_GeometryCoordinateSystem`, die einzige Stelle,
+an der die Umrechnung Objekt-Koordinaten -> Rasterkoordinaten passiert.
 """
 
 from __future__ import annotations
+
+from dataclasses import dataclass
 
 from .answer_special_shared import parse_svg_color, parse_svg_thickness
 
@@ -107,16 +110,68 @@ def _is_visible(show_value, include_solutions):
     return False
 
 
-def _parse_points(raw_points, axis_enabled, origin, step_x, step_y, include_solutions):
+@dataclass(frozen=True)
+class _GeometryCoordinateSystem:
+    """Bündelt die Umrechnung Objekt-Koordinaten -> Rasterkoordinaten an EINER Stelle.
+
+    Ersetzt das frühere Muster, `axis_enabled`/`origin`/`step_x`/`step_y`
+    als lose Parameter durch jede `_parse_*`-Funktion einzeln
+    durchzureichen -- die Umrechnungsformel existiert dadurch nur noch
+    einmal (hier), statt in `_parse_points`/`_parse_sequence`/`_parse_pairs`
+    und `_sample_function_points` (`answer_grid_function_eval.py`) separat
+    dupliziert zu werden.
+
+    `axis_active` ist nur im Tri-State `"active"` `True` (siehe
+    `_resolve_axis_state`, `answer_grid_axis.py`) -- der Zustand `"broken"`
+    erreicht das Parsing gar nicht erst, `_render_grid_primitives_svg`
+    bricht dafür schon vorher ab.
+
+    Zwei Koordinatenkonventionen koexistieren bewusst im `axis_active=False`-
+    Fall: `points[].col`/`row` (siehe `_parse_points`) bleibt unverändert
+    eine reine Rasterindex-Weitergabe ohne y-Flip (Zeile 0 = oberste Zeile
+    -- eine bereits bestehende, produktiv genutzte Konvention). Jede andere
+    Sektion, die ohne Achse überhaupt Koordinaten bekommt (`pairs`/
+    `sequence`, künftig `polygons`/`circles`), nutzt stattdessen `point()`
+    unten: `(0, 0)` unten links, `y` nach oben -- die mathematisch
+    natürliche Konvention für DSL-Oberfläche ohne bestehende Nutzerdokumente,
+    die dadurch brechen könnten.
+    """
+
+    axis_active: bool
+    origin: tuple[float, float] | None
+    step_x: float
+    step_y: float
+    canvas_height: float
+
+    def point(self, x, y):
+        """Bildet eine Objekt-Koordinate `(x, y)` auf eine Rasterkoordinate ab."""
+        if self.axis_active:
+            return self.origin[0] + (x / self.step_x), self.origin[1] - (y / self.step_y)
+        return x, self.canvas_height - y
+
+    def radius(self, r):
+        """Bildet einen skalaren Radius `r` auf `(rx, ry)` in Rastereinheiten ab.
+
+        Im Achsenmodus ggf. anisotrop (unterschiedliche `step_x`/`step_y`
+        ergeben eine Ellipse); ohne Achse ist die Rasterzelle immer
+        quadratisch, daher `(r, r)`.
+        """
+        if self.axis_active:
+            return r / self.step_x, r / self.step_y
+        return r, r
+
+
+def _parse_points(raw_points, coord_system, include_solutions):
     """Parst `points`-Einträge zu Grid-Tupeln `(x, y, label, color, thickness, mode)`.
 
-    Im Achsenmodus (`axis_enabled`) werden mathematische Koordinaten
-    (`x`/`y`) über `origin`/`step_x`/`step_y` in Rasterkoordinaten
+    Im Achsenmodus (`coord_system.axis_active`) werden mathematische
+    Koordinaten (`x`/`y`) über `coord_system.point()` in Rasterkoordinaten
     umgerechnet; ohne Achse werden direkte Rasterkoordinaten (`col`/`row`,
-    mit `x`/`y` als Alias) erwartet. `color`/`thickness` sind optional und
-    werden über `parse_svg_color`/`parse_svg_thickness` sanitized; `None`
-    bedeutet "kein gültiger Wert gesetzt", der Renderer fällt dann auf den
-    bisherigen Theme-Default zurück.
+    mit `x`/`y` als Alias) erwartet -- bewusst UNGEFLIPPT (siehe
+    `_GeometryCoordinateSystem`-Docstring), anders als `coord_system.point()`.
+    `color`/`thickness` sind optional und werden über `parse_svg_color`/
+    `parse_svg_thickness` sanitized; `None` bedeutet "kein gültiger Wert
+    gesetzt", der Renderer fällt dann auf den bisherigen Theme-Default zurück.
     """
     if not isinstance(raw_points, list):
         return []
@@ -129,13 +184,12 @@ def _parse_points(raw_points, axis_enabled, origin, step_x, step_y, include_solu
         if not _is_visible(mode, include_solutions):
             continue
 
-        if axis_enabled:
+        if coord_system.axis_active:
             x = _as_float(item.get("x"))
             y = _as_float(item.get("y"))
-            if x is None or y is None or origin is None:
+            if x is None or y is None:
                 continue
-            gx = origin[0] + (x / step_x)
-            gy = origin[1] - (y / step_y)
+            gx, gy = coord_system.point(x, y)
         else:
             gx = _as_float(item.get("col", item.get("x")))
             gy = _as_float(item.get("row", item.get("y")))
@@ -150,16 +204,16 @@ def _parse_points(raw_points, axis_enabled, origin, step_x, step_y, include_solu
     return parsed
 
 
-def _parse_sequence(raw_sequence, axis_enabled, origin, step_x, step_y, include_solutions):
+def _parse_sequence(raw_sequence, coord_system, include_solutions):
     """Parst eine `sequence`-Liste aus `(x, y)`-Werten zu einer sortierbaren Polylinie.
 
     Nur im Achsenmodus sinnvoll (ohne mathematischen Ursprung gibt es keine
-    eindeutige Sortierreihenfolge über `x`), daher `[]` ohne `axis_enabled`.
+    eindeutige Sortierreihenfolge über `x`), daher `[]` ohne aktive Achse.
     `color`/`thickness` gelten hier für die aus den Punkten gebildete
     Verbindungslinie (siehe `_render_grid_primitives_svg`), nicht für die
     einzelnen Punktmarkierungen.
     """
-    if not axis_enabled or origin is None or not isinstance(raw_sequence, list):
+    if not coord_system.axis_active or not isinstance(raw_sequence, list):
         return []
 
     parsed = []
@@ -173,8 +227,7 @@ def _parse_sequence(raw_sequence, axis_enabled, origin, step_x, step_y, include_
         y = _as_float(item.get("y"))
         if x is None or y is None:
             continue
-        gx = origin[0] + (x / step_x)
-        gy = origin[1] - (y / step_y)
+        gx, gy = coord_system.point(x, y)
         label = str(item.get("label", "")).strip()
         color = parse_svg_color(item.get("color"))
         thickness = parse_svg_thickness(item.get("thickness"))
@@ -182,15 +235,16 @@ def _parse_sequence(raw_sequence, axis_enabled, origin, step_x, step_y, include_
     return parsed
 
 
-def _parse_pairs(raw_pairs, axis_enabled, origin, step_x, step_y, include_solutions):
+def _parse_pairs(raw_pairs, coord_system, include_solutions):
     """Parst `pairs`-Einträge (Strecken) als `(x1, y1, x2, y2, label, color, thickness, mode, line_style)`.
 
-    `line_style` fällt bei fehlendem oder ungültigem `line`-Wert still auf
-    `"dashed"` zurück — das ist der bestehende Default-Fallback für die
-    *Rendering*-Ebene; eine spätere Phase ergänzt eine Validator-Diagnose
-    für ungültige `line`-Werte, ohne diesen Rendering-Fallback zu ändern.
+    Nur im Achsenmodus sinnvoll, daher `[]` ohne aktive Achse. `line_style`
+    fällt bei fehlendem oder ungültigem `line`-Wert still auf `"dashed"`
+    zurück — das ist der bestehende Default-Fallback für die *Rendering*-
+    Ebene, unabhängig von der separaten Validator-Diagnose (`AN012`) für
+    ungültige `line`-Werte.
     """
-    if not axis_enabled or origin is None or not isinstance(raw_pairs, list):
+    if not coord_system.axis_active or not isinstance(raw_pairs, list):
         return []
 
     parsed = []
@@ -208,10 +262,8 @@ def _parse_pairs(raw_pairs, axis_enabled, origin, step_x, step_y, include_soluti
             continue
         raw_line = str(item.get("line", "dashed")).strip().lower()
         line_style = raw_line if raw_line in ("solid", "dashed") else "dashed"
-        gx1 = origin[0] + (x1 / step_x)
-        gy1 = origin[1] - (y1 / step_y)
-        gx2 = origin[0] + (x2 / step_x)
-        gy2 = origin[1] - (y2 / step_y)
+        gx1, gy1 = coord_system.point(x1, y1)
+        gx2, gy2 = coord_system.point(x2, y2)
         label = str(item.get("label", "")).strip()
         color = parse_svg_color(item.get("color"))
         thickness = parse_svg_thickness(item.get("thickness"))

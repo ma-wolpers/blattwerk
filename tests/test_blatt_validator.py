@@ -634,6 +634,35 @@ def test_geometry_all_allowed_entry_keys_do_not_emit_an011():
     assert "AN011" not in codes
 
 
+def test_geometry_axis_true_without_origin_emits_op005_error():
+    text = _build_document(":::geometry width=4 height=4 axis=true\n:::")
+    inspected = inspect_markdown_text(text)
+    op005 = [d for d in inspected.diagnostics if d.code == "OP005"]
+    assert op005
+    assert op005[0].severity == "error"
+
+
+def test_geometry_axis_true_with_unparsable_origin_emits_op005_error():
+    text = _build_document(":::geometry width=4 height=4 axis=true origin=\"not-a-pair\"\n:::")
+    inspected = inspect_markdown_text(text)
+    op005 = [d for d in inspected.diagnostics if d.code == "OP005"]
+    assert op005
+
+
+def test_geometry_axis_true_with_valid_origin_does_not_emit_op005():
+    text = _build_document(":::geometry width=4 height=4 axis=true origin=\"2,2\"\n:::")
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+    assert "OP005" not in codes
+
+
+def test_geometry_without_axis_does_not_emit_op005_even_without_origin():
+    text = _build_document(":::geometry width=4 height=4\n:::")
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+    assert "OP005" not in codes
+
+
 def test_geometry_pairs_line_invalid_value_emits_an012_error_separately_from_op002():
     text = _build_document(
         ":::geometry width=4 height=4 line=dashed\n"

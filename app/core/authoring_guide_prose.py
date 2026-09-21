@@ -600,18 +600,19 @@ PROSE_SECTIONS: dict[str, str] = {
     "block:geometry.scale": ("Standard `0.5cm`."),
     "block:geometry.axis": (
         "Aktiviert ein mathematisches Koordinatensystem mit x-/y-Achse, Tick-Marks und "
-        "Achsenbeschriftung (Standard: aus, dann gelten reine Rasterkoordinaten `col`/`row`). "
-        "**Wichtig:** `axis=true` wirkt nur zusammen mit einem gültigen `origin` -- fehlt `origin` "
-        "oder ist er ungültig, fällt der Block still (ohne Fehler/Warnung) auf den Rasterkoordinaten-"
-        "Modus zurück. In diesem Fall werden `functions`-Einträge komplett ignoriert, und `points`/"
-        "`pairs` interpretieren ihre `x`/`y`-Werte als `col`/`row` statt als Mathe-Koordinaten."
+        "Achsenbeschriftung (Standard: aus, dann gelten reine Rasterkoordinaten `col`/`row` bzw. bei "
+        "`pairs`/`sequence` ein impliziter Ursprung unten links). **Wichtig:** `axis=true` OHNE "
+        "gültiges `origin` ist ein Fehler (`OP005`) -- der gesamte Geometry-Payload des Blocks "
+        "(alle Sektionen) wird dann gar nicht gerendert, kein stiller Rückfall auf "
+        "Rasterkoordinaten. `origin` bei `axis=true` immer korrekt setzen."
     ),
     "block:geometry.axis_label_x": ("Beschriftung der x-Achse (Standard `x`), nur wirksam bei aktivem Achsenmodus (siehe `axis`)."),
     "block:geometry.axis_label_y": ("Beschriftung der y-Achse (Standard `y`), nur wirksam bei aktivem Achsenmodus (siehe `axis`)."),
     "block:geometry.origin": (
         "Ursprung des Koordinatensystems im Raster, Format `\"spalte,zeile\"` (z. B. `\"10,10\"`). "
-        "**Pflicht, sobald `axis=true` gesetzt ist** -- ohne (oder mit ungültigem) `origin` bleibt der "
-        "Achsenmodus trotz `axis=true` inaktiv, siehe Besonderheit dort."
+        "**Pflicht, sobald `axis=true` gesetzt ist** -- fehlt `origin` oder ist es ungültig, wird "
+        "das als Fehler gemeldet (`OP005`) und der gesamte Block bleibt ungerendert, siehe "
+        "Besonderheit bei `axis`."
     ),
     "block:geometry.step_x": (
         "Skalierung zwischen mathematischer x-Koordinate und Rasterzellen (Standard `1`), nur bei "

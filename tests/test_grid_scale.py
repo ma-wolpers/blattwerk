@@ -387,6 +387,96 @@ def test_geometry_background_invalid_value_falls_back_to_none_rendering():
     assert "class='grid-overlay-bg'" not in html
 
 
+def test_geometry_axis_true_with_broken_origin_renders_no_geometry_overlay():
+    html = _render_answer_block(
+        {"type": "geometry", "width": "5", "height": "5", "axis": "true", "origin": "not-a-pair", "background": "lines"},
+        "points:\n  - {x: 1, y: 1}\n",
+        include_solutions=False,
+    )
+    assert "class='grid-overlay-bg'" in html  # background is independent of axis state
+    assert "class='grid-overlay'" not in html  # no primitives overlay at all
+    assert "grid-point" not in html
+    assert "grid-axis" not in html
+
+
+def test_geometry_broken_axis_never_silently_falls_back_to_no_axis_coordinates():
+    # Same payload once with a broken axis=true, once with axis omitted entirely.
+    # If the "broken" state silently fell back to no-axis rendering, both would
+    # produce the same point coordinates. They must not.
+    payload = "points:\n  - {x: 1, y: 1}\n"
+    html_broken = _render_answer_block(
+        {"type": "geometry", "width": "5", "height": "5", "axis": "true", "origin": "bad"},
+        payload,
+        include_solutions=False,
+    )
+    html_disabled = _render_answer_block(
+        {"type": "geometry", "width": "5", "height": "5"},
+        payload,
+        include_solutions=False,
+    )
+    assert "grid-point" not in html_broken
+    assert "grid-point" in html_disabled
+
+
+def test_geometry_zorder_follows_yaml_declaration_order_pairs_before_points():
+    html = _render_answer_block(
+        {"type": "geometry", "width": "10", "height": "10", "axis": "true", "origin": "5,5"},
+        "pairs:\n  - {x1: 1, y1: 1, x2: 3, y2: 1}\n"
+        "points:\n  - {x: 2, y: 2}\n",
+        include_solutions=False,
+    )
+    pairs_index = html.index("class='grid-segment ")
+    points_index = html.index("class='grid-point ")
+    assert pairs_index < points_index
+
+
+def test_geometry_zorder_follows_yaml_declaration_order_points_before_pairs():
+    html = _render_answer_block(
+        {"type": "geometry", "width": "10", "height": "10", "axis": "true", "origin": "5,5"},
+        "points:\n  - {x: 2, y: 2}\n"
+        "pairs:\n  - {x1: 1, y1: 1, x2: 3, y2: 1}\n",
+        include_solutions=False,
+    )
+    points_index = html.index("class='grid-point ")
+    pairs_index = html.index("class='grid-segment ")
+    assert points_index < pairs_index
+
+
+def test_geometry_zorder_axis_stays_bottom_regardless_of_section_order():
+    html = _render_answer_block(
+        {"type": "geometry", "width": "10", "height": "10", "axis": "true", "origin": "5,5"},
+        "pairs:\n  - {x1: 0, y1: 0, x2: 2, y2: 0}\n",
+        include_solutions=False,
+    )
+    axis_index = html.index("class='grid-axis'")
+    segment_index = html.index("class='grid-segment ")
+    assert axis_index < segment_index
+
+
+def test_geometry_zorder_labels_stay_above_all_shapes_including_axis_labels():
+    html = _render_answer_block(
+        {
+            "type": "geometry",
+            "width": "10",
+            "height": "10",
+            "axis": "true",
+            "origin": "5,5",
+            "axis_label_x": "t",
+        },
+        "pairs:\n  - {x1: 0, y1: 0, x2: 2, y2: 0, label: 'AB'}\n",
+        include_solutions=True,
+    )
+    last_shape_index = max(
+        html.rindex("class='grid-axis'"),
+        html.rindex("class='grid-axis-tick'"),
+        html.rindex("class='grid-segment "),
+    )
+    axis_name_label_index = html.index("class='grid-axis-label grid-axis-name'")
+    segment_label_index = html.index("class='grid-segment-label")
+    assert axis_name_label_index > last_shape_index
+    assert segment_label_index > last_shape_index
+
+
 def test_grid_background_is_unaffected_by_geometry_background_option():
     html = _render_answer_block(
         {"type": "grid", "rows": "2", "cols": "2"},
