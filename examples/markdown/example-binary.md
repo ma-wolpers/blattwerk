@@ -72,19 +72,17 @@ Mögliche richtige Aussagen:
 
 ---
 
-:::material
 ### Beispiel: Binärzahlen
 
 :::table rows=6 cols=2 row_height=1.0cm column_headers=Dezimal|Binär alignment=right
 cells:
-	-
-		- { text: "Beispielwerte", colspan: 2 }
-	- ["1", "0001"]
-	- ["2", "0010"]
-	- ["3", "0011"]
-	- ["4", "0100"]
-	- ["5", "0101"]
-:::
+  -
+    - { text: "Beispielwerte", colspan: 2 }
+  - ["1", "0001"]
+  - ["2", "0010"]
+  - ["3", "0011"]
+  - ["4", "0100"]
+  - ["5", "0101"]
 :::
 
 ---
