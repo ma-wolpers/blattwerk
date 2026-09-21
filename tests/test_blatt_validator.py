@@ -663,6 +663,45 @@ def test_geometry_without_axis_does_not_emit_op005_even_without_origin():
     assert "OP005" not in codes
 
 
+def test_geometry_functions_without_axis_emits_an015_warning():
+    text = _build_document(
+        ":::geometry width=4 height=4\n"
+        "functions:\n"
+        "  - {expr: 'x'}\n"
+        ":::"
+    )
+    inspected = inspect_markdown_text(text)
+    an015 = [d for d in inspected.diagnostics if d.code == "AN015"]
+    assert an015
+    assert an015[0].severity == "warning"
+
+
+def test_geometry_functions_with_axis_does_not_emit_an015():
+    text = _build_document(
+        ":::geometry width=4 height=4 axis=true origin=\"2,2\"\n"
+        "functions:\n"
+        "  - {expr: 'x'}\n"
+        ":::"
+    )
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+    assert "AN015" not in codes
+
+
+def test_geometry_pairs_without_axis_does_not_emit_an015():
+    text = _build_document(
+        ":::geometry width=4 height=4\n"
+        "pairs:\n"
+        "  - {x1: 0, y1: 0, x2: 1, y2: 1}\n"
+        "sequence:\n"
+        "  - {x: 0, y: 0}\n"
+        ":::"
+    )
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+    assert "AN015" not in codes
+
+
 def test_geometry_pairs_line_invalid_value_emits_an012_error_separately_from_op002():
     text = _build_document(
         ":::geometry width=4 height=4 line=dashed\n"

@@ -277,22 +277,29 @@ PROSE_SECTIONS: dict[str, str] = {
         "(Warnung `AN013`/`AN014`)."
     ),
     "geometry:sequence": (
-        "Eine Liste aus `x`/`y`-Punkten (nur im Achsenmodus sinnvoll), die als sortierte Polylinie "
-        "verbunden werden. `color`/`thickness` gelten für die Verbindungslinie selbst, nicht für "
-        "einzelne Punktmarkierungen."
+        "Eine Liste aus `x`/`y`-Punkten, die als sortierte Polylinie verbunden werden. Im "
+        "Achsenmodus (`axis=true`) mathematische Koordinaten, sonst Rasterkoordinaten mit "
+        "Ursprung unten links (`(0, 0)`, y nach oben), ganz ohne sichtbares Koordinatenkreuz. "
+        "`color`/`thickness` gelten für die Verbindungslinie selbst, nicht für einzelne "
+        "Punktmarkierungen."
     ),
     "geometry:pairs": (
-        "Einzelne Strecken zwischen zwei Punkten (`x1,y1` nach `x2,y2`). `label` beschriftet die "
-        "Strecke am Streckenmittelpunkt. `line=solid|dashed` (Standard bei fehlendem/ungültigem Wert: "
-        "`dashed`) steuert den Linienstil dieser einzelnen Strecke -- eine eigene, von der "
-        "Block-Option `line` unabhängige Ebene; ein ungültiger Wert wird als `AN012` gemeldet. "
-        "`color`/`thickness` wie bei `points`."
+        "Einzelne Strecken zwischen zwei Punkten (`x1,y1` nach `x2,y2`). Im Achsenmodus "
+        "(`axis=true`) mathematische Koordinaten, sonst Rasterkoordinaten mit Ursprung unten "
+        "links (`(0, 0)`, y nach oben) -- praktisch z. B. für Flächenmodell-Skizzen (Rechtecke "
+        "mit beschrifteten Seiten), die kein echtes Koordinatensystem brauchen. `label` "
+        "beschriftet die Strecke am Streckenmittelpunkt. `line=solid|dashed` (Standard bei "
+        "fehlendem/ungültigem Wert: `dashed`) steuert den Linienstil dieser einzelnen Strecke -- "
+        "eine eigene, von der Block-Option `line` unabhängige Ebene; ein ungültiger Wert wird als "
+        "`AN012` gemeldet. `color`/`thickness` wie bei `points`."
     ),
     "geometry:functions": (
-        "Funktionsgraphen (nur im Achsenmodus). `expr` ist der auszuwertende Funktionsterm, `domain` "
-        "der Definitionsbereich als `min:max` (Standard `-10:10`, auch `min..max` erlaubt). `label` "
-        "beschriftet den Graphen am rechten (letzten sichtbaren) Kurvenende. `color`/`thickness` wie "
-        "bei `points`."
+        "Funktionsgraphen (nur im Achsenmodus -- anders als `pairs`/`sequence` bleibt `functions` "
+        "bewusst axis-only, da ein Funktionsgraph ohne mathematisches Koordinatensystem nicht "
+        "definiert ist; ohne aktiven Achsenmodus wird `functions` als Warnung `AN015` gemeldet). "
+        "`expr` ist der auszuwertende Funktionsterm, `domain` der Definitionsbereich als `min:max` "
+        "(Standard `-10:10`, auch `min..max` erlaubt). `label` beschriftet den Graphen am rechten "
+        "(letzten sichtbaren) Kurvenende. `color`/`thickness` wie bei `points`."
     ),
     # -- Blocktypen ----------------------------------------------------
     "block:material": (
@@ -331,9 +338,14 @@ PROSE_SECTIONS: dict[str, str] = {
     ),
     "block:geometry": (
         "Koordinatensystem für Punkte, Polylinien, Strecken und Funktionsgraphen (siehe Geometry-"
-        "Abschnitt unten für die YAML-Payload-Struktur). `axis=true` aktiviert echte Achsen mit "
-        "`origin`/`step_x`/`step_y` zur Umrechnung mathematischer Koordinaten in Rasterzellen; "
-        "`axis_label_x`/`axis_label_y` beschriften die Achsen (Standard `x`/`y`)."
+        "Abschnitt unten für die YAML-Payload-Struktur). `width`/`height` setzen die Größe in "
+        "Rastereinheiten. `axis=true` aktiviert echte Achsen mit `origin`/`step_x`/`step_y` zur "
+        "Umrechnung mathematischer Koordinaten in Rasterzellen -- `axis=true` OHNE gültiges "
+        "`origin` ist ein Fehler (`OP005`) und lässt den gesamten Payload unsichtbar, statt still "
+        "auf Rasterkoordinaten zurückzufallen; `axis_label_x`/`axis_label_y` beschriften die "
+        "Achsen (Standard `x`/`y`). Objekte werden in genau der Reihenfolge übereinander "
+        "gezeichnet, in der ihre Abschnitte (`points`, `pairs`, ...) im YAML-Payload stehen -- die "
+        "Achse liegt dabei immer ganz unten, alle Beschriftungen immer ganz oben."
     ),
     "block:dots": ("Punktraster-Schreibfeld (z. B. für Übungen zur Feinmotorik/Schrift)."),
     "block:space": ("Freier Leerraum ohne Linien/Raster, z. B. für Zeichnungen."),

@@ -347,6 +347,39 @@ def test_geometry_legacy_rows_cols_options_are_now_inert_and_fall_back_to_defaul
     assert "--rows:5" in html
 
 
+def test_geometry_pairs_without_axis_renders_bottom_left_fallback():
+    html = _render_answer_block(
+        {"type": "geometry", "width": "9", "height": "6"},
+        "pairs:\n  - {x1: 1, y1: 1, x2: 1, y2: 4, label: '3'}\n",
+        include_solutions=True,
+    )
+    assert "grid-segment" in html
+    assert "grid-axis" not in html
+    # (0,0) bottom-left, y up -> canvas_height=6: y1=1 -> gy=5, y2=4 -> gy=2.
+    assert "y1='5.0000'" in html
+    assert "y2='2.0000'" in html
+
+
+def test_geometry_sequence_without_axis_renders_bottom_left_fallback():
+    html = _render_answer_block(
+        {"type": "geometry", "width": "10", "height": "10"},
+        "sequence:\n  - {x: 1, y: 1}\n  - {x: 5, y: 9}\n",
+        include_solutions=False,
+    )
+    assert "grid-sequence-line" in html
+    assert "grid-axis" not in html
+
+
+def test_geometry_pairs_axis_mode_unchanged_after_no_axis_fallback_added():
+    html = _render_answer_block(
+        {"type": "geometry", "width": "10", "height": "10", "axis": "true", "origin": "5,5"},
+        "pairs:\n  - {x1: 0, y1: 0, x2: 2, y2: 0, label: 'AB'}\n",
+        include_solutions=True,
+    )
+    assert "grid-segment-label" in html
+    assert ">AB</text>" in html
+
+
 def test_geometry_background_defaults_to_none_and_renders_no_background_svg():
     html = _render_answer_block(
         {"type": "geometry", "width": "4", "height": "4"},

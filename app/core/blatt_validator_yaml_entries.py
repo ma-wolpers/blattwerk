@@ -13,6 +13,7 @@ pflegen.
 
 from __future__ import annotations
 
+from .answer_grid_axis import _resolve_axis_state
 from .answer_grid_entries import GEOMETRY_ENTRY_ALLOWED_KEYS
 from .answer_special_shared import parse_svg_color, parse_svg_thickness
 from .blatt_validator_constants import (
@@ -165,3 +166,41 @@ def _validate_geometry_entry_fields(diagnostics, block_index, answer_type, parse
                         anchor=f"{section}[{idx}].thickness",
                     )
                 )
+
+
+def _validate_geometry_axis_dependent_sections(diagnostics, block_index, answer_type, parsed_payload, options=None):
+    """Warnt, wenn `functions` gesetzt ist, aber kein aktiver Achsenmodus vorliegt (`AN015`).
+
+    `functions` bleibt bewusst axis-only (ein Funktionsgraph ohne
+    mathematisches Koordinatensystem ist nicht definiert) -- anders als
+    `pairs`/`sequence`, die inzwischen auch ohne Achse rendern (impliziter
+    Ursprung unten links), bleibt `functions` ohne aktive Achse ein reiner,
+    stiller Ausfall. Nutzt `_resolve_axis_state` (`answer_grid_axis.py`),
+    dieselbe Funktion wie Renderer und `OP005`-Prüfung, damit diese
+    Diagnose nicht unabhängig von der tatsächlichen Achsenlogik abweicht.
+    """
+    if answer_type != "geometry" or not isinstance(parsed_payload, dict):
+        return
+
+    functions_entries = parsed_payload.get("functions")
+    if not isinstance(functions_entries, list) or not functions_entries:
+        return
+
+    axis_state, _origin = _resolve_axis_state(options or {})
+    if axis_state == "active":
+        return
+
+    diagnostics.append(
+        BuildDiagnostic(
+            code="AN015",
+            message=(
+                "`functions` wird nur im Achsenmodus gerendert (`axis=true` mit gueltigem "
+                "`origin`). Ohne aktiven Achsenmodus bleiben alle Eintraege dieser Sektion "
+                "unsichtbar."
+            ),
+            block_index=block_index,
+            block_type=answer_type,
+            region_id=compute_block_region_id(answer_type, options or {}),
+            anchor="functions",
+        )
+    )

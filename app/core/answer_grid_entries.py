@@ -207,13 +207,14 @@ def _parse_points(raw_points, coord_system, include_solutions):
 def _parse_sequence(raw_sequence, coord_system, include_solutions):
     """Parst eine `sequence`-Liste aus `(x, y)`-Werten zu einer sortierbaren Polylinie.
 
-    Nur im Achsenmodus sinnvoll (ohne mathematischen Ursprung gibt es keine
-    eindeutige Sortierreihenfolge über `x`), daher `[]` ohne aktive Achse.
-    `color`/`thickness` gelten hier für die aus den Punkten gebildete
-    Verbindungslinie (siehe `_render_grid_primitives_svg`), nicht für die
-    einzelnen Punktmarkierungen.
+    Funktioniert in beiden Achsenzuständen: im Achsenmodus mathematische
+    Koordinaten über `coord_system.point()`, sonst Rasterkoordinaten mit
+    Ursprung unten links (`(0, 0)`, y nach oben) -- derselbe Umrechnungsweg
+    wie bei `pairs`. `color`/`thickness` gelten hier für die aus den
+    Punkten gebildete Verbindungslinie (siehe `_render_grid_primitives_svg`),
+    nicht für die einzelnen Punktmarkierungen.
     """
-    if not coord_system.axis_active or not isinstance(raw_sequence, list):
+    if not isinstance(raw_sequence, list):
         return []
 
     parsed = []
@@ -238,13 +239,18 @@ def _parse_sequence(raw_sequence, coord_system, include_solutions):
 def _parse_pairs(raw_pairs, coord_system, include_solutions):
     """Parst `pairs`-Einträge (Strecken) als `(x1, y1, x2, y2, label, color, thickness, mode, line_style)`.
 
-    Nur im Achsenmodus sinnvoll, daher `[]` ohne aktive Achse. `line_style`
-    fällt bei fehlendem oder ungültigem `line`-Wert still auf `"dashed"`
-    zurück — das ist der bestehende Default-Fallback für die *Rendering*-
-    Ebene, unabhängig von der separaten Validator-Diagnose (`AN012`) für
-    ungültige `line`-Werte.
+    Funktioniert in beiden Achsenzuständen: im Achsenmodus mathematische
+    Koordinaten über `coord_system.point()`, sonst Rasterkoordinaten mit
+    Ursprung unten links (`(0, 0)`, y nach oben) -- mathematisch identisch
+    zum Achsenmodus-Pfad mit `origin=(0, canvas_height)`, `step_x=step_y=1`,
+    nur ohne dass dafür ein Achsenkreuz gezeichnet wird (das bleibt
+    ausschließlich an `axis_active` in `_render_grid_primitives_svg`
+    gekoppelt). `line_style` fällt bei fehlendem oder ungültigem `line`-Wert
+    still auf `"dashed"` zurück — das ist der bestehende Default-Fallback
+    für die *Rendering*-Ebene, unabhängig von der separaten Validator-
+    Diagnose (`AN012`) für ungültige `line`-Werte.
     """
-    if not coord_system.axis_active or not isinstance(raw_pairs, list):
+    if not isinstance(raw_pairs, list):
         return []
 
     parsed = []
