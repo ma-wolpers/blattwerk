@@ -435,6 +435,10 @@ h1 {
     margin-bottom: 0.3em;
 }
 
+.solution > *:first-child {
+    margin-top: 0;
+}
+
 .solution > *:last-child {
     margin-bottom: 0;
 }
