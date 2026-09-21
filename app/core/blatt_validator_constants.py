@@ -420,8 +420,8 @@ BLOCK_OPTION_SPECS: dict[str, tuple[BlockOptionSpec, ...]] = {
     "geometry": (
         _OPT_SHOW,
         _OPT_MODE,
-        BlockOptionSpec("rows", "integer", None, False, 5),
-        BlockOptionSpec("cols", "integer", None, False, 20),
+        BlockOptionSpec("width", "integer", None, False, 20),
+        BlockOptionSpec("height", "integer", None, False, 5),
         _OPT_SCALE,
         _OPT_LINE,
         BlockOptionSpec("axis", "boolean", None, False, False),

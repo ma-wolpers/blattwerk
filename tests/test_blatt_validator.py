@@ -569,7 +569,7 @@ def test_material_with_currency_style_dollar_signs_does_not_emit_mj001():
 
 def test_geometry_yaml_marker_show_values_are_accepted():
     text = _build_document(
-        ":::geometry rows=4 cols=4\n"
+        ":::geometry width=4 height=4\n"
         "points:\n"
         "  - {col: 1, row: 1, show: '§'}\n"
         "sequence:\n"
@@ -585,7 +585,7 @@ def test_geometry_yaml_marker_show_values_are_accepted():
 
 def test_geometry_yaml_legacy_show_values_emit_an007_error():
     text = _build_document(
-        ":::geometry rows=4 cols=4\n"
+        ":::geometry width=4 height=4\n"
         "points:\n"
         "  - {col: 1, row: 1, show: 'both'}\n"
         ":::"
@@ -605,7 +605,7 @@ def test_grid_line_dashed_option_is_accepted():
 
 def test_geometry_unknown_entry_key_emits_an011_warning():
     text = _build_document(
-        ":::geometry rows=4 cols=4\n"
+        ":::geometry width=4 height=4\n"
         "functions:\n"
         "  - {expr: 'x^2', lable: 'typo'}\n"
         ":::"
@@ -618,7 +618,7 @@ def test_geometry_unknown_entry_key_emits_an011_warning():
 
 def test_geometry_all_allowed_entry_keys_do_not_emit_an011():
     text = _build_document(
-        ":::geometry rows=4 cols=4 axis=true origin=\"2,2\"\n"
+        ":::geometry width=4 height=4 axis=true origin=\"2,2\"\n"
         "points:\n"
         "  - {x: 0, y: 0, col: 0, row: 0, label: p, show: '&', color: red, thickness: 1}\n"
         "sequence:\n"
@@ -636,7 +636,7 @@ def test_geometry_all_allowed_entry_keys_do_not_emit_an011():
 
 def test_geometry_pairs_line_invalid_value_emits_an012_error_separately_from_op002():
     text = _build_document(
-        ":::geometry rows=4 cols=4 line=dashed\n"
+        ":::geometry width=4 height=4 line=dashed\n"
         "pairs:\n"
         "  - {x1: 0, y1: 0, x2: 1, y2: 1, line: wavy}\n"
         ":::"
@@ -651,7 +651,7 @@ def test_geometry_pairs_line_invalid_value_emits_an012_error_separately_from_op0
 
 def test_geometry_invalid_color_emits_an013_warning():
     text = _build_document(
-        ":::geometry rows=4 cols=4\n"
+        ":::geometry width=4 height=4\n"
         "points:\n"
         "  - {x: 0, y: 0, color: 'red;}body{display:none'}\n"
         ":::"
@@ -664,7 +664,7 @@ def test_geometry_invalid_color_emits_an013_warning():
 
 def test_geometry_valid_color_does_not_emit_an013():
     text = _build_document(
-        ":::geometry rows=4 cols=4\n"
+        ":::geometry width=4 height=4\n"
         "points:\n"
         "  - {x: 0, y: 0, color: '#ff00aa'}\n"
         ":::"
@@ -676,7 +676,7 @@ def test_geometry_valid_color_does_not_emit_an013():
 
 def test_geometry_non_positive_thickness_emits_an014_warning():
     text = _build_document(
-        ":::geometry rows=4 cols=4\n"
+        ":::geometry width=4 height=4\n"
         "points:\n"
         "  - {x: 0, y: 0, thickness: 0}\n"
         ":::"
@@ -688,7 +688,7 @@ def test_geometry_non_positive_thickness_emits_an014_warning():
 
 def test_geometry_positive_thickness_does_not_emit_an014():
     text = _build_document(
-        ":::geometry rows=4 cols=4\n"
+        ":::geometry width=4 height=4\n"
         "points:\n"
         "  - {x: 0, y: 0, thickness: 2.5}\n"
         ":::"
@@ -699,11 +699,18 @@ def test_geometry_positive_thickness_does_not_emit_an014():
 
 
 def test_geometry_line_invalid_value_emits_op002_error():
-    text = _build_document(":::geometry rows=2 line=wavy\n:::")
+    text = _build_document(":::geometry height=2 line=wavy\n:::")
     inspected = inspect_markdown_text(text)
     op002 = [d for d in inspected.diagnostics if d.code == "OP002"]
     assert op002
     assert "line" in op002[0].message
+
+
+def test_geometry_legacy_rows_cols_options_emit_op001_unknown_option():
+    text = _build_document(":::geometry rows=4 cols=4\n:::")
+    inspected = inspect_markdown_text(text)
+    op001 = [d for d in inspected.diagnostics if d.code == "OP001"]
+    assert {d.message.split("`")[1] for d in op001} == {"rows", "cols"}
 
 
 def test_grid_plain_marker_text_does_not_emit_an004():
@@ -714,14 +721,14 @@ def test_grid_plain_marker_text_does_not_emit_an004():
 
 
 def test_geometry_scalar_content_emits_an004():
-    text = _build_document(":::geometry rows=2\nNur Text\n:::")
+    text = _build_document(":::geometry height=2\nNur Text\n:::")
     inspected = inspect_markdown_text(text)
     codes = {diagnostic.code for diagnostic in inspected.diagnostics}
     assert "AN004" in codes
 
 
 def test_geometry_list_root_emits_an004():
-    text = _build_document(":::geometry rows=2\n- 1\n- 2\n:::")
+    text = _build_document(":::geometry height=2\n- 1\n- 2\n:::")
     inspected = inspect_markdown_text(text)
     codes = {diagnostic.code for diagnostic in inspected.diagnostics}
     assert "AN004" in codes

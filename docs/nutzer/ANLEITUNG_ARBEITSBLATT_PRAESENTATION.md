@@ -250,15 +250,15 @@ Koordinatensystem für Punkte, Polylinien, Strecken und Funktionsgraphen (siehe 
 | `axis` | Bool | -- | nein | `False` | Aktiviert ein mathematisches Koordinatensystem mit x-/y-Achse, Tick-Marks und Achsenbeschriftung (Standard: aus, dann gelten reine Rasterkoordinaten `col`/`row`). **Wichtig:** `axis=true` wirkt nur zusammen mit einem gültigen `origin` -- fehlt `origin` oder ist er ungültig, fällt der Block still (ohne Fehler/Warnung) auf den Rasterkoordinaten-Modus zurück. In diesem Fall werden `functions`-Einträge komplett ignoriert, und `points`/`pairs` interpretieren ihre `x`/`y`-Werte als `col`/`row` statt als Mathe-Koordinaten. |
 | `axis_label_x` | Text | -- | nein | `x` | Beschriftung der x-Achse (Standard `x`), nur wirksam bei aktivem Achsenmodus (siehe `axis`). |
 | `axis_label_y` | Text | -- | nein | `y` | Beschriftung der y-Achse (Standard `y`), nur wirksam bei aktivem Achsenmodus (siehe `axis`). |
-| `cols` | Ganzzahl | -- | nein | `20` | Anzahl Spalten des Rasters. Der genaue Standardwert und ob eine fehlende Angabe automatisch aus verfügbarer Breite berechnet wird, hängt vom Blocktyp ab (siehe Tabelle: Spalte "Standard"). |
+| `height` | Ganzzahl | -- | nein | `5` | Höhe des Koordinatensystems in Rastereinheiten (Standard `5`). |
 | `line` | Enum | `dashed`, `solid` | ja | `solid` | Linienstil des Rasterhintergrunds: `solid` (Standard) oder `dashed`. Nur bei `:::grid`/`:::geometry` vorhanden -- nicht zu verwechseln mit dem gleichnamigen `pairs[].line`-Feld in der Geometry-YAML-Payload (dort eigene, unabhängige Einstellung pro Strecke). |
 | `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
 | `origin` | Text | -- | nein | -- | Ursprung des Koordinatensystems im Raster, Format `"spalte,zeile"` (z. B. `"10,10"`). **Pflicht, sobald `axis=true` gesetzt ist** -- ohne (oder mit ungültigem) `origin` bleibt der Achsenmodus trotz `axis=true` inaktiv, siehe Besonderheit dort. |
-| `rows` | Ganzzahl | -- | nein | `5` | Anzahl Zeilen des Rasters/der Linien. Der genaue Standardwert und ob eine fehlende Angabe automatisch berechnet wird, hängt vom Blocktyp ab (siehe Tabelle: Spalte "Standard"). |
 | `scale` | CSS-Länge | -- | nein | `0.5cm` | Zellgröße als CSS-Länge, z. B. `scale=0.4cm` oder `scale=6mm` (Standard variiert je Blocktyp, siehe Besonderheit unten). *Besonderheit bei `geometry`:* Standard `0.5cm`. |
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
 | `step_x` | Zahl | -- | nein | `1.0` | Skalierung zwischen mathematischer x-Koordinate und Rasterzellen (Standard `1`), nur bei `axis=true`. |
 | `step_y` | Zahl | -- | nein | `1.0` | Skalierung zwischen mathematischer y-Koordinate und Rasterzellen (Standard `1`), nur bei `axis=true`. |
+| `width` | Ganzzahl | -- | nein | `20` | Breite des Koordinatensystems in Rastereinheiten (Standard `20`) -- eigene, von `:::grid`s gleichnamiger, ggf. automatisch aus der Druckbreite berechneter `cols`-Option entkoppelte Option; bei `:::geometry` ist die Größe immer explizit oder Standard, nie automatisch. |
 
 **Beispiel** (identisch mit dem Menü "Einfügen" (Alt+I) im Editor):
 
@@ -821,7 +821,7 @@ Erlaubte Keys: `color`, `label`, `show`, `thickness`, `x`, `y`.
 ### Repräsentatives Beispiel
 
 ```markdown
-:::geometry rows=20 cols=20 axis=true origin="10,10"
+:::geometry width=20 height=20 axis=true origin="10,10"
 points:
   - {x: 2, y: 3, label: "A", color: "#2563eb", thickness: 2}
 pairs:

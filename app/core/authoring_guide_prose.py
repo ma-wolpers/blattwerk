@@ -581,6 +581,14 @@ PROSE_SECTIONS: dict[str, str] = {
         "gerendert."
     ),
     "block:grid.scale": ("Standard `0.5cm`."),
+    "block:geometry.width": (
+        "Breite des Koordinatensystems in Rastereinheiten (Standard `20`) -- eigene, von `:::grid`s "
+        "gleichnamiger, ggf. automatisch aus der Druckbreite berechneter `cols`-Option entkoppelte "
+        "Option; bei `:::geometry` ist die Größe immer explizit oder Standard, nie automatisch."
+    ),
+    "block:geometry.height": (
+        "Höhe des Koordinatensystems in Rastereinheiten (Standard `5`)."
+    ),
     "block:geometry.scale": ("Standard `0.5cm`."),
     "block:geometry.axis": (
         "Aktiviert ein mathematisches Koordinatensystem mit x-/y-Achse, Tick-Marks und "

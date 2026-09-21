@@ -52,7 +52,7 @@ Die x-Achse verläuft waagerecht. $
 Markiere im Raster die angegebenen **Rasterpunkte** (ohne Koordinatensystem).
 :::
 
-:::geometry rows=12 cols=18
+:::geometry width=18 height=12
 points:
   - {col: 2, row: 2, label: "R1"}
   - {col: 10, row: 4, label: "R2"}
@@ -73,7 +73,7 @@ Arbeite mit dem Koordinatensystem:
 3. Zeichne den Graphen von $y = x^2 - 2$ im angegebenen Bereich.
 :::
 
-:::geometry rows=20 cols=20 axis=true origin="10,10" step_x=0.5 step_y=1
+:::geometry width=20 height=20 axis=true origin="10,10" step_x=0.5 step_y=1
 points:
   - {x: -3, y: 4, label: "A", show: "&"}
   - {x: 2, y: 3, label: "B", show: "&"}

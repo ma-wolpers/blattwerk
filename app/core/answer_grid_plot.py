@@ -158,16 +158,28 @@ def render_grid_answer(options, content, include_solutions, render_solution_text
 
 
 def render_geometry_answer(options, content, include_solutions, render_solution_text):
-    """Rendert ein Koordinaten-/Raster-System mit optionalen YAML-definierten Overlays."""
-    rows = max(1, _safe_int(options.get("rows", 5), 5))
+    """Rendert ein Koordinaten-/Raster-System mit optionalen YAML-definierten Overlays.
+
+    Nutzt die Blockoptionen `width`/`height` (Rastereinheiten) -- eigene,
+    von `:::grid`s `rows`/`cols` entkoppelte Namen, seit `:::geometry` kein
+    Karopapier-Modell mehr teilt. Die intern gemeinsam mit `:::grid`
+    genutzten Low-Level-Funktionen (`_render_grid_background_svg`,
+    `_render_grid_primitives_svg`, `_estimate_geometry_bleed_units`)
+    behalten ihre `cols`/`rows`-Parameternamen unverändert (reine
+    Viewport-Mathematik, kein DSL-Konzept) -- nur hier, am Options-Rand,
+    heißen die lokalen Variablen `width_units`/`height_units`.
+    """
+    height_units = max(1, _safe_int(options.get("height", 5), 5))
     scale = _parse_grid_scale(options.get("scale"))
     cell_size_cm = _grid_cell_size_to_cm(scale)
-    cols_option = options.get("cols")
-    has_explicit_cols = cols_option is not None and str(cols_option).strip() != ""
-    cols = max(1, _safe_int(cols_option, _DEFAULT_GEOMETRY_COLS)) if has_explicit_cols else _DEFAULT_GEOMETRY_COLS
+    width_option = options.get("width")
+    has_explicit_width = width_option is not None and str(width_option).strip() != ""
+    width_units = (
+        max(1, _safe_int(width_option, _DEFAULT_GEOMETRY_COLS)) if has_explicit_width else _DEFAULT_GEOMETRY_COLS
+    )
 
     axis_enabled = _option_is_enabled(options.get("axis"), default=False)
-    logical_origin = _parse_origin(options.get("origin"), cols, rows) if axis_enabled else None
+    logical_origin = _parse_origin(options.get("origin"), width_units, height_units) if axis_enabled else None
     if axis_enabled and logical_origin is None:
         axis_enabled = False
     step_x = _parse_positive_float(options.get("step_x"), 1.0)
@@ -187,8 +199,8 @@ def render_geometry_answer(options, content, include_solutions, render_solution_
 
     bleed_top_units, bleed_right_units, bleed_bottom_units, bleed_left_units = _estimate_geometry_bleed_units(
         logical_origin,
-        cols,
-        rows,
+        width_units,
+        height_units,
         step_x,
         step_y,
         axis_enabled,
@@ -198,8 +210,8 @@ def render_geometry_answer(options, content, include_solutions, render_solution_
 
     payload, fallback_solution_text = _parse_grid_payload(content)
     grid_background_svg = _render_grid_background_svg(
-        cols,
-        rows,
+        width_units,
+        height_units,
         bleed_units=(
             bleed_top_units,
             bleed_right_units,
@@ -211,8 +223,8 @@ def render_geometry_answer(options, content, include_solutions, render_solution_
     primitives_svg = _render_grid_primitives_svg(
         options,
         payload,
-        rows,
-        cols,
+        height_units,
+        width_units,
         include_solutions,
         bleed_units=(
             bleed_top_units,
@@ -223,7 +235,7 @@ def render_geometry_answer(options, content, include_solutions, render_solution_
     )
 
     grid_classes = ["answer", "grid"]
-    style_parts = [f"--rows:{rows}", f"--cell-size:{scale}", f"--cols:{cols}"]
+    style_parts = [f"--rows:{height_units}", f"--cell-size:{scale}", f"--cols:{width_units}"]
 
     solution_text_html = ""
     if include_solutions and fallback_solution_text.strip():

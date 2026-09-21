@@ -57,9 +57,9 @@ def test_grid_without_cols_uses_auto_computed_column_count_for_custom_scale():
     assert "--cols:18" in html
 
 
-def test_geometry_without_cols_keeps_default_column_count():
+def test_geometry_without_width_keeps_default_column_count():
     html = _render_answer_block(
-        {"type": "geometry", "rows": "8"},
+        {"type": "geometry", "height": "8"},
         "",
         include_solutions=False,
     )
@@ -108,8 +108,8 @@ def test_grid_axis_renders_ticks_and_labels_by_default():
     html = _render_answer_block(
         {
             "type": "geometry",
-            "rows": "10",
-            "cols": "10",
+            "width": "10",
+            "height": "10",
             "axis": "true",
             "origin": "5,5",
             "step_x": "1",
@@ -129,8 +129,8 @@ def test_grid_axis_label_density_is_reduced_for_large_grids():
     html = _render_answer_block(
         {
             "type": "geometry",
-            "rows": "40",
-            "cols": "40",
+            "width": "40",
+            "height": "40",
             "axis": "true",
             "origin": "20,20",
             "step_x": "1",
@@ -153,8 +153,8 @@ def test_grid_axis_origin_outside_grid_clamps_visual_axis_only():
     html = _render_answer_block(
         {
             "type": "geometry",
-            "rows": "10",
-            "cols": "10",
+            "width": "10",
+            "height": "10",
             "axis": "true",
             "origin": "-3,14",
             "step_x": "1",
@@ -174,8 +174,8 @@ def test_grid_axis_positive_y_points_upward():
     html = _render_answer_block(
         {
             "type": "geometry",
-            "rows": "10",
-            "cols": "10",
+            "width": "10",
+            "height": "10",
             "axis": "true",
             "origin": "5,5",
             "step_x": "1",
@@ -207,8 +207,8 @@ def test_grid_axis_border_keeps_labels_and_arrowheads_visible():
     html = _render_answer_block(
         {
             "type": "geometry",
-            "rows": "10",
-            "cols": "10",
+            "width": "10",
+            "height": "10",
             "axis": "true",
             "origin": "0,10",
             "step_x": "1",
@@ -254,7 +254,7 @@ def test_grid_line_defaults_to_solid_without_option():
 
 def test_geometry_line_dashed_option_adds_dashed_class():
     html = _render_answer_block(
-        {"type": "geometry", "rows": "2", "cols": "2", "line": "dashed"},
+        {"type": "geometry", "width": "2", "height": "2", "line": "dashed"},
         "",
         include_solutions=False,
     )
@@ -274,7 +274,7 @@ def test_grid_line_invalid_value_falls_back_to_solid_rendering():
 
 def test_geometry_point_color_and_thickness_are_rendered_inline():
     html = _render_answer_block(
-        {"type": "geometry", "rows": "10", "cols": "10", "axis": "true", "origin": "5,5"},
+        {"type": "geometry", "width": "10", "height": "10", "axis": "true", "origin": "5,5"},
         "points:\n  - {x: 1, y: 1, color: '#ff0000', thickness: 3}\n",
         include_solutions=True,
     )
@@ -284,7 +284,7 @@ def test_geometry_point_color_and_thickness_are_rendered_inline():
 
 def test_geometry_invalid_color_is_not_emitted_into_style_attribute():
     html = _render_answer_block(
-        {"type": "geometry", "rows": "10", "cols": "10", "axis": "true", "origin": "5,5"},
+        {"type": "geometry", "width": "10", "height": "10", "axis": "true", "origin": "5,5"},
         "points:\n  - {x: 1, y: 1, color: 'red;}body{display:none'}\n",
         include_solutions=True,
     )
@@ -295,7 +295,7 @@ def test_geometry_invalid_color_is_not_emitted_into_style_attribute():
 
 def test_geometry_invalid_thickness_falls_back_to_default_rendering():
     html = _render_answer_block(
-        {"type": "geometry", "rows": "10", "cols": "10", "axis": "true", "origin": "5,5"},
+        {"type": "geometry", "width": "10", "height": "10", "axis": "true", "origin": "5,5"},
         "points:\n  - {x: 1, y: 1, thickness: -3}\n",
         include_solutions=True,
     )
@@ -305,7 +305,7 @@ def test_geometry_invalid_thickness_falls_back_to_default_rendering():
 
 def test_geometry_function_label_is_rendered_and_escaped():
     html = _render_answer_block(
-        {"type": "geometry", "rows": "10", "cols": "10", "axis": "true", "origin": "5,5"},
+        {"type": "geometry", "width": "10", "height": "10", "axis": "true", "origin": "5,5"},
         "functions:\n  - {expr: 'x', domain: '-1:1', label: '<script>bad</script>'}\n",
         include_solutions=True,
     )
@@ -317,10 +317,30 @@ def test_geometry_function_label_is_rendered_and_escaped():
 
 def test_geometry_segment_label_is_rendered_at_midpoint():
     html = _render_answer_block(
-        {"type": "geometry", "rows": "10", "cols": "10", "axis": "true", "origin": "5,5"},
+        {"type": "geometry", "width": "10", "height": "10", "axis": "true", "origin": "5,5"},
         "pairs:\n  - {x1: 0, y1: 0, x2: 2, y2: 0, label: 'AB'}\n",
         include_solutions=True,
     )
 
     assert "grid-segment-label" in html
     assert ">AB</text>" in html
+
+
+def test_geometry_width_height_options_produce_same_css_vars_as_former_cols_rows():
+    html = _render_answer_block(
+        {"type": "geometry", "width": "10", "height": "8", "axis": "true", "origin": "5,4"},
+        "points:\n  - {x: 1, y: 1, label: A}\n",
+        include_solutions=False,
+    )
+    assert "--cols:10" in html
+    assert "--rows:8" in html
+
+
+def test_geometry_legacy_rows_cols_options_are_now_inert_and_fall_back_to_defaults():
+    html = _render_answer_block(
+        {"type": "geometry", "rows": "8", "cols": "10", "axis": "true", "origin": "5,4"},
+        "points:\n  - {x: 1, y: 1, label: A}\n",
+        include_solutions=False,
+    )
+    assert "--cols:20" in html
+    assert "--rows:5" in html
