@@ -310,7 +310,17 @@ class BlattwerkAppPersistenceMixin:
             self._save_ui_settings()
 
     def _maybe_apply_startup_file_preference(self):
-            """Öffnet optional zuletzt verwendete Datei beim Start."""
+            """Öffnet beim Start die übergebene Datei, sonst optional die zuletzt verwendete.
+
+            Eine explizit übergebene Datei (Kommandozeile, "Öffnen mit") hat Vorrang vor
+            ``start_with_last_file``: wer eine Datei öffnet, will genau diese sehen.
+            """
+            if getattr(self, "_startup_file", None):
+                # Not opened here: opening renders a preview, and a start that is still inside
+                # its constructor cannot yet accept files handed over by parallel starts
+                # ("Öffnen mit" on several files at once). The first poll of
+                # ``start_external_open_listener`` opens it once the event loop runs.
+                return
             preferences = normalize_user_preferences(getattr(self, "user_preferences", {}))
             if not bool(preferences.get("start_with_last_file", False)):
                 return
@@ -543,6 +553,9 @@ class BlattwerkAppPersistenceMixin:
                 return
 
             try:
+                # bw-gui opens main windows maximized; an explicit geometry only
+                # wins over that if the maximized state is left first.
+                self.root.state("normal")
                 self.root.geometry(geometry_text.strip())
             except Exception:
                 return

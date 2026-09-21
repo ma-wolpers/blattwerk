@@ -54,8 +54,9 @@ from ..styles.worksheet_design import (
 class BlattwerkAppBase(BwBaseWindow):
     """Basisklasse für gemeinsamen GUI-Zustand und globale Shortcuts."""
 
-    def __init__(self, deps: AppDependencies | None = None):
+    def __init__(self, deps: AppDependencies | None = None, startup_file: str | None = None):
         self.dependencies = deps
+        self._startup_file = startup_file
         shell_config = (
             deps.shell_config
             if deps is not None
@@ -73,6 +74,7 @@ class BlattwerkAppBase(BwBaseWindow):
             min_height=shell_config.min_height,
             theme_key=DEFAULT_THEME,
             on_close=self._on_shell_close,
+            start_maximized=shell_config.start_maximized,
         )
 
     def build_menu(self) -> list:

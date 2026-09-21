@@ -38,7 +38,9 @@ So vermeiden wir Klebercode und Verwirrung.
   - Dazu gehoeren auch Praesentationsoptionen wie Folienformat und Black-Screen-Modus.
   - Beim Tab-Wechsel werden auch Zoom, aktive Seite und Scrollposition des jeweiligen Blatts wiederhergestellt.
   - Vorschauseiten werden pro Tab zwischengespeichert und bei unveraenderten Dateien/Optionen ohne erneutes Kompilieren wiederverwendet.
-  - Tabs werden direkt im Tabtitel per `×` geschlossen; die UI fuehrt das als reine Oberflaechenaktion aus.
+  - Tabs werden ueber den festen `×`-Button rechts der Tab-Leiste geschlossen (aktiver Tab); bei vielen Tabs scrollt die Leiste horizontal, der Button bleibt sichtbar.
+  - Das Hauptfenster startet maximiert; eine gemerkte Fenstergroesse hat Vorrang.
+  - Dateien aus dem Explorer ("Oeffnen mit") oder von der Kommandozeile landen als Tab im bereits laufenden Fenster; ein zweites Fenster entsteht nicht.
   - Alle Oeffnungswege (Dateidialog, Recent-Menue, Shortcut `Z`) laufen ueber denselben UI-Dispatcher; bereits offene Dateien werden fokussiert statt doppelt geoeffnet.
   - Das Hauptfenster kann Vorschau und Schreibbereich einzeln oder zusammen anzeigen.
   - Der Schreibbereich ist gesperrt und deaktiviert dargestellt, solange kein Dokument geladen ist -- er bekommt dann weder beim Wechsel der Ansicht noch per Mausklick Tastaturfokus, und ein bereits vorhandener Fokus wird ihm aktiv entzogen, sobald kein Dokument mehr geladen ist. Damit funktionieren globale Kurzbefehle wie "Datei oeffnen" zuverlaessig. Ein neues Dokument wird erst dann als geladen angezeigt, wenn Inhalt und die zugehoerigen internen Vergleichsdaten vollstaendig bereitstehen -- schlaegt das fehl, bleibt der Schreibbereich sauber leer statt einen falschen oder veralteten Stand zu zeigen.

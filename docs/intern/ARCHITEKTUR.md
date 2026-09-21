@@ -40,6 +40,7 @@ Zusätzliche Kern-Usecases:
 | Schicht | Verantwortung | Nicht erlaubt | Primärmodule |
 |---|---|---|---|
 | `app/core` | Fachregeln, Parse/Validate/Render/Build | UI-Dialoge, Persistenzdetails | `blatt_kern_io_build.py`, `blatt_validator.py`, `blatt_kern_layout_render.py` |
+| `app/bootstrap` | Composition Root, Startup-Koordination (Single-Instance-Uebergabe, ohne Tk) | Fachregeln, Tk-Widgets | `wiring.py`, `single_instance.py` |
 | `app/ui` | Input, View-State, Anzeige | Fachregel-Ownership, Persistenzpolicy | `blatt_ui_*.py` |
 | `app/storage` | Laden/Speichern, Persistenzformat, Pfad-/Systemadapter | Render-/Validierungslogik | `local_config_store.py`, `history_paths_adapter.py`, `system_settings_adapter.py`, `acknowledged_warnings_store.py` |
 | `app/styles` | Profilauflösung, Designnormalisierung, CSS | Dokumentdiagnostik, Persistenzentscheidungen | `blatt_styles.py`, `worksheet_design.py`, `page_geometry.py` (Randspalten-Breiten und -CSS), `ui_profile_adapter.py` |
@@ -51,13 +52,15 @@ UI-Zuschnitt im Hauptfenster:
 - HSM-Vertragslogik fuer Intent-Katalog, Escape-Prioritaet und Transition-Validierung liegt zentral in `bw_libs/ui_contract/hsm.py`; Shortcut-Semantik nutzt den zentralen Intent-Katalog aus `app/ui/ui_intents.py`.
 - Die Hauptansicht verwendet ein horizontales Paned-Layout mit zwei Bereichen: links Schreibbereich, rechts Vorschau.
 - Der Schreibbereich ist nur interaktiv (editierbar/fokussierbar), wenn ein Dokument tatsaechlich geladen ist -- Single Source of Truth dafuer ist `_editor_document_state` (`app/ui/blatt_ui_editor.py`, Werte `EDITOR_DOCUMENT_NOT_LOADED`/`_LOADING`/`_LOADED` aus `ui_constants.py`), nicht die aktive Dokument-Tab-Auswahl oder `input_var`. Ansichtswechsel (Nur Schreibbereich/Beides) fokussieren das Widget nur bei `EDITOR_DOCUMENT_LOADED`, sonst faellt der Fokus auf das Hauptfenster zurueck. Ein Klick in den deaktivierten Schreibbereich fokussiert ihn ebenfalls nicht (`_on_editor_mouse_click` bricht Tks Klassen-Binding per `"break"` ab), und `_set_editor_document_state()` entzieht einem bereits fokussierten Editor beim Uebergang nach `NOT_LOADED` aktiv den Fokus (nicht beim rein internen, synchronen `LOADING`-Zwischenschritt) -- damit blockieren globale Kurzbefehle (z. B. Datei oeffnen) nie faelschlich durch die Text-Input-Fokus-Sperre. Der Primaer-Ladevorgang (`_load_editor_content`) committet neuen Editorinhalt sowie die zugehoerigen Baselines (Quell-Snapshot, Block-Type-Counts) nur gemeinsam nach vollstaendigem Erfolg; jeder Fehlschlag (Lesefehler eines anderen Dokuments, fehlgeschlagene Baseline-Ermittlung, Exception beim Befuellen) setzt ueber `_reset_editor_widget_to_empty()` konsistent auf leer/`NOT_LOADED` zurueck, nie eine Mischung aus neuem Dokument und alten Baselines.
-- Oberhalb des Paned-Layouts fuehrt die UI eine dokumentorientierte Tab-Leiste; jedes geoeffnete Markdown wird als eigener Tab verwaltet.
+- Oberhalb des Paned-Layouts fuehrt die UI eine dokumentorientierte Tab-Leiste; jedes geoeffnete Markdown wird als eigener Tab verwaltet. Die Leiste (`app/ui/blatt_ui_tab_strip.py`) sitzt in einem horizontalen `bw_gui.widgets.ScrollableFrame`: bei vielen Tabs scrollt sie (Scrollleiste, Mausrad) statt Tab-Koepfe zu quetschen, und der aktive Tab wird automatisch in den sichtbaren Bereich gescrollt. Der Schliessen-Button steht ausserhalb des scrollbaren Bereichs (vor der Leiste gepackt) und bleibt immer sichtbar.
 - Bereichsauswahl (Vorschau/Beides/Schreibbereich) und Tab-Leiste teilen eine gemeinsame Control-Strip-Zeile in `app/ui`; visuelle Segment-/Tab-Stile sind themeseitig zentral in `app/ui/ui_theme.py` definiert.
 - Der tab-lokale View-State (u. a. Aufgabe/Loesung, DIN A4/A5, Kontrast/Farbprofil/Schrift, Layout/Fit) liegt in `app/ui` und wird beim Tab-Wechsel explizit geladen/gesichert.
 - Der tab-lokale View-State umfasst zusaetzlich Praesentationsoptionen (z. B. Black-Screen-Modus und Folienformat-Presets).
 - Der tab-lokale View-State umfasst ebenfalls Zoom, aktive Seite und Canvas-Scrollposition (x/y), damit der Ansichtskontext pro Dokument erhalten bleibt.
 - Alle Oeffnungspfade (Dateidialog, Recent-Menue, Shortcut `Z`) laufen ueber einen zentralen Open-Dispatcher in `app/ui`; bei bereits offenen Dateien fokussiert die UI den vorhandenen Tab statt eine zweite Instanz zu erstellen.
-- Tab-Schließen ist als Tab-spezifische Interaktion im Notebook selbst umgesetzt (Klick auf `×` im Tabtitel) und bleibt in `app/ui` als reine View-State-Operation ohne Kernlogik.
+- Tab-Schließen erfolgt ueber den festen `×`-Button rechts der Tab-Leiste (schliesst den aktiven Tab) und bleibt in `app/ui` als reine View-State-Operation ohne Kernlogik.
+- Das Hauptfenster (`bw_gui.BwBaseWindow`) startet maximiert (`AppShellConfig.start_maximized`, Quelle `app/bootstrap/wiring.py`). Eine gemerkte Fenstergeometrie (`remember_window_geometry`) hat Vorrang: `_restore_window_geometry_if_enabled` verlaesst dafuer den maximierten Zustand (`state("normal")` vor `geometry(...)`).
+- Dateien von aussen (Kommandozeile, Windows "Oeffnen mit") laufen in derselben Instanz zusammen: `blattwerk.py` belegt als Erstes den Port (`app/bootstrap/single_instance.py`, Loopback-TCP, nur stdlib, ohne Tk); wer ihn nicht bekommt, uebergibt den Pfad an die laufende Instanz und beendet sich bei Bestaetigung ohne GUI-Import, wer ihn bekommt, importiert die GUI und startet. Der Server-Thread beruehrt kein Tk, sondern queued `OpenRequest`s; `app/ui/blatt_ui_external_open.py` pollt sie im Tk-Thread und oeffnet ueber den zentralen Open-Dispatcher (`_open_input_path`). Der Server bestaetigt einem wartenden Start nur die Lebendigkeit der Oberflaeche (Heartbeat bei jedem Poll), nicht das fertige Oeffnen (Rendering kann Sekunden dauern, mehrere parallele Starts warten nicht aufeinander); ohne lebendige Oberflaeche innerhalb des Timeouts bleibt die Bestaetigung aus und der wartende Start oeffnet ein eigenes Fenster. Die Startdatei oeffnet erst der erste Poll in der laufenden Ereignisschleife, vor allen wartenden Anfragen; sie hat Vorrang vor `start_with_last_file`.
 - Die Vorschau verwendet tab-lokale Cache-Keys aus Dateistand plus Render-Optionen; unveraenderte Tab-Wechsel nutzen den Cache ohne erneuten Build.
 - Sichtbarkeit ist ein expliziter View-State (`preview_only`, `both`, `editor_only`) in der UI-Schicht.
 - Der Schreibbereich speichert Markdown-Aenderungen debounced direkt auf Dateiebene (UTF-8), ohne automatische Vorschau-Aktualisierung.
@@ -124,6 +127,10 @@ Erlaubt als Ausnahme:
 - `app/styles/*`
    - darf: Profil- und Designregeln
    - darf nicht: Dokumentdiagnostik, GUI-Interaktion
+
+- `app/bootstrap/*`
+   - darf: Komposition der Startabhaengigkeiten, Startup-Koordination ohne Tk (Single-Instance-Uebergabe)
+   - darf nicht: Fachregeln, Widgets, Persistenzschema
 
 ## Dokumentationsgrenzen
 

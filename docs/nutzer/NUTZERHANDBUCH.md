@@ -10,6 +10,8 @@ Installation/Setup steht bewusst in `README.md`.
 - **Rechts**: Export starten
 - **Unten**: Vorschau-Canvas mit Scrollbars und Seitenstatus
 - **Schreibbereich** (wenn aktiv): Markdown-Editor mit Live-Speichern und Live-Diagnostik
+- **Dokument-Tabs**: Jede geöffnete Datei ist ein Tab. Bei vielen Tabs scrollt die Leiste horizontal (Scrollleiste darunter oder Mausrad über der Leiste); der Schließen-Button (×) rechts davon schließt den aktiven Tab und bleibt immer sichtbar.
+- **Fenster**: Blattwerk startet maximiert. Ist „Fenstergeometrie merken" aktiv und eine Größe gespeichert, öffnet es stattdessen in dieser Größe.
 
 ## 2) Grundablauf
 
@@ -17,6 +19,10 @@ Installation/Setup steht bewusst in `README.md`.
 2. Vorschau prüfen
 3. Einstellungen anpassen (Format/Modus/Profil)
 4. Exportdialog öffnen und Ausgabe erzeugen
+
+## 2b) Dateien aus dem Explorer öffnen („Öffnen mit")
+
+Nach einer einmaligen Einrichtung (`register-blattwerk-file-association.ps1`) lassen sich `.md`-Dateien per Rechtsklick → **Öffnen mit** → **Blattwerk** öffnen. Läuft Blattwerk schon, erscheint die Datei als neuer Tab im bestehenden Fenster. Was das Skript ändert, wann man es erneut ausführt und wie man es rückgängig macht, steht in `docs/nutzer/OEFFNEN_MIT_EINRICHTEN.md`.
 
 ## 2a) Einstellungen (Registerkarten)
 

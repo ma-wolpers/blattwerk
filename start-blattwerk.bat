@@ -12,7 +12,7 @@ if not exist "%ENTRY%" (
 )
 
 if exist "%VENV_PYW%" (
-  start "" "%VENV_PYW%" "%ENTRY%"
+  start "" "%VENV_PYW%" "%ENTRY%" %*
 ) else (
   echo Blattwerk-Umgebung fehlt: %VENV_PYW%
   echo.
