@@ -57,6 +57,7 @@ So vermeiden wir Klebercode und Verwirrung.
 - `app/styles`
   - Hier werden Profile und Designregeln aufgelöst.
   - Hier gehört das Aussehen hin, nicht die Fachlogik.
+  - Die Breiten der Randspalten (links Aufgabensymbole, rechts Worterklärungen) stehen an genau einer Stelle (`page_geometry.py`) und speisen sowohl das CSS als auch die Inhaltsbreite für die Spaltenschätzung.
 
 - `app/cli`
   - Das ist ein Adapter für Werkzeuge wie die Diagnostik-CLI.
@@ -80,7 +81,7 @@ Zusatz im Kern:
 - Dokumenttyp-Routing und Diagnostikadapter (`document_types.py`, `document_preview_build.py`, `document_export_build.py`, `document_diagnostics.py`)
 - Eingebettete Kurzentwurf-Runtime (`app/core/kurzentwurf_runtime`)
 - Zentrale Inline-Formatierung -- fett/kursiv/unterstrichen/Hervorhebung/durchgestrichen/Hoch-/
-  Tiefstellung/Code/Spoiler/Kommentar (`app/core/inline_markup`); alle Renderpfade und der
+  Tiefstellung/Code/Spoiler/Kommentar/Worterklärung (`app/core/inline_markup`); alle Renderpfade und der
   Editor lesen dieselbe Marker-Tabelle statt eigenen Code dafür zu besitzen
 - Fachregel für BW/Farbhinweise (`color_mentions.py`)
 - Generische Identitaet fuer abgehakte Warnungen (`diagnostic_identity.py`/`diagnostic_acknowledgment.py`) -- kennt keine Blocktypen oder Dokumentarten, jede Diagnosequelle liefert ihre eigene Region/Anker selbst

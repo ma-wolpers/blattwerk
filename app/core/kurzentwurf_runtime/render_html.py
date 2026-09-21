@@ -112,6 +112,10 @@ def render_document_html(
       margin: {page_margin_cm:.3f}cm;
     }}
 
+    .word-note-text {{
+      display: none;
+    }}
+
     body {{
       font-family: Arial, Helvetica, sans-serif;
       font-size: {body_font_size_pt:.2f}pt;

@@ -56,8 +56,27 @@ def _render_text_run(run: Run) -> str:
     return html
 
 
+def _render_word_note(run: Run) -> str:
+    """Rendert eine Worterklärung: den Begriff im Fließtext und die Erklärung als eigenes Element.
+
+    Der Begriff läuft durch `_render_text_run` (behält also Stil-Flags eines
+    umgebenden `**fett**`). Die Erklärung steht direkt hinter dem Begriff im
+    selben Absatz; ob und wo sie sichtbar wird (Randspalte im
+    Arbeitsblatt-PDF, sonst ausgeblendet), entscheidet ausschließlich das CSS
+    (`.word-note-text`). Erklärung und Begriff sind reiner Text, kein Markup.
+    """
+    return (
+        '<span class="word-note">'
+        f'<span class="word-note-term">{_render_text_run(run)}</span>'
+        f'<span class="word-note-text">{escape(run.annotation or "")}</span>'
+        "</span>"
+    )
+
+
 def render_run(run: Run) -> str:
     """Rendert einen einzelnen `Run` zu HTML."""
+    if run.annotation is not None:
+        return _render_word_note(run)
     if run.kind == "math":
         return escape(run.text)
     if run.kind == "code":

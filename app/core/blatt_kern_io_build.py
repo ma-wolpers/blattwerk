@@ -12,7 +12,8 @@ from .blatt_kern_io_html import absolutize_local_image_sources, apply_image_size
 from .blatt_kern_io_pdf import annotate_pdf_running_elements_with_retry, write_pdf_from_html
 from .blatt_kern_help_render import collect_help_blocks, render_help_cards_html
 from .blatt_kern_layout_render import render_html
-from .blatt_kern_shared import get_copyright_text, normalize_document_mode
+from .blatt_kern_shared import get_copyright_text, is_hole_punch_layout_enabled, normalize_document_mode
+from .word_note_pdf_check import append_word_note_placement_warnings
 from .blatt_validator import (
     BuildDiagnostic,
     InspectedDocument,
@@ -134,6 +135,7 @@ def build_worksheet(
         _raise_on_blocking_diagnostics(inspected.diagnostics)
     if diagnostics_out is not None:
         diagnostics_out.extend(inspected.diagnostics)
+    word_notes = []
     html = render_html(
         meta,
         blocks,
@@ -148,6 +150,7 @@ def build_worksheet(
         presentation_hide_future_sections=presentation_hide_future_sections,
         presentation_ignore_framebreaks=presentation_ignore_framebreaks,
         cache=computation_cache,
+        word_notes_out=word_notes,
     )
     html = absolutize_local_image_sources(html, md_file.parent)
     html = apply_image_size_options(html)
@@ -172,6 +175,13 @@ def build_worksheet(
                 str(copyright_text_override or get_copyright_text(meta)),
                 print_profile=print_profile,
                 include_solutions=include_solutions,
+            )
+            append_word_note_placement_warnings(
+                diagnostics_out=diagnostics_out,
+                pdf_path=pdf_file,
+                word_notes=word_notes,
+                page_format=page_format,
+                hole_punch_enabled=is_hole_punch_layout_enabled(meta),
             )
         else:
             _append_presentation_overflow_warning(

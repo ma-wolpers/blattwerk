@@ -72,6 +72,17 @@ class Run:
     """Nur bedeutsam für `kind="code"`: unterscheidet einen mehrzeiligen
     Fenced-Code-Block (rendert als `<pre><code>`) von einem einzeiligen
     Inline-Code-Span (rendert als `<code>`)."""
+    annotation: str | None = None
+    """Nur für `kind="text"`: die Erklärung einer `??Begriff|Erklärung??`-
+    Worterklärung; `text` ist dann der Begriff. Bewusst nach der BEDEUTUNG
+    benannt (Begriff mit Erklärung), nicht nach der Darstellung: dass die
+    Erklärung im Arbeitsblatt-PDF als Randnotiz erscheint, entscheidet allein
+    `html_renderer.py`.
+
+    Wird ausschließlich in `placeholders.py::expand_placeholders` gesetzt, dem
+    letzten Parser-Schritt. Frühere Durchläufe (`emphasis.py::_expand_runs`)
+    bauen Runs nur aus den Stil-Flags neu auf und würden ein Zusatzfeld
+    verwerfen -- dieselbe Einschränkung wie bei `is_block`."""
 
     @property
     def is_plain(self) -> bool:
@@ -81,12 +92,20 @@ class Run:
         Markdown-Quelltext verbleiben, damit python-markdowns eigene,
         unveränderte Zuständigkeit (Links, Entities, `nl2br`, Blockstruktur)
         für genau diesen Text erhalten bleibt -- nur nicht-plain Runs
-        (formatiert, Code, Mathe) werden gerendert und gestasht.
+        (formatiert, Code, Mathe, Worterklärung) werden gerendert und gestasht.
+
+        Ein Worterklärungs-Run (`annotation` gesetzt) ist NIE plain, auch wenn
+        er keine Stil-Flags trägt: sonst bliebe er roh im Quelltext stehen und
+        seine Erklärung ginge stillschweigend verloren.
         """
-        return self.kind == "text" and not any(
-            (
-                self.bold, self.italic, self.underline, self.highlight, self.strike,
-                self.subscript, self.superscript, self.spoiler, self.operator,
+        return (
+            self.kind == "text"
+            and self.annotation is None
+            and not any(
+                (
+                    self.bold, self.italic, self.underline, self.highlight, self.strike,
+                    self.subscript, self.superscript, self.spoiler, self.operator,
+                )
             )
         )
 
@@ -107,7 +126,7 @@ class Run:
         }
         for key, value in extra_flags.items():
             merged[key] = merged[key] or value
-        return Run(kind=self.kind, text=self.text, **merged)
+        return Run(kind=self.kind, text=self.text, annotation=self.annotation, **merged)
 
 
 @dataclass(frozen=True)
@@ -130,6 +149,8 @@ class ParseDiagnostic:
 
 
 IM001_UNCLOSED_COMMENT = "IM001"
+IM002_MALFORMED_WORD_NOTE = "IM002"
+IM003_WORD_NOTE_PLACEMENT = "IM003"
 
 STYLE_FLAG_NAMES = (
     "bold",

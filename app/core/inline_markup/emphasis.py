@@ -235,7 +235,9 @@ _SUBSCRIPT_MATCHER = _prefix_matcher("~", "subscript")
 _SUPERSCRIPT_MATCHER = _prefix_matcher("^", "superscript")
 
 
-def parse_emphasis(protected_text: str, math_spans: list[str], code_spans: list) -> list[Run]:
+def parse_emphasis(
+    protected_text: str, math_spans: list[str], code_spans: list, word_note_spans: list | None = None
+) -> list[Run]:
     """Parst */_/==/~~/~/^/|| auf bereits (Kommentar/Mathe/Code-)geschütztem Text.
 
     Reihenfolge der Durchläufe: Backslash-Escapes schützen (`escaping.py`)
@@ -260,5 +262,5 @@ def parse_emphasis(protected_text: str, math_spans: list[str], code_spans: list)
     runs = _expand_runs(runs, _SUPERSCRIPT_MATCHER)
     runs = _expand_runs(runs, _SPOILER_MATCHER)
     runs = _expand_runs(runs, _OPERATOR_MATCHER)
-    runs = expand_placeholders(runs, math_spans, code_spans)
+    runs = expand_placeholders(runs, math_spans, code_spans, word_note_spans or [])
     return [run for run in runs if run.text]

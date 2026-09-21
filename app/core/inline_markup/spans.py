@@ -1,6 +1,7 @@
 """Schützt atomare Bereiche vor dem Inline-Markup-Parsing, in der autoritativen Reihenfolge.
 
-Reihenfolge (siehe `syntax.py`): Kommentare -> Mathematik -> Code/Fences.
+Reihenfolge (siehe `syntax.py`): Kommentare -> Mathematik -> Code/Fences ->
+Worterklärung (`word_notes.py`).
 Jeder Schritt ersetzt seine Fundstellen durch einen neutralen Platzhalter
 und liefert die entfernten Inhalte zur späteren Wiederherstellung zurück
 (Kommentare: verworfen, kein Restore -- nur eine `ParseDiagnostic` bei
@@ -28,6 +29,7 @@ from dataclasses import dataclass
 
 from ..math_span_protection import protect_math_spans
 from .runs import IM001_UNCLOSED_COMMENT, ParseDiagnostic
+from .word_notes import WordNoteSpan, protect_word_notes
 
 _COMMENT_PATTERN = re.compile(r"(?<!\\)%%(.*?)(?<!\\)%%", re.DOTALL)
 _UNMATCHED_COMMENT_START_PATTERN = re.compile(r"(?<!\\)%%")
@@ -117,15 +119,23 @@ def find_code_placeholder(text: str, start: int = 0) -> re.Match[str] | None:
     return _CODE_PLACEHOLDER_PATTERN.search(text, start)
 
 
-def protect_all(text: str) -> tuple[str, list[str], list[CodeSpan], list[ParseDiagnostic]]:
-    """Wendet Schritt 1-3 der Auswertungsreihenfolge an: Kommentare -> Mathe -> Code.
+def protect_all(
+    text: str,
+) -> tuple[str, list[str], list[CodeSpan], list[WordNoteSpan], list[ParseDiagnostic]]:
+    """Wendet Schritt 1-4 der Auswertungsreihenfolge an: Kommentare -> Mathe -> Code -> Worterklärung.
 
-    Liefert `(geschützter_text, mathe_spans, code_spans, diagnostics)`.
+    Liefert `(geschützter_text, mathe_spans, code_spans, word_note_spans, diagnostics)`.
     `mathe_spans[i]` ist die rohe `$...$`/`$$...$$`-Formelquelle (inkl.
     `$`-Begrenzer) für Platzhalter `i` -- identisch zum Rückgabewert von
     `math_span_protection.protect_math_spans`, unverändert durchgereicht.
+
+    Worterklärungen (`word_notes.py`) kommen bewusst NACH Code: ein `??` in
+    einem Inline-Code-Span ist dann schon Platzhalter und wird nicht als
+    Worterklärung gelesen. Enthält eine Worterklärung selbst Code/Mathe,
+    löst `placeholders.py` deren Platzhalter zurück zu wörtlichem Text auf.
     """
     without_comments, diagnostics = strip_comments(text)
     without_math, math_spans = protect_math_spans(without_comments)
     without_code, code_spans = protect_code(without_math)
-    return without_code, math_spans, code_spans, diagnostics
+    without_notes, word_note_spans, note_diagnostics = protect_word_notes(without_code)
+    return without_notes, math_spans, code_spans, word_note_spans, diagnostics + note_diagnostics

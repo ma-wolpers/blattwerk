@@ -40,11 +40,17 @@ from __future__ import annotations
 from markdown.preprocessors import Preprocessor
 
 from . import parse_inline_markup
-from .escaping import restore_escape_backslashes
+from .escaping import resolve_escape_placeholders, restore_escape_backslashes
 from .html_renderer import render_run
+from .word_notes import record_word_note
 
 BRIDGE_PREPROCESSOR_NAME = "blattwerk_inline_markup"
 BRIDGE_PREPROCESSOR_PRIORITY = 10
+
+
+def _plain_term(run) -> str:
+    """Begriff eines Worterklärungs-Runs als Klartext (Escape-Platzhalter aufgelöst)."""
+    return resolve_escape_placeholders(run.text)
 
 
 class InlineMarkupPreprocessor(Preprocessor):
@@ -66,6 +72,8 @@ class InlineMarkupPreprocessor(Preprocessor):
                 pieces.append(restore_escape_backslashes(run.text))
                 continue
             html = render_run(run)
+            if run.annotation is not None:
+                record_word_note(_plain_term(run), run.annotation)
             placeholder = self.md.htmlStash.store(html)
             if run.kind == "code" and run.is_block:
                 # Block-level HTML (`<pre><code>`) must sit on its own line

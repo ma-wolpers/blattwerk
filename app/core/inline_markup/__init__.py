@@ -42,8 +42,8 @@ def parse_inline_markup(text: str) -> tuple[list[Run], list[ParseDiagnostic]]:
     if not text:
         return [], []
 
-    protected_text, math_spans, code_spans, diagnostics = protect_all(text)
-    runs = parse_emphasis(protected_text, math_spans, code_spans)
+    protected_text, math_spans, code_spans, word_note_spans, diagnostics = protect_all(text)
+    runs = parse_emphasis(protected_text, math_spans, code_spans, word_note_spans)
     return runs, diagnostics
 
 

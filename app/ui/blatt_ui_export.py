@@ -257,8 +257,9 @@ class BlattwerkAppExportMixin:
             "Export laeuft weiter, aber es gibt Warnungen:\n\n" + warning_payload["message"],
         )
 
-    _SURFACED_COMPILE_WARNING_CODES = {"PT002", "PPTX001", "PPTX002"}
-    """`PT002` (Präsentations-Overflow) plus die beiden Fallback-Diagnosen des
+    _SURFACED_COMPILE_WARNING_CODES = {"PT002", "IM003", "PPTX001", "PPTX002"}
+    """`PT002` (Präsentations-Overflow), `IM003` (Worterklärung passt nicht
+    sauber an den Seitenrand, nur im gerenderten PDF messbar) plus die beiden Fallback-Diagnosen des
     experimentellen editierbaren PPTX-Exports (`blatt_kern_pptx_export.py`):
     `PPTX001` (einzelne Folie gerastert) und `PPTX002` (kompletter Fallback
     auf den Raster-Export). Ein interner Fallback darf nie unsichtbar

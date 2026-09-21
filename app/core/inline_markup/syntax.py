@@ -16,9 +16,12 @@ Umsetzung, `__init__.py::parse_inline_markup` für den Gesamtablauf):
     1. `%%...%%`-Kommentare erkennen und verwerfen
     2. `$...$`/`$$...$$`-Mathematik schützen (math_span_protection.py)
     3. Code-Spans/Fenced-Code-Blöcke schützen
-    4. verbleibendes Markup parsen (diese Tabelle)
-    5. `list[Run]` erzeugen
-    6. rendern (html_renderer.py)
+    4. `??Begriff|Erklärung??`-Worterklärungen schützen (word_notes.py);
+       nach Code, damit ein `??` in Inline-Code nicht als Worterklärung
+       gelesen wird
+    5. verbleibendes Markup parsen (diese Tabelle)
+    6. `list[Run]` erzeugen
+    7. rendern (html_renderer.py)
 
 Kommentare kommen bewusst VOR Mathematik: sie dürfen beliebigen, auch
 absichtlich malformten Beispieltext enthalten (z. B. eine nicht
@@ -164,6 +167,20 @@ MARKER_SPECS: tuple[MarkerSpec, ...] = (
         ),
         editor_shortcut=False,
         applies_to=ALL_DOCUMENT_TYPES,
+    ),
+    MarkerSpec(
+        name="word_note",
+        key="?",
+        levels=(
+            EscalationLevel(
+                "??",
+                "??Begriff|Erklärung??",
+                (),
+                "Worterklärung: Begriff bleibt im Text, die Erklärung steht klein am rechten Rand (Arbeitsblatt)",
+            ),
+        ),
+        editor_shortcut=False,
+        applies_to=frozenset({"worksheet"}),
     ),
 )
 

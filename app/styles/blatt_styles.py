@@ -468,10 +468,9 @@ def _layout_page_width_cm(layout):
     return min(paper_dimensions)
 
 
-def resolve_printable_width_cm(page_format, hole_punch_enabled=False):
-    """Resolve printable content width from page format and active margins."""
+def resolve_page_side_margins_cm(page_format, hole_punch_enabled=False):
+    """Liefert `(links_cm, rechts_cm)` der aktiven `@page`-Seitenränder."""
     layout = PAGE_LAYOUTS.get(page_format, PAGE_LAYOUTS["a4_portrait"])
-    page_width_cm = _layout_page_width_cm(layout)
 
     if hole_punch_enabled:
         margin_left_raw = layout.get(
@@ -484,8 +483,14 @@ def resolve_printable_width_cm(page_format, hole_punch_enabled=False):
         margin_left_raw = layout["page_margin_left_css"]
         margin_right_raw = layout["page_margin_right_css"]
 
-    margin_left_cm = _css_length_to_cm(margin_left_raw, 1.5)
-    margin_right_cm = _css_length_to_cm(margin_right_raw, 1.5)
+    return _css_length_to_cm(margin_left_raw, 1.5), _css_length_to_cm(margin_right_raw, 1.5)
+
+
+def resolve_printable_width_cm(page_format, hole_punch_enabled=False):
+    """Resolve printable content width from page format and active margins."""
+    layout = PAGE_LAYOUTS.get(page_format, PAGE_LAYOUTS["a4_portrait"])
+    page_width_cm = _layout_page_width_cm(layout)
+    margin_left_cm, margin_right_cm = resolve_page_side_margins_cm(page_format, hole_punch_enabled)
     return max(0.5, page_width_cm - margin_left_cm - margin_right_cm)
 
 

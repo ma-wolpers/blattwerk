@@ -36,6 +36,10 @@ Erklärungen in 0.7em-Schrift (~4-6 Wörter pro Zeile bei 2.4cm Textbreite).
 Visuell kalibriert."""
 
 
+WORD_NOTE_FONT_SCALE = 0.7
+"""Schriftgröße der Worterklärung relativ zum Fließtext (Layout-Parameter)."""
+
+
 def resolve_gutter_widths_cm(reserve_gutters: bool, has_word_notes: bool = False):
     """Liefert `(links_cm, rechts_cm)` der tatsächlich reservierten Randspalten."""
     if not reserve_gutters:
@@ -48,9 +52,11 @@ def build_gutter_css(reserve_gutters: bool, has_word_notes: bool = False) -> str
 
     Ohne `reserve_gutters` (Präsentation, Hilfekarten) bleibt nur der
     statische Inline-Fallback aus `worksheet.css` aktiv. Innerhalb von
-    `:::columns` (`.column`) wird bewusst NICHT in den Rand geschoben, weil
-    der Randinhalt dort in die Nachbarspalte ragen würde: Symbole stehen dort
-    inline über dem Label, Notizen bleiben als schmaler Float in der Spalte.
+    `:::columns` (`.column`) wird das Aufgabensymbol bewusst NICHT in den
+    Rand geschoben, weil es dort in die Nachbarspalte ragen würde: es steht
+    inline über dem Label. Worterklärungen gelten für die letzte Spalte
+    (erreicht den rechten Rand von selbst); in den anderen Spalten werden sie
+    ausgeblendet.
     """
     if not reserve_gutters:
         return ""
@@ -85,6 +91,7 @@ body {{
         css += f"""
 :root {{
     --word-note-gutter: {WORD_NOTE_GUTTER_CM}cm;
+    --word-note-font-scale: {WORD_NOTE_FONT_SCALE};
 }}
 
 body {{
@@ -99,8 +106,28 @@ body {{
     width: calc(var(--word-note-gutter) - 0.35cm);
 }}
 
-.column .word-note-text {{
-    margin-right: 0;
+/* Boxen haben rechts Innenabstand (in em der Box-Schrift) und Rahmen. Die
+   Notiz hängt sonst um diesen Betrag zu weit links in der Box. `em` löst hier
+   gegen die kleinere Notizschrift auf, daher die Division durch die Skalierung. */
+.material .word-note-text,
+.solution .word-note-text {{
+    margin-right: calc(
+        -1 * var(--word-note-gutter) - 0.8em / var(--word-note-font-scale) - 1px
+    );
+}}
+
+.info .word-note-text {{
+    margin-right: calc(-1 * var(--word-note-gutter) - 1em / var(--word-note-font-scale));
+}}
+
+/* Nicht unterstützte Container (v1): Tabellenzellen und alle Spalten außer der
+   letzten. Notizen der letzten Spalte erreichen den Seitenrand von selbst; aus
+   den anderen würden sie in die Nachbarspalte ragen. Ausgeblendet statt
+   überlappend -- die Nachprüfung (`word_note_pdf_check.py`) meldet `IM003`. */
+td .word-note-text,
+th .word-note-text,
+.column:not(:last-child) .word-note-text {{
+    display: none;
 }}
 """
     return css

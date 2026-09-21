@@ -859,4 +859,25 @@ PROSE_SECTIONS: dict[str, str] = {
         "tatsächlich verwendeten Operatoren (nicht in der Lösung, nicht im Kurzentwurf). Aktuell "
         "ohne eigene Editor-Taste -- von Hand eingetippt."
     ),
+    "inline_mark:word_note": (
+        "`??Begriff|Erklärung??` ist eine Worterklärung als sprachliche Hilfe: der Begriff bleibt normal "
+        "im Text (mit gepunkteter Unterstreichung), die Erklärung erscheint klein am rechten Seitenrand "
+        "des Arbeitsblatts, ungefähr auf Höhe des Absatzes, in dem der Begriff steht (keine "
+        "zeilengenaue Zuordnung; mehrere Erklärungen im selben Absatz stehen in Textreihenfolge "
+        "untereinander). Sobald ein Arbeitsblatt mindestens eine Worterklärung enthält, wird rechts eine "
+        "Randspalte reserviert und der Text entsprechend schmaler. Begriff und Erklärung sind reiner "
+        "Text -- innerhalb von `??...??` wird kein weiteres Markup ausgewertet (`*x*` bleibt `*x*`). "
+        "`|` trennt Begriff und Erklärung und muss genau einmal vorkommen; ein wörtliches `|` schreibt "
+        "man `\\|`, ein wörtliches `??` schreibt man `\\??` (auch außerhalb einer Worterklärung). "
+        "Fehlendes oder doppeltes `|` sowie ein leerer Begriff oder eine leere Erklärung sind ein "
+        "Fehler (`IM002`) und blockieren den Export. Passt eine Erklärung nicht mehr vollständig auf die "
+        "Seite ihres Absatzes, wird sie nicht abgeschnitten, sondern setzt sich im Rand der Folgeseite "
+        "fort (endet das Dokument dort, entsteht dafür eine zusätzliche Seite); der Export meldet nach "
+        "dem Rendern eine Warnung (`IM003`). Worterklärungen in "
+        "Tabellenzellen werden nicht unterstützt (die Erklärung erscheint dort nicht, der Export "
+        "warnt mit `IM003`); in `:::columns` funktioniert sie in der letzten Spalte (sie erreicht den "
+        "rechten Seitenrand), in allen anderen Spalten erscheint sie nicht (ebenfalls `IM003`). In "
+        "Präsentationen und im Kurzentwurf wird nur der Begriff angezeigt. Aktuell ohne eigene "
+        "Editor-Taste -- von Hand eingetippt."
+    ),
 }

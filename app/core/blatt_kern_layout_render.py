@@ -24,6 +24,7 @@ from __future__ import annotations
 
 from html import escape
 
+from .inline_markup.word_notes import collect_word_notes
 from .operator_legend import collect_used_operators, render_operator_legend_html
 from ..styles.blatt_styles import build_stylesheet, resolve_printable_height_cm, resolve_printable_width_cm
 from ..styles.page_geometry import resolve_gutter_widths_cm
@@ -57,8 +58,15 @@ def render_html(
     presentation_hide_future_sections=False,
     presentation_ignore_framebreaks=False,
     cache=None,
+    word_notes_out=None,
 ):
     """Baut das vollständige HTML-Dokument inklusive Styles und Header/Footer.
+
+    `word_notes_out` ist eine optionale, mutable Ausgabeliste (Muster wie
+    `diagnostics_out` in `build_worksheet`): jede beim Rendern des Bodys
+    tatsächlich erzeugte Worterklärung (`WordNoteOccurrence`) wird angehängt.
+    Ob das Stylesheet die rechte Randspalte reserviert, hängt an genau dieser
+    Sammlung, nicht an einer Textsuche im fertigen HTML.
 
     `cache` is an optional `BlockComputationCache` opened by the application
     layer (see `app/core/block_computation_cache.py`); it is threaded down to
@@ -126,14 +134,18 @@ def render_html(
         page_format,
         hole_punch_enabled=hole_punch_enabled,
     )
-    body = render_body_with_columns(
-        enriched_blocks,
-        include_solutions=include_solutions,
-        document_mode=document_mode,
-        printable_width_cm=printable_width_cm,
-        printable_height_cm=printable_height_cm,
-        cache=cache,
-    )
+    with collect_word_notes() as collected_word_notes:
+        body = render_body_with_columns(
+            enriched_blocks,
+            include_solutions=include_solutions,
+            document_mode=document_mode,
+            printable_width_cm=printable_width_cm,
+            printable_height_cm=printable_height_cm,
+            cache=cache,
+        )
+    has_word_notes = bool(collected_word_notes)
+    if word_notes_out is not None:
+        word_notes_out.extend(collected_word_notes)
     sectioned_body = split_sections(body)
 
     operator_legend_html = ""
@@ -191,6 +203,7 @@ def render_html(
         font_size_profile=font_size_profile,
         document_mode=document_mode,
         reserve_gutters=True,
+        has_word_notes=has_word_notes,
     )
 
     copyright_text = get_copyright_text(meta)

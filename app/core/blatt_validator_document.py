@@ -33,6 +33,7 @@ from .blatt_validator_constants import (
 from .blatt_validator_marker_syntax import _has_explicit_worksheet_marker_without_solution
 from .blatt_validator_region import compute_block_region_id
 from .blatt_validator_types import BuildDiagnostic
+from .blatt_validator_word_notes import validate_word_notes
 
 _FRONTMATTER_REGION_ID = "worksheet:frontmatter"
 from .blatt_validator_value_helpers import _get_matching_item_counts
@@ -241,6 +242,8 @@ def _validate_block_type_specifics(diagnostics, index, block_type, options, cont
     """
     if block_type == "selfcheck":
         diagnostics.extend(_validate_selfcheck_options(index, block_type, options))
+
+    diagnostics.extend(validate_word_notes(index, block_type, options, content))
 
     if _MATH_SPAN_PATTERN.search(content or ""):
         diagnostics.append(

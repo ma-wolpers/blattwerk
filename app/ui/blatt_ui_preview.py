@@ -510,11 +510,11 @@ class BlattwerkAppPreviewMixin:
             )
 
     def _show_compile_overflow_warnings(self, diagnostics, context_label: str):
-            """Zeigt PT002-Warnungen aus dem Compile-/Render-Schritt einmalig pro Zustand."""
+            """Zeigt PT002-/IM003-Warnungen aus dem Compile-/Render-Schritt einmalig pro Zustand."""
 
             overflow_warnings = [
                 diag for diag in (diagnostics or [])
-                if str(getattr(diag, "code", "")) == "PT002"
+                if str(getattr(diag, "code", "")) in {"PT002", "IM003"}
             ]
             if not overflow_warnings:
                 return
