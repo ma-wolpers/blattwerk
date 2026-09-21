@@ -142,7 +142,7 @@ def _render_geometry_section(catalog: MarkdownConventionCatalog) -> str:
 
     example = (
         "```markdown\n"
-        ":::geometry width=20 height=20 axis=true origin=\"10,10\"\n"
+        ":::geometry width=20 height=20 background=lines axis=true origin=\"10,10\"\n"
         "points:\n"
         "  - {x: 2, y: 3, label: \"A\", color: \"#2563eb\", thickness: 2}\n"
         "pairs:\n"

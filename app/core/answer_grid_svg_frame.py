@@ -76,6 +76,29 @@ def _render_grid_background_svg(cols, rows, bleed_units=(0.0, 0.0, 0.0, 0.0), li
     )
 
 
+def _render_geometry_background_dots_svg(cols, rows, bleed_units=(0.0, 0.0, 0.0, 0.0)):
+    """Rendert ein Punktraster (`:::geometry background=dots`) im selben Koordinatensystem wie `_render_grid_background_svg`.
+
+    Ein Punkt pro Gitterschnittpunkt (inklusive Rand) statt voller
+    Rasterlinien -- klassische "Konstruktionspapier"-Optik. Nur bei
+    `:::geometry` wählbar (`:::grid` behält seinen eigenen, immer aktiven
+    Linienraster-Renderpfad unverändert), daher kein `line_style`-Parameter
+    wie beim Linien-Pendant -- Punkte kennen in dieser DSL nur eine
+    Erscheinungsform.
+    """
+    view_box, frame_style = _svg_viewport_frame(cols, rows, bleed_units)
+    dot_markup = []
+    for x in range(0, int(cols) + 1):
+        for y in range(0, int(rows) + 1):
+            dot_markup.append(f"<circle class='grid-background-dot' cx='{x:.4f}' cy='{y:.4f}' r='0.05' />")
+
+    return (
+        f"<svg class='grid-overlay-bg' viewBox='{view_box}' preserveAspectRatio='none' aria-hidden='true' style='{frame_style}'>"
+        f"{''.join(dot_markup)}"
+        "</svg>"
+    )
+
+
 def _estimate_geometry_bleed_units(
     logical_origin,
     cols,

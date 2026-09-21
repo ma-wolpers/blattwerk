@@ -110,6 +110,14 @@ das den Linienstil einzelner Strecken steuert und separat über
 `GEOMETRY_ENTRY_ALLOWED_KEYS`/`_validate_geometry_entry_fields` geprüft
 wird — beide Ebenen teilen sich nur den Namen, nicht die Validierung.
 """
+KNOWN_GEOMETRY_BACKGROUND_STYLES = {"none", "lines", "dots"}
+"""Erlaubte Werte für die Block-Option `background=...` bei `:::geometry` (nur dort, nicht `:::grid`).
+
+`:::grid` (reines Karopapier) behält seinen eigenen, immer aktiven
+Hintergrund-Renderpfad unverändert -- diese Option existiert nur für
+`:::geometry`, das seit der Entkopplung von `:::grid`s Modell standardmäßig
+(`none`) *kein* Hintergrundraster mehr zeichnet.
+"""
 KNOWN_ALIGN_VALUES = {
     "left",
     "l",
@@ -424,6 +432,7 @@ BLOCK_OPTION_SPECS: dict[str, tuple[BlockOptionSpec, ...]] = {
         BlockOptionSpec("height", "integer", None, False, 5),
         _OPT_SCALE,
         _OPT_LINE,
+        BlockOptionSpec("background", "enum", frozenset(KNOWN_GEOMETRY_BACKGROUND_STYLES), True, "none"),
         BlockOptionSpec("axis", "boolean", None, False, False),
         BlockOptionSpec("axis_label_x", "text", None, False, "x"),
         BlockOptionSpec("axis_label_y", "text", None, False, "y"),

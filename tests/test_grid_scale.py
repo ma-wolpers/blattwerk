@@ -110,6 +110,7 @@ def test_grid_axis_renders_ticks_and_labels_by_default():
             "type": "geometry",
             "width": "10",
             "height": "10",
+            "background": "lines",
             "axis": "true",
             "origin": "5,5",
             "step_x": "1",
@@ -254,7 +255,7 @@ def test_grid_line_defaults_to_solid_without_option():
 
 def test_geometry_line_dashed_option_adds_dashed_class():
     html = _render_answer_block(
-        {"type": "geometry", "width": "2", "height": "2", "line": "dashed"},
+        {"type": "geometry", "width": "2", "height": "2", "background": "lines", "line": "dashed"},
         "",
         include_solutions=False,
     )
@@ -344,3 +345,53 @@ def test_geometry_legacy_rows_cols_options_are_now_inert_and_fall_back_to_defaul
     )
     assert "--cols:20" in html
     assert "--rows:5" in html
+
+
+def test_geometry_background_defaults_to_none_and_renders_no_background_svg():
+    html = _render_answer_block(
+        {"type": "geometry", "width": "4", "height": "4"},
+        "",
+        include_solutions=False,
+    )
+    assert "class='grid-overlay-bg'" not in html
+
+
+def test_geometry_background_lines_renders_grid_lines():
+    html = _render_answer_block(
+        {"type": "geometry", "width": "4", "height": "4", "background": "lines"},
+        "",
+        include_solutions=False,
+    )
+    assert "grid-background-line" in html
+    assert "grid-background-dot" not in html
+
+
+def test_geometry_background_dots_renders_dot_grid():
+    html = _render_answer_block(
+        {"type": "geometry", "width": "2", "height": "2", "background": "dots"},
+        "",
+        include_solutions=False,
+    )
+    assert "grid-background-dot" in html
+    assert "grid-background-line" not in html
+    # 2x2 canvas -> 3x3 = 9 grid intersections, one dot each.
+    assert html.count("grid-background-dot") == 9
+
+
+def test_geometry_background_invalid_value_falls_back_to_none_rendering():
+    html = _render_answer_block(
+        {"type": "geometry", "width": "4", "height": "4", "background": "wavy"},
+        "",
+        include_solutions=False,
+    )
+    assert "class='grid-overlay-bg'" not in html
+
+
+def test_grid_background_is_unaffected_by_geometry_background_option():
+    html = _render_answer_block(
+        {"type": "grid", "rows": "2", "cols": "2"},
+        "",
+        include_solutions=False,
+    )
+    assert "class='grid-overlay-bg'" in html
+    assert "grid-background-line" in html

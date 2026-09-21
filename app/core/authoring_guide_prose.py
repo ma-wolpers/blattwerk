@@ -263,7 +263,10 @@ PROSE_SECTIONS: dict[str, str] = {
     "geometry:block_options": (
         "`:::grid` und `:::geometry` unterstützen die Option `line=solid|dashed` (Standard: `solid`), "
         "die den Linienstil des Rasterhintergrunds selbst steuert -- unabhängig vom gleichnamigen "
-        "`pairs[].line`-Feld auf Objektebene (siehe unten), das nur die einzelne Strecke betrifft."
+        "`pairs[].line`-Feld auf Objektebene (siehe unten), das nur die einzelne Strecke betrifft. "
+        "Nur `:::geometry` hat zusätzlich `background=none|lines|dots` (Standard `none`) -- ohne "
+        "Angabe bleibt die Fläche leer, `lines` zeichnet dasselbe Karoraster wie `:::grid`, `dots` "
+        "ein Punktraster."
     ),
     "geometry:points": (
         "Einzelne markierte Punkte im Raster. Im Achsenmodus (`axis=true`) werden `x`/`y` als "
@@ -588,6 +591,11 @@ PROSE_SECTIONS: dict[str, str] = {
     ),
     "block:geometry.height": (
         "Höhe des Koordinatensystems in Rastereinheiten (Standard `5`)."
+    ),
+    "block:geometry.background": (
+        "Hintergrund des Koordinatensystems: `none` (Standard, leere Fläche), `lines` (Karo-Raster, "
+        "identisch zu `:::grid`) oder `dots` (Punktraster an jedem Gitter-Schnittpunkt -- klassische "
+        "\"Konstruktionspapier\"-Optik)."
     ),
     "block:geometry.scale": ("Standard `0.5cm`."),
     "block:geometry.axis": (

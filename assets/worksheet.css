@@ -933,6 +933,11 @@ h1 {
     stroke-dasharray: 2 2;
 }
 
+.grid-background-dot {
+    fill: var(--grid-line-color);
+    stroke: none;
+}
+
 .grid-axis {
     stroke: #000;
     stroke-width: 0.9;

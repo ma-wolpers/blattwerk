@@ -250,6 +250,7 @@ Koordinatensystem für Punkte, Polylinien, Strecken und Funktionsgraphen (siehe 
 | `axis` | Bool | -- | nein | `False` | Aktiviert ein mathematisches Koordinatensystem mit x-/y-Achse, Tick-Marks und Achsenbeschriftung (Standard: aus, dann gelten reine Rasterkoordinaten `col`/`row`). **Wichtig:** `axis=true` wirkt nur zusammen mit einem gültigen `origin` -- fehlt `origin` oder ist er ungültig, fällt der Block still (ohne Fehler/Warnung) auf den Rasterkoordinaten-Modus zurück. In diesem Fall werden `functions`-Einträge komplett ignoriert, und `points`/`pairs` interpretieren ihre `x`/`y`-Werte als `col`/`row` statt als Mathe-Koordinaten. |
 | `axis_label_x` | Text | -- | nein | `x` | Beschriftung der x-Achse (Standard `x`), nur wirksam bei aktivem Achsenmodus (siehe `axis`). |
 | `axis_label_y` | Text | -- | nein | `y` | Beschriftung der y-Achse (Standard `y`), nur wirksam bei aktivem Achsenmodus (siehe `axis`). |
+| `background` | Enum | `dots`, `lines`, `none` | ja | `none` | Hintergrund des Koordinatensystems: `none` (Standard, leere Fläche), `lines` (Karo-Raster, identisch zu `:::grid`) oder `dots` (Punktraster an jedem Gitter-Schnittpunkt -- klassische "Konstruktionspapier"-Optik). |
 | `height` | Ganzzahl | -- | nein | `5` | Höhe des Koordinatensystems in Rastereinheiten (Standard `5`). |
 | `line` | Enum | `dashed`, `solid` | ja | `solid` | Linienstil des Rasterhintergrunds: `solid` (Standard) oder `dashed`. Nur bei `:::grid`/`:::geometry` vorhanden -- nicht zu verwechseln mit dem gleichnamigen `pairs[].line`-Feld in der Geometry-YAML-Payload (dort eigene, unabhängige Einstellung pro Strecke). |
 | `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
@@ -790,7 +791,7 @@ Schreibimpuls hier…
 
 ### Blockoptionen
 
-`:::grid` und `:::geometry` unterstützen die Option `line=solid|dashed` (Standard: `solid`), die den Linienstil des Rasterhintergrunds selbst steuert -- unabhängig vom gleichnamigen `pairs[].line`-Feld auf Objektebene (siehe unten), das nur die einzelne Strecke betrifft.
+`:::grid` und `:::geometry` unterstützen die Option `line=solid|dashed` (Standard: `solid`), die den Linienstil des Rasterhintergrunds selbst steuert -- unabhängig vom gleichnamigen `pairs[].line`-Feld auf Objektebene (siehe unten), das nur die einzelne Strecke betrifft. Nur `:::geometry` hat zusätzlich `background=none|lines|dots` (Standard `none`) -- ohne Angabe bleibt die Fläche leer, `lines` zeichnet dasselbe Karoraster wie `:::grid`, `dots` ein Punktraster.
 
 Erlaubte `line`-Werte: `dashed`, `solid`.
 
@@ -821,7 +822,7 @@ Erlaubte Keys: `color`, `label`, `show`, `thickness`, `x`, `y`.
 ### Repräsentatives Beispiel
 
 ```markdown
-:::geometry width=20 height=20 axis=true origin="10,10"
+:::geometry width=20 height=20 background=lines axis=true origin="10,10"
 points:
   - {x: 2, y: 3, label: "A", color: "#2563eb", thickness: 2}
 pairs:

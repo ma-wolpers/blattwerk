@@ -5,8 +5,8 @@ Aus `blatt_validator_document.py` ausgelagert, da diese eine Funktion
 gut ein Drittel der Zeilen der ursprünglichen ~400-Zeilen-Datei ausmachte.
 
 Die einfachen Enum-Optionen (`mode`, `work`, `action`, `hint`, `line`,
-`type` -- strukturell identisch: "Wert nicht in der für diesen Blocktyp
-erlaubten Menge -> `OP002`") werden generisch aus `BLOCK_OPTION_SPECS`
+`type`, `background` -- strukturell identisch: "Wert nicht in der für
+diesen Blocktyp erlaubten Menge -> `OP002`") werden generisch aus `BLOCK_OPTION_SPECS`
 (`blatt_validator_constants.py`) geprüft, statt vier/fünf fast identische
 `elif`-Zweige zu pflegen: der Katalogeintrag *ist* die Prüfregel, kann
 strukturell nicht mehr von ihr abweichen. `show` (eigener Deprecation-
@@ -36,7 +36,7 @@ from .blatt_validator_value_helpers import (
     _option_items,
 )
 
-_GENERIC_VALIDATED_ENUM_OPTION_NAMES = {"mode", "work", "action", "hint", "line", "type"}
+_GENERIC_VALIDATED_ENUM_OPTION_NAMES = {"mode", "work", "action", "hint", "line", "type", "background"}
 
 
 def _lookup_option_spec(block_type, option_key):
@@ -51,9 +51,10 @@ def _validate_generic_enum_option(diagnostics, index, block_type, option_key, op
     """Prüft eine Option generisch gegen `BLOCK_OPTION_SPECS`, wenn ihr Katalogeintrag ein validiertes Enum ist.
 
     Deckt `mode`/`work`/`action`/`hint` (blockübergreifend) sowie `line`
-    (nur bei `grid`/`geometry`) und `type` (nur bei `info`) ab -- jeweils
-    nur dort, wo die Option überhaupt existiert; andere Blöcke scheitern
-    für diese Keys bereits vorher an `OP001`.
+    (nur bei `grid`/`geometry`), `type` (nur bei `info`) und `background`
+    (nur bei `geometry`) ab -- jeweils nur dort, wo die Option überhaupt
+    existiert; andere Blöcke scheitern für diese Keys bereits vorher an
+    `OP001`.
     """
     spec = _lookup_option_spec(block_type, option_key)
     if spec is None or spec.kind != "enum" or not spec.validated or not spec.allowed_values:

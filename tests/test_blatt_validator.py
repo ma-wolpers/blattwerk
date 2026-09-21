@@ -713,6 +713,22 @@ def test_geometry_legacy_rows_cols_options_emit_op001_unknown_option():
     assert {d.message.split("`")[1] for d in op001} == {"rows", "cols"}
 
 
+def test_geometry_background_invalid_value_emits_op002_error():
+    text = _build_document(":::geometry width=4 height=4 background=wavy\n:::")
+    inspected = inspect_markdown_text(text)
+    op002 = [d for d in inspected.diagnostics if d.code == "OP002"]
+    assert op002
+    assert "background" in op002[0].message
+
+
+def test_geometry_background_valid_values_do_not_emit_op002():
+    for value in ("none", "lines", "dots"):
+        text = _build_document(f":::geometry width=4 height=4 background={value}\n:::")
+        inspected = inspect_markdown_text(text)
+        codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+        assert "OP002" not in codes
+
+
 def test_grid_plain_marker_text_does_not_emit_an004():
     text = _build_document(":::grid rows=2\n§\n% Muster\n:::")
     inspected = inspect_markdown_text(text)
