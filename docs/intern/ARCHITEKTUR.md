@@ -42,7 +42,7 @@ Zusätzliche Kern-Usecases:
 | `app/core` | Fachregeln, Parse/Validate/Render/Build | UI-Dialoge, Persistenzdetails | `blatt_kern_io_build.py`, `blatt_validator.py`, `blatt_kern_layout_render.py` |
 | `app/ui` | Input, View-State, Anzeige | Fachregel-Ownership, Persistenzpolicy | `blatt_ui_*.py` |
 | `app/storage` | Laden/Speichern, Persistenzformat, Pfad-/Systemadapter | Render-/Validierungslogik | `local_config_store.py`, `history_paths_adapter.py`, `system_settings_adapter.py`, `acknowledged_warnings_store.py` |
-| `app/styles` | Profilauflösung, Designnormalisierung, CSS | Dokumentdiagnostik, Persistenzentscheidungen | `blatt_styles.py`, `worksheet_design.py`, `ui_profile_adapter.py` |
+| `app/styles` | Profilauflösung, Designnormalisierung, CSS | Dokumentdiagnostik, Persistenzentscheidungen | `blatt_styles.py`, `worksheet_design.py`, `page_geometry.py` (Randspalten-Breiten und -CSS), `ui_profile_adapter.py` |
 | `app/cli` | Adapter auf Kern-API | Regelduplikation | `blatt_diagnostics_cli.py` |
 
 UI-Zuschnitt im Hauptfenster:

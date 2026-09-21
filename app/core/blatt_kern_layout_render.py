@@ -26,6 +26,7 @@ from html import escape
 
 from .operator_legend import collect_used_operators, render_operator_legend_html
 from ..styles.blatt_styles import build_stylesheet, resolve_printable_height_cm, resolve_printable_width_cm
+from ..styles.page_geometry import resolve_gutter_widths_cm
 from .blatt_kern_shared import (
     _meta_bool_ja_nein,
     annotate_task_help_references,
@@ -114,9 +115,12 @@ def render_html(
         document_mode=document_mode,
     )
     hole_punch_enabled = is_hole_punch_layout_enabled(meta)
-    printable_width_cm = resolve_printable_width_cm(
-        page_format,
-        hole_punch_enabled=hole_punch_enabled,
+    gutter_left_cm, gutter_right_cm = resolve_gutter_widths_cm(reserve_gutters=True)
+    printable_width_cm = max(
+        0.5,
+        resolve_printable_width_cm(page_format, hole_punch_enabled=hole_punch_enabled)
+        - gutter_left_cm
+        - gutter_right_cm,
     )
     printable_height_cm = resolve_printable_height_cm(
         page_format,
@@ -186,6 +190,7 @@ def render_html(
         font_profile=font_profile,
         font_size_profile=font_size_profile,
         document_mode=document_mode,
+        reserve_gutters=True,
     )
 
     copyright_text = get_copyright_text(meta)

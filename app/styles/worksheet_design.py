@@ -367,10 +367,6 @@ h1 {{
     border-radius: 0;
 }}
 
-.task-work-hint {{
-    color: var(--theme-meta-color);
-}}
-
 .task-work-symbol {{
     filter: {symbol_style.symbol_filter};
     -webkit-text-stroke: {symbol_style.text_stroke};

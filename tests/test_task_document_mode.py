@@ -24,10 +24,42 @@ def test_task_work_hint_is_hidden_in_test_mode():
         document_mode="test",
     )
 
-    assert "task-work-hint" in worksheet_html
     assert "task-work-symbol single" in worksheet_html
-    assert "task-work-hint" not in test_html
     assert "task-work-symbol single" not in test_html
+
+
+def test_task_icons_live_in_margin_block_not_in_header_left():
+    options = {
+        "work": "partner",
+        "action": "read",
+        "hint": "tip",
+        "_show_task_label": "1",
+        "_auto_number": "1",
+    }
+
+    html = render_block(
+        "task", options, "Rechne aus.", include_solutions=False, document_mode="ws"
+    )
+
+    margin_block = re.search(r"<div class='task-margin-icons'>(.*?)</div>", html)
+    header_left = re.search(r"<div class='task-header-left'>(.*?)</div>", html)
+    assert margin_block is not None
+    assert margin_block.group(1).count("task-work-symbol") == 3
+    assert "task-work-symbol" not in header_left.group(1)
+    assert header_left.group(1).startswith("<span class='task-id'>")
+    assert "Einzelarbeit" not in html and "task-work-hint" not in html
+
+
+def test_task_without_any_icon_renders_no_margin_block():
+    html = render_block(
+        "task",
+        {"work": "single", "_show_task_label": "1"},
+        "Rechne aus.",
+        include_solutions=False,
+        document_mode="test",
+    )
+
+    assert "task-margin-icons" not in html
 
 
 def test_task_action_symbol_stays_visible_in_test_mode():
@@ -665,7 +697,7 @@ def test_render_html_shows_help_reference_on_subtask():
     assert "→ Lernhilfe X" in worksheet_html
 
 
-def test_task_title_is_rendered_in_task_label_before_work_mode():
+def test_task_title_is_rendered_in_task_label_and_work_mode_in_margin_block():
     options = {
         "work": "single",
         "title": "Titel hier",
@@ -682,7 +714,8 @@ def test_task_title_is_rendered_in_task_label_before_work_mode():
     )
 
     assert "Aufgabe 1 - Titel hier" in worksheet_html
-    assert worksheet_html.index("Aufgabe 1 - Titel hier") < worksheet_html.index("Einzelarbeit")
+    assert worksheet_html.index("task-margin-icons") < worksheet_html.index("Aufgabe 1 - Titel hier")
+    assert "title='Einzelarbeit'" in worksheet_html
 
 
 def test_task_points_and_time_render_together_in_header_right():

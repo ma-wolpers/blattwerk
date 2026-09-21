@@ -12,6 +12,7 @@ from __future__ import annotations
 from pathlib import Path
 import re
 
+from .page_geometry import build_gutter_css
 from .worksheet_design import build_design_css
 
 
@@ -551,8 +552,15 @@ def build_stylesheet(
     font_profile=DEFAULT_FONT_PROFILE,
     font_size_profile=DEFAULT_FONT_SIZE_PROFILE,
     document_mode="worksheet",
+    reserve_gutters=False,
+    has_word_notes=False,
 ):
-    """Erzeugt das finale Stylesheet aus Basis-CSS + dynamischen Overrides."""
+    """Erzeugt das finale Stylesheet aus Basis-CSS + dynamischen Overrides.
+
+    `reserve_gutters` reserviert die Randspalten (siehe `page_geometry.py`);
+    nur das Arbeitsblatt setzt es. `has_word_notes` ergänzt die rechte Spalte
+    für Worterklärungen.
+    """
     base_stylesheet = _load_stylesheet_template_text().strip()
     overrides = "\n\n".join(
         [
@@ -567,6 +575,7 @@ def build_stylesheet(
             build_design_css(
                 color_profile=color_profile, contrast_profile=print_profile
             ).strip(),
+            build_gutter_css(reserve_gutters, has_word_notes).strip(),
         ]
     )
     return f"{base_stylesheet}\n\n{overrides}\n"

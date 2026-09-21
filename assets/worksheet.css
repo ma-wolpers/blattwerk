@@ -447,6 +447,21 @@ h1 {
     margin: var(--task-gap-before) 0 var(--task-gap-after) 0;
 }
 
+.task::after {
+    content: "";
+    display: block;
+    clear: both;
+}
+
+/* Inline-Fallback (Präsentation, Hilfekarten, Spalten). Die Randspalten-
+   Variante (float in den linken Rand) erzeugt app/styles/page_geometry.py. */
+.task-margin-icons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.1em;
+    line-height: 1.2;
+}
+
 .task-header {
     display: flex;
     align-items: baseline;
@@ -485,12 +500,6 @@ h1 {
 .task-work-symbol {
     font-size: 1em;
     line-height: 1;
-}
-
-.task-work-hint {
-    color: var(--task-hint-color);
-    font-size: 0.9em;
-    font-weight: normal;
 }
 
 .task-help-reference {

@@ -386,21 +386,35 @@ def _render_task_block(
     include_solutions,
     document_mode,
 ):
-    """Rendert Aufgabenkopf und Aufgabeninhalt."""
+    """Rendert Aufgabenkopf und Aufgabeninhalt.
+
+    Die Aufgabensymbole (Operator, Hinweis, Arbeitsform) stehen NICHT im
+    Kopf, sondern in einem eigenen `.task-margin-icons`-Block, den das CSS
+    in die linke Randspalte schiebt. So beginnt das Label "Aufgabe N"
+    unabhängig von gesetzten `action=`/`hint=`-Optionen immer an derselben
+    x-Position wie alle anderen Seitenelemente. Der frühere Text neben dem
+    Arbeitsform-Icon ("- Einzelarbeit") entfällt (kein Platz in der Spalte);
+    die Bezeichnung bleibt als `title`-Attribut des Icons erhalten.
+    """
     task_id = options.get("_auto_number")
     points = options.get("points")
     time_minutes = (options.get("time") or "").strip()
     task_work_info = get_work_info(options.get("work", "single"))
-    work_icon, work_label, work_css_class = task_work_info
     task_action_info = get_task_action_info(options.get("action"))
     task_hint_info = get_task_hint_info(options.get("hint"))
     help_reference_text = (options.get("_help_reference_text") or "").strip()
     task_title = (options.get("title") or "").strip()
 
+    margin_icons = _render_symbol_span(task_action_info)
+    margin_icons += _render_symbol_span(task_hint_info)
+    if _should_show_work_hints(document_mode):
+        margin_icons += _render_symbol_span(task_work_info)
+    margin_icons_html = (
+        f"<div class='task-margin-icons'>{margin_icons}</div>" if margin_icons else ""
+    )
+
     header = "<div class='task-header'>"
     header += "<div class='task-header-left'>"
-    header += _render_symbol_span(task_action_info)
-    header += _render_symbol_span(task_hint_info)
     if options.get("_show_task_label"):
         task_label = "Aufgabe"
         if task_id:
@@ -408,9 +422,6 @@ def _render_task_block(
         if task_title:
             task_label = f"{task_label} - {task_title}"
         header += f"<span class='task-id'>{escape(task_label)}</span>"
-    if _should_show_work_hints(document_mode):
-        header += f"<span class='task-work-symbol {work_css_class}' title='{work_label}'>{work_icon}</span>"
-        header += f"<span class='task-work-hint'>- {work_label}</span>"
     header += "</div>"
 
     header_right_parts = []
@@ -433,4 +444,4 @@ def _render_task_block(
         task_work_info=task_work_info,
         task_action_info=task_action_info,
     )
-    return f"<div class='task'>{header}{task_body}</div>"
+    return f"<div class='task'>{margin_icons_html}{header}{task_body}</div>"
