@@ -1,12 +1,16 @@
-"""Parsing der Geometry-DSL-Objekte: Punkte, Sequenzen, Strecken, Funktionsgraphen.
+"""Parsing der Geometry-DSL-Objekte: Punkte, Sequenzen, Strecken, Funktionsgraphen, Polygone.
 
 Normative Quelle für "was ist ein gültiger YAML-Eintrag" je Geometry-Sektion
-(`points`, `sequence`, `pairs`, `functions`) — sowohl der Renderer
-(`answer_grid_primitives.py`) als auch der Validator
-(`blatt_validator_yaml_entries.py`) beziehen ihr Wissen über erlaubte Felder
-von hier, damit keine zweite, potenziell abweichende Kopie dieser Liste
-entsteht. Enthält außerdem `_GeometryCoordinateSystem`, die einzige Stelle,
-an der die Umrechnung Objekt-Koordinaten -> Rasterkoordinaten passiert.
+(`points`, `sequence`, `pairs`, `functions`, `polygons`) — sowohl der
+Renderer (`answer_grid_primitives.py`, `answer_grid_shapes.py`) als auch
+der Validator (`blatt_validator_yaml_entries.py`) beziehen ihr Wissen über
+erlaubte Felder von hier, damit keine zweite, potenziell abweichende Kopie
+dieser Liste entsteht. Enthält außerdem `_GeometryCoordinateSystem` (die
+einzige Stelle, an der die Umrechnung Objekt-Koordinaten -> Rasterkoordinaten
+passiert) sowie die reinen, renderer-unabhängigen Validitätsprädikate für
+`polygons` (`_polygon_vertices_are_valid`) -- letztere leben bewusst HIER
+statt im Renderer-Modul `answer_grid_shapes.py`, damit der Validator (der
+sie ebenfalls importiert) nie von Renderer-Code abhängen muss.
 """
 
 from __future__ import annotations
@@ -20,6 +24,7 @@ GEOMETRY_ENTRY_ALLOWED_KEYS = {
     "points": {"x", "y", "col", "row", "label", "show", "color", "thickness"},
     "sequence": {"x", "y", "label", "show", "color", "thickness"},
     "pairs": {"x1", "y1", "x2", "y2", "line", "label", "show", "color", "thickness"},
+    "polygons": {"vertices", "label", "show", "color", "thickness", "fill"},
     "functions": {"expr", "domain", "label", "show", "color", "thickness"},
 }
 """Normative Menge erlaubter YAML-Keys je Geometry-Sektion.
@@ -75,6 +80,27 @@ def _parse_domain(domain_text):
 def _inside_grid(x_value, y_value, cols, rows):
     """Prüft, ob ein Punkt innerhalb des sichtbaren Rasterbereichs liegt."""
     return 0.0 <= x_value <= float(cols) and 0.0 <= y_value <= float(rows)
+
+
+def _polygon_vertices_are_valid(raw_vertices):
+    """Prüft, ob `vertices` mindestens 3 Einträge hat und JEDER Eintrag ein Dict mit numerischem `x`/`y` ist.
+
+    Genutzt sowohl vom Parser (`_parse_polygons`, `answer_grid_shapes.py`)
+    als auch vom Validator (`AN017`, `blatt_validator_yaml_entries.py`) --
+    dieselbe Funktion, kein zweites, potenziell abweichendes Regelwerk.
+    Bewusst KEIN Teil-Repair: ist auch nur ein Eckpunkt ungültig, gilt das
+    gesamte Polygon als ungültig (der Aufrufer verwirft den kompletten
+    Eintrag), statt heimlich ein anderes, kleineres Polygon aus den
+    verbleibenden gültigen Eckpunkten zu bilden.
+    """
+    if not isinstance(raw_vertices, list) or len(raw_vertices) < 3:
+        return False
+    for vertex in raw_vertices:
+        if not isinstance(vertex, dict):
+            return False
+        if _as_float(vertex.get("x")) is None or _as_float(vertex.get("y")) is None:
+            return False
+    return True
 
 
 def _normalize_show_mode(show_value):

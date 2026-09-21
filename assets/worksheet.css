@@ -1114,6 +1114,37 @@ h1 {
     fill: var(--solution-accent-strong, #205840);
 }
 
+.grid-polygon {
+    fill: none;
+    stroke: var(--theme-accent-main);
+    stroke-width: 1.1;
+    vector-effect: non-scaling-stroke;
+}
+
+.grid-polygon.grid-mode-worksheet {
+    stroke: var(--theme-accent-secondary);
+}
+
+.grid-polygon.grid-mode-solution {
+    stroke: var(--solution-accent-strong, #205840);
+}
+
+.grid-polygon-label {
+    fill: var(--theme-accent-main);
+    font-size: 0.60px;
+    font-weight: 600;
+    text-anchor: middle;
+    dominant-baseline: middle;
+}
+
+.grid-polygon-label.grid-mode-worksheet {
+    fill: var(--theme-accent-secondary);
+}
+
+.grid-polygon-label.grid-mode-solution {
+    fill: var(--solution-accent-strong, #205840);
+}
+
 .answer.dots {
     --dot-step: var(--dot-spacing);
     border: var(--field-border-width) dotted var(--dot-border-color);

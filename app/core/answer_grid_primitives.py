@@ -1,9 +1,9 @@
-"""Rendert die optionalen Geometrie-Objekte (Achsen, Punkte, Strecken, Funktionsgraphen) als SVG-Overlay.
+"""Rendert die optionalen Geometrie-Objekte (Achsen, Punkte, Strecken, Funktionsgraphen, Polygone) als SVG-Overlay.
 
-Konsumiert die geparsten Einträge aus `answer_grid_entries.py` sowie die
-Achsen-Rendering-Bausteine aus `answer_grid_axis.py` und setzt sie zu einem
-einzigen SVG-Overlay zusammen, das über dem Hintergrund-Raster
-(`answer_grid_svg_frame.py`) liegt.
+Konsumiert die geparsten Einträge aus `answer_grid_entries.py`/
+`answer_grid_shapes.py` sowie die Achsen-Rendering-Bausteine aus
+`answer_grid_axis.py` und setzt sie zu einem einzigen SVG-Overlay zusammen,
+das über dem Hintergrund-Raster (`answer_grid_svg_frame.py`) liegt.
 """
 
 from __future__ import annotations
@@ -27,6 +27,7 @@ from .answer_grid_entries import (
     _parse_sequence,
 )
 from .answer_grid_function_eval import _sample_function_points
+from .answer_grid_shapes import _render_polygons_section
 from .answer_grid_svg_frame import _svg_viewport_frame
 from .answer_grid_svg_style import _svg_fill_style_attr, _svg_stroke_style_attr
 
@@ -128,6 +129,7 @@ _SECTION_RENDERERS = {
     "points": _render_points_section,
     "sequence": _render_sequence_section,
     "pairs": _render_pairs_section,
+    "polygons": _render_polygons_section,
     "functions": _render_functions_section,
 }
 """Dispatch-Tabelle Sektionsname -> `(raw_entries, coord_system, cols, rows, include_solutions) -> (shapes, labels)`.
@@ -136,9 +138,9 @@ _SECTION_RENDERERS = {
 YAML-Dokumentreihenfolge und schlägt hier nach, statt die Sektionen in
 einer im Code fest verdrahteten Reihenfolge zu rendern -- die Zeichen-
 Reihenfolge im Ergebnis-SVG folgt dadurch der Reihenfolge, in der die
-Sektionen im `:::geometry`-Payload tatsächlich stehen. `polygons`/`circles`
-werden hier ergänzt, sobald sie existieren (aus `answer_grid_shapes.py`
-importiert, nicht hier definiert).
+Sektionen im `:::geometry`-Payload tatsächlich stehen. `circles` wird hier
+ergänzt, sobald es existiert (aus `answer_grid_shapes.py` importiert, nicht
+hier definiert).
 """
 
 

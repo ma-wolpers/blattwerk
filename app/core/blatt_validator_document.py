@@ -40,6 +40,7 @@ from .blatt_validator_value_helpers import _get_matching_item_counts
 from .blatt_validator_yaml_entries import (
     _validate_geometry_axis_dependent_sections,
     _validate_geometry_entry_fields,
+    _validate_geometry_shape_entries,
     _validate_payload_show_markers,
 )
 
@@ -404,6 +405,7 @@ def _validate_yaml_answer_payload(diagnostics, index, block_type, options, conte
             _validate_payload_show_markers(diagnostics, index, answer_type, parsed, options)
             _validate_geometry_entry_fields(diagnostics, index, answer_type, parsed, options)
             _validate_geometry_axis_dependent_sections(diagnostics, index, answer_type, parsed, options)
+            _validate_geometry_shape_entries(diagnostics, index, answer_type, parsed, options)
 
     if answer_type == "matching":
         first_count, second_count = _get_matching_item_counts(options, content)

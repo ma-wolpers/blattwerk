@@ -293,6 +293,22 @@ PROSE_SECTIONS: dict[str, str] = {
         "eine eigene, von der Block-Option `line` unabhängige Ebene; ein ungültiger Wert wird als "
         "`AN012` gemeldet. `color`/`thickness` wie bei `points`."
     ),
+    "geometry:polygons": (
+        "Beliebige geschlossene Vielecke über `vertices:` (Liste von mindestens 3 `{x, y}`-"
+        "Objekten -- kein `col`/`row`-Alias auf Eckpunkt-Ebene). Im Achsenmodus mathematische "
+        "Koordinaten je Eckpunkt, sonst Rasterkoordinaten mit Ursprung unten links, genau wie "
+        "bei `pairs`. Ist auch nur EIN Eckpunkt fehlerhaft (fehlendes/nicht-numerisches `x`/`y`) "
+        "oder hat `vertices` weniger als 3 Einträge, wird das GESAMTE Polygon nicht gerendert "
+        "(keine automatische Reparatur einzelner Eckpunkte) -- der Validator meldet das als "
+        "`AN017`. Das Polygon wird immer geschlossen gezeichnet (letzter Eckpunkt verbindet sich "
+        "automatisch mit dem ersten); für offene Linienzüge siehe `sequence`. `label` wird am "
+        "echten Flächenschwerpunkt platziert (nicht am Eckpunkt-Mittelwert -- bei konkaven "
+        "Vielecken ein spürbarer Unterschied). Selbstüberschneidende Polygone werden ohne "
+        "weitere Prüfung genau so gezeichnet, wie angegeben; der Flächenschwerpunkt ist für "
+        "solche Konturen kein physikalisch eindeutiger Wert, sondern nur ein konsistenter "
+        "Label-Anker. `fill` (beliebiger CSS-Farbwert, Standard: keine Füllung) füllt die "
+        "Fläche; `color`/`thickness` wie bei `points`."
+    ),
     "geometry:functions": (
         "Funktionsgraphen (nur im Achsenmodus -- anders als `pairs`/`sequence` bleibt `functions` "
         "bewusst axis-only, da ein Funktionsgraph ohne mathematisches Koordinatensystem nicht "
@@ -337,7 +353,7 @@ PROSE_SECTIONS: dict[str, str] = {
         "gefiltert."
     ),
     "block:geometry": (
-        "Koordinatensystem für Punkte, Polylinien, Strecken und Funktionsgraphen (siehe Geometry-"
+        "Koordinatensystem für Punkte, Polylinien, Strecken, Vielecke und Funktionsgraphen (siehe Geometry-"
         "Abschnitt unten für die YAML-Payload-Struktur). `width`/`height` setzen die Größe in "
         "Rastereinheiten. `axis=true` aktiviert echte Achsen mit `origin`/`step_x`/`step_y` zur "
         "Umrechnung mathematischer Koordinaten in Rasterzellen -- `axis=true` OHNE gültiges "

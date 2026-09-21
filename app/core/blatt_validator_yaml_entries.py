@@ -14,7 +14,7 @@ pflegen.
 from __future__ import annotations
 
 from .answer_grid_axis import _resolve_axis_state
-from .answer_grid_entries import GEOMETRY_ENTRY_ALLOWED_KEYS
+from .answer_grid_entries import GEOMETRY_ENTRY_ALLOWED_KEYS, _polygon_vertices_are_valid
 from .answer_special_shared import parse_svg_color, parse_svg_thickness
 from .blatt_validator_constants import (
     GRID_MARKER_SHOW_VALUES,
@@ -77,13 +77,14 @@ def _validate_geometry_entry_fields(diagnostics, block_index, answer_type, parse
       — eine eigene Diagnose-Ebene, getrennt von der Block-Option
       `line=solid|dashed` bei `:::grid`/`:::geometry` (`OP002`), die einen
       anderen DSL-Konzept mit demselben Namen prüft;
-    - einen vorhandenen, aber ungültigen `color`-Wert (`AN013`), erkannt
-      über dieselbe `parse_svg_color`-Funktion, die auch der Renderer nutzt;
+    - einen vorhandenen, aber ungültigen `color`- ODER `fill`-Wert (`AN013`
+      für beide -- dieselbe `parse_svg_color`-Validierung, nur ein anderer
+      Feldname), erkannt über dieselbe Funktion, die auch der Renderer nutzt;
     - einen vorhandenen, aber ungültigen `thickness`-Wert (`AN014`), analog
       über `parse_svg_thickness`.
 
-    Ein fehlender oder `None`-Wert für `line`/`color`/`thickness` wird
-    nicht gemeldet (konsistent mit der `show`-Feld-Behandlung in
+    Ein fehlender oder `None`-Wert für `line`/`color`/`fill`/`thickness`
+    wird nicht gemeldet (konsistent mit der `show`-Feld-Behandlung in
     `_validate_payload_show_markers`) — nur ein *vorhandener, aber
     ungültiger* Wert ist eine Diagnose wert.
     """
@@ -136,20 +137,22 @@ def _validate_geometry_entry_fields(diagnostics, block_index, answer_type, parse
                         )
                     )
 
-            raw_color = entry.get("color")
-            if raw_color is not None and parse_svg_color(raw_color) is None:
-                diagnostics.append(
-                    BuildDiagnostic(
-                        code="AN013",
-                        message=(
-                            f"Ungueltiger Farbwert fuer `color` in `{section}[{idx}]`: `{raw_color}`."
-                        ),
-                        block_index=block_index,
-                        block_type=answer_type,
-                        region_id=region_id,
-                        anchor=f"{section}[{idx}].color",
+            for color_field in ("color", "fill"):
+                raw_color = entry.get(color_field)
+                if raw_color is not None and parse_svg_color(raw_color) is None:
+                    diagnostics.append(
+                        BuildDiagnostic(
+                            code="AN013",
+                            message=(
+                                f"Ungueltiger Farbwert fuer `{color_field}` in `{section}[{idx}]`: "
+                                f"`{raw_color}`."
+                            ),
+                            block_index=block_index,
+                            block_type=answer_type,
+                            region_id=region_id,
+                            anchor=f"{section}[{idx}].{color_field}",
+                        )
                     )
-                )
 
             raw_thickness = entry.get("thickness")
             if raw_thickness is not None and parse_svg_thickness(raw_thickness) is None:
@@ -204,3 +207,39 @@ def _validate_geometry_axis_dependent_sections(diagnostics, block_index, answer_
             anchor="functions",
         )
     )
+
+
+def _validate_geometry_shape_entries(diagnostics, block_index, answer_type, parsed_payload, options=None):
+    """Validiert `polygons[]`-Ganz-Eintrag-Gültigkeit (`AN017`).
+
+    Nutzt exakt `_polygon_vertices_are_valid` (`answer_grid_entries.py`),
+    dieselbe Funktion wie der Parser (`_parse_polygons`,
+    `answer_grid_shapes.py`) -- kein zweites, potenziell abweichendes
+    Regelwerk, und keine Abhängigkeit des Validators auf das Renderer-Modul
+    `answer_grid_shapes.py`.
+    """
+    if answer_type != "geometry" or not isinstance(parsed_payload, dict):
+        return
+    region_id = compute_block_region_id(answer_type, options or {})
+
+    polygon_entries = parsed_payload.get("polygons")
+    if isinstance(polygon_entries, list):
+        for idx, entry in enumerate(polygon_entries, start=1):
+            if not isinstance(entry, dict):
+                continue
+            if not _polygon_vertices_are_valid(entry.get("vertices")):
+                diagnostics.append(
+                    BuildDiagnostic(
+                        code="AN017",
+                        message=(
+                            f"Ungueltiges Polygon in `polygons[{idx}]`: `vertices` braucht "
+                            "mindestens 3 Eintraege, jeweils mit numerischem `x`/`y`. Das "
+                            "gesamte Polygon wird nicht gerendert (kein Teil-Repair einzelner "
+                            "Eckpunkte)."
+                        ),
+                        block_index=block_index,
+                        block_type=answer_type,
+                        region_id=region_id,
+                        anchor=f"polygons[{idx}].vertices",
+                    )
+                )

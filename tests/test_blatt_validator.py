@@ -625,6 +625,8 @@ def test_geometry_all_allowed_entry_keys_do_not_emit_an011():
         "  - {x: 0, y: 0, label: s, show: '&', color: red, thickness: 1}\n"
         "pairs:\n"
         "  - {x1: 0, y1: 0, x2: 1, y2: 1, line: solid, label: l, show: '&', color: red, thickness: 1}\n"
+        "polygons:\n"
+        "  - {vertices: [{x: 0, y: 0}, {x: 1, y: 0}, {x: 1, y: 1}], label: g, show: '&', color: red, thickness: 1, fill: blue}\n"
         "functions:\n"
         "  - {expr: x, domain: '-1:1', label: f, show: '&', color: red, thickness: 1}\n"
         ":::"
@@ -764,6 +766,67 @@ def test_geometry_positive_thickness_does_not_emit_an014():
     inspected = inspect_markdown_text(text)
     codes = {diagnostic.code for diagnostic in inspected.diagnostics}
     assert "AN014" not in codes
+
+
+def test_geometry_invalid_fill_emits_an013_warning():
+    text = _build_document(
+        ":::geometry width=4 height=4\n"
+        "polygons:\n"
+        "  - {vertices: [{x: 0, y: 0}, {x: 1, y: 0}, {x: 1, y: 1}], fill: 'red;}body{display:none'}\n"
+        ":::"
+    )
+    inspected = inspect_markdown_text(text)
+    an013 = [d for d in inspected.diagnostics if d.code == "AN013"]
+    assert an013
+    assert "fill" in an013[0].message
+
+
+def test_geometry_polygon_too_few_vertices_emits_an017():
+    text = _build_document(
+        ":::geometry width=4 height=4\n"
+        "polygons:\n"
+        "  - {vertices: [{x: 0, y: 0}, {x: 1, y: 1}]}\n"
+        ":::"
+    )
+    inspected = inspect_markdown_text(text)
+    an017 = [d for d in inspected.diagnostics if d.code == "AN017"]
+    assert an017
+
+
+def test_geometry_polygon_one_invalid_vertex_emits_an017():
+    text = _build_document(
+        ":::geometry width=4 height=4\n"
+        "polygons:\n"
+        "  - {vertices: [{x: 0, y: 0}, {x: 1, y: 0}, {x: not-a-number, y: 1}, {x: 0, y: 1}]}\n"
+        ":::"
+    )
+    inspected = inspect_markdown_text(text)
+    an017 = [d for d in inspected.diagnostics if d.code == "AN017"]
+    assert an017
+
+
+def test_geometry_valid_polygon_does_not_emit_an017():
+    text = _build_document(
+        ":::geometry width=4 height=4\n"
+        "polygons:\n"
+        "  - {vertices: [{x: 0, y: 0}, {x: 1, y: 0}, {x: 1, y: 1}]}\n"
+        ":::"
+    )
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+    assert "AN017" not in codes
+
+
+def test_geometry_polygon_show_marker_is_validated_via_an007():
+    text = _build_document(
+        ":::geometry width=4 height=4\n"
+        "polygons:\n"
+        "  - {vertices: [{x: 0, y: 0}, {x: 1, y: 0}, {x: 1, y: 1}], show: 'both'}\n"
+        ":::"
+    )
+    inspected = inspect_markdown_text(text)
+    an007 = [d for d in inspected.diagnostics if d.code == "AN007"]
+    assert an007
 
 
 def test_geometry_line_invalid_value_emits_op002_error():

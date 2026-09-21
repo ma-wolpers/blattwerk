@@ -242,7 +242,7 @@ Keine Optionen.
 
 ### `geometry`
 
-Koordinatensystem für Punkte, Polylinien, Strecken und Funktionsgraphen (siehe Geometry-Abschnitt unten für die YAML-Payload-Struktur). `width`/`height` setzen die Größe in Rastereinheiten. `axis=true` aktiviert echte Achsen mit `origin`/`step_x`/`step_y` zur Umrechnung mathematischer Koordinaten in Rasterzellen -- `axis=true` OHNE gültiges `origin` ist ein Fehler (`OP005`) und lässt den gesamten Payload unsichtbar, statt still auf Rasterkoordinaten zurückzufallen; `axis_label_x`/`axis_label_y` beschriften die Achsen (Standard `x`/`y`). Objekte werden in genau der Reihenfolge übereinander gezeichnet, in der ihre Abschnitte (`points`, `pairs`, ...) im YAML-Payload stehen -- die Achse liegt dabei immer ganz unten, alle Beschriftungen immer ganz oben.
+Koordinatensystem für Punkte, Polylinien, Strecken, Vielecke und Funktionsgraphen (siehe Geometry-Abschnitt unten für die YAML-Payload-Struktur). `width`/`height` setzen die Größe in Rastereinheiten. `axis=true` aktiviert echte Achsen mit `origin`/`step_x`/`step_y` zur Umrechnung mathematischer Koordinaten in Rasterzellen -- `axis=true` OHNE gültiges `origin` ist ein Fehler (`OP005`) und lässt den gesamten Payload unsichtbar, statt still auf Rasterkoordinaten zurückzufallen; `axis_label_x`/`axis_label_y` beschriften die Achsen (Standard `x`/`y`). Objekte werden in genau der Reihenfolge übereinander gezeichnet, in der ihre Abschnitte (`points`, `pairs`, ...) im YAML-Payload stehen -- die Achse liegt dabei immer ganz unten, alle Beschriftungen immer ganz oben.
 
 | Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
 |---|---|---|---|---|---|
@@ -812,6 +812,12 @@ Erlaubte Keys: `color`, `label`, `line`, `show`, `thickness`, `x1`, `x2`, `y1`, 
 Einzelne markierte Punkte im Raster. Im Achsenmodus (`axis=true`) werden `x`/`y` als mathematische Koordinaten interpretiert, sonst `col`/`row` (bzw. `x`/`y` als Alias) als direkte Rasterkoordinaten. `label` beschriftet den Punkt. `color` (beliebiger CSS-Farbwert) und `thickness` (positive Zahl) sind optional -- fehlt einer der beiden oder ist er ungültig, fällt der Punkt auf den bisherigen Theme-Standard zurück, ohne den Build zu blockieren (Warnung `AN013`/`AN014`).
 
 Erlaubte Keys: `col`, `color`, `label`, `row`, `show`, `thickness`, `x`, `y`.
+
+### `polygons`
+
+Beliebige geschlossene Vielecke über `vertices:` (Liste von mindestens 3 `{x, y}`-Objekten -- kein `col`/`row`-Alias auf Eckpunkt-Ebene). Im Achsenmodus mathematische Koordinaten je Eckpunkt, sonst Rasterkoordinaten mit Ursprung unten links, genau wie bei `pairs`. Ist auch nur EIN Eckpunkt fehlerhaft (fehlendes/nicht-numerisches `x`/`y`) oder hat `vertices` weniger als 3 Einträge, wird das GESAMTE Polygon nicht gerendert (keine automatische Reparatur einzelner Eckpunkte) -- der Validator meldet das als `AN017`. Das Polygon wird immer geschlossen gezeichnet (letzter Eckpunkt verbindet sich automatisch mit dem ersten); für offene Linienzüge siehe `sequence`. `label` wird am echten Flächenschwerpunkt platziert (nicht am Eckpunkt-Mittelwert -- bei konkaven Vielecken ein spürbarer Unterschied). Selbstüberschneidende Polygone werden ohne weitere Prüfung genau so gezeichnet, wie angegeben; der Flächenschwerpunkt ist für solche Konturen kein physikalisch eindeutiger Wert, sondern nur ein konsistenter Label-Anker. `fill` (beliebiger CSS-Farbwert, Standard: keine Füllung) füllt die Fläche; `color`/`thickness` wie bei `points`.
+
+Erlaubte Keys: `color`, `fill`, `label`, `show`, `thickness`, `vertices`.
 
 ### `sequence`
 
