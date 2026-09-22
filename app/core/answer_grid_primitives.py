@@ -27,7 +27,7 @@ from .answer_grid_entries import (
     _parse_sequence,
 )
 from .answer_grid_function_eval import _sample_function_points
-from .answer_grid_shapes import _render_polygons_section
+from .answer_grid_shapes import _render_circles_section, _render_polygons_section
 from .answer_grid_svg_frame import _svg_viewport_frame
 from .answer_grid_svg_style import _svg_fill_style_attr, _svg_stroke_style_attr
 
@@ -130,6 +130,7 @@ _SECTION_RENDERERS = {
     "sequence": _render_sequence_section,
     "pairs": _render_pairs_section,
     "polygons": _render_polygons_section,
+    "circles": _render_circles_section,
     "functions": _render_functions_section,
 }
 """Dispatch-Tabelle Sektionsname -> `(raw_entries, coord_system, cols, rows, include_solutions) -> (shapes, labels)`.
@@ -138,9 +139,7 @@ _SECTION_RENDERERS = {
 YAML-Dokumentreihenfolge und schlägt hier nach, statt die Sektionen in
 einer im Code fest verdrahteten Reihenfolge zu rendern -- die Zeichen-
 Reihenfolge im Ergebnis-SVG folgt dadurch der Reihenfolge, in der die
-Sektionen im `:::geometry`-Payload tatsächlich stehen. `circles` wird hier
-ergänzt, sobald es existiert (aus `answer_grid_shapes.py` importiert, nicht
-hier definiert).
+Sektionen im `:::geometry`-Payload tatsächlich stehen.
 """
 
 

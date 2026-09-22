@@ -99,12 +99,13 @@ Subprozess siehe `tests/test_blatt_diagnostics_cli.py` (Validator) sowie
 - `AN008`: Legacy-Syntax `:::answer type=...` ist nicht mehr erlaubt; dedizierten Blocktyp nutzen (z. B. `:::grid`, `:::lines`).
 - `AN009`: Option `type` ist bei dedizierten Antwort-Blocktypen unzulaessig (der Blocktyp selbst definiert bereits den Antworttyp).
 - `AN010`: Ein `task`-/`subtask`- oder textbasierter `answer`-Block nutzt explizite `§`-Marker ohne sichtbares Loesungs-Gegenstueck; pruefe die Paarung von Arbeitsblatt- und Loesungsinhalt.
-- `AN011`: Unbekannter YAML-Key in einem `geometry`-Objekt-Eintrag (`points`/`sequence`/`pairs`/`polygons`/`functions`), z. B. ein Tippfehler wie `lable` statt `label`.
+- `AN011`: Unbekannter YAML-Key in einem `geometry`-Objekt-Eintrag (`points`/`sequence`/`pairs`/`polygons`/`circles`/`functions`), z. B. ein Tippfehler wie `lable` statt `label`.
 - `AN012`: Ungueltiger `line`-Wert in einem `pairs`-Eintrag (erlaubt: `solid`, `dashed`). Objekt-Feld-Ebene, getrennt von der gleichnamigen Block-Option `line=solid|dashed` bei `:::grid`/`:::geometry` (dort `OP002`).
 - `AN013`: Ungueltiger `color`- oder `fill`-Wert in einem `geometry`-Objekt-Eintrag (kein von `parse_svg_color` akzeptiertes CSS-Farbformat).
 - `AN014`: Ungueltiger `thickness`-Wert in einem `geometry`-Objekt-Eintrag (keine positive Zahl).
 - `AN015`: `functions`-Eintraege ohne aktiven Achsenmodus (`axis=true` mit gueltigem `origin`) -- rendern nie etwas, da Funktionsgraphen ohne mathematisches Koordinatensystem nicht definiert sind.
 - `AN017`: Ungueltiges Polygon in einem `polygons`-Eintrag (`vertices` mit weniger als 3 Eintraegen, oder mindestens ein Eckpunkt ohne numerisches `x`/`y`) -- das gesamte Polygon wird nicht gerendert, keine Teil-Reparatur einzelner Eckpunkte.
+- `AN018`: Ungueltiger Kreis/Bogen in einem `circles`-Eintrag (`cx`/`cy`/`r` fehlt/nicht positiv, ODER genau einer von `start_angle`/`end_angle` gesetzt, ODER beide gesetzt aber mindestens einer nicht numerisch parsebar) -- der gesamte Eintrag wird nicht gerendert.
 - `CW001`: `crossword`-Block konnte mit den gegebenen Woertern nicht innerhalb der `maxw`x`maxh`-Rastergroesse platziert werden.
 - `CW002`: `crossword`-Block: das `code=`-Loesungswort kann aus den Buchstaben der platzierten Woerter nicht gebildet werden.
 - `CW003`: `crossword`-Block: `code_row=true` ohne `code=`-Angabe, oder das Codewort ist kuerzer als die Anzahl der Raetselwoerter.

@@ -34,6 +34,7 @@ def _geometry_prose_keys() -> tuple[str, ...]:
         "geometry:sequence",
         "geometry:pairs",
         "geometry:polygons",
+        "geometry:circles",
         "geometry:functions",
     )
 

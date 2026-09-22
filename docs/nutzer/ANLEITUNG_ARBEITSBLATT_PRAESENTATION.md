@@ -242,7 +242,7 @@ Keine Optionen.
 
 ### `geometry`
 
-Koordinatensystem für Punkte, Polylinien, Strecken, Vielecke und Funktionsgraphen (siehe Geometry-Abschnitt unten für die YAML-Payload-Struktur). `width`/`height` setzen die Größe in Rastereinheiten. `axis=true` aktiviert echte Achsen mit `origin`/`step_x`/`step_y` zur Umrechnung mathematischer Koordinaten in Rasterzellen -- `axis=true` OHNE gültiges `origin` ist ein Fehler (`OP005`) und lässt den gesamten Payload unsichtbar, statt still auf Rasterkoordinaten zurückzufallen; `axis_label_x`/`axis_label_y` beschriften die Achsen (Standard `x`/`y`). Objekte werden in genau der Reihenfolge übereinander gezeichnet, in der ihre Abschnitte (`points`, `pairs`, ...) im YAML-Payload stehen -- die Achse liegt dabei immer ganz unten, alle Beschriftungen immer ganz oben.
+Koordinatensystem für Punkte, Polylinien, Strecken, Vielecke, Kreise/Bögen und Funktionsgraphen (siehe Geometry-Abschnitt unten für die YAML-Payload-Struktur). `width`/`height` setzen die Größe in Rastereinheiten. `axis=true` aktiviert echte Achsen mit `origin`/`step_x`/`step_y` zur Umrechnung mathematischer Koordinaten in Rasterzellen -- `axis=true` OHNE gültiges `origin` ist ein Fehler (`OP005`) und lässt den gesamten Payload unsichtbar, statt still auf Rasterkoordinaten zurückzufallen; `axis_label_x`/`axis_label_y` beschriften die Achsen (Standard `x`/`y`). Objekte werden in genau der Reihenfolge übereinander gezeichnet, in der ihre Abschnitte (`points`, `pairs`, ...) im YAML-Payload stehen -- die Achse liegt dabei immer ganz unten, alle Beschriftungen immer ganz oben.
 
 | Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
 |---|---|---|---|---|---|
@@ -794,6 +794,12 @@ Schreibimpuls hier…
 `:::grid` und `:::geometry` unterstützen die Option `line=solid|dashed` (Standard: `solid`), die den Linienstil des Rasterhintergrunds selbst steuert -- unabhängig vom gleichnamigen `pairs[].line`-Feld auf Objektebene (siehe unten), das nur die einzelne Strecke betrifft. Nur `:::geometry` hat zusätzlich `background=none|lines|dots` (Standard `none`) -- ohne Angabe bleibt die Fläche leer, `lines` zeichnet dasselbe Karoraster wie `:::grid`, `dots` ein Punktraster.
 
 Erlaubte `line`-Werte: `dashed`, `solid`.
+
+### `circles`
+
+Ein Vollkreis (bzw. eine Ellipse) oder ein Kreisbogen um den Mittelpunkt `cx`/`cy` mit Radius `r` (kein `col`/`row`-Alias für `cx`/`cy`). Im Achsenmodus mathematische Koordinaten, mit `step_x`/`step_y`-Skalierung je Achse -- bei unterschiedlichem `step_x`/`step_y` entsteht dadurch bewusst eine Ellipse statt eines verzerrten Kreises; ohne Achse direkte Rasterkoordinaten mit Ursprung unten links, genau wie bei `pairs`/`polygons`. Ohne `start_angle`/`end_angle` wird ein voller Kreis gezeichnet; sind beide gesetzt (Grad, `0°` = Osten/positive x-Achse, wachsend entgegen dem Uhrzeigersinn -- wie der Einheitskreis in der Schulmathematik), wird stattdessen nur der Bogen von `start_angle` bis `end_angle` gezeichnet, immer aufsteigend; ist `end_angle` kleiner als `start_angle`, läuft der Bogen über 360° hinweg weiter (der "lange Weg" um den Kreis). Sind `start_angle`/`end_angle` gleich (auch modulo 360°, z. B. `0`/`360`), wird ebenfalls ein voller Kreis gezeichnet. Ist NUR einer der beiden Winkel gesetzt (oder ist einer von beiden zwar gesetzt, aber kein gültiger Zahlenwert), wird der gesamte Eintrag nicht gerendert (Validator-Warnung `AN018`). Der Bogenpfad selbst wird nicht geschlossen -- eine gesetzte `fill`-Farbe erzeugt daher ein Kreissegment (Bogen plus gerade Sehne zwischen den Endpunkten), kein Tortenstück. `label`, `color`, `thickness`, `fill` wie bei `polygons`. Ein Eintrag mit fehlendem oder ungültigem `cx`/`cy`/`r` (`r` muss positiv sein) wird ebenfalls nicht gerendert (`AN018`).
+
+Erlaubte Keys: `color`, `cx`, `cy`, `end_angle`, `fill`, `label`, `r`, `show`, `start_angle`, `thickness`.
 
 ### `functions`
 

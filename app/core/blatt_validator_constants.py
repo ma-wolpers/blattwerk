@@ -152,7 +152,7 @@ Menge referenzieren kann, ohne sie zu duplizieren. Gilt **nicht** für
 
 NUMBERLINE_ANSWER_TYPES = {"numberline"}
 MARKER_SHOW_SECTIONS_BY_ANSWER_TYPE = {
-    "geometry": ("points", "pairs", "functions", "polygons"),
+    "geometry": ("points", "pairs", "functions", "polygons", "circles"),
     "numberline": ("labels", "answers", "arcs", "jumps", "arrows", "boxes", "blanks"),
 }
 """`sequence` bleibt hier bewusst ausgenommen (vorbestehende, hier nicht behobene Lücke)."""

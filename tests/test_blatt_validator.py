@@ -627,6 +627,8 @@ def test_geometry_all_allowed_entry_keys_do_not_emit_an011():
         "  - {x1: 0, y1: 0, x2: 1, y2: 1, line: solid, label: l, show: '&', color: red, thickness: 1}\n"
         "polygons:\n"
         "  - {vertices: [{x: 0, y: 0}, {x: 1, y: 0}, {x: 1, y: 1}], label: g, show: '&', color: red, thickness: 1, fill: blue}\n"
+        "circles:\n"
+        "  - {cx: 0, cy: 0, r: 1, start_angle: 0, end_angle: 90, label: c, show: '&', color: red, thickness: 1, fill: blue}\n"
         "functions:\n"
         "  - {expr: x, domain: '-1:1', label: f, show: '&', color: red, thickness: 1}\n"
         ":::"
@@ -822,6 +824,104 @@ def test_geometry_polygon_show_marker_is_validated_via_an007():
         ":::geometry width=4 height=4\n"
         "polygons:\n"
         "  - {vertices: [{x: 0, y: 0}, {x: 1, y: 0}, {x: 1, y: 1}], show: 'both'}\n"
+        ":::"
+    )
+    inspected = inspect_markdown_text(text)
+    an007 = [d for d in inspected.diagnostics if d.code == "AN007"]
+    assert an007
+
+
+def test_geometry_circle_invalid_radius_emits_an018():
+    text = _build_document(
+        ":::geometry width=4 height=4\n"
+        "circles:\n"
+        "  - {cx: 1, cy: 1, r: -5}\n"
+        ":::"
+    )
+    inspected = inspect_markdown_text(text)
+    an018 = [d for d in inspected.diagnostics if d.code == "AN018"]
+    assert an018
+
+
+def test_geometry_circle_missing_center_emits_an018():
+    text = _build_document(
+        ":::geometry width=4 height=4\n"
+        "circles:\n"
+        "  - {r: 2}\n"
+        ":::"
+    )
+    inspected = inspect_markdown_text(text)
+    an018 = [d for d in inspected.diagnostics if d.code == "AN018"]
+    assert an018
+
+
+def test_geometry_circle_only_start_angle_emits_an018():
+    text = _build_document(
+        ":::geometry width=4 height=4\n"
+        "circles:\n"
+        "  - {cx: 1, cy: 1, r: 1, start_angle: 0}\n"
+        ":::"
+    )
+    inspected = inspect_markdown_text(text)
+    an018 = [d for d in inspected.diagnostics if d.code == "AN018"]
+    assert an018
+    assert "start_angle" in an018[0].message
+
+
+def test_geometry_circle_only_end_angle_emits_an018():
+    text = _build_document(
+        ":::geometry width=4 height=4\n"
+        "circles:\n"
+        "  - {cx: 1, cy: 1, r: 1, end_angle: 90}\n"
+        ":::"
+    )
+    inspected = inspect_markdown_text(text)
+    an018 = [d for d in inspected.diagnostics if d.code == "AN018"]
+    assert an018
+
+
+def test_geometry_circle_both_angles_set_but_one_unparsable_emits_an018():
+    text = _build_document(
+        ":::geometry width=4 height=4\n"
+        "circles:\n"
+        "  - {cx: 1, cy: 1, r: 1, start_angle: 0, end_angle: not-a-number}\n"
+        ":::"
+    )
+    inspected = inspect_markdown_text(text)
+    an018 = [d for d in inspected.diagnostics if d.code == "AN018"]
+    assert an018
+    assert "parsebar" in an018[0].message
+
+
+def test_geometry_circle_valid_full_circle_does_not_emit_an018():
+    text = _build_document(
+        ":::geometry width=4 height=4\n"
+        "circles:\n"
+        "  - {cx: 1, cy: 1, r: 1}\n"
+        ":::"
+    )
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+    assert "AN018" not in codes
+
+
+def test_geometry_circle_valid_arc_does_not_emit_an018():
+    text = _build_document(
+        ":::geometry width=4 height=4\n"
+        "circles:\n"
+        "  - {cx: 1, cy: 1, r: 1, start_angle: 0, end_angle: 90}\n"
+        ":::"
+    )
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+    assert "AN018" not in codes
+
+
+def test_geometry_circle_show_marker_is_validated_via_an007():
+    text = _build_document(
+        ":::geometry width=4 height=4\n"
+        "circles:\n"
+        "  - {cx: 1, cy: 1, r: 1, show: 'both'}\n"
         ":::"
     )
     inspected = inspect_markdown_text(text)

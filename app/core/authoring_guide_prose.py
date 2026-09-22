@@ -309,6 +309,26 @@ PROSE_SECTIONS: dict[str, str] = {
         "Label-Anker. `fill` (beliebiger CSS-Farbwert, Standard: keine Füllung) füllt die "
         "Fläche; `color`/`thickness` wie bei `points`."
     ),
+    "geometry:circles": (
+        "Ein Vollkreis (bzw. eine Ellipse) oder ein Kreisbogen um den Mittelpunkt `cx`/`cy` mit "
+        "Radius `r` (kein `col`/`row`-Alias für `cx`/`cy`). Im Achsenmodus mathematische "
+        "Koordinaten, mit `step_x`/`step_y`-Skalierung je Achse -- bei unterschiedlichem "
+        "`step_x`/`step_y` entsteht dadurch bewusst eine Ellipse statt eines verzerrten Kreises; "
+        "ohne Achse direkte Rasterkoordinaten mit Ursprung unten links, genau wie bei `pairs`/"
+        "`polygons`. Ohne `start_angle`/`end_angle` wird ein voller Kreis gezeichnet; sind beide "
+        "gesetzt (Grad, `0°` = Osten/positive x-Achse, wachsend entgegen dem Uhrzeigersinn -- wie "
+        "der Einheitskreis in der Schulmathematik), wird stattdessen nur der Bogen von "
+        "`start_angle` bis `end_angle` gezeichnet, immer aufsteigend; ist `end_angle` kleiner als "
+        "`start_angle`, läuft der Bogen über 360° hinweg weiter (der \"lange Weg\" um den Kreis). "
+        "Sind `start_angle`/`end_angle` gleich (auch modulo 360°, z. B. `0`/`360`), wird ebenfalls "
+        "ein voller Kreis gezeichnet. Ist NUR einer der beiden Winkel gesetzt (oder ist einer von "
+        "beiden zwar gesetzt, aber kein gültiger Zahlenwert), wird der gesamte Eintrag nicht "
+        "gerendert (Validator-Warnung `AN018`). Der Bogenpfad selbst wird nicht geschlossen -- "
+        "eine gesetzte `fill`-Farbe erzeugt daher ein Kreissegment (Bogen plus gerade Sehne "
+        "zwischen den Endpunkten), kein Tortenstück. `label`, `color`, `thickness`, `fill` wie "
+        "bei `polygons`. Ein Eintrag mit fehlendem oder ungültigem `cx`/`cy`/`r` (`r` muss "
+        "positiv sein) wird ebenfalls nicht gerendert (`AN018`)."
+    ),
     "geometry:functions": (
         "Funktionsgraphen (nur im Achsenmodus -- anders als `pairs`/`sequence` bleibt `functions` "
         "bewusst axis-only, da ein Funktionsgraph ohne mathematisches Koordinatensystem nicht "
@@ -353,7 +373,7 @@ PROSE_SECTIONS: dict[str, str] = {
         "gefiltert."
     ),
     "block:geometry": (
-        "Koordinatensystem für Punkte, Polylinien, Strecken, Vielecke und Funktionsgraphen (siehe Geometry-"
+        "Koordinatensystem für Punkte, Polylinien, Strecken, Vielecke, Kreise/Bögen und Funktionsgraphen (siehe Geometry-"
         "Abschnitt unten für die YAML-Payload-Struktur). `width`/`height` setzen die Größe in "
         "Rastereinheiten. `axis=true` aktiviert echte Achsen mit `origin`/`step_x`/`step_y` zur "
         "Umrechnung mathematischer Koordinaten in Rasterzellen -- `axis=true` OHNE gültiges "

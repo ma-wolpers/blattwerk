@@ -14,7 +14,12 @@ pflegen.
 from __future__ import annotations
 
 from .answer_grid_axis import _resolve_axis_state
-from .answer_grid_entries import GEOMETRY_ENTRY_ALLOWED_KEYS, _polygon_vertices_are_valid
+from .answer_grid_entries import GEOMETRY_ENTRY_ALLOWED_KEYS
+from .answer_grid_validity import (
+    _circle_center_and_radius_are_valid,
+    _describe_circle_angle_problem,
+    _polygon_vertices_are_valid,
+)
 from .answer_special_shared import parse_svg_color, parse_svg_thickness
 from .blatt_validator_constants import (
     GRID_MARKER_SHOW_VALUES,
@@ -210,13 +215,18 @@ def _validate_geometry_axis_dependent_sections(diagnostics, block_index, answer_
 
 
 def _validate_geometry_shape_entries(diagnostics, block_index, answer_type, parsed_payload, options=None):
-    """Validiert `polygons[]`-Ganz-Eintrag-Gültigkeit (`AN017`).
+    """Validiert `polygons[]`/`circles[]`-Ganz-Eintrag-Gültigkeit (`AN017`/`AN018`).
 
-    Nutzt exakt `_polygon_vertices_are_valid` (`answer_grid_entries.py`),
-    dieselbe Funktion wie der Parser (`_parse_polygons`,
-    `answer_grid_shapes.py`) -- kein zweites, potenziell abweichendes
-    Regelwerk, und keine Abhängigkeit des Validators auf das Renderer-Modul
-    `answer_grid_shapes.py`.
+    Nutzt exakt dieselben Prädikate wie die jeweiligen Parser
+    (`_parse_polygons`/`_parse_circles`, `answer_grid_shapes.py`) --
+    importiert aus dem neutralen `answer_grid_validity.py`, nicht aus dem
+    Renderer-Modul selbst, damit der Validator nie von Renderer-Code
+    abhängen muss. `AN018` deckt beide Fehlerklassen eines `circles`-
+    Eintrags ab (ungültiges `cx`/`cy`/`r` UND unvollständiges/teilweise
+    unparsebares Winkelpaar) -- beide sind konzeptionell "dieser Eintrag
+    ist als Ganzes fehlerhaft, wird komplett übersprungen"; die Meldung
+    selbst unterscheidet über `_describe_circle_angle_problem()` die genaue
+    Ursache.
     """
     if answer_type != "geometry" or not isinstance(parsed_payload, dict):
         return
@@ -241,5 +251,42 @@ def _validate_geometry_shape_entries(diagnostics, block_index, answer_type, pars
                         block_type=answer_type,
                         region_id=region_id,
                         anchor=f"polygons[{idx}].vertices",
+                    )
+                )
+
+    circle_entries = parsed_payload.get("circles")
+    if isinstance(circle_entries, list):
+        for idx, entry in enumerate(circle_entries, start=1):
+            if not isinstance(entry, dict):
+                continue
+            if not _circle_center_and_radius_are_valid(entry):
+                diagnostics.append(
+                    BuildDiagnostic(
+                        code="AN018",
+                        message=(
+                            f"Ungueltiger Kreis/Bogen in `circles[{idx}]`: `cx`/`cy`/`r` "
+                            "muessen numerisch gesetzt sein und `r` muss positiv sein. Der "
+                            "Eintrag wird nicht gerendert."
+                        ),
+                        block_index=block_index,
+                        block_type=answer_type,
+                        region_id=region_id,
+                        anchor=f"circles[{idx}]",
+                    )
+                )
+                continue
+            angle_problem = _describe_circle_angle_problem(entry)
+            if angle_problem is not None:
+                diagnostics.append(
+                    BuildDiagnostic(
+                        code="AN018",
+                        message=(
+                            f"Ungueltiger Kreis/Bogen in `circles[{idx}]`: {angle_problem}. Der "
+                            "Eintrag wird nicht gerendert."
+                        ),
+                        block_index=block_index,
+                        block_type=answer_type,
+                        region_id=region_id,
+                        anchor=f"circles[{idx}]",
                     )
                 )

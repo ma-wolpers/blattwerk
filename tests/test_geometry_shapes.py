@@ -105,3 +105,103 @@ def test_polygon_axis_mode_uses_math_coordinates():
     assert "5.0000,5.0000" in html
     assert "7.0000,5.0000" in html
     assert "5.0000,3.0000" in html
+
+
+# Circles/arcs -- setup shared by the worked examples below: cx=5, cy=5, r=2,
+# no axis, height=10 -> coord_system.point(5, 5) = (5, 10-5) = (5, 5), rx=ry=2.
+
+def _render_circle(payload_line, **extra_options):
+    options = {"type": "geometry", "width": "10", "height": "10", **extra_options}
+    return _render_answer_block(options, f"circles:\n  - {payload_line}\n", include_solutions=False)
+
+
+def test_circle_full_no_angles_renders_circle_element():
+    html = _render_circle("{cx: 5, cy: 5, r: 2}")
+    assert "<circle class='grid-circle grid-mode-both' cx='5.0000' cy='5.0000' r='2.0000' />" in html
+
+
+def test_circle_quarter_arc_0_to_90_matches_hand_computed_coordinates():
+    html = _render_circle("{cx: 5, cy: 5, r: 2, start_angle: 0, end_angle: 90}")
+    assert "d='M 7.0000 5.0000 A 2.0000 2.0000 0 0 0 5.0000 3.0000'" in html
+
+
+def test_circle_arc_350_to_10_wraps_short_way_large_arc_flag_zero():
+    html = _render_circle("{cx: 5, cy: 5, r: 2, start_angle: 350, end_angle: 10}")
+    assert "d='M 6.9696 5.3473 A 2.0000 2.0000 0 0 0 6.9696 4.6527'" in html
+
+
+def test_circle_arc_10_to_350_wraps_long_way_large_arc_flag_one():
+    html = _render_circle("{cx: 5, cy: 5, r: 2, start_angle: 10, end_angle: 350}")
+    assert "d='M 6.9696 4.6527 A 2.0000 2.0000 0 1 0 6.9696 5.3473'" in html
+
+
+def test_circle_reflex_arc_0_to_270_large_arc_flag_one():
+    html = _render_circle("{cx: 5, cy: 5, r: 2, start_angle: 0, end_angle: 270}")
+    assert "d='M 7.0000 5.0000 A 2.0000 2.0000 0 1 0 5.0000 7.0000'" in html
+
+
+def test_circle_negative_start_angle_minus90_to_0():
+    html = _render_circle("{cx: 5, cy: 5, r: 2, start_angle: -90, end_angle: 0}")
+    assert "d='M 5.0000 7.0000 A 2.0000 2.0000 0 0 0 7.0000 5.0000'" in html
+
+
+def test_circle_angle_over_360_degrees_equivalent_to_normalized():
+    html = _render_circle("{cx: 5, cy: 5, r: 2, start_angle: 0, end_angle: 450}")
+    assert "d='M 7.0000 5.0000 A 2.0000 2.0000 0 0 0 5.0000 3.0000'" in html
+
+
+def test_circle_start_equals_end_angle_renders_full_circle():
+    html = _render_circle("{cx: 5, cy: 5, r: 2, start_angle: 45, end_angle: 45}")
+    assert "<circle class='grid-circle grid-mode-both' cx='5.0000' cy='5.0000' r='2.0000' />" in html
+    assert "grid-arc" not in html
+
+
+def test_circle_only_start_angle_set_is_not_rendered():
+    html = _render_circle("{cx: 5, cy: 5, r: 2, start_angle: 0}")
+    assert "grid-circle" not in html
+    assert "grid-arc" not in html
+
+
+def test_circle_only_end_angle_set_is_not_rendered():
+    html = _render_circle("{cx: 5, cy: 5, r: 2, end_angle: 90}")
+    assert "grid-circle" not in html
+    assert "grid-arc" not in html
+
+
+def test_circle_missing_radius_is_not_rendered():
+    html = _render_circle("{cx: 1, cy: 1}")
+    assert "grid-circle" not in html
+    assert "grid-arc" not in html
+
+
+def test_circle_differing_step_x_step_y_renders_ellipse():
+    html = _render_answer_block(
+        {
+            "type": "geometry",
+            "width": "10",
+            "height": "10",
+            "axis": "true",
+            "origin": "5,5",
+            "step_x": "2",
+            "step_y": "1",
+        },
+        "circles:\n  - {cx: 0, cy: 0, r: 4}\n",
+        include_solutions=False,
+    )
+    assert "<ellipse class='grid-circle grid-mode-both' cx='5.0000' cy='5.0000' rx='2.0000' ry='4.0000' />" in html
+
+
+def test_circle_label_is_rendered_at_center():
+    html = _render_circle("{cx: 5, cy: 5, r: 2, label: 'K'}")
+    assert "grid-circle-label" in html
+    assert "x='5.0000' y='5.0000'>K</text>" in html
+
+
+def test_circle_invalid_fill_is_not_emitted_into_style_attribute():
+    html = _render_answer_block(
+        {"type": "geometry", "width": "10", "height": "10"},
+        "circles:\n  - {cx: 1, cy: 1, r: 1, fill: 'red;}body{display:none'}\n",
+        include_solutions=True,
+    )
+    assert "red;}body{display:none" not in html
+    assert "display:none" not in html

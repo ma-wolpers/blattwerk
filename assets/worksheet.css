@@ -1145,6 +1145,52 @@ h1 {
     fill: var(--solution-accent-strong, #205840);
 }
 
+.grid-circle {
+    fill: none;
+    stroke: var(--theme-accent-main);
+    stroke-width: 1.1;
+    vector-effect: non-scaling-stroke;
+}
+
+.grid-circle.grid-mode-worksheet {
+    stroke: var(--theme-accent-secondary);
+}
+
+.grid-circle.grid-mode-solution {
+    stroke: var(--solution-accent-strong, #205840);
+}
+
+.grid-arc {
+    fill: none;
+    stroke: var(--theme-accent-main);
+    stroke-width: 1.1;
+    vector-effect: non-scaling-stroke;
+}
+
+.grid-arc.grid-mode-worksheet {
+    stroke: var(--theme-accent-secondary);
+}
+
+.grid-arc.grid-mode-solution {
+    stroke: var(--solution-accent-strong, #205840);
+}
+
+.grid-circle-label {
+    fill: var(--theme-accent-main);
+    font-size: 0.60px;
+    font-weight: 600;
+    text-anchor: middle;
+    dominant-baseline: middle;
+}
+
+.grid-circle-label.grid-mode-worksheet {
+    fill: var(--theme-accent-secondary);
+}
+
+.grid-circle-label.grid-mode-solution {
+    fill: var(--solution-accent-strong, #205840);
+}
+
 .answer.dots {
     --dot-step: var(--dot-spacing);
     border: var(--field-border-width) dotted var(--dot-border-color);
