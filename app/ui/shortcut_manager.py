@@ -9,6 +9,7 @@ from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 
 
 ensure_bw_gui_on_path()
+from bw_gui.contracts import UNKNOWN_MODIFIERS, modifiers_from_event
 from bw_gui.runtime import ui
 
 
@@ -92,7 +93,21 @@ class ShortcutManager:
 
     @staticmethod
     def _has_modifier_keys(event):
-        state = int(getattr(event, "state", 0))
-        control_pressed = bool(state & 0x0004)
-        alt_pressed = bool(state & 0x0008)
-        return control_pressed or alt_pressed
+        """Prüft, ob ein Shortcut-Modifier (Strg, Alt bzw. Cmd) gehalten wird.
+
+        Die Deutung von ``event.state`` liegt im bw-gui-Keybinding-Contract. Früher
+        wurde hier ``state & 0x0008`` als Alt gewertet; unter Windows ist das aber das
+        NumLock-Bit, weshalb Einbuchstaben-Kürzel bei eingeschaltetem NumLock nicht
+        auslösten. Shift, NumLock und CapsLock zählen nicht. Ein nicht auswertbarer
+        Zustand gilt als "Modifier gehalten" (fail-closed wie im Contract).
+
+        Args:
+            event: Tk-Tastaturereignis.
+
+        Returns:
+            True, wenn der Shortcut ohne ``allow_modifiers`` blockiert werden soll.
+        """
+        modifiers = modifiers_from_event(event)
+        if modifiers is UNKNOWN_MODIFIERS:
+            return True
+        return modifiers.has_shortcut_modifier
