@@ -255,6 +255,24 @@ PROSE_SECTIONS: dict[str, str] = {
         "gleichermaßen. Sollte nach jedem `s<` gesetzt werden -- fehlt es, erscheint die Warnung "
         "`KZF152`."
     ),
+    "kurzentwurf:line_breaks": (
+        "Zeilenumbrüche funktionieren in allen Zellen wie im Arbeitsblatt: eine Folgezeile ohne "
+        "Marker erscheint in derselben Zelle in einer neuen Zeile, eine **Leerzeile** beginnt einen "
+        "neuen Absatz (mit kleinem Abstand). Leerzeilen direkt vor einem neuen Marker, vor `---` oder "
+        "vor der nächsten `#phase` bleiben wirkungslos. Ausnahme Lernaktivitäten: nach `s<` gilt "
+        "jede Folgezeile als **eigener** \"S:innen\"-Eintrag. Soll ein Eintrag stattdessen nur in "
+        "einer neuen Zeile weiterlaufen, endet die Zeile davor mit einem `\\` (z. B. "
+        "`s< beschreiben die Grafik \\` und darunter `und vergleichen sie`). In den anderen Spalten "
+        "ist das `\\` unnötig und wird einfach entfernt; ein doppeltes `\\\\` bleibt als Text stehen."
+    ),
+    "kurzentwurf:math_formulas": (
+        "In jeder Zelle funktionieren Inline-Formeln `$formel$` in LaTeX-Syntax (z. B. "
+        "`$\\frac{a}{b}$`, `$x^2$`) wie im Arbeitsblatt. Freistehende Formeln `$$formel$$` werden im "
+        "Kurzentwurf **nicht** unterstützt (Warnung `KZF161`). Die Darstellung lädt MathJax von "
+        "einem CDN nach; ohne Internetverbindung bei Vorschau/PDF-Export bleibt die rohe "
+        "Formel-Quelle als Text sichtbar -- der Editor weist einmal pro Dokument darauf hin "
+        "(`KZF160`). Ein einzelnes `$` wie in `$5` wird nicht als Formelbeginn erkannt."
+    ),
     "kurzentwurf:marker:ant>": (
         "**Kein** gültiger Alias von `ant<`, obwohl es vom Zeilenmarker-Muster erkannt wird -- führt "
         "immer zum Fehler `KZF153` (\"Bitte ant< verwenden\"). Nur `ant<` verwenden."

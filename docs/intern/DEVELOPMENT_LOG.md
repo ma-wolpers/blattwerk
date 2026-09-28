@@ -9,6 +9,14 @@ Regel:
 ## [Unreleased]
 
 ### Changed
+- **Kurzentwurf: Zeilenumbrueche/Absaetze und Inline-Formeln in Zellen** (Nutzerwunsch, analog Arbeitsblatt/Praesentation; siehe `CHANGELOG.md`).
+  - **Befund vorher:** Folgezeilen wurden schon als `<br>` gerendert, Leerzeilen aber im Parser verworfen (kein Absatz). Nach `s<` ist jede Folgezeile ein eigener "S:innen"-Eintrag, einen Umbruch innerhalb eines Eintrags gab es nicht. `$...$` ueberlebte das Inline-Markup, MathJax wurde aber nie geladen.
+  - **Nutzerentscheidungen:** `s<`-Folgezeilen bleiben eigene Eintraege (keine Semantik-Aenderung fuer bestehende Dokumente); ein Umbruch im Eintrag geht per abschliessendem `\` (Markdown-Hard-Break-Konvention). Leerzeile = Absatz wie `nl2br`. Nur `$inline$`, kein `$$...$$`.
+  - **Parser:** `_SegmentBuilder.note_blank_line()` merkt eine Leerzeile nur vor; eingeloest wird sie erst durch die naechste Folgezeile derselben Spalte. So erzeugen Leerzeilen vor Markern, `---` und `#phase` wie bisher nichts.
+  - **Render:** neue `cell_text.py` (`label_entries`/`label_block`/`strip_hard_break`) ersetzt `_with_marker_label*` aus `render_html.py`. Ein doppeltes `\\` am Zeilenende bleibt Text.
+  - **Formeln:** neue `math_support.py` mit MathJax-4-Kopf (dieselbe Version/Grundkonfiguration wie Arbeitsblatt, `displayMath: []`) und `collect_math_diagnostics` (`KZF160` einmal pro Dokument analog `MJ001`, `KZF161` pro Zeile mit `$$...$$`). Beide Warnungen tragen die neue Dokument-Region `KURZENTWURF_DOCUMENT_REGION_ID` (Pflicht fuer ackbare Warnungen, `diagnostic_identity.py`); `KZF161` ankert am Formeltext statt an der Zeilennummer.
+  - **Beobachtung:** Mit leerem `displayMath` deutet MathJax `$$y$$` als zwei leere Inline-Formeln um `y` -- die `$` verschwinden, `y` bleibt Rohtext. Deshalb formuliert `KZF161` "nicht unterstuetzt und nicht korrekt dargestellt" statt "bleibt Rohtext".
+  - **Geprueft:** `tests/test_kurzentwurf_cell_text.py` (neu). Echter PDF-Export ueber Headless-Edge: `$x^2$` und `$\frac{a}{b}$` werden innerhalb des bestehenden `--virtual-time-budget=5000` gesetzt (per Bild und Textlayer geprueft).
 - **Modifier-Auswertung über den bw-gui-Keybinding-Contract (NumLock-Fix)** (siehe `CHANGELOG.md` und bw-gui `docs/KEYBINDING_CONTRACT.md`).
   - **Ursache:** `app/ui/shortcut_manager.py::_has_modifier_keys` wertete `state & 0x0008` als Alt. Unter Windows-Tk ist das das NumLock-Bit (Alt = `0x20000`, in bw-gui live gemessen).
   - **Jetzt:** Die Methode nutzt `bw_gui.contracts.modifiers_from_event(...).has_shortcut_modifier`. Ein nicht auswertbarer Zustand gilt als gehalten (fail-closed).

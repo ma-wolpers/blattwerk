@@ -56,6 +56,8 @@ def parse_kurzentwerfer_text(source: str) -> ParsedKurzentwurf:
         stripped = raw_line.strip()
 
         if not stripped:
+            if phase_builder is not None:
+                segment_builder.note_blank_line()
             line_index += 1
             continue
 

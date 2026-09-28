@@ -150,6 +150,8 @@ in `app/core/kurzentwurf_runtime/validator.py`. Ein Dokument mit mindestens eine
 - `KZF151` (error): Inhalt in der Spalte Lernaktivitaeten vor dem ersten `s<`.
 - `KZF152` (warning): `s<` ohne ein folgendes `ant<` -- Antizipation fehlt.
 - `KZF153` (error): `ant>` ist kein gueltiger Marker (kein Alias von `ant<`) -- `ant<` verwenden.
+- `KZF160` (warning): Dokument enthaelt `$...$`-Formel-Syntax -- die Darstellung laedt MathJax von einem CDN und benoetigt daher bei Vorschau/PDF-Export eine Internetverbindung; ohne Internet bleibt die rohe Formel-Quelle als Text sichtbar (einmal pro Dokument, an der ersten Fundstelle; Gegenstueck zu `MJ001`).
+- `KZF161` (warning): Freistehende Formel `$$...$$` -- im Kurzentwurf werden nur Inline-Formeln `$...$` gesetzt.
 - `KZF200` (error): PyMuPDF ist nicht verfuegbar -- PDF-Vorschau kann nicht gerendert werden.
 - `KZF220` (error): Dokument enthaelt keine renderbaren Phasen/Zeilen.
 

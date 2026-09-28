@@ -78,6 +78,10 @@ def render_kurzentwurf_guide(catalog: MarkdownConventionCatalog) -> str:
         "drücken. Die Hervorhebungsfarbe (`==...==`) ist in Kurzentwurf-Dokumenten fest, da "
         "Kurzentwurf kein eigenes Farbprofil hat.\n\n"
         + _render_inline_marks_section(catalog, "kurzentwurf"),
+        "## 7. Zeilenumbrüche und Formeln in Zellen\n\n"
+        + _prose("kurzentwurf:line_breaks")
+        + "\n\n"
+        + _prose("kurzentwurf:math_formulas"),
     ]
 
     return _AUTOGEN_HEADER + "\n\n".join(sections) + "\n"

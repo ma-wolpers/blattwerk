@@ -39,6 +39,7 @@ class _SegmentBuilder:
     has_s_marker: bool = False
     has_ant_marker: bool = False
     has_any_marker: bool = False
+    pending_blank_line: bool = False
 
     def is_empty(self) -> bool:
         values = (self.schritte, self.aktivitaeten, self.umgebung, self.antizipiert)
@@ -49,12 +50,26 @@ class _SegmentBuilder:
             self.line = line
 
         self.has_any_marker = True
+        self.pending_blank_line = False
         self.active_column_key = key
         self._append_to_key(key, value.strip())
         self.last_marker_key = key
 
+    def note_blank_line(self) -> None:
+        """Merkt eine Leerzeile vor, damit sie als Absatzgrenze in der aktiven Spalte landet.
+
+        Analog zu Arbeitsblättern (`nl2br`): einfacher Zeilenumbruch = `<br>`,
+        Leerzeile = neuer Absatz. Die Leerzeile wird bewusst nur *vorgemerkt*
+        und erst von der nächsten Folgezeile derselben Spalte eingelöst
+        (`append_implicit_line`) -- Leerzeilen vor einem neuen Marker, vor
+        `---` oder vor der nächsten `#phase` bleiben damit wirkungslos wie
+        bisher und erzeugen keinen leeren Absatz am Zellenende.
+        """
+        self.pending_blank_line = True
+
     def switch_column(self, step_count: int) -> None:
         self.has_any_marker = True
+        self.pending_blank_line = False
         order = ("schritte", "aktivitaeten", "umgebung")
         # antizipiert belongs to the activities column for pipe-based switching.
         if self.active_column_key == "antizipiert":
@@ -67,6 +82,13 @@ class _SegmentBuilder:
         self.last_marker_key = self.active_column_key
 
     def append_implicit_line(self, value: str, *, line: int) -> str:
+        """Hängt eine Folgezeile ohne Marker an die aktive Spalte an.
+
+        Steht eine vorgemerkte Leerzeile (`note_blank_line`) davor und hat
+        die Spalte schon Inhalt, wird zusätzlich eine Leerzeile eingefügt,
+        die `render_html._render_text` als Absatzgrenze rendert. Liefert den
+        tatsächlich befüllten Spaltenschlüssel zurück.
+        """
         if self.line <= 0:
             self.line = line
 
@@ -74,6 +96,9 @@ class _SegmentBuilder:
         if key not in {"schritte", "aktivitaeten", "umgebung", "antizipiert"}:
             key = "schritte"
             self.active_column_key = key
+        if self.pending_blank_line and getattr(self, key):
+            setattr(self, key, f"{getattr(self, key)}\n")
+        self.pending_blank_line = False
         self._append_to_key(key, value.rstrip())
         self.last_marker_key = key
         return key
