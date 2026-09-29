@@ -7,6 +7,7 @@ from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 ensure_bw_gui_on_path()
 from bw_gui.runtime import ui, widgets
 from bw_gui.widgets import HoverTooltip
+from bw_gui.widgets import Switch
 
 from .ui_constants import (
     EDITOR_VIEW_BOTH,
@@ -264,11 +265,11 @@ class BlattwerkAppBuildMixin:
             command=self.refresh_preview,
         )
         self.preview_phase_separator_btn_arrow.pack(side="left", padx=(6, 0))
-        self.preview_phase_hide_future_check = widgets.Checkbutton(
+        self.preview_phase_hide_future_check = Switch(
             format_group_phase,
             text="Zukunft ausblenden",
             variable=self.preview_hide_future_sections_var,
-            command=self.refresh_preview,
+            on_change=lambda _hide: self.refresh_preview(),
         )
         self.preview_phase_hide_future_check.pack(side="left", padx=(10, 0))
 

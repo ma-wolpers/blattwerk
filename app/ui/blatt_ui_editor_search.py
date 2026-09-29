@@ -19,6 +19,7 @@ from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 
 ensure_bw_gui_on_path()
 from bw_gui.runtime import ui, widgets
+from bw_gui.widgets import Switch
 
 
 def _find_all_matches(text: str, query: str, case_sensitive: bool = False) -> list[tuple[int, int]]:
@@ -109,11 +110,11 @@ class BlattwerkAppEditorSearchMixin:
         widgets.Button(
             find_row, text="▼", width=3, command=lambda: self._run_editor_search(direction=1)
         ).pack(side="left", padx=(4, 8))
-        widgets.Checkbutton(
+        Switch(
             find_row,
             text="Groß-/Kleinschreibung",
             variable=self._editor_search_case_sensitive_var,
-            command=self._toggle_editor_search_case_sensitive,
+            on_change=lambda _case_sensitive: self._toggle_editor_search_case_sensitive(),
         ).pack(side="left")
         widgets.Button(find_row, text="×", width=3, command=self._close_editor_search_bar).pack(
             side="right"

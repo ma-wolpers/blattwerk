@@ -6,6 +6,7 @@ from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 ensure_bw_gui_on_path()
 from bw_gui.runtime import ui, widgets
 from bw_gui.shortcuts import compose_hover_text as compose_shared_hover_text
+from bw_gui.widgets import Checkbox
 
 from ..core.blatt_kern_pptx_export_editable import is_editable_pptx_available
 from .dialog_services import filedialog, messagebox
@@ -381,14 +382,14 @@ class PresentationExportDialog(_BaseExportDialog):
 
         framebreak_row = widgets.Frame(outer)
         framebreak_row.pack(fill="x", pady=(4, 4))
-        widgets.Checkbutton(
+        Checkbox(
             framebreak_row,
             text="Schrittweise Folien (-+) zu einer Folie zusammenfassen",
             variable=self.ignore_framebreaks_var,
         ).pack(side="left")
 
         self.editable_pptx_row = widgets.Frame(outer)
-        self.editable_pptx_checkbutton = widgets.Checkbutton(
+        self.editable_pptx_checkbutton = Checkbox(
             self.editable_pptx_row,
             text="Editierbare Text-/Bildelemente (experimentell)",
             variable=self.editable_pptx_var,
@@ -618,11 +619,11 @@ class LernhilfenExportDialog(_BaseExportDialog):
         if self.allow_all_tabs_export:
             all_tabs_row = widgets.Frame(outer)
             all_tabs_row.pack(fill="x", pady=(4, 4))
-            widgets.Checkbutton(
+            Checkbox(
                 all_tabs_row,
                 text="Alle offenen Dokumente exportieren (ein ZIP mit je einer PDF-Datei)",
                 variable=self.export_all_tabs_var,
-                command=lambda: self._refresh_output_suggestion(force=True),
+                on_select=lambda _selected: self._refresh_output_suggestion(force=True),
             ).pack(side="left")
 
         actions = widgets.Frame(outer)

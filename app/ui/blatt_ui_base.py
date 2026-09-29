@@ -41,6 +41,7 @@ from bw_gui.contracts.hsm import (
 )
 from bw_gui.contracts.popup import POPUP_KIND_MODAL, POPUP_KIND_NON_MODAL, PopupPolicy, PopupPolicyRegistry
 from bw_gui.laufkern import aggregate_completion, emit_tracking_artifact, verify_manifest, verify_reachability
+from bw_gui.widgets import Switch
 from .laufkern_manifest_provider import build_runtime_shortcut_manifest
 from .ui_theme import DEFAULT_THEME
 from ..storage.user_preferences_adapter import normalize_user_preferences
@@ -755,11 +756,11 @@ class BlattwerkAppBase(BwBaseWindow):
             fill="x",
             expand=True,
         )
-        widgets.Checkbutton(
+        Switch(
             toolbar,
             text="Offline simulieren",
             variable=self.shortcut_debug_offline_var,
-            command=self._on_shortcut_debug_offline_changed,
+            on_change=lambda _offline: self._on_shortcut_debug_offline_changed(),
         ).pack(side="left", padx=(12, 0))
         widgets.Button(
             toolbar,
@@ -820,7 +821,7 @@ class BlattwerkAppBase(BwBaseWindow):
         self._refresh_shortcut_debug_overlay()
 
     def _on_shortcut_debug_offline_changed(self) -> None:
-        """Handle offline simulation checkbox updates in debug overlay."""
+        """Handle offline simulation switch updates in debug overlay (immediate effect)."""
 
         self._refresh_shortcut_debug_overlay()
 
