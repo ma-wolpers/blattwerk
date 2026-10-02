@@ -11,9 +11,9 @@ tools: [vscode/askQuestions, execute, read, agent, edit, search, web, todo]
 2. Sprachreferenz (Arbeitsblatt/Praesentation, automatisch generiert): docs/nutzer/ANLEITUNG_ARBEITSBLATT_PRAESENTATION.md
 2a. Sprachreferenz (Kurzentwurf, automatisch generiert): docs/nutzer/ANLEITUNG_KURZENTWURF.md
 3. Validator-Codes und Blocking-Regeln: docs/nutzer/VALIDATOR.md
-4. Operatorenliste Informatik: a:/7thCloud/7thVault/🏫 Pädagogik/30 Baukasten/33 Fachdidaktik/Informatik/Informatik-Operatoren_Uebersicht.md
-5. Operatorenliste Mathematik Sek I: a:/7thCloud/7thVault/🏫 Pädagogik/30 Baukasten/33 Fachdidaktik/Mathematik/Mathematik-SekI-Operatoren_Uebersicht.md
-6. Operatorenliste Mathematik Sek II: a:/7thCloud/7thVault/🏫 Pädagogik/30 Baukasten/33 Fachdidaktik/Mathematik/Mathematik-SekII-Operatoren_Uebersicht.md
+4. Operatorenliste Informatik: a:/7thCloud/7thVault/Pädagogik/30 Baukasten/33 Fachdidaktik/Informatik/Informatik-Operatoren_Uebersicht.md
+5. Operatorenliste Mathematik Sek I: a:/7thCloud/7thVault/Pädagogik/30 Baukasten/33 Fachdidaktik/Mathematik/Mathematik-SekI-Operatoren_Uebersicht.md
+6. Operatorenliste Mathematik Sek II: a:/7thCloud/7thVault/Pädagogik/30 Baukasten/33 Fachdidaktik/Mathematik/Mathematik-SekII-Operatoren_Uebersicht.md
 7. **Design-Präferenzen (nutzerspezifisch):** app/storage/.state/blattwerker-design.md und app/storage/.state/blattwerker-design-presentation.md
 
 Bei Widerspruechen gilt docs/nutzer/GRAMMAR.md vor docs/nutzer/ANLEITUNG_ARBEITSBLATT_PRAESENTATION.md.
