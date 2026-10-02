@@ -70,7 +70,6 @@ def test_ant_block_keeps_blank_line_as_paragraph_boundary():
 def test_inline_math_loads_mathjax_without_display_math():
     html, inspection = render_html_from_source(_document("S> $x^2$\nA>\ns< a\nant< b\nU> u"))
     assert "mathjax@4/tex-svg.js" in html
-    assert "inlineMath: [['$', '$']]" in html
     assert "displayMath: []" in html
     assert "$x^2$" in _cell(html, "schritte-cell")
     assert [d.code for d in inspection.diagnostics] == ["KZF160"]
@@ -84,15 +83,16 @@ def test_math_notice_only_once_per_document():
     compute_diagnostic_identity(notices[0])  # ackbar: region_id gesetzt
 
 
-def test_display_math_warns_kzf161():
-    result = inspect_kurzentwerfer_text(_document("S> $$x$$\nA>\ns< a\nant< b\nU> u"))
-    display = [d for d in result.diagnostics if d.code == "KZF161"]
-    assert len(display) == 1
-    assert display[0].anchor == "$$x$$"
-    assert "KZF160" not in [d.code for d in result.diagnostics]
-    compute_diagnostic_identity(display[0])
+def test_double_dollar_math_is_inline_math():
+    html, inspection = render_html_from_source(_document("S> $$x$$\nA>\ns< a\nant< b\nU> u"))
+    assert "inlineMath: [['$$', '$$'], ['$', '$']]" in html
+    assert "$$x$$" in _cell(html, "schritte-cell")
+    assert [d.code for d in inspection.diagnostics] == ["KZF161", "KZF160"]
+    hint = inspection.diagnostics[0]
+    assert hint.anchor == "$$x$$"
+    compute_diagnostic_identity(hint)  # ackbar: region_id gesetzt
 
 
 def test_currency_dollar_is_not_math():
     result = inspect_kurzentwerfer_text(_document("S> kostet $5 und $10\nA>\ns< a\nant< b\nU> u"))
-    assert not [d for d in result.diagnostics if d.code in {"KZF160", "KZF161"}]
+    assert not [d for d in result.diagnostics if d.code == "KZF160"]

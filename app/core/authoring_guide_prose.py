@@ -266,9 +266,11 @@ PROSE_SECTIONS: dict[str, str] = {
         "ist das `\\` unnötig und wird einfach entfernt; ein doppeltes `\\\\` bleibt als Text stehen."
     ),
     "kurzentwurf:math_formulas": (
-        "In jeder Zelle funktionieren Inline-Formeln `$formel$` in LaTeX-Syntax (z. B. "
-        "`$\\frac{a}{b}$`, `$x^2$`) wie im Arbeitsblatt. Freistehende Formeln `$$formel$$` werden im "
-        "Kurzentwurf **nicht** unterstützt (Warnung `KZF161`). Die Darstellung lädt MathJax von "
+        "In jeder Zelle funktionieren Formeln `$formel$` in LaTeX-Syntax (z. B. "
+        "`$\\frac{a}{b}$`, `$x^2$`) wie im Arbeitsblatt. `$$formel$$` ist ebenfalls erlaubt, wird im "
+        "Kurzentwurf aber genauso **im Fließtext** gesetzt wie `$formel$` (keine eigene, zentrierte "
+        "Formelzeile -- dafür sind die Tabellenzellen zu schmal; der Editor weist mit dem abhakbaren "
+        "Hinweis `KZF161` darauf hin). Die Darstellung lädt MathJax von "
         "einem CDN nach; ohne Internetverbindung bei Vorschau/PDF-Export bleibt die rohe "
         "Formel-Quelle als Text sichtbar -- der Editor weist einmal pro Dokument darauf hin "
         "(`KZF160`). Ein einzelnes `$` wie in `$5` wird nicht als Formelbeginn erkannt."
