@@ -593,19 +593,27 @@ def _check_shared_ui_contract_hardening(errors: list[str]) -> None:
     for snippet in (
         "from bw_gui.runtime import BwBaseWindow",
         "from bw_gui.menu import section_spec",
-        "class BlattwerkAppBase(BwBaseWindow):",
         "def build_menu(self) -> list:",
     ):
         _require_substring(base_module, snippet, "app/ui/blatt_ui_base.py", errors)
+    # Seit dem UI-Split erbt `BlattwerkAppBase` zusaetzlich von Mixins; Vertrag ist
+    # nur, dass `BwBaseWindow` (als letzte Basis) in der Klassendefinition steht.
+    if not re.search(r"^class BlattwerkAppBase\([^)]*\bBwBaseWindow\):", base_module, re.MULTILINE):
+        errors.append(
+            "app/ui/blatt_ui_base.py: missing required text -> class BlattwerkAppBase(... BwBaseWindow):"
+        )
 
-    export_module = _read("app/ui/export_dialog.py")
+    # Der Hover-Text-Vertrag lebt seit dem Split in `export_dialog_base.py`.
+    export_base_path = "app/ui/export_dialog_base.py"
+    export_module = _read(export_base_path)
     for snippet in (
         "from bw_gui.shortcuts import compose_hover_text as compose_shared_hover_text",
         "merged = compose_shared_hover_text(desc, sequence)",
     ):
-        _require_substring(export_module, snippet, "app/ui/export_dialog.py", errors)
+        _require_substring(export_module, snippet, export_base_path, errors)
 
-    _forbid_substring(export_module, "except ModuleNotFoundError", "app/ui/export_dialog.py", errors)
+    for rel_path in ("app/ui/export_dialog.py", export_base_path):
+        _forbid_substring(_read(rel_path), "except ModuleNotFoundError", rel_path, errors)
 
 
 def _check_future_gui_entry_contracts(errors: list[str]) -> None:
