@@ -16,9 +16,9 @@ import re
 import shlex
 
 import markdown
-import yaml
 
 from .blatt_kern_shared_data import CONTROL_MARKERS, MARKDOWN_EXTENSIONS
+from .frontmatter import parse_frontmatter
 from .inline_markup.markdown_bridge import register_inline_markup_bridge
 from .math_span_protection import convert_markdown_with_math as _convert_markdown_with_math
 
@@ -97,15 +97,13 @@ def convert_markdown_with_math(md, text):
 def split_front_matter(text):
     """Liest YAML-Front-Matter und liefert (Meta-Dict, Resttext).
 
-    Fällt auf leere Metadaten zurück, wenn kein vollständiger Front-Matter
-    vorhanden ist oder YAML leer ist.
+    Dünner Wrapper um `frontmatter.parse_frontmatter`, die eine zeilenbasierte
+    Grenzbestimmung (Invariante I6). Fällt auf leere Metadaten zurück, wenn
+    kein vollständiger Front-Matter vorhanden ist oder YAML leer ist.
+    Früher trennte diese Funktion per `text.split("---", 2)` und beendete das
+    Frontmatter damit an jedem `---`, auch mitten in einer Zeile.
     """
-    if text.startswith("---"):
-        parts = text.split("---", 2)
-        if len(parts) == 3:
-            _, fm, rest = parts
-            return yaml.safe_load(fm) or {}, rest.strip()
-    return {}, text
+    return parse_frontmatter(text)
 
 
 def parse_options(options_raw):

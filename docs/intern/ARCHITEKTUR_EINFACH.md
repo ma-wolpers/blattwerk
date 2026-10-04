@@ -64,6 +64,12 @@ So vermeiden wir Klebercode und Verwirrung.
 - `app/cli`
   - Das ist ein Adapter für Werkzeuge wie die Diagnostik-CLI.
 
+## Feste Regeln fuer Dokumente
+
+- Wo das Frontmatter (der `---`-Kopf mit `Titel`, `Fach` usw.) anfaengt und aufhoert, entscheidet nur `app/core/frontmatter.py`. Die erste Zeile muss genau `---` sein, Schluss ist die naechste Zeile `---` oder `...`. Ein `---` mitten in einer Zeile beendet den Kopf nicht.
+- Wer Frontmatter-Eintraege aendern will (z. B. spaeter die Migration oder Schnellkorrekturen), benutzt nur `app/core/frontmatter_edit.py`. Es aendert nur die betroffenen Zeilen und prueft danach, dass alles andere Zeichen fuer Zeichen gleich geblieben ist. Ist das nicht sicher moeglich, bricht es ab, statt etwas kaputt zu machen.
+- Der Kopf von Kurzentwuerfen hat einen eigenen, toleranten Leser und ist davon ausgenommen.
+
 ## Was heißt Programmkern konkret?
 
 Im Kern läuft immer dieselbe Reihenfolge:

@@ -16,6 +16,7 @@ from urllib.parse import urlparse
 import yaml
 
 from .blatt_validator_constants import KNOWN_ALIGN_VALUES
+from .frontmatter import content_after_frontmatter
 from .blatt_validator_patterns import (
     _POSIX_ABSOLUTE_PATH_RE,
     _QRCODE_CSS_SIZE_PATTERN,
@@ -194,16 +195,7 @@ def _extract_validation_content_and_base_line(markdown_text):
     auf die Zeilennummer im *Originaldokument* beziehen, nicht auf die
     Zeilennummer im (um das Frontmatter gekürzten) Validierungsausschnitt.
     """
-    lines = (markdown_text or "").splitlines(keepends=True)
-    content_start_line = 1
-    content_raw = markdown_text or ""
-
-    if lines and lines[0].strip() == "---":
-        for line_index in range(1, len(lines)):
-            if lines[line_index].strip() == "---":
-                content_start_line = line_index + 2
-                content_raw = "".join(lines[line_index + 1 :])
-                break
+    content_raw, content_start_line = content_after_frontmatter(markdown_text or "")
 
     content_for_validation = content_raw.strip()
     if not content_for_validation:
