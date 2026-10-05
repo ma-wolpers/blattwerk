@@ -48,7 +48,9 @@ GUARDRAIL_RELEVANT_PATHS = {
     "app/core/blatt_validator_yaml_entries.py",
     "app/core/answer_grid_entries.py",
     "app/core/answer_special_shared.py",
-    "app/core/document_types.py",
+    "app/core/document_type_registry.py",
+    "app/core/document_type_templates.py",
+    "app/core/document_semantics.py",
     "app/core/blatt_kern_shared.py",
     "app/core/blatt_kern_shared_data.py",
     "app/core/blatt_kern_shared_parsing.py",
@@ -598,7 +600,7 @@ def _check_shared_ui_contract_hardening(errors: list[str]) -> None:
         _require_substring(base_module, snippet, "app/ui/blatt_ui_base.py", errors)
     # Seit dem UI-Split erbt `BlattwerkAppBase` zusaetzlich von Mixins; Vertrag ist
     # nur, dass `BwBaseWindow` (als letzte Basis) in der Klassendefinition steht.
-    if not re.search(r"^class BlattwerkAppBase\([^)]*\bBwBaseWindow\):", base_module, re.MULTILINE):
+    if not re.search(r"^class BlattwerkAppBase\([^)]*\bBwBaseWindow\s*,?\s*\):", base_module, re.MULTILINE):
         errors.append(
             "app/ui/blatt_ui_base.py: missing required text -> class BlattwerkAppBase(... BwBaseWindow):"
         )

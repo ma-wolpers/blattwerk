@@ -1,4 +1,11 @@
-"""Document-type aware diagnostics inspection helpers."""
+"""Dokumenttypabhängige Diagnose: Konsistenzmarker plus passender Validator.
+
+Der Typ kommt allein aus der Dateiendung bzw. dem expliziten Tab-Typ
+(Invariante I1). Zuerst laufen die Marker-Diagnosen (`document_semantics`,
+FM008/FM009/FM010) für jeden Typ, danach der typspezifische Validator:
+Kurzentwurf-DSL, Arbeitsblatt-Pipeline (Arbeitsblatt/Präsentation/Klausur)
+oder -- bei schlichtem Markdown -- keiner.
+"""
 
 from __future__ import annotations
 
@@ -7,65 +14,60 @@ from pathlib import Path
 
 from .blatt_validator import BuildDiagnostic, inspect_markdown_text
 from .blatt_kern_shared import split_front_matter
-from .document_types import (
-    DOCUMENT_TYPE_KURZENTWURF,
-    detect_document_type,
-    normalize_document_type_detection_mode,
-)
+from .document_semantics import marker_diagnostics, type_for_path
+from .document_type_registry import PIPELINE_KURZENTWURF, PIPELINE_MARKDOWN, spec_for_type
 from .kurzentwurf_runtime.validator import inspect_kurzentwerfer_text
 
 
 @dataclass(frozen=True)
 class DocumentDiagnosticsResult:
-    """Normalized diagnostics with resolved document type."""
+    """Diagnosen samt dem Typ, für den sie ermittelt wurden."""
 
     document_type: str
     diagnostics: tuple[BuildDiagnostic, ...]
 
 
-def inspect_document_text(
-    markdown_text: str,
-    *,
-    detection_mode: str = "yaml_keys",
-    source_path: str | Path | None = None,
-) -> DocumentDiagnosticsResult:
-    """Inspect text with the validator matching the resolved document type."""
+def inspect_document_text(markdown_text: str, *, document_type: str) -> DocumentDiagnosticsResult:
+    """Prüft einen Dokumenttext mit Marker-Diagnose und dem Validator seines Typs.
 
-    meta, _content = split_front_matter(markdown_text)
-    normalized_detection_mode = normalize_document_type_detection_mode(detection_mode)
-    document_type = detect_document_type(
-        meta or {},
-        detection_mode=normalized_detection_mode,
-        source_path=source_path,
-        markdown_text=markdown_text,
-    )
+    Args:
+        markdown_text: Vollständiger Dokumenttext.
+        document_type: Kanonischer Typ (aus `type_for_path`/`type_for_tab`).
+    """
+    spec = spec_for_type(document_type)
+    try:
+        meta, _content = split_front_matter(markdown_text)
+    except Exception:
+        meta = {}
+    diagnostics = list(marker_diagnostics(meta, spec.id))
 
-    if document_type == DOCUMENT_TYPE_KURZENTWURF:
+    if spec.pipeline == PIPELINE_KURZENTWURF:
         inspection = inspect_kurzentwerfer_text(markdown_text)
-        return DocumentDiagnosticsResult(
-            document_type=document_type,
-            diagnostics=tuple(_normalize_kurzentwurf_diagnostic(diag) for diag in inspection.diagnostics),
-        )
+        diagnostics.extend(_normalize_kurzentwurf_diagnostic(diag) for diag in inspection.diagnostics)
+    elif spec.pipeline != PIPELINE_MARKDOWN:
+        diagnostics.extend(inspect_markdown_text(markdown_text).diagnostics)
 
-    inspected = inspect_markdown_text(markdown_text)
-    return DocumentDiagnosticsResult(
-        document_type=document_type,
-        diagnostics=tuple(inspected.diagnostics),
-    )
+    return DocumentDiagnosticsResult(document_type=spec.id, diagnostics=tuple(diagnostics))
 
 
-def inspect_document_path(input_path: str | Path, *, detection_mode: str = "yaml_keys") -> DocumentDiagnosticsResult:
-    """Read a document from disk and inspect it with the matching validator."""
+def inspect_document_path(input_path: str | Path, *, document_type: str | None = None) -> DocumentDiagnosticsResult:
+    """Liest ein Dokument und prüft es; ohne expliziten Typ gilt die Dateiendung.
 
+    Raises:
+        ValueError: wenn weder ein Typ übergeben wurde noch die Endung bekannt ist
+            (eine unbekannte Endung wird nie stillschweigend als Markdown behandelt).
+    """
     path_obj = Path(input_path)
+    resolved_type = document_type or type_for_path(path_obj)
+    if resolved_type is None:
+        raise ValueError(f"Unbekannte Dateiendung ohne expliziten Dokumenttyp: {path_obj.name}")
     text = path_obj.read_text(encoding="utf-8")
-    return inspect_document_text(text, detection_mode=detection_mode, source_path=path_obj)
+    return inspect_document_text(text, document_type=resolved_type)
 
 
 def document_warning_title(document_type: str, context_label: str) -> str:
-    """Return the UI warning title matching the document family."""
-
-    if str(document_type or "").strip().lower() == DOCUMENT_TYPE_KURZENTWURF:
+    """Titel des Warnungsdialogs passend zur Dokumentfamilie."""
+    if document_type == "kurzentwurf":
         return f"Kurzentwurf-Warnungen ({context_label})"
     return f"Blattwerk-Warnungen ({context_label})"
 

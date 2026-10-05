@@ -29,14 +29,11 @@ class BlattwerkDocumentTabsMixin:
 
     def _toggle_preview_mode(self):
         """Toggle preview mode."""
-        if hasattr(self, "_read_document_mode"):
-            input_text = self._clean_path_text(self.input_var.get())
-            if input_text:
-                path_obj = Path(input_text)
-                if path_obj.exists():
-                    document_mode = self._read_document_mode(path_obj)
-                    if document_mode == "presentation":
-                        return
+        input_text = self._clean_path_text(self.input_var.get())
+        if input_text:
+            spec = self._document_spec_for_path(Path(input_text))
+            if spec is not None and not spec.solutions_renderable:
+                return
 
         new_mode = "solution" if self.preview_mode_var.get() == "worksheet" else "worksheet"
         self.preview_mode_var.set(new_mode)
@@ -69,28 +66,14 @@ class BlattwerkDocumentTabsMixin:
         """Creates initial per-tab state for a document."""
 
         normalized_path = self._normalize_document_path(input_path)
-        document_mode = "worksheet"
-        document_type = "worksheet"
-
-        if hasattr(self, "_read_document_mode"):
-            try:
-                document_mode = str(self._read_document_mode(input_path) or "worksheet")
-            except Exception:
-                document_mode = "worksheet"
-
-        if hasattr(self, "_read_document_type"):
-            try:
-                document_type = str(self._read_document_type(input_path) or "worksheet")
-            except Exception:
-                document_type = "worksheet"
+        document_type = self._read_document_type(input_path)
 
         preview_mode = self.preview_mode_var.get()
-        if document_mode == "presentation" or document_type == "kurzentwurf":
+        if not self._solutions_renderable_for_type(document_type):
             preview_mode = "worksheet"
 
         tab_state = {
             "path": normalized_path,
-            "document_mode": document_mode,
             "document_type": document_type,
             "preview_mode": preview_mode,
             "page_format": self.preview_page_format_var.get(),
@@ -140,11 +123,7 @@ class BlattwerkDocumentTabsMixin:
             try:
                 current_path = Path(input_text)
                 tab_state["path"] = self._normalize_document_path(current_path)
-                if current_path.exists():
-                    if hasattr(self, "_read_document_mode"):
-                        tab_state["document_mode"] = str(self._read_document_mode(current_path) or "worksheet")
-                    if hasattr(self, "_read_document_type"):
-                        tab_state["document_type"] = str(self._read_document_type(current_path) or "worksheet")
+                tab_state["document_type"] = self._read_document_type(current_path)
             except Exception:
                 pass
         tab_state["preview_mode"] = self.preview_mode_var.get()
@@ -181,16 +160,8 @@ class BlattwerkDocumentTabsMixin:
         except Exception:
             return
 
-        if hasattr(self, "_read_document_mode"):
-            try:
-                tab_state["document_mode"] = str(self._read_document_mode(input_path) or "worksheet")
-            except Exception:
-                tab_state["document_mode"] = str(tab_state.get("document_mode", "worksheet") or "worksheet")
-        if hasattr(self, "_read_document_type"):
-            try:
-                tab_state["document_type"] = str(self._read_document_type(input_path) or "worksheet")
-            except Exception:
-                tab_state["document_type"] = str(tab_state.get("document_type", "worksheet") or "worksheet")
+        # Der Pfad ist die Typquelle; der Tab-Cache wird bei jedem Anwenden neu gesetzt (I1).
+        tab_state["document_type"] = self._read_document_type(input_path)
 
         self._tab_switch_in_progress = True
         try:
@@ -218,7 +189,7 @@ class BlattwerkDocumentTabsMixin:
 
             self.input_var.set(str(input_path))
             preview_mode = str(tab_state.get("preview_mode", self.preview_mode_var.get()) or self.preview_mode_var.get())
-            if tab_state.get("document_mode") == "presentation" or tab_state.get("document_type") == "kurzentwurf":
+            if not self._solutions_renderable_for_type(tab_state.get("document_type")):
                 preview_mode = "worksheet"
             self.preview_mode_var.set(preview_mode)
             self.preview_page_format_var.set(tab_state.get("page_format", self.preview_page_format_var.get()))

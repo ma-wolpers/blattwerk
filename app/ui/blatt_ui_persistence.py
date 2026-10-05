@@ -457,6 +457,10 @@ class BlattwerkAppPersistenceMixin:
             """Öffnet ein Markdown-Dokument in eigenem Tab oder fokussiert den vorhandenen Tab."""
 
             normalized_path = Path(self._normalize_document_path(input_path))
+            if not self._confirm_open_unknown_extension(normalized_path):
+                # Unbekannte Endung und keine Markdown-Interpretation: nie still Markdown annehmen (I1).
+                self.status_var.set(f"Nicht geöffnet (unbekannte Endung): {normalized_path.name}")
+                return False
             existing_tab_id = self._find_open_tab_id_for_path(normalized_path)
             if existing_tab_id is not None:
                 self._activate_document_tab(existing_tab_id, apply_state=True)

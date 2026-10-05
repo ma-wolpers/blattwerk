@@ -37,11 +37,11 @@ from .blatt_kern_shared import (
     get_copyright_text,
     get_current_school_year_label,
     is_hole_punch_layout_enabled,
-    normalize_document_mode,
     split_sections,
 )
 from .blatt_kern_layout_columns import render_body_with_columns, render_columns_container
 from .blatt_kern_layout_presentation import _render_presentation_html
+from .document_type_registry import has_slide_layout
 
 
 def render_html(
@@ -59,6 +59,7 @@ def render_html(
     presentation_ignore_framebreaks=False,
     cache=None,
     word_notes_out=None,
+    document_type="worksheet",
 ):
     """Baut das vollständige HTML-Dokument inklusive Styles und Header/Footer.
 
@@ -82,12 +83,7 @@ def render_html(
     never see it either. A document with no `!!...!!`-marked operator is
     an unaffected no-op (see `collect_used_operators`'s cheap guard).
     """
-    document_mode = normalize_document_mode(
-        (meta or {}).get("mode"),
-        default="worksheet",
-    )
-
-    if document_mode == "presentation":
+    if has_slide_layout(document_type):
         presentation_format = str(page_format or "").strip()
         if not presentation_format or presentation_format not in {
             "presentation_16_9",
@@ -120,7 +116,7 @@ def render_html(
         enriched_blocks,
         include_solutions=include_solutions,
         help_tag=(meta or {}).get("tag"),
-        document_mode=document_mode,
+        document_type=document_type,
     )
     hole_punch_enabled = is_hole_punch_layout_enabled(meta)
     gutter_left_cm, gutter_right_cm = resolve_gutter_widths_cm(reserve_gutters=True)
@@ -138,7 +134,7 @@ def render_html(
         body = render_body_with_columns(
             enriched_blocks,
             include_solutions=include_solutions,
-            document_mode=document_mode,
+            document_type=document_type,
             printable_width_cm=printable_width_cm,
             printable_height_cm=printable_height_cm,
             cache=cache,
@@ -201,7 +197,7 @@ def render_html(
         color_profile=color_profile,
         font_profile=font_profile,
         font_size_profile=font_size_profile,
-        document_mode=document_mode,
+        slide_layout=has_slide_layout(document_type),
         reserve_gutters=True,
         has_word_notes=has_word_notes,
     )

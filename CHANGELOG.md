@@ -6,6 +6,20 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Changed
+
+- **Der Dokumenttyp steckt jetzt in der Dateiendung:** `.abw` (Arbeitsblatt), `.pbw` (Präsentation), `.kbw` (Klausur, neu), `.ebw` (Kurzentwurf). Neue Dokumente bekommen automatisch die passende Endung; Öffnen- und Speichern-Dialoge bieten die Typen einzeln an.
+- **`.md`-Dateien sind jetzt schlichtes Markdown:** Tabellen, Code, Formeln (`$…$`, `$$…$$`) werden dargestellt, Blattwerk-Blöcke (`:::task` usw.) aber nicht mehr interpretiert. Bestehende Blattwerk-Dateien mit Endung `.md` werden in einem späteren Schritt automatisch auf die neuen Endungen umgestellt.
+- **Speichern unter mit anderer Endung wechselt den Dokumenttyp** (nach Rückfrage) und passt den Eintrag `document_type` automatisch an. Beim Speichern als `.md` bleibt `document_type` unverändert.
+- **Unbekannte Dateiendungen:** Blattwerk fragt beim Öffnen, ob die Datei als Markdown gelesen werden soll. Gespeichert wird sie dann nur als neue `.md`-Datei, das Original bleibt unverändert.
+- Der Frontmatter-Eintrag `document_type` ist ein Kontrollfeld: Passt er nicht zur Endung, gibt es eine Warnung (`FM008`); fehlt er in einer Blattwerk-Datei, ebenfalls (`FM009`). Es gilt immer die Endung.
+
+### Removed
+
+- Das Frontmatter-Feld `mode` (`presentation`, `test`, `worksheet`, `solution`) hat keine Wirkung mehr und wird nicht mehr vorgeschlagen oder geprüft. Präsentation und Klausur ergeben sich aus der Endung; ob die Lösung angezeigt wird, wählst du wie bisher in Vorschau und Export.
+- Einstellung „Kurzentwurf-Erkennung“ (Dokumenttypen-Tab): entfällt, die Endung bestimmt den Typ.
+- Einstellung „Arbeits-Emoji standardmäßig sichtbar“: entfällt. Dokumente ohne Sozialform-Symbole legst du als Klausur (`.kbw`) an.
+
 ### Fixed
 
 - Der Frontmatter-Kopf (`---` … `---`) endete bisher an *jedem* `---`, auch mitten in einer Zeile (z. B. `Titel: Teil 1---Teil 2`), und wurde in Dateien mit UTF-8-BOM gar nicht erkannt. Jetzt endet er nur an einer eigenen Zeile `---` (oder `...`), und Dateien mit BOM funktionieren.

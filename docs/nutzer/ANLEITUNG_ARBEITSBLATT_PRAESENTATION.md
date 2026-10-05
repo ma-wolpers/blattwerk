@@ -10,7 +10,7 @@ Diese Anleitung ist die normative Referenz für den Blattwerk-Markdown-Dialekt, 
 
 ## 1. Grundidee
 
-Ein Blattwerk-Dokument besteht aus YAML-Frontmatter (Pflicht) gefolgt von einer Folge semantischer `:::blocktyp ...` ... `:::`-Blöcke. Ob ein Dokument als Arbeitsblatt oder als Präsentation gerendert wird, entscheidet allein das Frontmatter-Feld `mode` -- der Blockdialekt selbst ist identisch. Sichtbarkeit pro Block wird über `mode=worksheet|solution` gesteuert (Standard: in beiden Ausgaben sichtbar).
+Ein Blattwerk-Dokument besteht aus YAML-Frontmatter (Pflicht) gefolgt von einer Folge semantischer `:::blocktyp ...` ... `:::`-Blöcke. Ob ein Dokument als Arbeitsblatt, Präsentation oder Klausur gerendert wird, entscheidet allein die Dateiendung (`.abw`, `.pbw`, `.kbw`) -- der Blockdialekt selbst ist identisch. Sichtbarkeit pro Block wird über die Block-Option `mode=worksheet|solution` gesteuert (Standard: in beiden Ausgaben sichtbar).
 
 **Jeder Block braucht sein eigenes `:::`, bevor der nächste Block beginnt -- Verschachtelung ist nicht erlaubt.** Das gilt uneingeschränkt auch für `columns`/`nextcol`/`endcolumns`: das sind ganz normale Blocktypen wie jeder andere, kein syntaktischer Sonderfall. Bei fehlendem Inhalt kann die Kurzform `:::blockname ... :::` (öffnendes und schließendes `:::` auf derselben Zeile) verwendet werden, z. B. `:::nextcol :::`.
 
@@ -40,7 +40,6 @@ Formuliere hier deine erste Aufgabe.
 ```markdown
 ---
 document_type: presentation
-mode: presentation
 presentation_layout: presentation_16_9
 Titel: Neue Praesentation
 Fach: Fach eintragen
@@ -62,7 +61,7 @@ Fuehre hier den naechsten Gedanken aus.
 
 ### Sichtbarkeit in Präsentationen
 
-In Präsentationen (`mode: presentation`) gibt es **keinen Lösungs-Umschalter**: Blöcke mit `mode=solution`/`show=solution` sowie `:::solution ... :::`-Blöcke (nach Blocktyp) werden in Präsentationen **immer** ausgeblendet -- unabhängig davon, ob ein Export explizit "mit Lösung" anfordert. Es gibt keine Möglichkeit, sie in einer Präsentation sichtbar zu machen. `mode=worksheet` (oder keine Angabe, Standard `both`) rendert dagegen normal. Praktisch bedeutet das: `mode=solution`/`:::solution` in einem Präsentationsdokument zu verwenden entspricht "diesen Block dauerhaft verstecken", nicht "Lösungsansicht anbieten".
+In Präsentationen (`.pbw`) gibt es **keinen Lösungs-Umschalter**: Blöcke mit `mode=solution`/`show=solution` sowie `:::solution ... :::`-Blöcke (nach Blocktyp) werden in Präsentationen **immer** ausgeblendet -- unabhängig davon, ob ein Export explizit "mit Lösung" anfordert. Es gibt keine Möglichkeit, sie in einer Präsentation sichtbar zu machen. `mode=worksheet` (oder keine Angabe, Standard `both`) rendert dagegen normal. Praktisch bedeutet das: `mode=solution`/`:::solution` in einem Präsentationsdokument zu verwenden entspricht "diesen Block dauerhaft verstecken", nicht "Lösungsansicht anbieten".
 
 ## 4. Frontmatter-Referenz
 
@@ -71,14 +70,13 @@ In Präsentationen (`mode: presentation`) gibt es **keinen Lösungs-Umschalter**
 | `Titel` | ja | Text | -- | ja |
 | `Fach` | ja | Text | -- | ja |
 | `Thema` | ja | Text | -- | ja |
-| `mode` | nein | enum | `presentation`, `solution`, `test`, `worksheet`, `ws` | ja |
 | `presentation_layout` | nein | enum | `presentation_16_10`, `presentation_16_9`, `presentation_4_3` | ja |
 | `presentation_show_mini_header` | nein | boolean | `0`, `1`, `falsch`, `false`, `ja`, `nein`, `no`, `off`, `on`, `true`, `wahr`, `yes` | ja |
 | `presentation_show_section_footer` | nein | boolean | `0`, `1`, `falsch`, `false`, `ja`, `nein`, `no`, `off`, `on`, `true`, `wahr`, `yes` | ja |
 | `tag` | nein | scalar_nonempty | -- | ja |
 | `show_student_header` | nein | boolean | `0`, `1`, `false`, `j`, `ja`, `n`, `nein`, `no`, `off`, `on`, `true`, `yes` | ja |
 | `show_document_header` | nein | boolean | `0`, `1`, `false`, `j`, `ja`, `n`, `nein`, `no`, `off`, `on`, `true`, `yes` | ja |
-| `document_type` | nein | enum | `kurzentwurf`, `presentation`, `worksheet` | nein |
+| `document_type` | nein | enum | `exam`, `kurzentwurf`, `markdown`, `presentation`, `worksheet` | nein |
 | `lochen` | nein | boolean | `0`, `1`, `false`, `j`, `ja`, `n`, `nein`, `no`, `off`, `on`, `true`, `yes` | nein |
 | `copyright` | nein | free_text | -- | nein |
 | `Stufe` | nein | enum | `10`, `11`, `12`, `13`, `5`, `6`, `7`, `8`, `9`, `e`, `q1`, `q2`, `sek1`, `sek2` | ja |
@@ -88,14 +86,13 @@ In Präsentationen (`mode: presentation`) gibt es **keinen Lösungs-Umschalter**
 - **`Titel`** (Pflichtfeld): Der Titel des Dokuments, erscheint im Dokumentkopf und in der Fensterleiste.
 - **`Fach`** (Pflichtfeld): Das Unterrichtsfach, erscheint zusammen mit `Thema` in der Metazeile des Dokumentkopfs.
 - **`Thema`** (Pflichtfeld): Das konkrete Unterrichtsthema, erscheint zusammen mit `Fach` in der Metazeile des Dokumentkopfs.
-- **`mode`** (optional): Steuert das grundlegende Ausgabeverhalten des Dokuments. `worksheet` (Standard, Alias `ws`) zeigt normale Arbeitsblatt-Ausgabe; `solution` rendert global die Lösungsansicht; `presentation` schaltet auf Folienausgabe mit Mini-Header und Folienzähler um; `test` blendet in Aufgaben/Teilaufgaben nur die Arbeitsform-Hinweise (Emoji + Label) aus.
-- **`presentation_layout`** (optional): Wählt das Seitenverhältnis der Folien bei `mode: presentation` (`presentation_16_9`, `presentation_16_10` oder `presentation_4_3`). Ohne `mode: presentation` ohne Wirkung.
+- **`presentation_layout`** (optional): Wählt das Seitenverhältnis der Folien einer Präsentation (`.pbw`; `presentation_16_9`, `presentation_16_10` oder `presentation_4_3`). In anderen Dokumenttypen ohne Wirkung.
 - **`presentation_show_mini_header`** (optional): Blendet in Präsentationen den kleinen Kopfbereich pro Folie (Phasenübersicht) ein/aus. Standard: an.
 - **`presentation_show_section_footer`** (optional): Blendet in Präsentationen den Abschnittsfooter (Folienzähler) pro Folie ein/aus. Standard: an.
 - **`tag`** (optional): Freier Kurzbezeichner, der z. B. als Präfix für automatisch generierte Lernhilfe-Label verwendet werden kann (siehe `help`/`hilfe`-Block-Option `tag`). Muss ein einfacher, nicht-leerer Textwert sein -- kein YAML-Mapping oder -Liste.
 - **`show_student_header`** (optional): Blendet die Schülerkopfzeile (Name/Lerngruppe/Datum-Felder) am Dokumentanfang ein/aus. Standard: aus. Erwartet einen booleschen Wert im Format `ja`/`nein` (auch `true`/`false`, `1`/`0`, `j`/`n` werden akzeptiert).
 - **`show_document_header`** (optional): Blendet den Dokumentkopf (Titel, Fach/Thema-Metazeile) ein/aus. Standard: an. Erwartet denselben booleschen Werttyp wie `show_student_header`.
-- **`document_type`** (optional): Markiert den Dokumenttyp explizit (`worksheet`, `presentation` oder `kurzentwurf`) statt ihn aus anderen Feldern zu erraten. Wird von Blattwerk beim Anlegen neuer Dokumente automatisch gesetzt; von Hand meist nicht nötig. Aktuell nicht durch den Markdown-Validator wertgeprüft.
+- **`document_type`** (optional): Konsistenzmarker für den Dokumenttyp: muss zur Dateiendung passen (`.abw` → `worksheet`, `.pbw` → `presentation`, `.kbw` → `exam`, `.ebw` → `kurzentwurf`, `.md` → `markdown`). Der Typ selbst kommt immer aus der Endung; ein abweichender Wert erzeugt eine Warnung (`FM008`), ein ungültiger `FM010`, ein fehlender in Blattwerk-Dateien `FM009`. Blattwerk setzt ihn beim Anlegen und bei Speichern-unter in einen anderen Blattwerk-Typ automatisch.
 - **`lochen`** (optional): Aktiviert einen vergrößerten linken Rand für Lochung beim Ausdrucken (`ja`/`nein`, Standard: `nein`). Aktuell nicht durch den Markdown-Validator wertgeprüft; ungültige Werte werden beim Rendern stillschweigend als `nein` behandelt.
 - **`copyright`** (optional): Ersetzt den Standard-Copyright-Text im Footer durch einen eigenen Text. Ohne dieses Feld wird automatisch ein Standardtext mit aktuellem Jahr eingesetzt.
 - **`Stufe`** (optional): Die Jahrgangsstufe -- schränkt ein, welche `!!Operator!!`-Bezeichnungen für dieses Dokument gültig sind und im Editor vorgeschlagen werden (siehe `data/operatoren/<fach>.json`, `stufengruppen`). Ohne `Stufe` gelten alle für `Fach` hinterlegten Operatoren als verfügbar, unabhängig von ihrer Stufenzuordnung. Hat aktuell keine Wirkung außerhalb der Operatoren-Verfügbarkeit (kein Einfluss auf Layout/Rendering).

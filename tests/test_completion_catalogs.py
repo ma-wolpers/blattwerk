@@ -142,12 +142,14 @@ def test_frontmatter_field_completion_returns_stufe_values():
 
 def test_frontmatter_field_completion_returns_existing_enum_fields_unaffected():
     # Regression: adding Stufe must not change already-working enum fields.
-    assert get_completion_frontmatter_field_values("mode") == (
-        "presentation", "solution", "test", "worksheet", "ws",
-    )
     assert get_completion_frontmatter_field_values("document_type") == (
-        "kurzentwurf", "presentation", "worksheet",
+        "exam", "kurzentwurf", "markdown", "presentation", "worksheet",
     )
+
+
+def test_frontmatter_mode_has_no_completion_anymore():
+    assert get_completion_frontmatter_field_values("mode") == ()
+    assert get_completion_frontmatter_field_detail("mode") is None
 
 
 def test_frontmatter_field_completion_empty_for_non_enum_field():
@@ -187,9 +189,9 @@ def test_operator_details_completion_empty_for_unknown_fach():
 
 
 def test_frontmatter_field_detail_enum_with_default_shows_standard_hint():
-    detail = get_completion_frontmatter_field_detail("mode")
+    detail = get_completion_frontmatter_field_detail("document_type")
     assert detail is not None
-    assert detail["title"] == "mode"
+    assert detail["title"] == "document_type"
     assert detail["description"]
     assert detail["value_hint"] == "Standard: worksheet"
 
@@ -304,13 +306,13 @@ def test_frontmatter_value_detail_reuses_field_description():
 
 
 def test_frontmatter_value_detail_marks_actual_default_value():
-    detail = get_completion_frontmatter_value_detail("mode", "worksheet")
+    detail = get_completion_frontmatter_value_detail("document_type", "worksheet")
     assert detail is not None
     assert detail["value_hint"] == "Standard: worksheet"
 
 
 def test_frontmatter_value_detail_non_default_value_has_no_hint():
-    detail = get_completion_frontmatter_value_detail("mode", "presentation")
+    detail = get_completion_frontmatter_value_detail("document_type", "presentation")
     assert detail is not None
     assert detail["value_hint"] is None
 

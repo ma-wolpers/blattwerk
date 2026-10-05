@@ -14,7 +14,7 @@ from dataclasses import dataclass
 
 from .blatt_kern_shared_data import JA_NEIN_BOOLEAN_TOKENS
 from .crossword_symbol_presets import SYMBOL_THEME_NAMES
-from .document_types import KNOWN_DOCUMENT_TYPES
+from .document_type_registry import KNOWN_DOCUMENT_TYPES
 
 REQUIRED_FRONTMATTER_FIELDS = ("Titel", "Fach", "Thema")
 
@@ -94,7 +94,6 @@ KNOWN_BLOCK_TYPES = {
 }
 KNOWN_SHOW_VALUES = {"worksheet", "solution", "both"}
 KNOWN_BLOCK_MODE_VALUES = {"worksheet", "solution"}
-KNOWN_DOCUMENT_MODES = {"ws", "test", "worksheet", "solution", "presentation"}
 KNOWN_PRESENTATION_LAYOUTS = {
     "presentation_16_9",
     "presentation_16_10",
@@ -676,7 +675,6 @@ CRITICAL_DIAGNOSTIC_CODES = {
 }
 
 OPTIONAL_FRONTMATTER_FIELDS = (
-    FrontmatterFieldSpec("mode", "enum", frozenset(KNOWN_DOCUMENT_MODES), "worksheet", True),
     FrontmatterFieldSpec(
         "presentation_layout", "enum", frozenset(KNOWN_PRESENTATION_LAYOUTS), MISSING, True
     ),

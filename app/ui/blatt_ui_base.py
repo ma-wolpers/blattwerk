@@ -23,9 +23,16 @@ from ..styles.worksheet_design import DEFAULT_COLOR_PROFILE
 from .blatt_ui_shortcut_runtime import BlattwerkShortcutRuntimeMixin
 from .blatt_ui_shortcut_debug import BlattwerkShortcutDebugMixin
 from .blatt_ui_document_tabs import BlattwerkDocumentTabsMixin
+from .blatt_ui_document_type import BlattwerkDocumentTypeMixin
 
 
-class BlattwerkAppBase(BlattwerkDocumentTabsMixin, BlattwerkShortcutDebugMixin, BlattwerkShortcutRuntimeMixin, BwBaseWindow):
+class BlattwerkAppBase(
+    BlattwerkDocumentTypeMixin,
+    BlattwerkDocumentTabsMixin,
+    BlattwerkShortcutDebugMixin,
+    BlattwerkShortcutRuntimeMixin,
+    BwBaseWindow,
+):
     """Basisklasse für gemeinsamen GUI-Zustand und globale Shortcuts."""
 
     def __init__(self, deps: AppDependencies | None = None, startup_file: str | None = None):
@@ -235,7 +242,7 @@ class BlattwerkAppBase(BlattwerkDocumentTabsMixin, BlattwerkShortcutDebugMixin, 
         self.preview_page_format_btn_16_9 = None
         self.preview_page_format_btn_16_10 = None
         self.preview_page_format_btn_4_3 = None
-        self._current_preview_document_mode = "worksheet"
+        self._current_preview_document_type = None
         self._preview_refresh_in_progress = False
         self._last_preview_page_format_by_mode = {
             "worksheet": "a4_portrait",

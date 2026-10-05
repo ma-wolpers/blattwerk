@@ -1,96 +1,129 @@
-from app.core.document_types import (
-    DOCUMENT_TYPE_DETECTION_EXPLICIT_KEY,
+"""Tests für Typidentität (I1), Konsistenzmarker (I2), Registry und Templates."""
+
+import pytest
+
+from app.core.blatt_kern_shared import split_front_matter
+from app.core.document_semantics import (
+    Absent,
+    Canonical,
+    Invalid,
+    canonicalize_document_type,
+    marker_diagnostics,
+    type_for_path,
+    type_for_tab,
+)
+from app.core.document_type_registry import (
+    BLATTWERK_EXTENSIONS,
+    DOCUMENT_TYPE_EXAM,
     DOCUMENT_TYPE_KURZENTWURF,
+    DOCUMENT_TYPE_MARKDOWN,
     DOCUMENT_TYPE_PRESENTATION,
     DOCUMENT_TYPE_WORKSHEET,
-    build_new_document_content,
-    detect_document_type,
-    detect_document_type_from_meta,
+    KNOWN_DOCUMENT_TYPES,
+    has_slide_layout,
+    shows_work_hints,
+    solutions_renderable,
+    spec_for_type,
 )
+from app.core.document_type_templates import build_new_document_content, get_new_document_dialog_defaults
 from app.ui.blatt_ui_base import BlattwerkAppBase
+from app.ui.blatt_ui_document_type import BlattwerkDocumentTypeMixin
 from app.ui.blatt_ui_preview import BlattwerkAppPreviewMixin
 
 
-def test_detect_document_type_defaults_to_worksheet():
-    assert detect_document_type_from_meta({}) == DOCUMENT_TYPE_WORKSHEET
+@pytest.mark.parametrize(
+    ("name", "expected"),
+    [
+        ("blatt.abw", DOCUMENT_TYPE_WORKSHEET),
+        ("folien.PBW", DOCUMENT_TYPE_PRESENTATION),
+        ("klausur.kbw", DOCUMENT_TYPE_EXAM),
+        ("entwurf.ebw", DOCUMENT_TYPE_KURZENTWURF),
+        ("notiz.md", DOCUMENT_TYPE_MARKDOWN),
+        ("alt.kwe.md", DOCUMENT_TYPE_MARKDOWN),
+        ("notiz.txt", None),
+        ("ohne_endung", None),
+    ],
+)
+def test_type_comes_only_from_extension(name, expected):
+    assert type_for_path(name) == expected
 
 
-def test_detect_document_type_uses_presentation_mode():
-    meta = {"Titel": "T", "Fach": "M", "Thema": "X", "mode": "presentation"}
-
-    assert detect_document_type_from_meta(meta) == DOCUMENT_TYPE_PRESENTATION
-
-
-def test_detect_document_type_uses_kurzentwurf_yaml_keys_by_default():
-    meta = {"Stundenthema": "Algorithmen", "Lerngruppe": "6a", "start": "08:00"}
-
-    assert detect_document_type_from_meta(meta) == DOCUMENT_TYPE_KURZENTWURF
+def test_type_for_tab_path_wins_over_cache_and_unknown_uses_explicit_type():
+    assert type_for_tab("blatt.abw", DOCUMENT_TYPE_EXAM) == DOCUMENT_TYPE_WORKSHEET
+    assert type_for_tab("notiz.txt", DOCUMENT_TYPE_MARKDOWN) == DOCUMENT_TYPE_MARKDOWN
+    assert type_for_tab("notiz.txt", None) is None
+    assert type_for_tab(None, DOCUMENT_TYPE_PRESENTATION) == DOCUMENT_TYPE_PRESENTATION
 
 
-def test_detect_document_type_uses_user_style_kurzentwurf_meta_by_default():
-    meta = {
-        "Stundentyp": "Unterricht",
-        "Dauer": 2,
-        "Stundenthema": "Bist du normal",
-        "Oberthema": "Prozentrechnung",
-        "Stundenziel": "Prozentwerte berechnen",
-        "Teilziele": None,
-        "Kompetenzen": ["Dreisatz nutzen"],
-        "Material": None,
-        "Unterrichtsbesuch": None,
-    }
-
-    assert detect_document_type_from_meta(meta) == DOCUMENT_TYPE_KURZENTWURF
-
-
-def test_detect_document_type_can_use_explicit_document_type_key():
-    meta = {"document_type": "kurzentwurf", "Titel": "Ignoriert"}
-
-    assert (
-        detect_document_type_from_meta(
-            meta,
-            detection_mode=DOCUMENT_TYPE_DETECTION_EXPLICIT_KEY,
-        )
-        == DOCUMENT_TYPE_KURZENTWURF
-    )
+@pytest.mark.parametrize(
+    ("raw", "expected"),
+    [
+        (None, Absent()),
+        ("", Absent()),
+        ("   ", Absent()),
+        ("worksheet", Canonical(DOCUMENT_TYPE_WORKSHEET)),
+        (" Exam ", Canonical(DOCUMENT_TYPE_EXAM)),
+        ("arbeitsblatt", Canonical(DOCUMENT_TYPE_WORKSHEET)),
+        ("slide_deck", Canonical(DOCUMENT_TYPE_PRESENTATION)),
+        ("lesson_plan", Canonical(DOCUMENT_TYPE_KURZENTWURF)),
+        ("banana", Invalid("banana")),
+        (3, Invalid(3)),
+        (True, Invalid(True)),
+        (["worksheet"], Invalid(["worksheet"])),
+        ({"a": 1}, Invalid({"a": 1})),
+    ],
+)
+def test_canonicalize_document_type(raw, expected):
+    assert canonicalize_document_type(raw) == expected
 
 
-def test_detect_document_type_uses_kwe_extension_as_legacy_fallback():
-    meta = {"Stundenthema": "Algorithmen"}
-    markdown_text = "---\nStundenthema: Algorithmen\n---\n#einstieg t=10\nS> Impuls\n"
-
-    assert (
-        detect_document_type(
-            meta,
-            detection_mode=DOCUMENT_TYPE_DETECTION_EXPLICIT_KEY,
-            source_path="algorithmen-lego-einfuehrung.kwe.md",
-            markdown_text=markdown_text,
-        )
-        == DOCUMENT_TYPE_KURZENTWURF
-    )
+def test_alias_counts_as_matching_marker():
+    assert marker_diagnostics({"document_type": "slide_deck"}, DOCUMENT_TYPE_PRESENTATION) == []
 
 
-def test_detect_document_type_uses_legacy_yaml_and_dsl_fallback_for_plain_md():
-    meta = {"Stundenthema": "Algorithmen", "Lerngruppe": "6a"}
-    markdown_text = "---\nStundenthema: Algorithmen\nLerngruppe: 6a\n---\n#einstieg t=10\nS> Impuls\n"
-
-    assert (
-        detect_document_type(
-            meta,
-            detection_mode=DOCUMENT_TYPE_DETECTION_EXPLICIT_KEY,
-            source_path="algorithmen.md",
-            markdown_text=markdown_text,
-        )
-        == DOCUMENT_TYPE_KURZENTWURF
-    )
+def test_registry_capabilities_replace_former_mode_semantics():
+    assert has_slide_layout(DOCUMENT_TYPE_PRESENTATION)
+    assert not has_slide_layout(DOCUMENT_TYPE_EXAM)
+    assert not solutions_renderable(DOCUMENT_TYPE_PRESENTATION)
+    assert solutions_renderable(DOCUMENT_TYPE_EXAM)
+    assert not shows_work_hints(DOCUMENT_TYPE_EXAM)
+    assert shows_work_hints(DOCUMENT_TYPE_WORKSHEET)
 
 
-def test_build_presentation_template_contains_mode_and_type():
-    content = build_new_document_content(DOCUMENT_TYPE_PRESENTATION, {"default_subject": "Mathe"})
+def test_registry_extensions_and_ordered_export_formats():
+    assert BLATTWERK_EXTENSIONS == (".abw", ".pbw", ".kbw", ".ebw")
+    assert spec_for_type(DOCUMENT_TYPE_PRESENTATION).export_formats[-1] == "pptx"
+    assert all(isinstance(spec_for_type(t).export_formats, tuple) for t in KNOWN_DOCUMENT_TYPES)
 
-    assert "document_type: presentation" in content
-    assert "mode: presentation" in content
-    assert "Titel: Neue Praesentation" in content
+
+def test_evaluation_capability_only_for_worksheet_and_exam():
+    available = {t for t in KNOWN_DOCUMENT_TYPES if spec_for_type(t).evaluation}
+    assert available == {DOCUMENT_TYPE_WORKSHEET, DOCUMENT_TYPE_EXAM}
+
+
+@pytest.mark.parametrize("document_type", KNOWN_DOCUMENT_TYPES)
+def test_templates_write_canonical_marker_only_for_blattwerk_types(document_type):
+    content = build_new_document_content(document_type, {"default_subject": "Mathe"})
+    meta, _rest = split_front_matter(content)
+
+    if spec_for_type(document_type).marker_required:
+        assert meta.get("document_type") == document_type
+        assert marker_diagnostics(meta, document_type) == []
+    else:
+        assert "document_type" not in meta
+    assert "mode" not in meta
+
+
+def test_dialog_defaults_use_type_extension():
+    for document_type in KNOWN_DOCUMENT_TYPES:
+        _title, filename = get_new_document_dialog_defaults(document_type)
+        assert type_for_path(filename) == document_type
+
+
+def test_worksheet_template_ignores_removed_work_emoji_preference():
+    content = build_new_document_content(DOCUMENT_TYPE_WORKSHEET, {"default_work_emoji_visible": False})
+
+    assert "mode:" not in content
 
 
 def test_build_presentation_template_uses_pagebreak_not_framebreak_between_distinct_tasks():
@@ -111,6 +144,17 @@ def test_build_kurzentwurf_template_contains_yaml_identity_keys():
     assert "#einstieg t=10" in content
 
 
+def test_removed_preferences_are_dropped_and_have_no_effect():
+    from app.storage.user_preferences_adapter import normalize_user_preferences
+
+    normalized = normalize_user_preferences(
+        {"document_type_detection_mode": "hybrid", "default_work_emoji_visible": False}
+    )
+
+    assert "document_type_detection_mode" not in normalized
+    assert "default_work_emoji_visible" not in normalized
+
+
 class _DummyVar:
     def __init__(self, value):
         self._value = value
@@ -120,7 +164,7 @@ class _DummyVar:
 
 
 def test_preview_cache_key_changes_for_kurzentwurf_runtime_options(tmp_path):
-    document = tmp_path / "kurzentwurf.md"
+    document = tmp_path / "kurzentwurf.ebw"
     document.write_text("---\nStundenthema: T\nLerngruppe: 6a\n---\n", encoding="utf-8")
 
     dummy = type(
@@ -141,67 +185,59 @@ def test_preview_cache_key_changes_for_kurzentwurf_runtime_options(tmp_path):
         },
     )()
 
-    cache_key_a = BlattwerkAppPreviewMixin._build_preview_cache_key(
-        dummy,
-        document,
-        False,
-        "a4_portrait",
-        "standard",
-        document_type=DOCUMENT_TYPE_KURZENTWURF,
-    )
+    def key():
+        return BlattwerkAppPreviewMixin._build_preview_cache_key(
+            dummy, document, False, "a4_portrait", "standard", document_type=DOCUMENT_TYPE_KURZENTWURF
+        )
 
+    cache_key_a = key()
     dummy.user_preferences = {"kurzentwurf_column_widths_text": "1 2 3 2"}
-    cache_key_b = BlattwerkAppPreviewMixin._build_preview_cache_key(
-        dummy,
-        document,
-        False,
-        "a4_portrait",
-        "standard",
-        document_type=DOCUMENT_TYPE_KURZENTWURF,
+    assert cache_key_a != key()
+
+
+class _TypeDummy(BlattwerkDocumentTypeMixin):
+    pass
+
+
+def test_read_document_type_uses_extension_not_content(tmp_path):
+    document = tmp_path / "eigentlich_kurzentwurf.md"
+    document.write_text("---\nStundenthema: A\nLerngruppe: 6a\nstart: 08:00\n---\n", encoding="utf-8")
+
+    assert _TypeDummy()._read_document_type(document) == DOCUMENT_TYPE_MARKDOWN
+
+
+def test_unknown_extension_is_markdown_only_after_explicit_interpretation(tmp_path, monkeypatch):
+    document = tmp_path / "notiz.txt"
+    document.write_text("Text", encoding="utf-8")
+    dummy = _TypeDummy()
+
+    assert dummy._read_document_type(document) is None
+    monkeypatch.setattr("app.ui.blatt_ui_document_type.messagebox.askyesno", lambda *a, **k: False)
+    assert dummy._confirm_open_unknown_extension(document) is False
+    assert dummy._read_document_type(document) is None
+
+    monkeypatch.setattr("app.ui.blatt_ui_document_type.messagebox.askyesno", lambda *a, **k: True)
+    assert dummy._confirm_open_unknown_extension(document) is True
+    assert dummy._read_document_type(document) == DOCUMENT_TYPE_MARKDOWN
+    assert dummy._requires_markdown_save_as(document) is True
+
+
+def test_known_extension_never_asks(monkeypatch, tmp_path):
+    monkeypatch.setattr(
+        "app.ui.blatt_ui_document_type.messagebox.askyesno",
+        lambda *a, **k: pytest.fail("darf nicht fragen"),
     )
-
-    assert cache_key_a != cache_key_b
-
-
-def test_read_document_type_uses_runtime_detection_mode_setting(tmp_path):
-    document = tmp_path / "kurzentwurf.md"
-    document.write_text(
-        "---\n"
-        "Stundenthema: Algorithmen\n"
-        "Lerngruppe: 6a\n"
-        "start: 08:00\n"
-        "---\n",
-        encoding="utf-8",
-    )
-
-    dummy = type("DummyPreview", (), {"user_preferences": {"document_type_detection_mode": "yaml_keys"}})()
-
-    assert BlattwerkAppPreviewMixin._read_document_type(dummy, document) == DOCUMENT_TYPE_KURZENTWURF
-
-
-def test_read_document_type_keeps_legacy_kurzentwurf_detection_in_explicit_key_mode(tmp_path):
-    document = tmp_path / "kurzentwurf.md"
-    document.write_text(
-        "---\n"
-        "Stundenthema: Algorithmen\n"
-        "Lerngruppe: 6a\n"
-        "start: 08:00\n"
-        "---\n",
-        encoding="utf-8",
-    )
-
-    dummy = type("DummyPreview", (), {"user_preferences": {"document_type_detection_mode": "document_type_key"}})()
-
-    assert BlattwerkAppPreviewMixin._read_document_type(dummy, document) == DOCUMENT_TYPE_KURZENTWURF
+    assert _TypeDummy()._confirm_open_unknown_extension(tmp_path / "blatt.abw") is True
+    assert _TypeDummy()._requires_markdown_save_as(tmp_path / "blatt.abw") is False
 
 
 def test_build_document_tab_state_forces_worksheet_preview_for_kurzentwurf(tmp_path):
-    document = tmp_path / "kurzentwurf.md"
+    document = tmp_path / "kurzentwurf.ebw"
     document.write_text("", encoding="utf-8")
 
     dummy = type(
         "DummyBase",
-        (),
+        (BlattwerkDocumentTypeMixin,),
         {
             "_normalize_document_path": staticmethod(BlattwerkAppBase._normalize_document_path),
             "_font_size_profile_is_per_tab": BlattwerkAppBase._font_size_profile_is_per_tab,
@@ -217,13 +253,21 @@ def test_build_document_tab_state_forces_worksheet_preview_for_kurzentwurf(tmp_p
             "preview_layout_mode_var": _DummyVar("single"),
             "zoom_percent": 100,
             "current_page_index": 0,
-            "_read_document_mode": lambda self, _path: "worksheet",
-            "_read_document_type": lambda self, _path: DOCUMENT_TYPE_KURZENTWURF,
         },
     )()
 
     state = BlattwerkAppBase._build_document_tab_state(dummy, document)
 
-    assert state["document_mode"] == "worksheet"
+    assert "document_mode" not in state
     assert state["document_type"] == DOCUMENT_TYPE_KURZENTWURF
     assert state["preview_mode"] == "worksheet"
+
+
+def test_preview_toolbar_capabilities_follow_registry():
+    caps = BlattwerkAppPreviewMixin._preview_toolbar_capabilities
+
+    assert caps(DOCUMENT_TYPE_PRESENTATION)["phase_controls_enabled"] is True
+    assert caps(DOCUMENT_TYPE_PRESENTATION)["show_solution_toggle"] is False
+    assert caps(DOCUMENT_TYPE_EXAM)["show_solution_toggle"] is True
+    assert caps(DOCUMENT_TYPE_MARKDOWN)["show_page_format"] is False
+    assert caps(None)["show_design_controls"] is False

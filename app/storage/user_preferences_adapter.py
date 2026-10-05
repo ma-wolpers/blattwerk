@@ -449,20 +449,7 @@ PREFERENCE_SPECS = {
         "default": "DD.MM.YYYY",
         "values": ["DD.MM.YYYY", "YYYY-MM-DD"],
     },
-    "default_work_emoji_visible": {
-        "tab": "document_defaults",
-        "label": "Arbeits-Emoji standardmaessig sichtbar",
-        "type": "bool",
-        "default": True,
-    },
     # Dokumenttypen
-    "document_type_detection_mode": {
-        "tab": "document_types",
-        "label": "Kurzentwurf-Erkennung",
-        "type": "enum",
-        "default": "yaml_keys",
-        "values": ["yaml_keys", "hybrid", "document_type_key"],
-    },
     "kurzentwurf_column_widths_text": {
         "tab": "document_types",
         "label": "Kurzentwurf Spaltengewichte",

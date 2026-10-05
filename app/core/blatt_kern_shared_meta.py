@@ -1,9 +1,10 @@
-"""Kleine Meta-/Formatierungs-Helfer: Dokumentmodus, Bool-Normalisierung, Copyright, Schuljahr, Abschnitts-HTML.
+"""Kleine Meta-/Formatierungs-Helfer: Bool-Normalisierung, Copyright, Schuljahr, Abschnitts-HTML.
 
 Eigenständige Funktionen ohne Abhängigkeit auf den Parser oder die
 Block-Nachbearbeitung — bewusst getrennt gehalten, damit z. B.
-`get_copyright_text`/`normalize_document_mode` ohne den restlichen
-Kernparser importiert werden können.
+`get_copyright_text` ohne den restlichen Kernparser importiert werden kann.
+Ein Frontmatter-Feld `mode` gibt es nicht mehr (Invariante I3); typbedingtes
+Verhalten steht in `document_type_registry.py`.
 """
 
 from __future__ import annotations
@@ -12,7 +13,6 @@ import re
 from datetime import datetime
 
 from .blatt_kern_shared_data import (
-    DOCUMENT_MODE_ALIASES,
     JA_NEIN_TRUE_TOKENS,
     JA_NEIN_BOOLEAN_TOKENS,
     TASK_ACTION_MAP,
@@ -28,16 +28,6 @@ _SECTION_BREAK_SPLIT_PATTERN = re.compile(
 def _normalize_keyword(value, default=""):
     """Normalisiert Optionswerte für Lookup-Tabellen."""
     return (value or default).strip().lower()
-
-
-def normalize_document_mode(mode_raw, default="ws"):
-    """Normalize document output mode from frontmatter metadata."""
-    normalized_default = DOCUMENT_MODE_ALIASES.get(
-        _normalize_keyword(default, default="worksheet"),
-        "worksheet",
-    )
-    mode = _normalize_keyword(mode_raw, default=normalized_default)
-    return DOCUMENT_MODE_ALIASES.get(mode, normalized_default)
 
 
 def _safe_int(value, default):

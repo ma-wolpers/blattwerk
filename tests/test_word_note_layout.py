@@ -59,7 +59,7 @@ def test_stylesheet_gutters_are_opt_in():
     default_css = build_stylesheet("a4_portrait", "standard")
     worksheet_css = build_stylesheet("a4_portrait", "standard", reserve_gutters=True)
     presentation_css = build_stylesheet(
-        "presentation_16_9", "standard", document_mode="presentation"
+        "presentation_16_9", "standard", slide_layout=True
     )
 
     assert "--task-margin-gutter" not in default_css

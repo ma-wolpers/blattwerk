@@ -39,13 +39,16 @@ from .preview_geometry import (
 from ..core.block_computation_cache import open_block_computation_cache
 from ..core.document_preview_build import build_preview_images_for_document
 from ..core.kurzentwurf_settings import kurzentwurf_runtime_options_from_preferences
-from ..core.document_types import (
+from ..core.document_semantics import type_for_path
+from ..core.document_type_registry import (
     DOCUMENT_TYPE_KURZENTWURF,
-    build_new_document_content,
-    detect_document_type,
-    get_new_document_dialog_defaults,
+    DOCUMENT_TYPE_MARKDOWN,
+    PIPELINE_WORKSHEET,
+    has_slide_layout,
+    spec_for_type,
 )
-from ..core.blatt_kern_shared import normalize_document_mode, split_front_matter
+from ..core.document_type_templates import build_new_document_content, get_new_document_dialog_defaults
+from .document_file_dialogs import confirm_and_stage_save_as, open_dialog_filetypes, save_as_filetypes
 from ..core.diagnostic_warnings import build_warning_payload
 from ..storage import acknowledged_warnings_store
 from ..styles.blatt_styles import invalidate_stylesheet_template_cache
@@ -68,15 +71,15 @@ class BlattwerkAppPreviewMixin:
                 return value.strip().lower() in {"1", "true", "yes", "ja", "on"}
             return bool(value)
 
-    def _resolve_preview_page_format_for_document_mode(self, page_format: str, document_mode: str) -> str:
-            """Resolves a valid page format and remembers last used format per mode family."""
+    def _resolve_preview_page_format_for_document_type(self, page_format: str, document_type: str | None) -> str:
+            """Resolves a valid page format and remembers the last used format per layout family."""
             worksheet_formats = {"a4_portrait", "a5_landscape"}
             presentation_formats = {
                 "presentation_16_9",
                 "presentation_16_10",
                 "presentation_4_3",
             }
-            mode_key = "presentation" if document_mode == "presentation" else "worksheet"
+            mode_key = "presentation" if has_slide_layout(document_type or "") else "worksheet"
             allowed_formats = presentation_formats if mode_key == "presentation" else worksheet_formats
             default_format = "presentation_16_9" if mode_key == "presentation" else "a4_portrait"
 
@@ -98,27 +101,28 @@ class BlattwerkAppPreviewMixin:
             return resolved
 
     @staticmethod
-    def _preview_toolbar_capabilities(document_type: str, document_mode: str) -> dict[str, bool]:
+    def _preview_toolbar_capabilities(document_type: str | None) -> dict[str, bool]:
             """Decides which preview-toolbar controls are meaningful for the active tab.
 
-            Centralizes the document-type/mode gating logic in one place so it
-            isn't re-derived separately in each toolbar-control function.
-            Kurzentwurf documents don't use the `:::`-block worksheet/presentation
-            dialect at all, so page format, black-screen, phase separators, and
-            worksheet design controls (contrast/color profile/font) have no
-            effect on them -- verified against the actual render dispatch in
-            `app/core/document_preview_build.py`, not assumed from naming.
+            Centralizes the document-type gating in one place. Only the worksheet
+            pipeline (Arbeitsblatt/Praesentation/Klausur) uses page format,
+            phase separators, black screen and design controls; Kurzentwurf and
+            plain Markdown render through their own pipelines (see
+            `app/core/document_preview_build.py`). Folien-Layout and the
+            availability of a solution version come from the registry
+            capabilities, never from a frontmatter `mode`.
             """
-            is_kurzentwurf = document_type == DOCUMENT_TYPE_KURZENTWURF
-            is_presentation = (not is_kurzentwurf) and document_mode == "presentation"
+            spec = spec_for_type(document_type) if document_type else None
+            worksheet_pipeline = spec is not None and spec.pipeline == PIPELINE_WORKSHEET
+            is_presentation = worksheet_pipeline and spec.slide_layout
             return {
-                "show_solution_toggle": not is_kurzentwurf and not is_presentation,
-                "show_page_format": not is_kurzentwurf,
-                "show_phase_controls": not is_kurzentwurf,
+                "show_solution_toggle": worksheet_pipeline and spec.solutions_renderable,
+                "show_page_format": worksheet_pipeline,
+                "show_phase_controls": worksheet_pipeline,
                 "phase_controls_enabled": is_presentation,
-                "show_black_screen": not is_kurzentwurf,
+                "show_black_screen": worksheet_pipeline,
                 "black_screen_enabled": is_presentation,
-                "show_design_controls": not is_kurzentwurf,
+                "show_design_controls": worksheet_pipeline,
             }
 
     def _toggle_preview_page_format_button(self, button, visible: bool, *, padx=(10, 0)):
@@ -134,9 +138,9 @@ class BlattwerkAppPreviewMixin:
             if button.winfo_manager():
                 button.pack_forget()
 
-    def _apply_preview_page_format_controls_for_document_mode(self, document_mode: str, document_type: str):
-            """Shows only valid page-format options for the active document type/mode."""
-            capabilities = self._preview_toolbar_capabilities(document_type, document_mode)
+    def _apply_preview_page_format_controls(self, document_type: str | None):
+            """Shows only valid page-format options for the active document type."""
+            capabilities = self._preview_toolbar_capabilities(document_type)
             if not capabilities["show_page_format"]:
                 for name in (
                     "preview_page_format_btn_a4",
@@ -148,7 +152,7 @@ class BlattwerkAppPreviewMixin:
                     self._toggle_preview_page_format_button(getattr(self, name, None), False)
                 return
 
-            is_presentation = document_mode == "presentation"
+            is_presentation = has_slide_layout(document_type or "")
 
             self._toggle_preview_page_format_button(
                 getattr(self, "preview_page_format_btn_a4", None),
@@ -176,9 +180,9 @@ class BlattwerkAppPreviewMixin:
                 padx=(10, 0),
             )
 
-    def _apply_preview_mode_controls_for_document_mode(self, document_mode: str, document_type: str):
+    def _apply_preview_mode_controls(self, document_type: str | None):
             """Adapts the Aufgabe/Lösung toggle, Phasen, Black-Screen and Gestaltung controls to the active tab."""
-            capabilities = self._preview_toolbar_capabilities(document_type, document_mode)
+            capabilities = self._preview_toolbar_capabilities(document_type)
             worksheet_btn = getattr(self, "preview_mode_btn_worksheet", None)
             solution_btn = getattr(self, "preview_mode_btn_solution", None)
             static_label = getattr(self, "preview_mode_static_label", None)
@@ -190,7 +194,7 @@ class BlattwerkAppPreviewMixin:
             solution_controls = [worksheet_btn, solution_btn]
             black_screen_buttons = getattr(self, "preview_black_screen_buttons", [])
 
-            is_kurzentwurf = document_type == DOCUMENT_TYPE_KURZENTWURF
+            static_text = spec_for_type(document_type).label if document_type else "Unbekannter Typ"
 
             if not capabilities["show_solution_toggle"]:
                 for control in solution_controls:
@@ -200,7 +204,7 @@ class BlattwerkAppPreviewMixin:
                     if control.winfo_manager():
                         control.pack_forget()
                 if static_label is not None:
-                    static_label.configure(text="Kurzentwurf" if is_kurzentwurf else "Präsentation")
+                    static_label.configure(text=static_text)
                     if not static_label.winfo_manager():
                         static_label.pack(side="left")
             else:
@@ -277,34 +281,6 @@ class BlattwerkAppPreviewMixin:
                 str(self.design_font_profile_var.get()),
                 str(self.design_font_size_profile_var.get()),
                 kurzentwurf_runtime_key,
-            )
-
-    def _read_document_mode(self, input_path: Path) -> str:
-            """Reads current document mode from frontmatter."""
-            try:
-                text = input_path.read_text(encoding="utf-8")
-                meta, _content = split_front_matter(text)
-            except Exception:
-                return "worksheet"
-            return normalize_document_mode((meta or {}).get("mode"), default="worksheet")
-
-    def _read_document_type(self, input_path: Path) -> str:
-            """Reads current document type from frontmatter and configured detection policy."""
-
-            preferences = getattr(self, "user_preferences", {})
-            detection_mode = str(preferences.get("document_type_detection_mode", "yaml_keys") or "yaml_keys")
-
-            try:
-                text = input_path.read_text(encoding="utf-8")
-                meta, _content = split_front_matter(text)
-            except Exception:
-                return "worksheet"
-
-            return detect_document_type(
-                meta or {},
-                detection_mode=detection_mode,
-                source_path=input_path,
-                markdown_text=text,
             )
 
     def _active_document_tab_state(self):
@@ -395,12 +371,13 @@ class BlattwerkAppPreviewMixin:
                 return
 
             dialog_title, initial_name = get_new_document_dialog_defaults(document_type)
+            spec = spec_for_type(document_type)
 
             dialog_kwargs = {
                 "title": dialog_title,
-                "defaultextension": ".md",
+                "defaultextension": spec.extension,
                 "initialfile": initial_name,
-                "filetypes": [("Markdown", "*.md"), ("Alle Dateien", "*.*")],
+                "filetypes": [(f"{spec.label} (*{spec.extension})", f"*{spec.extension}")],
             }
             initial_dir = self._get_initial_dialog_dir("input_markdown")
             if initial_dir:
@@ -411,8 +388,9 @@ class BlattwerkAppPreviewMixin:
                 return
 
             target_path = Path(selected)
-            if target_path.suffix.lower() != ".md":
-                target_path = target_path.with_suffix(".md")
+            if type_for_path(target_path) != document_type:
+                # Die Endung ist die Typidentität (I1): sie muss zum gewählten Typ passen.
+                target_path = target_path.with_suffix(spec.extension)
 
             if target_path.exists():
                 messagebox.showerror(
@@ -450,20 +428,26 @@ class BlattwerkAppPreviewMixin:
                     self.status_var.set("Speichern unter fehlgeschlagen")
                     return
 
+            source_type = self._read_document_type(source_path) or DOCUMENT_TYPE_MARKDOWN
+            source_spec = spec_for_type(source_type)
             dialog_kwargs = {
-                "title": "Markdown-Datei speichern unter",
-                "defaultextension": ".md",
-                "filetypes": [("Markdown", "*.md"), ("Alle Dateien", "*.*")],
+                "title": "Speichern unter",
+                "defaultextension": source_spec.extension,
+                "filetypes": save_as_filetypes(source_type),
                 "initialdir": str(source_path.parent),
-                "initialfile": source_path.name,
+                "initialfile": f"{source_path.stem}{source_spec.extension}",
             }
             selected = filedialog.asksaveasfilename(**dialog_kwargs)
             if not selected:
                 return
 
             target_path = Path(selected)
-            if target_path.suffix.lower() != ".md":
-                target_path = target_path.with_suffix(".md")
+            if type_for_path(target_path) is None:
+                target_path = target_path.with_suffix(source_spec.extension)
+            target_type = type_for_path(target_path)
+            content = confirm_and_stage_save_as(content, source_type, target_type)
+            if content is None:
+                return
 
             if target_path == source_path:
                 messagebox.showwarning(
@@ -493,7 +477,10 @@ class BlattwerkAppPreviewMixin:
     def _show_document_diagnostics(self, input_path: Path, context_label: str):
             """Zeigt nicht-blockierende Blattwerk-Warnungen einmalig pro Dokumentzustand."""
             warning_payload = build_warning_payload(
-                input_path, context_label, acknowledged_repo=acknowledged_warnings_store
+                input_path,
+                context_label,
+                acknowledged_repo=acknowledged_warnings_store,
+                document_type=self._read_document_type(input_path),
             )
             if warning_payload is None:
                 return
@@ -545,10 +532,10 @@ class BlattwerkAppPreviewMixin:
             return [image_id]
 
     def pick_input(self):
-            """Pick input."""
+            """Öffnet den Dateidialog für Blattwerk-, Markdown- und sonstige Dateien."""
             dialog_kwargs = {
-                "title": "Markdown-Datei auswählen",
-                "filetypes": [("Markdown", "*.md"), ("Alle Dateien", "*.*")],
+                "title": "Dokument öffnen",
+                "filetypes": open_dialog_filetypes(),
             }
             initial_dir = self._get_initial_dialog_dir("input_markdown")
             if initial_dir:
@@ -643,21 +630,22 @@ class BlattwerkAppPreviewMixin:
                 include_solutions = self.preview_mode_var.get() == "solution"
                 page_format = self.preview_page_format_var.get()
                 contrast_profile = self.preview_contrast_var.get()
-                document_mode = self._read_document_mode(input_path)
                 document_type = self._read_document_type(input_path)
-                self._current_preview_document_mode = document_mode
+                if document_type is None:
+                    self.status_var.set(f"Unbekannte Dateiendung: {input_path.name}")
+                    return
                 self._current_preview_document_type = document_type
-                self._apply_preview_mode_controls_for_document_mode(document_mode, document_type)
-                self._apply_preview_page_format_controls_for_document_mode(document_mode, document_type)
+                self._apply_preview_mode_controls(document_type)
+                self._apply_preview_page_format_controls(document_type)
 
-                if document_mode == "presentation" or document_type == DOCUMENT_TYPE_KURZENTWURF:
+                if not self._solutions_renderable_for_type(document_type):
                     include_solutions = False
                     if self.preview_mode_var.get() != "worksheet":
                         self.preview_mode_var.set("worksheet")
 
-                resolved_page_format = self._resolve_preview_page_format_for_document_mode(
+                resolved_page_format = self._resolve_preview_page_format_for_document_type(
                     page_format,
-                    document_mode,
+                    document_type,
                 )
                 if page_format != resolved_page_format:
                     page_format = resolved_page_format
@@ -761,7 +749,7 @@ class BlattwerkAppPreviewMixin:
                         self.preview_canvas.config(scrollregion=(0, 0, 600, 400))
                         page_label = (
                             "Folie"
-                            if getattr(self, "_current_preview_document_mode", "worksheet") == "presentation"
+                            if has_slide_layout(getattr(self, "_current_preview_document_type", None) or "")
                             else "Seite"
                         )
                         self.page_info_var.set(f"{page_label} 0/0")
@@ -860,7 +848,7 @@ class BlattwerkAppPreviewMixin:
             self._update_current_page_from_viewport_center()
             page_label = (
                 "Folie"
-                if getattr(self, "_current_preview_document_mode", "worksheet") == "presentation"
+                if has_slide_layout(getattr(self, "_current_preview_document_type", None) or "")
                 else "Seite"
             )
             self.page_info_var.set(f"{page_label} {self.current_page_index + 1}/{len(self.preview_images)}")

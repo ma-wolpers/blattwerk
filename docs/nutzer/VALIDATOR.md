@@ -70,12 +70,15 @@ Subprozess siehe `tests/test_blatt_diagnostics_cli.py` (Validator) sowie
 ## Stabiler Diagnosekatalog
 
 - `FM001`: Pflichtfeld im Frontmatter fehlt oder ist leer (`Titel`/`Fach`/`Thema`).
-- `FM002`: Ungueltiger Frontmatter-Wert fuer `mode` (erlaubt: `worksheet`, `solution`, `presentation`, `ws`, `test`).
+- `FM002`: **entfallen.** Pruefte frueher Werte des Frontmatter-Felds `mode`, das es nicht mehr gibt (der Dokumenttyp kommt aus der Dateiendung). Eine stehengebliebene `mode`-Zeile wird wie jeder unbekannte Key still ignoriert.
 - `FM003`: Ungueltiger Frontmatter-Wert fuer `tag` (kein einfacher, nicht-leerer Textwert).
 - `FM004`: Ungueltiger Frontmatter-Wert fuer `presentation_layout`.
 - `FM005`: Ungueltiger boolescher Frontmatter-Wert fuer `presentation_show_mini_header`/`presentation_show_section_footer`.
 - `FM006`: Ungueltiger boolescher Frontmatter-Wert fuer `show_student_header`/`show_document_header`. Eigenes Boolean-Vokabular (`_meta_bool_ja_nein`/`JA_NEIN_BOOLEAN_TOKENS`), getrennt von `FM005` (`_is_truthy_meta_bool`/`TRUTHY_META_BOOLEAN_TOKENS`) -- beide akzeptieren nicht exakt dieselben Schreibweisen.
 - `FM007`: Ungueltiger Frontmatter-Wert fuer `Stufe` (erlaubt, gross-/kleinschreibungsunabhaengig: `5`-`13`, `E`, `Q1`, `Q2`, `Sek1`, `Sek2`). Nicht gesetzt bleibt gueltig (Warnung, kein Pflichtfeld).
+- `FM008`: `document_type` passt nicht zur Dateiendung (gueltiger Wert, anderer Typ). Warnung; es gilt immer die Endung. Gilt fuer alle Endungen, auch `.md` (z. B. nach Speichern-unter nach `.md`, das den Marker bewusst unveraendert laesst).
+- `FM009`: `document_type` fehlt in einer Blattwerk-Datei (`.abw`, `.pbw`, `.kbw`, `.ebw`). Warnung. In `.md` ist der Marker optional, dort gibt es kein `FM009`.
+- `FM010`: Ungueltiger Wert fuer `document_type` (kein bekannter Typ oder Alias, oder kein Text). Warnung.
 - `BL001`: Unbekannter Blocktyp.
 - `BL002`: Leerzeichen direkt nach `:::` im Marker (`::: block`) ist ungueltig.
 - `BL003`: Schliessender Marker `:::` ohne passenden offenen Block.

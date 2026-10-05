@@ -599,6 +599,13 @@ class BlattwerkAppEditorMixin:
         if input_path is None:
             return
 
+        if self._requires_markdown_save_as(input_path):
+            # Nie unter einer unbekannten Endung als Markdown speichern (I1): die
+            # Originaldatei bleibt unverändert, gespeichert wird nur per Speichern-unter als .md.
+            self._editor_has_unsaved_changes = True
+            self._prompt_markdown_save_as_once(input_path)
+            return
+
         content = self.editor_widget.get("1.0", "end-1c")
         try:
             self.status_var.set("Speichert…")

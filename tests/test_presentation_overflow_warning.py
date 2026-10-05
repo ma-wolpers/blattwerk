@@ -11,7 +11,7 @@ def _presentation_doc() -> str:
         "Titel: Overflow Test\n"
         "Fach: Informatik\n"
         "Thema: Warnung\n"
-        "mode: presentation\n"
+        "document_type: presentation\n"
         "presentation_layout: presentation_16_9\n"
         "---\n"
         "## Slide\n"
@@ -47,6 +47,7 @@ def test_presentation_pdf_overflow_emits_pt002_warning(tmp_path, monkeypatch):
         out_path,
         page_format="presentation_16_9",
         diagnostics_out=diagnostics,
+        document_type="presentation",
     )
 
     codes = [diag.code for diag in diagnostics]
@@ -70,6 +71,7 @@ def test_presentation_pdf_without_overflow_has_no_pt002(tmp_path, monkeypatch):
         out_path,
         page_format="presentation_16_9",
         diagnostics_out=diagnostics,
+        document_type="presentation",
     )
 
     codes = [diag.code for diag in diagnostics]

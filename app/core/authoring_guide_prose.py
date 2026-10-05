@@ -35,15 +35,9 @@ PROSE_SECTIONS: dict[str, str] = {
     "frontmatter:Fach": "Das Unterrichtsfach, erscheint zusammen mit `Thema` in der Metazeile des Dokumentkopfs.",
     "frontmatter:Thema": "Das konkrete Unterrichtsthema, erscheint zusammen mit `Fach` in der Metazeile des Dokumentkopfs.",
     # -- Frontmatter: optionale Felder ------------------------------------
-    "frontmatter:mode": (
-        "Steuert das grundlegende Ausgabeverhalten des Dokuments. `worksheet` (Standard, Alias `ws`) "
-        "zeigt normale Arbeitsblatt-Ausgabe; `solution` rendert global die Lösungsansicht; "
-        "`presentation` schaltet auf Folienausgabe mit Mini-Header und Folienzähler um; `test` blendet "
-        "in Aufgaben/Teilaufgaben nur die Arbeitsform-Hinweise (Emoji + Label) aus."
-    ),
     "frontmatter:presentation_layout": (
-        "Wählt das Seitenverhältnis der Folien bei `mode: presentation` (`presentation_16_9`, "
-        "`presentation_16_10` oder `presentation_4_3`). Ohne `mode: presentation` ohne Wirkung."
+        "Wählt das Seitenverhältnis der Folien einer Präsentation (`.pbw`; `presentation_16_9`, "
+        "`presentation_16_10` oder `presentation_4_3`). In anderen Dokumenttypen ohne Wirkung."
     ),
     "frontmatter:presentation_show_mini_header": (
         "Blendet in Präsentationen den kleinen Kopfbereich pro Folie (Phasenübersicht) ein/aus. "
@@ -67,9 +61,11 @@ PROSE_SECTIONS: dict[str, str] = {
         "denselben booleschen Werttyp wie `show_student_header`."
     ),
     "frontmatter:document_type": (
-        "Markiert den Dokumenttyp explizit (`worksheet`, `presentation` oder `kurzentwurf`) statt ihn "
-        "aus anderen Feldern zu erraten. Wird von Blattwerk beim Anlegen neuer Dokumente automatisch "
-        "gesetzt; von Hand meist nicht nötig. Aktuell nicht durch den Markdown-Validator wertgeprüft."
+        "Konsistenzmarker für den Dokumenttyp: muss zur Dateiendung passen (`.abw` → `worksheet`, "
+        "`.pbw` → `presentation`, `.kbw` → `exam`, `.ebw` → `kurzentwurf`, `.md` → `markdown`). "
+        "Der Typ selbst kommt immer aus der Endung; ein abweichender Wert erzeugt eine Warnung "
+        "(`FM008`), ein ungültiger `FM010`, ein fehlender in Blattwerk-Dateien `FM009`. Blattwerk "
+        "setzt ihn beim Anlegen und bei Speichern-unter in einen anderen Blattwerk-Typ automatisch."
     ),
     "frontmatter:lochen": (
         "Aktiviert einen vergrößerten linken Rand für Lochung beim Ausdrucken (`ja`/`nein`, Standard: "
@@ -153,7 +149,7 @@ PROSE_SECTIONS: dict[str, str] = {
         "stattdessen nur Teile der Formel oder den umgebenden Text fett setzen."
     ),
     "presentation:visibility": (
-        "In Präsentationen (`mode: presentation`) gibt es **keinen Lösungs-Umschalter**: Blöcke mit "
+        "In Präsentationen (`.pbw`) gibt es **keinen Lösungs-Umschalter**: Blöcke mit "
         "`mode=solution`/`show=solution` sowie `:::solution ... :::`-Blöcke (nach Blocktyp) werden in "
         "Präsentationen **immer** ausgeblendet -- unabhängig davon, ob ein Export explizit \"mit "
         "Lösung\" anfordert. Es gibt keine Möglichkeit, sie in einer Präsentation sichtbar zu machen. "

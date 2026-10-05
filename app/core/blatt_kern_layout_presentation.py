@@ -28,7 +28,7 @@ def _is_layout_control_block(block_type):
 def _build_presentation_slides(
     blocks,
     include_solutions,
-    document_mode,
+    document_type,
     printable_width_cm,
     ignore_framebreaks=False,
 ):
@@ -73,7 +73,7 @@ def _build_presentation_slides(
         body_html = render_body_with_columns(
             list(current_blocks),
             include_solutions=include_solutions,
-            document_mode=document_mode,
+            document_type=document_type,
             printable_width_cm=printable_width_cm,
         )
         if not body_html.strip():
@@ -142,12 +142,12 @@ def _render_presentation_html(
         enriched_blocks,
         include_solutions=False,
         help_tag=(meta or {}).get("tag"),
-        document_mode="presentation",
+        document_type="presentation",
     )
     slides = _build_presentation_slides(
         enriched_blocks,
         include_solutions=include_solutions,
-        document_mode="presentation",
+        document_type="presentation",
         printable_width_cm=printable_width_cm,
         ignore_framebreaks=bool(presentation_ignore_framebreaks),
     )
@@ -284,7 +284,7 @@ def _render_presentation_html(
         color_profile=color_profile,
         font_profile=font_profile,
         font_size_profile=font_size_profile,
-        document_mode="presentation",
+        slide_layout=True,
     )
 
     return f"""<!DOCTYPE html>

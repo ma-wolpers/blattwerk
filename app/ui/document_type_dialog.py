@@ -7,16 +7,34 @@ from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 ensure_bw_gui_on_path()
 from bw_gui.runtime import ui, widgets
 
-from ..core.document_types import (
+from ..core.document_type_registry import (
+    DOCUMENT_TYPE_EXAM,
     DOCUMENT_TYPE_KURZENTWURF,
+    DOCUMENT_TYPE_MARKDOWN,
     DOCUMENT_TYPE_PRESENTATION,
     DOCUMENT_TYPE_WORKSHEET,
-    normalize_document_type,
+    KNOWN_DOCUMENT_TYPES,
+    spec_for_type,
 )
+
+_TYPE_HINTS = {
+    DOCUMENT_TYPE_WORKSHEET: "Aufgaben mit Arbeitsblatt- und Lösungsfassung.",
+    DOCUMENT_TYPE_PRESENTATION: "Folien mit Abschnitten und Folienumbrüchen.",
+    DOCUMENT_TYPE_EXAM: "Klausur mit Punkten und Lösungen, ohne Sozialform-Symbole.",
+    DOCUMENT_TYPE_KURZENTWURF: "Unterrichtsentwurf mit Phasen-DSL (`Stundenthema`, `Lerngruppe`, `start`).",
+    DOCUMENT_TYPE_MARKDOWN: "Schlichtes Markdown ohne Blattwerk-Blöcke.",
+}
+"""Erklärtexte im Neu-Dialog; Reihenfolge und Endungen kommen aus der Registry."""
+
+
+def _initial_document_type(value: str) -> str:
+    candidate = str(value or "").strip().lower()
+    return candidate if candidate in KNOWN_DOCUMENT_TYPES else DOCUMENT_TYPE_WORKSHEET
 
 
 def prompt_new_document_type(app, *, initial_value: str = DOCUMENT_TYPE_WORKSHEET) -> str | None:
-    selected_document_type = ui.StringVar(value=normalize_document_type(initial_value))
+    """Fragt den Typ des neuen Dokuments ab; die Endung folgt daraus (I1)."""
+    selected_document_type = ui.StringVar(value=_initial_document_type(initial_value))
     result: dict[str, str | None] = {"value": None}
 
     window = ui.Toplevel(app.root)
@@ -46,7 +64,7 @@ def prompt_new_document_type(app, *, initial_value: str = DOCUMENT_TYPE_WORKSHEE
 
     widgets.Label(
         container,
-        text="Der Dokumenttyp wird ueber YAML-Daten angelegt und spaeter daran wiedererkannt.",
+        text="Der Dokumenttyp steckt in der Dateiendung und bestimmt, welche Funktionen das Dokument hat.",
         anchor="w",
         justify="left",
         wraplength=360,
@@ -56,37 +74,23 @@ def prompt_new_document_type(app, *, initial_value: str = DOCUMENT_TYPE_WORKSHEE
     option_frame.grid(row=2, column=0, sticky="ew")
     option_frame.columnconfigure(0, weight=1)
 
-    _build_option(
-        option_frame,
-        row=0,
-        variable=selected_document_type,
-        value=DOCUMENT_TYPE_WORKSHEET,
-        label="Aufgabenblatt",
-        hint="Blattwerk-Standard mit Aufgaben-/Loesungspfad; Test bleibt spaeter ueber YAML umschaltbar.",
-    )
-    _build_option(
-        option_frame,
-        row=1,
-        variable=selected_document_type,
-        value=DOCUMENT_TYPE_PRESENTATION,
-        label="Praesentation",
-        hint="Blattwerk-Folienmodus mit `mode: presentation`.",
-    )
-    _build_option(
-        option_frame,
-        row=2,
-        variable=selected_document_type,
-        value=DOCUMENT_TYPE_KURZENTWURF,
-        label="Kurzentwurf",
-        hint="Integrierter Kurzentwurf mit DSL, `Stundenthema`, `Lerngruppe` und `start` im YAML.",
-    )
+    for row, document_type in enumerate(KNOWN_DOCUMENT_TYPES):
+        spec = spec_for_type(document_type)
+        _build_option(
+            option_frame,
+            row=row,
+            variable=selected_document_type,
+            value=document_type,
+            label=f"{spec.label} ({spec.extension})",
+            hint=_TYPE_HINTS[document_type],
+        )
 
     button_row = widgets.Frame(container)
     button_row.grid(row=3, column=0, sticky="ew", pady=(12, 0))
     button_row.columnconfigure(0, weight=1)
 
     def _confirm(_event=None):
-        result["value"] = normalize_document_type(selected_document_type.get())
+        result["value"] = _initial_document_type(selected_document_type.get())
         window.destroy()
 
     def _cancel(_event=None):

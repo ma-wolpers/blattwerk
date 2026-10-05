@@ -14,14 +14,14 @@ def test_task_work_hint_is_hidden_in_test_mode():
         options,
         "Rechne aus.",
         include_solutions=False,
-        document_mode="ws",
+        document_type="worksheet",
     )
     test_html = render_block(
         "task",
         options,
         "Rechne aus.",
         include_solutions=False,
-        document_mode="test",
+        document_type="exam",
     )
 
     assert "task-work-symbol single" in worksheet_html
@@ -38,7 +38,7 @@ def test_task_icons_live_in_margin_block_not_in_header_left():
     }
 
     html = render_block(
-        "task", options, "Rechne aus.", include_solutions=False, document_mode="ws"
+        "task", options, "Rechne aus.", include_solutions=False, document_type="worksheet"
     )
 
     margin_block = re.search(r"<div class='task-margin-icons'>(.*?)</div>", html)
@@ -56,7 +56,7 @@ def test_task_without_any_icon_renders_no_margin_block():
         {"work": "single", "_show_task_label": "1"},
         "Rechne aus.",
         include_solutions=False,
-        document_mode="test",
+        document_type="exam",
     )
 
     assert "task-margin-icons" not in html
@@ -70,7 +70,7 @@ def test_task_action_symbol_stays_visible_in_test_mode():
         options,
         "Lies den Text.",
         include_solutions=False,
-        document_mode="test",
+        document_type="exam",
     )
 
     assert "task-work-symbol action" in html
@@ -90,26 +90,26 @@ def test_subtask_work_symbol_is_hidden_in_test_mode():
         options,
         "Vergleicht eure Ergebnisse.",
         include_solutions=False,
-        document_mode="ws",
+        document_type="worksheet",
     )
     test_html = render_block(
         "subtask",
         options,
         "Vergleicht eure Ergebnisse.",
         include_solutions=False,
-        document_mode="test",
+        document_type="exam",
     )
 
     assert "task-work-symbol partner" in worksheet_html
     assert "task-work-symbol partner" not in test_html
 
 
-def test_render_html_respects_frontmatter_mode_in_both_output_modes():
-    meta = {"Titel": "T", "Fach": "M", "Thema": "X", "mode": "test"}
+def test_render_html_exam_type_hides_work_icons_in_both_output_modes():
+    meta = {"Titel": "T", "Fach": "M", "Thema": "X"}
     blocks = [("task", {"work": "single", "action": "read"}, "Lies den Text.")]
 
-    worksheet_html = render_html(meta, blocks, include_solutions=False)
-    solution_html = render_html(meta, blocks, include_solutions=True)
+    worksheet_html = render_html(meta, blocks, include_solutions=False, document_type="exam")
+    solution_html = render_html(meta, blocks, include_solutions=True, document_type="exam")
 
     assert "title='Einzelarbeit'" not in worksheet_html
     assert "title='Einzelarbeit'" not in solution_html
@@ -124,7 +124,6 @@ def test_render_html_presentation_uses_slide_counter_and_hides_solution_only_blo
         "Titel": "T",
         "Fach": "M",
         "Thema": "X",
-        "mode": "presentation",
     }
     blocks = [
         ("sectionmark", {"title": "Einstieg"}, ""),
@@ -134,7 +133,7 @@ def test_render_html_presentation_uses_slide_counter_and_hides_solution_only_blo
         ("task", {"title": "Zweite"}, "Folie zwei body"),
     ]
 
-    html = render_html(meta, blocks, include_solutions=False)
+    html = render_html(meta, blocks, include_solutions=False, document_type="presentation")
 
     assert "Folie 1/2" in html
     assert "Folie 2/2" in html
@@ -149,7 +148,6 @@ def test_render_html_presentation_footer_keeps_repeated_sections_in_order():
         "Titel": "T",
         "Fach": "M",
         "Thema": "X",
-        "mode": "presentation",
     }
     blocks = [
         ("sectionmark", {"title": "Einstieg"}, ""),
@@ -162,7 +160,7 @@ def test_render_html_presentation_footer_keeps_repeated_sections_in_order():
         ("task", {}, "C"),
     ]
 
-    html = render_html(meta, blocks, include_solutions=False)
+    html = render_html(meta, blocks, include_solutions=False, document_type="presentation")
 
     footer_match = re.search(
         r"<div class='presentation-section-footer'>(.*?)</div>",
@@ -182,7 +180,6 @@ def test_render_html_presentation_footer_can_use_arrow_separators():
         "Titel": "T",
         "Fach": "M",
         "Thema": "X",
-        "mode": "presentation",
     }
     blocks = [
         ("sectionmark", {"title": "A"}, ""),
@@ -197,6 +194,7 @@ def test_render_html_presentation_footer_can_use_arrow_separators():
         blocks,
         include_solutions=False,
         presentation_section_separator="arrow",
+        document_type="presentation",
     )
 
     assert "presentation-section-separator' aria-hidden='true'>-&gt;</span>" in html
@@ -207,7 +205,6 @@ def test_render_html_presentation_footer_can_hide_future_sections():
         "Titel": "T",
         "Fach": "M",
         "Thema": "X",
-        "mode": "presentation",
     }
     blocks = [
         ("sectionmark", {"title": "A"}, ""),
@@ -226,6 +223,7 @@ def test_render_html_presentation_footer_can_hide_future_sections():
         include_solutions=False,
         presentation_section_separator="arrow",
         presentation_hide_future_sections=True,
+        document_type="presentation",
     )
     slide_bodies = re.findall(
         r"<section class='ab-slide'>(.*?)</section>",
@@ -247,11 +245,10 @@ def test_render_html_presentation_black_screen_before_and_after_is_inserted():
         "Titel": "T",
         "Fach": "M",
         "Thema": "X",
-        "mode": "presentation",
     }
     blocks = [("task", {}, "Inhalt")]
 
-    html = render_html(meta, blocks, include_solutions=False, black_screen_mode="both")
+    html = render_html(meta, blocks, include_solutions=False, black_screen_mode="both", document_type="presentation")
 
     assert html.count("class='ab-slide ab-slide-black'") == 2
     assert "margin: 0;" in html
@@ -264,7 +261,6 @@ def test_render_html_presentation_framebreak_builds_incremental_frames():
         "Titel": "T",
         "Fach": "M",
         "Thema": "X",
-        "mode": "presentation",
     }
     blocks = parse_blocks(
         ":::task\n"
@@ -276,7 +272,7 @@ def test_render_html_presentation_framebreak_builds_incremental_frames():
         ":::\n"
     )
 
-    html = render_html(meta, blocks, include_solutions=False)
+    html = render_html(meta, blocks, include_solutions=False, document_type="presentation")
     slide_bodies = re.findall(
         r"<section class='ab-slide'>(.*?)</section>",
         html,
@@ -296,7 +292,6 @@ def test_render_html_presentation_ignore_framebreaks_merges_into_one_slide():
         "Titel": "T",
         "Fach": "M",
         "Thema": "X",
-        "mode": "presentation",
     }
     blocks = parse_blocks(
         ":::task\n"
@@ -309,7 +304,7 @@ def test_render_html_presentation_ignore_framebreaks_merges_into_one_slide():
     )
 
     html = render_html(
-        meta, blocks, include_solutions=False, presentation_ignore_framebreaks=True
+        meta, blocks, include_solutions=False, presentation_ignore_framebreaks=True, document_type="presentation"
     )
     slide_bodies = re.findall(
         r"<section class='ab-slide'>(.*?)</section>",
@@ -331,7 +326,6 @@ def test_render_html_presentation_default_framebreak_behavior_is_unchanged():
         "Titel": "T",
         "Fach": "M",
         "Thema": "X",
-        "mode": "presentation",
     }
     blocks = parse_blocks(
         ":::task\n"
@@ -343,7 +337,7 @@ def test_render_html_presentation_default_framebreak_behavior_is_unchanged():
         ":::\n"
     )
 
-    html = render_html(meta, blocks, include_solutions=False)
+    html = render_html(meta, blocks, include_solutions=False, document_type="presentation")
     slide_bodies = re.findall(
         r"<section class='ab-slide'>(.*?)</section>",
         html,
@@ -358,7 +352,6 @@ def test_render_html_presentation_framebreak_keeps_raw_markdown_line_spacing():
         "Titel": "T",
         "Fach": "M",
         "Thema": "X",
-        "mode": "presentation",
     }
     blocks = parse_blocks(
         "> A\n"
@@ -366,7 +359,7 @@ def test_render_html_presentation_framebreak_keeps_raw_markdown_line_spacing():
         "> B\n"
     )
 
-    html = render_html(meta, blocks, include_solutions=False)
+    html = render_html(meta, blocks, include_solutions=False, document_type="presentation")
     slide_bodies = re.findall(
         r"<section class='ab-slide'>(.*?)</section>",
         html,
@@ -401,7 +394,6 @@ def test_render_html_presentation_slide_chrome_off_hides_header_and_footer_only_
         "Titel": "T",
         "Fach": "M",
         "Thema": "X",
-        "mode": "presentation",
     }
     blocks = parse_blocks(
         "--# Einstieg\n"
@@ -416,7 +408,7 @@ def test_render_html_presentation_slide_chrome_off_hides_header_and_footer_only_
         ":::\n"
     )
 
-    html = render_html(meta, blocks, include_solutions=False)
+    html = render_html(meta, blocks, include_solutions=False, document_type="presentation")
     slide_bodies = re.findall(
         r"<section class='ab-slide'>(.*?)</section>",
         html,
@@ -440,7 +432,7 @@ def test_presentation_slide_chrome_is_wrapped_in_exactly_two_data_block_type_chr
     # .ab-slide-body) and footer+counter (after it) must each be wrapped in
     # a `data-block-type="chrome"` region -- two regions, not three
     # fragmented ones (footer and counter share one region).
-    meta = {"Titel": "T", "Fach": "M", "Thema": "X", "mode": "presentation"}
+    meta = {"Titel": "T", "Fach": "M", "Thema": "X"}
     blocks = parse_blocks(
         "--# Einstieg\n"
         ":::task\n"
@@ -448,7 +440,7 @@ def test_presentation_slide_chrome_is_wrapped_in_exactly_two_data_block_type_chr
         ":::\n"
     )
 
-    html = render_html(meta, blocks, include_solutions=False)
+    html = render_html(meta, blocks, include_solutions=False, document_type="presentation")
     slide_bodies = re.findall(r"<section class='ab-slide'>(.*?)</section>", html, flags=re.DOTALL)
 
     assert len(slide_bodies) == 1
@@ -475,7 +467,7 @@ def test_presentation_slide_chrome_is_wrapped_in_exactly_two_data_block_type_chr
 def test_presentation_slide_without_chrome_has_no_chrome_regions():
     # `slidechromeoff` hides all three chrome pieces -- no empty
     # `data-block-type="chrome"` wrapper should appear for nothing.
-    meta = {"Titel": "T", "Fach": "M", "Thema": "X", "mode": "presentation"}
+    meta = {"Titel": "T", "Fach": "M", "Thema": "X"}
     blocks = parse_blocks(
         "--!\n"
         ":::slidechromeoff\n"
@@ -485,7 +477,7 @@ def test_presentation_slide_without_chrome_has_no_chrome_regions():
         ":::\n"
     )
 
-    html = render_html(meta, blocks, include_solutions=False)
+    html = render_html(meta, blocks, include_solutions=False, document_type="presentation")
     slide_bodies = re.findall(r"<section class='ab-slide'>(.*?)</section>", html, flags=re.DOTALL)
 
     assert len(slide_bodies) == 1
@@ -501,14 +493,14 @@ def test_task_content_supports_marker_visibility_by_output_mode():
         options,
         content,
         include_solutions=False,
-        document_mode="ws",
+        document_type="worksheet",
     )
     solution_html = render_block(
         "task",
         options,
         content,
         include_solutions=True,
-        document_mode="ws",
+        document_type="worksheet",
     )
 
     assert "Nur Arbeitsblatt" in worksheet_html
@@ -534,14 +526,14 @@ def test_subtask_content_supports_marker_visibility_by_output_mode():
         options,
         content,
         include_solutions=False,
-        document_mode="ws",
+        document_type="worksheet",
     )
     solution_html = render_block(
         "subtask",
         options,
         content,
         include_solutions=True,
-        document_mode="ws",
+        document_type="worksheet",
     )
 
     assert "Nur Arbeitsblatt" in worksheet_html
@@ -565,7 +557,7 @@ def test_task_time_is_rendered_as_minutes_in_header_right():
         options,
         "Rechne aus.",
         include_solutions=False,
-        document_mode="ws",
+        document_type="worksheet",
     )
 
     assert "task-header-right" in html
@@ -585,7 +577,7 @@ def test_subtask_time_is_rendered_as_minutes_on_right_meta():
         options,
         "Teilaufgabe",
         include_solutions=False,
-        document_mode="ws",
+        document_type="worksheet",
     )
 
     assert "subtask-meta" in html
@@ -593,7 +585,7 @@ def test_subtask_time_is_rendered_as_minutes_on_right_meta():
 
 
 def test_render_html_shows_single_help_reference_without_key():
-    meta = {"Titel": "T", "Fach": "M", "Thema": "X", "mode": "ws"}
+    meta = {"Titel": "T", "Fach": "M", "Thema": "X"}
     blocks = [
         ("task", {"work": "single"}, "Bearbeite die Aufgabe."),
         ("help", {"title": "Starthilfe"}, "Denke an die Regel."),
@@ -605,7 +597,7 @@ def test_render_html_shows_single_help_reference_without_key():
 
 
 def test_render_html_shows_single_help_reference_with_tag_only():
-    meta = {"Titel": "T", "Fach": "M", "Thema": "X", "mode": "ws", "tag": "A"}
+    meta = {"Titel": "T", "Fach": "M", "Thema": "X", "tag": "A"}
     blocks = [
         ("task", {"work": "single"}, "Aufgabe 1"),
         ("help", {"title": "H1"}, "Hinweis 1"),
@@ -617,7 +609,7 @@ def test_render_html_shows_single_help_reference_with_tag_only():
 
 
 def test_render_html_shows_multiple_help_labels_for_numeric_tag():
-    meta = {"Titel": "T", "Fach": "M", "Thema": "X", "mode": "ws", "tag": "1"}
+    meta = {"Titel": "T", "Fach": "M", "Thema": "X", "tag": "1"}
     blocks = [
         ("task", {"work": "single"}, "Aufgabe 1"),
         ("help", {"title": "H1"}, "Hinweis 1"),
@@ -630,7 +622,7 @@ def test_render_html_shows_multiple_help_labels_for_numeric_tag():
 
 
 def test_render_html_shows_multiple_help_labels_for_letter_tag():
-    meta = {"Titel": "T", "Fach": "M", "Thema": "X", "mode": "ws", "tag": "A"}
+    meta = {"Titel": "T", "Fach": "M", "Thema": "X", "tag": "A"}
     blocks = [
         ("task", {"work": "single"}, "Aufgabe 1"),
         ("help", {"title": "H1"}, "Hinweis 1"),
@@ -643,7 +635,7 @@ def test_render_html_shows_multiple_help_labels_for_letter_tag():
 
 
 def test_render_html_shows_multiple_help_labels_for_text_tag_ending_with_letter():
-    meta = {"Titel": "T", "Fach": "M", "Thema": "X", "mode": "ws", "tag": "TAG"}
+    meta = {"Titel": "T", "Fach": "M", "Thema": "X", "tag": "TAG"}
     blocks = [
         ("task", {"work": "single"}, "Aufgabe 1"),
         ("help", {"title": "H1"}, "Hinweis 1"),
@@ -657,7 +649,7 @@ def test_render_html_shows_multiple_help_labels_for_text_tag_ending_with_letter(
 
 
 def test_render_html_help_local_tag_overrides_global_tag_for_that_help():
-    meta = {"Titel": "T", "Fach": "M", "Thema": "X", "mode": "ws", "tag": "1"}
+    meta = {"Titel": "T", "Fach": "M", "Thema": "X", "tag": "1"}
     blocks = [
         ("task", {"work": "single"}, "Aufgabe 1"),
         ("help", {"title": "H1", "tag": "LOKAL"}, "Hinweis 1"),
@@ -670,7 +662,7 @@ def test_render_html_help_local_tag_overrides_global_tag_for_that_help():
 
 
 def test_render_html_local_help_tags_are_not_counted_for_auto_suffixes():
-    meta = {"Titel": "T", "Fach": "M", "Thema": "X", "mode": "ws", "tag": "1"}
+    meta = {"Titel": "T", "Fach": "M", "Thema": "X", "tag": "1"}
     blocks = [
         ("task", {"work": "single"}, "Aufgabe 1"),
         ("help", {"title": "H1", "tag": "X"}, "Hinweis 1"),
@@ -684,7 +676,7 @@ def test_render_html_local_help_tags_are_not_counted_for_auto_suffixes():
 
 
 def test_render_html_shows_help_reference_on_subtask():
-    meta = {"Titel": "T", "Fach": "M", "Thema": "X", "mode": "ws", "tag": "X"}
+    meta = {"Titel": "T", "Fach": "M", "Thema": "X", "tag": "X"}
     blocks = [
         ("task", {"work": "single"}, "Oberaufgabe"),
         ("subtask", {}, "Teilaufgabe"),
@@ -710,7 +702,7 @@ def test_task_title_is_rendered_in_task_label_and_work_mode_in_margin_block():
         options,
         "Rechne aus.",
         include_solutions=False,
-        document_mode="ws",
+        document_type="worksheet",
     )
 
     assert "Aufgabe 1 - Titel hier" in worksheet_html
@@ -731,7 +723,7 @@ def test_task_points_and_time_render_together_in_header_right():
         options,
         "Rechne aus.",
         include_solutions=False,
-        document_mode="ws",
+        document_type="worksheet",
     )
 
     assert "<span class='task-points'>4 P</span>" in html
@@ -748,7 +740,7 @@ def test_task_supports_object_alignment_wrapper():
         },
         "Inhalt",
         include_solutions=False,
-        document_mode="ws",
+        document_type="worksheet",
     )
 
     assert "bw-object-align bw-object-align-center" in html

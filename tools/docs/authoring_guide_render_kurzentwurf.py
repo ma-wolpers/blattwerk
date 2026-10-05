@@ -8,7 +8,8 @@ Verbraucht ausschließlich `MarkdownConventionCatalog.kurzentwurf`-Fakten
 
 from __future__ import annotations
 
-from app.core.document_types import DOCUMENT_TYPE_KURZENTWURF, build_new_document_content
+from app.core.document_type_registry import DOCUMENT_TYPE_KURZENTWURF
+from app.core.document_type_templates import build_new_document_content
 from app.core.markdown_conventions import MarkdownConventionCatalog
 
 from authoring_guide_render_shared import _AUTOGEN_HEADER, _fenced, _prose, _render_inline_marks_section

@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from app.ui.blatt_ui_base import BlattwerkAppBase
+from app.ui.blatt_ui_document_type import BlattwerkDocumentTypeMixin
 from app.ui.ui_constants import EDITOR_DOCUMENT_LOADED
 
 
@@ -15,7 +16,7 @@ class _Var:
         self._value = value
 
 
-class _DummyBase:
+class _DummyBase(BlattwerkDocumentTypeMixin):
     _normalize_document_path = staticmethod(BlattwerkAppBase._normalize_document_path)
     _build_document_tab_state = BlattwerkAppBase._build_document_tab_state
     _persist_active_document_tab_state = BlattwerkAppBase._persist_active_document_tab_state
@@ -73,7 +74,7 @@ class _DummyBase:
 
 def test_new_document_tab_state_stores_font_size_profile_by_default(tmp_path):
     dummy = _DummyBase()
-    md_file = tmp_path / "doc.md"
+    md_file = tmp_path / "doc.abw"
     md_file.write_text("# x\n", encoding="utf-8")
 
     tab_state = dummy._build_document_tab_state(md_file)
@@ -83,7 +84,7 @@ def test_new_document_tab_state_stores_font_size_profile_by_default(tmp_path):
 
 def test_apply_document_tab_state_restores_font_size_profile_by_default(tmp_path):
     dummy = _DummyBase()
-    md_file = tmp_path / "doc.md"
+    md_file = tmp_path / "doc.abw"
     md_file.write_text("# x\n", encoding="utf-8")
     normalized = dummy._normalize_document_path(md_file)
 
@@ -111,7 +112,7 @@ def test_apply_document_tab_state_restores_font_size_profile_by_default(tmp_path
 
 def test_persist_active_tab_state_rewrites_font_size_profile_by_default(tmp_path):
     dummy = _DummyBase()
-    md_file = tmp_path / "doc.md"
+    md_file = tmp_path / "doc.abw"
     md_file.write_text("# x\n", encoding="utf-8")
     normalized = dummy._normalize_document_path(md_file)
 
@@ -135,7 +136,7 @@ def test_persist_active_tab_state_rewrites_font_size_profile_by_default(tmp_path
 
 def test_new_document_tab_state_does_not_store_font_size_profile_when_opted_out(tmp_path):
     dummy = _DummyBase(font_size_profile_per_tab=False)
-    md_file = tmp_path / "doc.md"
+    md_file = tmp_path / "doc.abw"
     md_file.write_text("# x\n", encoding="utf-8")
 
     tab_state = dummy._build_document_tab_state(md_file)
@@ -145,7 +146,7 @@ def test_new_document_tab_state_does_not_store_font_size_profile_when_opted_out(
 
 def test_apply_document_tab_state_ignores_legacy_font_size_profile_when_opted_out(tmp_path):
     dummy = _DummyBase(font_size_profile_per_tab=False)
-    md_file = tmp_path / "doc.md"
+    md_file = tmp_path / "doc.abw"
     md_file.write_text("# x\n", encoding="utf-8")
     normalized = dummy._normalize_document_path(md_file)
 
@@ -173,7 +174,7 @@ def test_apply_document_tab_state_ignores_legacy_font_size_profile_when_opted_ou
 
 def test_persist_active_tab_state_does_not_rewrite_legacy_font_size_profile_when_opted_out(tmp_path):
     dummy = _DummyBase(font_size_profile_per_tab=False)
-    md_file = tmp_path / "doc.md"
+    md_file = tmp_path / "doc.abw"
     md_file.write_text("# x\n", encoding="utf-8")
     normalized = dummy._normalize_document_path(md_file)
 

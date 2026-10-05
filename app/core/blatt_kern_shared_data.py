@@ -108,15 +108,6 @@ TASK_HINT_MAP = {
 `experte` -- das Anzeige-Label "Expertenaufgabe" bleibt unverändert."""
 
 HELP_BLOCK_TYPES = {"help", "hilfe"}
-DOCUMENT_MODES = {"worksheet", "solution", "presentation", "test"}
-DOCUMENT_MODE_ALIASES = {
-    "ws": "worksheet",
-    "worksheet": "worksheet",
-    "solution": "solution",
-    "presentation": "presentation",
-    "test": "test",
-}
-
 PRESENTATION_SECTION_MARK_PATTERN = re.compile(r"^--#\s+(.+)$")
 PRESENTATION_SPACER_MARK_PATTERN = re.compile(
     r"^-=\s*(\d+(?:\.\d+)?(?:cm|mm|px|pt|em|rem|vh|vw|%))\s*$",

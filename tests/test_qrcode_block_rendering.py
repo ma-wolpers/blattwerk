@@ -8,7 +8,7 @@ def test_qrcode_block_renders_clickable_anchor_with_href():
         {"url": "https://example.org"},
         "",
         include_solutions=False,
-        document_mode="ws",
+        document_type="worksheet",
     )
 
     assert "class='qrcode-link'" in html
@@ -27,7 +27,7 @@ def test_qrcode_block_size_options_are_mapped_via_image_post_processing():
         },
         "",
         include_solutions=False,
-        document_mode="ws",
+        document_type="worksheet",
     )
 
     styled_html = apply_image_size_options(html)
@@ -45,7 +45,7 @@ def test_qrcode_block_rejects_invalid_url_in_renderer_output():
         {"url": "javascript:alert(1)"},
         "",
         include_solutions=False,
-        document_mode="ws",
+        document_type="worksheet",
     )
 
     assert "qrcode-invalid" in html
@@ -58,7 +58,7 @@ def test_qrcode_block_supports_object_align_wrapper():
         {"url": "https://example.org", "align": "right"},
         "",
         include_solutions=False,
-        document_mode="ws",
+        document_type="worksheet",
     )
 
     assert "bw-object-align bw-object-align-right" in html
@@ -70,7 +70,7 @@ def test_qrcode_block_supports_alignment_alias_wrapper():
         {"url": "https://example.org", "alignment": "center"},
         "",
         include_solutions=False,
-        document_mode="ws",
+        document_type="worksheet",
     )
 
     assert "bw-object-align bw-object-align-center" in html

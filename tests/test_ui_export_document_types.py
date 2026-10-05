@@ -1,6 +1,7 @@
+from app.ui.blatt_ui_document_type import BlattwerkDocumentTypeMixin
 from pathlib import Path
 
-from app.core.document_types import DOCUMENT_TYPE_KURZENTWURF, DOCUMENT_TYPE_WORKSHEET
+from app.core.document_type_registry import DOCUMENT_TYPE_KURZENTWURF, DOCUMENT_TYPE_WORKSHEET
 from app.ui.blatt_ui_export import BlattwerkAppExportMixin
 
 
@@ -12,7 +13,7 @@ class _Var:
         return self._value
 
 
-class _DummyExportApp(BlattwerkAppExportMixin):
+class _DummyExportApp(BlattwerkDocumentTypeMixin, BlattwerkAppExportMixin):
     def __init__(self, document_type):
         self.user_preferences = {"pre_export_diagnostics_enabled": True}
         self.preview_mode_var = _Var("solution")

@@ -1030,12 +1030,12 @@ def test_frontmatter_mode_ws_and_test_are_accepted():
     assert "FM002" not in presentation_codes
 
 
-def test_frontmatter_invalid_mode_emits_fm002():
+def test_frontmatter_mode_is_no_longer_a_known_field():
+    # `mode` existiert nicht mehr (I3): weder Wertepruefung (FM002) noch eine andere Diagnose.
     doc = _build_document_with_mode("foobar")
     diagnostics = inspect_markdown_text(doc).diagnostics
 
-    fm002 = [d for d in diagnostics if d.code == "FM002"]
-    assert fm002
+    assert not [d for d in diagnostics if d.anchor == "mode" or d.code == "FM002"]
 
 
 def test_frontmatter_invalid_presentation_layout_emits_fm004():

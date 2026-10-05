@@ -13,7 +13,6 @@ from .blatt_kern_shared import (
     get_task_action_info,
     get_task_hint_info,
     get_work_info,
-    normalize_document_mode,
     normalize_markdown,
     should_render_block,
 )
@@ -22,6 +21,7 @@ from .answer_special_mindmap import render_mindmap_block
 from .answer_special_selfcheck import render_selfcheck_block
 from .answer_special_writebox import render_writebox_block
 from .blatt_kern_answer_dispatch import _render_answer_block
+from .document_type_registry import shows_work_hints
 from .qrcode_block import render_qrcode_block
 
 
@@ -117,7 +117,7 @@ def render_block(
     options,
     content,
     include_solutions=False,
-    document_mode="ws",
+    document_type="worksheet",
 ):
     """Rendert einen einzelnen Blocktyp nach HTML.
 
@@ -130,7 +130,7 @@ def render_block(
     """
 
     html = _render_block_body(
-        block_type, options, content, include_solutions=include_solutions, document_mode=document_mode
+        block_type, options, content, include_solutions=include_solutions, document_type=document_type
     )
     return _tag_root_element_with_block_type(html, block_type)
 
@@ -140,14 +140,14 @@ def _render_block_body(
     options,
     content,
     include_solutions=False,
-    document_mode="ws",
+    document_type="worksheet",
 ):
     """Rendert einen einzelnen Blocktyp nach HTML (ohne `data-block-type`-Tagging, siehe `render_block()`)."""
     if not should_render_block(
         block_type,
         options,
         include_solutions,
-        document_mode=document_mode,
+        document_type=document_type,
     ):
         return ""
 
@@ -194,7 +194,7 @@ def _render_block_body(
                 options,
                 normalized_content,
                 include_solutions=include_solutions,
-                document_mode=document_mode,
+                document_type=document_type,
             ),
             object_alignment,
         )
@@ -222,7 +222,7 @@ def _render_block_body(
                 normalized_content,
                 parent_work_info,
                 parent_action_info,
-                document_mode=document_mode,
+                document_type=document_type,
                 include_solutions=include_solutions,
             ),
             object_alignment,
@@ -290,8 +290,8 @@ def _render_symbol_span(symbol_info):
     return f"<span class='task-work-symbol {css_class}' title='{label}'>{symbol}</span>"
 
 
-def _should_show_work_hints(document_mode):
-    return normalize_document_mode(document_mode, default="ws") != "test"
+def _should_show_work_hints(document_type):
+    return shows_work_hints(document_type)
 
 
 def _render_subtask_block(
@@ -302,7 +302,7 @@ def _render_subtask_block(
     content,
     parent_work_info,
     parent_action_info,
-    document_mode,
+    document_type,
     include_solutions,
 ):
     """Rendert eine einzelne Teilaufgabe innerhalb eines Task-Blocks."""
@@ -331,7 +331,7 @@ def _render_subtask_block(
     symbols_html = ""
     if subtask_action_info or subtask_work_info:
         symbols = _render_symbol_span(subtask_action_info)
-        if _should_show_work_hints(document_mode):
+        if _should_show_work_hints(document_type):
             symbols += _render_symbol_span(subtask_work_info)
         if symbols:
             symbols_html = f"<span class='subtask-symbols'>{symbols}</span>"
@@ -384,7 +384,7 @@ def _render_task_block(
     options,
     normalized_content,
     include_solutions,
-    document_mode,
+    document_type,
 ):
     """Rendert Aufgabenkopf und Aufgabeninhalt.
 
@@ -407,7 +407,7 @@ def _render_task_block(
 
     margin_icons = _render_symbol_span(task_action_info)
     margin_icons += _render_symbol_span(task_hint_info)
-    if _should_show_work_hints(document_mode):
+    if _should_show_work_hints(document_type):
         margin_icons += _render_symbol_span(task_work_info)
     margin_icons_html = (
         f"<div class='task-margin-icons'>{margin_icons}</div>" if margin_icons else ""

@@ -15,6 +15,7 @@ def build_warning_payload(
     *,
     acknowledged_repo: AcknowledgedWarningsRepository,
     max_items: int = 8,
+    document_type: str | None = None,
 ):
     """Create warning title/message/signature for non-blocking diagnostics.
 
@@ -23,10 +24,12 @@ def build_warning_payload(
     `acknowledged_repo` (see `app.core.diagnostic_acknowledgment` for the
     port this must satisfy) -- `app/core` never imports the concrete
     `app/storage` implementation, the caller (UI layer) injects it.
+    `document_type` overrides the type derived from the file extension
+    (needed for a tab temporarily interpreted as Markdown).
     """
 
     try:
-        inspected = inspect_document_path(input_path)
+        inspected = inspect_document_path(input_path, document_type=document_type)
     except Exception:
         return None
 

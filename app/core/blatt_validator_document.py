@@ -54,7 +54,6 @@ from .blatt_validator_yaml_entries import (
 # löst dort keine Diagnose aus, bei `mode` dagegen schon -- eine echte,
 # vorbestehende Asymmetrie, kein neu eingeführtes Verhalten.
 _ENUM_FIELD_DIAGNOSTICS = {
-    "mode": {"code": "FM002", "severity": "warning", "skip_when_empty": False},
     "presentation_layout": {"code": "FM004", "severity": "error", "skip_when_empty": True},
     "Stufe": {"code": "FM007", "severity": "warning", "skip_when_empty": True},
 }

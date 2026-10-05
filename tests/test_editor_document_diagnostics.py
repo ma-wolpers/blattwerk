@@ -1,3 +1,4 @@
+from app.ui.blatt_ui_document_type import BlattwerkDocumentTypeMixin
 from app.ui.blatt_ui_editor import BlattwerkAppEditorMixin
 from app.ui.blatt_ui_editor_diagnostics import BlattwerkAppEditorDiagnosticsMixin
 
@@ -21,14 +22,18 @@ class _FakeEditorWidget:
         return f"{line_count}.0"
 
 
-class _DummyDiagnosticsEditor(BlattwerkAppEditorDiagnosticsMixin, BlattwerkAppEditorMixin):
-    def __init__(self, text):
+class _DummyDiagnosticsEditor(BlattwerkDocumentTypeMixin, BlattwerkAppEditorDiagnosticsMixin, BlattwerkAppEditorMixin):
+    def __init__(self, text, path="entwurf.ebw"):
+        self._tab_path = path
         self.editor_widget = _FakeEditorWidget(text)
         self.editor_diagnostics_listbox = None
-        self.user_preferences = {"document_type_detection_mode": "yaml_keys"}
+        self.user_preferences = {}
         self._editor_diagnostics_after_id = None
         self._editor_block_pairs_cache = []
         self.items = None
+
+    def _active_document_tab_state(self):
+        return {"path": self._tab_path}
 
     def _set_editor_diagnostics(self, items):
         self.items = list(items)

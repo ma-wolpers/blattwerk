@@ -23,9 +23,10 @@ _NO_ACK = _NoAcknowledgmentsRepo()
 
 
 def test_build_warning_payload_contains_signature_and_count_for_valid_document(tmp_path):
-    doc_path = tmp_path / "ok.md"
+    doc_path = tmp_path / "ok.abw"
     doc_path.write_text(
         "---\n"
+        "document_type: worksheet\n"
         "Titel: T\n"
         "Fach: M\n"
         "Thema: X\n"
@@ -40,11 +41,11 @@ def test_build_warning_payload_contains_signature_and_count_for_valid_document(t
     assert payload["count"] == 0
     assert payload["title"] == "Blattwerk-Warnungen (Vorschau)"
     assert payload["message"] == ""
-    assert payload["signature"][0].endswith("ok.md")
+    assert payload["signature"][0].endswith("ok.abw")
 
 
 def test_build_warning_payload_formats_first_diagnostic_line(tmp_path):
-    doc_path = tmp_path / "warn.md"
+    doc_path = tmp_path / "warn.abw"
     doc_path.write_text(
         "---\n"
         "Titel: T\n"
@@ -64,7 +65,7 @@ def test_build_warning_payload_formats_first_diagnostic_line(tmp_path):
 
 
 def test_build_warning_payload_formats_kurzentwurf_warning_line(tmp_path):
-    doc_path = tmp_path / "kurzentwurf.md"
+    doc_path = tmp_path / "kurzentwurf.ebw"
     doc_path.write_text(
         "---\n"
         "Stundenthema: T\n"
@@ -85,3 +86,22 @@ def test_build_warning_payload_formats_kurzentwurf_warning_line(tmp_path):
     assert payload["title"] == "Kurzentwurf-Warnungen (Vorschau)"
     assert "KZF136" in payload["message"]
     assert "Zeile" in payload["message"]
+
+
+def test_build_warning_payload_markdown_file_has_no_blattwerk_diagnostics(tmp_path):
+    doc_path = tmp_path / "notiz.md"
+    doc_path.write_text("# Notiz\n\n:::lines\n\n:::\n", encoding="utf-8")
+
+    payload = build_warning_payload(doc_path, "Vorschau", acknowledged_repo=_NO_ACK)
+
+    assert payload is not None
+    assert payload["count"] == 0
+
+
+def test_build_warning_payload_unknown_extension_needs_explicit_type(tmp_path):
+    doc_path = tmp_path / "notiz.txt"
+    doc_path.write_text("Text\n", encoding="utf-8")
+
+    assert build_warning_payload(doc_path, "Vorschau", acknowledged_repo=_NO_ACK) is None
+    payload = build_warning_payload(doc_path, "Vorschau", acknowledged_repo=_NO_ACK, document_type="markdown")
+    assert payload is not None and payload["count"] == 0

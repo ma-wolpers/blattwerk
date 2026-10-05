@@ -37,6 +37,7 @@ from pathlib import Path
 from .blatt_kern_pptx_export_editable import EditableExportUnavailable, extract_slide_elements
 from .blatt_validator_types import BuildDiagnostic
 from .build_requests import WorksheetBuildRequest, build_worksheet_from_request
+from .document_type_registry import DOCUMENT_TYPE_PRESENTATION
 
 
 # Slide dimensions in cm for each page format
@@ -177,6 +178,7 @@ def _build_presentation_pptx_editable(
                 presentation_section_separator=presentation_section_separator,
                 presentation_hide_future_sections=presentation_hide_future_sections,
                 presentation_ignore_framebreaks=presentation_ignore_framebreaks,
+                document_type=DOCUMENT_TYPE_PRESENTATION,
             )
         )
 
@@ -389,6 +391,7 @@ def _build_presentation_pptx_raster(
                 presentation_section_separator=presentation_section_separator,
                 presentation_hide_future_sections=presentation_hide_future_sections,
                 presentation_ignore_framebreaks=presentation_ignore_framebreaks,
+                document_type=DOCUMENT_TYPE_PRESENTATION,
             )
         )
 
