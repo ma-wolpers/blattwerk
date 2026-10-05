@@ -137,3 +137,20 @@ def test_collapsed_panels_keep_their_position(make, tk_root):
     tk_root.update()
     assert harness.order() == [PANEL_DIAGNOSTICS, PANEL_EXAM_OVERVIEW, PANEL_OUTLINE]
     assert all(harness._editor_section(key).collapsed for key in (PANEL_DIAGNOSTICS, PANEL_EXAM_OVERVIEW, PANEL_OUTLINE))
+
+
+def test_collapsed_real_panels_only_take_their_title_row(make, tk_root):
+    """Regression (Screenshot 2026-10-05): eingeklappt darf ein Panel nicht seine volle Höhe behalten."""
+    harness = make()
+    harness._refresh_exam_overview(EXAM_TEXT, "exam")
+    tk_root.update()
+    for key in (PANEL_DIAGNOSTICS, PANEL_EXAM_OVERVIEW, PANEL_OUTLINE):
+        section = harness._editor_section(key)
+        expanded = section.winfo_height()
+        section.toggle()
+        tk_root.update()
+        title_row = section._header.winfo_reqheight()
+        assert section.winfo_height() <= title_row + 12 < expanded, key
+        section.toggle()
+        tk_root.update()
+        assert section.winfo_height() == expanded, key
