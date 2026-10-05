@@ -10,6 +10,7 @@ import fitz
 from .export_path_guardrails import validate_export_output_path
 from .blatt_kern_io_html import absolutize_local_image_sources, apply_image_size_options
 from .blatt_kern_io_pdf import annotate_pdf_running_elements_with_retry, write_pdf_from_html
+from .operator_legend_placement import write_pdf_with_bottom_legends
 from .blatt_kern_help_render import collect_help_blocks, render_help_cards_html
 from .blatt_kern_layout_render import render_html
 from .blatt_kern_shared import get_copyright_text, is_hole_punch_layout_enabled
@@ -174,7 +175,13 @@ def build_worksheet(
         return out_file
 
     if suffix == ".pdf":
-        pdf_file = write_pdf_from_html(html, out_file)
+        if has_slide_layout(document_type):
+            pdf_file = write_pdf_from_html(html, out_file)
+        else:
+            # Operatorenliste ans Seitenende (best-effort, vor Kopf-/Fußzeile; ohne Liste ein Druck).
+            pdf_file = write_pdf_with_bottom_legends(
+                html, out_file, page_format=page_format, hole_punch_enabled=is_hole_punch_layout_enabled(meta)
+            )
         if not has_slide_layout(document_type):
             annotate_pdf_running_elements_with_retry(
                 pdf_file,
