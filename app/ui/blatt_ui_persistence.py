@@ -10,6 +10,7 @@ from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 ensure_bw_gui_on_path()
 from bw_gui.runtime import BwBaseWindow, widgets
 
+from .blatt_ui_editor_panels import EDITOR_PANELS_SETTINGS_KEY, normalize_editor_panels_collapsed
 from .dialog_services import messagebox
 from .ui_theme import normalize_theme_key
 from ..storage.local_config_store import (
@@ -385,6 +386,10 @@ class BlattwerkAppPersistenceMixin:
 
             self.ui_settings["theme"] = normalize_theme_key(self.theme_var.get())
             self.ui_settings["preview_controls_collapsed"] = bool(self.preview_controls_collapsed_var.get())
+            # Kanonisches Schema auch für alte/kaputte Werte (siehe blatt_ui_editor_panels).
+            self.ui_settings[EDITOR_PANELS_SETTINGS_KEY] = normalize_editor_panels_collapsed(
+                self.ui_settings.get(EDITOR_PANELS_SETTINGS_KEY)
+            )
             self.ui_settings.update(
                 normalize_design_profiles_for_persistence(
                     worksheet_contrast=self.preview_contrast_var.get(),

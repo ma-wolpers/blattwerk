@@ -17,6 +17,7 @@ from bw_gui.runtime import widgets
 
 import re
 
+from .blatt_ui_editor_panels import PANEL_DIAGNOSTICS, PANEL_PACK_OPTIONS
 from ..core.blatt_kern_shared import build_block_index_line_map
 from ..core.blatt_validator_types import BuildDiagnostic
 from ..core.diagnostic_identity import compute_diagnostic_identity
@@ -50,8 +51,10 @@ class BlattwerkAppEditorDiagnosticsMixin:
         (`ttk.Treeview` doesn't accept those options), same as that table.
         """
 
-        diagnostics_frame = widgets.LabelFrame(parent, text="Diagnostik")
-        diagnostics_frame.pack(fill="x", padx=8, pady=(0, 8))
+        # Einklappbar (bw-gui `CollapsibleSection`, siehe `blatt_ui_editor_panels.py`).
+        diagnostics_section = self._build_editor_section(parent, PANEL_DIAGNOSTICS, "Diagnostik")
+        diagnostics_section.pack(**PANEL_PACK_OPTIONS)
+        diagnostics_frame = diagnostics_section.content
         diagnostics_frame.columnconfigure(0, weight=1)
 
         self.editor_diagnostics_listbox = widgets.Treeview(

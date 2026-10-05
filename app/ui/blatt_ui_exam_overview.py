@@ -14,6 +14,7 @@ ensure_bw_gui_on_path()
 from bw_gui.runtime import widgets
 
 from ..core.blatt_kern_shared import parse_blocks
+from .blatt_ui_editor_panels import PANEL_EXAM_OVERVIEW
 from ..core.exam_analysis import analyze_exam, format_analysis_lines
 from ..core.frontmatter import content_after_frontmatter
 
@@ -22,8 +23,9 @@ class BlattwerkExamOverviewMixin:
     """Baut und aktualisiert die Klausur-Übersicht unter der Diagnostik."""
 
     def _build_exam_overview_panel(self, parent) -> None:
-        self._exam_overview_frame = widgets.LabelFrame(parent, text="Klausur-Übersicht")
-        self._exam_overview_label = widgets.Label(self._exam_overview_frame, text="", anchor="w", justify="left")
+        """Legt das einklappbare Panel an (ungepackt; sichtbar nur bei `.kbw`, siehe `_refresh_exam_overview`)."""
+        self._exam_overview_frame = self._build_editor_section(parent, PANEL_EXAM_OVERVIEW, "Klausur-Übersicht")
+        self._exam_overview_label = widgets.Label(self._exam_overview_frame.content, text="", anchor="w", justify="left")
         self._exam_overview_label.pack(fill="x", padx=8, pady=(4, 6))
 
     def _refresh_exam_overview(self, text: str, document_type: str | None) -> None:
@@ -32,8 +34,7 @@ class BlattwerkExamOverviewMixin:
         if frame is None:
             return
         if document_type != "exam":
-            if frame.winfo_manager():
-                frame.pack_forget()
+            self._show_exam_overview_section(False)
             return
         try:
             content, _line = content_after_frontmatter(text)
@@ -42,5 +43,5 @@ class BlattwerkExamOverviewMixin:
         except Exception as error:  # Auswertung darf das Tippen nie stören
             summary = f"Auswertung nicht möglich: {error}"
         self._exam_overview_label.configure(text=summary)
-        if not frame.winfo_manager():
-            frame.pack(fill="x", padx=8, pady=(0, 8))
+        # Immer zwischen Diagnostik und Struktur (pack before=); Einklapp-Zustand bleibt unberührt.
+        self._show_exam_overview_section(True)

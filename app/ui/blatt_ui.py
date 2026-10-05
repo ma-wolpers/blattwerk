@@ -15,6 +15,7 @@ from .blatt_ui_editor_search import BlattwerkAppEditorSearchMixin
 from .blatt_ui_export import BlattwerkAppExportMixin
 from .blatt_ui_external_open import BlattwerkAppExternalOpenMixin
 from .blatt_ui_export_multi import BlattwerkAppExportMultiMixin
+from .blatt_ui_editor_panels import BlattwerkEditorPanelsMixin
 from .blatt_ui_exam_overview import BlattwerkExamOverviewMixin
 from .blatt_ui_migration_bar import BlattwerkMigrationBarMixin
 from .blatt_ui_help_docs import BlattwerkAppHelpDocsMixin
@@ -35,6 +36,7 @@ from bw_gui.widgets import HoverTooltip as _SharedHoverTooltipContractMarker
 
 
 class BlattwerkApp(
+    BlattwerkEditorPanelsMixin,
     BlattwerkExamOverviewMixin,
     BlattwerkMigrationBarMixin,
     BlattwerkAppExportMultiMixin,

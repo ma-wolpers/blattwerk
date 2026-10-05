@@ -117,30 +117,7 @@ class BlattwerkAppEditorMixin:
         if hasattr(self, "_build_exam_overview_panel"):
             self._build_exam_overview_panel(parent)
 
-        outline_frame = widgets.LabelFrame(parent, text="Struktur")
-        outline_frame.pack(fill="x", padx=8, pady=(0, 8))
-        outline_frame.columnconfigure(0, weight=1)
-        if not bool(preferences.get("outline_visible_on_start", True)):
-            outline_frame.pack_forget()
-
-        self.editor_outline_listbox = ui.Listbox(
-            outline_frame,
-            activestyle="none",
-            borderwidth=0,
-            highlightthickness=0,
-            height=6,
-        )
-        self.editor_outline_listbox.grid(row=0, column=0, sticky="nsew", padx=(8, 0), pady=(6, 8))
-        self.editor_outline_listbox.bind("<<ListboxSelect>>", self._on_editor_outline_selected)
-        self.editor_outline_listbox.bind("<ButtonRelease-1>", self._on_editor_outline_click)
-
-        outline_scrollbar = widgets.Scrollbar(
-            outline_frame,
-            orient="vertical",
-            command=self.editor_outline_listbox.yview,
-        )
-        outline_scrollbar.grid(row=0, column=1, sticky="ns", padx=(0, 8), pady=(6, 8))
-        self.editor_outline_listbox.configure(yscrollcommand=outline_scrollbar.set)
+        self._build_editor_outline_panel(parent, preferences)
 
         self._configure_editor_diagnostic_tags()
         self._configure_editor_syntax_tags()

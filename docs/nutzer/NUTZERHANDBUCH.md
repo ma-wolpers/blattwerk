@@ -174,6 +174,7 @@ Nach einer einmaligen Einrichtung (`register-blattwerk-file-association.ps1`) la
 - Beim Tippen im Schreibbereich wird die Diagnostik automatisch mit kurzer Verzögerung aktualisiert.
 - Warnungen und Fehler werden zeilenweise farbig markiert.
 - Unter dem Editor steht eine Diagnostikliste mit Zeile, Code und Meldung.
+- Die Bereiche **Diagnostik**, **Klausur-Übersicht** (nur bei Klausuren) und **Struktur** lassen sich einzeln über den Pfeil (▾/▸) bzw. einen Klick auf ihren Titel ein- und ausklappen; Blattwerk merkt sich das für den nächsten Start.
 - Klick auf einen Eintrag springt direkt zur betroffenen Zeile (auch bei erneutem Klick auf denselben Eintrag).
 - Beim Laden und Speichern einer Datei wird die Diagnostik ebenfalls neu berechnet.
 - Warnungen (nicht Fehler) lassen sich per Klick auf die Checkbox links in der Liste als gelesen abhaken; Rechtsklick auf einen Eintrag bietet zusätzlich "Als gelesen markieren"/"Wieder anzeigen" sowie "Alle in diesem Dokument wieder anzeigen". Abgehakte Warnungen bleiben sichtbar (nur grau dargestellt), erscheinen aber beim Kompilieren/Exportieren nicht mehr als Popup -- außer die Warnung verschwindet zwischenzeitlich (z. B. weil die Ursache behoben wurde) und tritt später erneut auf, dann gilt sie wieder als neu.
