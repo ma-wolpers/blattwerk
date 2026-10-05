@@ -124,6 +124,7 @@ Nach einer einmaligen Einrichtung (`register-blattwerk-file-association.ps1`) la
 
 - Neue Klausur über `Neu` → „Klausur (.kbw)“. Klausuren zeigen keine Sozialform-Symbole.
 - `afb=1|2|3` an Aufgaben/Teilaufgaben, `--hm` als eigene Zeile zwischen zwei Aufgaben für Teil A (hilfsmittelfrei) und Teil B, Teilpunkte in Lösungen als `(2P)`.
+- Mit einem zweiten `--hm` davor bekommt die Klausur ein **Deckblatt**: Alles vor dem ersten `--hm` (Hinweise, Bewertungstabelle …, aber keine Aufgaben) steht auf der ersten Seite ohne Teilüberschrift; „Teil A“ beginnt auf einer neuen Seite.
 - Unter der Diagnostik zeigt die **Klausur-Übersicht** Punkte und AFB-Verteilung (Prozent bezogen auf die Gesamtpunkte).
 - Im Exportdialog unter „Inhalt“ → **Erwartungshorizont** (PDF/HTML, Taste `H`).
 - `:::evaluation:::` fügt eine Bewertungstabelle ein (auch in Arbeitsblättern).

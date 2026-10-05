@@ -10,7 +10,13 @@ from __future__ import annotations
 
 from .blatt_validator_region import compute_block_region_id
 from .blatt_validator_types import BuildDiagnostic
-from .document_semantics import AID_SPLIT_BLOCK, aid_split_position_problem
+from .document_semantics import (
+    AID_SPLIT_BLOCK,
+    MAX_AID_SPLITS,
+    aid_cover_position_problem,
+    aid_split_indices,
+    aid_split_position_problem,
+)
 from .exam_analysis import iter_scored_leaves, parse_afb
 from .points_model import build_points_model
 
@@ -31,18 +37,33 @@ def _diag(code, message, blocks, index, severity="warning") -> BuildDiagnostic:
 def validate_exam(blocks, document_type: str = "worksheet") -> list[BuildDiagnostic]:
     """Prüft `--hm` (alle Typen) und AFB (nur Klausur)."""
     diagnostics: list[BuildDiagnostic] = []
-    split_indices = [index for index, (block_type, _o, _c) in enumerate(blocks) if block_type == AID_SPLIT_BLOCK]
+    split_indices = aid_split_indices(blocks)
     if document_type != "exam":
         for index in split_indices:
             diagnostics.append(_diag("KL002", "`--hm` wirkt nur in Klausuren (.kbw) und wird hier ignoriert.", blocks, index))
         return diagnostics
 
+    # Zwei Marker = Deckblatt | Teil A | Teil B. Jede ungültige Konstellation ist ein
+    # Fehler (blockiert den Export) -- nie still „kein Split“.
+    has_cover = len(split_indices) == MAX_AID_SPLITS
     for position, index in enumerate(split_indices):
-        if position > 0:
-            diagnostics.append(_diag("KL001", "`--hm` darf in einer Klausur nur einmal vorkommen.", blocks, index, "error"))
+        if position >= MAX_AID_SPLITS:
+            diagnostics.append(_diag(
+                "KL001", "`--hm` darf in einer Klausur hoechstens zweimal vorkommen (Deckblatt | Teil A | Teil B).",
+                blocks, index, "error",
+            ))
             continue
-        problem = aid_split_position_problem(blocks, index)
-        if problem == "KL004":
+        if has_cover and position == 0:
+            problem = aid_cover_position_problem(blocks, index)
+        else:
+            start = split_indices[0] + 1 if has_cover else 0
+            problem = aid_split_position_problem(blocks, index, start=start)
+        if problem == "KL007":
+            diagnostics.append(_diag(
+                "KL007", "Vor dem ersten von zwei `--hm` (Deckblatt) duerfen keine Aufgaben, Teilaufgaben oder Loesungen stehen.",
+                blocks, index, "error",
+            ))
+        elif problem == "KL004":
             diagnostics.append(_diag(
                 "KL004", "`--hm` muss zwischen zwei Aufgaben auf oberster Ebene stehen (Aufgabe davor und danach, nicht in `:::columns`).",
                 blocks, index, "error",

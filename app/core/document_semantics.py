@@ -158,48 +158,107 @@ AID_SPLIT_BLOCK = "aidsplit"
 _TASK_RELATED = frozenset({"task", "subtask", "solution"})
 
 
+MAX_AID_SPLITS = 2
+"""Höchstens zwei `--hm`: mit zweitem Marker trennt der erste ein Deckblatt ab."""
+
+
 @dataclass(frozen=True)
 class AidSplit:
-    """Gültiger Hilfsmittel-Trenner: Index des `aidsplit`-Pseudoblocks."""
+    """Gültiger Hilfsmittel-Trenner.
+
+    Attributes:
+        index: Blockindex des Trenners zwischen Teil A und Teil B (bei zwei
+            Markern der zweite). Alle Teil-Auswertungen nutzen nur ihn.
+        cover_end: Blockindex des Deckblatt-Trenners (erster von zwei Markern)
+            oder ``None``. Vor ihm stehen keine Aufgaben, daher ändert das
+            Deckblatt keine Punkte-/AFB-Auswertung.
+    """
 
     index: int
+    cover_end: int | None = None
 
 
-def aid_split_position_problem(blocks, index: int) -> str | None:
+def aid_split_position_problem(blocks, index: int, start: int = 0) -> str | None:
     """Prüft die Positionsregel „nur zwischen Top-Level-Aufgaben“ (Invariante I5).
+
+    Args:
+        blocks: Blockliste des Dokuments.
+        index: Blockindex des geprüften `aidsplit`.
+        start: Erster Blockindex, der für „Aufgabe davor“ zählt (bei einem
+            Deckblatt: direkt nach dem Deckblatt-Trenner, damit Teil A nicht
+            leer sein darf).
 
     Returns:
         ``"KL004"`` (keine Aufgabe davor/danach oder innerhalb von `:::columns`),
         ``"KL005"`` (der nächste aufgabenbezogene Block ist kein `task`) oder ``None``.
     """
-    before = [block_type for block_type, _o, _c in blocks[:index]]
+    before = [block_type for block_type, _o, _c in blocks[start:index]]
     after = [block_type for block_type, _o, _c in blocks[index + 1 :]]
     if "task" not in before or "task" not in after:
         return "KL004"
     if before.count("columns") > before.count("endcolumns"):
         return "KL004"
+    return _next_task_problem(after)
+
+
+def aid_cover_position_problem(blocks, index: int) -> str | None:
+    """Prüft den Deckblatt-Trenner (erster von zwei `--hm`).
+
+    Returns:
+        ``"KL007"`` (vor dem Deckblatt-Trenner steht eine Aufgabe, Teilaufgabe
+        oder Lösung), ``"KL004"`` (keine Aufgabe danach oder innerhalb von
+        `:::columns`), ``"KL005"`` (nächster aufgabenbezogener Block kein `task`)
+        oder ``None``.
+    """
+    before = [block_type for block_type, _o, _c in blocks[:index]]
+    after = [block_type for block_type, _o, _c in blocks[index + 1 :]]
+    if any(block_type in _TASK_RELATED for block_type in before):
+        return "KL007"
+    if "task" not in after or before.count("columns") > before.count("endcolumns"):
+        return "KL004"
+    return _next_task_problem(after)
+
+
+def _next_task_problem(after) -> str | None:
     next_related = next((block_type for block_type in after if block_type in _TASK_RELATED), None)
     return None if next_related == "task" else "KL005"
 
 
+def aid_split_indices(blocks) -> list[int]:
+    """Blockindizes aller `aidsplit`-Pseudoblöcke in Dokumentreihenfolge."""
+    return [index for index, (block_type, _o, _c) in enumerate(blocks) if block_type == AID_SPLIT_BLOCK]
+
+
 def resolve_aid_split(blocks, document_type: str | None) -> AidSplit | None:
-    """Einzige Semantik von `--hm`: nur in Klausuren, genau einmal, an gültiger Position.
+    """Einzige Semantik von `--hm`: nur in Klausuren, ein- oder zweimal, an gültiger Position.
+
+    * ein Marker: Teil A | Teil B
+    * zwei Marker: Deckblatt | Teil A | Teil B (das Deckblatt enthält keine Aufgaben)
 
     Außerhalb von `exam` (oder bei ungültigem Split) gibt es keinen Split: keine
     Teilüberschriften, kein Umbruch, keine Teil-Auswertung.
     """
     if not document_type or not spec_for_type(document_type).aid_split:
         return None
-    indices = [index for index, (block_type, _o, _c) in enumerate(blocks) if block_type == AID_SPLIT_BLOCK]
-    if len(indices) != 1 or aid_split_position_problem(blocks, indices[0]) is not None:
-        return None
-    return AidSplit(indices[0])
+    indices = aid_split_indices(blocks)
+    if len(indices) == 1:
+        return None if aid_split_position_problem(blocks, indices[0]) else AidSplit(indices[0])
+    if len(indices) == MAX_AID_SPLITS:
+        cover, split = indices
+        if aid_cover_position_problem(blocks, cover) or aid_split_position_problem(blocks, split, start=cover + 1):
+            return None
+        return AidSplit(split, cover_end=cover)
+    return None
 
 
 def annotate_aid_parts(blocks, document_type: str | None):
-    """Ergänzt für das Rendern die Teilmarken A (Dokumentanfang) und B (am Trenner).
+    """Ergänzt für das Rendern die Teilmarken A und B.
 
-    Ohne gültigen Split bleibt die Blockliste unverändert (dann rendert `--hm` nichts).
+    Ohne Deckblatt steht „Teil A“ am Dokumentanfang (synthetischer Block) und
+    „Teil B“ am Trenner. Mit Deckblatt bleibt die erste Seite ohne
+    Teilüberschrift: „Teil A“ steht am Deckblatt-Trenner (`_aid_break`: mit
+    Seitenumbruch davor), „Teil B“ am zweiten Trenner. Ohne gültigen Split
+    bleibt die Blockliste unverändert (dann rendert `--hm` nichts).
     """
     split = resolve_aid_split(blocks, document_type)
     if split is None:
@@ -207,6 +266,10 @@ def annotate_aid_parts(blocks, document_type: str | None):
     annotated = list(blocks)
     block_type, options, content = annotated[split.index]
     annotated[split.index] = (block_type, {**options, "_aid_part": "B"}, content)
+    if split.cover_end is not None:
+        block_type, options, content = annotated[split.cover_end]
+        annotated[split.cover_end] = (block_type, {**options, "_aid_part": "A", "_aid_break": True}, content)
+        return annotated
     return [(AID_SPLIT_BLOCK, {"_aid_part": "A"}, "")] + annotated
 
 

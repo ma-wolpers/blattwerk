@@ -310,14 +310,15 @@ def _render_aid_part(options) -> str:
     """Teilüberschrift am Hilfsmittel-Trenner (nur mit Annotation aus `resolve_aid_split`).
 
     Ohne Annotation (`.abw`, `.pbw` oder ungültiger Split) rendert `--hm` nichts.
-    Teil B beginnt mit dem vorhandenen Pagebreak-Element, damit Vorschau, HTML,
-    PDF und PNG dieselbe Umbruchsemantik haben.
+    Teil B -- und mit Deckblatt auch Teil A (`_aid_break`) -- beginnt mit dem
+    vorhandenen Pagebreak-Element, damit Vorschau, HTML, PDF und PNG dieselbe
+    Umbruchsemantik haben.
     """
     part = (options or {}).get("_aid_part")
     if part not in AID_PART_LABELS:
         return ""
     heading = f"<h2 class='aid-part'>{AID_PART_LABELS[part]}</h2>"
-    if part == "B":
+    if part == "B" or (options or {}).get("_aid_break"):
         return "<div class='ab-pagebreak' aria-hidden='true'></div>" + heading
     return heading
 

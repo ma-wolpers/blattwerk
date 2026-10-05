@@ -35,7 +35,8 @@ def test_hm_parses_as_top_level_pseudo_block():
 @pytest.mark.parametrize(
     ("body", "code"),
     [
-        (SPLIT + "--hm\n:::task points=1 afb=3\nC\n:::\n", "KL001"),
+        (SPLIT + "--hm\n:::task points=1 afb=3\nC\n:::\n", "KL007"),
+        ("Hinweis\n--hm\n" + SPLIT + "--hm\n:::task points=1 afb=3\nC\n:::\n", "KL001"),
         ("--hm\n" + SPLIT.replace("--hm\n", ""), "KL004"),
         (":::task points=1 afb=1\nA\n:::\n--hm\n", "KL004"),
         (":::task points=1 afb=1\nA\n:::\n--hm\n:::solution\n1. x\n:::\n:::task points=1 afb=1\nB\n:::\n", "KL005"),
