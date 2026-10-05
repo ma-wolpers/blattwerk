@@ -27,6 +27,8 @@ The format is based on Keep a Changelog.
 - **Klausuren (`.kbw`):** neuer Dokumenttyp mit eigener Vorlage. `afb=1|2|3` an Aufgaben und Teilaufgaben hält den Anforderungsbereich fest (wird nicht im Schülerdokument angezeigt; Teilaufgaben erben ihn von der Aufgabe). `--hm` auf einer eigenen Zeile trennt den hilfsmittelfreien Teil A vom Teil B mit Hilfsmitteln (neue Seite, Teilüberschriften, durchlaufende Nummerierung).
 - **Klausur-Übersicht im Editor:** zeigt bei Klausuren live Gesamtpunkte und die Verteilung auf AFB I/II/III (Prozent bezogen auf die Gesamtpunktzahl), bei `--hm` auch je Teil. Fehlen Angaben, steht dort „unvollständig“ statt einer Prozentzahl.
 
+- **Erwartungshorizont für Klausuren:** Im Exportdialog einer `.kbw` gibt es unter „Inhalt“ jetzt „Erwartungshorizont“ (PDF oder HTML, Taste `H`). Er listet je (Teil-)Aufgabe nur die nummerierten Lösungspunkte mit Teilpunkten und einer leeren Spalte „erreicht“, Teilsummen je Hilfsmittel-Teil und die AFB-Verteilung. Widersprüchliche Punkte verhindern den Export.
+
 ### Removed
 
 - Das Frontmatter-Feld `mode` (`presentation`, `test`, `worksheet`, `solution`) hat keine Wirkung mehr und wird nicht mehr vorgeschlagen oder geprüft. Präsentation und Klausur ergeben sich aus der Endung; ob die Lösung angezeigt wird, wählst du wie bisher in Vorschau und Export.

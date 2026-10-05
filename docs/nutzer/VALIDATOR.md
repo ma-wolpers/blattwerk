@@ -93,7 +93,9 @@ Subprozess siehe `tests/test_blatt_diagnostics_cli.py` (Validator) sowie
 - `PK006`: Teilpunkte `(xP)` vergeben, aber die (Teil-)Aufgabe hat keine eigene Punktzahl. Warnung.
 - `SL001`: `:::solution` ohne vorangehende Aufgabe (bzw. erste Loesung hinter `--hm`); wird keiner Aufgabe zugeordnet. Warnung.
 - `SL004`: `(xP)` in einem verschachtelten oder Aufzaehlungs-Punkt; zaehlt nicht. Warnung.
+- `SL005`: Erwartungshorizont: Eine (Teil-)Aufgabe hat Erwartungen, aber keine einzige Teilpunkt-Angabe `(xP)`; die Punktspalte bleibt leer. Warnung beim Export des Erwartungshorizonts.
 - `SL006`: Nur ein Teil der Erwartungspunkte einer (Teil-)Aufgabe hat `(xP)`; keine Summenpruefung. Warnung.
+- `SL007`: Erwartungshorizont: Eine (Teil-)Aufgabe hat keine nummerierte Erwartung; es erscheint "keine Erwartung hinterlegt". Warnung beim Export des Erwartungshorizonts.
 - `SL008`: Ungueltiges `target=` an `:::solution` (kein Subtask mit diesem Bezeichner in derselben Aufgabe bzw. keine Aufgabe davor). Fehler.
 - `BL001`: Unbekannter Blocktyp.
 - `BL002`: Leerzeichen direkt nach `:::` im Marker (`::: block`) ist ungueltig.

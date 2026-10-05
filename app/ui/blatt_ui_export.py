@@ -34,6 +34,7 @@ from ..core.document_export_build import (
     export_document_png_zip,
 )
 from ..core.kurzentwurf_settings import kurzentwurf_runtime_options_from_preferences
+from ..core.exam_expectation_horizon import build_expectation_horizon
 from ..core.document_type_registry import (
     DOCUMENT_TYPE_PRESENTATION,
     DOCUMENT_TYPE_WORKSHEET,
@@ -242,7 +243,7 @@ class BlattwerkAppExportMixin:
             "Export laeuft weiter, aber es gibt Warnungen:\n\n" + warning_payload["message"],
         )
 
-    _SURFACED_COMPILE_WARNING_CODES = {"PT002", "IM003", "PPTX001", "PPTX002"}
+    _SURFACED_COMPILE_WARNING_CODES = {"SL005", "SL007", "PT002", "IM003", "PPTX001", "PPTX002"}
     """`PT002` (Präsentations-Overflow), `IM003` (Worterklärung passt nicht
     sauber an den Seitenrand, nur im gerenderten PDF messbar) plus die beiden Fallback-Diagnosen des
     experimentellen editierbaren PPTX-Exports (`blatt_kern_pptx_export.py`):
@@ -979,12 +980,16 @@ class BlattwerkAppExportMixin:
             solution_label=str(preferences.get("solution_label", "Loesung") or "Loesung"),
             solution_suffix=str(preferences.get("solution_suffix", "_loesung") or "_loesung"),
             allow_mode_selection=allow_mode_selection,
+            allow_expectation_horizon=bool(document_type) and spec_for_type(document_type).expectation_horizon,
         )
         if not dialog.result:
             return
 
         fmt = dialog.result["format"]
         mode = dialog.result["mode"]
+        if mode == "expectation":
+            self._export_expectation_horizon(input_path, Path(dialog.result["output_path"]))
+            return
         black_screen_mode = "none"
         page_format = str(self.preview_page_format_var.get() or "").strip()
         if page_format not in _ALLOWED_WORKSHEET_PAGE_FORMATS:
@@ -1050,6 +1055,21 @@ class BlattwerkAppExportMixin:
         except Exception as error:
             self.status_var.set("Export fehlgeschlagen")
             messagebox.showerror("Fehler", f"Export fehlgeschlagen:\n{error}")
+
+    def _export_expectation_horizon(self, input_path: Path, output_path: Path) -> None:
+        """Exportiert den Erwartungshorizont einer Klausur (PDF/HTML); Punktfehler blockieren."""
+        self._set_last_dialog_dir("export_output", output_path)
+        try:
+            self.status_var.set("Export läuft…")
+            self.root.update_idletasks()
+            compile_diagnostics = []
+            out_file = build_expectation_horizon(input_path, output_path, diagnostics_out=compile_diagnostics)
+            self._show_compile_overflow_warnings(compile_diagnostics, "Erwartungshorizont")
+            self.status_var.set("Export abgeschlossen")
+            messagebox.showinfo("Export erfolgreich", f"Erstellt:\n{out_file}")
+        except Exception as error:
+            self.status_var.set("Export fehlgeschlagen")
+            messagebox.showerror("Fehler", f"Erwartungshorizont konnte nicht erstellt werden:\n{error}")
 
     def open_presentation_export_dialog(self, input_path: Path | None = None):
         """Oeffnet den dedizierten Praesentations-Exportdialog."""

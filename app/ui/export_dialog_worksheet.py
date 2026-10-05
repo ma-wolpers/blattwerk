@@ -28,8 +28,10 @@ class WorksheetExportDialog(_BaseExportDialog):
         solution_label: str = "Loesung",
         solution_suffix: str = "_loesung",
         allow_mode_selection: bool = True,
+        allow_expectation_horizon: bool = False,
     ):
         super().__init__(parent, input_path, theme_key, initial_output_dir=initial_output_dir)
+        self.allow_expectation_horizon = bool(allow_expectation_horizon)
         self.worksheet_label = str(worksheet_label or "Aufgaben")
         self.solution_label = str(solution_label or "Loesung")
         self.solution_suffix = str(solution_suffix or "_loesung")
@@ -67,6 +69,11 @@ class WorksheetExportDialog(_BaseExportDialog):
             widgets.Radiobutton(mode_row, text=self.worksheet_label, value="worksheet", variable=self.mode_var, command=self._refresh_output_suggestion).pack(side="left")
             widgets.Radiobutton(mode_row, text=self.solution_label, value="solution", variable=self.mode_var, command=self._refresh_output_suggestion).pack(side="left", padx=(12, 0))
             widgets.Radiobutton(mode_row, text="Beides", value="both", variable=self.mode_var, command=self._refresh_output_suggestion).pack(side="left", padx=(12, 0))
+            if self.allow_expectation_horizon:
+                widgets.Radiobutton(
+                    mode_row, text="Erwartungshorizont", value="expectation", variable=self.mode_var,
+                    command=self._on_mode_changed,
+                ).pack(side="left", padx=(12, 0))
         else:
             self.mode_var.set("worksheet")
 
@@ -128,6 +135,8 @@ class WorksheetExportDialog(_BaseExportDialog):
             self.window.bind("<KeyPress-a>", lambda _event: self._set_mode("worksheet"))
             self.window.bind("<KeyPress-l>", lambda _event: self._set_mode("solution"))
             self.window.bind("<KeyPress-b>", lambda _event: self._set_mode("both"))
+            if self.allow_expectation_horizon:
+                self.window.bind("<KeyPress-h>", lambda _event: self._set_mode("expectation"))
 
         self.window.bind("<KeyPress-d>", lambda _event: self._browse_output_shortcut())
         self.window.bind("<KeyPress-p>", lambda _event: self._toggle_export_format())
@@ -140,8 +149,14 @@ class WorksheetExportDialog(_BaseExportDialog):
 
         if self.mode_var.get() != mode:
             self.mode_var.set(mode)
-        self._refresh_output_suggestion(force=True)
+        self._on_mode_changed()
         return "break"
+
+    def _on_mode_changed(self):
+        """Erwartungshorizont gibt es nur als PDF oder HTML; die Formatwahl wird angepasst."""
+        if self.format_var.get() not in self._allowed_formats():
+            self.format_var.set("pdf")
+        self._refresh_output_suggestion(force=True)
 
     def _browse_output_shortcut(self):
         if not self._can_handle_char_shortcut():
@@ -169,8 +184,9 @@ class WorksheetExportDialog(_BaseExportDialog):
         self._confirm()
         return "break"
 
-    @staticmethod
-    def _allowed_formats():
+    def _allowed_formats(self):
+        if self.mode_var.get() == "expectation":
+            return ["pdf", "html"]
         return ["pdf", "png", "pngzip", "html"]
 
     def _extension(self):
@@ -189,7 +205,7 @@ class WorksheetExportDialog(_BaseExportDialog):
             return
 
         stem = self.input_path.with_suffix("")
-        suffix = self.solution_suffix if self.mode_var.get() == "solution" else ""
+        suffix = {"solution": self.solution_suffix, "expectation": "_erwartungshorizont"}.get(self.mode_var.get(), "")
         self.output_var.set(str(stem) + suffix + self._extension())
 
     def _pick_output(self):
@@ -219,6 +235,9 @@ class WorksheetExportDialog(_BaseExportDialog):
             messagebox.showwarning("Fehlende Ausgabe", "Bitte gib eine Ausgabedatei an.", parent=self.window)
             return
 
+        if self.format_var.get() not in self._allowed_formats():
+            messagebox.showwarning("Format", "Der Erwartungshorizont gibt es nur als PDF oder HTML.", parent=self.window)
+            return
         out_path = Path(out)
         if out_path.suffix.lower() != self._extension():
             out_path = out_path.with_suffix(self._extension())

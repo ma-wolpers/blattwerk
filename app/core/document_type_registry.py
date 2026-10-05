@@ -55,6 +55,7 @@ class DocumentTypeSpec:
         aid_split: Ob der Hilfsmittel-Trenner `--hm` wirkt.
         evaluation: Ob `:::evaluation` verfügbar ist.
         marker_required: Ob der Konsistenzmarker `document_type` Pflicht ist.
+        expectation_horizon: Ob ein Erwartungshorizont exportiert werden kann.
     """
 
     id: str
@@ -72,6 +73,7 @@ class DocumentTypeSpec:
     aid_split: bool
     evaluation: bool
     marker_required: bool
+    expectation_horizon: bool = False
 
 
 DOCUMENT_TYPE_SPECS: tuple[DocumentTypeSpec, ...] = (
@@ -125,6 +127,7 @@ DOCUMENT_TYPE_SPECS: tuple[DocumentTypeSpec, ...] = (
         aid_split=True,
         evaluation=True,
         marker_required=True,
+        expectation_horizon=True,
     ),
     DocumentTypeSpec(
         id=DOCUMENT_TYPE_KURZENTWURF,
