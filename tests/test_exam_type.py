@@ -137,3 +137,10 @@ def test_hm_adds_a_page_in_exam_pdf_and_not_in_worksheet_pdf(tmp_path):
     worksheet_pages, _ = pages("worksheet")
     assert exam_pages == worksheet_pages + 1
     assert "Teil B" in second_page_text
+
+
+@pytest.mark.parametrize(("document_type", "expected"), [("worksheet", True), ("exam", False)])
+def test_empty_answer_hint_an005_only_outside_exam(document_type, expected):
+    body = ":::task points=1 afb=1\nA\n:::\n:::lines\n\n:::\n:::solution\n1. x (1P)\n:::\n"
+    codes = [d.code for d in inspect_markdown_text(HEAD + body, document_type=document_type).diagnostics]
+    assert ("AN005" in codes) is expected

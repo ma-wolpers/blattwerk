@@ -56,6 +56,9 @@ class DocumentTypeSpec:
         evaluation: Ob `:::evaluation` verfügbar ist.
         marker_required: Ob der Konsistenzmarker `document_type` Pflicht ist.
         expectation_horizon: Ob ein Erwartungshorizont exportiert werden kann.
+        empty_answer_hint: Ob leere Antwortblöcke als Best-Practice-Hinweis
+            (AN005) gemeldet werden. In Klausuren nicht: Antwortfelder sind dort
+            absichtlich leer, die Lösung steht in `:::solution`.
     """
 
     id: str
@@ -74,6 +77,7 @@ class DocumentTypeSpec:
     evaluation: bool
     marker_required: bool
     expectation_horizon: bool = False
+    empty_answer_hint: bool = True
 
 
 DOCUMENT_TYPE_SPECS: tuple[DocumentTypeSpec, ...] = (
@@ -128,6 +132,7 @@ DOCUMENT_TYPE_SPECS: tuple[DocumentTypeSpec, ...] = (
         evaluation=True,
         marker_required=True,
         expectation_horizon=True,
+        empty_answer_hint=False,
     ),
     DocumentTypeSpec(
         id=DOCUMENT_TYPE_KURZENTWURF,
@@ -203,6 +208,12 @@ def shows_work_hints(document_type: str) -> bool:
     """Ob Sozialform-Icons gerendert werden (unbekannte Typen: ja, wie Arbeitsblatt)."""
     spec = _SPECS_BY_ID.get(document_type)
     return True if spec is None else spec.work_hints
+
+
+def shows_empty_answer_hint(document_type: str | None) -> bool:
+    """Ob leere Antwortblöcke gemeldet werden (AN005; unbekannte Typen: ja, wie Arbeitsblatt)."""
+    spec = _SPECS_BY_ID.get(document_type)
+    return True if spec is None else spec.empty_answer_hint
 
 
 def solutions_renderable(document_type: str) -> bool:

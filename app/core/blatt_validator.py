@@ -136,7 +136,7 @@ def _collect_document_diagnostics(meta, blocks, content_text, content_base_line=
         )
 
         is_answer_block = _validate_block_type_specifics(
-            diagnostics, index, block_type, options, content, qrcode_url_value
+            diagnostics, index, block_type, options, content, qrcode_url_value, document_type
         )
         if not is_answer_block:
             continue

@@ -118,7 +118,7 @@ Subprozess siehe `tests/test_blatt_diagnostics_cli.py` (Validator) sowie
 - `OP005`: `:::geometry axis=true` ohne gueltiges `origin` (Format `"col,row"`). Fehler -- der gesamte Geometry-Payload des Blocks (alle Sektionen) wird dadurch nicht gerendert, kein stiller Ruecksfall auf Rasterkoordinaten.
 - `AN003`: YAML-Fehler in YAML-basiertem `answer`.
 - `AN004`: YAML-Root hat falschen Typ (kein Mapping).
-- `AN005`: `answer`-Block ist leer (Best-Practice-Warnung).
+- `AN005`: `answer`-Block ist leer (Best-Practice-Warnung). Nicht in Klausuren (`.kbw`): dort sind Antwortfelder absichtlich leer, die Loesung steht in `:::solution` (Registry-Capability `empty_answer_hint`).
 - `AN006`: Marker-Syntaxfehler in textbasierten `answer`-Inhalten (ungeschlossene Inline-Tokens wie `%{...`).
 - `AN007`: Ungueltiger YAML-`show`-Sichtbarkeitswert (erlaubt: `&`, `§`, `%`).
 - `AN008`: Legacy-Syntax `:::answer type=...` ist nicht mehr erlaubt; dedizierten Blocktyp nutzen (z. B. `:::grid`, `:::lines`).
