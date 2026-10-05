@@ -13,16 +13,34 @@ Installation/Setup steht bewusst in `README.md`.
 - **Dokument-Tabs**: Jede geöffnete Datei ist ein Tab. Bei vielen Tabs scrollt die Leiste horizontal (Scrollleiste darunter oder Mausrad über der Leiste); der Schließen-Button (×) rechts davon schließt den aktiven Tab und bleibt immer sichtbar.
 - **Fenster**: Blattwerk startet maximiert. Ist „Fenstergeometrie merken" aktiv und eine Größe gespeichert, öffnet es stattdessen in dieser Größe.
 
+## 1b) Dokumenttypen und Dateiendungen
+
+Der Typ eines Dokuments steckt in seiner Dateiendung:
+
+| Endung | Typ | Besonderheit |
+|---|---|---|
+| `.abw` | Arbeitsblatt | Arbeitsblatt- und Lösungsfassung |
+| `.pbw` | Präsentation | Folien, keine Lösungsfassung |
+| `.kbw` | Klausur | wie Arbeitsblatt, aber ohne Sozialform-Symbole |
+| `.ebw` | Kurzentwurf | Unterrichtsentwurf mit eigener Phasen-Schreibweise |
+| `.md` | schlichtes Markdown | Tabellen, Code und Formeln; Blattwerk-Blöcke werden nicht interpretiert |
+
+- **Neu anlegen:** `Neu` fragt nach dem Typ und schlägt die passende Endung vor.
+- **Typ wechseln:** `Speichern unter` mit einer anderen Endung. Blattwerk fragt nach und passt den Eintrag `document_type` im Kopf automatisch an. Beim Speichern als `.md` bleibt `document_type` unverändert (danach erscheint ggf. die Warnung `FM008`).
+- **`document_type` im Kopf** ist nur eine Kontrolle: Passt er nicht zur Endung, warnt Blattwerk (`FM008`), es gilt aber immer die Endung. Fehlt er in einer Blattwerk-Datei, warnt Blattwerk ebenfalls (`FM009`).
+- **Unbekannte Endung** (z. B. `.txt`): Blattwerk fragt, ob die Datei als Markdown gelesen werden soll. Speichern legt dann eine neue `.md`-Datei an; das Original bleibt unverändert.
+- **Lösung anzeigen** wählst du in Vorschau und Exportdialog; im Dokument selbst gibt es dafür keinen Eintrag mehr (das frühere Feld `mode` wirkt nicht mehr).
+
 ## 2) Grundablauf
 
-1. Markdown-Datei laden
+1. Dokument laden
 2. Vorschau prüfen
 3. Einstellungen anpassen (Format/Modus/Profil)
 4. Exportdialog öffnen und Ausgabe erzeugen
 
 ## 2b) Dateien aus dem Explorer öffnen („Öffnen mit")
 
-Nach einer einmaligen Einrichtung (`register-blattwerk-file-association.ps1`) lassen sich `.md`-Dateien per Rechtsklick → **Öffnen mit** → **Blattwerk** öffnen. Läuft Blattwerk schon, erscheint die Datei als neuer Tab im bestehenden Fenster. Was das Skript ändert, wann man es erneut ausführt und wie man es rückgängig macht, steht in `docs/nutzer/OEFFNEN_MIT_EINRICHTEN.md`.
+Nach einer einmaligen Einrichtung (`register-blattwerk-file-association.ps1`) lassen sich Blattwerk-Dateien (`.abw`, `.pbw`, `.kbw`, `.ebw`) und `.md`-Dateien per Rechtsklick → **Öffnen mit** → **Blattwerk** öffnen. Läuft Blattwerk schon, erscheint die Datei als neuer Tab im bestehenden Fenster. Was das Skript ändert, wann man es erneut ausführt und wie man es rückgängig macht, steht in `docs/nutzer/OEFFNEN_MIT_EINRICHTEN.md`.
 
 ## 2a) Einstellungen (Registerkarten)
 

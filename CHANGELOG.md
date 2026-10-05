@@ -14,6 +14,9 @@ The format is based on Keep a Changelog.
 - **Unbekannte Dateiendungen:** Blattwerk fragt beim Öffnen, ob die Datei als Markdown gelesen werden soll. Gespeichert wird sie dann nur als neue `.md`-Datei, das Original bleibt unverändert.
 - Der Frontmatter-Eintrag `document_type` ist ein Kontrollfeld: Passt er nicht zur Endung, gibt es eine Warnung (`FM008`); fehlt er in einer Blattwerk-Datei, ebenfalls (`FM009`). Es gilt immer die Endung.
 
+- „Öffnen mit“ (Einrichtungsskript) bietet Blattwerk jetzt für `.abw`, `.pbw`, `.kbw`, `.ebw` und `.md` an (`-SkipMarkdown` lässt `.md` weg). Skript bei Bedarf erneut ausführen.
+- VS-Code-Erweiterung: Blattwerk-Hervorhebung, Snippets und Prüfung gelten für die neuen Endungen; schlichte `.md`-Dateien bleiben normales Markdown.
+
 ### Removed
 
 - Das Frontmatter-Feld `mode` (`presentation`, `test`, `worksheet`, `solution`) hat keine Wirkung mehr und wird nicht mehr vorgeschlagen oder geprüft. Präsentation und Klausur ergeben sich aus der Endung; ob die Lösung angezeigt wird, wählst du wie bisher in Vorschau und Export.

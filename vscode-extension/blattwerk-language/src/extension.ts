@@ -82,7 +82,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
   context.subscriptions.push(
     vscode.languages.registerFoldingRangeProvider(
-      [{ language: "markdown", scheme: "file" }],
+      [{ language: "blattwerk", scheme: "file" }],
       {
         provideFoldingRanges(document: vscode.TextDocument): vscode.FoldingRange[] {
           return computeFoldingRanges(document);
@@ -101,7 +101,7 @@ export function deactivate(): void {
 }
 
 function shouldValidateDocument(document: vscode.TextDocument): boolean {
-  if (document.languageId !== "markdown") {
+  if (document.languageId !== "blattwerk") {
     return false;
   }
 

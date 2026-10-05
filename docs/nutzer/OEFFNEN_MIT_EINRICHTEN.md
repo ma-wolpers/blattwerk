@@ -1,4 +1,4 @@
-# Blattwerk unter „Öffnen mit" einrichten (.md-Dateien)
+# Blattwerk unter „Öffnen mit" einrichten (.abw, .pbw, .kbw, .ebw, .md)
 
 Diese Anleitung erklärt, **was** die Einrichtung tut, **wann** du sie ausführst, **wofür** sie gut ist und **wieso** sie so gebaut ist.
 
@@ -8,8 +8,9 @@ Diese Anleitung erklärt, **was** die Einrichtung tut, **wann** du sie ausführs
    ```powershell
    .\register-blattwerk-file-association.ps1 -WhatIf   # nur ansehen, nichts wird geändert
    .\register-blattwerk-file-association.ps1           # wirklich eintragen
+   .\register-blattwerk-file-association.ps1 -SkipMarkdown   # nur Blattwerk-Endungen, nicht .md
    ```
-2. Rechtsklick auf eine `.md`-Datei → **Öffnen mit** → **Blattwerk**.
+2. Rechtsklick auf eine Blattwerk-Datei (`.abw` Arbeitsblatt, `.pbw` Präsentation, `.kbw` Klausur, `.ebw` Kurzentwurf) oder eine `.md`-Datei → **Öffnen mit** → **Blattwerk**.
 3. Läuft Blattwerk schon, erscheint die Datei als neuer Tab im bestehenden Fenster. Es öffnet sich kein zweites Fenster.
 
 Rückgängig machen: `.\unregister-blattwerk-file-association.ps1`
@@ -27,12 +28,12 @@ Nur Einträge in der Windows-Registry, und nur für **deinen** Windows-Benutzer 
 | `Applications\Blattwerk.exe` → `FriendlyAppName` | `Blattwerk` | Name in der „Öffnen mit"-Liste |
 | `Applications\Blattwerk.exe\shell\open\command` | `"…\.venv\Scripts\pythonw.exe" "…\blattwerk.py" "%1"` | Startbefehl; `%1` ist der Pfad der angeklickten Datei |
 | `Applications\Blattwerk.exe\DefaultIcon` | `…\assets\app.ico` | Symbol in der Liste (nur wenn die Datei existiert) |
-| `Applications\Blattwerk.exe\SupportedTypes` → `.md` | (leer) | Meldet, dass Blattwerk `.md`-Dateien versteht |
-| `.md\OpenWithList\Blattwerk.exe` | (leerer Schlüssel) | Bietet Blattwerk für `.md` in der Auswahl an |
+| `Applications\Blattwerk.exe\SupportedTypes` → `.abw`, `.pbw`, `.kbw`, `.ebw`, `.md` | (leer) | Meldet, welche Endungen Blattwerk versteht (`.md` entfällt mit `-SkipMarkdown`) |
+| `<Endung>\OpenWithList\Blattwerk.exe` | (leerer Schlüssel) | Bietet Blattwerk für die Endung in der Auswahl an |
 
 Die Pfade in der Tabelle leitet das Skript aus dem Ordner ab, in dem es liegt.
 
-Es setzt Blattwerk **nicht** als Standardprogramm. Ein Doppelklick auf eine `.md`-Datei öffnet sie weiterhin mit dem bisherigen Programm (z. B. VS Code). Blattwerk erscheint nur zusätzlich in der Auswahl.
+Es setzt Blattwerk **nicht** als Standardprogramm. Ein Doppelklick öffnet die Dateien weiterhin mit dem bisherigen Programm (z. B. VS Code). Blattwerk erscheint nur zusätzlich in der Auswahl.
 
 ## Wann musst du es (erneut) ausführen?
 
@@ -58,7 +59,7 @@ Mehrfaches Ausführen ist unschädlich: vorhandene Einträge werden aktualisiert
 - **Windows verweigert das In-den-Vordergrund-Holen:** Windows erlaubt Programmen nicht immer, sich selbst nach vorn zu schieben. Dann blinkt Blattwerk in der Taskleiste. Die Datei ist trotzdem geöffnet.
 - **Datei existiert nicht mehr:** Es erscheint die Meldung „Datei nicht gefunden", es wird kein leerer Tab angelegt.
 
-Auch die Kommandozeile funktioniert: `start-blattwerk.bat "C:\Pfad\zum\Blatt.md"` oder `.venv\Scripts\pythonw.exe blattwerk.py "C:\Pfad\zum\Blatt.md"`. Relative Pfade werden vom Startort aus aufgelöst.
+Auch die Kommandozeile funktioniert: `start-blattwerk.bat "C:\Pfad\zum\Blatt.abw"` oder `.venv\Scripts\pythonw.exe blattwerk.py "C:\Pfad\zum\Blatt.abw"`. Relative Pfade werden vom Startort aus aufgelöst.
 
 ## Technik im Überblick (für Neugierige)
 
@@ -76,4 +77,4 @@ Jeder Blattwerk-Start versucht als Erstes, den Port `127.0.0.1:47653` zu belegen
 
 ## Hinweis zur Prüfung
 
-Die Übergabe zwischen zwei Blattwerk-Starts, das Öffnen als Tab und beide Skripte sind automatisiert bzw. gegen einen Test-Registry-Schlüssel geprüft. Ob der Windows-Explorer den Eintrag tatsächlich in „Öffnen mit" anzeigt, hängt von der Windows-Version ab und lässt sich nur nach dem echten Einrichten am eigenen Rechner bestätigen (Rechtsklick auf eine `.md`-Datei).
+Die Übergabe zwischen zwei Blattwerk-Starts, das Öffnen als Tab und beide Skripte sind automatisiert bzw. gegen einen Test-Registry-Schlüssel geprüft. Ob der Windows-Explorer den Eintrag tatsächlich in „Öffnen mit" anzeigt, hängt von der Windows-Version ab und lässt sich nur nach dem echten Einrichten am eigenen Rechner bestätigen (Rechtsklick auf eine `.abw`-Datei).
