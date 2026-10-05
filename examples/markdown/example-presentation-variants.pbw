@@ -1,9 +1,9 @@
 ---
+document_type: presentation
 Titel: Praesentation - Variantenprofil kompakt
 Fach: Mathematik
 Thema: Layout- und Header/Footer-Varianten
 Stufe: 6
-mode: presentation
 presentation_layout: presentation_4_3
 presentation_show_mini_header: false
 presentation_show_section_footer: false

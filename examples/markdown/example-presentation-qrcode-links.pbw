@@ -1,8 +1,8 @@
 ---
+document_type: presentation
 Titel: QR-Code Links in Praesentation
 Fach: Informatik
 Thema: Linkweitergabe auf Folien
-mode: presentation
 presentation_layout: presentation_16_9
 show_student_header: false
 show_document_header: false

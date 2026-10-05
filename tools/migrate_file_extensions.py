@@ -74,7 +74,7 @@ def print_plan_summary(plan, run_dir: Path) -> None:
     print(f"Root: {plan.root}")
     print(f"Zu migrieren: {len(plan.entries)}  " + ", ".join(f"{k}={v}" for k, v in sorted(by_target.items())))
     print("Nicht migriert: " + (", ".join(f"{k}={v}" for k, v in sorted(by_status.items())) or "-"))
-    structural = [e for e in plan.entries if e.signals == ("S_WS",)]
+    structural = [e for e in plan.entries if {s for s in e.signals if s.startswith("S_")} == {"S_WS"}]
     if structural:
         print("\nSicher nur per Struktur (S_WS) -- bitte gezielt pruefen:")
         for entry in structural:

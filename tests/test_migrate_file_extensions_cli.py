@@ -93,3 +93,14 @@ def test_storage_adapter_renames_only_matching_entries(monkeypatch, tmp_path):
 
     assert saved["recent_files"] == [(tmp_path / "a.abw").resolve().as_posix(), b]
     assert set(saved["acknowledged_warnings"]) == {(tmp_path / "a.abw").resolve().as_posix(), b}
+
+
+def test_structure_only_list_includes_entries_with_weak_signals(cli, tmp_path, capsys):
+    text = "---\nTitel: T\nFach: M\nThema: X\nmode: worksheet\n---\n:::task\nA\n:::\n"
+    root = make_tree(tmp_path, {"blatt.md": text, "folien.md": text.replace("worksheet", "presentation")})
+
+    cli.main(_args(tmp_path, "--root", str(root)))
+
+    output = capsys.readouterr().out
+    structural = output.split("Sicher nur per Struktur")[1].split("Geplant:")[0]
+    assert "blatt.md" in structural and "folien.md" not in structural
