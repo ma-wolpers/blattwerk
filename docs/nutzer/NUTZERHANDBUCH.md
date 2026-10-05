@@ -31,6 +31,16 @@ Der Typ eines Dokuments steckt in seiner Dateiendung:
 - **Unbekannte Endung** (z. B. `.txt`): Blattwerk fragt, ob die Datei als Markdown gelesen werden soll. Speichern legt dann eine neue `.md`-Datei an; das Original bleibt unverändert.
 - **Lösung anzeigen** wählst du in Vorschau und Exportdialog; im Dokument selbst gibt es dafür keinen Eintrag mehr (das frühere Feld `mode` wirkt nicht mehr).
 
+## 1c) Alte `.md`-Dateien umstellen (Migration)
+
+Blattwerk-Dateien aus der Zeit vor den neuen Endungen tragen noch `.md`. So stellst du sie um (Blattwerk vorher schließen):
+
+1. **Planen:** `python tools/migrate_file_extensions.py --root "A:\Pfad\zum\Ordner"` -- ändert nichts, zeigt aber, welche Datei zu welcher Endung wird, was unklar ist und was übersprungen wird. Dateien, die nur an ihrer Struktur erkannt wurden („sicher nur per Struktur“), werden extra aufgelistet.
+2. **Ausführen:** `python tools/migrate_file_extensions.py --write --run <Run-ID>` -- die Run-ID steht in der Ausgabe von Schritt 1. Ausgeführt wird genau der geplante Stand; Dateien, die sich seitdem geändert haben, werden übersprungen.
+3. **Bei Bedarf rückgängig:** `python tools/migrate_file_extensions.py --undo <Run-ID>`. Hast du eine umgestellte Datei inzwischen bearbeitet, fragt das Werkzeug: behalten, Original zusätzlich wiederherstellen (`…restored-….md`) oder abbrechen.
+
+Sicherheiten: Jede Datei wird vorher gesichert (`%APPDATA%\Blattwerk\migrations`), eine schon vorhandene Zieldatei wird nie überschrieben, Ordner mit „Lerngruppen“ im Namen werden nicht angefasst, und ein abgebrochener Lauf lässt sich mit `--resume <Run-ID>` fortsetzen. Erhalten bleiben Inhalt, Zeilenenden, Schreibschutz, Änderungs- und Zugriffszeit, Versteckt-/Archiv-Attribut und (wenn möglich) das Erstellungsdatum; Freigaben/Berechtigungen und alternative Datenströme werden nicht übertragen.
+
 ## 2) Grundablauf
 
 1. Dokument laden

@@ -75,6 +75,13 @@ So vermeiden wir Klebercode und Verwirrung.
 - Wer Frontmatter-Eintraege aendern will (z. B. spaeter die Migration oder Schnellkorrekturen), benutzt nur `app/core/frontmatter_edit.py`. Es aendert nur die betroffenen Zeilen und prueft danach, dass alles andere Zeichen fuer Zeichen gleich geblieben ist. Ist das nicht sicher moeglich, bricht es ab, statt etwas kaputt zu machen.
 - Der Kopf von Kurzentwuerfen hat einen eigenen, toleranten Leser und ist davon ausgenommen.
 
+## Umstellung alter `.md`-Dateien (Migration)
+
+- `app/core/migration/` stellt alte Blattwerk-Dateien mit Endung `.md` auf die neuen Endungen um. Es migriert nur Dateien, deren Typ eindeutig erkennbar ist; alles Unklare oder Widersprüchliche bleibt liegen und wird gemeldet.
+- Zuerst wird nur geplant (Dry-Run). Erst ein zweiter Aufruf führt genau diesen Plan aus.
+- Jede Datei wird vorher gesichert, das Ziel wird nie überschrieben, jeder Schritt wird in einem Journal festgehalten. Bricht etwas ab, lässt sich der Lauf fortsetzen oder rückgängig machen.
+- Während einer Migration startet Blattwerk nicht, und während Blattwerk läuft, startet keine Migration.
+
 ## Was heißt Programmkern konkret?
 
 Im Kern läuft immer dieselbe Reihenfolge:
