@@ -22,6 +22,7 @@ from .answer_special_selfcheck import render_selfcheck_block
 from .answer_special_writebox import render_writebox_block
 from .blatt_kern_answer_dispatch import _render_answer_block
 from .document_type_registry import shows_work_hints
+from .operator_legend_parts import PART_END_HTML_KEY
 from .points_model import points_display
 from .qrcode_block import render_qrcode_block
 
@@ -318,7 +319,12 @@ def _render_aid_part(options) -> str:
     if part not in AID_PART_LABELS:
         return ""
     heading = f"<h2 class='aid-part'>{AID_PART_LABELS[part]}</h2>"
-    if part == "B" or (options or {}).get("_aid_break"):
+    # Operatorenliste von Teil A (nur `operator_legend_parts` setzt den Key): Ende von Teil A,
+    # also vor dem Umbruch zu Teil B.
+    part_end = str((options or {}).get(PART_END_HTML_KEY) or "")
+    if part == "B":
+        return part_end + "<div class='ab-pagebreak' aria-hidden='true'></div>" + heading
+    if (options or {}).get("_aid_break"):
         return "<div class='ab-pagebreak' aria-hidden='true'></div>" + heading
     return heading
 

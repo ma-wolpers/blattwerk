@@ -2028,6 +2028,18 @@ h1 {
 .operator-legend-key {
     width: 18%;
     font-weight: 700;
+    overflow-wrap: break-word;
+}
+
+.operator-legend-block {
+    break-inside: avoid-page;
+    page-break-inside: avoid;
+}
+
+.operator-legend-probe {
+    display: block;
+    height: 1px;
+    overflow: hidden;
 }
 
 .operator-legend-definition {

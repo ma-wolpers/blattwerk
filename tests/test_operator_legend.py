@@ -165,7 +165,7 @@ def test_full_pipeline_survives_unquoted_stufe_int_in_frontmatter(tmp_path):
     build_worksheet(str(md_path), str(html_path), include_solutions=False)
     html = html_path.read_text(encoding="utf-8")
     assert "<table class='operator-legend'>" in html
-    assert "Begründen/Nachweisen/Zeigen" in html
+    assert "Begründen/<wbr>Nachweisen/<wbr>Zeigen" in html
 
 
 def test_render_html_legend_appears_only_in_worksheet_mode_not_solution(tmp_path):

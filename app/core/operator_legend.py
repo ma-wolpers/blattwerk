@@ -369,7 +369,7 @@ def render_operator_legend_html(matched_operators):
         return ""
     rows = "".join(
         "<tr>"
-        f"<td class='operator-legend-key'>{escape(operator.key)}</td>"
+        f"<td class='operator-legend-key'>{escape(operator.key).replace('/', '/<wbr>')}</td>"
         f"<td class='operator-legend-definition'>{escape(operator.definition)}</td>"
         "</tr>"
         for operator in matched_operators
