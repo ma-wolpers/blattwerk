@@ -120,6 +120,15 @@ Nach einer einmaligen Einrichtung (`register-blattwerk-file-association.ps1`) la
 - `D`: Durchsuchen öffnen
 - `?`: Shortcut-Hilfe im Dialog ein/ausblenden
 
+## 5b) Klausuren
+
+- Neue Klausur über `Neu` → „Klausur (.kbw)“. Klausuren zeigen keine Sozialform-Symbole.
+- `afb=1|2|3` an Aufgaben/Teilaufgaben, `--hm` als eigene Zeile zwischen zwei Aufgaben für Teil A (hilfsmittelfrei) und Teil B, Teilpunkte in Lösungen als `(2P)`.
+- Unter der Diagnostik zeigt die **Klausur-Übersicht** Punkte und AFB-Verteilung (Prozent bezogen auf die Gesamtpunkte).
+- Im Exportdialog unter „Inhalt“ → **Erwartungshorizont** (PDF/HTML, Taste `H`).
+- `:::evaluation:::` fügt eine Bewertungstabelle ein (auch in Arbeitsblättern).
+- Ausführlich: `docs/nutzer/ANLEITUNG_KLAUSUR.md`.
+
 ## 6) Hinweise zur Druckfreundlichkeit
 
 - Vorschau immer kurz gegenprüfen (Umbrüche, Seitenwechsel, Lesbarkeit).
@@ -149,6 +158,7 @@ Nach einer einmaligen Einrichtung (`register-blattwerk-file-association.ps1`) la
 - Setup/Installation: `README.md`
 - Markdown-Syntax (Arbeitsblatt/Präsentation, automatisch generiert): `docs/nutzer/ANLEITUNG_ARBEITSBLATT_PRAESENTATION.md`
 - Kurzentwurf-Syntax (automatisch generiert): `docs/nutzer/ANLEITUNG_KURZENTWURF.md`
+- Klausur-Funktionen (automatisch generiert): `docs/nutzer/ANLEITUNG_KLAUSUR.md`
 - CSS-Anpassung: `docs/nutzer/CSS_ANLEITUNG.md`
 - Arbeitsblatt-Regeln (Praxis): `docs/intern/ARBEITSBLATT_NOTIZEN.md`
 

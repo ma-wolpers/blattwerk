@@ -32,6 +32,8 @@ The format is based on Keep a Changelog.
 - **Bewertungstabelle `:::evaluation:::`** für Arbeitsblätter und Klausuren: Zeilen Aufgaben, maximale Punkte und leere Felder für die erreichten Punkte, rechts die Summe. `level=subtask` zeigt bepunktete Teilaufgaben einzeln, `parts=true` teilt Klausuren mit `--hm` in Teil A/B. Aufgaben ohne Punkte erscheinen als `–` (mit Warnung). Über das Einfügen-Menü unter „Aufgaben“.
 - VS-Code-Erweiterung: Die Snippets (z. B. `bwtask`) waren nach der Umstellung auf die neuen Endungen nur für Markdown registriert und deshalb in Blattwerk-Dateien nicht verfügbar; jetzt gelten sie für Blattwerk-Dateien. Neu: `bwevaluation`, `bwhm`.
 
+- Neue Anleitung `docs/nutzer/ANLEITUNG_KLAUSUR.md` (auch in der Hilfe-Ansicht der App).
+
 ### Removed
 
 - `mode=`/`show=` bei `:::solution` wirken nicht mehr (Warnung `OP004`): Eine Lösung erscheint immer nur in der Lösungsfassung. Bei anderen Blöcken bleibt `mode=worksheet|solution` unverändert.

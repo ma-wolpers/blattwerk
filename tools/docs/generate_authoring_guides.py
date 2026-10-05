@@ -15,6 +15,7 @@ Konvention):
 - `authoring_guide_render_shared.py`: Autogen-Header, `_prose()`, `_fenced()`.
 - `authoring_guide_render_worksheet.py`: Arbeitsblatt-/Präsentations-Anleitung.
 - `authoring_guide_render_kurzentwurf.py`: Kurzentwurf-Anleitung.
+- `authoring_guide_render_exam.py`: Klausur-Anleitung.
 
 Aufruf: `python tools/docs/generate_authoring_guides.py [--check]`
 (`--check` schreibt nichts, vergleicht nur mit den vorhandenen Dateien und
@@ -39,6 +40,7 @@ from app.core.blatt_validator_constants import MISSING  # noqa: E402
 from app.core.markdown_conventions import collect_markdown_conventions  # noqa: E402
 
 from authoring_guide_coverage import ProseCoverageError, assert_prose_coverage  # noqa: E402
+from authoring_guide_render_exam import render_exam_guide  # noqa: E402
 from authoring_guide_render_kurzentwurf import render_kurzentwurf_guide  # noqa: E402
 from authoring_guide_render_worksheet import render_worksheet_presentation_guide  # noqa: E402
 
@@ -47,6 +49,7 @@ __all__ = [
     "ProseCoverageError",
     "assert_prose_coverage",
     "render_kurzentwurf_guide",
+    "render_exam_guide",
     "render_worksheet_presentation_guide",
     "generate_guides",
     "main",
@@ -54,6 +57,7 @@ __all__ = [
 
 WORKSHEET_PRESENTATION_GUIDE_PATH = ROOT / "docs" / "nutzer" / "ANLEITUNG_ARBEITSBLATT_PRAESENTATION.md"
 KURZENTWURF_GUIDE_PATH = ROOT / "docs" / "nutzer" / "ANLEITUNG_KURZENTWURF.md"
+EXAM_GUIDE_PATH = ROOT / "docs" / "nutzer" / "ANLEITUNG_KLAUSUR.md"
 
 
 def generate_guides() -> dict[Path, str]:
@@ -63,6 +67,7 @@ def generate_guides() -> dict[Path, str]:
     return {
         WORKSHEET_PRESENTATION_GUIDE_PATH: render_worksheet_presentation_guide(catalog),
         KURZENTWURF_GUIDE_PATH: render_kurzentwurf_guide(catalog),
+        EXAM_GUIDE_PATH: render_exam_guide(catalog),
     }
 
 

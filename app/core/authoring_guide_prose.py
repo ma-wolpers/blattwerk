@@ -113,6 +113,27 @@ PROSE_SECTIONS: dict[str, str] = {
         "(Phasenübersicht + Folienzähler) aus, ohne das globale Präsentationslayout zu verändern -- "
         "nützlich für Folien mit wenig Platz."
     ),
+    "exam:intro": (
+        "Eine Klausur ist eine Blattwerk-Datei mit der Endung `.kbw`. Sie nutzt denselben "
+        "`:::`-Blockdialekt wie ein Arbeitsblatt (siehe "
+        "[`ANLEITUNG_ARBEITSBLATT_PRAESENTATION.md`](ANLEITUNG_ARBEITSBLATT_PRAESENTATION.md)), "
+        "zeigt aber keine Sozialform-Symbole und bietet zusätzlich Anforderungsbereiche, den "
+        "Hilfsmittel-Trenner `--hm`, die Klausur-Übersicht und den Erwartungshorizont. Die "
+        "Diagnose-Codes (`KL…`, `PK…`, `SL…`, `EV…`) stehen in [`VALIDATOR.md`](VALIDATOR.md)."
+    ),
+    "exam:overview": (
+        "Unter der Diagnostik zeigt der Editor bei Klausuren live die Gesamtpunkte und ihre Verteilung "
+        "auf AFB I/II/III, mit `--hm` zusätzlich je Teil. Die Prozentangaben beziehen sich immer auf "
+        "die Gesamtpunktzahl der Klausur. Fehlen Punkte oder Anforderungsbereiche, steht dort "
+        "„unvollständig“ mit dem Grund statt einer Prozentzahl."
+    ),
+    "exam:expectation_horizon": (
+        "Im Exportdialog einer Klausur gibt es unter „Inhalt“ den Punkt „Erwartungshorizont“ (PDF oder "
+        "HTML). Er listet je (Teil-)Aufgabe nur die nummerierten Lösungspunkte mit ihren Teilpunkten, "
+        "ohne Aufgabentext, mit einer leeren Spalte „erreicht“, dazu Teilsummen je Hilfsmittel-Teil "
+        "und die AFB-Tabelle. Widersprüchliche Punkte verhindern den Export; fehlende Teilpunkte "
+        "(`SL005`) oder Erwartungen (`SL007`) werden nur angemerkt."
+    ),
     "marker:aidsplit": (
         "`--hm` auf einer eigenen Zeile trennt in einer Klausur (`.kbw`) den hilfsmittelfreien Teil "
         "vom Teil mit Hilfsmitteln: davor erscheint \"Teil A – hilfsmittelfrei\", am Marker beginnt "
