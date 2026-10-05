@@ -53,3 +53,6 @@ Thumbs.db
 
 # Local app user state (never commit)
 app/storage/.state/
+
+# bw-gui ist ein Nachbar-Repo (../bw-gui), kein Submodul; ein alter lokaler Checkout hier wird ignoriert
+/bw-gui/
