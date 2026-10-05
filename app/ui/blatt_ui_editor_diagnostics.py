@@ -143,6 +143,8 @@ class BlattwerkAppEditorDiagnosticsMixin:
                 self._set_editor_diagnostics([])
                 return
             inspected = inspect_document_text(text, document_type=document_type)
+            if hasattr(self, "_refresh_exam_overview"):
+                self._refresh_exam_overview(text, document_type)
         except Exception:
             self._set_editor_diagnostics([])
             return

@@ -91,6 +91,7 @@ KNOWN_BLOCK_TYPES = {
     "slidechromeoff",
     "sectionmark",
     "vspacer",
+    "aidsplit",
 }
 KNOWN_SHOW_VALUES = {"worksheet", "solution", "both"}
 KNOWN_BLOCK_MODE_VALUES = {"worksheet", "solution"}
@@ -374,6 +375,7 @@ _OPT_ACTION = BlockOptionSpec("action", "enum", frozenset(KNOWN_ACTION_VALUES), 
 _OPT_HINT = BlockOptionSpec("hint", "enum", frozenset(KNOWN_HINT_VALUES), True, None)
 _OPT_LINE = BlockOptionSpec("line", "enum", frozenset(KNOWN_GRID_LINE_STYLES), True, "solid")
 _OPT_TITLE = BlockOptionSpec("title", "text", None, False, MISSING)
+_OPT_AFB = BlockOptionSpec("afb", "enum", frozenset({"1", "2", "3"}), True, MISSING)
 _OPT_WIDTHS = BlockOptionSpec("widths", "text", None, False, MISSING)
 _OPT_SCALE = BlockOptionSpec("scale", "css_length", None, False, "0.5cm")
 
@@ -394,6 +396,7 @@ BLOCK_OPTION_SPECS: dict[str, tuple[BlockOptionSpec, ...]] = {
         _OPT_WORK,
         _OPT_ACTION,
         _OPT_HINT,
+        _OPT_AFB,
         _OPT_SHOW,
         _OPT_MODE,
         _OPT_TITLE,
@@ -402,6 +405,7 @@ BLOCK_OPTION_SPECS: dict[str, tuple[BlockOptionSpec, ...]] = {
     "subtask": (
         BlockOptionSpec("points", "text", None, False, MISSING),
         BlockOptionSpec("time", "text", None, False, MISSING),
+        _OPT_AFB,
         _OPT_WORK,
         _OPT_ACTION,
         _OPT_SHOW,
@@ -647,6 +651,7 @@ BLOCK_OPTION_SPECS: dict[str, tuple[BlockOptionSpec, ...]] = {
     "pagebreak": (),
     "framebreak": (),
     "slidechromeoff": (),
+    "aidsplit": (),
     "sectionmark": (_OPT_TITLE,),
     "vspacer": (
         BlockOptionSpec("height", "css_length", None, False, MISSING),

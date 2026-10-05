@@ -172,6 +172,9 @@ def _render_block_body(
             f"style='height:{height_value};'></div>"
         )
 
+    if block_type == "aidsplit":
+        return _render_aid_part(options)
+
     if block_type in {"framebreak", "sectionmark", "slidechromeoff"}:
         return ""
 
@@ -293,6 +296,25 @@ def _render_symbol_span(symbol_info):
 
 def _should_show_work_hints(document_type):
     return shows_work_hints(document_type)
+
+
+AID_PART_LABELS = {"A": "Teil A – hilfsmittelfrei", "B": "Teil B – mit Hilfsmitteln"}
+
+
+def _render_aid_part(options) -> str:
+    """Teilüberschrift am Hilfsmittel-Trenner (nur mit Annotation aus `resolve_aid_split`).
+
+    Ohne Annotation (`.abw`, `.pbw` oder ungültiger Split) rendert `--hm` nichts.
+    Teil B beginnt mit dem vorhandenen Pagebreak-Element, damit Vorschau, HTML,
+    PDF und PNG dieselbe Umbruchsemantik haben.
+    """
+    part = (options or {}).get("_aid_part")
+    if part not in AID_PART_LABELS:
+        return ""
+    heading = f"<h2 class='aid-part'>{AID_PART_LABELS[part]}</h2>"
+    if part == "B":
+        return "<div class='ab-pagebreak' aria-hidden='true'></div>" + heading
+    return heading
 
 
 def _render_subtask_block(

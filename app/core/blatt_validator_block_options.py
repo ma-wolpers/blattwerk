@@ -37,7 +37,7 @@ from .blatt_validator_value_helpers import (
     _option_items,
 )
 
-_GENERIC_VALIDATED_ENUM_OPTION_NAMES = {"mode", "work", "action", "hint", "line", "type", "background"}
+_GENERIC_VALIDATED_ENUM_OPTION_NAMES = {"mode", "work", "action", "hint", "line", "type", "background", "afb"}
 
 
 def _lookup_option_spec(block_type, option_key):

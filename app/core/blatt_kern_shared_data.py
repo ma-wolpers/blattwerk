@@ -184,6 +184,12 @@ CONTROL_MARKERS: tuple[ControlMarkerSpec, ...] = (
         option_capture=("height",),
     ),
     ControlMarkerSpec(
+        name="aidsplit",
+        block_type="aidsplit",
+        kind="literal",
+        literal_or_regex="--hm",
+    ),
+    ControlMarkerSpec(
         name="soft_section_break",
         block_type=None,
         kind="literal",

@@ -154,6 +154,62 @@ def marker_diagnostics(meta: object, document_type: str) -> list[BuildDiagnostic
     return []
 
 
+AID_SPLIT_BLOCK = "aidsplit"
+_TASK_RELATED = frozenset({"task", "subtask", "solution"})
+
+
+@dataclass(frozen=True)
+class AidSplit:
+    """Gültiger Hilfsmittel-Trenner: Index des `aidsplit`-Pseudoblocks."""
+
+    index: int
+
+
+def aid_split_position_problem(blocks, index: int) -> str | None:
+    """Prüft die Positionsregel „nur zwischen Top-Level-Aufgaben“ (Invariante I5).
+
+    Returns:
+        ``"KL004"`` (keine Aufgabe davor/danach oder innerhalb von `:::columns`),
+        ``"KL005"`` (der nächste aufgabenbezogene Block ist kein `task`) oder ``None``.
+    """
+    before = [block_type for block_type, _o, _c in blocks[:index]]
+    after = [block_type for block_type, _o, _c in blocks[index + 1 :]]
+    if "task" not in before or "task" not in after:
+        return "KL004"
+    if before.count("columns") > before.count("endcolumns"):
+        return "KL004"
+    next_related = next((block_type for block_type in after if block_type in _TASK_RELATED), None)
+    return None if next_related == "task" else "KL005"
+
+
+def resolve_aid_split(blocks, document_type: str | None) -> AidSplit | None:
+    """Einzige Semantik von `--hm`: nur in Klausuren, genau einmal, an gültiger Position.
+
+    Außerhalb von `exam` (oder bei ungültigem Split) gibt es keinen Split: keine
+    Teilüberschriften, kein Umbruch, keine Teil-Auswertung.
+    """
+    if not document_type or not spec_for_type(document_type).aid_split:
+        return None
+    indices = [index for index, (block_type, _o, _c) in enumerate(blocks) if block_type == AID_SPLIT_BLOCK]
+    if len(indices) != 1 or aid_split_position_problem(blocks, indices[0]) is not None:
+        return None
+    return AidSplit(indices[0])
+
+
+def annotate_aid_parts(blocks, document_type: str | None):
+    """Ergänzt für das Rendern die Teilmarken A (Dokumentanfang) und B (am Trenner).
+
+    Ohne gültigen Split bleibt die Blockliste unverändert (dann rendert `--hm` nichts).
+    """
+    split = resolve_aid_split(blocks, document_type)
+    if split is None:
+        return blocks
+    annotated = list(blocks)
+    block_type, options, content = annotated[split.index]
+    annotated[split.index] = (block_type, {**options, "_aid_part": "B"}, content)
+    return [(AID_SPLIT_BLOCK, {"_aid_part": "A"}, "")] + annotated
+
+
 def is_markdown(document_type: str | None) -> bool:
     """Ob der Typ schlichtes Markdown ist."""
     return document_type == DOCUMENT_TYPE_MARKDOWN

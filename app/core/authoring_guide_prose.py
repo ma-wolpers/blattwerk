@@ -113,6 +113,13 @@ PROSE_SECTIONS: dict[str, str] = {
         "(Phasenübersicht + Folienzähler) aus, ohne das globale Präsentationslayout zu verändern -- "
         "nützlich für Folien mit wenig Platz."
     ),
+    "marker:aidsplit": (
+        "`--hm` auf einer eigenen Zeile trennt in einer Klausur (`.kbw`) den hilfsmittelfreien Teil "
+        "vom Teil mit Hilfsmitteln: davor erscheint \"Teil A – hilfsmittelfrei\", am Marker beginnt "
+        "eine neue Seite mit \"Teil B – mit Hilfsmitteln\"; die Aufgabennummern laufen weiter, Punkte "
+        "und AFB werden je Teil ausgewertet. Nur einmal pro Klausur und nur zwischen zwei Aufgaben; "
+        "in anderen Dokumenttypen ohne Wirkung."
+    ),
     "marker:sectionmark": (
         "`--# Abschnittsname` setzt den aktuellen Abschnittsnamen für die Footer-Navigation in "
         "Präsentationen. Alles nach `--# ` bis Zeilenende wird als Abschnittstitel übernommen."
@@ -515,6 +522,7 @@ PROSE_SECTIONS: dict[str, str] = {
         "Leerzeichen). Größenoptionen `w`/`h`/`maxw` (auch `width`/`height`/`max-width`) folgen "
         "derselben CSS-Größen-Logik wie Markdown-Bilder (z. B. `3cm`, `120px`, `60%`, `auto`)."
     ),
+    "block:aidsplit": ("Hilfsmittel-Trenner einer Klausur -- siehe Control-Marker `--hm`."),
     "block:pagebreak": ("Erzwingt einen harten Seiten-/Folienumbruch -- siehe Control-Marker `--!`."),
     "block:framebreak": (
         "Erzeugt im Präsentationsmodus einen neuen Frame mit dem bisherigen plus neuem Inhalt -- "
@@ -594,6 +602,11 @@ PROSE_SECTIONS: dict[str, str] = {
     "option:height": (
         "Höhe des Antwortfelds als CSS-Länge (z. B. `4cm`, `120px`). Der genaue Standardwert hängt "
         "vom Blocktyp ab (siehe Tabelle: Spalte \"Standard\")."
+    ),
+    "option:afb": (
+        "Anforderungsbereich der Aufgabe bzw. Teilaufgabe (`1`, `2` oder `3`). Rein informativ: wird "
+        "nicht im Schülerdokument angezeigt, sondern in der Klausur-Übersicht und im "
+        "Erwartungshorizont ausgewertet. Eine Teilaufgabe ohne eigene Angabe erbt die AFB ihrer Aufgabe."
     ),
     "option:points": (
         "Punktzahl der Aufgabe bzw. Teilaufgabe, wird als `X P` angezeigt (Zahl, Komma oder Punkt als "

@@ -101,6 +101,12 @@ In Präsentationen (`.pbw`) gibt es **keinen Lösungs-Umschalter**: Blöcke mit 
 
 ## 5. Blockreferenz
 
+### `aidsplit`
+
+Hilfsmittel-Trenner einer Klausur -- siehe Control-Marker `--hm`.
+
+Keine Optionen.
+
 ### `checkgrid`
 
 Kompakte Ankreuz-Tabelle. Der Blockinhalt ist YAML mit `columns:` (Liste der Spaltenüberschriften, z. B. `richtig`/`falsch`) und `rows:` (Liste aus `text`/`correct`, `correct` ist der 1-basierte Index der richtigen Spalte). Anders als `:::mc` mit `tf=true` stehen die Spaltenköpfe nur einmal, nicht pro Aussage wiederholt -- kompakter bei vielen Aussagen mit denselben Spalten.
@@ -646,6 +652,7 @@ Teilaufgabe zu einem vorangehenden `task`. Muss unmittelbar nach dem zugehörige
 | Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
 |---|---|---|---|---|---|
 | `action` | Enum | `aus`, `austauschen`, `calc`, `calculate`, `dec`, `decide`, `draw`, `drw`, `ent`, `entscheiden`, `exc`, `exchange`, `exp`, `experiment`, `experimentieren`, `les`, `lesen`, `mat`, `match`, `rd`, `read`, `rech`, `rechnen`, `ref`, `reflect`, `reflektieren`, `schr`, `schreiben`, `write`, `wrt`, `zei`, `zeichnen`, `zuo`, `zuordnen` | ja | *(keiner)* | Tätigkeits-Hinweis, wird als Emoji + Label gerendert (`read`/`lesen` 📖, `write`/`schreiben` ✍️, `calculate`/`rechnen` 🔢, `draw`/`zeichnen` 📐, `match`/`zuordnen` ↔️, `exchange`/`austauschen` 💬, `decide`/`entscheiden` ⚖️, `experiment`/`experimentieren` 🧪, `reflect`/`reflektieren` 🤔). Ohne Angabe wird kein Aktions-Symbol angezeigt. |
+| `afb` | Enum | `1`, `2`, `3` | ja | -- | Anforderungsbereich der Aufgabe bzw. Teilaufgabe (`1`, `2` oder `3`). Rein informativ: wird nicht im Schülerdokument angezeigt, sondern in der Klausur-Übersicht und im Erwartungshorizont ausgewertet. Eine Teilaufgabe ohne eigene Angabe erbt die AFB ihrer Aufgabe. |
 | `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
 | `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
 | `points` | Text | -- | nein | -- | Punktzahl der Aufgabe bzw. Teilaufgabe, wird als `X P` angezeigt (Zahl, Komma oder Punkt als Dezimaltrenner, z. B. `2,5`). Sind alle Teilaufgaben bepunktet, ergibt ihre Summe die Punktzahl der Aufgabe; ein zusätzlich gesetztes `points` an der Aufgabe muss genau dieser Summe entsprechen (`PK001`). Nur einen Teil der Teilaufgaben zu bepunkten ist ein Fehler (`PK004`). |
@@ -696,6 +703,7 @@ Die Hauptaufgabe -- der zentrale Blocktyp eines Arbeitsblatts. `points` vergibt 
 | Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
 |---|---|---|---|---|---|
 | `action` | Enum | `aus`, `austauschen`, `calc`, `calculate`, `dec`, `decide`, `draw`, `drw`, `ent`, `entscheiden`, `exc`, `exchange`, `exp`, `experiment`, `experimentieren`, `les`, `lesen`, `mat`, `match`, `rd`, `read`, `rech`, `rechnen`, `ref`, `reflect`, `reflektieren`, `schr`, `schreiben`, `write`, `wrt`, `zei`, `zeichnen`, `zuo`, `zuordnen` | ja | *(keiner)* | Tätigkeits-Hinweis, wird als Emoji + Label gerendert (`read`/`lesen` 📖, `write`/`schreiben` ✍️, `calculate`/`rechnen` 🔢, `draw`/`zeichnen` 📐, `match`/`zuordnen` ↔️, `exchange`/`austauschen` 💬, `decide`/`entscheiden` ⚖️, `experiment`/`experimentieren` 🧪, `reflect`/`reflektieren` 🤔). Ohne Angabe wird kein Aktions-Symbol angezeigt. |
+| `afb` | Enum | `1`, `2`, `3` | ja | -- | Anforderungsbereich der Aufgabe bzw. Teilaufgabe (`1`, `2` oder `3`). Rein informativ: wird nicht im Schülerdokument angezeigt, sondern in der Klausur-Übersicht und im Erwartungshorizont ausgewertet. Eine Teilaufgabe ohne eigene Angabe erbt die AFB ihrer Aufgabe. |
 | `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
 | `hint` | Enum | `def`, `definition`, `eri`, `erinnerung`, `exp`, `expert`, `experte`, `fachwort`, `fw`, `hint`, `rem`, `remember`, `reminder`, `term`, `tip`, `tipp`, `tm`, `tp` | ja | *(keiner)* | Siehe `option:hint` -- bei `task` zusätzlich mit passendem Emoji direkt neben der Aufgabe gerendert. |
 | `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
@@ -779,6 +787,7 @@ Schreibimpuls hier…
 
 ## 7. Control-Marker-Referenz
 
+- **aidsplit**: `--hm` auf einer eigenen Zeile trennt in einer Klausur (`.kbw`) den hilfsmittelfreien Teil vom Teil mit Hilfsmitteln: davor erscheint "Teil A – hilfsmittelfrei", am Marker beginnt eine neue Seite mit "Teil B – mit Hilfsmitteln"; die Aufgabennummern laufen weiter, Punkte und AFB werden je Teil ausgewertet. Nur einmal pro Klausur und nur zwischen zwei Aufgaben; in anderen Dokumenttypen ohne Wirkung.
 - **framebreak**: `-+` auf einer eigenen Zeile erzeugt im Präsentationsmodus einen neuen Frame, der den bisherigen Folieninhalt beibehält und um den folgenden Inhalt ergänzt -- für das schrittweise Aufbauen **desselben** Gedankens auf **derselben** Folie (z. B. Punkt für Punkt aufdecken). Der Präsentations-Exportdialog bietet eine Option, diese schrittweisen Folien beim Export zu einer einzigen finalen Folie zusammenzufassen. **`-+` ist kein Folientrenner:** wird er anstelle von `--!` verwendet, um inhaltlich neue/andere Folien einzuleiten, sammelt sich der gesamte bisherige Inhalt auf einer einzigen, zunehmend überfüllten Folie an, statt eine neue zu beginnen -- für einen echten Folienwechsel immer `--!` verwenden.
 - **pagebreak**: `--!` auf einer eigenen Zeile erzwingt einen harten Seiten-/Folienumbruch an dieser Stelle -- der Marker, um in einer Präsentation gezielt eine **neue** Folie zu beginnen.
 - **sectionmark**: `--# Abschnittsname` setzt den aktuellen Abschnittsnamen für die Footer-Navigation in Präsentationen. Alles nach `--# ` bis Zeilenende wird als Abschnittstitel übernommen.

@@ -115,6 +115,13 @@ pre code {
     height: 0;
 }
 
+.aid-part {
+    font-size: 1.15em;
+    margin: 0.4em 0 0.6em;
+    border-bottom: 1px solid currentColor;
+    padding-bottom: 0.15em;
+}
+
 .ab-vertical-space {
     width: 100%;
     display: block;

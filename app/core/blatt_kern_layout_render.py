@@ -41,6 +41,7 @@ from .blatt_kern_shared import (
 )
 from .blatt_kern_layout_columns import render_body_with_columns, render_columns_container
 from .blatt_kern_layout_presentation import _render_presentation_html
+from .document_semantics import annotate_aid_parts
 from .document_type_registry import has_slide_layout
 
 
@@ -110,6 +111,7 @@ def render_html(
             presentation_ignore_framebreaks=presentation_ignore_framebreaks,
         )
 
+    blocks = annotate_aid_parts(blocks, document_type)
     numbered_blocks = assign_task_numbers(blocks)
     enriched_blocks = annotate_standalone_subtasks(numbered_blocks)
     enriched_blocks = annotate_task_help_references(

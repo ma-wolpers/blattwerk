@@ -111,7 +111,7 @@ def _build_exam_template(preferences: Mapping[str, object]) -> str:
     return (
         "\n".join(metadata_lines)
         + "\n\n"
-        + ":::task points=4\n"
+        + ":::task points=4 afb=1\n"
         + "Formuliere hier die erste Aufgabe.\n"
         + ":::\n\n"
         + ":::solution\n"

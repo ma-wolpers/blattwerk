@@ -24,6 +24,9 @@ The format is based on Keep a Changelog.
 - **Punkte auf Teilaufgaben:** `:::subtask points=2` wird neben der Teilaufgabe angezeigt. Sind alle Teilaufgaben bepunktet, ergibt ihre Summe die Punktzahl der Aufgabe; widersprüchliche Angaben sind ein Fehler.
 - **Teilpunkte in Lösungen:** `1. Ansatz aufgestellt (2P)` in `:::solution` vergibt Teilpunkte; Blattwerk prüft, ob sie zur Punktzahl der (Teil-)Aufgabe passen. Mit `:::solution target=task` bzw. `target=b` ordnest du eine Lösung gezielt der Aufgabe bzw. Teilaufgabe b zu.
 
+- **Klausuren (`.kbw`):** neuer Dokumenttyp mit eigener Vorlage. `afb=1|2|3` an Aufgaben und Teilaufgaben hält den Anforderungsbereich fest (wird nicht im Schülerdokument angezeigt; Teilaufgaben erben ihn von der Aufgabe). `--hm` auf einer eigenen Zeile trennt den hilfsmittelfreien Teil A vom Teil B mit Hilfsmitteln (neue Seite, Teilüberschriften, durchlaufende Nummerierung).
+- **Klausur-Übersicht im Editor:** zeigt bei Klausuren live Gesamtpunkte und die Verteilung auf AFB I/II/III (Prozent bezogen auf die Gesamtpunktzahl), bei `--hm` auch je Teil. Fehlen Angaben, steht dort „unvollständig“ statt einer Prozentzahl.
+
 ### Removed
 
 - Das Frontmatter-Feld `mode` (`presentation`, `test`, `worksheet`, `solution`) hat keine Wirkung mehr und wird nicht mehr vorgeschlagen oder geprüft. Präsentation und Klausur ergeben sich aus der Endung; ob die Lösung angezeigt wird, wählst du wie bisher in Vorschau und Export.

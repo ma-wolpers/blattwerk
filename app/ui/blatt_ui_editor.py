@@ -114,6 +114,8 @@ class BlattwerkAppEditorMixin:
             self.editor_widget.bind("<KeyPress-grave>", self._on_editor_backtick_key)
 
         self._build_editor_diagnostics_panel(parent)
+        if hasattr(self, "_build_exam_overview_panel"):
+            self._build_exam_overview_panel(parent)
 
         outline_frame = widgets.LabelFrame(parent, text="Struktur")
         outline_frame.pack(fill="x", padx=8, pady=(0, 8))

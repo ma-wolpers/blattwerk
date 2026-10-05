@@ -79,6 +79,12 @@ Subprozess siehe `tests/test_blatt_diagnostics_cli.py` (Validator) sowie
 - `FM008`: `document_type` passt nicht zur Dateiendung (gueltiger Wert, anderer Typ). Warnung; es gilt immer die Endung. Gilt fuer alle Endungen, auch `.md` (z. B. nach Speichern-unter nach `.md`, das den Marker bewusst unveraendert laesst).
 - `FM009`: `document_type` fehlt in einer Blattwerk-Datei (`.abw`, `.pbw`, `.kbw`, `.ebw`). Warnung. In `.md` ist der Marker optional, dort gibt es kein `FM009`.
 - `FM010`: Ungueltiger Wert fuer `document_type` (kein bekannter Typ oder Alias, oder kein Text). Warnung.
+- `KL001`: `--hm` kommt in einer Klausur mehrfach vor. Fehler.
+- `KL002`: `--hm` ausserhalb einer Klausur (`.kbw`); ohne Wirkung. Warnung.
+- `KL003`: Bepunktete Aufgabe bzw. Teilaufgabe einer Klausur ohne Anforderungsbereich (`afb=1|2|3`); die AFB-Auswertung ist dann unvollstaendig. Warnung.
+- `KL004`: `--hm` steht nicht zwischen zwei Aufgaben auf oberster Ebene (keine Aufgabe davor oder danach, oder innerhalb von `:::columns`). Fehler.
+- `KL005`: Nach `--hm` folgt keine neue Aufgabe, sondern eine Teilaufgabe oder Loesung (sie wuerde von ihrer Aufgabe getrennt). Fehler.
+- `KL006`: `afb` an einer Teilaufgabe wirkt nicht, weil die Teilaufgaben keine eigenen Punkte haben. Warnung.
 - `PK001`: Aufgabe hat `points`, die nicht der Summe ihrer (vollstaendig bepunkteten) Teilaufgaben entsprechen. Fehler (blockiert den Export).
 - `PK002`: Summe der Teilpunkte `(xP)` in den Loesungen einer (Teil-)Aufgabe weicht von deren Punktzahl ab (nur wenn alle Loesungspunkte annotiert sind). Fehler.
 - `PK003`: Punktangabe ist keine Zahl (erlaubt: `2`, `2,5`, `2.5`). Warnung; der Text wird trotzdem angezeigt.
