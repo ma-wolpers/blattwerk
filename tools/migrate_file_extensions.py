@@ -20,7 +20,6 @@ Entscheidungen, 4 Blattwerk läuft.
 from __future__ import annotations
 
 import argparse
-import os
 import sys
 from collections import Counter
 from pathlib import Path
@@ -37,6 +36,7 @@ from app.core.migration.plan import DEFAULT_MAX_SIZE_BYTES, scan  # noqa: E402
 from app.core.migration.runner import (  # noqa: E402
     PlanConsumed,
     PlanInvalid,
+    default_runs_dir,
     execute_plan,
     new_run_dir,
     resume_run,
@@ -46,12 +46,6 @@ from app.core.migration.runner import (  # noqa: E402
 from app.storage.migration_side_state_store import LocalConfigSideStateStore  # noqa: E402
 
 PROMPTS = {"ueberspringen": "[ü]berspringen", "abbrechen": "[a]bbrechen", "behalten": "[b]ehalten", "parallel": "[p]arallel wiederherstellen"}
-
-
-def default_runs_dir() -> Path:
-    """Feste Ablage für Pläne, Journale und Backups (lokale Platte, nicht der Sync-Ordner)."""
-    base = os.environ.get("APPDATA") or str(Path.home() / ".local" / "share")
-    return Path(base) / "Blattwerk" / "migrations"
 
 
 class CliResolver:

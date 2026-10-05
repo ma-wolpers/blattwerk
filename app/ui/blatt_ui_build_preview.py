@@ -303,6 +303,8 @@ class BlattwerkPreviewBuildMixin:
 
         preview_canvas_frame = widgets.Frame(self.preview_container)
         preview_canvas_frame.pack(fill="both", expand=True)
+        if hasattr(self, "_build_migration_bar"):
+            self._build_migration_bar(self.preview_container, before=preview_canvas_frame)
 
         theme = get_theme(self.theme_var.get())
         self.preview_canvas = ui.Canvas(preview_canvas_frame, background=theme["bg_main"], highlightthickness=0)

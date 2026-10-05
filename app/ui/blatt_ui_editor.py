@@ -575,8 +575,11 @@ class BlattwerkAppEditorMixin:
             return
 
         self.editor_widget.edit_modified(False)
+        became_dirty = not self._editor_has_unsaved_changes
         self._editor_has_unsaved_changes = True
         self.status_var.set("Ungespeichert")
+        if became_dirty and hasattr(self, "_refresh_migration_bar"):
+            self._refresh_migration_bar()
         self._queue_editor_highlighting()
         self._queue_editor_diagnostics()
         self._queue_editor_outline()
@@ -636,6 +639,8 @@ class BlattwerkAppEditorMixin:
             self._editor_has_unsaved_changes = False
             self._update_editor_source_snapshot(input_path)
             self.status_var.set("Gespeichert")
+            if hasattr(self, "_refresh_migration_bar"):
+                self._refresh_migration_bar()
             self._queue_editor_highlighting(immediate=True)
             self._queue_editor_diagnostics(immediate=True)
             self._queue_editor_outline(immediate=True)

@@ -14,6 +14,7 @@ nach der Namensregel, Zieltyp = Neu-Klassifikation, Rewrite-Hash.
 
 from __future__ import annotations
 
+import os
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -60,6 +61,12 @@ class RunResult:
     warnings: list[str] = field(default_factory=list)
     aborted: bool = False
     already_finished: bool = False
+
+
+def default_runs_dir() -> Path:
+    """Feste Ablage für Pläne, Journale und Backups (lokale Platte, nicht der Sync-Ordner)."""
+    base = os.environ.get("APPDATA") or str(Path.home() / ".local" / "share")
+    return Path(base) / "Blattwerk" / "migrations"
 
 
 def new_run_dir(base_dir: Path) -> Path:
@@ -223,6 +230,7 @@ __all__ = [
     "PlanInvalid",
     "RunResult",
     "committed_count",
+    "default_runs_dir",
     "execute_plan",
     "load_plan",
     "new_run_dir",

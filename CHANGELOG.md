@@ -19,6 +19,8 @@ The format is based on Keep a Changelog.
 
 - **Migrationswerkzeug für alte `.md`-Dateien:** `python tools/migrate_file_extensions.py --root <Ordner>` plant zuerst nur (zeigt, welche Datei zu welcher Endung wird), `--write --run <id>` führt den Plan aus, `--undo <id>` macht ihn rückgängig. Es migriert nur eindeutig erkannte Dateien, sichert jede Datei vorher, überschreibt nie etwas und überspringt Ordner namens „Lerngruppen“. Während einer Migration startet Blattwerk nicht (und umgekehrt).
 
+- **Öffnest du eine alte Blattwerk-Datei mit Endung `.md`**, zeigt Blattwerk über der Vorschau einen Hinweis mit Vorschlag (z. B. „→ blatt.abw, Arbeitsblatt“) und einem Knopf „Jetzt migrieren“ bzw. „Speichern und migrieren“; danach lässt sich die Umstellung dort auch rückgängig machen. Bei unklaren oder widersprüchlichen Dateien erscheint nur ein Hinweis.
+
 ### Removed
 
 - Das Frontmatter-Feld `mode` (`presentation`, `test`, `worksheet`, `solution`) hat keine Wirkung mehr und wird nicht mehr vorgeschlagen oder geprüft. Präsentation und Klausur ergeben sich aus der Endung; ob die Lösung angezeigt wird, wählst du wie bisher in Vorschau und Export.

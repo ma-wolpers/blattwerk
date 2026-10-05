@@ -167,6 +167,18 @@ def scan(root: Path, *, excludes: tuple[str, ...] = (), max_size: int = DEFAULT_
     return plan
 
 
+def plan_single_file(path: Path, *, max_size: int = DEFAULT_MAX_SIZE_BYTES) -> MigrationPlan:
+    """Ein-Datei-Plan für die GUI-Migration (dieselbe Planungslogik wie der Batch-Scan)."""
+    resolved = Path(path).resolve()
+    plan = MigrationPlan(root=str(resolved.parent))
+    if is_link_or_reparse(resolved):
+        plan.report.append(ReportItem(resolved.name, SKIP_REPARSE))
+        return plan
+    result = _plan_file(resolved, resolved.name, os.lstat(resolved), 1, max_size)
+    (plan.report if isinstance(result, ReportItem) else plan.entries).append(result)
+    return plan
+
+
 def _plan_file(path: Path, relative: str, lstat_result, item_id: int, max_size: int):
     attributes = file_attributes(lstat_result)
     if attributes & PLACEHOLDER_ATTRIBUTES:

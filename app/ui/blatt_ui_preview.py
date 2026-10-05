@@ -637,6 +637,8 @@ class BlattwerkAppPreviewMixin:
                 self._current_preview_document_type = document_type
                 self._apply_preview_mode_controls(document_type)
                 self._apply_preview_page_format_controls(document_type)
+                if hasattr(self, "_refresh_migration_bar"):
+                    self._refresh_migration_bar()
 
                 if not self._solutions_renderable_for_type(document_type):
                     include_solutions = False
