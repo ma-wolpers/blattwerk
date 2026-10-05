@@ -22,6 +22,7 @@ from .answer_grid_axis import _resolve_axis_state
 from .blatt_validator_constants import (
     ANSWER_BLOCK_TYPES,
     BLOCK_OPTION_SPECS,
+    DEPRECATED_IGNORED_OPTIONS,
     KNOWN_SHOW_VALUES,
     OBJECT_ALIGN_VALUE_HINT,
     QRCODE_SIZE_OPTION_KEYS,
@@ -119,6 +120,22 @@ def _validate_block_options(diagnostics, index, block_type, options, allowed_opt
                         "Der Blocktyp selbst definiert bereits den Antworttyp."
                     ),
                     severity="error",
+                    block_index=index,
+                    block_type=block_type,
+                    region_id=compute_block_region_id(block_type, options),
+                    anchor=option_key,
+                )
+            )
+            continue
+
+        if option_key in DEPRECATED_IGNORED_OPTIONS.get(block_type, ()):
+            diagnostics.append(
+                BuildDiagnostic(
+                    code="OP004",
+                    message=(
+                        f"Option `{option_key}` bei `:::{block_type}` ist veraltet und wird ignoriert -- "
+                        "Loesungen erscheinen nur in der Loesungsfassung."
+                    ),
                     block_index=index,
                     block_type=block_type,
                     region_id=compute_block_region_id(block_type, options),

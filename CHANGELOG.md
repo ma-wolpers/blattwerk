@@ -34,6 +34,7 @@ The format is based on Keep a Changelog.
 
 ### Removed
 
+- `mode=`/`show=` bei `:::solution` wirken nicht mehr (Warnung `OP004`): Eine Lösung erscheint immer nur in der Lösungsfassung. Bei anderen Blöcken bleibt `mode=worksheet|solution` unverändert.
 - Das Frontmatter-Feld `mode` (`presentation`, `test`, `worksheet`, `solution`) hat keine Wirkung mehr und wird nicht mehr vorgeschlagen oder geprüft. Präsentation und Klausur ergeben sich aus der Endung; ob die Lösung angezeigt wird, wählst du wie bisher in Vorschau und Export.
 - Einstellung „Kurzentwurf-Erkennung“ (Dokumenttypen-Tab): entfällt, die Endung bestimmt den Typ.
 - Einstellung „Arbeits-Emoji standardmäßig sichtbar“: entfällt. Dokumente ohne Sozialform-Symbole legst du als Klausur (`.kbw`) an.

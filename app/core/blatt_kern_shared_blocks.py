@@ -256,7 +256,13 @@ def annotate_task_help_references(
 
 
 def should_render_block(block_type, options, include_solutions, document_type="worksheet"):
-    """Entscheidet, ob ein Block in der aktuellen Ausgabe sichtbar sein soll."""
+    """Entscheidet, ob ein Block in der aktuellen Ausgabe sichtbar sein soll.
+
+    `:::solution` ist per Definition nur in der Lösungsfassung sichtbar; seine
+    Optionen `mode`/`show` sind veraltet und werden ignoriert (`OP004`).
+    """
+    if block_type == "solution":
+        return bool(include_solutions) and not has_slide_layout(document_type)
     mode_raw = (options.get("mode") or "").strip().lower()
     if mode_raw in {"worksheet", "solution"}:
         show_mode = mode_raw

@@ -380,6 +380,11 @@ _OPT_AFB = BlockOptionSpec("afb", "enum", frozenset({"1", "2", "3"}), True, MISS
 _OPT_WIDTHS = BlockOptionSpec("widths", "text", None, False, MISSING)
 _OPT_SCALE = BlockOptionSpec("scale", "css_length", None, False, "0.5cm")
 
+DEPRECATED_IGNORED_OPTIONS = {"solution": frozenset({"mode", "show"})}
+"""Optionen, die veraltet sind und **ignoriert** werden (Warnung `OP004`); sie stehen
+bewusst nicht mehr im Spec, damit die Completion sie nicht anbietet. `:::solution`
+ist per Definition nur in der Lösungsfassung sichtbar."""
+
 QRCODE_SIZE_OPTION_KEYS = {"w", "h", "maxw", "width", "height", "max-width"}
 _OPT_QRCODE_SIZE_HINT = "CSS-Größe wie `3cm`, `120px`, `60%` oder `auto`"
 
@@ -609,8 +614,6 @@ BLOCK_OPTION_SPECS: dict[str, tuple[BlockOptionSpec, ...]] = {
     "solution": (
         BlockOptionSpec("label", "boolean", None, False, True),
         BlockOptionSpec("target", "text", None, False, MISSING),
-        _OPT_SHOW,
-        _OPT_MODE,
         _OPT_ALIGN,
     ),
     "columns": (

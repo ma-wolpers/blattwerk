@@ -113,6 +113,7 @@ Subprozess siehe `tests/test_blatt_diagnostics_cli.py` (Validator) sowie
 - `OP001`: Unbekannte Option fuer einen bekannten Block.
 - `OP002`: Ungueltiger Wert einer bekannten Option.
 - `OP003`: Option `show` in einem Block ist veraltet; `mode=worksheet|solution` verwenden.
+- `OP004`: Option `mode` bzw. `show` bei `:::solution` ist veraltet und wird ignoriert -- Loesungen erscheinen nur in der Loesungsfassung. Warnung.
 - `OP005`: `:::geometry axis=true` ohne gueltiges `origin` (Format `"col,row"`). Fehler -- der gesamte Geometry-Payload des Blocks (alle Sektionen) wird dadurch nicht gerendert, kein stiller Ruecksfall auf Rasterkoordinaten.
 - `AN003`: YAML-Fehler in YAML-basiertem `answer`.
 - `AN004`: YAML-Root hat falschen Typ (kein Mapping).

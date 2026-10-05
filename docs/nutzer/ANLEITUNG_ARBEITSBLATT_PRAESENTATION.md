@@ -630,8 +630,6 @@ Musterlösungstext. `label=true|false` (Standard `true`) blendet das Label "Lös
 |---|---|---|---|---|---|
 | `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
 | `label` | Bool | -- | nein | `True` | Blendet das Label "Lösung" vor dem Text ein/aus (Standard: an). |
-| `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
-| `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
 | `target` | Text | -- | nein | -- | Ordnet die Lösung gezielt zu: `task` = die Aufgabe selbst, `a`/`b`/... = die so bezeichnete Teilaufgabe derselben Aufgabe. Ohne `target` gilt die nächste vorangehende (Teil-)Aufgabe. Ein ungültiges Ziel ist ein Fehler (`SL008`). |
 
 **Beispiel** (identisch mit dem Menü "Einfügen" (Alt+I) im Editor):
