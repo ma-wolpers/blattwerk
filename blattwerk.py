@@ -59,6 +59,19 @@ def main() -> int:
             return 0
         server = None
 
+    from app.bootstrap.process_locks import default_lock_dir, register_app_instance
+
+    # Gegenseitiger Ausschluss mit der Dateiendungs-Migration: erst anmelden, dann pruefen.
+    # Die Sperre lebt bis zum Prozessende (das OS gibt sie auch nach einem Absturz frei).
+    if register_app_instance(default_lock_dir()) is None:
+        if server is not None:
+            server.stop()
+        _show_start_error(
+            "Gerade laeuft eine Migration der Blattwerk-Dateien auf die neuen Dateiendungen.\n\n"
+            "Bitte starte Blattwerk erneut, wenn sie abgeschlossen ist."
+        )
+        return 1
+
     try:
         from app.ui.blatt_ui import run_gui
     except ModuleNotFoundError as exc:
