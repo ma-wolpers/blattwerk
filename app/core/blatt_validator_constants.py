@@ -400,6 +400,7 @@ BLOCK_OPTION_SPECS: dict[str, tuple[BlockOptionSpec, ...]] = {
         _OPT_ALIGN,
     ),
     "subtask": (
+        BlockOptionSpec("points", "text", None, False, MISSING),
         BlockOptionSpec("time", "text", None, False, MISSING),
         _OPT_WORK,
         _OPT_ACTION,
@@ -602,6 +603,7 @@ BLOCK_OPTION_SPECS: dict[str, tuple[BlockOptionSpec, ...]] = {
     ),
     "solution": (
         BlockOptionSpec("label", "boolean", None, False, True),
+        BlockOptionSpec("target", "text", None, False, MISSING),
         _OPT_SHOW,
         _OPT_MODE,
         _OPT_ALIGN,

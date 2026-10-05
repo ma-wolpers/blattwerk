@@ -487,7 +487,12 @@ PROSE_SECTIONS: dict[str, str] = {
         "(`style=bubble|cloud|frame|letter`). Kein Arbeitsblatt-/Lösungs-Unterschied."
     ),
     "block:solution": (
-        "Musterlösungstext. `label=true|false` (Standard `true`) blendet das Label \"Lösung\" ein/aus."
+        "Musterlösungstext. `label=true|false` (Standard `true`) blendet das Label \"Lösung\" ein/aus. "
+        "Gehört zur nächsten vorangehenden Aufgabe bzw. Teilaufgabe (nie über `--hm` hinweg); mit "
+        "`target=task` bzw. `target=b` lässt sie sich gezielt der Aufgabe bzw. Teilaufgabe b derselben "
+        "Aufgabe zuordnen. Nummerierte Lösungspunkte können Teilpunkte am Zeilenende tragen, z. B. "
+        "`1. Ansatz aufgestellt (2P)` oder `(1,5P)`; sind alle Punkte einer Aufgabe annotiert, muss ihre "
+        "Summe zur Punktzahl der Aufgabe passen (sonst Fehler `PK002`)."
     ),
     "block:columns": (
         "Spaltenlayout für nebeneinander angeordnete Inhalte. `cols=2..6` (Standard 2) setzt die "
@@ -589,6 +594,12 @@ PROSE_SECTIONS: dict[str, str] = {
     "option:height": (
         "Höhe des Antwortfelds als CSS-Länge (z. B. `4cm`, `120px`). Der genaue Standardwert hängt "
         "vom Blocktyp ab (siehe Tabelle: Spalte \"Standard\")."
+    ),
+    "option:points": (
+        "Punktzahl der Aufgabe bzw. Teilaufgabe, wird als `X P` angezeigt (Zahl, Komma oder Punkt als "
+        "Dezimaltrenner, z. B. `2,5`). Sind alle Teilaufgaben bepunktet, ergibt ihre Summe die Punktzahl "
+        "der Aufgabe; ein zusätzlich gesetztes `points` an der Aufgabe muss genau dieser Summe "
+        "entsprechen (`PK001`). Nur einen Teil der Teilaufgaben zu bepunkten ist ein Fehler (`PK004`)."
     ),
     "option:time": (
         "Geschätzte Bearbeitungszeit, wird als `X min` ausgegeben. Freier Textwert -- üblich, aber "
@@ -810,6 +821,11 @@ PROSE_SECTIONS: dict[str, str] = {
         "Anzahl der Schreiblinien im Rahmen (1-20, Standard `5`)."
     ),
     "block:solution.label": ('Blendet das Label "Lösung" vor dem Text ein/aus (Standard: an).'),
+    "block:solution.target": (
+        "Ordnet die Lösung gezielt zu: `task` = die Aufgabe selbst, `a`/`b`/... = die so bezeichnete "
+        "Teilaufgabe derselben Aufgabe. Ohne `target` gilt die nächste vorangehende (Teil-)Aufgabe. "
+        "Ein ungültiges Ziel ist ein Fehler (`SL008`)."
+    ),
     "block:columns.ratio": ("Alias von `widths` -- relative Spaltengewichte."),
     "block:cloze.gap_length": ("Feste Lückenlänge in Zeichen bei `gap=fixed` (Standard `10`)."),
     "block:cloze.words_multi": (

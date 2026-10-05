@@ -21,6 +21,9 @@ The format is based on Keep a Changelog.
 
 - **Öffnest du eine alte Blattwerk-Datei mit Endung `.md`**, zeigt Blattwerk über der Vorschau einen Hinweis mit Vorschlag (z. B. „→ blatt.abw, Arbeitsblatt“) und einem Knopf „Jetzt migrieren“ bzw. „Speichern und migrieren“; danach lässt sich die Umstellung dort auch rückgängig machen. Bei unklaren oder widersprüchlichen Dateien erscheint nur ein Hinweis.
 
+- **Punkte auf Teilaufgaben:** `:::subtask points=2` wird neben der Teilaufgabe angezeigt. Sind alle Teilaufgaben bepunktet, ergibt ihre Summe die Punktzahl der Aufgabe; widersprüchliche Angaben sind ein Fehler.
+- **Teilpunkte in Lösungen:** `1. Ansatz aufgestellt (2P)` in `:::solution` vergibt Teilpunkte; Blattwerk prüft, ob sie zur Punktzahl der (Teil-)Aufgabe passen. Mit `:::solution target=task` bzw. `target=b` ordnest du eine Lösung gezielt der Aufgabe bzw. Teilaufgabe b zu.
+
 ### Removed
 
 - Das Frontmatter-Feld `mode` (`presentation`, `test`, `worksheet`, `solution`) hat keine Wirkung mehr und wird nicht mehr vorgeschlagen oder geprüft. Präsentation und Klausur ergeben sich aus der Endung; ob die Lösung angezeigt wird, wählst du wie bisher in Vorschau und Export.

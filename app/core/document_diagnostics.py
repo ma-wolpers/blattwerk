@@ -45,7 +45,7 @@ def inspect_document_text(markdown_text: str, *, document_type: str) -> Document
         inspection = inspect_kurzentwerfer_text(markdown_text)
         diagnostics.extend(_normalize_kurzentwurf_diagnostic(diag) for diag in inspection.diagnostics)
     elif spec.pipeline != PIPELINE_MARKDOWN:
-        diagnostics.extend(inspect_markdown_text(markdown_text).diagnostics)
+        diagnostics.extend(inspect_markdown_text(markdown_text, document_type=spec.id).diagnostics)
 
     return DocumentDiagnosticsResult(document_type=spec.id, diagnostics=tuple(diagnostics))
 

@@ -22,6 +22,7 @@ from .answer_special_selfcheck import render_selfcheck_block
 from .answer_special_writebox import render_writebox_block
 from .blatt_kern_answer_dispatch import _render_answer_block
 from .document_type_registry import shows_work_hints
+from .points_model import points_display
 from .qrcode_block import render_qrcode_block
 
 
@@ -321,6 +322,7 @@ def _render_subtask_block(
 
     help_reference_text = (options.get("_help_reference_text") or "").strip()
     time_minutes = (options.get("time") or "").strip()
+    subtask_points = points_display(options)
 
     prefix_html = ""
     if total_subtasks > 1:
@@ -347,6 +349,8 @@ def _render_subtask_block(
         subtask_meta_parts.append(
             f"<span class='task-help-reference subtask-help-reference'>{help_reference_text}</span>"
         )
+    if subtask_points:
+        subtask_meta_parts.append(f"<span class='task-points subtask-points'>{escape(subtask_points)} P</span>")
     if time_minutes:
         subtask_meta_parts.append(
             f"<span class='subtask-time'>{time_minutes} min</span>"
@@ -397,7 +401,7 @@ def _render_task_block(
     die Bezeichnung bleibt als `title`-Attribut des Icons erhalten.
     """
     task_id = options.get("_auto_number")
-    points = options.get("points")
+    points = points_display(options)
     time_minutes = (options.get("time") or "").strip()
     task_work_info = get_work_info(options.get("work", "single"))
     task_action_info = get_task_action_info(options.get("action"))

@@ -79,6 +79,16 @@ Subprozess siehe `tests/test_blatt_diagnostics_cli.py` (Validator) sowie
 - `FM008`: `document_type` passt nicht zur Dateiendung (gueltiger Wert, anderer Typ). Warnung; es gilt immer die Endung. Gilt fuer alle Endungen, auch `.md` (z. B. nach Speichern-unter nach `.md`, das den Marker bewusst unveraendert laesst).
 - `FM009`: `document_type` fehlt in einer Blattwerk-Datei (`.abw`, `.pbw`, `.kbw`, `.ebw`). Warnung. In `.md` ist der Marker optional, dort gibt es kein `FM009`.
 - `FM010`: Ungueltiger Wert fuer `document_type` (kein bekannter Typ oder Alias, oder kein Text). Warnung.
+- `PK001`: Aufgabe hat `points`, die nicht der Summe ihrer (vollstaendig bepunkteten) Teilaufgaben entsprechen. Fehler (blockiert den Export).
+- `PK002`: Summe der Teilpunkte `(xP)` in den Loesungen einer (Teil-)Aufgabe weicht von deren Punktzahl ab (nur wenn alle Loesungspunkte annotiert sind). Fehler.
+- `PK003`: Punktangabe ist keine Zahl (erlaubt: `2`, `2,5`, `2.5`). Warnung; der Text wird trotzdem angezeigt.
+- `PK004`: Nur ein Teil der Teilaufgaben einer Aufgabe ist bepunktet. Fehler.
+- `PK005`: Teilpunkte `(xP)` auf Aufgabenebene (auch per `target=task`), obwohl die Teilaufgaben bepunktet sind. Fehler.
+- `PK006`: Teilpunkte `(xP)` vergeben, aber die (Teil-)Aufgabe hat keine eigene Punktzahl. Warnung.
+- `SL001`: `:::solution` ohne vorangehende Aufgabe (bzw. erste Loesung hinter `--hm`); wird keiner Aufgabe zugeordnet. Warnung.
+- `SL004`: `(xP)` in einem verschachtelten oder Aufzaehlungs-Punkt; zaehlt nicht. Warnung.
+- `SL006`: Nur ein Teil der Erwartungspunkte einer (Teil-)Aufgabe hat `(xP)`; keine Summenpruefung. Warnung.
+- `SL008`: Ungueltiges `target=` an `:::solution` (kein Subtask mit diesem Bezeichner in derselben Aufgabe bzw. keine Aufgabe davor). Fehler.
 - `BL001`: Unbekannter Blocktyp.
 - `BL002`: Leerzeichen direkt nach `:::` im Marker (`::: block`) ist ungueltig.
 - `BL003`: Schliessender Marker `:::` ohne passenden offenen Block.

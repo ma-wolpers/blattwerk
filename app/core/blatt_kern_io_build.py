@@ -132,7 +132,7 @@ def build_worksheet(
     """
     md_file = Path(md_path)
     text = md_file.read_text(encoding="utf-8")
-    inspected = inspect_markdown_text(text, cache=computation_cache)
+    inspected = inspect_markdown_text(text, cache=computation_cache, document_type=document_type)
     meta = _merge_metadata_defaults(inspected.meta, metadata_defaults)
     if not solutions_renderable(document_type):
         include_solutions = False
