@@ -16,6 +16,7 @@ The format is based on Keep a Changelog.
 
 - „Öffnen mit“ (Einrichtungsskript) bietet Blattwerk jetzt für `.abw`, `.pbw`, `.kbw`, `.ebw` und `.md` an (`-SkipMarkdown` lässt `.md` weg). Skript bei Bedarf erneut ausführen.
 - VS-Code-Erweiterung: Blattwerk-Hervorhebung, Snippets und Prüfung gelten für die neuen Endungen; schlichte `.md`-Dateien bleiben normales Markdown.
+- **Einrichtung:** Die GUI-Bibliothek `bw-gui` wird nicht mehr als Unterordner (Submodul) mitgeliefert, sondern muss als eigener Ordner direkt neben `blattwerk` liegen (z. B. `A:\Code\blattwerk` und `A:\Code\bw-gui`, siehe README). Blattwerk nutzt immer den aktuellen Stand dieses Ordners.
 
 - **Migrationswerkzeug für alte `.md`-Dateien:** `python tools/migrate_file_extensions.py --root <Ordner>` plant zuerst nur (zeigt, welche Datei zu welcher Endung wird), `--write --run <id>` führt den Plan aus, `--undo <id>` macht ihn rückgängig. Es migriert nur eindeutig erkannte Dateien, sichert jede Datei vorher, überschreibt nie etwas und überspringt Ordner namens „Lerngruppen“. Während einer Migration startet Blattwerk nicht (und umgekehrt).
 
