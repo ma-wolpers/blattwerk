@@ -32,7 +32,7 @@ from bw_libs.shared_gui_core import ensure_bw_gui_on_path  # noqa: E402
 ensure_bw_gui_on_path()
 
 from app.bootstrap.process_locks import acquire_migration_lock, default_lock_dir  # noqa: E402
-from app.core.migration.plan import DEFAULT_MAX_SIZE_BYTES, scan  # noqa: E402
+from app.core.migration.plan import DEFAULT_MAX_SIZE_BYTES, plan_forced_files, scan  # noqa: E402
 from app.core.migration.runner import (  # noqa: E402
     PlanConsumed,
     PlanInvalid,
@@ -127,12 +127,20 @@ def main(argv=None) -> int:
     parser.add_argument("--non-interactive", action="store_true")
     parser.add_argument("--runs-dir", type=Path, default=default_runs_dir())
     parser.add_argument("--lock-dir", type=Path, default=default_lock_dir())
+    parser.add_argument("--force-type", choices=("worksheet", "presentation", "exam", "kurzentwurf"),
+                        help="Dry-Run nur fuer --file-Dateien mit ausdruecklich vorgegebenem Zieltyp")
+    parser.add_argument("--file", action="append", default=[], type=Path, help="Datei fuer --force-type (mehrfach)")
     args = parser.parse_args(argv)
 
     if not (args.write or args.resume or args.undo):
         if args.root is None:
             parser.error("--root ist fuer den Dry-Run erforderlich")
-        plan = scan(args.root, excludes=tuple(args.exclude), max_size=int(args.max_size * 1024 * 1024))
+        if args.force_type:
+            if not args.file:
+                parser.error("--force-type braucht mindestens ein --file")
+            plan = plan_forced_files(args.root, args.file, args.force_type, max_size=int(args.max_size * 1024 * 1024))
+        else:
+            plan = scan(args.root, excludes=tuple(args.exclude), max_size=int(args.max_size * 1024 * 1024))
         run_dir = new_run_dir(args.runs_dir)
         write_plan(plan, run_dir)
         print_plan_summary(plan, run_dir)

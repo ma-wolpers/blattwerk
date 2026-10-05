@@ -35,7 +35,7 @@ from .context import (
 from .forward import FORWARD_STEPS, ensure_side_state_applied
 from .fs_ops import is_link_or_reparse
 from .journal import Journal, read_journal
-from .plan import MigrationPlan, PlanInvalid, target_name
+from .plan import FORCEABLE_STATUSES, MigrationPlan, PlanInvalid, target_name
 from .rewrite import decode_utf8
 from .rollback import CHOICE_ABORT, AbortRequested, rollback_item
 
@@ -109,7 +109,10 @@ def runtime_check(plan: MigrationPlan, entry) -> None:
         result = classify(src.name, decode_utf8(src.read_bytes()))
     except UnicodeDecodeError as error:
         raise SkipItem("changed_since_plan: nicht mehr UTF-8") from error
-    if result.status != STATUS_SAFE or result.target_type != entry.target_type:
+    if getattr(entry, "forced", False):
+        if result.status not in FORCEABLE_STATUSES:
+            raise SkipItem("plan_invalid: vorgegebener Typ, aber die Datei ist nicht (mehr) als Blattwerk erkennbar")
+    elif result.status != STATUS_SAFE or result.target_type != entry.target_type:
         raise SkipItem("plan_invalid: Zieltyp entspricht nicht der aktuellen Klassifikation")
 
 

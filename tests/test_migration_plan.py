@@ -160,3 +160,37 @@ def test_side_state_store_renames_only_matching_entries(tmp_path):
 
     assert store.recent_files == [(tmp_path / "a.abw").as_posix(), b.as_posix()]
     assert list(store.acknowledged) == [(tmp_path / "a.abw").as_posix()]
+
+
+def test_forced_type_migrates_conflict_file_as_exam(tmp_path):
+    from app.core.migration.plan import plan_forced_files
+    from app.core.migration.runner import new_run_dir, write_plan
+
+    text = "---\ndocument_type: worksheet\nmode: test\nTitel: T\nFach: M\nThema: X\n---\n:::task\nA\n:::\n"
+    root = make_tree(tmp_path, {"test.md": text, "notiz.md": "# Notiz\n"})
+    assert scan(root).entries == []  # conflict: nie automatisch
+
+    plan = plan_forced_files(root, [root / "test.md", root / "notiz.md"], "exam")
+    assert [e.target for e in plan.entries] == ["test.kbw"] and plan.entries[0].forced
+    assert [r.status for r in plan.report] == ["kein_blattwerk"]
+    run_dir = new_run_dir(tmp_path / "runs")
+    write_plan(plan, run_dir)
+
+    result = execute_plan(run_dir, store=None, resolver=ScriptedResolver())
+
+    assert result.committed == ["test.md"]
+    migrated = (root / "test.kbw").read_text(encoding="utf-8")
+    assert "document_type: exam" in migrated and "mode:" not in migrated
+
+
+def test_forced_entry_still_checks_fingerprint(tmp_path):
+    from app.core.migration.plan import plan_forced_files
+    from app.core.migration.runner import new_run_dir, write_plan
+
+    root = make_tree(tmp_path, {"test.md": WORKSHEET})
+    run_dir = new_run_dir(tmp_path / "runs")
+    write_plan(plan_forced_files(root, [root / "test.md"], "exam"), run_dir)
+    (root / "test.md").write_text(WORKSHEET + "x", encoding="utf-8")
+
+    assert not execute_plan(run_dir, store=None, resolver=ScriptedResolver(default="ueberspringen")).committed
+    assert (root / "test.md").exists()

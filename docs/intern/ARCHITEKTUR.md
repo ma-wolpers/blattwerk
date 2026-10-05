@@ -67,6 +67,7 @@ Migriert alte Blattwerk-`.md`-Dateien auf die typgebundenen Endungen. Alles in d
 - **Threat-Model-Grenze:** gleiche Inode gilt als eigener Zustand; ein absichtlich stoerender lokaler Prozess (eigener Hardlink) ist nicht abgedeckt. Ein Prozess, der die Quelle schon offen haelt, kann nach der Quarantaene noch schreiben; das erkennt der Hash nach der Quarantaene -- die Quarantaene macht den Vorgang nicht vollstaendig race-frei.
 - **Idempotenz:** `resume` auf abgeschlossenem Lauf = No-op; erneutes `--write` mit verbrauchtem Plan wird abgelehnt; ein neuer Dry-Run sieht migrierte Dateien nicht mehr (nach Undo wieder).
 - **CLI** `tools/migrate_file_extensions.py`: Dry-Run (Standard) → `plan.json` in `%APPDATA%\Blattwerk\migrations\<run>`, `--write --run`, `--resume`, `--undo`, `--non-interactive`; Ausgabe nur Pfade, Zieltypen, Status und Signalnamen.
+- **Typvorgabe** `--force-type <typ> --file <pfad>…` (Dry-Run): Plan nur fuer die genannten Dateien mit vorgegebenem Zieltyp (`PlanEntry.forced`). Zulaessig nur fuer `sicher`/`conflict`/`unklar`; die Laufzeitpruefung verlangt dann statt Typgleichheit nur, dass die Datei weiterhin in diesen Status faellt. Alle anderen Pruefungen (Fingerprint, Rewrite-Hash, Pfadregel) gelten unveraendert.
 
 ## Schichtenmodell
 

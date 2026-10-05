@@ -59,6 +59,8 @@ class PlanEntry:
     birthtime_ns: int | None
     rewrite_sha256: str
     signals: tuple[str, ...]
+    forced: bool = False
+    """Zieltyp ausdrücklich vorgegeben (z. B. für einen `conflict`); siehe `plan_forced_files`."""
 
 
 @dataclass(frozen=True)
@@ -167,6 +169,30 @@ def scan(root: Path, *, excludes: tuple[str, ...] = (), max_size: int = DEFAULT_
     return plan
 
 
+FORCEABLE_STATUSES = frozenset({"sicher", "conflict", "unklar"})
+
+
+def plan_forced_files(root: Path, files: list[Path], target_type: str, *, max_size: int = DEFAULT_MAX_SIZE_BYTES) -> MigrationPlan:
+    """Plan mit ausdrücklich vorgegebenem Zieltyp für einzeln genannte Dateien.
+
+    Nur für Dateien, die als Blattwerk erkannt sind (`sicher`, `conflict`,
+    `unklar`); `kein_blattwerk` und ungültige Marker bleiben ausgeschlossen.
+    Alle anderen Sicherheitsregeln (Ausschlüsse, Rewrite-Verifikation,
+    Laufzeitprüfungen außer dem Klassifikationsabgleich) gelten unverändert.
+    """
+    resolved_root = Path(root).resolve()
+    plan = MigrationPlan(root=str(resolved_root))
+    for raw in files:
+        path = Path(raw).resolve()
+        relative = path.relative_to(resolved_root).as_posix()
+        if is_link_or_reparse(path) or not path.name.lower().endswith(".md"):
+            plan.report.append(ReportItem(relative, SKIP_REPARSE if path.exists() else "fehlt"))
+            continue
+        result = _plan_file(path, relative, os.lstat(path), len(plan.entries) + 1, max_size, forced_type=target_type)
+        (plan.report if isinstance(result, ReportItem) else plan.entries).append(result)
+    return plan
+
+
 def plan_single_file(path: Path, *, max_size: int = DEFAULT_MAX_SIZE_BYTES) -> MigrationPlan:
     """Ein-Datei-Plan für die GUI-Migration (dieselbe Planungslogik wie der Batch-Scan)."""
     resolved = Path(path).resolve()
@@ -179,7 +205,7 @@ def plan_single_file(path: Path, *, max_size: int = DEFAULT_MAX_SIZE_BYTES) -> M
     return plan
 
 
-def _plan_file(path: Path, relative: str, lstat_result, item_id: int, max_size: int):
+def _plan_file(path: Path, relative: str, lstat_result, item_id: int, max_size: int, *, forced_type: str | None = None):
     attributes = file_attributes(lstat_result)
     if attributes & PLACEHOLDER_ATTRIBUTES:
         return ReportItem(relative, SKIP_NOT_LOCAL)
@@ -193,18 +219,24 @@ def _plan_file(path: Path, relative: str, lstat_result, item_id: int, max_size: 
     except UnicodeDecodeError:
         return ReportItem(relative, SKIP_NOT_UTF8)
     result = classify(path.name, text)
-    if result.status != STATUS_SAFE:
+    if forced_type is not None:
+        if result.status not in FORCEABLE_STATUSES:
+            return ReportItem(relative, result.status, result.signals)
+        target_type = forced_type
+    elif result.status != STATUS_SAFE:
         return ReportItem(relative, result.status, result.signals)
+    else:
+        target_type = result.target_type
     try:
-        rewritten = rewrite_for_target(text, result.target_type)
+        rewritten = rewrite_for_target(text, target_type)
     except EditUnsafe:
         return ReportItem(relative, SKIP_REWRITE_UNSAFE, result.signals)
     identity = FileIdentity(len(data), mtime_ns, sha256_hex(data), lstat_result.st_dev, lstat_result.st_ino)
     return PlanEntry(
         item_id=item_id,
         source=relative,
-        target=str(Path(relative).with_name(target_name(path.name, result.target_type)).as_posix()),
-        target_type=result.target_type,
+        target=str(Path(relative).with_name(target_name(path.name, target_type)).as_posix()),
+        target_type=target_type,
         identity=identity.as_dict(),
         attributes=attributes,
         readonly=not (lstat_result.st_mode & 0o200),
@@ -213,4 +245,5 @@ def _plan_file(path: Path, relative: str, lstat_result, item_id: int, max_size: 
         birthtime_ns=creation_ns,
         rewrite_sha256=sha256_hex(encode_utf8(rewritten)),
         signals=result.signals,
+        forced=forced_type is not None,
     )
