@@ -107,6 +107,10 @@ BLOCK_INSERT_SNIPPETS: dict[str, str] = {
         ":::qrcode url=https://example.org w=3cm h=3cm maxw=45% :::\n"
         "\x01"
     ),
+    "evaluation": (
+        ":::evaluation level=task:::\n"
+        "\x01"
+    ),
     "solution": (
         ":::solution\n"
         "\x01Musterlösung hier…\n"

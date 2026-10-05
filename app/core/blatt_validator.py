@@ -47,6 +47,7 @@ from .blatt_validator_value_helpers import (
     _collect_absolute_image_paths,
     _extract_validation_content_and_base_line,
 )
+from .blatt_validator_evaluation import validate_evaluation
 from .blatt_validator_exam import validate_exam
 from .blatt_validator_points import validate_points
 from .operator_legend import collect_used_operators
@@ -145,6 +146,7 @@ def _collect_document_diagnostics(meta, blocks, content_text, content_base_line=
     diagnostics.extend(_validate_columns_structure(blocks))
     diagnostics.extend(validate_points(blocks, document_type))
     diagnostics.extend(validate_exam(blocks, document_type))
+    diagnostics.extend(validate_evaluation(blocks, document_type))
     _, operator_diagnostics = collect_used_operators(blocks, meta)
     diagnostics.extend(operator_diagnostics)
     return _collapse_mj001_diagnostics(diagnostics)

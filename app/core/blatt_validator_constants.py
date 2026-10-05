@@ -92,6 +92,7 @@ KNOWN_BLOCK_TYPES = {
     "sectionmark",
     "vspacer",
     "aidsplit",
+    "evaluation",
 }
 KNOWN_SHOW_VALUES = {"worksheet", "solution", "both"}
 KNOWN_BLOCK_MODE_VALUES = {"worksheet", "solution"}
@@ -652,6 +653,11 @@ BLOCK_OPTION_SPECS: dict[str, tuple[BlockOptionSpec, ...]] = {
     "framebreak": (),
     "slidechromeoff": (),
     "aidsplit": (),
+    "evaluation": (
+        BlockOptionSpec("level", "enum", frozenset({"task", "subtask"}), True, "task"),
+        _OPT_TITLE,
+        BlockOptionSpec("parts", "boolean", None, False, False),
+    ),
     "sectionmark": (_OPT_TITLE,),
     "vspacer": (
         BlockOptionSpec("height", "css_length", None, False, MISSING),

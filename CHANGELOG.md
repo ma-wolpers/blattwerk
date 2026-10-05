@@ -29,6 +29,9 @@ The format is based on Keep a Changelog.
 
 - **Erwartungshorizont für Klausuren:** Im Exportdialog einer `.kbw` gibt es unter „Inhalt“ jetzt „Erwartungshorizont“ (PDF oder HTML, Taste `H`). Er listet je (Teil-)Aufgabe nur die nummerierten Lösungspunkte mit Teilpunkten und einer leeren Spalte „erreicht“, Teilsummen je Hilfsmittel-Teil und die AFB-Verteilung. Widersprüchliche Punkte verhindern den Export.
 
+- **Bewertungstabelle `:::evaluation:::`** für Arbeitsblätter und Klausuren: Zeilen Aufgaben, maximale Punkte und leere Felder für die erreichten Punkte, rechts die Summe. `level=subtask` zeigt bepunktete Teilaufgaben einzeln, `parts=true` teilt Klausuren mit `--hm` in Teil A/B. Aufgaben ohne Punkte erscheinen als `–` (mit Warnung). Über das Einfügen-Menü unter „Aufgaben“.
+- VS-Code-Erweiterung: Die Snippets (z. B. `bwtask`) waren nach der Umstellung auf die neuen Endungen nur für Markdown registriert und deshalb in Blattwerk-Dateien nicht verfügbar; jetzt gelten sie für Blattwerk-Dateien. Neu: `bwevaluation`, `bwhm`.
+
 ### Removed
 
 - Das Frontmatter-Feld `mode` (`presentation`, `test`, `worksheet`, `solution`) hat keine Wirkung mehr und wird nicht mehr vorgeschlagen oder geprüft. Präsentation und Klausur ergeben sich aus der Endung; ob die Lösung angezeigt wird, wählst du wie bisher in Vorschau und Export.

@@ -522,6 +522,20 @@ PROSE_SECTIONS: dict[str, str] = {
         "Leerzeichen). Größenoptionen `w`/`h`/`maxw` (auch `width`/`height`/`max-width`) folgen "
         "derselben CSS-Größen-Logik wie Markdown-Bilder (z. B. `3cm`, `120px`, `60%`, `auto`)."
     ),
+    "block:evaluation": (
+        "Bewertungstabelle (selbstschließend: `:::evaluation:::`) mit den Zeilen Aufgaben, maximale "
+        "Punkte und leeren Feldern für die erreichten Punkte, rechts die Summe. Nur in Arbeitsblättern "
+        "und Klausuren. Aufgaben ohne Punkte erscheinen mit `–` (Warnung `EV001`), widersprüchliche mit "
+        "`?`; die Summe wird nur ausgewiesen, wenn alle Punktzahlen bekannt sind."
+    ),
+    "block:evaluation.level": (
+        "`task` (Standard): eine Spalte je Aufgabe; `subtask`: bei bepunkteten Teilaufgaben je Teilaufgabe "
+        "eine Spalte (1a, 1b, ...)."
+    ),
+    "block:evaluation.parts": (
+        "`true` teilt die Tabelle in Klausuren mit `--hm` in Teil A und Teil B (je mit Summe) und weist "
+        "zusätzlich die Gesamtsumme aus. Ohne `--hm` ohne Wirkung."
+    ),
     "block:aidsplit": ("Hilfsmittel-Trenner einer Klausur -- siehe Control-Marker `--hm`."),
     "block:pagebreak": ("Erzwingt einen harten Seiten-/Folienumbruch -- siehe Control-Marker `--!`."),
     "block:framebreak": (

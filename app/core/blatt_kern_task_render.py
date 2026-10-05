@@ -175,6 +175,11 @@ def _render_block_body(
     if block_type == "aidsplit":
         return _render_aid_part(options)
 
+    if block_type == "evaluation":
+        # Fertiges HTML aus `evaluation_table.annotate_evaluation_blocks` (braucht das ganze Dokument);
+        # ohne Annotation (z. B. in Präsentationen) rendert der Block nichts.
+        return str((options or {}).get("_evaluation_html") or "")
+
     if block_type in {"framebreak", "sectionmark", "slidechromeoff"}:
         return ""
 
