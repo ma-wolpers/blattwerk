@@ -90,10 +90,11 @@ Im Kern läuft immer dieselbe Reihenfolge:
 3. Dokument rendern
 4. Ausgabe bauen (HTML/PDF)
 
-Der Render-Schritt ist dokumenttyp- und dokumentmodusabhaengig:
-- Arbeitsblatt-/Loesungspfad fuer normale Blaetter
-- Folienpfad fuer `mode: presentation` mit Markersteuerung (z. B. Folienwechsel/Frame/Abschnitt)
-- Kurzentwurf-Pfad fuer die integrierte DSL-Runtime
+Der Render-Schritt haengt vom Dokumenttyp ab (also von der Dateiendung):
+- Arbeitsblatt-/Loesungspfad fuer Arbeitsblaetter (`.abw`) und Klausuren (`.kbw`)
+- Folienpfad fuer Praesentationen (`.pbw`) mit Markersteuerung (z. B. Folienwechsel/Frame/Abschnitt)
+- Kurzentwurf-Pfad fuer die integrierte DSL-Runtime (`.ebw`)
+- Schilder-Pfad (`.sbw`) und schlichter Markdown-Pfad (`.md`)
 
 Zusatz im Kern:
 - Warntexte aufbereiten (`diagnostic_warnings.py`)
