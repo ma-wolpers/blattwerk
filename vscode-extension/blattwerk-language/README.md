@@ -1,6 +1,6 @@
 # Blattwerk Language Tools
 
-VS Code extension for Blattwerk documents (`.abw` Arbeitsblatt, `.pbw` Praesentation, `.kbw` Klausur, `.ebw` Kurzentwurf). Plain `.md` files stay normal Markdown.
+VS Code extension for Blattwerk documents (`.abw` Arbeitsblatt, `.pbw` Praesentation, `.kbw` Klausur, `.ebw` Kurzentwurf, `.sbw` Schilder). Plain `.md` files stay normal Markdown.
 
 ## Features (v1)
 

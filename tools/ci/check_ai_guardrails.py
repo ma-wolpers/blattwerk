@@ -40,6 +40,7 @@ GUARDRAIL_RELEVANT_PATHS = {
     "tools/docs/authoring_guide_render_worksheet.py",
     "tools/docs/authoring_guide_render_kurzentwurf.py",
     "tools/docs/authoring_guide_render_exam.py",
+    "tools/docs/authoring_guide_render_schild.py",
     "app/core/markdown_conventions.py",
     "app/core/block_insert_snippets.py",
     "app/ui/blatt_ui_editor.py",

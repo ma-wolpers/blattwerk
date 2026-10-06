@@ -1,7 +1,7 @@
 {
   "name": "blattwerk-language",
   "displayName": "Blattwerk Language Tools",
-  "description": "Syntax highlighting, snippets, folding and diagnostics for Blattwerk documents (.abw, .pbw, .kbw, .ebw).",
+  "description": "Syntax highlighting, snippets, folding and diagnostics for Blattwerk documents (.abw, .pbw, .kbw, .ebw, .sbw).",
   "version": "0.4.0",
   "publisher": "blattwerk",
   "repository": {
@@ -32,7 +32,7 @@
         "blattwerk.diagnostics.enable": {
           "type": "boolean",
           "default": true,
-          "description": "Enable Blattwerk diagnostics for Blattwerk documents (.abw, .pbw, .kbw, .ebw)."
+          "description": "Enable Blattwerk diagnostics for Blattwerk documents (.abw, .pbw, .kbw, .ebw, .sbw)."
         },
         "blattwerk.diagnostics.pythonCommand": {
           "type": "string",
@@ -85,7 +85,8 @@
           ".abw",
           ".pbw",
           ".kbw",
-          ".ebw"
+          ".ebw",
+          ".sbw"
         ],
         "configuration": "./language-configuration.json"
       }

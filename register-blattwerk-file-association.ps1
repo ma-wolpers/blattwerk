@@ -1,11 +1,11 @@
 <#
 .SYNOPSIS
-  Traegt Blattwerk unter "Oeffnen mit" fuer .abw/.pbw/.kbw/.ebw (und optional .md) ein (nur fuer den aktuellen Windows-Benutzer).
+  Traegt Blattwerk unter "Oeffnen mit" fuer .abw/.pbw/.kbw/.ebw/.sbw (und optional .md) ein (nur fuer den aktuellen Windows-Benutzer).
 
 .DESCRIPTION
   WAS   Legt unter HKEY_CURRENT_USER\Software\Classes einen Anwendungseintrag "Blattwerk.exe" an und
         verknuepft ihn mit den Blattwerk-Endungen .abw (Arbeitsblatt), .pbw (Praesentation),
-        .kbw (Klausur), .ebw (Kurzentwurf) sowie standardmaessig .md. Der Befehl dahinter startet
+        .kbw (Klausur), .ebw (Kurzentwurf), .sbw (Schilder) sowie standardmaessig .md. Der Befehl dahinter startet
             .venv\Scripts\pythonw.exe blattwerk.py "<Datei>"
         (Pfade werden aus dem Ordner dieses Skripts abgeleitet).
   WANN  Einmal nach dem Einrichten von Blattwerk. Erneut ausfuehren, wenn der Blattwerk-Ordner
@@ -39,7 +39,7 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $AppKeyName = 'Blattwerk.exe'
-$Extensions = @('.abw', '.pbw', '.kbw', '.ebw')
+$Extensions = @('.abw', '.pbw', '.kbw', '.ebw', '.sbw')
 if (-not $SkipMarkdown) { $Extensions += '.md' }
 
 $repoRoot = $PSScriptRoot

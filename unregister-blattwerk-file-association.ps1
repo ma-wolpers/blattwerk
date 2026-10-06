@@ -5,7 +5,7 @@
 .DESCRIPTION
   Loescht ausschliesslich die von Blattwerk angelegten Schluessel unter HKEY_CURRENT_USER\Software\Classes:
     Applications\Blattwerk.exe            (samt Unterschluesseln)
-    .abw/.pbw/.kbw/.ebw/.md\OpenWithList\Blattwerk.exe
+    .abw/.pbw/.kbw/.ebw/.sbw/.md\OpenWithList\Blattwerk.exe
   Andere Zuordnungen dieser Endungen bleiben unangetastet. Ohne Administratorrechte, nur fuer den aktuellen Benutzer.
   Nicht vorhandene Eintraege werden uebersprungen (das Skript ist beliebig oft ausfuehrbar).
 
@@ -24,7 +24,7 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $AppKeyName = 'Blattwerk.exe'
-$Extensions = @('.abw', '.pbw', '.kbw', '.ebw', '.md')
+$Extensions = @('.abw', '.pbw', '.kbw', '.ebw', '.sbw', '.md')
 
 $targets = @((Join-Path $ClassesRoot "Applications\$AppKeyName"))
 foreach ($Extension in $Extensions) {

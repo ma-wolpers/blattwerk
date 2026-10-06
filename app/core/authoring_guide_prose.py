@@ -62,7 +62,7 @@ PROSE_SECTIONS: dict[str, str] = {
     ),
     "frontmatter:document_type": (
         "Konsistenzmarker für den Dokumenttyp: muss zur Dateiendung passen (`.abw` → `worksheet`, "
-        "`.pbw` → `presentation`, `.kbw` → `exam`, `.ebw` → `kurzentwurf`, `.md` → `markdown`). "
+        "`.pbw` → `presentation`, `.kbw` → `exam`, `.ebw` → `kurzentwurf`, `.sbw` → `schild`, `.md` → `markdown`). "
         "Der Typ selbst kommt immer aus der Endung; ein abweichender Wert erzeugt eine Warnung "
         "(`FM008`), ein ungültiger `FM010`, ein fehlender in Blattwerk-Dateien `FM009`. Blattwerk "
         "setzt ihn beim Anlegen und bei Speichern-unter in einen anderen Blattwerk-Typ automatisch."

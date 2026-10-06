@@ -74,7 +74,7 @@ def main() -> int:
         prog="blattwerk-diagnostics",
         description="Emit Blattwerk validation diagnostics as JSON.",
     )
-    parser.add_argument("--file", required=True, help="Path to a Blattwerk (.abw/.pbw/.kbw/.ebw) or .md file")
+    parser.add_argument("--file", required=True, help="Path to a Blattwerk (.abw/.pbw/.kbw/.ebw/.sbw) or .md file")
     parser.add_argument(
         "--pretty",
         action="store_true",

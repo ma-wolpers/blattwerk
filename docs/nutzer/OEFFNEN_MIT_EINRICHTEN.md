@@ -1,4 +1,4 @@
-# Blattwerk unter „Öffnen mit" einrichten (.abw, .pbw, .kbw, .ebw, .md)
+# Blattwerk unter „Öffnen mit" einrichten (.abw, .pbw, .kbw, .ebw, .sbw, .md)
 
 Diese Anleitung erklärt, **was** die Einrichtung tut, **wann** du sie ausführst, **wofür** sie gut ist und **wieso** sie so gebaut ist.
 
@@ -10,7 +10,7 @@ Diese Anleitung erklärt, **was** die Einrichtung tut, **wann** du sie ausführs
    .\register-blattwerk-file-association.ps1           # wirklich eintragen
    .\register-blattwerk-file-association.ps1 -SkipMarkdown   # nur Blattwerk-Endungen, nicht .md
    ```
-2. Rechtsklick auf eine Blattwerk-Datei (`.abw` Arbeitsblatt, `.pbw` Präsentation, `.kbw` Klausur, `.ebw` Kurzentwurf) oder eine `.md`-Datei → **Öffnen mit** → **Blattwerk**.
+2. Rechtsklick auf eine Blattwerk-Datei (`.abw` Arbeitsblatt, `.pbw` Präsentation, `.kbw` Klausur, `.ebw` Kurzentwurf, `.sbw` Schilder) oder eine `.md`-Datei → **Öffnen mit** → **Blattwerk**.
 3. Läuft Blattwerk schon, erscheint die Datei als neuer Tab im bestehenden Fenster. Es öffnet sich kein zweites Fenster.
 
 Rückgängig machen: `.\unregister-blattwerk-file-association.ps1`
@@ -28,7 +28,7 @@ Nur Einträge in der Windows-Registry, und nur für **deinen** Windows-Benutzer 
 | `Applications\Blattwerk.exe` → `FriendlyAppName` | `Blattwerk` | Name in der „Öffnen mit"-Liste |
 | `Applications\Blattwerk.exe\shell\open\command` | `"…\.venv\Scripts\pythonw.exe" "…\blattwerk.py" "%1"` | Startbefehl; `%1` ist der Pfad der angeklickten Datei |
 | `Applications\Blattwerk.exe\DefaultIcon` | `…\assets\app.ico` | Symbol in der Liste (nur wenn die Datei existiert) |
-| `Applications\Blattwerk.exe\SupportedTypes` → `.abw`, `.pbw`, `.kbw`, `.ebw`, `.md` | (leer) | Meldet, welche Endungen Blattwerk versteht (`.md` entfällt mit `-SkipMarkdown`) |
+| `Applications\Blattwerk.exe\SupportedTypes` → `.abw`, `.pbw`, `.kbw`, `.ebw`, `.sbw`, `.md` | (leer) | Meldet, welche Endungen Blattwerk versteht (`.md` entfällt mit `-SkipMarkdown`) |
 | `<Endung>\OpenWithList\Blattwerk.exe` | (leerer Schlüssel) | Bietet Blattwerk für die Endung in der Auswahl an |
 
 Die Pfade in der Tabelle leitet das Skript aus dem Ordner ab, in dem es liegt.

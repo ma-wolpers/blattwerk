@@ -77,7 +77,7 @@ Subprozess siehe `tests/test_blatt_diagnostics_cli.py` (Validator) sowie
 - `FM006`: Ungueltiger boolescher Frontmatter-Wert fuer `show_student_header`/`show_document_header`. Eigenes Boolean-Vokabular (`_meta_bool_ja_nein`/`JA_NEIN_BOOLEAN_TOKENS`), getrennt von `FM005` (`_is_truthy_meta_bool`/`TRUTHY_META_BOOLEAN_TOKENS`) -- beide akzeptieren nicht exakt dieselben Schreibweisen.
 - `FM007`: Ungueltiger Frontmatter-Wert fuer `Stufe` (erlaubt, gross-/kleinschreibungsunabhaengig: `5`-`13`, `E`, `Q1`, `Q2`, `Sek1`, `Sek2`). Nicht gesetzt bleibt gueltig (Warnung, kein Pflichtfeld).
 - `FM008`: `document_type` passt nicht zur Dateiendung (gueltiger Wert, anderer Typ). Warnung; es gilt immer die Endung. Gilt fuer alle Endungen, auch `.md` (z. B. nach Speichern-unter nach `.md`, das den Marker bewusst unveraendert laesst).
-- `FM009`: `document_type` fehlt in einer Blattwerk-Datei (`.abw`, `.pbw`, `.kbw`, `.ebw`). Warnung. In `.md` ist der Marker optional, dort gibt es kein `FM009`.
+- `FM009`: `document_type` fehlt in einer Blattwerk-Datei (`.abw`, `.pbw`, `.kbw`, `.ebw`, `.sbw`). Warnung. In `.md` ist der Marker optional, dort gibt es kein `FM009`.
 - `FM010`: Ungueltiger Wert fuer `document_type` (kein bekannter Typ oder Alias, oder kein Text). Warnung.
 - `EV001`: Bewertungstabelle `:::evaluation` vorhanden, aber Aufgaben ohne Punkte (Zelle `–`). Warnung.
 - `EV002`: Bewertungstabelle in einem Dokumenttyp ohne diese Funktion (z. B. Praesentation); sie wird nicht angezeigt. Warnung.
@@ -180,6 +180,16 @@ in `app/core/kurzentwurf_runtime/validator.py`. Ein Dokument mit mindestens eine
 - `KZF161` (warning): Hinweis pro `$$...$$`-Formel -- sie wird korrekt gesetzt, im Kurzentwurf aber im Fliesstext (wie `$...$`) statt als eigene, zentrierte Formelzeile.
 - `KZF200` (error): PyMuPDF ist nicht verfuegbar -- PDF-Vorschau kann nicht gerendert werden.
 - `KZF220` (error): Dokument enthaelt keine renderbaren Phasen/Zeilen.
+
+## Schilder (SBW)
+
+Diagnosen des Schilder-Dokumenttyps (`.sbw`, `app/core/schild_validator.py`,
+Einstiegspunkt `inspect_schild_text(...)`). Der Renderer ist tolerant; der Validator macht
+sichtbar, was er stillschweigend ueberspringt oder ersetzt.
+
+- `SBW001` (error): Das Dokument enthaelt kein einziges Schild.
+- `SBW002` (warning): Auf einen `---`-Trenner folgt ein leeres Schild (doppelter oder abschliessender Trenner); mit Zeilennummer des Trenners.
+- `SBW003` (warning): Ungueltiger Wert fuer `ausrichtung`, `fett`, `schriftgroesse` oder `rand` (0-80 mm) -- es gilt der Standardwert.
 
 ## Blocking-Regel
 

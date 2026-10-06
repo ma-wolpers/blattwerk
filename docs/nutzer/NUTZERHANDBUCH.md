@@ -23,6 +23,7 @@ Der Typ eines Dokuments steckt in seiner Dateiendung:
 | `.pbw` | Präsentation | Folien, keine Lösungsfassung |
 | `.kbw` | Klausur | wie Arbeitsblatt, aber ohne Sozialform-Symbole |
 | `.ebw` | Kurzentwurf | Unterrichtsentwurf mit eigener Phasen-Schreibweise |
+| `.sbw` | Schilder | eine A4-Seite pro Schild, Text mittig und so groß wie möglich (Anleitung: `ANLEITUNG_SCHILD.md`) |
 | `.md` | schlichtes Markdown | Tabellen, Code und Formeln; Blattwerk-Blöcke werden nicht interpretiert |
 
 - **Neu anlegen:** `Neu` fragt nach dem Typ und schlägt die passende Endung vor.
@@ -50,7 +51,7 @@ Sicherheiten: Jede Datei wird vorher gesichert (`%APPDATA%\Blattwerk\migrations`
 
 ## 2b) Dateien aus dem Explorer öffnen („Öffnen mit")
 
-Nach einer einmaligen Einrichtung (`register-blattwerk-file-association.ps1`) lassen sich Blattwerk-Dateien (`.abw`, `.pbw`, `.kbw`, `.ebw`) und `.md`-Dateien per Rechtsklick → **Öffnen mit** → **Blattwerk** öffnen. Läuft Blattwerk schon, erscheint die Datei als neuer Tab im bestehenden Fenster. Was das Skript ändert, wann man es erneut ausführt und wie man es rückgängig macht, steht in `docs/nutzer/OEFFNEN_MIT_EINRICHTEN.md`.
+Nach einer einmaligen Einrichtung (`register-blattwerk-file-association.ps1`) lassen sich Blattwerk-Dateien (`.abw`, `.pbw`, `.kbw`, `.ebw`, `.sbw`) und `.md`-Dateien per Rechtsklick → **Öffnen mit** → **Blattwerk** öffnen. Läuft Blattwerk schon, erscheint die Datei als neuer Tab im bestehenden Fenster. Was das Skript ändert, wann man es erneut ausführt und wie man es rückgängig macht, steht in `docs/nutzer/OEFFNEN_MIT_EINRICHTEN.md`.
 
 ## 2a) Einstellungen (Registerkarten)
 
