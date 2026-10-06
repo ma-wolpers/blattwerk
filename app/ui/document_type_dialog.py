@@ -12,6 +12,7 @@ from ..core.document_type_registry import (
     DOCUMENT_TYPE_KURZENTWURF,
     DOCUMENT_TYPE_MARKDOWN,
     DOCUMENT_TYPE_PRESENTATION,
+    DOCUMENT_TYPE_SCHILD,
     DOCUMENT_TYPE_WORKSHEET,
     KNOWN_DOCUMENT_TYPES,
     spec_for_type,
@@ -22,6 +23,7 @@ _TYPE_HINTS = {
     DOCUMENT_TYPE_PRESENTATION: "Folien mit Abschnitten und Folienumbrüchen.",
     DOCUMENT_TYPE_EXAM: "Klausur mit Punkten und Lösungen, ohne Sozialform-Symbole.",
     DOCUMENT_TYPE_KURZENTWURF: "Unterrichtsentwurf mit Phasen-DSL (`Stundenthema`, `Lerngruppe`, `start`).",
+    DOCUMENT_TYPE_SCHILD: "Eine Seite pro Schild: Text groß und mittig, Schilder durch --- getrennt.",
     DOCUMENT_TYPE_MARKDOWN: "Schlichtes Markdown ohne Blattwerk-Blöcke.",
 }
 """Erklärtexte im Neu-Dialog; Reihenfolge und Endungen kommen aus der Registry."""

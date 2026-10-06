@@ -15,8 +15,9 @@ from .blatt_validator import BuildDiagnostic
 from .block_computation_cache import BlockComputationCache
 from .build_requests import WorksheetBuildRequest, WorksheetDesignOptions, build_worksheet_from_request
 from .kurzentwurf_settings import resolve_kurzentwurf_runtime_options
-from .document_type_registry import PIPELINE_KURZENTWURF, PIPELINE_MARKDOWN, spec_for_type
+from .document_type_registry import PIPELINE_KURZENTWURF, PIPELINE_MARKDOWN, PIPELINE_SCHILD, spec_for_type
 from .plain_markdown_render import build_plain_markdown
+from .schild_render import build_schild
 
 
 def build_preview_images_for_document(
@@ -48,6 +49,8 @@ def build_preview_images_for_document(
         return _build_kurzentwurf_preview_images(input_path, kurzentwurf_options=kurzentwurf_options)
     if pipeline == PIPELINE_MARKDOWN:
         return _build_markdown_preview_images(input_path)
+    if pipeline == PIPELINE_SCHILD:
+        return _build_html_pipeline_preview_images(input_path, build_schild)
 
     return _build_worksheet_preview_images(
         input_path,
@@ -121,6 +124,28 @@ def _build_markdown_preview_images(input_path: Path) -> tuple[list[Image.Image],
         temp_pdf_path = Path(tmp.name)
     try:
         build_plain_markdown(input_path, temp_pdf_path)
+        return _render_pdf_pages(temp_pdf_path), []
+    finally:
+        try:
+            temp_pdf_path.unlink(missing_ok=True)
+        except Exception:
+            pass
+
+
+def _build_html_pipeline_preview_images(input_path: Path, build) -> tuple[list[Image.Image], list[BuildDiagnostic]]:
+    """Vorschau für Pipelines mit eigener `build(input, output.pdf)`-Funktion.
+
+    Genutzt von den Schildern (`build_schild`): Die Vorschau ist die gerasterte
+    Export-PDF, damit Vorschau und PDF garantiert identisch sind.
+
+    Args:
+        input_path: Quelldatei.
+        build: Callable ``(input_path, pdf_path) -> Path``, das die PDF schreibt.
+    """
+    with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
+        temp_pdf_path = Path(tmp.name)
+    try:
+        build(input_path, temp_pdf_path)
         return _render_pdf_pages(temp_pdf_path), []
     finally:
         try:

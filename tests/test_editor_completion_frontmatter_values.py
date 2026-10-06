@@ -57,7 +57,7 @@ def test_document_type_value_completion_still_works_after_adding_stufe():
     assert context is not None
     assert context["kind"] == "frontmatter_value"
     labels = {item["label"] for item in context["suggestions"]}
-    assert labels == {"exam", "kurzentwurf", "markdown", "presentation", "worksheet"}
+    assert labels == {"exam", "kurzentwurf", "markdown", "presentation", "schild", "worksheet"}
 
 
 def test_non_enum_frontmatter_field_has_no_value_completion():

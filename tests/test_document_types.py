@@ -16,6 +16,7 @@ from app.core.document_type_registry import (
     BLATTWERK_EXTENSIONS,
     DOCUMENT_TYPE_EXAM,
     DOCUMENT_TYPE_KURZENTWURF,
+    DOCUMENT_TYPE_SCHILD,
     DOCUMENT_TYPE_MARKDOWN,
     DOCUMENT_TYPE_PRESENTATION,
     DOCUMENT_TYPE_WORKSHEET,
@@ -38,6 +39,7 @@ from app.ui.blatt_ui_preview import BlattwerkAppPreviewMixin
         ("folien.PBW", DOCUMENT_TYPE_PRESENTATION),
         ("klausur.kbw", DOCUMENT_TYPE_EXAM),
         ("entwurf.ebw", DOCUMENT_TYPE_KURZENTWURF),
+        ("schilder.SBW", DOCUMENT_TYPE_SCHILD),
         ("notiz.md", DOCUMENT_TYPE_MARKDOWN),
         ("alt.kwe.md", DOCUMENT_TYPE_MARKDOWN),
         ("notiz.txt", None),
@@ -91,7 +93,7 @@ def test_registry_capabilities_replace_former_mode_semantics():
 
 
 def test_registry_extensions_and_ordered_export_formats():
-    assert BLATTWERK_EXTENSIONS == (".abw", ".pbw", ".kbw", ".ebw")
+    assert BLATTWERK_EXTENSIONS == (".abw", ".pbw", ".kbw", ".ebw", ".sbw")
     assert spec_for_type(DOCUMENT_TYPE_PRESENTATION).export_formats[-1] == "pptx"
     assert all(isinstance(spec_for_type(t).export_formats, tuple) for t in KNOWN_DOCUMENT_TYPES)
 

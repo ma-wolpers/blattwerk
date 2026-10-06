@@ -17,8 +17,9 @@ from .block_computation_cache import BlockComputationCache
 from .build_requests import WorksheetBuildRequest, build_worksheet_from_request
 from .document_preview_build import build_preview_images_for_document
 from .kurzentwurf_settings import resolve_kurzentwurf_runtime_options
-from .document_type_registry import PIPELINE_KURZENTWURF, PIPELINE_MARKDOWN, spec_for_type
+from .document_type_registry import PIPELINE_KURZENTWURF, PIPELINE_MARKDOWN, PIPELINE_SCHILD, spec_for_type
 from .plain_markdown_render import build_plain_markdown
+from .schild_render import build_schild
 from .export_path_guardrails import validate_export_output_path
 
 
@@ -36,6 +37,8 @@ def export_document_pdf(
     pipeline = spec_for_type(document_type).pipeline
     if pipeline == PIPELINE_MARKDOWN:
         return build_plain_markdown(input_path, output_path.with_suffix(".pdf"))
+    if pipeline == PIPELINE_SCHILD:
+        return build_schild(input_path, output_path.with_suffix(".pdf"))
     if pipeline == PIPELINE_KURZENTWURF:
         _ensure_supported_kurzentwurf_mode(include_solutions)
         return _export_kurzentwurf_pdf(
@@ -62,6 +65,8 @@ def export_document_html(
     pipeline = spec_for_type(document_type).pipeline
     if pipeline == PIPELINE_MARKDOWN:
         return build_plain_markdown(input_path, output_path.with_suffix(".html"))
+    if pipeline == PIPELINE_SCHILD:
+        return build_schild(input_path, output_path.with_suffix(".html"))
     if pipeline == PIPELINE_KURZENTWURF:
         _ensure_supported_kurzentwurf_mode(include_solutions)
         return _export_kurzentwurf_html(

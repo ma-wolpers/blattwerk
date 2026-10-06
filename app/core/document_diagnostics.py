@@ -3,8 +3,8 @@
 Der Typ kommt allein aus der Dateiendung bzw. dem expliziten Tab-Typ
 (Invariante I1). Zuerst laufen die Marker-Diagnosen (`document_semantics`,
 FM008/FM009/FM010) für jeden Typ, danach der typspezifische Validator:
-Kurzentwurf-DSL, Arbeitsblatt-Pipeline (Arbeitsblatt/Präsentation/Klausur)
-oder -- bei schlichtem Markdown -- keiner.
+Kurzentwurf-DSL, Schilder (`schild_validator`), Arbeitsblatt-Pipeline
+(Arbeitsblatt/Präsentation/Klausur) oder -- bei schlichtem Markdown -- keiner.
 """
 
 from __future__ import annotations
@@ -15,8 +15,9 @@ from pathlib import Path
 from .blatt_validator import BuildDiagnostic, inspect_markdown_text
 from .blatt_kern_shared import split_front_matter
 from .document_semantics import marker_diagnostics, type_for_path
-from .document_type_registry import PIPELINE_KURZENTWURF, PIPELINE_MARKDOWN, spec_for_type
+from .document_type_registry import PIPELINE_KURZENTWURF, PIPELINE_MARKDOWN, PIPELINE_SCHILD, spec_for_type
 from .kurzentwurf_runtime.validator import inspect_kurzentwerfer_text
+from .schild_validator import inspect_schild_text
 
 
 @dataclass(frozen=True)
@@ -44,6 +45,8 @@ def inspect_document_text(markdown_text: str, *, document_type: str) -> Document
     if spec.pipeline == PIPELINE_KURZENTWURF:
         inspection = inspect_kurzentwerfer_text(markdown_text)
         diagnostics.extend(_normalize_kurzentwurf_diagnostic(diag) for diag in inspection.diagnostics)
+    elif spec.pipeline == PIPELINE_SCHILD:
+        diagnostics.extend(inspect_schild_text(markdown_text))
     elif spec.pipeline != PIPELINE_MARKDOWN:
         diagnostics.extend(inspect_markdown_text(markdown_text, document_type=spec.id).diagnostics)
 

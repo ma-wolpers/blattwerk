@@ -144,7 +144,7 @@ def test_frontmatter_field_completion_returns_stufe_values():
 def test_frontmatter_field_completion_returns_existing_enum_fields_unaffected():
     # Regression: adding Stufe must not change already-working enum fields.
     assert get_completion_frontmatter_field_values("document_type") == (
-        "exam", "kurzentwurf", "markdown", "presentation", "worksheet",
+        "exam", "kurzentwurf", "markdown", "presentation", "schild", "worksheet",
     )
 
 

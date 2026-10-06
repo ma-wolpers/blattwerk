@@ -66,7 +66,7 @@ So vermeiden wir Klebercode und Verwirrung.
 
 ## Feste Regeln fuer Dokumente
 
-- Welcher Dokumenttyp eine Datei ist, steht nur in der Dateiendung: `.abw` Arbeitsblatt, `.pbw` Praesentation, `.kbw` Klausur, `.ebw` Kurzentwurf, `.md` schlichtes Markdown. Der Inhalt entscheidet das nie.
+- Welcher Dokumenttyp eine Datei ist, steht nur in der Dateiendung: `.abw` Arbeitsblatt, `.pbw` Praesentation, `.kbw` Klausur, `.ebw` Kurzentwurf, `.sbw` Schilder, `.md` schlichtes Markdown. Der Inhalt entscheidet das nie.
 - Der Eintrag `document_type` im Kopf ist nur eine Kontrolle. Passt er nicht zur Endung, gibt es eine Warnung, aber es gilt die Endung.
 - Ein Feld `mode` gibt es nicht mehr. Ob etwas als Folien gezeigt wird oder ohne Sozialform-Symbole, sagt die Typbeschreibung in `document_type_registry.py`. Ob die Loesung sichtbar ist, waehlt man in Vorschau und Export.
 - Bei einer unbekannten Endung fragt Blattwerk, ob es die Datei als Markdown lesen soll. Gespeichert wird dann nur eine neue `.md`-Datei.
@@ -100,6 +100,7 @@ Zusatz im Kern:
 - Typisierte Build-Anfragen (`build_requests.py`)
 - Dokumenttyp-Routing und Diagnostikadapter (`document_types.py`, `document_preview_build.py`, `document_export_build.py`, `document_diagnostics.py`)
 - Eingebettete Kurzentwurf-Runtime (`app/core/kurzentwurf_runtime`)
+- Schilder: eine Seite pro Schild, Text so groß wie möglich (`app/core/schild_render.py`, `schild_validator.py`)
 - Zentrale Inline-Formatierung -- fett/kursiv/unterstrichen/Hervorhebung/durchgestrichen/Hoch-/
   Tiefstellung/Code/Spoiler/Kommentar/Worterklärung (`app/core/inline_markup`); alle Renderpfade und der
   Editor lesen dieselbe Marker-Tabelle statt eigenen Code dafür zu besitzen

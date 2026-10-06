@@ -76,7 +76,7 @@ In Präsentationen (`.pbw`) gibt es **keinen Lösungs-Umschalter**: Blöcke mit 
 | `tag` | nein | scalar_nonempty | -- | ja |
 | `show_student_header` | nein | boolean | `0`, `1`, `false`, `j`, `ja`, `n`, `nein`, `no`, `off`, `on`, `true`, `yes` | ja |
 | `show_document_header` | nein | boolean | `0`, `1`, `false`, `j`, `ja`, `n`, `nein`, `no`, `off`, `on`, `true`, `yes` | ja |
-| `document_type` | nein | enum | `exam`, `kurzentwurf`, `markdown`, `presentation`, `worksheet` | nein |
+| `document_type` | nein | enum | `exam`, `kurzentwurf`, `markdown`, `presentation`, `schild`, `worksheet` | nein |
 | `lochen` | nein | boolean | `0`, `1`, `false`, `j`, `ja`, `n`, `nein`, `no`, `off`, `on`, `true`, `yes` | nein |
 | `copyright` | nein | free_text | -- | nein |
 | `Stufe` | nein | enum | `10`, `11`, `12`, `13`, `5`, `6`, `7`, `8`, `9`, `e`, `q1`, `q2`, `sek1`, `sek2` | ja |

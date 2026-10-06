@@ -15,6 +15,7 @@ from .document_type_registry import (
     DOCUMENT_TYPE_KURZENTWURF,
     DOCUMENT_TYPE_MARKDOWN,
     DOCUMENT_TYPE_PRESENTATION,
+    DOCUMENT_TYPE_SCHILD,
     DOCUMENT_TYPE_WORKSHEET,
     spec_for_type,
 )
@@ -164,6 +165,27 @@ def _build_kurzentwurf_template(preferences: Mapping[str, object]) -> str:
     )
 
 
+def _build_schild_template(preferences: Mapping[str, object]) -> str:
+    """Neues Schilder-Dokument: Marker, alle Gestaltungsoptionen, zwei Schilder.
+
+    Alle vier Optionen stehen mit ihren Standardwerten drin, damit man sie
+    ohne Nachschlagen findet; die erlaubten Werte zeigt der Kommentar.
+    """
+    return (
+        "---\n"
+        f"document_type: {DOCUMENT_TYPE_SCHILD}\n"
+        f"Titel: {get_new_document_title(DOCUMENT_TYPE_SCHILD, preferences)}\n"
+        "ausrichtung: hoch          # hoch | quer\n"
+        "fett: ja                   # ja | nein\n"
+        "rand: 15                   # Seitenrand in mm\n"
+        "schriftgroesse: einheitlich  # einheitlich | maximal\n"
+        "---\n\n"
+        "Erstes Schild\n\n"
+        "---\n\n"
+        "Zweites Schild\n"
+    )
+
+
 def _build_markdown_template(preferences: Mapping[str, object]) -> str:
     return f"# {get_new_document_title(DOCUMENT_TYPE_MARKDOWN, preferences)}\n\nText eintragen.\n"
 
@@ -173,5 +195,6 @@ TEMPLATE_BUILDERS: dict[str, Callable[[Mapping[str, object]], str]] = {
     DOCUMENT_TYPE_PRESENTATION: _build_presentation_template,
     DOCUMENT_TYPE_EXAM: _build_exam_template,
     DOCUMENT_TYPE_KURZENTWURF: _build_kurzentwurf_template,
+    DOCUMENT_TYPE_SCHILD: _build_schild_template,
     DOCUMENT_TYPE_MARKDOWN: _build_markdown_template,
 }

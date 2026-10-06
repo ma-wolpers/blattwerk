@@ -28,10 +28,12 @@ DOCUMENT_TYPE_WORKSHEET = "worksheet"
 DOCUMENT_TYPE_PRESENTATION = "presentation"
 DOCUMENT_TYPE_EXAM = "exam"
 DOCUMENT_TYPE_KURZENTWURF = "kurzentwurf"
+DOCUMENT_TYPE_SCHILD = "schild"
 DOCUMENT_TYPE_MARKDOWN = "markdown"
 
 PIPELINE_WORKSHEET = "worksheet"
 PIPELINE_KURZENTWURF = "kurzentwurf"
+PIPELINE_SCHILD = "schild"
 PIPELINE_MARKDOWN = "markdown"
 
 
@@ -152,6 +154,23 @@ DOCUMENT_TYPE_SPECS: tuple[DocumentTypeSpec, ...] = (
         marker_required=True,
     ),
     DocumentTypeSpec(
+        id=DOCUMENT_TYPE_SCHILD,
+        extension=".sbw",
+        label="Schilder",
+        pipeline=PIPELINE_SCHILD,
+        export_formats=("pdf", "html", "png", "pngzip"),
+        default_filename="schilder.sbw",
+        new_document_title="Neue Schilder",
+        new_dialog_title="Neue Schilder anlegen",
+        blocks=False,
+        solutions_renderable=False,
+        slide_layout=False,
+        work_hints=False,
+        aid_split=False,
+        evaluation=False,
+        marker_required=True,
+    ),
+    DocumentTypeSpec(
         id=DOCUMENT_TYPE_MARKDOWN,
         extension=".md",
         label="Markdown",
@@ -177,7 +196,7 @@ KNOWN_DOCUMENT_TYPES: tuple[str, ...] = tuple(spec.id for spec in DOCUMENT_TYPE_
 BLATTWERK_DOCUMENT_TYPES: tuple[str, ...] = tuple(
     spec.id for spec in DOCUMENT_TYPE_SPECS if spec.marker_required
 )
-"""Die vier Blattwerk-Typen (alle außer schlichtem Markdown), in UI-Reihenfolge."""
+"""Die fünf Blattwerk-Typen (alle außer schlichtem Markdown), in UI-Reihenfolge."""
 BLATTWERK_EXTENSIONS: tuple[str, ...] = tuple(
     spec.extension for spec in DOCUMENT_TYPE_SPECS if spec.marker_required
 )
