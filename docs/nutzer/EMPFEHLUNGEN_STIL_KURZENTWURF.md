@@ -61,16 +61,28 @@ ant< - "Drei Männer, die sich die Hand geben."
       - "Das sind alles drei die gleiche Funktion."
 ```
 
-**Antizipationen als unabhängige Einzelaussagen, nicht als verkettete Reaktion.** Auch
-innerhalb einer Liste steht jeder Eintrag für sich, als könnte er von einer anderen Person
-stammen -- keine Verknüpfungswörter wie "oder" oder "kann auch sein", die einen Eintrag
-explizit als Alternative zum vorherigen ausweisen:
+**Antizipationen sind einzelne, alternative Aussagen -- kein Dialog.** Jeder `ant<`-Eintrag
+ist *eine* mögliche Reaktion auf das zugehörige `s<`, die für sich allein stehen kann, als
+käme sie von einer anderen Person. Die Einträge sind Alternativen zueinander, keine
+Gesprächsfolge. Das heißt konkret:
 
-- Nicht: `ant< - "Der Server ist kaputt." \n      - "Oder der Router spinnt."`
+- Kein Wechsel zwischen Sprecher:innen: keine Frage-Antwort-Paare und kein "A sagt ...,
+  B antwortet ..." innerhalb derselben Liste.
+- Keine Lehrkraft-Äußerungen in `ant<` (Rückfragen, Impulse, Bestätigungen). Was die
+  Lehrkraft sagt oder tut, gehört nach `S>`.
+- Keine Bezüge auf den vorherigen Eintrag ("Oder ...", "Kann auch sein ...", "Genau, und
+  ..."), die eine Aussage erst im Zusammenhang verständlich machen.
+
+Beispiele:
+
+- Nicht (Dialog): `ant< - "Ist das überhaupt eine Funktion?" \n      - "Ja, weil jedem x genau ein y zugeordnet ist."`
+- Nicht (Lehrkraft im Dialog): `ant< - "Das ist linear." \n      - L: "Woran erkennst du das?"`
+- Nicht (verkettet): `ant< - "Der Server ist kaputt." \n      - "Oder der Router spinnt."`
 - Sondern: `ant< - "Der Server ist kaputt." \n      - "Der Router spinnt schon wieder."`
 
 (Ausnahme: eine bewusst dargestellte *Progression*, siehe oben -- dort ist die Abfolge
-selbst der Punkt und keine lose Alternativen-Aufzählung.)
+selbst der Punkt. Auch dann ist jeder Schritt eine eigenständige Aussage der Lernenden und
+kein Gespräch.)
 
 **Kein "Schüler:innen"-Subjekt nach `S>`/`s<`.** Der Marker selbst steht bereits für das
 Subjekt ("die Lernenden") -- es noch einmal auszuschreiben ist redundant. Prädikat direkt,
@@ -105,6 +117,45 @@ Spalte so konkret sein, dass klar ist, was tatsächlich vorzubereiten ist:
 Das gilt in **jeder** Phase erneut, auch wenn Sozialform/Material sich von der vorherigen
 Phase nicht unterscheiden oder selbsterklärend wirken -- kein stillschweigendes
 Fortgelten-Lassen, das nur beim Lesen einer einzelnen Phase auffällt.
+
+**Jede Angabe in ihre Spalte.** Jede Spalte hat genau eine Aufgabe:
+
+| Marker | Inhalt | Nicht hierhin |
+| --- | --- | --- |
+| `S>` | Lernschritte und Handlungen der Lehrkraft (Impuls, Arbeitsauftrag, Material verteilen, Ergebnisse vergleichen lassen) | Lernaktivitäten, Material-/Sozialformangaben |
+| `A>` + `s<` | Was die Lernenden tun | Lehrkraft-Handlungen |
+| `ant<` | Erwartete Äußerungen der Lernenden, **nur** im `A>`-Block direkt hinter dem zugehörigen `s<` | Hinter `S>`- oder `U>`-Inhalt (löst `KZF154` aus) |
+| `U>` | Nur Material, Sozialform und Methode | Beschreibungen, was die Lehrkraft tut |
+
+- Nicht: `U> GA; Lehrkraft verteilt die Kartensätze und erklärt die Spielregeln`
+- Sondern: `S> Kartensätze verteilen, Spielregeln erklären` und `U> GA; Gruppenpuzzle;
+  Kartensätze ❎🔺🔷☀️`
+
+**`S>` in Stichpunkten statt Fließtext.** Mehrere Lernschritte in einer Zelle als
+Markdown-Liste mit einem Schritt pro Zeile schreiben (wird als Liste gerendert), nicht als
+zusammenhängenden Satz:
+
+```markdown
+S> - Leitfrage präsentieren
+   - Arbeitsauftrag erteilen
+   - Kartensätze verteilen
+```
+
+statt `S> Die Lehrkraft präsentiert die Leitfrage, erteilt anschließend den Arbeitsauftrag
+und verteilt danach die Kartensätze.` Ein einzelner kurzer Schritt darf ohne Spiegelstrich
+direkt hinter `S>` stehen.
+
+**Keine selbstverständlichen Schritte in `S>`.** Nur nennen, was eine inhaltliche
+Information trägt (welcher Impuls, welcher Auftrag, welches Material). Was schon aus dem
+Phasennamen oder dem Ablauf folgt, weglassen:
+
+- Weglassen: `S> Ergebnisse der Sicherung sichern` / `S> Phase beenden` / `S> zur
+  Erarbeitung überleiten`
+- Behalten: `S> Tafelbild mit den drei Funktionsdarstellungen entwickeln`
+
+**Schreibweise: Umlaute und Prozentzeichen.** Umlaute und ß konsequent ausschreiben (ä,
+ö, ü, ß statt ae, oe, ue, ss). Zwischen Zahl und Prozentzeichen steht ein Leerzeichen:
+`75 %` statt `75%`.
 
 ## Didaktische Gestaltungsempfehlungen
 
@@ -167,12 +218,21 @@ Faustregel für die Phasenlänge: möglichst nicht unter ~5 Minuten (`t=2` ist f
 Signal, dass der Inhalt eigentlich zu einer Nachbarphase gehört) -- sonst wirkt der
 Kurzentwurf fragmentierter, als der tatsächliche Unterrichtsverlauf ist.
 
-**Lernaktivitäten (`s<`) nur konstruktiv, nicht rezeptiv formulieren -- und auf die
+**Lernaktivitäten (`s<`) nur konstruktiv und überprüfbar, nicht rezeptiv formulieren -- und auf die
 kognitive Aktivität fokussieren, nicht auf Spielmechanik/Prozedur.** Was Lernende selbst
 tun/herstellen/entscheiden, nicht was sie passiv aufnehmen, und nicht die Ablaufregeln
 eines Spiels/Verfahrens:
 
+Prüffrage: Könnte eine beobachtende Person am Ende der Phase feststellen, ob die Aktivität
+stattgefunden hat (es liegt ein Ergebnis vor, eine Aussage wurde gemacht, etwas wurde
+geordnet)? Wenn nein, ist es keine `s<`-Aktivität. Damit fallen auch Verben für innere,
+nicht beobachtbare Vorgänge weg: **sehen, hören, verstehen, wissen, kennenlernen, sich
+bewusst machen**. Geeignet sind dagegen z. B. berechnen, vergleichen, ordnen, zuordnen,
+begründen, beschreiben, formulieren, skizzieren, überprüfen.
+
 - Vermeiden: `s< lesen den Text.` / `s< hören dem Vortrag zu.` / `s< schauen das Video.`
+- Vermeiden: `s< verstehen das Prinzip der Proportionalität.` / `s< wissen, was eine
+  Nullstelle ist.`
 - Vermeiden (zu viel Spielregel): `s< spielen "Definitionsraten": Person A zeigt eine
   Definition, B und C suchen die passenden Begriffe...`
 - Besser: `s< fassen den Text in eigenen Worten zusammen.` / `s< vergleichen Definitionen

@@ -15,6 +15,7 @@ tools: [vscode/askQuestions, execute, read, agent, edit, search, web, todo]
 5. Operatorenliste Mathematik Sek I: a:/7thCloud/7thVault/Pädagogik/30 Baukasten/33 Fachdidaktik/Mathematik/Mathematik-SekI-Operatoren_Uebersicht.md
 6. Operatorenliste Mathematik Sek II: a:/7thCloud/7thVault/Pädagogik/30 Baukasten/33 Fachdidaktik/Mathematik/Mathematik-SekII-Operatoren_Uebersicht.md
 7. **Design-Präferenzen (nutzerspezifisch):** app/storage/.state/blattwerker-design.md und app/storage/.state/blattwerker-design-presentation.md
+8. **Stilempfehlungen (redaktionell, keine Validator-Regeln):** docs/nutzer/EMPFEHLUNGEN_STIL_ARBEITSBLATT_PRAESENTATION.md (Arbeitsblatt/Präsentation) und docs/nutzer/EMPFEHLUNGEN_STIL_KURZENTWURF.md (Kurzentwurf)
 
 Bei Widerspruechen gilt docs/nutzer/GRAMMAR.md vor docs/nutzer/ANLEITUNG_ARBEITSBLATT_PRAESENTATION.md.
 Design-Präferenzen sind bindend, solange sie der Grammatik nicht widersprechen.
@@ -22,6 +23,7 @@ Design-Präferenzen sind bindend, solange sie der Grammatik nicht widersprechen.
 ## Arbeitsregeln fuer den Agent
 
 1. Vor jeder inhaltlichen Markdown-Bearbeitung/-Generierung zuerst docs/nutzer/GRAMMAR.md **und** app/storage/.state/blattwerker-design.md für Arbeitsblätter **bzw** app/storage/.state/blattwerker-design-presentation.md für Präsentationen lesen.
+1a. Zusätzlich die passende Stilempfehlungs-Datei lesen: docs/nutzer/EMPFEHLUNGEN_STIL_ARBEITSBLATT_PRAESENTATION.md für Arbeitsblätter/Präsentationen, docs/nutzer/EMPFEHLUNGEN_STIL_KURZENTWURF.md (plus docs/nutzer/ANLEITUNG_KURZENTWURF.md) für Kurzentwürfe.
 2. Nur erlaubte Blocktypen/Optionen/Werte verwenden:
   - Answer-Bloecke immer mit type anlegen.
   - YAML-basierte answer-Typen nur mit gueltigem Mapping-YAML-Inhalt fuellen.

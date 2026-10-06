@@ -56,6 +56,12 @@ steht. Faustregel: Steht in der Folie ein Verb, das SuS jetzt konkret ausführen
 ("Lest", "Notiert", "Diskutiert"), ist es `:::task`. Steht dort nur, was gerade passiert
 oder was als Nächstes kommt, ist es `:::info`.
 
+## Abschnitts- und Folientitel inhaltlich benennen
+
+Abschnittsnamen (`--#`) und Folientitel benennen das fachliche Thema oder die Tätigkeit,
+nie die didaktische Phase: "Kartensätze zuordnen" statt "Erarbeitung I", "Daten oder
+Informationen" statt "Einstieg".
+
 ## Präsentationsfolien nur mit Inhalt, der nicht mündlich ersetzbar ist
 
 Eine Folie sollte nur enthalten, was die Lehrkraft nicht ohnehin selbst mündlich sagen
@@ -81,6 +87,29 @@ Wenn eine `:::task`-Aufgabe und eine direkt dazugehörige Tabelle/Antwortstruktu
 sollen dort unmittelbar eintragen, was die Aufgabe verlangt) inhaltlich eine Einheit
 bilden, beide auf derselben Folie belassen -- keinen `--!`-Folienwechsel dazwischensetzen.
 `--!` bleibt reserviert für inhaltlich neue Schritte/Phasen.
+
+## Aufgaben für Schnelle auf der Folie der Hauptaufgabe
+
+Eine Zusatzaufgabe für Schnelle steht auf **derselben** Folie wie die Hauptaufgabe, zu der
+sie gehört -- nicht auf einer eigenen Folie danach. Wer früher fertig ist, sieht den
+nächsten Auftrag sofort, ohne dass die Lehrkraft für die übrigen Lernenden die Folie
+wechseln muss. Gekennzeichnet wird sie wie im Arbeitsblatt mit einem kursiven
+`*für Schnelle:*` im Aufgabentext (siehe `docs/intern/ARBEITSBLATT_NOTIZEN.md`).
+
+## Symbole für Kartensätze
+
+Arbeiten bis zu fünf Gruppen mit unterschiedlichen Kartensätzen, bekommen die Sätze diese
+Symbole, in dieser Reihenfolge: ❎ 🔺 🔷 ☀️ 🟪. Dasselbe Symbol steht auf der Folie, auf den
+Karten und im Kurzentwurf (`U>`), damit Gruppen ihr Material auf einen Blick
+wiederfinden.
+
+## Höchstens eine Folie pro 15 Minuten
+
+Eine Präsentation für den Unterricht hat höchstens eine Folie (`--!`) pro 15 Minuten
+Unterrichtszeit, also z. B. bis zu drei Folien in einer 45-Minuten-Stunde und bis zu sechs
+in einer Doppelstunde. Ausnahme: Ein Vortrag (Lehrkraft oder Lernende), der Folien als
+Grundlage braucht, darf mehr Folien haben. Die Regel verstärkt die Empfehlung, Folien nur
+mit Inhalt zu füllen, der nicht mündlich ersetzbar ist (siehe oben).
 
 ## Kein Doppelpunkt zwischen Formeln
 
