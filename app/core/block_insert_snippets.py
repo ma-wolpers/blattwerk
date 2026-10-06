@@ -54,7 +54,7 @@ BLOCK_INSERT_SNIPPETS: dict[str, str] = {
         ":::\n"
     ),
     "geometry": (
-        ':::geometry scale=0.5cm axis=true origin="10,10"\n'
+        ':::geometry scale=0.5cm width=20 height=10 axis=true origin="10,5"\n'
         "points:\n"
         '\x01  - {x: 0, y: 0, label: "A", show: "&"}\n'
         ":::\n"

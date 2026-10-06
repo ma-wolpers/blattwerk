@@ -16,6 +16,7 @@ from .answer_grid_axis import (
     _render_axis_ticks_and_labels,
     _resolve_axis_name,
     _resolve_axis_state,
+    origin_to_canvas,
 )
 from .answer_grid_entries import (
     _GeometryCoordinateSystem,
@@ -163,6 +164,8 @@ def _render_grid_primitives_svg(options, payload, rows, cols, include_solutions,
     axis_state, origin = _resolve_axis_state(options)
     if axis_state == "broken":
         return ""
+    # `origin` zählt die Zeile von unten (0,0 = links unten); ab hier SVG-Rasterkoordinate.
+    origin = origin_to_canvas(origin, rows)
 
     step_x = _parse_positive_float(options.get("step_x"), 1.0)
     step_y = _parse_positive_float(options.get("step_y"), 1.0)

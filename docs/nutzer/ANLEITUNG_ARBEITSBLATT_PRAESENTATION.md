@@ -266,14 +266,14 @@ Koordinatensystem für Punkte, Polylinien, Strecken, Vielecke, Kreise/Bögen und
 | Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
 |---|---|---|---|---|---|
 | `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
-| `axis` | Bool | -- | nein | `False` | Aktiviert ein mathematisches Koordinatensystem mit x-/y-Achse, Tick-Marks und Achsenbeschriftung (Standard: aus, dann gelten reine Rasterkoordinaten `col`/`row` bzw. bei `pairs`/`sequence` ein impliziter Ursprung unten links). **Wichtig:** `axis=true` OHNE gültiges `origin` ist ein Fehler (`OP005`) -- der gesamte Geometry-Payload des Blocks (alle Sektionen) wird dann gar nicht gerendert, kein stiller Rückfall auf Rasterkoordinaten. `origin` bei `axis=true` immer korrekt setzen. |
+| `axis` | Bool | -- | nein | `False` | Aktiviert ein mathematisches Koordinatensystem mit x-/y-Achse, Tick-Marks und Achsenbeschriftung (Standard: aus, dann gelten reine Rasterkoordinaten mit Ursprung unten links, `(0, 0)` = linke untere Ecke). **Wichtig:** `axis=true` OHNE gültiges `origin` ist ein Fehler (`OP005`) -- der gesamte Geometry-Payload des Blocks (alle Sektionen) wird dann gar nicht gerendert, kein stiller Rückfall auf Rasterkoordinaten. `origin` bei `axis=true` immer korrekt setzen. |
 | `axis_label_x` | Text | -- | nein | `x` | Beschriftung der x-Achse (Standard `x`), nur wirksam bei aktivem Achsenmodus (siehe `axis`). |
 | `axis_label_y` | Text | -- | nein | `y` | Beschriftung der y-Achse (Standard `y`), nur wirksam bei aktivem Achsenmodus (siehe `axis`). |
 | `background` | Enum | `dots`, `lines`, `none` | ja | `none` | Hintergrund des Koordinatensystems: `none` (Standard, leere Fläche), `lines` (Karo-Raster, identisch zu `:::grid`) oder `dots` (Punktraster an jedem Gitter-Schnittpunkt -- klassische "Konstruktionspapier"-Optik). |
 | `height` | Ganzzahl | -- | nein | `5` | Höhe des Koordinatensystems in Rastereinheiten (Standard `5`). |
 | `line` | Enum | `dashed`, `solid` | ja | `solid` | Linienstil des Rasterhintergrunds: `solid` (Standard) oder `dashed`. Nur bei `:::grid`/`:::geometry` vorhanden -- nicht zu verwechseln mit dem gleichnamigen `pairs[].line`-Feld in der Geometry-YAML-Payload (dort eigene, unabhängige Einstellung pro Strecke). |
 | `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
-| `origin` | Text | -- | nein | -- | Ursprung des Koordinatensystems im Raster, Format `"spalte,zeile"` (z. B. `"10,10"`). **Pflicht, sobald `axis=true` gesetzt ist** -- fehlt `origin` oder ist es ungültig, wird das als Fehler gemeldet (`OP005`) und der gesamte Block bleibt ungerendert, siehe Besonderheit bei `axis`. |
+| `origin` | Text | -- | nein | -- | Ursprung des Koordinatensystems im Raster, Format `"spalte,zeile"`, gezählt von der **linken unteren Ecke** aus (`"0,0"` = unten links, die Zeile zählt nach oben; z. B. `"10,5"` bei `width=20 height=10` = Mitte). **Pflicht, sobald `axis=true` gesetzt ist** -- fehlt `origin` oder ist es ungültig, wird das als Fehler gemeldet (`OP005`) und der gesamte Block bleibt ungerendert, siehe Besonderheit bei `axis`. |
 | `scale` | CSS-Länge | -- | nein | `0.5cm` | Zellgröße als CSS-Länge, z. B. `scale=0.4cm` oder `scale=6mm` (Standard variiert je Blocktyp, siehe Besonderheit unten). *Besonderheit bei `geometry`:* Standard `0.5cm`. |
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
 | `step_x` | Zahl | -- | nein | `1.0` | Skalierung zwischen mathematischer x-Koordinate und Rasterzellen (Standard `1`), nur bei `axis=true`. |
@@ -283,7 +283,7 @@ Koordinatensystem für Punkte, Polylinien, Strecken, Vielecke, Kreise/Bögen und
 **Beispiel** (identisch mit dem Menü "Einfügen" (Alt+I) im Editor):
 
 ```markdown
-:::geometry scale=0.5cm axis=true origin="10,10"
+:::geometry scale=0.5cm width=20 height=10 axis=true origin="10,5"
 points:
   - {x: 0, y: 0, label: "A", show: "&"}
 :::
@@ -837,7 +837,7 @@ Erlaubte Keys: `color`, `label`, `line`, `show`, `thickness`, `x1`, `x2`, `y1`, 
 
 ### `points`
 
-Einzelne markierte Punkte im Raster. Im Achsenmodus (`axis=true`) werden `x`/`y` als mathematische Koordinaten interpretiert, sonst `col`/`row` (bzw. `x`/`y` als Alias) als direkte Rasterkoordinaten. `label` beschriftet den Punkt. `color` (beliebiger CSS-Farbwert) und `thickness` (positive Zahl) sind optional -- fehlt einer der beiden oder ist er ungültig, fällt der Punkt auf den bisherigen Theme-Standard zurück, ohne den Build zu blockieren (Warnung `AN013`/`AN014`).
+Einzelne markierte Punkte im Raster. Im Achsenmodus (`axis=true`) werden `x`/`y` als mathematische Koordinaten interpretiert, sonst `col`/`row` (bzw. `x`/`y` als Alias) als Rasterkoordinaten mit Ursprung unten links (`(0, 0)`, `row` zählt nach oben) -- wie bei allen anderen Sektionen. `label` beschriftet den Punkt. `color` (beliebiger CSS-Farbwert) und `thickness` (positive Zahl) sind optional -- fehlt einer der beiden oder ist er ungültig, fällt der Punkt auf den bisherigen Theme-Standard zurück, ohne den Build zu blockieren (Warnung `AN013`/`AN014`).
 
 Erlaubte Keys: `col`, `color`, `label`, `row`, `show`, `thickness`, `x`, `y`.
 

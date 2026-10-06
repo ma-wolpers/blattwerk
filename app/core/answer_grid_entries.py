@@ -132,15 +132,12 @@ class _GeometryCoordinateSystem:
     erreicht das Parsing gar nicht erst, `_render_grid_primitives_svg`
     bricht dafür schon vorher ab.
 
-    Zwei Koordinatenkonventionen koexistieren bewusst im `axis_active=False`-
-    Fall: `points[].col`/`row` (siehe `_parse_points`) bleibt unverändert
-    eine reine Rasterindex-Weitergabe ohne y-Flip (Zeile 0 = oberste Zeile
-    -- eine bereits bestehende, produktiv genutzte Konvention). Jede andere
-    Sektion, die ohne Achse überhaupt Koordinaten bekommt (`pairs`/
-    `sequence`, künftig `polygons`/`circles`), nutzt stattdessen `point()`
-    unten: `(0, 0)` unten links, `y` nach oben -- die mathematisch
-    natürliche Konvention für DSL-Oberfläche ohne bestehende Nutzerdokumente,
-    die dadurch brechen könnten.
+    Eine einzige Konvention für alle Sektionen: `(0, 0)` ist die **linke
+    untere** Ecke, `y` wächst nach oben -- ohne Achse direkt in Rastereinheiten,
+    mit Achse relativ zu `origin` (dessen Zeile ebenfalls von unten zählt, siehe
+    `answer_grid_axis.origin_to_canvas`). `origin` hier ist bereits die
+    SVG-Rasterkoordinate. (Bis 2026-10-06 zählten `points[].col`/`row` und die
+    `origin`-Zeile von oben; Bestandsdokumente wurden migriert.)
     """
 
     axis_active: bool
@@ -171,10 +168,9 @@ def _parse_points(raw_points, coord_system, include_solutions):
     """Parst `points`-Einträge zu Grid-Tupeln `(x, y, label, color, thickness, mode)`.
 
     Im Achsenmodus (`coord_system.axis_active`) werden mathematische
-    Koordinaten (`x`/`y`) über `coord_system.point()` in Rasterkoordinaten
-    umgerechnet; ohne Achse werden direkte Rasterkoordinaten (`col`/`row`,
-    mit `x`/`y` als Alias) erwartet -- bewusst UNGEFLIPPT (siehe
-    `_GeometryCoordinateSystem`-Docstring), anders als `coord_system.point()`.
+    Koordinaten (`x`/`y`) umgerechnet; ohne Achse Rasterkoordinaten
+    (`col`/`row`, mit `x`/`y` als Alias) mit Ursprung links unten -- in beiden
+    Fällen über `coord_system.point()`, wie bei allen anderen Sektionen.
     `color`/`thickness` sind optional und werden über `parse_svg_color`/
     `parse_svg_thickness` sanitized; `None` bedeutet "kein gültiger Wert
     gesetzt", der Renderer fällt dann auf den bisherigen Theme-Default zurück.
@@ -197,10 +193,11 @@ def _parse_points(raw_points, coord_system, include_solutions):
                 continue
             gx, gy = coord_system.point(x, y)
         else:
-            gx = _as_float(item.get("col", item.get("x")))
-            gy = _as_float(item.get("row", item.get("y")))
-            if gx is None or gy is None:
+            col = _as_float(item.get("col", item.get("x")))
+            row = _as_float(item.get("row", item.get("y")))
+            if col is None or row is None:
                 continue
+            gx, gy = coord_system.point(col, row)
 
         label = str(item.get("label", "")).strip()
         color = parse_svg_color(item.get("color"))

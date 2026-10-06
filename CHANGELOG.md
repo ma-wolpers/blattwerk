@@ -8,6 +8,7 @@ The format is based on Keep a Changelog.
 
 ### Changed
 
+- **Geometry: Koordinaten immer von links unten.** Bei `:::geometry` ist `(0, 0)` jetzt überall die **linke untere Ecke**, die Zeile zählt nach oben – auch beim `origin` (`origin="0,0"` = unten links) und bei `points` ohne Achse (`col`/`row`). Bisher zählten diese beiden die Zeile von oben. Bestehende Dateien wurden automatisch umgerechnet und sehen unverändert aus (per Bildvergleich geprüft); wer eigene Dateien außerhalb des Vaults hat, rechnet die Zeile als `Höhe − alte Zeile` um. Die Vorlage im Einfügen-Menü ist jetzt ein zentriertes 20×10-Koordinatensystem.
 - **Der Dokumenttyp steckt jetzt in der Dateiendung:** `.abw` (Arbeitsblatt), `.pbw` (Präsentation), `.kbw` (Klausur, neu), `.ebw` (Kurzentwurf). Neue Dokumente bekommen automatisch die passende Endung; Öffnen- und Speichern-Dialoge bieten die Typen einzeln an.
 - **`.md`-Dateien sind jetzt schlichtes Markdown:** Tabellen, Code, Formeln (`$…$`, `$$…$$`) werden dargestellt, Blattwerk-Blöcke (`:::task` usw.) aber nicht mehr interpretiert. Bestehende Blattwerk-Dateien mit Endung `.md` werden in einem späteren Schritt automatisch auf die neuen Endungen umgestellt.
 - **Speichern unter mit anderer Endung wechselt den Dokumenttyp** (nach Rückfrage) und passt den Eintrag `document_type` automatisch an. Beim Speichern als `.md` bleibt `document_type` unverändert.

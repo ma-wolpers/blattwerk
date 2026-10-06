@@ -17,7 +17,7 @@ import re
 
 from .answer_special_shared import _safe_int
 from .answer_yaml_payload import parse_yaml_answer_payload_with_solution
-from .answer_grid_axis import _resolve_axis_name, _resolve_axis_state
+from .answer_grid_axis import _resolve_axis_name, _resolve_axis_state, origin_to_canvas
 from .answer_grid_entries import _parse_positive_float
 from .answer_grid_primitives import _render_grid_primitives_svg
 from .answer_grid_svg_frame import (
@@ -196,6 +196,8 @@ def render_geometry_answer(options, content, include_solutions, render_solution_
     )
 
     axis_state, logical_origin = _resolve_axis_state(options)
+    # `origin` zählt die Zeile von unten (0,0 = links unten); ab hier SVG-Rasterkoordinate.
+    logical_origin = origin_to_canvas(logical_origin, height_units)
     axis_enabled = axis_state == "active"
     step_x = _parse_positive_float(options.get("step_x"), 1.0)
     step_y = _parse_positive_float(options.get("step_y"), 1.0)

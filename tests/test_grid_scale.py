@@ -157,7 +157,7 @@ def test_grid_axis_origin_outside_grid_clamps_visual_axis_only():
             "width": "10",
             "height": "10",
             "axis": "true",
-            "origin": "-3,14",
+            "origin": "-3,-4",  # Zeile von unten (frueher von oben: 14)
             "step_x": "1",
             "step_y": "1",
         },
@@ -211,7 +211,7 @@ def test_grid_axis_border_keeps_labels_and_arrowheads_visible():
             "width": "10",
             "height": "10",
             "axis": "true",
-            "origin": "0,10",
+            "origin": "0,0",  # linke untere Ecke (frueher von oben: 10)
             "step_x": "1",
             "step_y": "1",
             "axis_label_x": "t",

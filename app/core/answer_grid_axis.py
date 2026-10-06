@@ -16,7 +16,12 @@ from .answer_special_shared import _option_is_enabled
 
 
 def _parse_origin(raw_origin):
-    """Parst den Ursprung im Format `col,row` ohne Clamping auf die Rastergrenzen.
+    """Parst den Ursprung im Format `spalte,zeile` ohne Clamping auf die Rastergrenzen.
+
+    Konvention (wie in der Schulmathematik): `(0, 0)` ist die **linke untere**
+    Ecke, die Zeile zählt von unten nach oben. Die Umrechnung in die
+    SVG-Rasterkoordinate (Zeile von oben) macht ausschließlich
+    `origin_to_canvas`.
 
     Kein `cols`/`rows`-Parameter: das Klemmen auf die *sichtbare*
     Achsenposition übernimmt separat `_clamp_axis_origin`, das reine Parsen
@@ -37,6 +42,25 @@ def _parse_origin(raw_origin):
         return None
 
     return col, row
+
+
+def origin_to_canvas(origin, rows):
+    """Rechnet einen Ursprung `(spalte, zeile_von_unten)` in die Rasterkoordinate des SVG um.
+
+    Einzige Stelle für diese Umrechnung (Renderer und Rand-Schätzung rufen sie
+    direkt nach `_resolve_axis_state` auf). Das SVG zählt Zeilen von oben, die
+    Geometry-DSL von unten: `(0, 0)` = linke untere Ecke.
+
+    Args:
+        origin: `(spalte, zeile)` aus `_parse_origin` oder `None`.
+        rows: Höhe des Rasters in Rastereinheiten.
+
+    Returns:
+        `(spalte, rows - zeile)` bzw. `None`.
+    """
+    if origin is None:
+        return None
+    return origin[0], float(rows) - origin[1]
 
 
 def _resolve_axis_state(options):

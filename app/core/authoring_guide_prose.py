@@ -317,7 +317,8 @@ PROSE_SECTIONS: dict[str, str] = {
     "geometry:points": (
         "Einzelne markierte Punkte im Raster. Im Achsenmodus (`axis=true`) werden `x`/`y` als "
         "mathematische Koordinaten interpretiert, sonst `col`/`row` (bzw. `x`/`y` als Alias) als "
-        "direkte Rasterkoordinaten. `label` beschriftet den Punkt. `color` (beliebiger CSS-Farbwert) "
+        "Rasterkoordinaten mit Ursprung unten links (`(0, 0)`, `row` zählt nach oben) -- wie bei allen "
+        "anderen Sektionen. `label` beschriftet den Punkt. `color` (beliebiger CSS-Farbwert) "
         "und `thickness` (positive Zahl) sind optional -- fehlt einer der beiden oder ist er ungültig, "
         "fällt der Punkt auf den bisherigen Theme-Standard zurück, ohne den Build zu blockieren "
         "(Warnung `AN013`/`AN014`)."
@@ -725,8 +726,8 @@ PROSE_SECTIONS: dict[str, str] = {
     "block:geometry.scale": ("Standard `0.5cm`."),
     "block:geometry.axis": (
         "Aktiviert ein mathematisches Koordinatensystem mit x-/y-Achse, Tick-Marks und "
-        "Achsenbeschriftung (Standard: aus, dann gelten reine Rasterkoordinaten `col`/`row` bzw. bei "
-        "`pairs`/`sequence` ein impliziter Ursprung unten links). **Wichtig:** `axis=true` OHNE "
+        "Achsenbeschriftung (Standard: aus, dann gelten reine Rasterkoordinaten mit Ursprung unten "
+        "links, `(0, 0)` = linke untere Ecke). **Wichtig:** `axis=true` OHNE "
         "gültiges `origin` ist ein Fehler (`OP005`) -- der gesamte Geometry-Payload des Blocks "
         "(alle Sektionen) wird dann gar nicht gerendert, kein stiller Rückfall auf "
         "Rasterkoordinaten. `origin` bei `axis=true` immer korrekt setzen."
@@ -734,7 +735,9 @@ PROSE_SECTIONS: dict[str, str] = {
     "block:geometry.axis_label_x": ("Beschriftung der x-Achse (Standard `x`), nur wirksam bei aktivem Achsenmodus (siehe `axis`)."),
     "block:geometry.axis_label_y": ("Beschriftung der y-Achse (Standard `y`), nur wirksam bei aktivem Achsenmodus (siehe `axis`)."),
     "block:geometry.origin": (
-        "Ursprung des Koordinatensystems im Raster, Format `\"spalte,zeile\"` (z. B. `\"10,10\"`). "
+        "Ursprung des Koordinatensystems im Raster, Format `\"spalte,zeile\"`, gezählt von der "
+        "**linken unteren Ecke** aus (`\"0,0\"` = unten links, die Zeile zählt nach oben; z. B. "
+        "`\"10,5\"` bei `width=20 height=10` = Mitte). "
         "**Pflicht, sobald `axis=true` gesetzt ist** -- fehlt `origin` oder ist es ungültig, wird "
         "das als Fehler gemeldet (`OP005`) und der gesamte Block bleibt ungerendert, siehe "
         "Besonderheit bei `axis`."
