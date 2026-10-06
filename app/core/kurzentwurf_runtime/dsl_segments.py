@@ -67,6 +67,21 @@ class _SegmentBuilder:
         """
         self.pending_blank_line = True
 
+    def ant_outside_activities(self) -> bool:
+        """Prüft, ob ein jetzt folgendes `ant<` außerhalb eines A>-Blocks stünde.
+
+        `ant<` gehört ausschließlich hinter ein `s<` in der Spalte
+        Lernaktivitäten (also in einen `A>`-Block). Außerhalb steht es, wenn
+        im Segment noch kein `s<` vorkam oder die zuletzt aktive Spalte
+        Lernschritte (`S>`) bzw. Lernumgebung (`U>`/`|`-Wechsel) ist. Ein
+        erneutes `A>` nach `U>` holt die aktive Spalte zurück -- ein `ant<`
+        danach gilt wieder als korrekt platziert.
+
+        Wird vor dem Setzen des `ant<`-Markers aufgerufen, weil `set_marker`
+        die aktive Spalte auf `antizipiert` umstellt.
+        """
+        return not self.has_s_marker or self.active_column_key in {"schritte", "umgebung"}
+
     def switch_column(self, step_count: int) -> None:
         self.has_any_marker = True
         self.pending_blank_line = False
@@ -123,6 +138,32 @@ class _SegmentBuilder:
             line=line,
             full_row=not self.has_any_marker,
         )
+
+
+def _misplaced_ant_diagnostic(phase_builder: _PhaseBuilder, anchor_text: str, *, line: int) -> Diagnostic:
+    """Baut die Warnung `KZF154` für ein `ant<` außerhalb eines A>-Blocks.
+
+    Gerendert wird so ein `ant<` trotzdem (immer unter den Lernaktivitäten),
+    daher nur eine Warnung: der Quelltext ordnet die Antizipation optisch
+    einer anderen Spalte zu und trennt sie von ihrem `s<`. Die Warnung
+    trägt die Phasen-Region (Pflicht für abhakbare Warnungen) und ankert am
+    Zeilentext statt an der Zeilennummer, damit ein Abhaken beim Einfügen
+    von Zeilen davor erhalten bleibt (wie `KZF161`).
+    """
+    return Diagnostic(
+        code="KZF154",
+        severity="warning",
+        message=(
+            "ant< steht ausserhalb eines A>-Blocks. "
+            "Antizipationen gehoeren direkt hinter das zugehoerige s< (nach A>), "
+            "nicht in die Spalten S> oder U>."
+        ),
+        line=line,
+        region_id=compute_phase_region_id(
+            phase_builder.phase, phase_builder.duration_minutes, phase_builder.start_time
+        ),
+        anchor=anchor_text,
+    )
 
 
 def _finalize_segment(

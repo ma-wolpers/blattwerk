@@ -76,6 +76,9 @@ The format is based on Keep a Changelog.
 
 ### Added
 
+- Kurzentwurf: Neue Warnung `KZF154`, wenn `ant<` außerhalb eines `A>`-Blocks steht – also vor dem ersten `s<` eines Segments oder hinter `S>`-/`U>`-Inhalt. Antizipationen gehören direkt hinter das zugehörige `s<`. Die Warnung lässt sich abhaken; die Darstellung ändert sich nicht.
+- Kurzentwurf: Die Vorlage für neue Kurzentwürfe (zugleich der Schnellstart in der Anleitung) folgt jetzt den Stilempfehlungen: echte Lernaktivitäten in `s<`, Antizipationen als Schüleräußerungen direkt hinter `s<`, präzise Sozialformen (`LSG`, `GA`) und Umlaute.
+- Stilempfehlungen erweitert: für Kurzentwürfe überprüfbare Lernaktivitäten statt „sehen/verstehen/wissen“, `S>` in Stichpunkten, klare Spaltenzuordnung (`U>` nur Material/Sozialform/Methode, Lehrkraft-Handlungen in `S>`), keine selbstverständlichen `S>`-Schritte, `ant<` als Einzelaussagen statt Dialog, „75 %“ mit Leerzeichen; für Präsentationen Aufgaben für Schnelle auf der Folie der Hauptaufgabe, feste Symbole für bis zu fünf Kartensätze, inhaltliche Abschnitts-/Folientitel statt Phasenbegriffen und höchstens eine Folie pro 15 Minuten.
 - Kurzentwurf: Zellen können jetzt Absätze enthalten. Eine Leerzeile beginnt wie im Arbeitsblatt einen neuen Absatz, eine einfache Folgezeile bleibt ein Zeilenumbruch. Nach `s<` ist jede Folgezeile weiterhin ein neuer „S:innen“-Eintrag; endet die Zeile davor mit `\`, läuft stattdessen derselbe Eintrag in einer neuen Zeile weiter.
 - Kurzentwurf: Inline-Formeln `$...$` in LaTeX-Syntax werden wie im Arbeitsblatt als Formel gesetzt (MathJax, Internetverbindung nötig; Hinweis `KZF160`). `$$...$$` wird im Kurzentwurf ebenfalls als Formel gesetzt, aber im Fließtext statt als eigene Formelzeile; ein abhakbarer Hinweis (`KZF161`) macht darauf aufmerksam.
 

@@ -144,6 +144,19 @@ def test_build_kurzentwurf_template_contains_yaml_identity_keys():
     assert "#einstieg t=10" in content
 
 
+def test_kurzentwurf_template_validates_without_any_diagnostic():
+    """Die Vorlage ist zugleich der Schnellstart in ANLEITUNG_KURZENTWURF.md und wird
+    gern als Muster kopiert -- sie darf deshalb auch keine Warnung (z. B. KZF152/KZF154)
+    auslösen."""
+    from app.core.kurzentwurf_runtime.validator import inspect_kurzentwerfer_text
+
+    content = build_new_document_content(DOCUMENT_TYPE_KURZENTWURF, {})
+    result = inspect_kurzentwerfer_text(content)
+
+    assert [(d.code, d.line) for d in result.diagnostics] == []
+    assert result.document is not None
+
+
 def test_removed_preferences_are_dropped_and_have_no_effect():
     from app.storage.user_preferences_adapter import normalize_user_preferences
 

@@ -279,7 +279,9 @@ PROSE_SECTIONS: dict[str, str] = {
         "Markiert eine antizipierte Schüler:innen-Antwort/-Reaktion zum jeweiligen Lernschritt -- "
         "**nicht nur Fehlvorstellungen**, sondern gute, neutrale wie falsche erwartete Antworten "
         "gleichermaßen. Sollte nach jedem `s<` gesetzt werden -- fehlt es, erscheint die Warnung "
-        "`KZF152`."
+        "`KZF152`. Gehört ausschließlich in einen `A>`-Block, direkt hinter das zugehörige `s<`: "
+        "steht `ant<` vor dem ersten `s<` eines Segments oder hinter `S>`-/`U>`-Inhalt (bzw. nach "
+        "einem `|`-Spaltenwechsel), erscheint die Warnung `KZF154`."
     ),
     "kurzentwurf:line_breaks": (
         "Zeilenumbrüche funktionieren in allen Zellen wie im Arbeitsblatt: eine Folgezeile ohne "

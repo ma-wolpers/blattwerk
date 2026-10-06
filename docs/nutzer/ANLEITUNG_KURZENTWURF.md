@@ -21,21 +21,25 @@ Material:
 ---
 
 #einstieg t=10
-S> Aktivierung von Vorwissen und Zieltransparenz.
+S> Leitfrage präsentieren
 A>
-s< Erste Vermutungen formulieren.
-U> Plenum; Tafel
-ant< Typische Fehlannahme notieren.
-
----
-A>
-s< Schwerpunkt der Lernaktivitaet festhalten.
+s< formulieren erste Vermutungen zur Leitfrage.
+ant< - "Ich vermute, dass ..."
+      - "Das liegt bestimmt an ..."
+U> LSG; Tafel
 
 #erarbeitung t=20
-S> Leitfrage in Teams bearbeiten.
+S> Arbeitsauftrag erteilen
 A>
-s< Arbeitsphase mit Materialanalyse und Zwischenfeedback.
-U> Teamarbeit; Materialset A
+s< bearbeiten die Leitfrage mithilfe des Materials.
+ant< "Im Material steht, dass ..."
+U> GA; Arbeitsblatt eintragen
+
+---
+S> Zwischenergebnisse vergleichen lassen
+A>
+s< vergleichen ihre Ergebnisse mit einer Nachbargruppe.
+ant< "Wir haben das anders gelöst, weil ..."
 ```
 
 ## 2. Frontmatter/Identitäts-Metadaten
@@ -65,7 +69,7 @@ Innerhalb einer Phase gliedern Zeilenmarker den Inhalt in drei Spalten (Lernschr
 - **`A>`**: Schaltet die aktive Spalte auf Lernaktivitäten um, trägt aber selbst **keinen** Inhalt -- Inhalt direkt hinter `A>` auf derselben Zeile ist ungültig und löst `KZF150` aus. Der eigentliche Inhalt gehört auf eine folgende `s<`-Zeile.
 - **`s<`**: Lernaktivität der Lernenden -- der eigentliche Inhalt der Spalte Lernaktivitäten, folgt typischerweise auf `A>`. Inhalt in dieser Spalte vor dem ersten `s<` löst `KZF151` aus.
 - **`U>`**: Beginnt die Spalte Lernumgebung/Sozialform; Inhalt direkt hinter `U>`. Materialangaben (z. B. welches Arbeitsblatt verwendet wird) gehören strukturell ausschließlich hierhin -- keine andere Spalte ist dafür vorgesehen.
-- **`ant<`**: Markiert eine antizipierte Schüler:innen-Antwort/-Reaktion zum jeweiligen Lernschritt -- **nicht nur Fehlvorstellungen**, sondern gute, neutrale wie falsche erwartete Antworten gleichermaßen. Sollte nach jedem `s<` gesetzt werden -- fehlt es, erscheint die Warnung `KZF152`.
+- **`ant<`**: Markiert eine antizipierte Schüler:innen-Antwort/-Reaktion zum jeweiligen Lernschritt -- **nicht nur Fehlvorstellungen**, sondern gute, neutrale wie falsche erwartete Antworten gleichermaßen. Sollte nach jedem `s<` gesetzt werden -- fehlt es, erscheint die Warnung `KZF152`. Gehört ausschließlich in einen `A>`-Block, direkt hinter das zugehörige `s<`: steht `ant<` vor dem ersten `s<` eines Segments oder hinter `S>`-/`U>`-Inhalt (bzw. nach einem `|`-Spaltenwechsel), erscheint die Warnung `KZF154`.
 - **`ant>`**: **Kein** gültiger Alias von `ant<`, obwohl es vom Zeilenmarker-Muster erkannt wird -- führt immer zum Fehler `KZF153` ("Bitte ant< verwenden"). Nur `ant<` verwenden.
 
 ## 5. Legacy-Erkennungs-Felder (nicht aktiv verwenden)

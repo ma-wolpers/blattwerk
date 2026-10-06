@@ -144,19 +144,23 @@ def _build_kurzentwurf_template(preferences: Mapping[str, object]) -> str:
         "\n".join(metadata_lines)
         + "\n\n"
         + "#einstieg t=10\n"
-        + "S> Aktivierung von Vorwissen und Zieltransparenz.\n"
+        + "S> Leitfrage präsentieren\n"
         + "A>\n"
-        + "s< Erste Vermutungen formulieren.\n"
-        + "U> Plenum; Tafel\n"
-        + "ant< Typische Fehlannahme notieren.\n\n"
-        + "---\n"
-        + "A>\n"
-        + "s< Schwerpunkt der Lernaktivitaet festhalten.\n\n"
+        + "s< formulieren erste Vermutungen zur Leitfrage.\n"
+        + 'ant< - "Ich vermute, dass ..."\n'
+        + '      - "Das liegt bestimmt an ..."\n'
+        + "U> LSG; Tafel\n\n"
         + "#erarbeitung t=20\n"
-        + "S> Leitfrage in Teams bearbeiten.\n"
+        + "S> Arbeitsauftrag erteilen\n"
         + "A>\n"
-        + "s< Arbeitsphase mit Materialanalyse und Zwischenfeedback.\n"
-        + "U> Teamarbeit; Materialset A\n"
+        + "s< bearbeiten die Leitfrage mithilfe des Materials.\n"
+        + 'ant< "Im Material steht, dass ..."\n'
+        + "U> GA; Arbeitsblatt eintragen\n\n"
+        + "---\n"
+        + "S> Zwischenergebnisse vergleichen lassen\n"
+        + "A>\n"
+        + "s< vergleichen ihre Ergebnisse mit einer Nachbargruppe.\n"
+        + 'ant< "Wir haben das anders gelöst, weil ..."\n'
     )
 
 

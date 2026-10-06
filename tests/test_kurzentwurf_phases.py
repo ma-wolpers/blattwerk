@@ -117,3 +117,39 @@ def test_ant_gt_is_rejected_not_a_silent_alias_of_ant_lt():
     codes = [d.code for d in result.diagnostics]
     assert "KZF153" in codes
     assert result.document is None
+
+
+def _kzf154_lines(body: str) -> list[int]:
+    result = inspect_kurzentwerfer_text(_document_with_body(body))
+    return [d.line for d in result.diagnostics if d.code == "KZF154"]
+
+
+def test_ant_directly_after_s_in_a_block_is_not_flagged():
+    assert _kzf154_lines("S> x\nA>\ns< y\nant< z\nU> u") == []
+    assert _kzf154_lines("S> x\nA>\ns< y\nant< - z1\n      - z2\ns< y2\nant< z3\nU> u") == []
+
+
+def test_ant_after_s_or_u_column_triggers_kzf154():
+    """`ant<` gehört ausschließlich in den A>-Block, nicht hinter `S>`- oder `U>`-Inhalt."""
+    assert _kzf154_lines("S> x\nA>\ns< y\nU> u\nant< z")
+    assert _kzf154_lines("S> x\nA>\ns< y\n|\nant< z")
+    assert _kzf154_lines("S> x\nant< z\nA>\ns< y\nU> u")
+
+
+def test_ant_before_any_s_marker_triggers_kzf154():
+    assert _kzf154_lines("S> x\nA>\nant< z\ns< y\nU> u")
+
+
+def test_ant_after_returning_to_a_block_is_not_flagged():
+    """Ein erneutes `A>` nach `U>` macht die Lernaktivitäten wieder zur aktiven Spalte."""
+    assert _kzf154_lines("S> x\nA>\ns< y\nU> u\nA>\nant< z") == []
+
+
+def test_kzf154_is_an_ackable_warning():
+    result = inspect_kurzentwerfer_text(_document_with_body("S> x\nA>\ns< y\nU> u\nant< z"))
+    diagnostics = [d for d in result.diagnostics if d.code == "KZF154"]
+    assert len(diagnostics) == 1
+    assert diagnostics[0].severity == "warning"
+    assert diagnostics[0].region_id
+    assert diagnostics[0].anchor == "ant< z"
+    assert result.document is not None

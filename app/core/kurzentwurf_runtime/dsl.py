@@ -14,7 +14,13 @@ from dataclasses import dataclass
 
 from .dsl_frontmatter import _META_RE, _canonical_meta_key, _parse_front_matter, _strip_optional_quotes
 from .dsl_phases import _PhaseBuilder, _build_phase_from_header, _finalize_phase
-from .dsl_segments import _MARKER_RE, _SegmentBuilder, _finalize_segment, _is_column_switch_line
+from .dsl_segments import (
+    _MARKER_RE,
+    _SegmentBuilder,
+    _finalize_segment,
+    _is_column_switch_line,
+    _misplaced_ant_diagnostic,
+)
 from .model import Diagnostic, RawPhaseBlock
 
 
@@ -159,6 +165,10 @@ def parse_kurzentwerfer_text(source: str) -> ParsedKurzentwurf:
                 )
 
             if marker == "ant<" or marker == "ant>":
+                # Placement check must run before set_marker switches the
+                # active column; ant> already raised KZF153 above.
+                if marker == "ant<" and segment_builder.ant_outside_activities():
+                    diagnostics.append(_misplaced_ant_diagnostic(phase_builder, stripped, line=line_index + 1))
                 segment_builder.active_column_key = "aktivitaeten"
                 segment_builder.has_ant_marker = True
                 segment_builder.set_marker("antizipiert", value, line=line_index + 1)
