@@ -50,7 +50,7 @@ _SAMPLE_MARKDOWN = """---
 Titel: Testfolien
 Fach: Mathematik
 Thema: PPTX-Extraktion
-mode: presentation
+document_type: presentation
 ---
 
 # Erste Folie
@@ -84,6 +84,7 @@ def rendered_presentation_html(tmp_path) -> Path:
     build_worksheet(
         str(md_path), str(html_path), page_format="presentation_16_9",
         **WorksheetDesignOptions("indigo", "segoe", "normal").as_kwargs(),
+        document_type="presentation",
     )
     return html_path
 
@@ -123,7 +124,7 @@ _MIXED_FORMATTING_MARKDOWN = """---
 Titel: Testfolien
 Fach: Mathematik
 Thema: PPTX-Inline-Formatierung
-mode: presentation
+document_type: presentation
 ---
 
 :::task title="Formatierter Text"
@@ -143,6 +144,7 @@ def rendered_mixed_formatting_html(tmp_path) -> Path:
     build_worksheet(
         str(md_path), str(html_path), page_format="presentation_16_9",
         **WorksheetDesignOptions("indigo", "segoe", "normal").as_kwargs(),
+        document_type="presentation",
     )
     return html_path
 
@@ -208,7 +210,7 @@ _MERGED_TABLE_MARKDOWN = """---
 Titel: Testfolien
 Fach: Mathematik
 Thema: PPTX-Tabelle
-mode: presentation
+document_type: presentation
 ---
 
 :::table
@@ -263,7 +265,7 @@ _CHROME_ONLY_MARKDOWN = """---
 Titel: Testfolien
 Fach: Mathematik
 Thema: PPTX-Chrome
-mode: presentation
+document_type: presentation
 ---
 
 # Erste Folie
@@ -285,6 +287,7 @@ def rendered_chrome_only_html(tmp_path) -> Path:
     build_worksheet(
         str(md_path), str(html_path), page_format="presentation_16_9",
         **WorksheetDesignOptions("indigo", "segoe", "normal").as_kwargs(),
+        document_type="presentation",
     )
     return html_path
 
@@ -327,7 +330,7 @@ _IMAGE_MARKDOWN = """---
 Titel: Testfolien
 Fach: Mathematik
 Thema: PPTX-Bild-Originalbytes
-mode: presentation
+document_type: presentation
 ---
 
 :::task title="Mit Bild"
@@ -348,6 +351,7 @@ def rendered_image_html(tmp_path) -> Path:
     build_worksheet(
         str(md_path), str(html_path), page_format="presentation_16_9",
         **WorksheetDesignOptions("indigo", "segoe", "normal").as_kwargs(),
+        document_type="presentation",
     )
     return html_path
 

@@ -27,7 +27,7 @@ Karten im Zweispalten-Layout werden ausschließlich über den Spalten-Container
 gesteuert (siehe `.help-cards-columns`), nicht über Card-Margin."""
 
 
-def collect_help_blocks(blocks, include_solutions=False, document_mode="worksheet"):
+def collect_help_blocks(blocks, include_solutions=False, document_type="worksheet"):
     """Extrahiert sichtbare Hilfeblöcke inkl. Metadaten in Dokumentreihenfolge."""
 
     collected = []
@@ -38,7 +38,7 @@ def collect_help_blocks(blocks, include_solutions=False, document_mode="workshee
             block_type,
             options,
             include_solutions,
-            document_mode=document_mode,
+            document_type=document_type,
         ):
             continue
 
@@ -58,14 +58,14 @@ def collect_labeled_help_blocks(
     meta,
     blocks,
     include_solutions=False,
-    document_mode="worksheet",
+    document_type="worksheet",
 ):
     """Extract visible help blocks and attach deterministic visible labels."""
 
     help_blocks = collect_help_blocks(
         blocks,
         include_solutions=include_solutions,
-        document_mode=document_mode,
+        document_type=document_type,
     )
     if not help_blocks:
         return []
@@ -136,7 +136,7 @@ def render_help_cards_html(
         meta,
         blocks,
         include_solutions=include_solutions,
-        document_mode="worksheet",
+        document_type="worksheet",
     )
     if not help_blocks:
         return ""

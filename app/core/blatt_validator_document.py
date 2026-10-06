@@ -32,13 +32,16 @@ from .blatt_validator_constants import (
 )
 from .blatt_validator_marker_syntax import _has_explicit_worksheet_marker_without_solution
 from .blatt_validator_region import compute_block_region_id
+from .document_type_registry import shows_empty_answer_hint
 from .blatt_validator_types import BuildDiagnostic
 from .blatt_validator_word_notes import validate_word_notes
 
 _FRONTMATTER_REGION_ID = "worksheet:frontmatter"
 from .blatt_validator_value_helpers import _get_matching_item_counts
 from .blatt_validator_yaml_entries import (
+    _validate_geometry_axis_dependent_sections,
     _validate_geometry_entry_fields,
+    _validate_geometry_shape_entries,
     _validate_payload_show_markers,
 )
 
@@ -52,7 +55,6 @@ from .blatt_validator_yaml_entries import (
 # löst dort keine Diagnose aus, bei `mode` dagegen schon -- eine echte,
 # vorbestehende Asymmetrie, kein neu eingeführtes Verhalten.
 _ENUM_FIELD_DIAGNOSTICS = {
-    "mode": {"code": "FM002", "severity": "warning", "skip_when_empty": False},
     "presentation_layout": {"code": "FM004", "severity": "error", "skip_when_empty": True},
     "Stufe": {"code": "FM007", "severity": "warning", "skip_when_empty": True},
 }
@@ -234,11 +236,18 @@ def _validate_selfcheck_options(index, block_type, options):
     return diagnostics
 
 
-def _validate_block_type_specifics(diagnostics, index, block_type, options, content, qrcode_url_value):
+def _validate_block_type_specifics(
+    diagnostics, index, block_type, options, content, qrcode_url_value, document_type=None
+):
     """Prüft block-typ-spezifische Invarianten nach der Options-Validierung.
 
     Liefert `True`, wenn `block_type` ein Antwort-Blocktyp ist (dann folgt
     im Orchestrator noch `_validate_yaml_answer_payload`), sonst `False`.
+
+    Args:
+        document_type: Dokumenttyp; bestimmt über die Registry-Capability
+            `empty_answer_hint`, ob leere Antwortblöcke (AN005) gemeldet werden
+            (in Klausuren nicht -- dort steht die Lösung in `:::solution`).
     """
     if block_type == "selfcheck":
         diagnostics.extend(_validate_selfcheck_options(index, block_type, options))
@@ -298,7 +307,7 @@ def _validate_block_type_specifics(diagnostics, index, block_type, options, cont
     if block_type not in ANSWER_BLOCK_TYPES:
         return False
 
-    if is_effectively_empty_answer_content(content):
+    if shows_empty_answer_hint(document_type) and is_effectively_empty_answer_content(content):
         diagnostics.append(
             BuildDiagnostic(
                 code="AN005",
@@ -402,6 +411,8 @@ def _validate_yaml_answer_payload(diagnostics, index, block_type, options, conte
         if isinstance(parsed, dict):
             _validate_payload_show_markers(diagnostics, index, answer_type, parsed, options)
             _validate_geometry_entry_fields(diagnostics, index, answer_type, parsed, options)
+            _validate_geometry_axis_dependent_sections(diagnostics, index, answer_type, parsed, options)
+            _validate_geometry_shape_entries(diagnostics, index, answer_type, parsed, options)
 
     if answer_type == "matching":
         first_count, second_count = _get_matching_item_counts(options, content)

@@ -105,7 +105,7 @@ def render_columns_container(
     columns_blocks,
     options,
     include_solutions,
-    document_mode="ws",
+    document_type="worksheet",
     printable_width_cm=18.0,
     printable_height_cm=None,
     cache=None,
@@ -125,7 +125,7 @@ def render_columns_container(
         template = auto_columns_template(
             columns_blocks,
             include_solutions,
-            document_mode=document_mode,
+            document_type=document_type,
         )
 
     if not template:
@@ -149,7 +149,7 @@ def render_columns_container(
                 runtime_options,
                 content,
                 include_solutions=include_solutions,
-                document_mode=document_mode,
+                document_type=document_type,
             )
             if rendered:
                 rendered_parts.append(rendered)
@@ -174,7 +174,7 @@ def render_columns_container(
 def render_body_with_columns(
     blocks,
     include_solutions,
-    document_mode="ws",
+    document_type="worksheet",
     printable_width_cm=18.0,
     printable_height_cm=None,
     cache=None,
@@ -225,7 +225,7 @@ def render_body_with_columns(
                     columns_blocks,
                     columns_options,
                     include_solutions,
-                    document_mode=document_mode,
+                    document_type=document_type,
                     printable_width_cm=printable_width_cm,
                     printable_height_cm=printable_height_cm,
                     cache=cache,
@@ -254,7 +254,7 @@ def render_body_with_columns(
             runtime_options,
             content,
             include_solutions=include_solutions,
-            document_mode=document_mode,
+            document_type=document_type,
         )
         if rendered:
             html_parts.append(rendered)
@@ -265,7 +265,7 @@ def render_body_with_columns(
                 columns_blocks,
                 columns_options,
                 include_solutions,
-                document_mode=document_mode,
+                document_type=document_type,
                 printable_width_cm=printable_width_cm,
             )
         )

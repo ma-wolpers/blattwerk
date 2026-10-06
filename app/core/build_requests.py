@@ -47,6 +47,7 @@ class WorksheetBuildRequest:
     presentation_ignore_framebreaks: bool = False
     diagnostics_out: list | None = None
     computation_cache: BlockComputationCache | None = None
+    document_type: str = "worksheet"
 
 
 @dataclass(frozen=True)
@@ -87,6 +88,7 @@ def build_worksheet_from_request(request: WorksheetBuildRequest):
         presentation_ignore_framebreaks=request.presentation_ignore_framebreaks,
         diagnostics_out=request.diagnostics_out,
         computation_cache=request.computation_cache,
+        document_type=request.document_type,
         **request.design.as_kwargs(),
     )
 

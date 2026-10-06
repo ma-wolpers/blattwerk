@@ -53,7 +53,7 @@ def _collect_block_marker_syntax_diagnostics(content_text, base_line=1):
         stripped_line = raw_line.strip()
 
         if block_stack and (
-            stripped_line in {"--", "--!", "-+", "--hf"}
+            stripped_line in {"--", "--!", "-+", "--hf", "--hm"}
             or stripped_line.startswith("--#")
             or stripped_line.startswith("-=")
         ):

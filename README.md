@@ -14,6 +14,7 @@ Blattwerk erzeugt aus strukturierten Markdown-Dateien druckfreundliche Arbeitsbl
 - Windows (die Startpfade hier sind Windows-orientiert)
 - Python 3.10+ (empfohlen 3.11+)
 - Internetzugang für die Erstinstallation der Pakete
+- **bw-gui als Nachbarordner**: `bw-gui` (https://github.com/ma-wolpers/bw-gui) muss direkt neben `blattwerk` liegen, z. B. `A:\Code\blattwerk` und `A:\Code\bw-gui`. Blattwerk lädt die GUI-Bibliothek immer aus `..\bw-gui\src` (kein Submodul, keine Versionsbindung – es gilt der aktuelle Stand von bw-gui).
 
 ## Installation (Ersteinrichtung)
 
@@ -98,7 +99,7 @@ Einstellungen aendern:
 
 ## Update auf neuem Rechner / nach frischem Clone
 
-1. Ordner kopieren/auschecken
+1. Ordner kopieren/auschecken – `blattwerk` **und** `bw-gui` nebeneinander (`git clone https://github.com/ma-wolpers/bw-gui`)
 2. Installation wie oben ausführen
 3. Start über `start-blattwerk.bat`
 

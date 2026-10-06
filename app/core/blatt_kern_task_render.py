@@ -13,7 +13,6 @@ from .blatt_kern_shared import (
     get_task_action_info,
     get_task_hint_info,
     get_work_info,
-    normalize_document_mode,
     normalize_markdown,
     should_render_block,
 )
@@ -22,6 +21,9 @@ from .answer_special_mindmap import render_mindmap_block
 from .answer_special_selfcheck import render_selfcheck_block
 from .answer_special_writebox import render_writebox_block
 from .blatt_kern_answer_dispatch import _render_answer_block
+from .document_type_registry import shows_work_hints
+from .operator_legend_parts import PART_END_HTML_KEY
+from .points_model import points_display
 from .qrcode_block import render_qrcode_block
 
 
@@ -117,7 +119,7 @@ def render_block(
     options,
     content,
     include_solutions=False,
-    document_mode="ws",
+    document_type="worksheet",
 ):
     """Rendert einen einzelnen Blocktyp nach HTML.
 
@@ -130,7 +132,7 @@ def render_block(
     """
 
     html = _render_block_body(
-        block_type, options, content, include_solutions=include_solutions, document_mode=document_mode
+        block_type, options, content, include_solutions=include_solutions, document_type=document_type
     )
     return _tag_root_element_with_block_type(html, block_type)
 
@@ -140,14 +142,14 @@ def _render_block_body(
     options,
     content,
     include_solutions=False,
-    document_mode="ws",
+    document_type="worksheet",
 ):
     """Rendert einen einzelnen Blocktyp nach HTML (ohne `data-block-type`-Tagging, siehe `render_block()`)."""
     if not should_render_block(
         block_type,
         options,
         include_solutions,
-        document_mode=document_mode,
+        document_type=document_type,
     ):
         return ""
 
@@ -170,6 +172,14 @@ def _render_block_body(
             "<div class='ab-vertical-space' aria-hidden='true' "
             f"style='height:{height_value};'></div>"
         )
+
+    if block_type == "aidsplit":
+        return _render_aid_part(options)
+
+    if block_type == "evaluation":
+        # Fertiges HTML aus `evaluation_table.annotate_evaluation_blocks` (braucht das ganze Dokument);
+        # ohne Annotation (z. B. in Präsentationen) rendert der Block nichts.
+        return str((options or {}).get("_evaluation_html") or "")
 
     if block_type in {"framebreak", "sectionmark", "slidechromeoff"}:
         return ""
@@ -194,7 +204,7 @@ def _render_block_body(
                 options,
                 normalized_content,
                 include_solutions=include_solutions,
-                document_mode=document_mode,
+                document_type=document_type,
             ),
             object_alignment,
         )
@@ -222,7 +232,7 @@ def _render_block_body(
                 normalized_content,
                 parent_work_info,
                 parent_action_info,
-                document_mode=document_mode,
+                document_type=document_type,
                 include_solutions=include_solutions,
             ),
             object_alignment,
@@ -290,8 +300,33 @@ def _render_symbol_span(symbol_info):
     return f"<span class='task-work-symbol {css_class}' title='{label}'>{symbol}</span>"
 
 
-def _should_show_work_hints(document_mode):
-    return normalize_document_mode(document_mode, default="ws") != "test"
+def _should_show_work_hints(document_type):
+    return shows_work_hints(document_type)
+
+
+AID_PART_LABELS = {"A": "Teil A – hilfsmittelfrei", "B": "Teil B – mit Hilfsmitteln"}
+
+
+def _render_aid_part(options) -> str:
+    """Teilüberschrift am Hilfsmittel-Trenner (nur mit Annotation aus `resolve_aid_split`).
+
+    Ohne Annotation (`.abw`, `.pbw` oder ungültiger Split) rendert `--hm` nichts.
+    Teil B -- und mit Deckblatt auch Teil A (`_aid_break`) -- beginnt mit dem
+    vorhandenen Pagebreak-Element, damit Vorschau, HTML, PDF und PNG dieselbe
+    Umbruchsemantik haben.
+    """
+    part = (options or {}).get("_aid_part")
+    if part not in AID_PART_LABELS:
+        return ""
+    heading = f"<h2 class='aid-part'>{AID_PART_LABELS[part]}</h2>"
+    # Operatorenliste von Teil A (nur `operator_legend_parts` setzt den Key): Ende von Teil A,
+    # also vor dem Umbruch zu Teil B.
+    part_end = str((options or {}).get(PART_END_HTML_KEY) or "")
+    if part == "B":
+        return part_end + "<div class='ab-pagebreak' aria-hidden='true'></div>" + heading
+    if (options or {}).get("_aid_break"):
+        return "<div class='ab-pagebreak' aria-hidden='true'></div>" + heading
+    return heading
 
 
 def _render_subtask_block(
@@ -302,7 +337,7 @@ def _render_subtask_block(
     content,
     parent_work_info,
     parent_action_info,
-    document_mode,
+    document_type,
     include_solutions,
 ):
     """Rendert eine einzelne Teilaufgabe innerhalb eines Task-Blocks."""
@@ -321,6 +356,7 @@ def _render_subtask_block(
 
     help_reference_text = (options.get("_help_reference_text") or "").strip()
     time_minutes = (options.get("time") or "").strip()
+    subtask_points = points_display(options)
 
     prefix_html = ""
     if total_subtasks > 1:
@@ -331,7 +367,7 @@ def _render_subtask_block(
     symbols_html = ""
     if subtask_action_info or subtask_work_info:
         symbols = _render_symbol_span(subtask_action_info)
-        if _should_show_work_hints(document_mode):
+        if _should_show_work_hints(document_type):
             symbols += _render_symbol_span(subtask_work_info)
         if symbols:
             symbols_html = f"<span class='subtask-symbols'>{symbols}</span>"
@@ -347,6 +383,8 @@ def _render_subtask_block(
         subtask_meta_parts.append(
             f"<span class='task-help-reference subtask-help-reference'>{help_reference_text}</span>"
         )
+    if subtask_points:
+        subtask_meta_parts.append(f"<span class='task-points subtask-points'>{escape(subtask_points)} P</span>")
     if time_minutes:
         subtask_meta_parts.append(
             f"<span class='subtask-time'>{time_minutes} min</span>"
@@ -384,7 +422,7 @@ def _render_task_block(
     options,
     normalized_content,
     include_solutions,
-    document_mode,
+    document_type,
 ):
     """Rendert Aufgabenkopf und Aufgabeninhalt.
 
@@ -397,7 +435,7 @@ def _render_task_block(
     die Bezeichnung bleibt als `title`-Attribut des Icons erhalten.
     """
     task_id = options.get("_auto_number")
-    points = options.get("points")
+    points = points_display(options)
     time_minutes = (options.get("time") or "").strip()
     task_work_info = get_work_info(options.get("work", "single"))
     task_action_info = get_task_action_info(options.get("action"))
@@ -407,7 +445,7 @@ def _render_task_block(
 
     margin_icons = _render_symbol_span(task_action_info)
     margin_icons += _render_symbol_span(task_hint_info)
-    if _should_show_work_hints(document_mode):
+    if _should_show_work_hints(document_type):
         margin_icons += _render_symbol_span(task_work_info)
     margin_icons_html = (
         f"<div class='task-margin-icons'>{margin_icons}</div>" if margin_icons else ""

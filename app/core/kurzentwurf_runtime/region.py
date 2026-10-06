@@ -10,6 +10,10 @@ from __future__ import annotations
 
 import hashlib
 
+KURZENTWURF_DOCUMENT_REGION_ID = "kurzentwurf:document"
+"""Region for diagnostics that concern the whole document, not one phase
+(e.g. the formula/internet notice `KZF160`)."""
+
 
 def compute_phase_region_id(phase, duration_minutes, start_time) -> str:
     """Region for a diagnostic anchored to one phase block's own header.

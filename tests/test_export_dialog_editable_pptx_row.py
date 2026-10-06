@@ -41,7 +41,7 @@ def _build_dialog(tk_root, *, editable_pptx_available: bool, monkeypatch):
     from bw_gui.runtime import ui
 
     monkeypatch.setattr(
-        "app.ui.export_dialog.is_editable_pptx_available", lambda: editable_pptx_available
+        "app.ui.export_dialog_presentation.is_editable_pptx_available", lambda: editable_pptx_available
     )
 
     dialog = object.__new__(PresentationExportDialog)

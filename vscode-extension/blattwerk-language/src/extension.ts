@@ -82,7 +82,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
   context.subscriptions.push(
     vscode.languages.registerFoldingRangeProvider(
-      [{ language: "markdown", scheme: "file" }],
+      [{ language: "blattwerk", scheme: "file" }],
       {
         provideFoldingRanges(document: vscode.TextDocument): vscode.FoldingRange[] {
           return computeFoldingRanges(document);
@@ -101,7 +101,7 @@ export function deactivate(): void {
 }
 
 function shouldValidateDocument(document: vscode.TextDocument): boolean {
-  if (document.languageId !== "markdown") {
+  if (document.languageId !== "blattwerk") {
     return false;
   }
 
@@ -113,7 +113,7 @@ function shouldValidateDocument(document: vscode.TextDocument): boolean {
 
   const text = document.getText();
   const hasFrontmatter = text.startsWith("---\n") || text.startsWith("---\r\n");
-  const hasDirective = /(^|\n)\s*:::(material|info|task|subtask|lines|grid|geometry|dots|space|table|numberline|mc|cloze|matching|wordsearch|crossword|ordering|checkgrid|mindmap|selfcheck|writebox|solution|columns|nextcol|endcolumns|help|hilfe|qrcode|pagebreak|framebreak|slidechromeoff|sectionmark|vspacer)\b/m.test(text);
+  const hasDirective = /(^|\n)\s*:::(material|info|task|subtask|lines|grid|geometry|dots|space|table|numberline|mc|cloze|matching|wordsearch|crossword|ordering|checkgrid|mindmap|selfcheck|writebox|solution|columns|nextcol|endcolumns|help|hilfe|qrcode|pagebreak|framebreak|slidechromeoff|sectionmark|vspacer|aidsplit|evaluation)\b/m.test(text);
   return hasFrontmatter || hasDirective;
 }
 

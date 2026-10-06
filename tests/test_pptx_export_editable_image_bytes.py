@@ -9,7 +9,10 @@ import base64
 
 import pytest
 
-from app.core.blatt_kern_pptx_export_editable import _fetch_image_src, _resolve_image_bytes
+# Playwright ist eine optionale Abhaengigkeit (requirements-editable-pptx.txt).
+pytest.importorskip("playwright")
+
+from app.core.blatt_kern_pptx_export_editable import _fetch_image_src, _resolve_image_bytes  # noqa: E402
 
 _ONE_PX_PNG = (
     b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01"

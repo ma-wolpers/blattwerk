@@ -115,6 +115,20 @@ pre code {
     height: 0;
 }
 
+.evaluation { margin: 0.6em 0; break-inside: avoid; }
+.evaluation-title, .evaluation-group-title { font-weight: 600; margin: 0.2em 0; }
+.evaluation-table { border-collapse: collapse; width: 100%; }
+.evaluation-table th, .evaluation-table td { border: 1px solid currentColor; padding: 0.2em 0.4em; text-align: center; min-width: 2.2em; }
+.evaluation-table tr:last-child td { height: 1.6em; }
+.evaluation-footnote, .evaluation-grand-total { font-size: 0.85em; margin-top: 0.2em; }
+
+.aid-part {
+    font-size: 1.15em;
+    margin: 0.4em 0 0.6em;
+    border-bottom: 1px solid currentColor;
+    padding-bottom: 0.15em;
+}
+
 .ab-vertical-space {
     width: 100%;
     display: block;
@@ -933,6 +947,11 @@ h1 {
     stroke-dasharray: 2 2;
 }
 
+.grid-background-dot {
+    fill: var(--grid-line-color);
+    stroke: none;
+}
+
 .grid-axis {
     stroke: #000;
     stroke-width: 0.9;
@@ -1106,6 +1125,83 @@ h1 {
 }
 
 .grid-function-label.grid-mode-solution {
+    fill: var(--solution-accent-strong, #205840);
+}
+
+.grid-polygon {
+    fill: none;
+    stroke: var(--theme-accent-main);
+    stroke-width: 1.1;
+    vector-effect: non-scaling-stroke;
+}
+
+.grid-polygon.grid-mode-worksheet {
+    stroke: var(--theme-accent-secondary);
+}
+
+.grid-polygon.grid-mode-solution {
+    stroke: var(--solution-accent-strong, #205840);
+}
+
+.grid-polygon-label {
+    fill: var(--theme-accent-main);
+    font-size: 0.60px;
+    font-weight: 600;
+    text-anchor: middle;
+    dominant-baseline: middle;
+}
+
+.grid-polygon-label.grid-mode-worksheet {
+    fill: var(--theme-accent-secondary);
+}
+
+.grid-polygon-label.grid-mode-solution {
+    fill: var(--solution-accent-strong, #205840);
+}
+
+.grid-circle {
+    fill: none;
+    stroke: var(--theme-accent-main);
+    stroke-width: 1.1;
+    vector-effect: non-scaling-stroke;
+}
+
+.grid-circle.grid-mode-worksheet {
+    stroke: var(--theme-accent-secondary);
+}
+
+.grid-circle.grid-mode-solution {
+    stroke: var(--solution-accent-strong, #205840);
+}
+
+.grid-arc {
+    fill: none;
+    stroke: var(--theme-accent-main);
+    stroke-width: 1.1;
+    vector-effect: non-scaling-stroke;
+}
+
+.grid-arc.grid-mode-worksheet {
+    stroke: var(--theme-accent-secondary);
+}
+
+.grid-arc.grid-mode-solution {
+    stroke: var(--solution-accent-strong, #205840);
+}
+
+.grid-circle-label {
+    fill: var(--theme-accent-main);
+    font-size: 0.60px;
+    font-weight: 600;
+    text-anchor: middle;
+    dominant-baseline: middle;
+}
+
+.grid-circle-label.grid-mode-worksheet {
+    fill: var(--theme-accent-secondary);
+}
+
+.grid-circle-label.grid-mode-solution {
     fill: var(--solution-accent-strong, #205840);
 }
 
@@ -1932,6 +2028,18 @@ h1 {
 .operator-legend-key {
     width: 18%;
     font-weight: 700;
+    overflow-wrap: break-word;
+}
+
+.operator-legend-block {
+    break-inside: avoid-page;
+    page-break-inside: avoid;
+}
+
+.operator-legend-probe {
+    display: block;
+    height: 1px;
+    overflow: hidden;
 }
 
 .operator-legend-definition {

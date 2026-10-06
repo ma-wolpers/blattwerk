@@ -212,8 +212,8 @@ def test_option_value_suggestions_carry_detail():
 
 
 def test_frontmatter_value_suggestions_carry_detail():
-    text = "---\nTitel: T\nmode: "
-    editor = _DummyContextEditor(text, cursor_line=3, cursor_col=len("mode: "))
+    text = "---\nTitel: T\ndocument_type: "
+    editor = _DummyContextEditor(text, cursor_line=3, cursor_col=len("document_type: "))
 
     context = editor._collect_editor_completion_context(auto=False)
 

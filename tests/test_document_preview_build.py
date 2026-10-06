@@ -3,7 +3,7 @@ from pathlib import Path
 from app.core.blatt_validator import BuildDiagnostic
 from app.core.build_requests import WorksheetDesignOptions
 from app.core.document_preview_build import build_preview_images_for_document
-from app.core.document_types import DOCUMENT_TYPE_KURZENTWURF, DOCUMENT_TYPE_WORKSHEET
+from app.core.document_type_registry import DOCUMENT_TYPE_KURZENTWURF, DOCUMENT_TYPE_WORKSHEET
 
 
 def test_preview_dispatch_uses_worksheet_builder(monkeypatch, tmp_path):

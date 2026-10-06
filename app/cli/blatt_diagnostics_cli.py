@@ -7,7 +7,8 @@ import json
 import sys
 from pathlib import Path
 
-from app.core.blatt_validator import has_blocking_diagnostics, inspect_markdown_document
+from app.core.blatt_validator import has_blocking_diagnostics
+from app.core.document_diagnostics import inspect_document_path
 from app.core.blatt_kern_shared import build_block_index_line_map
 
 
@@ -31,7 +32,8 @@ def _is_blocking_mode(diagnostics, mode: str) -> bool:
 
 def _diagnostics_json(file_path: Path, mode: str) -> dict:
     text = file_path.read_text(encoding="utf-8")
-    inspected = inspect_markdown_document(file_path)
+    # Typ aus der Dateiendung (I1); unbekannte Endung -> ValueError -> JSON-Fehler.
+    inspected = inspect_document_path(file_path)
     index_line_map = build_block_index_line_map(text)
 
     diagnostics = []
@@ -72,7 +74,7 @@ def main() -> int:
         prog="blattwerk-diagnostics",
         description="Emit Blattwerk validation diagnostics as JSON.",
     )
-    parser.add_argument("--file", required=True, help="Path to markdown file")
+    parser.add_argument("--file", required=True, help="Path to a Blattwerk (.abw/.pbw/.kbw/.ebw) or .md file")
     parser.add_argument(
         "--pretty",
         action="store_true",

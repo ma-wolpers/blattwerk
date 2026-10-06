@@ -4,6 +4,8 @@ import re
 from html import escape
 
 from ..inline_markup import render_inline_markup
+from .cell_text import label_block, label_entries, strip_hard_break
+from .math_support import MATHJAX_INLINE_HEAD_HTML
 from .model import KurzentwurfDocument, KurzentwurfPhaseBlock, KurzentwurfSegment
 
 _ORDERED_DIGIT_RE = re.compile(r"^\d+[.)]\s+(.+)$")
@@ -102,6 +104,7 @@ def render_document_html(
 <head>
   <meta charset=\"utf-8\" />
   <title>{escape(document.title)}</title>
+  {MATHJAX_INLINE_HEAD_HTML}
   <style>
     :root {{
       --phase-row-gap-px: {phase_row_spacing_px:d}px;
@@ -484,47 +487,14 @@ def _activity_cell_text(
     s_marker_label: str,
     ant_marker_label: str,
 ) -> str:
-    base = _with_marker_label(str(segment.aktivitaeten or "").strip(), s_marker_label)
+    base = label_entries(str(segment.aktivitaeten or "").strip(), s_marker_label)
     antizipiert = str(segment.antizipiert or "").strip()
     if not antizipiert:
         return base
-    antizipiert_line = _with_marker_label_single_or_block(antizipiert, ant_marker_label)
+    antizipiert_line = label_block(antizipiert, ant_marker_label)
     if not base:
         return antizipiert_line
     return f"{base}\n\n{antizipiert_line}"
-
-
-def _with_marker_label(text: str, marker_label: str) -> str:
-    content = str(text or "").strip()
-    if not content:
-        return ""
-
-    label = str(marker_label or "").strip()
-    if not label:
-        return content
-
-    lines = [line.strip() for line in content.splitlines() if line.strip()]
-    if not lines:
-        return ""
-
-    return "\n".join(f"**{label}** {line}" for line in lines)
-
-
-def _with_marker_label_single_or_block(text: str, marker_label: str) -> str:
-    content = str(text or "").strip()
-    if not content:
-        return ""
-
-    label = str(marker_label or "").strip()
-    if not label:
-        return content
-
-    lines = [line.strip() for line in content.splitlines() if line.strip()]
-    if not lines:
-        return ""
-    if len(lines) == 1:
-        return f"**{label}** {lines[0]}"
-    return f"**{label}**\n" + "\n".join(lines)
 
 
 def _segment_cell_classes(rowspan: int, *extra_classes: str) -> str:
@@ -626,9 +596,9 @@ def _render_text(text: str) -> str:
         if not paragraph_lines:
             return
         rendered_lines = [
-            _render_inline_markup(line.strip())
+            _render_inline_markup(strip_hard_break(line))
             for line in paragraph_lines
-            if line.strip()
+            if strip_hard_break(line)
         ]
         if rendered_lines:
             blocks.append(f"<p class=\"cell-paragraph\">{'<br>'.join(rendered_lines)}</p>")
@@ -638,9 +608,9 @@ def _render_text(text: str) -> str:
         if not list_items:
             return
         items_html = "".join(
-            f"<li>{_render_inline_markup(item)}</li>"
+            f"<li>{_render_inline_markup(strip_hard_break(item))}</li>"
             for item in list_items
-            if item.strip()
+            if strip_hard_break(item)
         )
         if items_html:
             if list_ordered_type is None:

@@ -156,7 +156,7 @@ def test_geometry_example_in_generated_guide_actually_validates_and_renders():
     """
     catalog = collect_markdown_conventions()
     guide_text = guide_generator.render_worksheet_presentation_guide(catalog)
-    block_markdown = _extract_fenced_markdown_block(guide_text, ":::geometry rows=20")
+    block_markdown = _extract_fenced_markdown_block(guide_text, ":::geometry width=20")
 
     document = "---\nTitel: T\nFach: M\nThema: X\n---\n" + block_markdown + "\n"
     result = inspect_markdown_text(document)
@@ -168,7 +168,7 @@ def test_geometry_example_in_generated_guide_actually_validates_and_renders():
     assert 'origin="10,10"' in header_line
 
     svg = render_geometry_answer(
-        {"rows": "20", "cols": "20", "axis": "true", "origin": "10,10"},
+        {"width": "20", "height": "20", "axis": "true", "origin": "10,10"},
         block_content,
         True,
         True,

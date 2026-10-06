@@ -10,7 +10,7 @@ def _write_markdown(path: Path, body: str) -> Path:
 
 def test_diagnostics_json_sets_blocking_in_strict_mode(tmp_path):
     md_file = _write_markdown(
-        tmp_path / "strict.md",
+        tmp_path / "strict.abw",
         "---\nTitel: T\nFach: M\nThema: X\n---\n:::lines\n\n:::\n",
     )
 
@@ -22,7 +22,7 @@ def test_diagnostics_json_sets_blocking_in_strict_mode(tmp_path):
 
 def test_diagnostics_json_standard_mode_keeps_non_blocking_warning(tmp_path):
     md_file = _write_markdown(
-        tmp_path / "standard.md",
+        tmp_path / "standard.abw",
         "---\nTitel: T\nFach: M\nThema: X\n---\n:::lines\n\n:::\n",
     )
 
@@ -34,7 +34,7 @@ def test_diagnostics_json_standard_mode_keeps_non_blocking_warning(tmp_path):
 
 def test_diagnostics_json_uses_absolute_line_for_orphan_closing_marker(tmp_path):
     md_file = _write_markdown(
-        tmp_path / "line_numbers.md",
+        tmp_path / "line_numbers.abw",
         "---\nTitel: T\nFach: M\nThema: X\n---\n:::\n",
     )
 

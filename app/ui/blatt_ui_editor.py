@@ -114,31 +114,10 @@ class BlattwerkAppEditorMixin:
             self.editor_widget.bind("<KeyPress-grave>", self._on_editor_backtick_key)
 
         self._build_editor_diagnostics_panel(parent)
+        if hasattr(self, "_build_exam_overview_panel"):
+            self._build_exam_overview_panel(parent)
 
-        outline_frame = widgets.LabelFrame(parent, text="Struktur")
-        outline_frame.pack(fill="x", padx=8, pady=(0, 8))
-        outline_frame.columnconfigure(0, weight=1)
-        if not bool(preferences.get("outline_visible_on_start", True)):
-            outline_frame.pack_forget()
-
-        self.editor_outline_listbox = ui.Listbox(
-            outline_frame,
-            activestyle="none",
-            borderwidth=0,
-            highlightthickness=0,
-            height=6,
-        )
-        self.editor_outline_listbox.grid(row=0, column=0, sticky="nsew", padx=(8, 0), pady=(6, 8))
-        self.editor_outline_listbox.bind("<<ListboxSelect>>", self._on_editor_outline_selected)
-        self.editor_outline_listbox.bind("<ButtonRelease-1>", self._on_editor_outline_click)
-
-        outline_scrollbar = widgets.Scrollbar(
-            outline_frame,
-            orient="vertical",
-            command=self.editor_outline_listbox.yview,
-        )
-        outline_scrollbar.grid(row=0, column=1, sticky="ns", padx=(0, 8), pady=(6, 8))
-        self.editor_outline_listbox.configure(yscrollcommand=outline_scrollbar.set)
+        self._build_editor_outline_panel(parent, preferences)
 
         self._configure_editor_diagnostic_tags()
         self._configure_editor_syntax_tags()
@@ -575,8 +554,11 @@ class BlattwerkAppEditorMixin:
             return
 
         self.editor_widget.edit_modified(False)
+        became_dirty = not self._editor_has_unsaved_changes
         self._editor_has_unsaved_changes = True
         self.status_var.set("Ungespeichert")
+        if became_dirty and hasattr(self, "_refresh_migration_bar"):
+            self._refresh_migration_bar()
         self._queue_editor_highlighting()
         self._queue_editor_diagnostics()
         self._queue_editor_outline()
@@ -597,6 +579,13 @@ class BlattwerkAppEditorMixin:
 
         input_path = self._validate_input()
         if input_path is None:
+            return
+
+        if self._requires_markdown_save_as(input_path):
+            # Nie unter einer unbekannten Endung als Markdown speichern (I1): die
+            # Originaldatei bleibt unverändert, gespeichert wird nur per Speichern-unter als .md.
+            self._editor_has_unsaved_changes = True
+            self._prompt_markdown_save_as_once(input_path)
             return
 
         content = self.editor_widget.get("1.0", "end-1c")
@@ -629,6 +618,8 @@ class BlattwerkAppEditorMixin:
             self._editor_has_unsaved_changes = False
             self._update_editor_source_snapshot(input_path)
             self.status_var.set("Gespeichert")
+            if hasattr(self, "_refresh_migration_bar"):
+                self._refresh_migration_bar()
             self._queue_editor_highlighting(immediate=True)
             self._queue_editor_diagnostics(immediate=True)
             self._queue_editor_outline(immediate=True)

@@ -35,7 +35,7 @@ Quellen im Einzelnen:
   Anzeigename), Zeilenmarker und Identitäts-Metadaten-Keys. `validator.py`
   bezieht seine `_PHASE_LOOKUP`/`_OPTIONAL_TIME_PHASES` ebenfalls aus
   `PHASE_SPECS` -- eine einzige Quelle für Hashtag-Zuordnung.
-- `document_types.py` (`KURZENTWURF_LEGACY_DETECTION_SUPPORT_KEYS`): Keys,
+- `migration/kurzentwurf_signals.py` (`KURZENTWURF_LEGACY_DETECTION_SUPPORT_KEYS`): Keys,
   die **nur** zur Alt-Erkennung beitragen, nicht zur funktionalen DSL
   gehören -- werden deshalb separat als `legacy_detection_only_keys`
   geführt, nicht mit den echten Identitäts-Keys vermischt.
@@ -67,7 +67,7 @@ from .blatt_validator_constants import (
     BlockOptionSpec,
     FrontmatterFieldSpec,
 )
-from .document_types import KURZENTWURF_LEGACY_DETECTION_SUPPORT_KEYS
+from .migration.kurzentwurf_signals import KURZENTWURF_LEGACY_DETECTION_SUPPORT_KEYS
 from .inline_markup.syntax import MARKER_SPECS, MarkerSpec
 from .kurzentwurf_runtime.dsl_frontmatter import START_KEYS, SUBTITLE_KEYS, TITLE_KEYS
 from .kurzentwurf_runtime.model import ALLOWED_PHASES, LINE_MARKER_SPECS, PHASE_SPECS, LineMarkerSpec, PhaseSpec
@@ -124,7 +124,7 @@ class KurzentwurfSpec:
     `START_KEYS`, `kurzentwurf_runtime/dsl_frontmatter.py`).
     `legacy_detection_only_keys` werden dagegen von `kurzentwurf_runtime`
     nirgends gelesen/gerendert -- reine Heuristik zur automatischen
-    Dokumenttyp-Erkennung alter Dokumente (`document_types.py`). Diese
+    Typerkennung alter `.md`-Dateien in der Migration (`migration/kurzentwurf_signals.py`). Diese
     Trennung ist bewusst, damit die generierte Anleitung die zweite
     Gruppe nicht fälschlich als aktive DSL-Felder bewirbt.
     """

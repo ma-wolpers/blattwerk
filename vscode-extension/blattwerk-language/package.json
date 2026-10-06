@@ -1,8 +1,8 @@
 {
   "name": "blattwerk-language",
   "displayName": "Blattwerk Language Tools",
-  "description": "Syntax highlighting, snippets, folding and diagnostics for Blattwerk markdown.",
-  "version": "0.3.1",
+  "description": "Syntax highlighting, snippets, folding and diagnostics for Blattwerk documents (.abw, .pbw, .kbw, .ebw).",
+  "version": "0.4.0",
   "publisher": "blattwerk",
   "repository": {
     "type": "git",
@@ -16,7 +16,7 @@
     "Linters"
   ],
   "activationEvents": [
-    "onLanguage:markdown"
+    "onLanguage:blattwerk"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -32,7 +32,7 @@
         "blattwerk.diagnostics.enable": {
           "type": "boolean",
           "default": true,
-          "description": "Enable Blattwerk diagnostics for markdown documents."
+          "description": "Enable Blattwerk diagnostics for Blattwerk documents (.abw, .pbw, .kbw, .ebw)."
         },
         "blattwerk.diagnostics.pythonCommand": {
           "type": "string",
@@ -56,17 +56,38 @@
     },
     "grammars": [
       {
+        "language": "blattwerk",
+        "scopeName": "text.html.markdown.blattwerk",
+        "path": "./syntaxes/blattwerk-base.tmLanguage.json"
+      },
+      {
         "path": "./syntaxes/blattwerk-injection.tmLanguage.json",
         "scopeName": "blattwerk.markdown.injection",
         "injectTo": [
-          "text.html.markdown"
+          "text.html.markdown.blattwerk"
         ]
       }
     ],
     "snippets": [
       {
-        "language": "markdown",
+        "language": "blattwerk",
         "path": "./snippets/blattwerk.code-snippets"
+      }
+    ],
+    "languages": [
+      {
+        "id": "blattwerk",
+        "aliases": [
+          "Blattwerk",
+          "blattwerk"
+        ],
+        "extensions": [
+          ".abw",
+          ".pbw",
+          ".kbw",
+          ".ebw"
+        ],
+        "configuration": "./language-configuration.json"
       }
     ]
   },

@@ -1,0 +1,11 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Blattwerk",
+  "scopeName": "text.html.markdown.blattwerk",
+  "comment": "Basis: Markdown-Grammatik; die Blattwerk-Syntax kommt per Injection (blattwerk-injection.tmLanguage.json) nur in diese Sprache, nicht in schlichtes .md.",
+  "patterns": [
+    {
+      "include": "text.html.markdown"
+    }
+  ]
+}

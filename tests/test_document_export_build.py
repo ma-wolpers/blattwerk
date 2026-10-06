@@ -10,7 +10,7 @@ from app.core.document_export_build import (
     export_document_png,
     export_document_png_zip,
 )
-from app.core.document_types import DOCUMENT_TYPE_KURZENTWURF, DOCUMENT_TYPE_WORKSHEET
+from app.core.document_type_registry import DOCUMENT_TYPE_KURZENTWURF, DOCUMENT_TYPE_WORKSHEET
 
 
 def _worksheet_request(tmp_path, diagnostics_out=None):

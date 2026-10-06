@@ -21,7 +21,7 @@ So vermeiden wir Klebercode und Verwirrung.
   - Das ist der Programmkern.
   - Hier werden fachliche Entscheidungen getroffen.
   - Parse, Validate, Render und Build passieren hier.
-  - Dokumenttyp-Routing fuer Arbeitsblatt, Praesentation und Kurzentwurf passiert ebenfalls hier.
+  - Dokumenttyp-Routing fuer Arbeitsblatt, Praesentation, Klausur, Kurzentwurf und schlichtes Markdown passiert ebenfalls hier.
   - Ein gemeinsamer Cache (`block_computation_cache.py`) sorgt dafuer, dass teure Blockberechnungen (z. B. ein Kreuzworträtsel-Raster) nicht doppelt gerechnet werden, wenn Validate und Render kurz hintereinander laufen.
   - `operator_legend.py` weiss als einzige Stelle, was ein `!!Operator!!`-Marker fachlich bedeutet (Fach-Operatorenliste, Stufen-Verfuegbarkeit) und versorgt Validierung, Arbeitsblatt-Legende und Editor-Autocomplete aus denselben Daten.
 
@@ -63,6 +63,24 @@ So vermeiden wir Klebercode und Verwirrung.
 
 - `app/cli`
   - Das ist ein Adapter für Werkzeuge wie die Diagnostik-CLI.
+
+## Feste Regeln fuer Dokumente
+
+- Welcher Dokumenttyp eine Datei ist, steht nur in der Dateiendung: `.abw` Arbeitsblatt, `.pbw` Praesentation, `.kbw` Klausur, `.ebw` Kurzentwurf, `.md` schlichtes Markdown. Der Inhalt entscheidet das nie.
+- Der Eintrag `document_type` im Kopf ist nur eine Kontrolle. Passt er nicht zur Endung, gibt es eine Warnung, aber es gilt die Endung.
+- Ein Feld `mode` gibt es nicht mehr. Ob etwas als Folien gezeigt wird oder ohne Sozialform-Symbole, sagt die Typbeschreibung in `document_type_registry.py`. Ob die Loesung sichtbar ist, waehlt man in Vorschau und Export.
+- Bei einer unbekannten Endung fragt Blattwerk, ob es die Datei als Markdown lesen soll. Gespeichert wird dann nur eine neue `.md`-Datei.
+- `.md`-Dateien werden als normales Markdown gezeigt (mit Tabellen, Code und Formeln), Blattwerk-Bloecke darin nicht.
+- Wo das Frontmatter (der `---`-Kopf mit `Titel`, `Fach` usw.) anfaengt und aufhoert, entscheidet nur `app/core/frontmatter.py`. Die erste Zeile muss genau `---` sein, Schluss ist die naechste Zeile `---` oder `...`. Ein `---` mitten in einer Zeile beendet den Kopf nicht.
+- Wer Frontmatter-Eintraege aendern will (z. B. spaeter die Migration oder Schnellkorrekturen), benutzt nur `app/core/frontmatter_edit.py`. Es aendert nur die betroffenen Zeilen und prueft danach, dass alles andere Zeichen fuer Zeichen gleich geblieben ist. Ist das nicht sicher moeglich, bricht es ab, statt etwas kaputt zu machen.
+- Der Kopf von Kurzentwuerfen hat einen eigenen, toleranten Leser und ist davon ausgenommen.
+
+## Umstellung alter `.md`-Dateien (Migration)
+
+- `app/core/migration/` stellt alte Blattwerk-Dateien mit Endung `.md` auf die neuen Endungen um. Es migriert nur Dateien, deren Typ eindeutig erkennbar ist; alles Unklare oder Widersprüchliche bleibt liegen und wird gemeldet.
+- Zuerst wird nur geplant (Dry-Run). Erst ein zweiter Aufruf führt genau diesen Plan aus.
+- Jede Datei wird vorher gesichert, das Ziel wird nie überschrieben, jeder Schritt wird in einem Journal festgehalten. Bricht etwas ab, lässt sich der Lauf fortsetzen oder rückgängig machen.
+- Während einer Migration startet Blattwerk nicht, und während Blattwerk läuft, startet keine Migration.
 
 ## Was heißt Programmkern konkret?
 

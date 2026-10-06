@@ -13,16 +13,44 @@ Installation/Setup steht bewusst in `README.md`.
 - **Dokument-Tabs**: Jede geöffnete Datei ist ein Tab. Bei vielen Tabs scrollt die Leiste horizontal (Scrollleiste darunter oder Mausrad über der Leiste); der Schließen-Button (×) rechts davon schließt den aktiven Tab und bleibt immer sichtbar.
 - **Fenster**: Blattwerk startet maximiert. Ist „Fenstergeometrie merken" aktiv und eine Größe gespeichert, öffnet es stattdessen in dieser Größe.
 
+## 1b) Dokumenttypen und Dateiendungen
+
+Der Typ eines Dokuments steckt in seiner Dateiendung:
+
+| Endung | Typ | Besonderheit |
+|---|---|---|
+| `.abw` | Arbeitsblatt | Arbeitsblatt- und Lösungsfassung |
+| `.pbw` | Präsentation | Folien, keine Lösungsfassung |
+| `.kbw` | Klausur | wie Arbeitsblatt, aber ohne Sozialform-Symbole |
+| `.ebw` | Kurzentwurf | Unterrichtsentwurf mit eigener Phasen-Schreibweise |
+| `.md` | schlichtes Markdown | Tabellen, Code und Formeln; Blattwerk-Blöcke werden nicht interpretiert |
+
+- **Neu anlegen:** `Neu` fragt nach dem Typ und schlägt die passende Endung vor.
+- **Typ wechseln:** `Speichern unter` mit einer anderen Endung. Blattwerk fragt nach und passt den Eintrag `document_type` im Kopf automatisch an. Beim Speichern als `.md` bleibt `document_type` unverändert (danach erscheint ggf. die Warnung `FM008`).
+- **`document_type` im Kopf** ist nur eine Kontrolle: Passt er nicht zur Endung, warnt Blattwerk (`FM008`), es gilt aber immer die Endung. Fehlt er in einer Blattwerk-Datei, warnt Blattwerk ebenfalls (`FM009`).
+- **Unbekannte Endung** (z. B. `.txt`): Blattwerk fragt, ob die Datei als Markdown gelesen werden soll. Speichern legt dann eine neue `.md`-Datei an; das Original bleibt unverändert.
+- **Lösung anzeigen** wählst du in Vorschau und Exportdialog; im Dokument selbst gibt es dafür keinen Eintrag mehr (das frühere Feld `mode` wirkt nicht mehr).
+
+## 1c) Alte `.md`-Dateien umstellen (Migration)
+
+Blattwerk-Dateien aus der Zeit vor den neuen Endungen tragen noch `.md`. So stellst du sie um (Blattwerk vorher schließen):
+
+1. **Planen:** `python tools/migrate_file_extensions.py --root "A:\Pfad\zum\Ordner"` -- ändert nichts, zeigt aber, welche Datei zu welcher Endung wird, was unklar ist und was übersprungen wird. Dateien, die nur an ihrer Struktur erkannt wurden („sicher nur per Struktur“), werden extra aufgelistet.
+2. **Ausführen:** `python tools/migrate_file_extensions.py --write --run <Run-ID>` -- die Run-ID steht in der Ausgabe von Schritt 1. Ausgeführt wird genau der geplante Stand; Dateien, die sich seitdem geändert haben, werden übersprungen.
+3. **Bei Bedarf rückgängig:** `python tools/migrate_file_extensions.py --undo <Run-ID>`. Hast du eine umgestellte Datei inzwischen bearbeitet, fragt das Werkzeug: behalten, Original zusätzlich wiederherstellen (`…restored-….md`) oder abbrechen.
+
+Sicherheiten: Jede Datei wird vorher gesichert (`%APPDATA%\Blattwerk\migrations`), eine schon vorhandene Zieldatei wird nie überschrieben, Ordner mit „Lerngruppen“ im Namen werden nicht angefasst, und ein abgebrochener Lauf lässt sich mit `--resume <Run-ID>` fortsetzen. Erhalten bleiben Inhalt, Zeilenenden, Schreibschutz, Änderungs- und Zugriffszeit, Versteckt-/Archiv-Attribut und (wenn möglich) das Erstellungsdatum; Freigaben/Berechtigungen und alternative Datenströme werden nicht übertragen.
+
 ## 2) Grundablauf
 
-1. Markdown-Datei laden
+1. Dokument laden
 2. Vorschau prüfen
 3. Einstellungen anpassen (Format/Modus/Profil)
 4. Exportdialog öffnen und Ausgabe erzeugen
 
 ## 2b) Dateien aus dem Explorer öffnen („Öffnen mit")
 
-Nach einer einmaligen Einrichtung (`register-blattwerk-file-association.ps1`) lassen sich `.md`-Dateien per Rechtsklick → **Öffnen mit** → **Blattwerk** öffnen. Läuft Blattwerk schon, erscheint die Datei als neuer Tab im bestehenden Fenster. Was das Skript ändert, wann man es erneut ausführt und wie man es rückgängig macht, steht in `docs/nutzer/OEFFNEN_MIT_EINRICHTEN.md`.
+Nach einer einmaligen Einrichtung (`register-blattwerk-file-association.ps1`) lassen sich Blattwerk-Dateien (`.abw`, `.pbw`, `.kbw`, `.ebw`) und `.md`-Dateien per Rechtsklick → **Öffnen mit** → **Blattwerk** öffnen. Läuft Blattwerk schon, erscheint die Datei als neuer Tab im bestehenden Fenster. Was das Skript ändert, wann man es erneut ausführt und wie man es rückgängig macht, steht in `docs/nutzer/OEFFNEN_MIT_EINRICHTEN.md`.
 
 ## 2a) Einstellungen (Registerkarten)
 
@@ -92,6 +120,16 @@ Nach einer einmaligen Einrichtung (`register-blattwerk-file-association.ps1`) la
 - `D`: Durchsuchen öffnen
 - `?`: Shortcut-Hilfe im Dialog ein/ausblenden
 
+## 5b) Klausuren
+
+- Neue Klausur über `Neu` → „Klausur (.kbw)“. Klausuren zeigen keine Sozialform-Symbole.
+- `afb=1|2|3` an Aufgaben/Teilaufgaben, `--hm` als eigene Zeile zwischen zwei Aufgaben für Teil A (hilfsmittelfrei) und Teil B, Teilpunkte in Lösungen als `(2P)`.
+- Mit einem zweiten `--hm` davor bekommt die Klausur ein **Deckblatt**: Alles vor dem ersten `--hm` (Hinweise, Bewertungstabelle …, aber keine Aufgaben) steht auf der ersten Seite ohne Teilüberschrift; „Teil A“ beginnt auf einer neuen Seite.
+- Unter der Diagnostik zeigt die **Klausur-Übersicht** Punkte und AFB-Verteilung (Prozent bezogen auf die Gesamtpunkte).
+- Im Exportdialog unter „Inhalt“ → **Erwartungshorizont** (PDF/HTML, Taste `H`).
+- `:::evaluation:::` fügt eine Bewertungstabelle ein (auch in Arbeitsblättern).
+- Ausführlich: `docs/nutzer/ANLEITUNG_KLAUSUR.md`.
+
 ## 6) Hinweise zur Druckfreundlichkeit
 
 - Vorschau immer kurz gegenprüfen (Umbrüche, Seitenwechsel, Lesbarkeit).
@@ -121,6 +159,7 @@ Nach einer einmaligen Einrichtung (`register-blattwerk-file-association.ps1`) la
 - Setup/Installation: `README.md`
 - Markdown-Syntax (Arbeitsblatt/Präsentation, automatisch generiert): `docs/nutzer/ANLEITUNG_ARBEITSBLATT_PRAESENTATION.md`
 - Kurzentwurf-Syntax (automatisch generiert): `docs/nutzer/ANLEITUNG_KURZENTWURF.md`
+- Klausur-Funktionen (automatisch generiert): `docs/nutzer/ANLEITUNG_KLAUSUR.md`
 - CSS-Anpassung: `docs/nutzer/CSS_ANLEITUNG.md`
 - Arbeitsblatt-Regeln (Praxis): `docs/intern/ARBEITSBLATT_NOTIZEN.md`
 
@@ -135,6 +174,7 @@ Nach einer einmaligen Einrichtung (`register-blattwerk-file-association.ps1`) la
 - Beim Tippen im Schreibbereich wird die Diagnostik automatisch mit kurzer Verzögerung aktualisiert.
 - Warnungen und Fehler werden zeilenweise farbig markiert.
 - Unter dem Editor steht eine Diagnostikliste mit Zeile, Code und Meldung.
+- Die Bereiche **Diagnostik**, **Klausur-Übersicht** (nur bei Klausuren) und **Struktur** lassen sich einzeln über den Pfeil (▾/▸) bzw. einen Klick auf ihren Titel ein- und ausklappen; Blattwerk merkt sich das für den nächsten Start.
 - Klick auf einen Eintrag springt direkt zur betroffenen Zeile (auch bei erneutem Klick auf denselben Eintrag).
 - Beim Laden und Speichern einer Datei wird die Diagnostik ebenfalls neu berechnet.
 - Warnungen (nicht Fehler) lassen sich per Klick auf die Checkbox links in der Liste als gelesen abhaken; Rechtsklick auf einen Eintrag bietet zusätzlich "Als gelesen markieren"/"Wieder anzeigen" sowie "Alle in diesem Dokument wieder anzeigen". Abgehakte Warnungen bleiben sichtbar (nur grau dargestellt), erscheinen aber beim Kompilieren/Exportieren nicht mehr als Popup -- außer die Warnung verschwindet zwischenzeitlich (z. B. weil die Ursache behoben wurde) und tritt später erneut auf, dann gilt sie wieder als neu.

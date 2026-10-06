@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 from pathlib import Path
 import tempfile
 from typing import Mapping
@@ -16,7 +17,8 @@ from .block_computation_cache import BlockComputationCache
 from .build_requests import WorksheetBuildRequest, build_worksheet_from_request
 from .document_preview_build import build_preview_images_for_document
 from .kurzentwurf_settings import resolve_kurzentwurf_runtime_options
-from .document_types import DOCUMENT_TYPE_KURZENTWURF
+from .document_type_registry import PIPELINE_KURZENTWURF, PIPELINE_MARKDOWN, spec_for_type
+from .plain_markdown_render import build_plain_markdown
 from .export_path_guardrails import validate_export_output_path
 
 
@@ -29,9 +31,12 @@ def export_document_pdf(
     worksheet_request: WorksheetBuildRequest,
     kurzentwurf_options: Mapping[str, object] | None = None,
 ) -> Path:
-    """Export one document variant as PDF."""
+    """Export one document variant as PDF (Pipeline nach Dokumenttyp)."""
 
-    if str(document_type or "").strip().lower() == DOCUMENT_TYPE_KURZENTWURF:
+    pipeline = spec_for_type(document_type).pipeline
+    if pipeline == PIPELINE_MARKDOWN:
+        return build_plain_markdown(input_path, output_path.with_suffix(".pdf"))
+    if pipeline == PIPELINE_KURZENTWURF:
         _ensure_supported_kurzentwurf_mode(include_solutions)
         return _export_kurzentwurf_pdf(
             input_path=input_path,
@@ -40,7 +45,7 @@ def export_document_pdf(
             kurzentwurf_options=kurzentwurf_options,
         )
 
-    return Path(build_worksheet_from_request(worksheet_request))
+    return Path(build_worksheet_from_request(replace(worksheet_request, document_type=document_type)))
 
 
 def export_document_html(
@@ -52,9 +57,12 @@ def export_document_html(
     worksheet_request: WorksheetBuildRequest,
     kurzentwurf_options: Mapping[str, object] | None = None,
 ) -> Path:
-    """Export one document variant as HTML."""
+    """Export one document variant as HTML (Pipeline nach Dokumenttyp)."""
 
-    if str(document_type or "").strip().lower() == DOCUMENT_TYPE_KURZENTWURF:
+    pipeline = spec_for_type(document_type).pipeline
+    if pipeline == PIPELINE_MARKDOWN:
+        return build_plain_markdown(input_path, output_path.with_suffix(".html"))
+    if pipeline == PIPELINE_KURZENTWURF:
         _ensure_supported_kurzentwurf_mode(include_solutions)
         return _export_kurzentwurf_html(
             input_path=input_path,
@@ -63,7 +71,7 @@ def export_document_html(
             kurzentwurf_options=kurzentwurf_options,
         )
 
-    return Path(build_worksheet_from_request(worksheet_request))
+    return Path(build_worksheet_from_request(replace(worksheet_request, document_type=document_type)))
 
 
 def export_document_png(
@@ -87,7 +95,7 @@ def export_document_png(
 ) -> list[Path]:
     """Export one document variant as one or more PNG files."""
 
-    if str(document_type or "").strip().lower() == DOCUMENT_TYPE_KURZENTWURF:
+    if spec_for_type(document_type).pipeline == PIPELINE_KURZENTWURF:
         _ensure_supported_kurzentwurf_mode(include_solutions)
 
     pages, diagnostics = build_preview_images_for_document(
@@ -131,7 +139,7 @@ def export_document_png_zip(
 ) -> Path:
     """Export one document variant as a ZIP archive with page PNGs."""
 
-    if str(document_type or "").strip().lower() == DOCUMENT_TYPE_KURZENTWURF:
+    if spec_for_type(document_type).pipeline == PIPELINE_KURZENTWURF:
         _ensure_supported_kurzentwurf_mode(include_solutions)
 
     pages, diagnostics = build_preview_images_for_document(

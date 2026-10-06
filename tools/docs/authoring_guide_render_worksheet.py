@@ -10,11 +10,8 @@ from __future__ import annotations
 
 from app.core import authoring_guide_prose
 from app.core.blatt_validator_constants import MISSING
-from app.core.document_types import (
-    DOCUMENT_TYPE_PRESENTATION,
-    DOCUMENT_TYPE_WORKSHEET,
-    build_new_document_content,
-)
+from app.core.document_type_registry import DOCUMENT_TYPE_PRESENTATION, DOCUMENT_TYPE_WORKSHEET
+from app.core.document_type_templates import build_new_document_content
 from app.core.markdown_conventions import MarkdownConventionCatalog
 from app.core.option_prose_resolution import build_majority_variant_map, resolve_option_prose_key
 
@@ -142,7 +139,7 @@ def _render_geometry_section(catalog: MarkdownConventionCatalog) -> str:
 
     example = (
         "```markdown\n"
-        ":::geometry rows=20 cols=20 axis=true origin=\"10,10\"\n"
+        ":::geometry width=20 height=20 background=lines axis=true origin=\"10,10\"\n"
         "points:\n"
         "  - {x: 2, y: 3, label: \"A\", color: \"#2563eb\", thickness: 2}\n"
         "pairs:\n"
@@ -182,10 +179,11 @@ def render_worksheet_presentation_guide(catalog: MarkdownConventionCatalog) -> s
         "(EMPFEHLUNGEN_STIL_ARBEITSBLATT_PRAESENTATION.md).",
         "## 1. Grundidee\n\n"
         "Ein Blattwerk-Dokument besteht aus YAML-Frontmatter (Pflicht) gefolgt von einer Folge "
-        "semantischer `:::blocktyp ...` ... `:::`-Blöcke. Ob ein Dokument als Arbeitsblatt oder "
-        "als Präsentation gerendert wird, entscheidet allein das Frontmatter-Feld `mode` -- der "
-        "Blockdialekt selbst ist identisch. Sichtbarkeit pro Block wird über `mode=worksheet|"
-        "solution` gesteuert (Standard: in beiden Ausgaben sichtbar).\n\n"
+        "semantischer `:::blocktyp ...` ... `:::`-Blöcke. Ob ein Dokument als Arbeitsblatt, "
+        "Präsentation oder Klausur gerendert wird, entscheidet allein die Dateiendung (`.abw`, "
+        "`.pbw`, `.kbw`) -- der Blockdialekt selbst ist identisch. Sichtbarkeit pro Block wird über "
+        "die Block-Option `mode=worksheet|solution` gesteuert (Standard: in beiden Ausgaben "
+        "sichtbar).\n\n"
         + _prose("blocks:closing_rule")
         + "\n\n"
         + _prose("markdown:math_formulas"),

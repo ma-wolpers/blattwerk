@@ -17,7 +17,7 @@ from .blatt_validator_constants import MISSING, BlockOptionSpec, FrontmatterFiel
 from .option_prose_resolution import resolve_option_prose_key
 
 _SELF_CLOSING_BLOCK_TYPES = frozenset(
-    {"nextcol", "endcolumns", "pagebreak", "framebreak", "slidechromeoff", "sectionmark", "vspacer"}
+    {"nextcol", "endcolumns", "pagebreak", "framebreak", "slidechromeoff", "sectionmark", "vspacer", "aidsplit"}
 )
 
 

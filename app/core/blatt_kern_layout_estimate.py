@@ -40,14 +40,14 @@ def estimate_block_weight(
     options,
     content,
     include_solutions,
-    document_mode="worksheet",
+    document_type="worksheet",
 ):
     """Schätzt den Platzbedarf eines Blocks für automatische Spaltenbreiten."""
     if not should_render_block(
         block_type,
         options,
         include_solutions,
-        document_mode=document_mode,
+        document_type=document_type,
     ):
         return 0.0
 
@@ -184,7 +184,7 @@ def estimate_block_weight(
     return max(0.6, text_length / 180.0)
 
 
-def auto_columns_template(columns_blocks, include_solutions, document_mode="worksheet"):
+def auto_columns_template(columns_blocks, include_solutions, document_type="worksheet"):
     """Erzeugt ein Verhältnis-Template basierend auf geschätzten Spaltengewichten."""
     weights = []
     for column_blocks in columns_blocks:
@@ -195,7 +195,7 @@ def auto_columns_template(columns_blocks, include_solutions, document_mode="work
                 options,
                 content,
                 include_solutions,
-                document_mode=document_mode,
+                document_type=document_type,
             )
         weights.append(max(0.8, min(column_weight, 7.0)))
 

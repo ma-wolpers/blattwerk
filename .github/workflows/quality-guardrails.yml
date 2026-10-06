@@ -6,21 +6,41 @@ on:
     branches:
       - main
 
+# bw-gui ist eine Laufzeitabhaengigkeit als Nachbar-Repo (<blattwerk>/../bw-gui/src,
+# siehe bw_libs/shared_gui_core.ensure_bw_gui_on_path und docs/intern/ARCHITEKTUR.md).
+# Deshalb werden beide Repos nebeneinander in den Workspace ausgecheckt; bw-gui immer
+# in seinem aktuellen main. tests/test_bw_gui_dependency.py beweist die Invariante
+# auf diesem frischen Checkout.
 jobs:
   blattwerk-quality:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: blattwerk
 
     steps:
-      - name: Checkout
+      - name: Checkout blattwerk
         uses: actions/checkout@v4
         with:
-          submodules: recursive
+          path: blattwerk
           fetch-depth: 0
+
+      - name: Checkout bw-gui (Nachbar-Repo)
+        uses: actions/checkout@v4
+        with:
+          repository: ma-wolpers/bw-gui
+          ref: main
+          path: bw-gui
 
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+
+      - name: Allow Chromium sandbox (Ubuntu AppArmor userns restriction)
+        # Blattwerk druckt PDFs per Chromium; Ubuntu 24.04 blockiert dessen Sandbox
+        # standardmaessig. Nur CI-Umgebung -- die Druckflags bleiben unveraendert.
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
 
       - name: Install dependencies
         run: python -m pip install -r requirements-dev.txt

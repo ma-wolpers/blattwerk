@@ -569,7 +569,7 @@ def test_material_with_currency_style_dollar_signs_does_not_emit_mj001():
 
 def test_geometry_yaml_marker_show_values_are_accepted():
     text = _build_document(
-        ":::geometry rows=4 cols=4\n"
+        ":::geometry width=4 height=4\n"
         "points:\n"
         "  - {col: 1, row: 1, show: '§'}\n"
         "sequence:\n"
@@ -585,7 +585,7 @@ def test_geometry_yaml_marker_show_values_are_accepted():
 
 def test_geometry_yaml_legacy_show_values_emit_an007_error():
     text = _build_document(
-        ":::geometry rows=4 cols=4\n"
+        ":::geometry width=4 height=4\n"
         "points:\n"
         "  - {col: 1, row: 1, show: 'both'}\n"
         ":::"
@@ -605,7 +605,7 @@ def test_grid_line_dashed_option_is_accepted():
 
 def test_geometry_unknown_entry_key_emits_an011_warning():
     text = _build_document(
-        ":::geometry rows=4 cols=4\n"
+        ":::geometry width=4 height=4\n"
         "functions:\n"
         "  - {expr: 'x^2', lable: 'typo'}\n"
         ":::"
@@ -618,13 +618,17 @@ def test_geometry_unknown_entry_key_emits_an011_warning():
 
 def test_geometry_all_allowed_entry_keys_do_not_emit_an011():
     text = _build_document(
-        ":::geometry rows=4 cols=4 axis=true origin=\"2,2\"\n"
+        ":::geometry width=4 height=4 axis=true origin=\"2,2\"\n"
         "points:\n"
         "  - {x: 0, y: 0, col: 0, row: 0, label: p, show: '&', color: red, thickness: 1}\n"
         "sequence:\n"
         "  - {x: 0, y: 0, label: s, show: '&', color: red, thickness: 1}\n"
         "pairs:\n"
         "  - {x1: 0, y1: 0, x2: 1, y2: 1, line: solid, label: l, show: '&', color: red, thickness: 1}\n"
+        "polygons:\n"
+        "  - {vertices: [{x: 0, y: 0}, {x: 1, y: 0}, {x: 1, y: 1}], label: g, show: '&', color: red, thickness: 1, fill: blue}\n"
+        "circles:\n"
+        "  - {cx: 0, cy: 0, r: 1, start_angle: 0, end_angle: 90, label: c, show: '&', color: red, thickness: 1, fill: blue}\n"
         "functions:\n"
         "  - {expr: x, domain: '-1:1', label: f, show: '&', color: red, thickness: 1}\n"
         ":::"
@@ -634,9 +638,77 @@ def test_geometry_all_allowed_entry_keys_do_not_emit_an011():
     assert "AN011" not in codes
 
 
+def test_geometry_axis_true_without_origin_emits_op005_error():
+    text = _build_document(":::geometry width=4 height=4 axis=true\n:::")
+    inspected = inspect_markdown_text(text)
+    op005 = [d for d in inspected.diagnostics if d.code == "OP005"]
+    assert op005
+    assert op005[0].severity == "error"
+
+
+def test_geometry_axis_true_with_unparsable_origin_emits_op005_error():
+    text = _build_document(":::geometry width=4 height=4 axis=true origin=\"not-a-pair\"\n:::")
+    inspected = inspect_markdown_text(text)
+    op005 = [d for d in inspected.diagnostics if d.code == "OP005"]
+    assert op005
+
+
+def test_geometry_axis_true_with_valid_origin_does_not_emit_op005():
+    text = _build_document(":::geometry width=4 height=4 axis=true origin=\"2,2\"\n:::")
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+    assert "OP005" not in codes
+
+
+def test_geometry_without_axis_does_not_emit_op005_even_without_origin():
+    text = _build_document(":::geometry width=4 height=4\n:::")
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+    assert "OP005" not in codes
+
+
+def test_geometry_functions_without_axis_emits_an015_warning():
+    text = _build_document(
+        ":::geometry width=4 height=4\n"
+        "functions:\n"
+        "  - {expr: 'x'}\n"
+        ":::"
+    )
+    inspected = inspect_markdown_text(text)
+    an015 = [d for d in inspected.diagnostics if d.code == "AN015"]
+    assert an015
+    assert an015[0].severity == "warning"
+
+
+def test_geometry_functions_with_axis_does_not_emit_an015():
+    text = _build_document(
+        ":::geometry width=4 height=4 axis=true origin=\"2,2\"\n"
+        "functions:\n"
+        "  - {expr: 'x'}\n"
+        ":::"
+    )
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+    assert "AN015" not in codes
+
+
+def test_geometry_pairs_without_axis_does_not_emit_an015():
+    text = _build_document(
+        ":::geometry width=4 height=4\n"
+        "pairs:\n"
+        "  - {x1: 0, y1: 0, x2: 1, y2: 1}\n"
+        "sequence:\n"
+        "  - {x: 0, y: 0}\n"
+        ":::"
+    )
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+    assert "AN015" not in codes
+
+
 def test_geometry_pairs_line_invalid_value_emits_an012_error_separately_from_op002():
     text = _build_document(
-        ":::geometry rows=4 cols=4 line=dashed\n"
+        ":::geometry width=4 height=4 line=dashed\n"
         "pairs:\n"
         "  - {x1: 0, y1: 0, x2: 1, y2: 1, line: wavy}\n"
         ":::"
@@ -651,7 +723,7 @@ def test_geometry_pairs_line_invalid_value_emits_an012_error_separately_from_op0
 
 def test_geometry_invalid_color_emits_an013_warning():
     text = _build_document(
-        ":::geometry rows=4 cols=4\n"
+        ":::geometry width=4 height=4\n"
         "points:\n"
         "  - {x: 0, y: 0, color: 'red;}body{display:none'}\n"
         ":::"
@@ -664,7 +736,7 @@ def test_geometry_invalid_color_emits_an013_warning():
 
 def test_geometry_valid_color_does_not_emit_an013():
     text = _build_document(
-        ":::geometry rows=4 cols=4\n"
+        ":::geometry width=4 height=4\n"
         "points:\n"
         "  - {x: 0, y: 0, color: '#ff00aa'}\n"
         ":::"
@@ -676,7 +748,7 @@ def test_geometry_valid_color_does_not_emit_an013():
 
 def test_geometry_non_positive_thickness_emits_an014_warning():
     text = _build_document(
-        ":::geometry rows=4 cols=4\n"
+        ":::geometry width=4 height=4\n"
         "points:\n"
         "  - {x: 0, y: 0, thickness: 0}\n"
         ":::"
@@ -688,7 +760,7 @@ def test_geometry_non_positive_thickness_emits_an014_warning():
 
 def test_geometry_positive_thickness_does_not_emit_an014():
     text = _build_document(
-        ":::geometry rows=4 cols=4\n"
+        ":::geometry width=4 height=4\n"
         "points:\n"
         "  - {x: 0, y: 0, thickness: 2.5}\n"
         ":::"
@@ -698,12 +770,194 @@ def test_geometry_positive_thickness_does_not_emit_an014():
     assert "AN014" not in codes
 
 
+def test_geometry_invalid_fill_emits_an013_warning():
+    text = _build_document(
+        ":::geometry width=4 height=4\n"
+        "polygons:\n"
+        "  - {vertices: [{x: 0, y: 0}, {x: 1, y: 0}, {x: 1, y: 1}], fill: 'red;}body{display:none'}\n"
+        ":::"
+    )
+    inspected = inspect_markdown_text(text)
+    an013 = [d for d in inspected.diagnostics if d.code == "AN013"]
+    assert an013
+    assert "fill" in an013[0].message
+
+
+def test_geometry_polygon_too_few_vertices_emits_an017():
+    text = _build_document(
+        ":::geometry width=4 height=4\n"
+        "polygons:\n"
+        "  - {vertices: [{x: 0, y: 0}, {x: 1, y: 1}]}\n"
+        ":::"
+    )
+    inspected = inspect_markdown_text(text)
+    an017 = [d for d in inspected.diagnostics if d.code == "AN017"]
+    assert an017
+
+
+def test_geometry_polygon_one_invalid_vertex_emits_an017():
+    text = _build_document(
+        ":::geometry width=4 height=4\n"
+        "polygons:\n"
+        "  - {vertices: [{x: 0, y: 0}, {x: 1, y: 0}, {x: not-a-number, y: 1}, {x: 0, y: 1}]}\n"
+        ":::"
+    )
+    inspected = inspect_markdown_text(text)
+    an017 = [d for d in inspected.diagnostics if d.code == "AN017"]
+    assert an017
+
+
+def test_geometry_valid_polygon_does_not_emit_an017():
+    text = _build_document(
+        ":::geometry width=4 height=4\n"
+        "polygons:\n"
+        "  - {vertices: [{x: 0, y: 0}, {x: 1, y: 0}, {x: 1, y: 1}]}\n"
+        ":::"
+    )
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+    assert "AN017" not in codes
+
+
+def test_geometry_polygon_show_marker_is_validated_via_an007():
+    text = _build_document(
+        ":::geometry width=4 height=4\n"
+        "polygons:\n"
+        "  - {vertices: [{x: 0, y: 0}, {x: 1, y: 0}, {x: 1, y: 1}], show: 'both'}\n"
+        ":::"
+    )
+    inspected = inspect_markdown_text(text)
+    an007 = [d for d in inspected.diagnostics if d.code == "AN007"]
+    assert an007
+
+
+def test_geometry_circle_invalid_radius_emits_an018():
+    text = _build_document(
+        ":::geometry width=4 height=4\n"
+        "circles:\n"
+        "  - {cx: 1, cy: 1, r: -5}\n"
+        ":::"
+    )
+    inspected = inspect_markdown_text(text)
+    an018 = [d for d in inspected.diagnostics if d.code == "AN018"]
+    assert an018
+
+
+def test_geometry_circle_missing_center_emits_an018():
+    text = _build_document(
+        ":::geometry width=4 height=4\n"
+        "circles:\n"
+        "  - {r: 2}\n"
+        ":::"
+    )
+    inspected = inspect_markdown_text(text)
+    an018 = [d for d in inspected.diagnostics if d.code == "AN018"]
+    assert an018
+
+
+def test_geometry_circle_only_start_angle_emits_an018():
+    text = _build_document(
+        ":::geometry width=4 height=4\n"
+        "circles:\n"
+        "  - {cx: 1, cy: 1, r: 1, start_angle: 0}\n"
+        ":::"
+    )
+    inspected = inspect_markdown_text(text)
+    an018 = [d for d in inspected.diagnostics if d.code == "AN018"]
+    assert an018
+    assert "start_angle" in an018[0].message
+
+
+def test_geometry_circle_only_end_angle_emits_an018():
+    text = _build_document(
+        ":::geometry width=4 height=4\n"
+        "circles:\n"
+        "  - {cx: 1, cy: 1, r: 1, end_angle: 90}\n"
+        ":::"
+    )
+    inspected = inspect_markdown_text(text)
+    an018 = [d for d in inspected.diagnostics if d.code == "AN018"]
+    assert an018
+
+
+def test_geometry_circle_both_angles_set_but_one_unparsable_emits_an018():
+    text = _build_document(
+        ":::geometry width=4 height=4\n"
+        "circles:\n"
+        "  - {cx: 1, cy: 1, r: 1, start_angle: 0, end_angle: not-a-number}\n"
+        ":::"
+    )
+    inspected = inspect_markdown_text(text)
+    an018 = [d for d in inspected.diagnostics if d.code == "AN018"]
+    assert an018
+    assert "parsebar" in an018[0].message
+
+
+def test_geometry_circle_valid_full_circle_does_not_emit_an018():
+    text = _build_document(
+        ":::geometry width=4 height=4\n"
+        "circles:\n"
+        "  - {cx: 1, cy: 1, r: 1}\n"
+        ":::"
+    )
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+    assert "AN018" not in codes
+
+
+def test_geometry_circle_valid_arc_does_not_emit_an018():
+    text = _build_document(
+        ":::geometry width=4 height=4\n"
+        "circles:\n"
+        "  - {cx: 1, cy: 1, r: 1, start_angle: 0, end_angle: 90}\n"
+        ":::"
+    )
+    inspected = inspect_markdown_text(text)
+    codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+    assert "AN018" not in codes
+
+
+def test_geometry_circle_show_marker_is_validated_via_an007():
+    text = _build_document(
+        ":::geometry width=4 height=4\n"
+        "circles:\n"
+        "  - {cx: 1, cy: 1, r: 1, show: 'both'}\n"
+        ":::"
+    )
+    inspected = inspect_markdown_text(text)
+    an007 = [d for d in inspected.diagnostics if d.code == "AN007"]
+    assert an007
+
+
 def test_geometry_line_invalid_value_emits_op002_error():
-    text = _build_document(":::geometry rows=2 line=wavy\n:::")
+    text = _build_document(":::geometry height=2 line=wavy\n:::")
     inspected = inspect_markdown_text(text)
     op002 = [d for d in inspected.diagnostics if d.code == "OP002"]
     assert op002
     assert "line" in op002[0].message
+
+
+def test_geometry_legacy_rows_cols_options_emit_op001_unknown_option():
+    text = _build_document(":::geometry rows=4 cols=4\n:::")
+    inspected = inspect_markdown_text(text)
+    op001 = [d for d in inspected.diagnostics if d.code == "OP001"]
+    assert {d.message.split("`")[1] for d in op001} == {"rows", "cols"}
+
+
+def test_geometry_background_invalid_value_emits_op002_error():
+    text = _build_document(":::geometry width=4 height=4 background=wavy\n:::")
+    inspected = inspect_markdown_text(text)
+    op002 = [d for d in inspected.diagnostics if d.code == "OP002"]
+    assert op002
+    assert "background" in op002[0].message
+
+
+def test_geometry_background_valid_values_do_not_emit_op002():
+    for value in ("none", "lines", "dots"):
+        text = _build_document(f":::geometry width=4 height=4 background={value}\n:::")
+        inspected = inspect_markdown_text(text)
+        codes = {diagnostic.code for diagnostic in inspected.diagnostics}
+        assert "OP002" not in codes
 
 
 def test_grid_plain_marker_text_does_not_emit_an004():
@@ -714,14 +968,14 @@ def test_grid_plain_marker_text_does_not_emit_an004():
 
 
 def test_geometry_scalar_content_emits_an004():
-    text = _build_document(":::geometry rows=2\nNur Text\n:::")
+    text = _build_document(":::geometry height=2\nNur Text\n:::")
     inspected = inspect_markdown_text(text)
     codes = {diagnostic.code for diagnostic in inspected.diagnostics}
     assert "AN004" in codes
 
 
 def test_geometry_list_root_emits_an004():
-    text = _build_document(":::geometry rows=2\n- 1\n- 2\n:::")
+    text = _build_document(":::geometry height=2\n- 1\n- 2\n:::")
     inspected = inspect_markdown_text(text)
     codes = {diagnostic.code for diagnostic in inspected.diagnostics}
     assert "AN004" in codes
@@ -776,12 +1030,12 @@ def test_frontmatter_mode_ws_and_test_are_accepted():
     assert "FM002" not in presentation_codes
 
 
-def test_frontmatter_invalid_mode_emits_fm002():
+def test_frontmatter_mode_is_no_longer_a_known_field():
+    # `mode` existiert nicht mehr (I3): weder Wertepruefung (FM002) noch eine andere Diagnose.
     doc = _build_document_with_mode("foobar")
     diagnostics = inspect_markdown_text(doc).diagnostics
 
-    fm002 = [d for d in diagnostics if d.code == "FM002"]
-    assert fm002
+    assert not [d for d in diagnostics if d.anchor == "mode" or d.code == "FM002"]
 
 
 def test_frontmatter_invalid_presentation_layout_emits_fm004():

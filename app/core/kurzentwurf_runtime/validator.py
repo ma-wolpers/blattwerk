@@ -4,6 +4,7 @@ from collections import Counter, defaultdict
 import re
 
 from .dsl import parse_kurzentwerfer_text
+from .math_support import collect_math_diagnostics
 from .region import compute_phase_region_id
 from .model import (
     ALLOWED_PHASES,
@@ -71,6 +72,8 @@ def inspect_kurzentwerfer_text(source: str) -> InspectionResult:
                     line=line_number,
                 )
             )
+
+    diagnostics.extend(collect_math_diagnostics(source))
 
     normalized_blocks: list[dict[str, object]] = []
     for raw_phase in parsed.phases:

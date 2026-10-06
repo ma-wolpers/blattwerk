@@ -10,9 +10,11 @@ import fitz
 from .export_path_guardrails import validate_export_output_path
 from .blatt_kern_io_html import absolutize_local_image_sources, apply_image_size_options
 from .blatt_kern_io_pdf import annotate_pdf_running_elements_with_retry, write_pdf_from_html
+from .operator_legend_placement import write_pdf_with_bottom_legends
 from .blatt_kern_help_render import collect_help_blocks, render_help_cards_html
 from .blatt_kern_layout_render import render_html
-from .blatt_kern_shared import get_copyright_text, is_hole_punch_layout_enabled, normalize_document_mode
+from .blatt_kern_shared import get_copyright_text, is_hole_punch_layout_enabled
+from .document_type_registry import has_slide_layout, solutions_renderable
 from .word_note_pdf_check import append_word_note_placement_warnings
 from .blatt_validator import (
     BuildDiagnostic,
@@ -112,8 +114,14 @@ def build_worksheet(
     presentation_hide_future_sections=False,
     presentation_ignore_framebreaks=False,
     computation_cache=None,
+    document_type="worksheet",
 ):
     """Erstellt aus einer Markdown-Datei eine HTML- oder PDF-Ausgabe.
+
+    `document_type` ist der aus der Dateiendung bestimmte Typ (Invariante I1,
+    `document_semantics.type_for_path`). Typbedingtes Verhalten (Folien-Layout,
+    keine Lösungsfassung bei Präsentationen, keine Sozialform-Icons bei
+    Klausuren) kommt aus den Registry-Capabilities, nie aus dem Frontmatter.
 
     `computation_cache` ist ein optionaler, bereits von der Anwendungsschicht
     geöffneter `BlockComputationCache` (siehe
@@ -125,10 +133,9 @@ def build_worksheet(
     """
     md_file = Path(md_path)
     text = md_file.read_text(encoding="utf-8")
-    inspected = inspect_markdown_text(text, cache=computation_cache)
+    inspected = inspect_markdown_text(text, cache=computation_cache, document_type=document_type)
     meta = _merge_metadata_defaults(inspected.meta, metadata_defaults)
-    document_mode = normalize_document_mode((meta or {}).get("mode"), default="worksheet")
-    if document_mode == "presentation":
+    if not solutions_renderable(document_type):
         include_solutions = False
     blocks = inspected.blocks
     if block_on_critical:
@@ -151,6 +158,7 @@ def build_worksheet(
         presentation_ignore_framebreaks=presentation_ignore_framebreaks,
         cache=computation_cache,
         word_notes_out=word_notes,
+        document_type=document_type,
     )
     html = absolutize_local_image_sources(html, md_file.parent)
     html = apply_image_size_options(html)
@@ -167,8 +175,14 @@ def build_worksheet(
         return out_file
 
     if suffix == ".pdf":
-        pdf_file = write_pdf_from_html(html, out_file)
-        if document_mode != "presentation":
+        if has_slide_layout(document_type):
+            pdf_file = write_pdf_from_html(html, out_file)
+        else:
+            # Operatorenliste ans Seitenende (best-effort, vor Kopf-/Fußzeile; ohne Liste ein Druck).
+            pdf_file = write_pdf_with_bottom_legends(
+                html, out_file, page_format=page_format, hole_punch_enabled=is_hole_punch_layout_enabled(meta)
+            )
+        if not has_slide_layout(document_type):
             annotate_pdf_running_elements_with_retry(
                 pdf_file,
                 meta.get("Titel", "").strip(),

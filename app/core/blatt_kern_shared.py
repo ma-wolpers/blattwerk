@@ -25,8 +25,6 @@ from .blatt_kern_shared_blocks import (
 )
 from .blatt_kern_shared_data import (
     CONTROL_MARKERS,
-    DOCUMENT_MODE_ALIASES,
-    DOCUMENT_MODES,
     HELP_BLOCK_TYPES,
     JA_NEIN_BOOLEAN_TOKENS,
     MARKDOWN_EXTENSIONS,
@@ -50,7 +48,6 @@ from .blatt_kern_shared_meta import (
     get_task_hint_info,
     get_work_info,
     is_hole_punch_layout_enabled,
-    normalize_document_mode,
     split_sections,
 )
 from .blatt_kern_shared_parsing import (
@@ -70,8 +67,6 @@ __all__ = [
     "TASK_ACTION_MAP",
     "TASK_HINT_MAP",
     "HELP_BLOCK_TYPES",
-    "DOCUMENT_MODES",
-    "DOCUMENT_MODE_ALIASES",
     "PRESENTATION_SECTION_MARK_PATTERN",
     "PRESENTATION_SPACER_MARK_PATTERN",
     "ControlMarkerSpec",
@@ -87,7 +82,6 @@ __all__ = [
     "annotate_standalone_subtasks",
     "annotate_task_help_references",
     "should_render_block",
-    "normalize_document_mode",
     "is_hole_punch_layout_enabled",
     "format_meta_line",
     "get_current_school_year_label",

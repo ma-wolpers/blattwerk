@@ -185,6 +185,13 @@ class InstanceServer:
         """Stop serving and release the port (idempotent)."""
         self._stopping.set()
         if self._socket is not None:
+            # Unter Linux haelt ein in accept() blockierter Thread den Port sonst bis zu
+            # seinem Timeout fest; shutdown() weckt ihn sofort. Windows meldet bei einem
+            # lauschenden Socket WSAENOTCONN -- harmlos, daher ignoriert.
+            try:
+                self._socket.shutdown(socket.SHUT_RDWR)
+            except OSError:
+                pass
             try:
                 self._socket.close()
             except OSError:

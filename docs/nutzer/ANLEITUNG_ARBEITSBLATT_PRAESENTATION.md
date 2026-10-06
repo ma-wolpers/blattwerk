@@ -10,7 +10,7 @@ Diese Anleitung ist die normative Referenz für den Blattwerk-Markdown-Dialekt, 
 
 ## 1. Grundidee
 
-Ein Blattwerk-Dokument besteht aus YAML-Frontmatter (Pflicht) gefolgt von einer Folge semantischer `:::blocktyp ...` ... `:::`-Blöcke. Ob ein Dokument als Arbeitsblatt oder als Präsentation gerendert wird, entscheidet allein das Frontmatter-Feld `mode` -- der Blockdialekt selbst ist identisch. Sichtbarkeit pro Block wird über `mode=worksheet|solution` gesteuert (Standard: in beiden Ausgaben sichtbar).
+Ein Blattwerk-Dokument besteht aus YAML-Frontmatter (Pflicht) gefolgt von einer Folge semantischer `:::blocktyp ...` ... `:::`-Blöcke. Ob ein Dokument als Arbeitsblatt, Präsentation oder Klausur gerendert wird, entscheidet allein die Dateiendung (`.abw`, `.pbw`, `.kbw`) -- der Blockdialekt selbst ist identisch. Sichtbarkeit pro Block wird über die Block-Option `mode=worksheet|solution` gesteuert (Standard: in beiden Ausgaben sichtbar).
 
 **Jeder Block braucht sein eigenes `:::`, bevor der nächste Block beginnt -- Verschachtelung ist nicht erlaubt.** Das gilt uneingeschränkt auch für `columns`/`nextcol`/`endcolumns`: das sind ganz normale Blocktypen wie jeder andere, kein syntaktischer Sonderfall. Bei fehlendem Inhalt kann die Kurzform `:::blockname ... :::` (öffnendes und schließendes `:::` auf derselben Zeile) verwendet werden, z. B. `:::nextcol :::`.
 
@@ -40,7 +40,6 @@ Formuliere hier deine erste Aufgabe.
 ```markdown
 ---
 document_type: presentation
-mode: presentation
 presentation_layout: presentation_16_9
 Titel: Neue Praesentation
 Fach: Fach eintragen
@@ -62,7 +61,7 @@ Fuehre hier den naechsten Gedanken aus.
 
 ### Sichtbarkeit in Präsentationen
 
-In Präsentationen (`mode: presentation`) gibt es **keinen Lösungs-Umschalter**: Blöcke mit `mode=solution`/`show=solution` sowie `:::solution ... :::`-Blöcke (nach Blocktyp) werden in Präsentationen **immer** ausgeblendet -- unabhängig davon, ob ein Export explizit "mit Lösung" anfordert. Es gibt keine Möglichkeit, sie in einer Präsentation sichtbar zu machen. `mode=worksheet` (oder keine Angabe, Standard `both`) rendert dagegen normal. Praktisch bedeutet das: `mode=solution`/`:::solution` in einem Präsentationsdokument zu verwenden entspricht "diesen Block dauerhaft verstecken", nicht "Lösungsansicht anbieten".
+In Präsentationen (`.pbw`) gibt es **keinen Lösungs-Umschalter**: Blöcke mit `mode=solution`/`show=solution` sowie `:::solution ... :::`-Blöcke (nach Blocktyp) werden in Präsentationen **immer** ausgeblendet -- unabhängig davon, ob ein Export explizit "mit Lösung" anfordert. Es gibt keine Möglichkeit, sie in einer Präsentation sichtbar zu machen. `mode=worksheet` (oder keine Angabe, Standard `both`) rendert dagegen normal. Praktisch bedeutet das: `mode=solution`/`:::solution` in einem Präsentationsdokument zu verwenden entspricht "diesen Block dauerhaft verstecken", nicht "Lösungsansicht anbieten".
 
 ## 4. Frontmatter-Referenz
 
@@ -71,14 +70,13 @@ In Präsentationen (`mode: presentation`) gibt es **keinen Lösungs-Umschalter**
 | `Titel` | ja | Text | -- | ja |
 | `Fach` | ja | Text | -- | ja |
 | `Thema` | ja | Text | -- | ja |
-| `mode` | nein | enum | `presentation`, `solution`, `test`, `worksheet`, `ws` | ja |
 | `presentation_layout` | nein | enum | `presentation_16_10`, `presentation_16_9`, `presentation_4_3` | ja |
 | `presentation_show_mini_header` | nein | boolean | `0`, `1`, `falsch`, `false`, `ja`, `nein`, `no`, `off`, `on`, `true`, `wahr`, `yes` | ja |
 | `presentation_show_section_footer` | nein | boolean | `0`, `1`, `falsch`, `false`, `ja`, `nein`, `no`, `off`, `on`, `true`, `wahr`, `yes` | ja |
 | `tag` | nein | scalar_nonempty | -- | ja |
 | `show_student_header` | nein | boolean | `0`, `1`, `false`, `j`, `ja`, `n`, `nein`, `no`, `off`, `on`, `true`, `yes` | ja |
 | `show_document_header` | nein | boolean | `0`, `1`, `false`, `j`, `ja`, `n`, `nein`, `no`, `off`, `on`, `true`, `yes` | ja |
-| `document_type` | nein | enum | `kurzentwurf`, `presentation`, `worksheet` | nein |
+| `document_type` | nein | enum | `exam`, `kurzentwurf`, `markdown`, `presentation`, `worksheet` | nein |
 | `lochen` | nein | boolean | `0`, `1`, `false`, `j`, `ja`, `n`, `nein`, `no`, `off`, `on`, `true`, `yes` | nein |
 | `copyright` | nein | free_text | -- | nein |
 | `Stufe` | nein | enum | `10`, `11`, `12`, `13`, `5`, `6`, `7`, `8`, `9`, `e`, `q1`, `q2`, `sek1`, `sek2` | ja |
@@ -88,14 +86,13 @@ In Präsentationen (`mode: presentation`) gibt es **keinen Lösungs-Umschalter**
 - **`Titel`** (Pflichtfeld): Der Titel des Dokuments, erscheint im Dokumentkopf und in der Fensterleiste.
 - **`Fach`** (Pflichtfeld): Das Unterrichtsfach, erscheint zusammen mit `Thema` in der Metazeile des Dokumentkopfs.
 - **`Thema`** (Pflichtfeld): Das konkrete Unterrichtsthema, erscheint zusammen mit `Fach` in der Metazeile des Dokumentkopfs.
-- **`mode`** (optional): Steuert das grundlegende Ausgabeverhalten des Dokuments. `worksheet` (Standard, Alias `ws`) zeigt normale Arbeitsblatt-Ausgabe; `solution` rendert global die Lösungsansicht; `presentation` schaltet auf Folienausgabe mit Mini-Header und Folienzähler um; `test` blendet in Aufgaben/Teilaufgaben nur die Arbeitsform-Hinweise (Emoji + Label) aus.
-- **`presentation_layout`** (optional): Wählt das Seitenverhältnis der Folien bei `mode: presentation` (`presentation_16_9`, `presentation_16_10` oder `presentation_4_3`). Ohne `mode: presentation` ohne Wirkung.
+- **`presentation_layout`** (optional): Wählt das Seitenverhältnis der Folien einer Präsentation (`.pbw`; `presentation_16_9`, `presentation_16_10` oder `presentation_4_3`). In anderen Dokumenttypen ohne Wirkung.
 - **`presentation_show_mini_header`** (optional): Blendet in Präsentationen den kleinen Kopfbereich pro Folie (Phasenübersicht) ein/aus. Standard: an.
 - **`presentation_show_section_footer`** (optional): Blendet in Präsentationen den Abschnittsfooter (Folienzähler) pro Folie ein/aus. Standard: an.
 - **`tag`** (optional): Freier Kurzbezeichner, der z. B. als Präfix für automatisch generierte Lernhilfe-Label verwendet werden kann (siehe `help`/`hilfe`-Block-Option `tag`). Muss ein einfacher, nicht-leerer Textwert sein -- kein YAML-Mapping oder -Liste.
 - **`show_student_header`** (optional): Blendet die Schülerkopfzeile (Name/Lerngruppe/Datum-Felder) am Dokumentanfang ein/aus. Standard: aus. Erwartet einen booleschen Wert im Format `ja`/`nein` (auch `true`/`false`, `1`/`0`, `j`/`n` werden akzeptiert).
 - **`show_document_header`** (optional): Blendet den Dokumentkopf (Titel, Fach/Thema-Metazeile) ein/aus. Standard: an. Erwartet denselben booleschen Werttyp wie `show_student_header`.
-- **`document_type`** (optional): Markiert den Dokumenttyp explizit (`worksheet`, `presentation` oder `kurzentwurf`) statt ihn aus anderen Feldern zu erraten. Wird von Blattwerk beim Anlegen neuer Dokumente automatisch gesetzt; von Hand meist nicht nötig. Aktuell nicht durch den Markdown-Validator wertgeprüft.
+- **`document_type`** (optional): Konsistenzmarker für den Dokumenttyp: muss zur Dateiendung passen (`.abw` → `worksheet`, `.pbw` → `presentation`, `.kbw` → `exam`, `.ebw` → `kurzentwurf`, `.md` → `markdown`). Der Typ selbst kommt immer aus der Endung; ein abweichender Wert erzeugt eine Warnung (`FM008`), ein ungültiger `FM010`, ein fehlender in Blattwerk-Dateien `FM009`. Blattwerk setzt ihn beim Anlegen und bei Speichern-unter in einen anderen Blattwerk-Typ automatisch.
 - **`lochen`** (optional): Aktiviert einen vergrößerten linken Rand für Lochung beim Ausdrucken (`ja`/`nein`, Standard: `nein`). Aktuell nicht durch den Markdown-Validator wertgeprüft; ungültige Werte werden beim Rendern stillschweigend als `nein` behandelt.
 - **`copyright`** (optional): Ersetzt den Standard-Copyright-Text im Footer durch einen eigenen Text. Ohne dieses Feld wird automatisch ein Standardtext mit aktuellem Jahr eingesetzt.
 - **`Stufe`** (optional): Die Jahrgangsstufe -- schränkt ein, welche `!!Operator!!`-Bezeichnungen für dieses Dokument gültig sind und im Editor vorgeschlagen werden (siehe `data/operatoren/<fach>.json`, `stufengruppen`). Ohne `Stufe` gelten alle für `Fach` hinterlegten Operatoren als verfügbar, unabhängig von ihrer Stufenzuordnung. Hat aktuell keine Wirkung außerhalb der Operatoren-Verfügbarkeit (kein Einfluss auf Layout/Rendering).
@@ -103,6 +100,12 @@ In Präsentationen (`mode: presentation`) gibt es **keinen Lösungs-Umschalter**
 - **`font_profile`** (optional): **Hinweis:** wird aktuell nicht aus dem Dokument gelesen -- die Schriftart wird ausschließlich über die App-Einstellung gesteuert, nicht über das Frontmatter. Dieses Feld hat aktuell keine Wirkung im Build-/Render-Pfad.
 
 ## 5. Blockreferenz
+
+### `aidsplit`
+
+Hilfsmittel-Trenner einer Klausur -- siehe Control-Marker `--hm`.
+
+Keine Optionen.
 
 ### `checkgrid`
 
@@ -234,6 +237,22 @@ Schließt einen `:::columns`-Block ab. Keine eigenen Optionen.
 
 Keine Optionen.
 
+### `evaluation`
+
+Bewertungstabelle (selbstschließend: `:::evaluation:::`) mit den Zeilen Aufgaben, maximale Punkte und leeren Feldern für die erreichten Punkte, rechts die Summe. Nur in Arbeitsblättern und Klausuren. Aufgaben ohne Punkte erscheinen mit `–` (Warnung `EV001`), widersprüchliche mit `?`; die Summe wird nur ausgewiesen, wenn alle Punktzahlen bekannt sind.
+
+| Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
+|---|---|---|---|---|---|
+| `level` | Enum | `subtask`, `task` | ja | `task` | `task` (Standard): eine Spalte je Aufgabe; `subtask`: bei bepunkteten Teilaufgaben je Teilaufgabe eine Spalte (1a, 1b, ...). |
+| `parts` | Bool | -- | nein | `False` | `true` teilt die Tabelle in Klausuren mit `--hm` in Teil A und Teil B (je mit Summe) und weist zusätzlich die Gesamtsumme aus. Ohne `--hm` ohne Wirkung. |
+| `title` | Text | -- | nein | -- | Überschreibt die automatisch erzeugte Standardbeschriftung des Blocks mit einem eigenen Text. |
+
+**Beispiel** (identisch mit dem Menü "Einfügen" (Alt+I) im Editor):
+
+```markdown
+:::evaluation level=task:::
+```
+
 ### `framebreak`
 
 Erzeugt im Präsentationsmodus einen neuen Frame mit dem bisherigen plus neuem Inhalt -- siehe Control-Marker `-+`.
@@ -242,28 +261,29 @@ Keine Optionen.
 
 ### `geometry`
 
-Koordinatensystem für Punkte, Polylinien, Strecken und Funktionsgraphen (siehe Geometry-Abschnitt unten für die YAML-Payload-Struktur). `axis=true` aktiviert echte Achsen mit `origin`/`step_x`/`step_y` zur Umrechnung mathematischer Koordinaten in Rasterzellen; `axis_label_x`/`axis_label_y` beschriften die Achsen (Standard `x`/`y`).
+Koordinatensystem für Punkte, Polylinien, Strecken, Vielecke, Kreise/Bögen und Funktionsgraphen (siehe Geometry-Abschnitt unten für die YAML-Payload-Struktur). `width`/`height` setzen die Größe in Rastereinheiten. `axis=true` aktiviert echte Achsen mit `origin`/`step_x`/`step_y` zur Umrechnung mathematischer Koordinaten in Rasterzellen -- `axis=true` OHNE gültiges `origin` ist ein Fehler (`OP005`) und lässt den gesamten Payload unsichtbar, statt still auf Rasterkoordinaten zurückzufallen; `axis_label_x`/`axis_label_y` beschriften die Achsen (Standard `x`/`y`). Objekte werden in genau der Reihenfolge übereinander gezeichnet, in der ihre Abschnitte (`points`, `pairs`, ...) im YAML-Payload stehen -- die Achse liegt dabei immer ganz unten, alle Beschriftungen immer ganz oben.
 
 | Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
 |---|---|---|---|---|---|
 | `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
-| `axis` | Bool | -- | nein | `False` | Aktiviert ein mathematisches Koordinatensystem mit x-/y-Achse, Tick-Marks und Achsenbeschriftung (Standard: aus, dann gelten reine Rasterkoordinaten `col`/`row`). **Wichtig:** `axis=true` wirkt nur zusammen mit einem gültigen `origin` -- fehlt `origin` oder ist er ungültig, fällt der Block still (ohne Fehler/Warnung) auf den Rasterkoordinaten-Modus zurück. In diesem Fall werden `functions`-Einträge komplett ignoriert, und `points`/`pairs` interpretieren ihre `x`/`y`-Werte als `col`/`row` statt als Mathe-Koordinaten. |
+| `axis` | Bool | -- | nein | `False` | Aktiviert ein mathematisches Koordinatensystem mit x-/y-Achse, Tick-Marks und Achsenbeschriftung (Standard: aus, dann gelten reine Rasterkoordinaten mit Ursprung unten links, `(0, 0)` = linke untere Ecke). **Wichtig:** `axis=true` OHNE gültiges `origin` ist ein Fehler (`OP005`) -- der gesamte Geometry-Payload des Blocks (alle Sektionen) wird dann gar nicht gerendert, kein stiller Rückfall auf Rasterkoordinaten. `origin` bei `axis=true` immer korrekt setzen. |
 | `axis_label_x` | Text | -- | nein | `x` | Beschriftung der x-Achse (Standard `x`), nur wirksam bei aktivem Achsenmodus (siehe `axis`). |
 | `axis_label_y` | Text | -- | nein | `y` | Beschriftung der y-Achse (Standard `y`), nur wirksam bei aktivem Achsenmodus (siehe `axis`). |
-| `cols` | Ganzzahl | -- | nein | `20` | Anzahl Spalten des Rasters. Der genaue Standardwert und ob eine fehlende Angabe automatisch aus verfügbarer Breite berechnet wird, hängt vom Blocktyp ab (siehe Tabelle: Spalte "Standard"). |
+| `background` | Enum | `dots`, `lines`, `none` | ja | `none` | Hintergrund des Koordinatensystems: `none` (Standard, leere Fläche), `lines` (Karo-Raster, identisch zu `:::grid`) oder `dots` (Punktraster an jedem Gitter-Schnittpunkt -- klassische "Konstruktionspapier"-Optik). |
+| `height` | Ganzzahl | -- | nein | `5` | Höhe des Koordinatensystems in Rastereinheiten (Standard `5`). |
 | `line` | Enum | `dashed`, `solid` | ja | `solid` | Linienstil des Rasterhintergrunds: `solid` (Standard) oder `dashed`. Nur bei `:::grid`/`:::geometry` vorhanden -- nicht zu verwechseln mit dem gleichnamigen `pairs[].line`-Feld in der Geometry-YAML-Payload (dort eigene, unabhängige Einstellung pro Strecke). |
 | `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
-| `origin` | Text | -- | nein | -- | Ursprung des Koordinatensystems im Raster, Format `"spalte,zeile"` (z. B. `"10,10"`). **Pflicht, sobald `axis=true` gesetzt ist** -- ohne (oder mit ungültigem) `origin` bleibt der Achsenmodus trotz `axis=true` inaktiv, siehe Besonderheit dort. |
-| `rows` | Ganzzahl | -- | nein | `5` | Anzahl Zeilen des Rasters/der Linien. Der genaue Standardwert und ob eine fehlende Angabe automatisch berechnet wird, hängt vom Blocktyp ab (siehe Tabelle: Spalte "Standard"). |
+| `origin` | Text | -- | nein | -- | Ursprung des Koordinatensystems im Raster, Format `"spalte,zeile"`, gezählt von der **linken unteren Ecke** aus (`"0,0"` = unten links, die Zeile zählt nach oben; z. B. `"10,5"` bei `width=20 height=10` = Mitte). **Pflicht, sobald `axis=true` gesetzt ist** -- fehlt `origin` oder ist es ungültig, wird das als Fehler gemeldet (`OP005`) und der gesamte Block bleibt ungerendert, siehe Besonderheit bei `axis`. |
 | `scale` | CSS-Länge | -- | nein | `0.5cm` | Zellgröße als CSS-Länge, z. B. `scale=0.4cm` oder `scale=6mm` (Standard variiert je Blocktyp, siehe Besonderheit unten). *Besonderheit bei `geometry`:* Standard `0.5cm`. |
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
 | `step_x` | Zahl | -- | nein | `1.0` | Skalierung zwischen mathematischer x-Koordinate und Rasterzellen (Standard `1`), nur bei `axis=true`. |
 | `step_y` | Zahl | -- | nein | `1.0` | Skalierung zwischen mathematischer y-Koordinate und Rasterzellen (Standard `1`), nur bei `axis=true`. |
+| `width` | Ganzzahl | -- | nein | `20` | Breite des Koordinatensystems in Rastereinheiten (Standard `20`) -- eigene, von `:::grid`s gleichnamiger, ggf. automatisch aus der Druckbreite berechneter `cols`-Option entkoppelte Option; bei `:::geometry` ist die Größe immer explizit oder Standard, nie automatisch. |
 
 **Beispiel** (identisch mit dem Menü "Einfügen" (Alt+I) im Editor):
 
 ```markdown
-:::geometry scale=0.5cm axis=true origin="10,10"
+:::geometry scale=0.5cm width=20 height=10 axis=true origin="10,5"
 points:
   - {x: 0, y: 0, label: "A", show: "&"}
 :::
@@ -604,14 +624,13 @@ Keine Optionen.
 
 ### `solution`
 
-Musterlösungstext. `label=true|false` (Standard `true`) blendet das Label "Lösung" ein/aus.
+Musterlösungstext. `label=true|false` (Standard `true`) blendet das Label "Lösung" ein/aus. Gehört zur nächsten vorangehenden Aufgabe bzw. Teilaufgabe (nie über `--hm` hinweg); mit `target=task` bzw. `target=b` lässt sie sich gezielt der Aufgabe bzw. Teilaufgabe b derselben Aufgabe zuordnen. Nummerierte Lösungspunkte können Teilpunkte am Zeilenende tragen, z. B. `1. Ansatz aufgestellt (2P)` oder `(1,5P)`; sind alle Punkte einer Aufgabe annotiert, muss ihre Summe zur Punktzahl der Aufgabe passen (sonst Fehler `PK002`).
 
 | Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
 |---|---|---|---|---|---|
 | `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
 | `label` | Bool | -- | nein | `True` | Blendet das Label "Lösung" vor dem Text ein/aus (Standard: an). |
-| `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
-| `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
+| `target` | Text | -- | nein | -- | Ordnet die Lösung gezielt zu: `task` = die Aufgabe selbst, `a`/`b`/... = die so bezeichnete Teilaufgabe derselben Aufgabe. Ohne `target` gilt die nächste vorangehende (Teil-)Aufgabe. Ein ungültiges Ziel ist ein Fehler (`SL008`). |
 
 **Beispiel** (identisch mit dem Menü "Einfügen" (Alt+I) im Editor):
 
@@ -647,8 +666,10 @@ Teilaufgabe zu einem vorangehenden `task`. Muss unmittelbar nach dem zugehörige
 | Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
 |---|---|---|---|---|---|
 | `action` | Enum | `aus`, `austauschen`, `calc`, `calculate`, `dec`, `decide`, `draw`, `drw`, `ent`, `entscheiden`, `exc`, `exchange`, `exp`, `experiment`, `experimentieren`, `les`, `lesen`, `mat`, `match`, `rd`, `read`, `rech`, `rechnen`, `ref`, `reflect`, `reflektieren`, `schr`, `schreiben`, `write`, `wrt`, `zei`, `zeichnen`, `zuo`, `zuordnen` | ja | *(keiner)* | Tätigkeits-Hinweis, wird als Emoji + Label gerendert (`read`/`lesen` 📖, `write`/`schreiben` ✍️, `calculate`/`rechnen` 🔢, `draw`/`zeichnen` 📐, `match`/`zuordnen` ↔️, `exchange`/`austauschen` 💬, `decide`/`entscheiden` ⚖️, `experiment`/`experimentieren` 🧪, `reflect`/`reflektieren` 🤔). Ohne Angabe wird kein Aktions-Symbol angezeigt. |
+| `afb` | Enum | `1`, `2`, `3` | ja | -- | Anforderungsbereich der Aufgabe bzw. Teilaufgabe (`1`, `2` oder `3`). Rein informativ: wird nicht im Schülerdokument angezeigt, sondern in der Klausur-Übersicht und im Erwartungshorizont ausgewertet. Eine Teilaufgabe ohne eigene Angabe erbt die AFB ihrer Aufgabe. |
 | `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
 | `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
+| `points` | Text | -- | nein | -- | Punktzahl der Aufgabe bzw. Teilaufgabe, wird als `X P` angezeigt (Zahl, Komma oder Punkt als Dezimaltrenner, z. B. `2,5`). Sind alle Teilaufgaben bepunktet, ergibt ihre Summe die Punktzahl der Aufgabe; ein zusätzlich gesetztes `points` an der Aufgabe muss genau dieser Summe entsprechen (`PK001`). Nur einen Teil der Teilaufgaben zu bepunkten ist ein Fehler (`PK004`). |
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
 | `time` | Text | -- | nein | -- | Geschätzte Bearbeitungszeit, wird als `X min` ausgegeben. Freier Textwert -- üblich, aber nicht erzwungen, ist eine reine Zahl (Minuten). |
 | `work` | Enum | `ea`, `einzel`, `ga`, `group`, `grp`, `gruppe`, `pa`, `partner`, `sgl`, `single` | ja | `single` | Empfohlene Arbeitsform, wird als Emoji + Label gerendert: `single`/`einzel` (👤), `partner` (👥) oder `group`/`gruppe` (👪). Deutsche und englische Schreibweisen sind gleichwertig. Ohne Angabe gilt `single`. |
@@ -696,10 +717,11 @@ Die Hauptaufgabe -- der zentrale Blocktyp eines Arbeitsblatts. `points` vergibt 
 | Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
 |---|---|---|---|---|---|
 | `action` | Enum | `aus`, `austauschen`, `calc`, `calculate`, `dec`, `decide`, `draw`, `drw`, `ent`, `entscheiden`, `exc`, `exchange`, `exp`, `experiment`, `experimentieren`, `les`, `lesen`, `mat`, `match`, `rd`, `read`, `rech`, `rechnen`, `ref`, `reflect`, `reflektieren`, `schr`, `schreiben`, `write`, `wrt`, `zei`, `zeichnen`, `zuo`, `zuordnen` | ja | *(keiner)* | Tätigkeits-Hinweis, wird als Emoji + Label gerendert (`read`/`lesen` 📖, `write`/`schreiben` ✍️, `calculate`/`rechnen` 🔢, `draw`/`zeichnen` 📐, `match`/`zuordnen` ↔️, `exchange`/`austauschen` 💬, `decide`/`entscheiden` ⚖️, `experiment`/`experimentieren` 🧪, `reflect`/`reflektieren` 🤔). Ohne Angabe wird kein Aktions-Symbol angezeigt. |
+| `afb` | Enum | `1`, `2`, `3` | ja | -- | Anforderungsbereich der Aufgabe bzw. Teilaufgabe (`1`, `2` oder `3`). Rein informativ: wird nicht im Schülerdokument angezeigt, sondern in der Klausur-Übersicht und im Erwartungshorizont ausgewertet. Eine Teilaufgabe ohne eigene Angabe erbt die AFB ihrer Aufgabe. |
 | `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
 | `hint` | Enum | `def`, `definition`, `eri`, `erinnerung`, `exp`, `expert`, `experte`, `fachwort`, `fw`, `hint`, `rem`, `remember`, `reminder`, `term`, `tip`, `tipp`, `tm`, `tp` | ja | *(keiner)* | Siehe `option:hint` -- bei `task` zusätzlich mit passendem Emoji direkt neben der Aufgabe gerendert. |
 | `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
-| `points` | Text | -- | nein | -- | Vergibt eine Punktzahl für die Aufgabe, wird neben der Aufgabe angezeigt. |
+| `points` | Text | -- | nein | -- | Punktzahl der Aufgabe bzw. Teilaufgabe, wird als `X P` angezeigt (Zahl, Komma oder Punkt als Dezimaltrenner, z. B. `2,5`). Sind alle Teilaufgaben bepunktet, ergibt ihre Summe die Punktzahl der Aufgabe; ein zusätzlich gesetztes `points` an der Aufgabe muss genau dieser Summe entsprechen (`PK001`). Nur einen Teil der Teilaufgaben zu bepunkten ist ein Fehler (`PK004`). *Besonderheit bei `task`:* Vergibt eine Punktzahl für die Aufgabe, wird neben der Aufgabe angezeigt. |
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
 | `time` | Text | -- | nein | -- | Geschätzte Bearbeitungszeit, wird als `X min` ausgegeben. Freier Textwert -- üblich, aber nicht erzwungen, ist eine reine Zahl (Minuten). |
 | `title` | Text | -- | nein | -- | Überschreibt die automatisch erzeugte Standardbeschriftung des Blocks mit einem eigenen Text. |
@@ -779,6 +801,7 @@ Schreibimpuls hier…
 
 ## 7. Control-Marker-Referenz
 
+- **aidsplit**: `--hm` auf einer eigenen Zeile trennt in einer Klausur (`.kbw`) den hilfsmittelfreien Teil vom Teil mit Hilfsmitteln: davor erscheint "Teil A – hilfsmittelfrei", am Marker beginnt eine neue Seite mit "Teil B – mit Hilfsmitteln"; die Aufgabennummern laufen weiter, Punkte und AFB werden je Teil ausgewertet. Nur zwischen zwei Aufgaben; in anderen Dokumenttypen ohne Wirkung. Ein zweites `--hm` davor trennt ein Deckblatt ab: Alles vor dem ersten `--hm` (Hinweise, Bewertungstabelle …, aber keine Aufgaben) steht auf der ersten Seite ohne Teilüberschrift, "Teil A" beginnt dann auf einer neuen Seite. Mehr als zwei `--hm` sind ein Fehler.
 - **framebreak**: `-+` auf einer eigenen Zeile erzeugt im Präsentationsmodus einen neuen Frame, der den bisherigen Folieninhalt beibehält und um den folgenden Inhalt ergänzt -- für das schrittweise Aufbauen **desselben** Gedankens auf **derselben** Folie (z. B. Punkt für Punkt aufdecken). Der Präsentations-Exportdialog bietet eine Option, diese schrittweisen Folien beim Export zu einer einzigen finalen Folie zusammenzufassen. **`-+` ist kein Folientrenner:** wird er anstelle von `--!` verwendet, um inhaltlich neue/andere Folien einzuleiten, sammelt sich der gesamte bisherige Inhalt auf einer einzigen, zunehmend überfüllten Folie an, statt eine neue zu beginnen -- für einen echten Folienwechsel immer `--!` verwenden.
 - **pagebreak**: `--!` auf einer eigenen Zeile erzwingt einen harten Seiten-/Folienumbruch an dieser Stelle -- der Marker, um in einer Präsentation gezielt eine **neue** Folie zu beginnen.
 - **sectionmark**: `--# Abschnittsname` setzt den aktuellen Abschnittsnamen für die Footer-Navigation in Präsentationen. Alles nach `--# ` bis Zeilenende wird als Abschnittstitel übernommen.
@@ -790,38 +813,50 @@ Schreibimpuls hier…
 
 ### Blockoptionen
 
-`:::grid` und `:::geometry` unterstützen die Option `line=solid|dashed` (Standard: `solid`), die den Linienstil des Rasterhintergrunds selbst steuert -- unabhängig vom gleichnamigen `pairs[].line`-Feld auf Objektebene (siehe unten), das nur die einzelne Strecke betrifft.
+`:::grid` und `:::geometry` unterstützen die Option `line=solid|dashed` (Standard: `solid`), die den Linienstil des Rasterhintergrunds selbst steuert -- unabhängig vom gleichnamigen `pairs[].line`-Feld auf Objektebene (siehe unten), das nur die einzelne Strecke betrifft. Nur `:::geometry` hat zusätzlich `background=none|lines|dots` (Standard `none`) -- ohne Angabe bleibt die Fläche leer, `lines` zeichnet dasselbe Karoraster wie `:::grid`, `dots` ein Punktraster.
 
 Erlaubte `line`-Werte: `dashed`, `solid`.
 
+### `circles`
+
+Ein Vollkreis (bzw. eine Ellipse) oder ein Kreisbogen um den Mittelpunkt `cx`/`cy` mit Radius `r` (kein `col`/`row`-Alias für `cx`/`cy`). Im Achsenmodus mathematische Koordinaten, mit `step_x`/`step_y`-Skalierung je Achse -- bei unterschiedlichem `step_x`/`step_y` entsteht dadurch bewusst eine Ellipse statt eines verzerrten Kreises; ohne Achse direkte Rasterkoordinaten mit Ursprung unten links, genau wie bei `pairs`/`polygons`. Ohne `start_angle`/`end_angle` wird ein voller Kreis gezeichnet; sind beide gesetzt (Grad, `0°` = Osten/positive x-Achse, wachsend entgegen dem Uhrzeigersinn -- wie der Einheitskreis in der Schulmathematik), wird stattdessen nur der Bogen von `start_angle` bis `end_angle` gezeichnet, immer aufsteigend; ist `end_angle` kleiner als `start_angle`, läuft der Bogen über 360° hinweg weiter (der "lange Weg" um den Kreis). Sind `start_angle`/`end_angle` gleich (auch modulo 360°, z. B. `0`/`360`), wird ebenfalls ein voller Kreis gezeichnet. Ist NUR einer der beiden Winkel gesetzt (oder ist einer von beiden zwar gesetzt, aber kein gültiger Zahlenwert), wird der gesamte Eintrag nicht gerendert (Validator-Warnung `AN018`). Der Bogenpfad selbst wird nicht geschlossen -- eine gesetzte `fill`-Farbe erzeugt daher ein Kreissegment (Bogen plus gerade Sehne zwischen den Endpunkten), kein Tortenstück. `label`, `color`, `thickness`, `fill` wie bei `polygons`. Ein Eintrag mit fehlendem oder ungültigem `cx`/`cy`/`r` (`r` muss positiv sein) wird ebenfalls nicht gerendert (`AN018`).
+
+Erlaubte Keys: `color`, `cx`, `cy`, `end_angle`, `fill`, `label`, `r`, `show`, `start_angle`, `thickness`.
+
 ### `functions`
 
-Funktionsgraphen (nur im Achsenmodus). `expr` ist der auszuwertende Funktionsterm, `domain` der Definitionsbereich als `min:max` (Standard `-10:10`, auch `min..max` erlaubt). `label` beschriftet den Graphen am rechten (letzten sichtbaren) Kurvenende. `color`/`thickness` wie bei `points`.
+Funktionsgraphen (nur im Achsenmodus -- anders als `pairs`/`sequence` bleibt `functions` bewusst axis-only, da ein Funktionsgraph ohne mathematisches Koordinatensystem nicht definiert ist; ohne aktiven Achsenmodus wird `functions` als Warnung `AN015` gemeldet). `expr` ist der auszuwertende Funktionsterm, `domain` der Definitionsbereich als `min:max` (Standard `-10:10`, auch `min..max` erlaubt). `label` beschriftet den Graphen am rechten (letzten sichtbaren) Kurvenende. `color`/`thickness` wie bei `points`.
 
 Erlaubte Keys: `color`, `domain`, `expr`, `label`, `show`, `thickness`.
 
 ### `pairs`
 
-Einzelne Strecken zwischen zwei Punkten (`x1,y1` nach `x2,y2`). `label` beschriftet die Strecke am Streckenmittelpunkt. `line=solid|dashed` (Standard bei fehlendem/ungültigem Wert: `dashed`) steuert den Linienstil dieser einzelnen Strecke -- eine eigene, von der Block-Option `line` unabhängige Ebene; ein ungültiger Wert wird als `AN012` gemeldet. `color`/`thickness` wie bei `points`.
+Einzelne Strecken zwischen zwei Punkten (`x1,y1` nach `x2,y2`). Im Achsenmodus (`axis=true`) mathematische Koordinaten, sonst Rasterkoordinaten mit Ursprung unten links (`(0, 0)`, y nach oben) -- praktisch z. B. für Flächenmodell-Skizzen (Rechtecke mit beschrifteten Seiten), die kein echtes Koordinatensystem brauchen. `label` beschriftet die Strecke am Streckenmittelpunkt. `line=solid|dashed` (Standard bei fehlendem/ungültigem Wert: `dashed`) steuert den Linienstil dieser einzelnen Strecke -- eine eigene, von der Block-Option `line` unabhängige Ebene; ein ungültiger Wert wird als `AN012` gemeldet. `color`/`thickness` wie bei `points`.
 
 Erlaubte Keys: `color`, `label`, `line`, `show`, `thickness`, `x1`, `x2`, `y1`, `y2`.
 
 ### `points`
 
-Einzelne markierte Punkte im Raster. Im Achsenmodus (`axis=true`) werden `x`/`y` als mathematische Koordinaten interpretiert, sonst `col`/`row` (bzw. `x`/`y` als Alias) als direkte Rasterkoordinaten. `label` beschriftet den Punkt. `color` (beliebiger CSS-Farbwert) und `thickness` (positive Zahl) sind optional -- fehlt einer der beiden oder ist er ungültig, fällt der Punkt auf den bisherigen Theme-Standard zurück, ohne den Build zu blockieren (Warnung `AN013`/`AN014`).
+Einzelne markierte Punkte im Raster. Im Achsenmodus (`axis=true`) werden `x`/`y` als mathematische Koordinaten interpretiert, sonst `col`/`row` (bzw. `x`/`y` als Alias) als Rasterkoordinaten mit Ursprung unten links (`(0, 0)`, `row` zählt nach oben) -- wie bei allen anderen Sektionen. `label` beschriftet den Punkt. `color` (beliebiger CSS-Farbwert) und `thickness` (positive Zahl) sind optional -- fehlt einer der beiden oder ist er ungültig, fällt der Punkt auf den bisherigen Theme-Standard zurück, ohne den Build zu blockieren (Warnung `AN013`/`AN014`).
 
 Erlaubte Keys: `col`, `color`, `label`, `row`, `show`, `thickness`, `x`, `y`.
 
+### `polygons`
+
+Beliebige geschlossene Vielecke über `vertices:` (Liste von mindestens 3 `{x, y}`-Objekten -- kein `col`/`row`-Alias auf Eckpunkt-Ebene). Im Achsenmodus mathematische Koordinaten je Eckpunkt, sonst Rasterkoordinaten mit Ursprung unten links, genau wie bei `pairs`. Ist auch nur EIN Eckpunkt fehlerhaft (fehlendes/nicht-numerisches `x`/`y`) oder hat `vertices` weniger als 3 Einträge, wird das GESAMTE Polygon nicht gerendert (keine automatische Reparatur einzelner Eckpunkte) -- der Validator meldet das als `AN017`. Das Polygon wird immer geschlossen gezeichnet (letzter Eckpunkt verbindet sich automatisch mit dem ersten); für offene Linienzüge siehe `sequence`. `label` wird am echten Flächenschwerpunkt platziert (nicht am Eckpunkt-Mittelwert -- bei konkaven Vielecken ein spürbarer Unterschied). Selbstüberschneidende Polygone werden ohne weitere Prüfung genau so gezeichnet, wie angegeben; der Flächenschwerpunkt ist für solche Konturen kein physikalisch eindeutiger Wert, sondern nur ein konsistenter Label-Anker. `fill` (beliebiger CSS-Farbwert, Standard: keine Füllung) füllt die Fläche; `color`/`thickness` wie bei `points`.
+
+Erlaubte Keys: `color`, `fill`, `label`, `show`, `thickness`, `vertices`.
+
 ### `sequence`
 
-Eine Liste aus `x`/`y`-Punkten (nur im Achsenmodus sinnvoll), die als sortierte Polylinie verbunden werden. `color`/`thickness` gelten für die Verbindungslinie selbst, nicht für einzelne Punktmarkierungen.
+Eine Liste aus `x`/`y`-Punkten, die als sortierte Polylinie verbunden werden. Im Achsenmodus (`axis=true`) mathematische Koordinaten, sonst Rasterkoordinaten mit Ursprung unten links (`(0, 0)`, y nach oben), ganz ohne sichtbares Koordinatenkreuz. `color`/`thickness` gelten für die Verbindungslinie selbst, nicht für einzelne Punktmarkierungen.
 
 Erlaubte Keys: `color`, `label`, `show`, `thickness`, `x`, `y`.
 
 ### Repräsentatives Beispiel
 
 ```markdown
-:::geometry rows=20 cols=20 axis=true origin="10,10"
+:::geometry width=20 height=20 background=lines axis=true origin="10,10"
 points:
   - {x: 2, y: 3, label: "A", color: "#2563eb", thickness: 2}
 pairs:

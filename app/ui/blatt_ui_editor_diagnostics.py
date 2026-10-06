@@ -17,11 +17,12 @@ from bw_gui.runtime import widgets
 
 import re
 
+from .blatt_ui_editor_panels import PANEL_DIAGNOSTICS, PANEL_PACK_OPTIONS
 from ..core.blatt_kern_shared import build_block_index_line_map
 from ..core.blatt_validator_types import BuildDiagnostic
 from ..core.diagnostic_identity import compute_diagnostic_identity
 from ..core.document_diagnostics import inspect_document_text
-from ..core.document_types import DOCUMENT_TYPE_KURZENTWURF
+from ..core.document_type_registry import spec_for_type
 from ..storage import acknowledged_warnings_store
 from .ui_theme import get_theme
 
@@ -50,8 +51,10 @@ class BlattwerkAppEditorDiagnosticsMixin:
         (`ttk.Treeview` doesn't accept those options), same as that table.
         """
 
-        diagnostics_frame = widgets.LabelFrame(parent, text="Diagnostik")
-        diagnostics_frame.pack(fill="x", padx=8, pady=(0, 8))
+        # Einklappbar (bw-gui `CollapsibleSection`, siehe `blatt_ui_editor_panels.py`).
+        diagnostics_section = self._build_editor_section(parent, PANEL_DIAGNOSTICS, "Diagnostik")
+        diagnostics_section.pack(**PANEL_PACK_OPTIONS)
+        diagnostics_frame = diagnostics_section.content
         diagnostics_frame.columnconfigure(0, weight=1)
 
         self.editor_diagnostics_listbox = widgets.Treeview(
@@ -126,8 +129,6 @@ class BlattwerkAppEditorDiagnosticsMixin:
             return
 
         text = self.editor_widget.get("1.0", "end-1c")
-        preferences = getattr(self, "user_preferences", {})
-        detection_mode = preferences.get("document_type_detection_mode", "yaml_keys")
         try:
             source_path = None
             if hasattr(self, "_active_document_tab_state"):
@@ -140,7 +141,13 @@ class BlattwerkAppEditorDiagnosticsMixin:
                     if raw_path:
                         source_path = raw_path
 
-            inspected = inspect_document_text(text, detection_mode=detection_mode, source_path=source_path)
+            document_type = self._read_document_type(source_path) if source_path else None
+            if document_type is None:
+                self._set_editor_diagnostics([])
+                return
+            inspected = inspect_document_text(text, document_type=document_type)
+            if hasattr(self, "_refresh_exam_overview"):
+                self._refresh_exam_overview(text, document_type)
         except Exception:
             self._set_editor_diagnostics([])
             return
@@ -151,7 +158,7 @@ class BlattwerkAppEditorDiagnosticsMixin:
 
         source_diagnostics: list[BuildDiagnostic] = list(inspected.diagnostics)
 
-        if inspected.document_type != DOCUMENT_TYPE_KURZENTWURF:
+        if spec_for_type(inspected.document_type).blocks:
             for line_no, block_type in structure["close_suffix_lines"]:
                 source_diagnostics.append(
                     BuildDiagnostic(

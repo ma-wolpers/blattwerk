@@ -14,7 +14,7 @@ from dataclasses import dataclass
 
 from .blatt_kern_shared_data import JA_NEIN_BOOLEAN_TOKENS
 from .crossword_symbol_presets import SYMBOL_THEME_NAMES
-from .document_types import KNOWN_DOCUMENT_TYPES
+from .document_type_registry import KNOWN_DOCUMENT_TYPES
 
 REQUIRED_FRONTMATTER_FIELDS = ("Titel", "Fach", "Thema")
 
@@ -91,10 +91,11 @@ KNOWN_BLOCK_TYPES = {
     "slidechromeoff",
     "sectionmark",
     "vspacer",
+    "aidsplit",
+    "evaluation",
 }
 KNOWN_SHOW_VALUES = {"worksheet", "solution", "both"}
 KNOWN_BLOCK_MODE_VALUES = {"worksheet", "solution"}
-KNOWN_DOCUMENT_MODES = {"ws", "test", "worksheet", "solution", "presentation"}
 KNOWN_PRESENTATION_LAYOUTS = {
     "presentation_16_9",
     "presentation_16_10",
@@ -109,6 +110,14 @@ mit dem gleichnamigen Objekt-Feld `pairs[].line` in der Geometry-YAML-DSL,
 das den Linienstil einzelner Strecken steuert und separat über
 `GEOMETRY_ENTRY_ALLOWED_KEYS`/`_validate_geometry_entry_fields` geprüft
 wird — beide Ebenen teilen sich nur den Namen, nicht die Validierung.
+"""
+KNOWN_GEOMETRY_BACKGROUND_STYLES = {"none", "lines", "dots"}
+"""Erlaubte Werte für die Block-Option `background=...` bei `:::geometry` (nur dort, nicht `:::grid`).
+
+`:::grid` (reines Karopapier) behält seinen eigenen, immer aktiven
+Hintergrund-Renderpfad unverändert -- diese Option existiert nur für
+`:::geometry`, das seit der Entkopplung von `:::grid`s Modell standardmäßig
+(`none`) *kein* Hintergrundraster mehr zeichnet.
 """
 KNOWN_ALIGN_VALUES = {
     "left",
@@ -144,9 +153,10 @@ Menge referenzieren kann, ohne sie zu duplizieren. Gilt **nicht** für
 
 NUMBERLINE_ANSWER_TYPES = {"numberline"}
 MARKER_SHOW_SECTIONS_BY_ANSWER_TYPE = {
-    "geometry": ("points", "pairs", "functions"),
+    "geometry": ("points", "pairs", "functions", "polygons", "circles"),
     "numberline": ("labels", "answers", "arcs", "jumps", "arrows", "boxes", "blanks"),
 }
+"""`sequence` bleibt hier bewusst ausgenommen (vorbestehende, hier nicht behobene Lücke)."""
 KNOWN_WORK_VALUES = {
     "single",
     "sgl",
@@ -366,8 +376,14 @@ _OPT_ACTION = BlockOptionSpec("action", "enum", frozenset(KNOWN_ACTION_VALUES), 
 _OPT_HINT = BlockOptionSpec("hint", "enum", frozenset(KNOWN_HINT_VALUES), True, None)
 _OPT_LINE = BlockOptionSpec("line", "enum", frozenset(KNOWN_GRID_LINE_STYLES), True, "solid")
 _OPT_TITLE = BlockOptionSpec("title", "text", None, False, MISSING)
+_OPT_AFB = BlockOptionSpec("afb", "enum", frozenset({"1", "2", "3"}), True, MISSING)
 _OPT_WIDTHS = BlockOptionSpec("widths", "text", None, False, MISSING)
 _OPT_SCALE = BlockOptionSpec("scale", "css_length", None, False, "0.5cm")
+
+DEPRECATED_IGNORED_OPTIONS = {"solution": frozenset({"mode", "show"})}
+"""Optionen, die veraltet sind und **ignoriert** werden (Warnung `OP004`); sie stehen
+bewusst nicht mehr im Spec, damit die Completion sie nicht anbietet. `:::solution`
+ist per Definition nur in der Lösungsfassung sichtbar."""
 
 QRCODE_SIZE_OPTION_KEYS = {"w", "h", "maxw", "width", "height", "max-width"}
 _OPT_QRCODE_SIZE_HINT = "CSS-Größe wie `3cm`, `120px`, `60%` oder `auto`"
@@ -386,13 +402,16 @@ BLOCK_OPTION_SPECS: dict[str, tuple[BlockOptionSpec, ...]] = {
         _OPT_WORK,
         _OPT_ACTION,
         _OPT_HINT,
+        _OPT_AFB,
         _OPT_SHOW,
         _OPT_MODE,
         _OPT_TITLE,
         _OPT_ALIGN,
     ),
     "subtask": (
+        BlockOptionSpec("points", "text", None, False, MISSING),
         BlockOptionSpec("time", "text", None, False, MISSING),
+        _OPT_AFB,
         _OPT_WORK,
         _OPT_ACTION,
         _OPT_SHOW,
@@ -420,10 +439,11 @@ BLOCK_OPTION_SPECS: dict[str, tuple[BlockOptionSpec, ...]] = {
     "geometry": (
         _OPT_SHOW,
         _OPT_MODE,
-        BlockOptionSpec("rows", "integer", None, False, 5),
-        BlockOptionSpec("cols", "integer", None, False, 20),
+        BlockOptionSpec("width", "integer", None, False, 20),
+        BlockOptionSpec("height", "integer", None, False, 5),
         _OPT_SCALE,
         _OPT_LINE,
+        BlockOptionSpec("background", "enum", frozenset(KNOWN_GEOMETRY_BACKGROUND_STYLES), True, "none"),
         BlockOptionSpec("axis", "boolean", None, False, False),
         BlockOptionSpec("axis_label_x", "text", None, False, "x"),
         BlockOptionSpec("axis_label_y", "text", None, False, "y"),
@@ -593,8 +613,7 @@ BLOCK_OPTION_SPECS: dict[str, tuple[BlockOptionSpec, ...]] = {
     ),
     "solution": (
         BlockOptionSpec("label", "boolean", None, False, True),
-        _OPT_SHOW,
-        _OPT_MODE,
+        BlockOptionSpec("target", "text", None, False, MISSING),
         _OPT_ALIGN,
     ),
     "columns": (
@@ -636,6 +655,12 @@ BLOCK_OPTION_SPECS: dict[str, tuple[BlockOptionSpec, ...]] = {
     "pagebreak": (),
     "framebreak": (),
     "slidechromeoff": (),
+    "aidsplit": (),
+    "evaluation": (
+        BlockOptionSpec("level", "enum", frozenset({"task", "subtask"}), True, "task"),
+        _OPT_TITLE,
+        BlockOptionSpec("parts", "boolean", None, False, False),
+    ),
     "sectionmark": (_OPT_TITLE,),
     "vspacer": (
         BlockOptionSpec("height", "css_length", None, False, MISSING),
@@ -666,7 +691,6 @@ CRITICAL_DIAGNOSTIC_CODES = {
 }
 
 OPTIONAL_FRONTMATTER_FIELDS = (
-    FrontmatterFieldSpec("mode", "enum", frozenset(KNOWN_DOCUMENT_MODES), "worksheet", True),
     FrontmatterFieldSpec(
         "presentation_layout", "enum", frozenset(KNOWN_PRESENTATION_LAYOUTS), MISSING, True
     ),

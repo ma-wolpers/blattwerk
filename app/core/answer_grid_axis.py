@@ -12,14 +12,20 @@ from __future__ import annotations
 import math
 from html import escape
 
+from .answer_special_shared import _option_is_enabled
 
-def _parse_origin(raw_origin, cols, rows):
-    """Parst den Ursprung im Format `col,row` ohne Clamping auf die Rastergrenzen.
 
-    `cols`/`rows` werden aktuell nicht zum Clamping verwendet (das übernimmt
-    `_clamp_axis_origin` separat für die *sichtbare* Achsenposition) — sie
-    sind Teil der Signatur, damit Aufrufer nicht zwischen "logischer" und
-    "geklemmter" Parse-Funktion unterscheiden müssen.
+def _parse_origin(raw_origin):
+    """Parst den Ursprung im Format `spalte,zeile` ohne Clamping auf die Rastergrenzen.
+
+    Konvention (wie in der Schulmathematik): `(0, 0)` ist die **linke untere**
+    Ecke, die Zeile zählt von unten nach oben. Die Umrechnung in die
+    SVG-Rasterkoordinate (Zeile von oben) macht ausschließlich
+    `origin_to_canvas`.
+
+    Kein `cols`/`rows`-Parameter: das Klemmen auf die *sichtbare*
+    Achsenposition übernimmt separat `_clamp_axis_origin`, das reine Parsen
+    des Formats braucht die Rastergröße nicht.
     """
     if not raw_origin:
         return None
@@ -36,6 +42,54 @@ def _parse_origin(raw_origin, cols, rows):
         return None
 
     return col, row
+
+
+def origin_to_canvas(origin, rows):
+    """Rechnet einen Ursprung `(spalte, zeile_von_unten)` in die Rasterkoordinate des SVG um.
+
+    Einzige Stelle für diese Umrechnung (Renderer und Rand-Schätzung rufen sie
+    direkt nach `_resolve_axis_state` auf). Das SVG zählt Zeilen von oben, die
+    Geometry-DSL von unten: `(0, 0)` = linke untere Ecke.
+
+    Args:
+        origin: `(spalte, zeile)` aus `_parse_origin` oder `None`.
+        rows: Höhe des Rasters in Rastereinheiten.
+
+    Returns:
+        `(spalte, rows - zeile)` bzw. `None`.
+    """
+    if origin is None:
+        return None
+    return origin[0], float(rows) - origin[1]
+
+
+def _resolve_axis_state(options):
+    """Löst den Drei-Zustands-Achsenmodus auf: `"disabled"` | `"active"` | `"broken"`.
+
+    - `"disabled"`: `axis` ist nicht gesetzt/falsy -- Geometry-Objekte
+      interpretieren ihre Koordinaten roh im Rasterkoordinatensystem.
+    - `"active"`: `axis=true` UND `origin` parst erfolgreich zu `(col, row)`
+      -- Objekte interpretieren ihre Koordinaten als mathematische
+      Koordinaten, umgerechnet über `origin`/`step_x`/`step_y`.
+    - `"broken"`: `axis=true`, aber `origin` fehlt oder ist nicht im Format
+      `"col,row"` parsebar. Absichtlich **kein** stiller Rückfall auf
+      Rasterkoordinaten (der würde eine kaputte Konfiguration verschleiern)
+      -- Aufrufer rendern in diesem Zustand *nichts* vom Geometry-Payload
+      (siehe `_render_grid_primitives_svg`); der Validator meldet `OP005`.
+
+    Von Renderer (`render_geometry_answer`, `_render_grid_primitives_svg`)
+    UND Validator (`blatt_validator_block_options.py`) aufgerufen -- exakt
+    dieselbe Funktion, damit beide Seiten strukturell nicht auseinanderlaufen
+    können. Bewusst OHNE `cols`/`rows`-Parameter: `_parse_origin` braucht
+    die Rastergröße nie, also braucht auch diese Funktion sie nie.
+    """
+    axis_enabled = _option_is_enabled(options.get("axis"), default=False)
+    if not axis_enabled:
+        return "disabled", None
+    origin = _parse_origin(options.get("origin"))
+    if origin is None:
+        return "broken", None
+    return "active", origin
 
 
 def _clamp_axis_origin(origin_x, origin_y, cols, rows):
@@ -167,36 +221,43 @@ def _render_axis_ticks_and_labels(
     gezeichnete Achsenposition — beide werden gebraucht, weil Ticks anhand
     des logischen Ursprungs positioniert, aber am sichtbaren Achsenkreuz
     angezeichnet werden.
+
+    Liefert `(shapes, labels)` getrennt statt einer flachen Liste: die
+    Tick-Zahlenwerte sind Text-Labels wie jedes andere Geometry-Label und
+    gehören in der Z-Order ganz nach oben, nicht in die Achsen-Bodenschicht
+    (siehe `_render_grid_primitives_svg`) -- nur die Tick-Striche selbst
+    bleiben unten.
     """
-    tick_markup = []
+    shapes = []
+    labels = []
     x_positions = _iter_axis_tick_positions(logical_origin_x, cols, step_x)
     y_positions = _iter_axis_tick_positions(logical_origin_y, rows, step_y)
     x_label_stride = _choose_axis_label_stride(len(x_positions))
     y_label_stride = _choose_axis_label_stride(len(y_positions))
 
     for gx, logical_x in x_positions:
-        tick_markup.append(
+        shapes.append(
             f"<line class='grid-axis-tick' x1='{gx:.4f}' y1='{axis_origin_y - 0.18:.4f}' x2='{gx:.4f}' y2='{axis_origin_y + 0.18:.4f}' />"
         )
         if _should_render_axis_label(logical_x, x_label_stride) and _is_inside_axis_label_safe_area(
             gx, cols
         ):
-            tick_markup.append(
+            labels.append(
                 f"<text class='grid-axis-label' x='{gx:.4f}' y='{axis_origin_y + 0.1:.4f}'>{_format_axis_label(logical_x)}</text>"
             )
 
     for gy, logical_y in y_positions:
-        tick_markup.append(
+        shapes.append(
             f"<line class='grid-axis-tick' x1='{axis_origin_x - 0.18:.4f}' y1='{gy:.4f}' x2='{axis_origin_x + 0.18:.4f}' y2='{gy:.4f}' />"
         )
         if _should_render_axis_label(logical_y, y_label_stride) and _is_inside_axis_label_safe_area(
             gy, rows
         ):
-            tick_markup.append(
+            labels.append(
                 f"<text class='grid-axis-label grid-axis-label-y' x='{axis_origin_x - 0.28:.4f}' y='{gy + 0.04:.4f}'>{_format_axis_label(-logical_y)}</text>"
             )
 
-    return tick_markup
+    return shapes, labels
 
 
 def _render_axis_arrowheads_and_names(origin_x, origin_y, cols, rows, axis_label_x, axis_label_y):
@@ -206,22 +267,28 @@ def _render_axis_arrowheads_and_names(origin_x, origin_y, cols, rows, axis_label
     genug Platz ist (`x_base < x_tip` / `y_tip < y_base`) — bei sehr kleinen
     Rastern oder einem Ursprung nahe am Rand würde eine erzwungene Pfeilspitze
     sonst invertiert oder verzerrt wirken.
+
+    Liefert `(shapes, labels)` getrennt statt einer flachen Liste: die
+    Achsennamen (`axis_label_x`/`axis_label_y`) sind Text-Labels wie jedes
+    andere Geometry-Label und gehören in der Z-Order ganz nach oben, nicht
+    in die Achsen-Bodenschicht -- nur die Pfeilspitzen selbst bleiben unten.
     """
-    markup = []
+    shapes = []
+    labels = []
 
     x_tip = float(cols) + 0.34
     x_base = max(origin_x + 0.24, x_tip - 0.44)
     x_top = max(0.04, origin_y - 0.18)
     x_bottom = min(float(rows) - 0.04, origin_y + 0.18)
     if x_base < x_tip:
-        markup.append(
+        shapes.append(
             "<polygon class='grid-axis' points='"
             f"{x_tip:.4f},{origin_y:.4f} {x_base:.4f},{x_top:.4f} {x_base:.4f},{x_bottom:.4f}' />"
         )
     if axis_label_x:
         x_name_y = origin_y - 0.28
         x_name_x = x_tip + 0.16
-        markup.append(
+        labels.append(
             f"<text class='grid-axis-label grid-axis-name' x='{x_name_x:.4f}' y='{x_name_y:.4f}' text-anchor='start'>{escape(axis_label_x)}</text>"
         )
 
@@ -230,15 +297,15 @@ def _render_axis_arrowheads_and_names(origin_x, origin_y, cols, rows, axis_label
     y_left = max(0.04, origin_x - 0.18)
     y_right = min(float(cols) - 0.04, origin_x + 0.18)
     if y_tip < y_base:
-        markup.append(
+        shapes.append(
             "<polygon class='grid-axis' points='"
             f"{origin_x:.4f},{y_tip:.4f} {y_left:.4f},{y_base:.4f} {y_right:.4f},{y_base:.4f}' />"
         )
     if axis_label_y:
         y_name_x = origin_x - 0.1
         y_name_y = y_tip - 0.9
-        markup.append(
+        labels.append(
             f"<text class='grid-axis-label grid-axis-name' x='{y_name_x:.4f}' y='{y_name_y:.4f}' text-anchor='end'>{escape(axis_label_y)}</text>"
         )
 
-    return markup
+    return shapes, labels

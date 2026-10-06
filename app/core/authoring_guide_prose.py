@@ -35,15 +35,9 @@ PROSE_SECTIONS: dict[str, str] = {
     "frontmatter:Fach": "Das Unterrichtsfach, erscheint zusammen mit `Thema` in der Metazeile des Dokumentkopfs.",
     "frontmatter:Thema": "Das konkrete Unterrichtsthema, erscheint zusammen mit `Fach` in der Metazeile des Dokumentkopfs.",
     # -- Frontmatter: optionale Felder ------------------------------------
-    "frontmatter:mode": (
-        "Steuert das grundlegende Ausgabeverhalten des Dokuments. `worksheet` (Standard, Alias `ws`) "
-        "zeigt normale Arbeitsblatt-Ausgabe; `solution` rendert global die Lösungsansicht; "
-        "`presentation` schaltet auf Folienausgabe mit Mini-Header und Folienzähler um; `test` blendet "
-        "in Aufgaben/Teilaufgaben nur die Arbeitsform-Hinweise (Emoji + Label) aus."
-    ),
     "frontmatter:presentation_layout": (
-        "Wählt das Seitenverhältnis der Folien bei `mode: presentation` (`presentation_16_9`, "
-        "`presentation_16_10` oder `presentation_4_3`). Ohne `mode: presentation` ohne Wirkung."
+        "Wählt das Seitenverhältnis der Folien einer Präsentation (`.pbw`; `presentation_16_9`, "
+        "`presentation_16_10` oder `presentation_4_3`). In anderen Dokumenttypen ohne Wirkung."
     ),
     "frontmatter:presentation_show_mini_header": (
         "Blendet in Präsentationen den kleinen Kopfbereich pro Folie (Phasenübersicht) ein/aus. "
@@ -67,9 +61,11 @@ PROSE_SECTIONS: dict[str, str] = {
         "denselben booleschen Werttyp wie `show_student_header`."
     ),
     "frontmatter:document_type": (
-        "Markiert den Dokumenttyp explizit (`worksheet`, `presentation` oder `kurzentwurf`) statt ihn "
-        "aus anderen Feldern zu erraten. Wird von Blattwerk beim Anlegen neuer Dokumente automatisch "
-        "gesetzt; von Hand meist nicht nötig. Aktuell nicht durch den Markdown-Validator wertgeprüft."
+        "Konsistenzmarker für den Dokumenttyp: muss zur Dateiendung passen (`.abw` → `worksheet`, "
+        "`.pbw` → `presentation`, `.kbw` → `exam`, `.ebw` → `kurzentwurf`, `.md` → `markdown`). "
+        "Der Typ selbst kommt immer aus der Endung; ein abweichender Wert erzeugt eine Warnung "
+        "(`FM008`), ein ungültiger `FM010`, ein fehlender in Blattwerk-Dateien `FM009`. Blattwerk "
+        "setzt ihn beim Anlegen und bei Speichern-unter in einen anderen Blattwerk-Typ automatisch."
     ),
     "frontmatter:lochen": (
         "Aktiviert einen vergrößerten linken Rand für Lochung beim Ausdrucken (`ja`/`nein`, Standard: "
@@ -117,6 +113,36 @@ PROSE_SECTIONS: dict[str, str] = {
         "(Phasenübersicht + Folienzähler) aus, ohne das globale Präsentationslayout zu verändern -- "
         "nützlich für Folien mit wenig Platz."
     ),
+    "exam:intro": (
+        "Eine Klausur ist eine Blattwerk-Datei mit der Endung `.kbw`. Sie nutzt denselben "
+        "`:::`-Blockdialekt wie ein Arbeitsblatt (siehe "
+        "[`ANLEITUNG_ARBEITSBLATT_PRAESENTATION.md`](ANLEITUNG_ARBEITSBLATT_PRAESENTATION.md)), "
+        "zeigt aber keine Sozialform-Symbole und bietet zusätzlich Anforderungsbereiche, den "
+        "Hilfsmittel-Trenner `--hm`, die Klausur-Übersicht und den Erwartungshorizont. Die "
+        "Diagnose-Codes (`KL…`, `PK…`, `SL…`, `EV…`) stehen in [`VALIDATOR.md`](VALIDATOR.md)."
+    ),
+    "exam:overview": (
+        "Unter der Diagnostik zeigt der Editor bei Klausuren live die Gesamtpunkte und ihre Verteilung "
+        "auf AFB I/II/III, mit `--hm` zusätzlich je Teil. Die Prozentangaben beziehen sich immer auf "
+        "die Gesamtpunktzahl der Klausur. Fehlen Punkte oder Anforderungsbereiche, steht dort "
+        "„unvollständig“ mit dem Grund statt einer Prozentzahl."
+    ),
+    "exam:expectation_horizon": (
+        "Im Exportdialog einer Klausur gibt es unter „Inhalt“ den Punkt „Erwartungshorizont“ (PDF oder "
+        "HTML). Er listet je (Teil-)Aufgabe nur die nummerierten Lösungspunkte mit ihren Teilpunkten, "
+        "ohne Aufgabentext, mit einer leeren Spalte „erreicht“, dazu Teilsummen je Hilfsmittel-Teil "
+        "und die AFB-Tabelle. Widersprüchliche Punkte verhindern den Export; fehlende Teilpunkte "
+        "(`SL005`) oder Erwartungen (`SL007`) werden nur angemerkt."
+    ),
+    "marker:aidsplit": (
+        "`--hm` auf einer eigenen Zeile trennt in einer Klausur (`.kbw`) den hilfsmittelfreien Teil "
+        "vom Teil mit Hilfsmitteln: davor erscheint \"Teil A – hilfsmittelfrei\", am Marker beginnt "
+        "eine neue Seite mit \"Teil B – mit Hilfsmitteln\"; die Aufgabennummern laufen weiter, Punkte "
+        "und AFB werden je Teil ausgewertet. Nur zwischen zwei Aufgaben; in anderen Dokumenttypen "
+        "ohne Wirkung. Ein zweites `--hm` davor trennt ein Deckblatt ab: Alles vor dem ersten `--hm` "
+        "(Hinweise, Bewertungstabelle …, aber keine Aufgaben) steht auf der ersten Seite ohne "
+        "Teilüberschrift, \"Teil A\" beginnt dann auf einer neuen Seite. Mehr als zwei `--hm` sind ein Fehler."
+    ),
     "marker:sectionmark": (
         "`--# Abschnittsname` setzt den aktuellen Abschnittsnamen für die Footer-Navigation in "
         "Präsentationen. Alles nach `--# ` bis Zeilenende wird als Abschnittstitel übernommen."
@@ -153,7 +179,7 @@ PROSE_SECTIONS: dict[str, str] = {
         "stattdessen nur Teile der Formel oder den umgebenden Text fett setzen."
     ),
     "presentation:visibility": (
-        "In Präsentationen (`mode: presentation`) gibt es **keinen Lösungs-Umschalter**: Blöcke mit "
+        "In Präsentationen (`.pbw`) gibt es **keinen Lösungs-Umschalter**: Blöcke mit "
         "`mode=solution`/`show=solution` sowie `:::solution ... :::`-Blöcke (nach Blocktyp) werden in "
         "Präsentationen **immer** ausgeblendet -- unabhängig davon, ob ein Export explizit \"mit "
         "Lösung\" anfordert. Es gibt keine Möglichkeit, sie in einer Präsentation sichtbar zu machen. "
@@ -255,6 +281,26 @@ PROSE_SECTIONS: dict[str, str] = {
         "gleichermaßen. Sollte nach jedem `s<` gesetzt werden -- fehlt es, erscheint die Warnung "
         "`KZF152`."
     ),
+    "kurzentwurf:line_breaks": (
+        "Zeilenumbrüche funktionieren in allen Zellen wie im Arbeitsblatt: eine Folgezeile ohne "
+        "Marker erscheint in derselben Zelle in einer neuen Zeile, eine **Leerzeile** beginnt einen "
+        "neuen Absatz (mit kleinem Abstand). Leerzeilen direkt vor einem neuen Marker, vor `---` oder "
+        "vor der nächsten `#phase` bleiben wirkungslos. Ausnahme Lernaktivitäten: nach `s<` gilt "
+        "jede Folgezeile als **eigener** \"S:innen\"-Eintrag. Soll ein Eintrag stattdessen nur in "
+        "einer neuen Zeile weiterlaufen, endet die Zeile davor mit einem `\\` (z. B. "
+        "`s< beschreiben die Grafik \\` und darunter `und vergleichen sie`). In den anderen Spalten "
+        "ist das `\\` unnötig und wird einfach entfernt; ein doppeltes `\\\\` bleibt als Text stehen."
+    ),
+    "kurzentwurf:math_formulas": (
+        "In jeder Zelle funktionieren Formeln `$formel$` in LaTeX-Syntax (z. B. "
+        "`$\\frac{a}{b}$`, `$x^2$`) wie im Arbeitsblatt. `$$formel$$` ist ebenfalls erlaubt, wird im "
+        "Kurzentwurf aber genauso **im Fließtext** gesetzt wie `$formel$` (keine eigene, zentrierte "
+        "Formelzeile -- dafür sind die Tabellenzellen zu schmal; der Editor weist mit dem abhakbaren "
+        "Hinweis `KZF161` darauf hin). Die Darstellung lädt MathJax von "
+        "einem CDN nach; ohne Internetverbindung bei Vorschau/PDF-Export bleibt die rohe "
+        "Formel-Quelle als Text sichtbar -- der Editor weist einmal pro Dokument darauf hin "
+        "(`KZF160`). Ein einzelnes `$` wie in `$5` wird nicht als Formelbeginn erkannt."
+    ),
     "kurzentwurf:marker:ant>": (
         "**Kein** gültiger Alias von `ant<`, obwohl es vom Zeilenmarker-Muster erkannt wird -- führt "
         "immer zum Fehler `KZF153` (\"Bitte ant< verwenden\"). Nur `ant<` verwenden."
@@ -263,33 +309,80 @@ PROSE_SECTIONS: dict[str, str] = {
     "geometry:block_options": (
         "`:::grid` und `:::geometry` unterstützen die Option `line=solid|dashed` (Standard: `solid`), "
         "die den Linienstil des Rasterhintergrunds selbst steuert -- unabhängig vom gleichnamigen "
-        "`pairs[].line`-Feld auf Objektebene (siehe unten), das nur die einzelne Strecke betrifft."
+        "`pairs[].line`-Feld auf Objektebene (siehe unten), das nur die einzelne Strecke betrifft. "
+        "Nur `:::geometry` hat zusätzlich `background=none|lines|dots` (Standard `none`) -- ohne "
+        "Angabe bleibt die Fläche leer, `lines` zeichnet dasselbe Karoraster wie `:::grid`, `dots` "
+        "ein Punktraster."
     ),
     "geometry:points": (
         "Einzelne markierte Punkte im Raster. Im Achsenmodus (`axis=true`) werden `x`/`y` als "
         "mathematische Koordinaten interpretiert, sonst `col`/`row` (bzw. `x`/`y` als Alias) als "
-        "direkte Rasterkoordinaten. `label` beschriftet den Punkt. `color` (beliebiger CSS-Farbwert) "
+        "Rasterkoordinaten mit Ursprung unten links (`(0, 0)`, `row` zählt nach oben) -- wie bei allen "
+        "anderen Sektionen. `label` beschriftet den Punkt. `color` (beliebiger CSS-Farbwert) "
         "und `thickness` (positive Zahl) sind optional -- fehlt einer der beiden oder ist er ungültig, "
         "fällt der Punkt auf den bisherigen Theme-Standard zurück, ohne den Build zu blockieren "
         "(Warnung `AN013`/`AN014`)."
     ),
     "geometry:sequence": (
-        "Eine Liste aus `x`/`y`-Punkten (nur im Achsenmodus sinnvoll), die als sortierte Polylinie "
-        "verbunden werden. `color`/`thickness` gelten für die Verbindungslinie selbst, nicht für "
-        "einzelne Punktmarkierungen."
+        "Eine Liste aus `x`/`y`-Punkten, die als sortierte Polylinie verbunden werden. Im "
+        "Achsenmodus (`axis=true`) mathematische Koordinaten, sonst Rasterkoordinaten mit "
+        "Ursprung unten links (`(0, 0)`, y nach oben), ganz ohne sichtbares Koordinatenkreuz. "
+        "`color`/`thickness` gelten für die Verbindungslinie selbst, nicht für einzelne "
+        "Punktmarkierungen."
     ),
     "geometry:pairs": (
-        "Einzelne Strecken zwischen zwei Punkten (`x1,y1` nach `x2,y2`). `label` beschriftet die "
-        "Strecke am Streckenmittelpunkt. `line=solid|dashed` (Standard bei fehlendem/ungültigem Wert: "
-        "`dashed`) steuert den Linienstil dieser einzelnen Strecke -- eine eigene, von der "
-        "Block-Option `line` unabhängige Ebene; ein ungültiger Wert wird als `AN012` gemeldet. "
-        "`color`/`thickness` wie bei `points`."
+        "Einzelne Strecken zwischen zwei Punkten (`x1,y1` nach `x2,y2`). Im Achsenmodus "
+        "(`axis=true`) mathematische Koordinaten, sonst Rasterkoordinaten mit Ursprung unten "
+        "links (`(0, 0)`, y nach oben) -- praktisch z. B. für Flächenmodell-Skizzen (Rechtecke "
+        "mit beschrifteten Seiten), die kein echtes Koordinatensystem brauchen. `label` "
+        "beschriftet die Strecke am Streckenmittelpunkt. `line=solid|dashed` (Standard bei "
+        "fehlendem/ungültigem Wert: `dashed`) steuert den Linienstil dieser einzelnen Strecke -- "
+        "eine eigene, von der Block-Option `line` unabhängige Ebene; ein ungültiger Wert wird als "
+        "`AN012` gemeldet. `color`/`thickness` wie bei `points`."
+    ),
+    "geometry:polygons": (
+        "Beliebige geschlossene Vielecke über `vertices:` (Liste von mindestens 3 `{x, y}`-"
+        "Objekten -- kein `col`/`row`-Alias auf Eckpunkt-Ebene). Im Achsenmodus mathematische "
+        "Koordinaten je Eckpunkt, sonst Rasterkoordinaten mit Ursprung unten links, genau wie "
+        "bei `pairs`. Ist auch nur EIN Eckpunkt fehlerhaft (fehlendes/nicht-numerisches `x`/`y`) "
+        "oder hat `vertices` weniger als 3 Einträge, wird das GESAMTE Polygon nicht gerendert "
+        "(keine automatische Reparatur einzelner Eckpunkte) -- der Validator meldet das als "
+        "`AN017`. Das Polygon wird immer geschlossen gezeichnet (letzter Eckpunkt verbindet sich "
+        "automatisch mit dem ersten); für offene Linienzüge siehe `sequence`. `label` wird am "
+        "echten Flächenschwerpunkt platziert (nicht am Eckpunkt-Mittelwert -- bei konkaven "
+        "Vielecken ein spürbarer Unterschied). Selbstüberschneidende Polygone werden ohne "
+        "weitere Prüfung genau so gezeichnet, wie angegeben; der Flächenschwerpunkt ist für "
+        "solche Konturen kein physikalisch eindeutiger Wert, sondern nur ein konsistenter "
+        "Label-Anker. `fill` (beliebiger CSS-Farbwert, Standard: keine Füllung) füllt die "
+        "Fläche; `color`/`thickness` wie bei `points`."
+    ),
+    "geometry:circles": (
+        "Ein Vollkreis (bzw. eine Ellipse) oder ein Kreisbogen um den Mittelpunkt `cx`/`cy` mit "
+        "Radius `r` (kein `col`/`row`-Alias für `cx`/`cy`). Im Achsenmodus mathematische "
+        "Koordinaten, mit `step_x`/`step_y`-Skalierung je Achse -- bei unterschiedlichem "
+        "`step_x`/`step_y` entsteht dadurch bewusst eine Ellipse statt eines verzerrten Kreises; "
+        "ohne Achse direkte Rasterkoordinaten mit Ursprung unten links, genau wie bei `pairs`/"
+        "`polygons`. Ohne `start_angle`/`end_angle` wird ein voller Kreis gezeichnet; sind beide "
+        "gesetzt (Grad, `0°` = Osten/positive x-Achse, wachsend entgegen dem Uhrzeigersinn -- wie "
+        "der Einheitskreis in der Schulmathematik), wird stattdessen nur der Bogen von "
+        "`start_angle` bis `end_angle` gezeichnet, immer aufsteigend; ist `end_angle` kleiner als "
+        "`start_angle`, läuft der Bogen über 360° hinweg weiter (der \"lange Weg\" um den Kreis). "
+        "Sind `start_angle`/`end_angle` gleich (auch modulo 360°, z. B. `0`/`360`), wird ebenfalls "
+        "ein voller Kreis gezeichnet. Ist NUR einer der beiden Winkel gesetzt (oder ist einer von "
+        "beiden zwar gesetzt, aber kein gültiger Zahlenwert), wird der gesamte Eintrag nicht "
+        "gerendert (Validator-Warnung `AN018`). Der Bogenpfad selbst wird nicht geschlossen -- "
+        "eine gesetzte `fill`-Farbe erzeugt daher ein Kreissegment (Bogen plus gerade Sehne "
+        "zwischen den Endpunkten), kein Tortenstück. `label`, `color`, `thickness`, `fill` wie "
+        "bei `polygons`. Ein Eintrag mit fehlendem oder ungültigem `cx`/`cy`/`r` (`r` muss "
+        "positiv sein) wird ebenfalls nicht gerendert (`AN018`)."
     ),
     "geometry:functions": (
-        "Funktionsgraphen (nur im Achsenmodus). `expr` ist der auszuwertende Funktionsterm, `domain` "
-        "der Definitionsbereich als `min:max` (Standard `-10:10`, auch `min..max` erlaubt). `label` "
-        "beschriftet den Graphen am rechten (letzten sichtbaren) Kurvenende. `color`/`thickness` wie "
-        "bei `points`."
+        "Funktionsgraphen (nur im Achsenmodus -- anders als `pairs`/`sequence` bleibt `functions` "
+        "bewusst axis-only, da ein Funktionsgraph ohne mathematisches Koordinatensystem nicht "
+        "definiert ist; ohne aktiven Achsenmodus wird `functions` als Warnung `AN015` gemeldet). "
+        "`expr` ist der auszuwertende Funktionsterm, `domain` der Definitionsbereich als `min:max` "
+        "(Standard `-10:10`, auch `min..max` erlaubt). `label` beschriftet den Graphen am rechten "
+        "(letzten sichtbaren) Kurvenende. `color`/`thickness` wie bei `points`."
     ),
     # -- Blocktypen ----------------------------------------------------
     "block:material": (
@@ -327,10 +420,15 @@ PROSE_SECTIONS: dict[str, str] = {
         "gefiltert."
     ),
     "block:geometry": (
-        "Koordinatensystem für Punkte, Polylinien, Strecken und Funktionsgraphen (siehe Geometry-"
-        "Abschnitt unten für die YAML-Payload-Struktur). `axis=true` aktiviert echte Achsen mit "
-        "`origin`/`step_x`/`step_y` zur Umrechnung mathematischer Koordinaten in Rasterzellen; "
-        "`axis_label_x`/`axis_label_y` beschriften die Achsen (Standard `x`/`y`)."
+        "Koordinatensystem für Punkte, Polylinien, Strecken, Vielecke, Kreise/Bögen und Funktionsgraphen (siehe Geometry-"
+        "Abschnitt unten für die YAML-Payload-Struktur). `width`/`height` setzen die Größe in "
+        "Rastereinheiten. `axis=true` aktiviert echte Achsen mit `origin`/`step_x`/`step_y` zur "
+        "Umrechnung mathematischer Koordinaten in Rasterzellen -- `axis=true` OHNE gültiges "
+        "`origin` ist ein Fehler (`OP005`) und lässt den gesamten Payload unsichtbar, statt still "
+        "auf Rasterkoordinaten zurückzufallen; `axis_label_x`/`axis_label_y` beschriften die "
+        "Achsen (Standard `x`/`y`). Objekte werden in genau der Reihenfolge übereinander "
+        "gezeichnet, in der ihre Abschnitte (`points`, `pairs`, ...) im YAML-Payload stehen -- die "
+        "Achse liegt dabei immer ganz unten, alle Beschriftungen immer ganz oben."
     ),
     "block:dots": ("Punktraster-Schreibfeld (z. B. für Übungen zur Feinmotorik/Schrift)."),
     "block:space": ("Freier Leerraum ohne Linien/Raster, z. B. für Zeichnungen."),
@@ -420,7 +518,12 @@ PROSE_SECTIONS: dict[str, str] = {
         "(`style=bubble|cloud|frame|letter`). Kein Arbeitsblatt-/Lösungs-Unterschied."
     ),
     "block:solution": (
-        "Musterlösungstext. `label=true|false` (Standard `true`) blendet das Label \"Lösung\" ein/aus."
+        "Musterlösungstext. `label=true|false` (Standard `true`) blendet das Label \"Lösung\" ein/aus. "
+        "Gehört zur nächsten vorangehenden Aufgabe bzw. Teilaufgabe (nie über `--hm` hinweg); mit "
+        "`target=task` bzw. `target=b` lässt sie sich gezielt der Aufgabe bzw. Teilaufgabe b derselben "
+        "Aufgabe zuordnen. Nummerierte Lösungspunkte können Teilpunkte am Zeilenende tragen, z. B. "
+        "`1. Ansatz aufgestellt (2P)` oder `(1,5P)`; sind alle Punkte einer Aufgabe annotiert, muss ihre "
+        "Summe zur Punktzahl der Aufgabe passen (sonst Fehler `PK002`)."
     ),
     "block:columns": (
         "Spaltenlayout für nebeneinander angeordnete Inhalte. `cols=2..6` (Standard 2) setzt die "
@@ -443,6 +546,21 @@ PROSE_SECTIONS: dict[str, str] = {
         "Leerzeichen). Größenoptionen `w`/`h`/`maxw` (auch `width`/`height`/`max-width`) folgen "
         "derselben CSS-Größen-Logik wie Markdown-Bilder (z. B. `3cm`, `120px`, `60%`, `auto`)."
     ),
+    "block:evaluation": (
+        "Bewertungstabelle (selbstschließend: `:::evaluation:::`) mit den Zeilen Aufgaben, maximale "
+        "Punkte und leeren Feldern für die erreichten Punkte, rechts die Summe. Nur in Arbeitsblättern "
+        "und Klausuren. Aufgaben ohne Punkte erscheinen mit `–` (Warnung `EV001`), widersprüchliche mit "
+        "`?`; die Summe wird nur ausgewiesen, wenn alle Punktzahlen bekannt sind."
+    ),
+    "block:evaluation.level": (
+        "`task` (Standard): eine Spalte je Aufgabe; `subtask`: bei bepunkteten Teilaufgaben je Teilaufgabe "
+        "eine Spalte (1a, 1b, ...)."
+    ),
+    "block:evaluation.parts": (
+        "`true` teilt die Tabelle in Klausuren mit `--hm` in Teil A und Teil B (je mit Summe) und weist "
+        "zusätzlich die Gesamtsumme aus. Ohne `--hm` ohne Wirkung."
+    ),
+    "block:aidsplit": ("Hilfsmittel-Trenner einer Klausur -- siehe Control-Marker `--hm`."),
     "block:pagebreak": ("Erzwingt einen harten Seiten-/Folienumbruch -- siehe Control-Marker `--!`."),
     "block:framebreak": (
         "Erzeugt im Präsentationsmodus einen neuen Frame mit dem bisherigen plus neuem Inhalt -- "
@@ -523,6 +641,17 @@ PROSE_SECTIONS: dict[str, str] = {
         "Höhe des Antwortfelds als CSS-Länge (z. B. `4cm`, `120px`). Der genaue Standardwert hängt "
         "vom Blocktyp ab (siehe Tabelle: Spalte \"Standard\")."
     ),
+    "option:afb": (
+        "Anforderungsbereich der Aufgabe bzw. Teilaufgabe (`1`, `2` oder `3`). Rein informativ: wird "
+        "nicht im Schülerdokument angezeigt, sondern in der Klausur-Übersicht und im "
+        "Erwartungshorizont ausgewertet. Eine Teilaufgabe ohne eigene Angabe erbt die AFB ihrer Aufgabe."
+    ),
+    "option:points": (
+        "Punktzahl der Aufgabe bzw. Teilaufgabe, wird als `X P` angezeigt (Zahl, Komma oder Punkt als "
+        "Dezimaltrenner, z. B. `2,5`). Sind alle Teilaufgaben bepunktet, ergibt ihre Summe die Punktzahl "
+        "der Aufgabe; ein zusätzlich gesetztes `points` an der Aufgabe muss genau dieser Summe "
+        "entsprechen (`PK001`). Nur einen Teil der Teilaufgaben zu bepunkten ist ein Fehler (`PK004`)."
+    ),
     "option:time": (
         "Geschätzte Bearbeitungszeit, wird als `X min` ausgegeben. Freier Textwert -- üblich, aber "
         "nicht erzwungen, ist eine reine Zahl (Minuten)."
@@ -581,21 +710,37 @@ PROSE_SECTIONS: dict[str, str] = {
         "gerendert."
     ),
     "block:grid.scale": ("Standard `0.5cm`."),
+    "block:geometry.width": (
+        "Breite des Koordinatensystems in Rastereinheiten (Standard `20`) -- eigene, von `:::grid`s "
+        "gleichnamiger, ggf. automatisch aus der Druckbreite berechneter `cols`-Option entkoppelte "
+        "Option; bei `:::geometry` ist die Größe immer explizit oder Standard, nie automatisch."
+    ),
+    "block:geometry.height": (
+        "Höhe des Koordinatensystems in Rastereinheiten (Standard `5`)."
+    ),
+    "block:geometry.background": (
+        "Hintergrund des Koordinatensystems: `none` (Standard, leere Fläche), `lines` (Karo-Raster, "
+        "identisch zu `:::grid`) oder `dots` (Punktraster an jedem Gitter-Schnittpunkt -- klassische "
+        "\"Konstruktionspapier\"-Optik)."
+    ),
     "block:geometry.scale": ("Standard `0.5cm`."),
     "block:geometry.axis": (
         "Aktiviert ein mathematisches Koordinatensystem mit x-/y-Achse, Tick-Marks und "
-        "Achsenbeschriftung (Standard: aus, dann gelten reine Rasterkoordinaten `col`/`row`). "
-        "**Wichtig:** `axis=true` wirkt nur zusammen mit einem gültigen `origin` -- fehlt `origin` "
-        "oder ist er ungültig, fällt der Block still (ohne Fehler/Warnung) auf den Rasterkoordinaten-"
-        "Modus zurück. In diesem Fall werden `functions`-Einträge komplett ignoriert, und `points`/"
-        "`pairs` interpretieren ihre `x`/`y`-Werte als `col`/`row` statt als Mathe-Koordinaten."
+        "Achsenbeschriftung (Standard: aus, dann gelten reine Rasterkoordinaten mit Ursprung unten "
+        "links, `(0, 0)` = linke untere Ecke). **Wichtig:** `axis=true` OHNE "
+        "gültiges `origin` ist ein Fehler (`OP005`) -- der gesamte Geometry-Payload des Blocks "
+        "(alle Sektionen) wird dann gar nicht gerendert, kein stiller Rückfall auf "
+        "Rasterkoordinaten. `origin` bei `axis=true` immer korrekt setzen."
     ),
     "block:geometry.axis_label_x": ("Beschriftung der x-Achse (Standard `x`), nur wirksam bei aktivem Achsenmodus (siehe `axis`)."),
     "block:geometry.axis_label_y": ("Beschriftung der y-Achse (Standard `y`), nur wirksam bei aktivem Achsenmodus (siehe `axis`)."),
     "block:geometry.origin": (
-        "Ursprung des Koordinatensystems im Raster, Format `\"spalte,zeile\"` (z. B. `\"10,10\"`). "
-        "**Pflicht, sobald `axis=true` gesetzt ist** -- ohne (oder mit ungültigem) `origin` bleibt der "
-        "Achsenmodus trotz `axis=true` inaktiv, siehe Besonderheit dort."
+        "Ursprung des Koordinatensystems im Raster, Format `\"spalte,zeile\"`, gezählt von der "
+        "**linken unteren Ecke** aus (`\"0,0\"` = unten links, die Zeile zählt nach oben; z. B. "
+        "`\"10,5\"` bei `width=20 height=10` = Mitte). "
+        "**Pflicht, sobald `axis=true` gesetzt ist** -- fehlt `origin` oder ist es ungültig, wird "
+        "das als Fehler gemeldet (`OP005`) und der gesamte Block bleibt ungerendert, siehe "
+        "Besonderheit bei `axis`."
     ),
     "block:geometry.step_x": (
         "Skalierung zwischen mathematischer x-Koordinate und Rasterzellen (Standard `1`), nur bei "
@@ -729,6 +874,11 @@ PROSE_SECTIONS: dict[str, str] = {
         "Anzahl der Schreiblinien im Rahmen (1-20, Standard `5`)."
     ),
     "block:solution.label": ('Blendet das Label "Lösung" vor dem Text ein/aus (Standard: an).'),
+    "block:solution.target": (
+        "Ordnet die Lösung gezielt zu: `task` = die Aufgabe selbst, `a`/`b`/... = die so bezeichnete "
+        "Teilaufgabe derselben Aufgabe. Ohne `target` gilt die nächste vorangehende (Teil-)Aufgabe. "
+        "Ein ungültiges Ziel ist ein Fehler (`SL008`)."
+    ),
     "block:columns.ratio": ("Alias von `widths` -- relative Spaltengewichte."),
     "block:cloze.gap_length": ("Feste Lückenlänge in Zeichen bei `gap=fixed` (Standard `10`)."),
     "block:cloze.words_multi": (

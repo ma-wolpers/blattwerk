@@ -22,7 +22,7 @@ from ..core.build_requests import (
 )
 from ..core.blatt_kern_help_render import collect_help_blocks, collect_labeled_help_blocks, render_help_cards_html
 from ..core.blatt_validator import inspect_markdown_text
-from ..core.blatt_kern_shared import normalize_document_mode, split_front_matter
+from ..core.blatt_kern_shared import split_front_matter
 from ..core.blatt_kern_io_html import absolutize_local_image_sources, apply_image_size_options
 from ..core.blatt_kern_io_pdf import write_pdf_from_html
 from ..core.diagnostic_warnings import build_warning_payload
@@ -34,14 +34,20 @@ from ..core.document_export_build import (
     export_document_png_zip,
 )
 from ..core.kurzentwurf_settings import kurzentwurf_runtime_options_from_preferences
-from ..core.document_types import DOCUMENT_TYPE_KURZENTWURF, detect_document_type
+from ..core.exam_expectation_horizon import build_expectation_horizon
+from ..core.document_type_registry import (
+    DOCUMENT_TYPE_PRESENTATION,
+    DOCUMENT_TYPE_WORKSHEET,
+    spec_for_type,
+)
 from ..core.export_path_guardrails import validate_export_output_path
 from ..core.blatt_kern_pptx_export import build_presentation_pptx
 from .help_card_image_trim import trim_lernhilfe_image
 
 
-_ALLOWED_WORKSHEET_EXPORT_FORMATS = {"pdf", "html", "png", "pngzip"}
-_ALLOWED_PRESENTATION_EXPORT_FORMATS = {"pdf", "html", "png", "pngzip", "pptx"}
+# Abgeleitet aus der Registry ("unterstützte Formate je Typ", keine Format-Registry).
+_ALLOWED_WORKSHEET_EXPORT_FORMATS = set(spec_for_type(DOCUMENT_TYPE_WORKSHEET).export_formats)
+_ALLOWED_PRESENTATION_EXPORT_FORMATS = set(spec_for_type(DOCUMENT_TYPE_PRESENTATION).export_formats)
 _ALLOWED_LERNHILFEN_EXPORT_FORMATS = {"pdf", "png", "pngzip"}
 _ALLOWED_EXPORT_MODES = {"worksheet", "solution", "both"}
 _ALLOWED_BLACK_SCREEN_MODES = {"none", "before", "after", "both"}
@@ -62,9 +68,9 @@ def _normalize_choice(value, allowed_values, default):
     return default
 
 
-def _resolve_export_default_format(preferences, document_mode):
-    """Return the preferred export format for worksheet vs presentation documents."""
-    if document_mode == "presentation":
+def _resolve_export_default_format(preferences, layout_family):
+    """Return the preferred export format for the worksheet vs presentation layout family."""
+    if layout_family == "presentation":
         preferred = preferences.get(
             "default_export_format_presentation",
             preferences.get("default_export_format", "pptx"),
@@ -78,9 +84,9 @@ def _resolve_export_default_format(preferences, document_mode):
     return _normalize_choice(preferred, _ALLOWED_WORKSHEET_EXPORT_FORMATS, "pdf")
 
 
-def _resolve_export_default_page_format(preferences, document_mode):
-    """Return the preferred page format for worksheet vs presentation documents."""
-    if document_mode == "presentation":
+def _resolve_export_default_page_format(preferences, layout_family):
+    """Return the preferred page format for the worksheet vs presentation layout family."""
+    if layout_family == "presentation":
         preferred = preferences.get(
             "default_export_page_format_presentation",
             preferences.get("default_export_page_format", "presentation_16_9"),
@@ -124,31 +130,9 @@ class BlattwerkAppExportMixin:
 
         return separator_value, bool(hide_future_value)
 
-    def _detect_document_mode(self, input_path: Path) -> str:
-        """Resolve document mode from frontmatter with robust fallback."""
-        try:
-            text = input_path.read_text(encoding="utf-8")
-            meta, _content = split_front_matter(text)
-        except Exception:
-            return "worksheet"
-        return normalize_document_mode((meta or {}).get("mode"), default="worksheet")
-
-    def _detect_document_type(self, input_path: Path) -> str:
-        """Resolve document type from frontmatter/preferences with robust fallback."""
-        try:
-            text = input_path.read_text(encoding="utf-8")
-            meta, _content = split_front_matter(text)
-        except Exception:
-            return "worksheet"
-
-        preferences = getattr(self, "user_preferences", {})
-        detection_mode = preferences.get("document_type_detection_mode", "yaml_keys")
-        return detect_document_type(
-            meta or {},
-            detection_mode=detection_mode,
-            source_path=input_path,
-            markdown_text=text,
-        )
+    def _detect_document_type(self, input_path: Path) -> str | None:
+        """Typ des Dokuments für Exporte (delegiert an die eine UI-Typquelle, I1)."""
+        return self._read_document_type(input_path)
 
     def _count_visible_lernhilfen(self, input_path: Path, include_solutions: bool) -> int:
         """Counts currently visible lernhilfen blocks for a given document and mode."""
@@ -179,9 +163,11 @@ class BlattwerkAppExportMixin:
             self._active_lernhilfen_available = False
             return
 
-        if self._read_document_type(active_input_path) == DOCUMENT_TYPE_KURZENTWURF:
+        spec = self._document_spec_for_path(active_input_path)
+        if spec is None or not spec.blocks:
             # Intentional gate, not just the incidental "0 :::-blocks found" side
-            # effect below -- Kurzentwurf has no Lernhilfen concept at all.
+            # effect below -- Kurzentwurf and plain Markdown have no `:::` block
+            # semantics and therefore no Lernhilfen concept at all.
             button.config(state="disabled")
             self._active_lernhilfen_available = False
             return
@@ -257,7 +243,7 @@ class BlattwerkAppExportMixin:
             "Export laeuft weiter, aber es gibt Warnungen:\n\n" + warning_payload["message"],
         )
 
-    _SURFACED_COMPILE_WARNING_CODES = {"PT002", "IM003", "PPTX001", "PPTX002"}
+    _SURFACED_COMPILE_WARNING_CODES = {"SL005", "SL007", "PT002", "IM003", "PPTX001", "PPTX002"}
     """`PT002` (Präsentations-Overflow), `IM003` (Worterklärung passt nicht
     sauber an den Seitenrand, nur im gerenderten PDF messbar) plus die beiden Fallback-Diagnosen des
     experimentellen editierbaren PPTX-Exports (`blatt_kern_pptx_export.py`):
@@ -903,7 +889,7 @@ class BlattwerkAppExportMixin:
             meta,
             inspected.blocks,
             include_solutions=False,
-            document_mode="worksheet",
+            document_type="worksheet",
         )
         if not help_cards:
             return []
@@ -947,13 +933,17 @@ class BlattwerkAppExportMixin:
         return images
 
     def open_export_dialog(self):
-        """Open worksheet or presentation export dialog based on document mode."""
+        """Open the worksheet or presentation export dialog based on the document type."""
 
         input_path = self._validate_input()
         if not input_path:
             return
 
-        if self._detect_document_mode(input_path) == "presentation":
+        document_type = self._detect_document_type(input_path)
+        if document_type is None:
+            self.status_var.set(f"Unbekannte Dateiendung: {input_path.name}")
+            return
+        if spec_for_type(document_type).slide_layout:
             self.open_presentation_export_dialog(input_path=input_path)
             return
 
@@ -974,7 +964,7 @@ class BlattwerkAppExportMixin:
             "worksheet",
         )
         document_type = self._detect_document_type(input_path)
-        allow_mode_selection = document_type != DOCUMENT_TYPE_KURZENTWURF
+        allow_mode_selection = self._solutions_renderable_for_type(document_type)
         default_mode = preview_mode if allow_mode_selection else "worksheet"
         default_format = _resolve_export_default_format(preferences, "worksheet")
         default_page_format = _resolve_export_default_page_format(preferences, "worksheet")
@@ -990,12 +980,16 @@ class BlattwerkAppExportMixin:
             solution_label=str(preferences.get("solution_label", "Loesung") or "Loesung"),
             solution_suffix=str(preferences.get("solution_suffix", "_loesung") or "_loesung"),
             allow_mode_selection=allow_mode_selection,
+            allow_expectation_horizon=bool(document_type) and spec_for_type(document_type).expectation_horizon,
         )
         if not dialog.result:
             return
 
         fmt = dialog.result["format"]
         mode = dialog.result["mode"]
+        if mode == "expectation":
+            self._export_expectation_horizon(input_path, Path(dialog.result["output_path"]))
+            return
         black_screen_mode = "none"
         page_format = str(self.preview_page_format_var.get() or "").strip()
         if page_format not in _ALLOWED_WORKSHEET_PAGE_FORMATS:
@@ -1061,6 +1055,21 @@ class BlattwerkAppExportMixin:
         except Exception as error:
             self.status_var.set("Export fehlgeschlagen")
             messagebox.showerror("Fehler", f"Export fehlgeschlagen:\n{error}")
+
+    def _export_expectation_horizon(self, input_path: Path, output_path: Path) -> None:
+        """Exportiert den Erwartungshorizont einer Klausur (PDF/HTML); Punktfehler blockieren."""
+        self._set_last_dialog_dir("export_output", output_path)
+        try:
+            self.status_var.set("Export läuft…")
+            self.root.update_idletasks()
+            compile_diagnostics = []
+            out_file = build_expectation_horizon(input_path, output_path, diagnostics_out=compile_diagnostics)
+            self._show_compile_overflow_warnings(compile_diagnostics, "Erwartungshorizont")
+            self.status_var.set("Export abgeschlossen")
+            messagebox.showinfo("Export erfolgreich", f"Erstellt:\n{out_file}")
+        except Exception as error:
+            self.status_var.set("Export fehlgeschlagen")
+            messagebox.showerror("Fehler", f"Erwartungshorizont konnte nicht erstellt werden:\n{error}")
 
     def open_presentation_export_dialog(self, input_path: Path | None = None):
         """Oeffnet den dedizierten Praesentations-Exportdialog."""

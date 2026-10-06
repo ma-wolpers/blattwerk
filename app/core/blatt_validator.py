@@ -47,6 +47,9 @@ from .blatt_validator_value_helpers import (
     _collect_absolute_image_paths,
     _extract_validation_content_and_base_line,
 )
+from .blatt_validator_evaluation import validate_evaluation
+from .blatt_validator_exam import validate_exam
+from .blatt_validator_points import validate_points
 from .operator_legend import collect_used_operators
 
 __all__ = [
@@ -64,7 +67,7 @@ __all__ = [
 ]
 
 
-def _collect_document_diagnostics(meta, blocks, content_text, content_base_line=1, cache=None):
+def _collect_document_diagnostics(meta, blocks, content_text, content_base_line=1, cache=None, document_type="worksheet"):
     """Orchestriert die vollständige Dokumentprüfung: Marker-Syntax, Frontmatter, je Block Optionen/Typ/YAML,
     abschließend die dokumentweite `columns`/`nextcol`/`endcolumns`-Paarungsprüfung (`BL007`-`BL011`).
 
@@ -133,7 +136,7 @@ def _collect_document_diagnostics(meta, blocks, content_text, content_base_line=
         )
 
         is_answer_block = _validate_block_type_specifics(
-            diagnostics, index, block_type, options, content, qrcode_url_value
+            diagnostics, index, block_type, options, content, qrcode_url_value, document_type
         )
         if not is_answer_block:
             continue
@@ -141,6 +144,9 @@ def _collect_document_diagnostics(meta, blocks, content_text, content_base_line=
         _validate_yaml_answer_payload(diagnostics, index, block_type, options, content, cache=cache)
 
     diagnostics.extend(_validate_columns_structure(blocks))
+    diagnostics.extend(validate_points(blocks, document_type))
+    diagnostics.extend(validate_exam(blocks, document_type))
+    diagnostics.extend(validate_evaluation(blocks, document_type))
     _, operator_diagnostics = collect_used_operators(blocks, meta)
     diagnostics.extend(operator_diagnostics)
     return _collapse_mj001_diagnostics(diagnostics)
@@ -223,13 +229,16 @@ def summarize_blocking_diagnostics(diagnostics):
     return "\n".join(lines)
 
 
-def inspect_markdown_text(markdown_text, cache=None):
+def inspect_markdown_text(markdown_text, cache=None, document_type="worksheet"):
     """Parse markdown text and return parsed document plus diagnostics.
 
     `cache` is an optional `BlockComputationCache`, forwarded to
     `_collect_document_diagnostics`/`_validate_yaml_answer_payload` -- see
     `app/core/block_computation_cache.py` for the ownership contract
     (callers open it, this function only ever receives it).
+
+    `document_type` (aus der Dateiendung) schaltet typabhängige Prüfungen
+    zu, z. B. Punkt-/Lösungsdiagnosen nur für Arbeitsblatt und Klausur.
     """
     meta, _content_unused = split_front_matter(markdown_text)
     content, content_base_line = _extract_validation_content_and_base_line(markdown_text)
@@ -240,6 +249,7 @@ def inspect_markdown_text(markdown_text, cache=None):
         content,
         content_base_line=content_base_line,
         cache=cache,
+        document_type=document_type,
     )
     return InspectedDocument(meta=meta, blocks=blocks, diagnostics=diagnostics)
 

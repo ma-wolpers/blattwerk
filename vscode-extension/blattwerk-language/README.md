@@ -1,10 +1,10 @@
 # Blattwerk Language Tools
 
-VS Code extension for Blattwerk markdown.
+VS Code extension for Blattwerk documents (`.abw` Arbeitsblatt, `.pbw` Praesentation, `.kbw` Klausur, `.ebw` Kurzentwurf). Plain `.md` files stay normal Markdown.
 
 ## Features (v1)
 
-- syntax highlighting for Blattwerk block directives in markdown
+- syntax highlighting for Blattwerk block directives in Blattwerk documents (not in plain `.md`)
 - snippets for frontmatter and common block types
 - folding ranges for Frontmatter and `:::` blocks
 - diagnostics from Python validator bridge (`app.cli.blatt_diagnostics_cli`)

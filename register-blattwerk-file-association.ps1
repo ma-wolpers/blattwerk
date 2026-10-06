@@ -1,22 +1,26 @@
 <#
 .SYNOPSIS
-  Traegt Blattwerk unter "Oeffnen mit" fuer .md-Dateien ein (nur fuer den aktuellen Windows-Benutzer).
+  Traegt Blattwerk unter "Oeffnen mit" fuer .abw/.pbw/.kbw/.ebw (und optional .md) ein (nur fuer den aktuellen Windows-Benutzer).
 
 .DESCRIPTION
   WAS   Legt unter HKEY_CURRENT_USER\Software\Classes einen Anwendungseintrag "Blattwerk.exe" an und
-        verknuepft ihn mit der Endung .md. Der Befehl dahinter startet
+        verknuepft ihn mit den Blattwerk-Endungen .abw (Arbeitsblatt), .pbw (Praesentation),
+        .kbw (Klausur), .ebw (Kurzentwurf) sowie standardmaessig .md. Der Befehl dahinter startet
             .venv\Scripts\pythonw.exe blattwerk.py "<Datei>"
         (Pfade werden aus dem Ordner dieses Skripts abgeleitet).
   WANN  Einmal nach dem Einrichten von Blattwerk. Erneut ausfuehren, wenn der Blattwerk-Ordner
         verschoben oder die .venv neu angelegt wurde (der gespeicherte Pfad zeigt sonst ins Leere).
-  WOFUER Rechtsklick auf eine .md-Datei -> "Oeffnen mit" -> "Blattwerk". Laeuft Blattwerk bereits,
+  WOFUER Rechtsklick auf eine Blattwerk- oder .md-Datei -> "Oeffnen mit" -> "Blattwerk". Laeuft Blattwerk bereits,
         oeffnet sich die Datei als neuer Tab im bestehenden Fenster (kein zweites Fenster).
   WIESO HKCU statt HKLM: gilt nur fuer diesen Benutzer, braucht keine Administratorrechte und
         aendert nichts an anderen Benutzern oder am System.
-        Es wird KEIN Standardprogramm gesetzt: .md-Dateien oeffnen sich weiter mit dem bisherigen
+        Es wird KEIN Standardprogramm gesetzt: die Dateien oeffnen sich weiter mit dem bisherigen
         Programm, Blattwerk erscheint nur zusaetzlich in der Auswahl.
   RUECKGAENGIG  unregister-blattwerk-file-association.ps1
   Ausfuehrliche Erklaerung: docs\nutzer\OEFFNEN_MIT_EINRICHTEN.md
+
+.PARAMETER SkipMarkdown
+  Blattwerk NICHT fuer .md anbieten (nur fuer die vier Blattwerk-Endungen).
 
 .PARAMETER ClassesRoot
   Wurzel der Registry-Klassen. Standard: HKCU:\Software\Classes. Nur fuer Tests auf einen anderen
@@ -28,13 +32,15 @@
 #>
 [CmdletBinding(SupportsShouldProcess = $true)]
 param(
+    [switch]$SkipMarkdown,
     [string]$ClassesRoot = 'HKCU:\Software\Classes'
 )
 
 $ErrorActionPreference = 'Stop'
 
 $AppKeyName = 'Blattwerk.exe'
-$Extension = '.md'
+$Extensions = @('.abw', '.pbw', '.kbw', '.ebw')
+if (-not $SkipMarkdown) { $Extensions += '.md' }
 
 $repoRoot = $PSScriptRoot
 $pythonw = Join-Path $repoRoot '.venv\Scripts\pythonw.exe'
@@ -71,12 +77,14 @@ if (Test-Path -LiteralPath $icon) {
     Set-RegistryValue -Key "$appKey\DefaultIcon" -Name '(default)' -Value $icon -What 'Symbol setzen'
 }
 
-# 2) Endung .md: Blattwerk als moegliches Programm anbieten (kein Standardprogramm!).
-Set-RegistryValue -Key "$appKey\SupportedTypes" -Name $Extension -Value '' -What 'Endung als unterstuetzt melden'
-if ($PSCmdlet.ShouldProcess("$ClassesRoot\$Extension\OpenWithList\$AppKeyName", 'in Auswahlliste eintragen')) {
-    $listKey = Join-Path $ClassesRoot "$Extension\OpenWithList\$AppKeyName"
-    if (-not (Test-Path -LiteralPath $listKey)) {
-        New-Item -Path $listKey -Force | Out-Null
+# 2) Endungen: Blattwerk als moegliches Programm anbieten (kein Standardprogramm!).
+foreach ($Extension in $Extensions) {
+    Set-RegistryValue -Key "$appKey\SupportedTypes" -Name $Extension -Value '' -What 'Endung als unterstuetzt melden'
+    if ($PSCmdlet.ShouldProcess("$ClassesRoot\$Extension\OpenWithList\$AppKeyName", 'in Auswahlliste eintragen')) {
+        $listKey = Join-Path $ClassesRoot "$Extension\OpenWithList\$AppKeyName"
+        if (-not (Test-Path -LiteralPath $listKey)) {
+            New-Item -Path $listKey -Force | Out-Null
+        }
     }
 }
 
@@ -88,5 +96,6 @@ if ($ClassesRoot -eq 'HKCU:\Software\Classes' -and -not $WhatIfPreference) {
 
 Write-Host ''
 Write-Host "Fertig. Startbefehl: $command"
-Write-Host 'Rechtsklick auf eine .md-Datei -> "Oeffnen mit" -> "Blattwerk".'
+Write-Host ("Endungen: " + ($Extensions -join ', '))
+Write-Host 'Rechtsklick auf eine solche Datei -> "Oeffnen mit" -> "Blattwerk".'
 Write-Host 'Falls der Eintrag fehlt: Explorer-Fenster schliessen und neu oeffnen, ggf. einmal ab- und wieder anmelden.'

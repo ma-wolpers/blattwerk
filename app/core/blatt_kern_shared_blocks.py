@@ -10,7 +10,7 @@ ausschließlich von `annotate_task_help_references` genutzt werden.
 from __future__ import annotations
 
 from .blatt_kern_shared_data import HELP_BLOCK_TYPES
-from .blatt_kern_shared_meta import normalize_document_mode
+from .document_type_registry import has_slide_layout
 
 
 def _dedupe_preserve_order(values):
@@ -177,7 +177,7 @@ def annotate_task_help_references(
     blocks,
     include_solutions=False,
     help_tag=None,
-    document_mode="worksheet",
+    document_type="worksheet",
 ):
     """Annotate task/subtask blocks with rendered help-reference hint text."""
     references_by_block_index = {}
@@ -190,7 +190,7 @@ def annotate_task_help_references(
             block_type,
             options,
             include_solutions,
-            document_mode=document_mode,
+            document_type=document_type,
         ):
             continue
 
@@ -203,7 +203,7 @@ def annotate_task_help_references(
                 previous_type,
                 previous_options,
                 include_solutions,
-                document_mode=document_mode,
+                document_type=document_type,
             ):
                 continue
             target_index = previous_index
@@ -255,8 +255,14 @@ def annotate_task_help_references(
     return annotated_blocks
 
 
-def should_render_block(block_type, options, include_solutions, document_mode="worksheet"):
-    """Entscheidet, ob ein Block in der aktuellen Ausgabe sichtbar sein soll."""
+def should_render_block(block_type, options, include_solutions, document_type="worksheet"):
+    """Entscheidet, ob ein Block in der aktuellen Ausgabe sichtbar sein soll.
+
+    `:::solution` ist per Definition nur in der Lösungsfassung sichtbar; seine
+    Optionen `mode`/`show` sind veraltet und werden ignoriert (`OP004`).
+    """
+    if block_type == "solution":
+        return bool(include_solutions) and not has_slide_layout(document_type)
     mode_raw = (options.get("mode") or "").strip().lower()
     if mode_raw in {"worksheet", "solution"}:
         show_mode = mode_raw
@@ -268,9 +274,8 @@ def should_render_block(block_type, options, include_solutions, document_mode="w
         else:
             show_mode = "both"
 
-    normalized_mode = normalize_document_mode(document_mode, default="worksheet")
 
-    if normalized_mode == "presentation" and show_mode == "solution":
+    if has_slide_layout(document_type) and show_mode == "solution":
         return False
 
     if show_mode == "worksheet" and include_solutions:

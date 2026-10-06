@@ -15,13 +15,17 @@ from __future__ import annotations
 import math
 import re
 
-from .answer_special_shared import _option_is_enabled, _safe_int
+from .answer_special_shared import _safe_int
 from .answer_yaml_payload import parse_yaml_answer_payload_with_solution
-from .answer_grid_axis import _parse_origin, _resolve_axis_name
+from .answer_grid_axis import _resolve_axis_name, _resolve_axis_state, origin_to_canvas
 from .answer_grid_entries import _parse_positive_float
 from .answer_grid_primitives import _render_grid_primitives_svg
-from .answer_grid_svg_frame import _estimate_geometry_bleed_units, _render_grid_background_svg
-from .blatt_validator_constants import KNOWN_GRID_LINE_STYLES
+from .answer_grid_svg_frame import (
+    _estimate_geometry_bleed_units,
+    _render_geometry_background_dots_svg,
+    _render_grid_background_svg,
+)
+from .blatt_validator_constants import KNOWN_GEOMETRY_BACKGROUND_STYLES, KNOWN_GRID_LINE_STYLES
 
 
 _DEFAULT_GEOMETRY_COLS = 20
@@ -39,6 +43,19 @@ def _resolve_grid_line_style(options):
     """
     raw_value = str(options.get("line", "solid")).strip().lower()
     return raw_value if raw_value in KNOWN_GRID_LINE_STYLES else "solid"
+
+
+def _resolve_geometry_background_mode(options):
+    """Liest `:::geometry background=none|lines|dots` (Standard `none`) mit sicherem Fallback.
+
+    Analog zu `_resolve_grid_line_style()` -- ein fehlender oder ungültiger
+    Wert fällt auf den sicheren Default zurück; die eigentliche Diagnose
+    für ungültige Werte übernimmt der Validator (`OP002`, generischer
+    Enum-Pfad). Nur bei `:::geometry` aufgerufen -- `:::grid` behält seinen
+    eigenen, immer aktiven Hintergrund-Renderpfad unverändert.
+    """
+    raw_value = str(options.get("background", "none")).strip().lower()
+    return raw_value if raw_value in KNOWN_GEOMETRY_BACKGROUND_STYLES else "none"
 
 
 def _parse_grid_scale(raw_value):
@@ -158,18 +175,30 @@ def render_grid_answer(options, content, include_solutions, render_solution_text
 
 
 def render_geometry_answer(options, content, include_solutions, render_solution_text):
-    """Rendert ein Koordinaten-/Raster-System mit optionalen YAML-definierten Overlays."""
-    rows = max(1, _safe_int(options.get("rows", 5), 5))
+    """Rendert ein Koordinaten-/Raster-System mit optionalen YAML-definierten Overlays.
+
+    Nutzt die Blockoptionen `width`/`height` (Rastereinheiten) -- eigene,
+    von `:::grid`s `rows`/`cols` entkoppelte Namen, seit `:::geometry` kein
+    Karopapier-Modell mehr teilt. Die intern gemeinsam mit `:::grid`
+    genutzten Low-Level-Funktionen (`_render_grid_background_svg`,
+    `_render_grid_primitives_svg`, `_estimate_geometry_bleed_units`)
+    behalten ihre `cols`/`rows`-Parameternamen unverändert (reine
+    Viewport-Mathematik, kein DSL-Konzept) -- nur hier, am Options-Rand,
+    heißen die lokalen Variablen `width_units`/`height_units`.
+    """
+    height_units = max(1, _safe_int(options.get("height", 5), 5))
     scale = _parse_grid_scale(options.get("scale"))
     cell_size_cm = _grid_cell_size_to_cm(scale)
-    cols_option = options.get("cols")
-    has_explicit_cols = cols_option is not None and str(cols_option).strip() != ""
-    cols = max(1, _safe_int(cols_option, _DEFAULT_GEOMETRY_COLS)) if has_explicit_cols else _DEFAULT_GEOMETRY_COLS
+    width_option = options.get("width")
+    has_explicit_width = width_option is not None and str(width_option).strip() != ""
+    width_units = (
+        max(1, _safe_int(width_option, _DEFAULT_GEOMETRY_COLS)) if has_explicit_width else _DEFAULT_GEOMETRY_COLS
+    )
 
-    axis_enabled = _option_is_enabled(options.get("axis"), default=False)
-    logical_origin = _parse_origin(options.get("origin"), cols, rows) if axis_enabled else None
-    if axis_enabled and logical_origin is None:
-        axis_enabled = False
+    axis_state, logical_origin = _resolve_axis_state(options)
+    # `origin` zählt die Zeile von unten (0,0 = links unten); ab hier SVG-Rasterkoordinate.
+    logical_origin = origin_to_canvas(logical_origin, height_units)
+    axis_enabled = axis_state == "active"
     step_x = _parse_positive_float(options.get("step_x"), 1.0)
     step_y = _parse_positive_float(options.get("step_y"), 1.0)
     axis_label_x = _resolve_axis_name(
@@ -187,8 +216,8 @@ def render_geometry_answer(options, content, include_solutions, render_solution_
 
     bleed_top_units, bleed_right_units, bleed_bottom_units, bleed_left_units = _estimate_geometry_bleed_units(
         logical_origin,
-        cols,
-        rows,
+        width_units,
+        height_units,
         step_x,
         step_y,
         axis_enabled,
@@ -197,22 +226,26 @@ def render_geometry_answer(options, content, include_solutions, render_solution_
     )
 
     payload, fallback_solution_text = _parse_grid_payload(content)
-    grid_background_svg = _render_grid_background_svg(
-        cols,
-        rows,
-        bleed_units=(
-            bleed_top_units,
-            bleed_right_units,
-            bleed_bottom_units,
-            bleed_left_units,
-        ),
-        line_style=_resolve_grid_line_style(options),
-    )
+    background_bleed_units = (bleed_top_units, bleed_right_units, bleed_bottom_units, bleed_left_units)
+    background_mode = _resolve_geometry_background_mode(options)
+    if background_mode == "lines":
+        grid_background_svg = _render_grid_background_svg(
+            width_units,
+            height_units,
+            bleed_units=background_bleed_units,
+            line_style=_resolve_grid_line_style(options),
+        )
+    elif background_mode == "dots":
+        grid_background_svg = _render_geometry_background_dots_svg(
+            width_units, height_units, bleed_units=background_bleed_units
+        )
+    else:
+        grid_background_svg = ""
     primitives_svg = _render_grid_primitives_svg(
         options,
         payload,
-        rows,
-        cols,
+        height_units,
+        width_units,
         include_solutions,
         bleed_units=(
             bleed_top_units,
@@ -223,13 +256,13 @@ def render_geometry_answer(options, content, include_solutions, render_solution_
     )
 
     grid_classes = ["answer", "grid"]
-    style_parts = [f"--rows:{rows}", f"--cell-size:{scale}", f"--cols:{cols}"]
+    style_parts = [f"--rows:{height_units}", f"--cell-size:{scale}", f"--cols:{width_units}"]
 
     solution_text_html = ""
     if include_solutions and fallback_solution_text.strip():
         solution_text_html = render_solution_text(fallback_solution_text)
 
-    overlay_parts = [grid_background_svg]
+    overlay_parts = [grid_background_svg] if grid_background_svg else []
     if primitives_svg:
         overlay_parts.append(primitives_svg)
     if solution_text_html:

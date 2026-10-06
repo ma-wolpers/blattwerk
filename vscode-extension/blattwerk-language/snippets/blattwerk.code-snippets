@@ -1,6 +1,6 @@
 {
   "Task Block": {
-    "scope": "markdown",
+    "scope": "blattwerk",
     "prefix": "bwtask",
     "body": [
       ":::task points=${1:2} work=${2:single} action=${3:read}",
@@ -10,7 +10,7 @@
     "description": "Insert a Blattwerk task block"
   },
   "Answer Lines Block": {
-    "scope": "markdown",
+    "scope": "blattwerk",
     "prefix": "bwanswerlines",
     "body": [
       ":::lines rows=${1:4}",
@@ -20,7 +20,7 @@
     "description": "Insert a Blattwerk lines answer block"
   },
   "Help Block": {
-    "scope": "markdown",
+    "scope": "blattwerk",
     "prefix": "bwhelp",
     "body": [
       ":::help title=\"${1:Hilfe}\" level=${2:1}",
@@ -30,7 +30,7 @@
     "description": "Insert a Blattwerk help card block"
   },
   "Frontmatter": {
-    "scope": "markdown",
+    "scope": "blattwerk",
     "prefix": "bwfm",
     "body": [
       "---",
@@ -44,5 +44,21 @@
       "${6}"
     ],
     "description": "Insert required Blattwerk frontmatter"
+  },
+  "Evaluation Table": {
+    "scope": "blattwerk",
+    "prefix": "bwevaluation",
+    "body": [
+      ":::evaluation level=${1|task,subtask|}:::"
+    ],
+    "description": "Insert a Blattwerk evaluation (grading) table"
+  },
+  "Aid Split Marker": {
+    "scope": "blattwerk",
+    "prefix": "bwhm",
+    "body": [
+      "--hm"
+    ],
+    "description": "Insert the exam aid split marker (Teil A / Teil B)"
   }
 }

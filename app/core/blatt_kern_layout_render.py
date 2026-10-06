@@ -25,7 +25,7 @@ from __future__ import annotations
 from html import escape
 
 from .inline_markup.word_notes import collect_word_notes
-from .operator_legend import collect_used_operators, render_operator_legend_html
+from .operator_legend_parts import build_part_legends
 from ..styles.blatt_styles import build_stylesheet, resolve_printable_height_cm, resolve_printable_width_cm
 from ..styles.page_geometry import resolve_gutter_widths_cm
 from .blatt_kern_shared import (
@@ -37,11 +37,13 @@ from .blatt_kern_shared import (
     get_copyright_text,
     get_current_school_year_label,
     is_hole_punch_layout_enabled,
-    normalize_document_mode,
     split_sections,
 )
 from .blatt_kern_layout_columns import render_body_with_columns, render_columns_container
 from .blatt_kern_layout_presentation import _render_presentation_html
+from .document_semantics import annotate_aid_parts
+from .evaluation_table import annotate_evaluation_blocks
+from .document_type_registry import has_slide_layout
 
 
 def render_html(
@@ -59,6 +61,7 @@ def render_html(
     presentation_ignore_framebreaks=False,
     cache=None,
     word_notes_out=None,
+    document_type="worksheet",
 ):
     """Baut das vollständige HTML-Dokument inklusive Styles und Header/Footer.
 
@@ -81,13 +84,12 @@ def render_html(
     above returns before this point, so Kurzentwurf/presentation documents
     never see it either. A document with no `!!...!!`-marked operator is
     an unaffected no-op (see `collect_used_operators`'s cheap guard).
+    With a valid aid split (`--hm`, exams) there is one legend per part
+    (`operator_legend_parts.build_part_legends`): part A's legend is rendered
+    at the end of part A (before the page break), part B's at the end of
+    the document; a part without operators gets no legend.
     """
-    document_mode = normalize_document_mode(
-        (meta or {}).get("mode"),
-        default="worksheet",
-    )
-
-    if document_mode == "presentation":
+    if has_slide_layout(document_type):
         presentation_format = str(page_format or "").strip()
         if not presentation_format or presentation_format not in {
             "presentation_16_9",
@@ -114,13 +116,19 @@ def render_html(
             presentation_ignore_framebreaks=presentation_ignore_framebreaks,
         )
 
+    blocks = annotate_evaluation_blocks(blocks, document_type)
+    # Vor annotate_aid_parts: dort verschiebt der synthetische Teil-A-Block die Indizes.
+    blocks, operator_legend_html = build_part_legends(
+        blocks, meta, document_type, include_solutions=include_solutions
+    )
+    blocks = annotate_aid_parts(blocks, document_type)
     numbered_blocks = assign_task_numbers(blocks)
     enriched_blocks = annotate_standalone_subtasks(numbered_blocks)
     enriched_blocks = annotate_task_help_references(
         enriched_blocks,
         include_solutions=include_solutions,
         help_tag=(meta or {}).get("tag"),
-        document_mode=document_mode,
+        document_type=document_type,
     )
     hole_punch_enabled = is_hole_punch_layout_enabled(meta)
     gutter_left_cm, gutter_right_cm = resolve_gutter_widths_cm(reserve_gutters=True)
@@ -138,7 +146,7 @@ def render_html(
         body = render_body_with_columns(
             enriched_blocks,
             include_solutions=include_solutions,
-            document_mode=document_mode,
+            document_type=document_type,
             printable_width_cm=printable_width_cm,
             printable_height_cm=printable_height_cm,
             cache=cache,
@@ -147,11 +155,6 @@ def render_html(
     if word_notes_out is not None:
         word_notes_out.extend(collected_word_notes)
     sectioned_body = split_sections(body)
-
-    operator_legend_html = ""
-    if not include_solutions:
-        matched_operators, _operator_diagnostics = collect_used_operators(blocks, meta)
-        operator_legend_html = render_operator_legend_html(matched_operators)
 
     meta_line = format_meta_line(meta)
     school_year_label = escape(get_current_school_year_label())
@@ -201,7 +204,7 @@ def render_html(
         color_profile=color_profile,
         font_profile=font_profile,
         font_size_profile=font_size_profile,
-        document_mode=document_mode,
+        slide_layout=has_slide_layout(document_type),
         reserve_gutters=True,
         has_word_notes=has_word_notes,
     )

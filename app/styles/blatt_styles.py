@@ -373,11 +373,11 @@ def build_font_profile_css(font_profile):
 """
 
 
-def build_font_size_profile_css(font_size_profile, document_mode="worksheet"):
+def build_font_size_profile_css(font_size_profile, slide_layout=False):
     """Erzeugt CSS-Variablen für Schriftgröße und Antwortbox-Puffer."""
     profile_key = normalize_font_size_profile(font_size_profile)
     profile = FONT_SIZE_PROFILE_PRESETS[profile_key]
-    is_presentation = str(document_mode or "").strip().lower() == "presentation"
+    is_presentation = bool(slide_layout)
     font_size_base = (
         profile.get("presentation_font_size_base", profile["font_size_base"])
         if is_presentation
@@ -393,10 +393,10 @@ def build_font_size_profile_css(font_size_profile, document_mode="worksheet"):
 """
 
 
-def build_page_layout_css(page_format, hole_punch_enabled=False, document_mode="worksheet"):
+def build_page_layout_css(page_format, hole_punch_enabled=False, slide_layout=False):
     """Erzeugt CSS für das gewählte Seitenlayout."""
     layout = PAGE_LAYOUTS.get(page_format, PAGE_LAYOUTS["a4_portrait"])
-    if str(document_mode or "").strip().lower() == "presentation":
+    if slide_layout:
         margin_css = "0"
     else:
         if hole_punch_enabled:
@@ -556,7 +556,7 @@ def build_stylesheet(
     color_profile="indigo",
     font_profile=DEFAULT_FONT_PROFILE,
     font_size_profile=DEFAULT_FONT_SIZE_PROFILE,
-    document_mode="worksheet",
+    slide_layout=False,
     reserve_gutters=False,
     has_word_notes=False,
 ):
@@ -572,11 +572,11 @@ def build_stylesheet(
             build_page_layout_css(
                 page_format,
                 hole_punch_enabled=hole_punch_enabled,
-                document_mode=document_mode,
+                slide_layout=slide_layout,
             ).strip(),
             build_print_profile_css(print_profile).strip(),
             build_font_profile_css(font_profile).strip(),
-            build_font_size_profile_css(font_size_profile, document_mode=document_mode).strip(),
+            build_font_size_profile_css(font_size_profile, slide_layout=slide_layout).strip(),
             build_design_css(
                 color_profile=color_profile, contrast_profile=print_profile
             ).strip(),

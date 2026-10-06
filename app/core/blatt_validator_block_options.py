@@ -5,8 +5,8 @@ Aus `blatt_validator_document.py` ausgelagert, da diese eine Funktion
 gut ein Drittel der Zeilen der ursprünglichen ~400-Zeilen-Datei ausmachte.
 
 Die einfachen Enum-Optionen (`mode`, `work`, `action`, `hint`, `line`,
-`type` -- strukturell identisch: "Wert nicht in der für diesen Blocktyp
-erlaubten Menge -> `OP002`") werden generisch aus `BLOCK_OPTION_SPECS`
+`type`, `background` -- strukturell identisch: "Wert nicht in der für
+diesen Blocktyp erlaubten Menge -> `OP002`") werden generisch aus `BLOCK_OPTION_SPECS`
 (`blatt_validator_constants.py`) geprüft, statt vier/fünf fast identische
 `elif`-Zweige zu pflegen: der Katalogeintrag *ist* die Prüfregel, kann
 strukturell nicht mehr von ihr abweichen. `show` (eigener Deprecation-
@@ -18,9 +18,11 @@ eigene Sonderlogik -- echte Blockausnahmen, kein sauberer generischer Fall.
 
 from __future__ import annotations
 
+from .answer_grid_axis import _resolve_axis_state
 from .blatt_validator_constants import (
     ANSWER_BLOCK_TYPES,
     BLOCK_OPTION_SPECS,
+    DEPRECATED_IGNORED_OPTIONS,
     KNOWN_SHOW_VALUES,
     OBJECT_ALIGN_VALUE_HINT,
     QRCODE_SIZE_OPTION_KEYS,
@@ -36,7 +38,7 @@ from .blatt_validator_value_helpers import (
     _option_items,
 )
 
-_GENERIC_VALIDATED_ENUM_OPTION_NAMES = {"mode", "work", "action", "hint", "line", "type"}
+_GENERIC_VALIDATED_ENUM_OPTION_NAMES = {"mode", "work", "action", "hint", "line", "type", "background", "afb", "level"}
 
 
 def _lookup_option_spec(block_type, option_key):
@@ -51,9 +53,10 @@ def _validate_generic_enum_option(diagnostics, index, block_type, option_key, op
     """Prüft eine Option generisch gegen `BLOCK_OPTION_SPECS`, wenn ihr Katalogeintrag ein validiertes Enum ist.
 
     Deckt `mode`/`work`/`action`/`hint` (blockübergreifend) sowie `line`
-    (nur bei `grid`/`geometry`) und `type` (nur bei `info`) ab -- jeweils
-    nur dort, wo die Option überhaupt existiert; andere Blöcke scheitern
-    für diese Keys bereits vorher an `OP001`.
+    (nur bei `grid`/`geometry`), `type` (nur bei `info`) und `background`
+    (nur bei `geometry`) ab -- jeweils nur dort, wo die Option überhaupt
+    existiert; andere Blöcke scheitern für diese Keys bereits vorher an
+    `OP001`.
     """
     spec = _lookup_option_spec(block_type, option_key)
     if spec is None or spec.kind != "enum" or not spec.validated or not spec.allowed_values:
@@ -62,6 +65,39 @@ def _validate_generic_enum_option(diagnostics, index, block_type, option_key, op
         _append_invalid_option_value(
             diagnostics, index, block_type, option_key, option_value, spec.allowed_values, options
         )
+
+
+def _validate_geometry_axis_origin_pair(diagnostics, index, block_type, options):
+    """Prüft `:::geometry axis=true` ohne gültiges `origin` (`OP005`).
+
+    Nutzt exakt `_resolve_axis_state` (`answer_grid_axis.py`), dieselbe
+    Funktion, die auch der Renderer (`render_geometry_answer`,
+    `_render_grid_primitives_svg`) für dieselbe Entscheidung aufruft --
+    Validator und Renderer können dadurch strukturell nicht auseinander-
+    laufen. `severity="error"`, weil der praktische Effekt der totale,
+    stille Verlust des gesamten Geometry-Payloads dieses Blocks ist (kein
+    Achsenkreuz, keine Shapes, keine Labels, in keinem Koordinatenmodus --
+    siehe `_render_grid_primitives_svg`'s `"broken"`-Frühausstieg), nicht
+    nur eine kosmetische Abweichung.
+    """
+    axis_state, _origin = _resolve_axis_state(options)
+    if axis_state != "broken":
+        return
+    diagnostics.append(
+        BuildDiagnostic(
+            code="OP005",
+            message=(
+                "`axis=true` ohne gueltiges `origin` (Format \"col,row\"). Der gesamte "
+                "Geometry-Payload dieses Blocks (alle Sektionen) wird dadurch nicht "
+                "gerendert -- kein stiller Ruecksfall auf Rasterkoordinaten."
+            ),
+            severity="error",
+            block_index=index,
+            block_type=block_type,
+            region_id=compute_block_region_id(block_type, options),
+            anchor="axis",
+        )
+    )
 
 
 def _validate_block_options(diagnostics, index, block_type, options, allowed_options):
@@ -84,6 +120,22 @@ def _validate_block_options(diagnostics, index, block_type, options, allowed_opt
                         "Der Blocktyp selbst definiert bereits den Antworttyp."
                     ),
                     severity="error",
+                    block_index=index,
+                    block_type=block_type,
+                    region_id=compute_block_region_id(block_type, options),
+                    anchor=option_key,
+                )
+            )
+            continue
+
+        if option_key in DEPRECATED_IGNORED_OPTIONS.get(block_type, ()):
+            diagnostics.append(
+                BuildDiagnostic(
+                    code="OP004",
+                    message=(
+                        f"Option `{option_key}` bei `:::{block_type}` ist veraltet und wird ignoriert -- "
+                        "Loesungen erscheinen nur in der Loesungsfassung."
+                    ),
                     block_index=index,
                     block_type=block_type,
                     region_id=compute_block_region_id(block_type, options),
@@ -180,5 +232,8 @@ def _validate_block_options(diagnostics, index, block_type, options, allowed_opt
                         anchor=option_key,
                     )
                 )
+
+    if block_type == "geometry":
+        _validate_geometry_axis_origin_pair(diagnostics, index, block_type, options)
 
     return qrcode_url_value

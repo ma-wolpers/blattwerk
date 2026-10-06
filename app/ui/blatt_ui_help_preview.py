@@ -5,6 +5,7 @@ from __future__ import annotations
 from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 
 ensure_bw_gui_on_path()
+from bw_gui.contracts import NO_MODIFIERS, UNKNOWN_MODIFIERS, modifiers_from_event
 from bw_gui.runtime import ui, widgets
 
 from pathlib import Path
@@ -465,9 +466,13 @@ class BlattwerkAppHelpPreviewMixin:
         if direction == 0 or self.help_preview_canvas is None:
             return "break"
 
-        state = getattr(event, "state", 0)
-        shift_pressed = bool(state & 0x0001)
-        control_pressed = bool(state & 0x0004)
+        # Modifier-Semantik aus dem bw-gui-Contract (kein eigenes event.state-Bitraten).
+        # Unbekannter Zustand -> normales Scrollen (beim Mausrad der harmlose Fall).
+        modifiers = modifiers_from_event(event)
+        if modifiers is UNKNOWN_MODIFIERS:
+            modifiers = NO_MODIFIERS
+        shift_pressed = modifiers.shift
+        control_pressed = modifiers.control
 
         if control_pressed:
             self._help_change_zoom(10 if direction > 0 else -10)

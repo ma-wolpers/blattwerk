@@ -15,7 +15,8 @@ from .blatt_validator import BuildDiagnostic
 from .block_computation_cache import BlockComputationCache
 from .build_requests import WorksheetBuildRequest, WorksheetDesignOptions, build_worksheet_from_request
 from .kurzentwurf_settings import resolve_kurzentwurf_runtime_options
-from .document_types import DOCUMENT_TYPE_KURZENTWURF
+from .document_type_registry import PIPELINE_KURZENTWURF, PIPELINE_MARKDOWN, spec_for_type
+from .plain_markdown_render import build_plain_markdown
 
 
 def build_preview_images_for_document(
@@ -42,11 +43,15 @@ def build_preview_images_for_document(
     Kurzentwurf runtime does not use the block computation cache.
     """
 
-    if str(document_type or "").strip().lower() == DOCUMENT_TYPE_KURZENTWURF:
+    pipeline = spec_for_type(document_type).pipeline
+    if pipeline == PIPELINE_KURZENTWURF:
         return _build_kurzentwurf_preview_images(input_path, kurzentwurf_options=kurzentwurf_options)
+    if pipeline == PIPELINE_MARKDOWN:
+        return _build_markdown_preview_images(input_path)
 
     return _build_worksheet_preview_images(
         input_path,
+        document_type=document_type,
         include_solutions=include_solutions,
         page_format=page_format,
         contrast_profile=contrast_profile,
@@ -64,6 +69,7 @@ def build_preview_images_for_document(
 def _build_worksheet_preview_images(
     input_path: Path,
     *,
+    document_type: str,
     include_solutions: bool,
     page_format: str,
     contrast_profile: str,
@@ -97,22 +103,41 @@ def _build_worksheet_preview_images(
                 presentation_ignore_framebreaks=presentation_ignore_framebreaks,
                 diagnostics_out=compile_diagnostics,
                 computation_cache=computation_cache,
+                document_type=document_type,
             )
         )
 
-        pages: list[Image.Image] = []
-        with fitz.open(temp_pdf_path) as doc:
-            for page_index in range(len(doc)):
-                page = doc.load_page(page_index)
-                pix = page.get_pixmap(dpi=150, alpha=False)
-                image = Image.frombytes("RGB", (pix.width, pix.height), pix.samples)
-                pages.append(image)
-        return pages, compile_diagnostics
+        return _render_pdf_pages(temp_pdf_path), compile_diagnostics
     finally:
         try:
             temp_pdf_path.unlink(missing_ok=True)
         except Exception:
             pass
+
+
+def _build_markdown_preview_images(input_path: Path) -> tuple[list[Image.Image], list[BuildDiagnostic]]:
+    """Vorschau für schlichtes Markdown: dieselbe HTML-Pipeline wie der Export."""
+    with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
+        temp_pdf_path = Path(tmp.name)
+    try:
+        build_plain_markdown(input_path, temp_pdf_path)
+        return _render_pdf_pages(temp_pdf_path), []
+    finally:
+        try:
+            temp_pdf_path.unlink(missing_ok=True)
+        except Exception:
+            pass
+
+
+def _render_pdf_pages(pdf_path: Path) -> list[Image.Image]:
+    """Rastert alle Seiten einer PDF-Datei mit 150 dpi."""
+    pages: list[Image.Image] = []
+    with fitz.open(pdf_path) as doc:
+        for page_index in range(len(doc)):
+            page = doc.load_page(page_index)
+            pix = page.get_pixmap(dpi=150, alpha=False)
+            pages.append(Image.frombytes("RGB", (pix.width, pix.height), pix.samples))
+    return pages
 
 
 def _build_kurzentwurf_preview_images(
