@@ -52,11 +52,15 @@ def build_gutter_css(reserve_gutters: bool, has_word_notes: bool = False) -> str
 
     Ohne `reserve_gutters` (Präsentation, Hilfekarten) bleibt nur der
     statische Inline-Fallback aus `worksheet.css` aktiv. Innerhalb von
-    `:::columns` (`.column`) wird das Aufgabensymbol bewusst NICHT in den
-    Rand geschoben, weil es dort in die Nachbarspalte ragen würde: es steht
-    inline über dem Label. Worterklärungen gelten für die letzte Spalte
-    (erreicht den rechten Rand von selbst); in den anderen Spalten werden sie
-    ausgeblendet.
+    `:::columns` (`.column`) erreicht nur die JEWEILS ÄUßERE Spalte ihren
+    Seitenrand von selbst: die erste (linke) Spalte hat kein eigenes Padding
+    vor sich (`.columns`/`.column` in `worksheet.css` sind padding-frei) und
+    grenzt daher direkt an die linke `body`-Gutter -- das Aufgabensymbol
+    wandert dort wie bei einer Aufgabe außerhalb von Spalten in den Rand.
+    Worterklärungen erreichen analog nur aus der letzten (rechten) Spalte den
+    rechten Rand. In allen dazwischenliegenden bzw. der jeweils anderen Spalte
+    würde der Randinhalt in eine Nachbarspalte ragen: dort bleibt das
+    Aufgabensymbol inline über dem Label, Worterklärungen werden ausgeblendet.
     """
     if not reserve_gutters:
         return ""
@@ -79,7 +83,11 @@ body {{
     justify-content: flex-end;
 }}
 
-.column .task-margin-icons {{
+/* Nur Spalten NACH der ersten grenzen nicht direkt an die linke Gutter --
+   dort bliebe ein Float sonst in einer Nachbarspalte hängen. Die erste
+   Spalte erbt die allgemeine `.task-margin-icons`-Regel oben unverändert
+   (float in den echten linken Rand). */
+.column:not(:first-child) .task-margin-icons {{
     float: none;
     margin-left: 0;
     width: auto;
