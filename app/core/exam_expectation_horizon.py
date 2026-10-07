@@ -128,9 +128,22 @@ def _target_rows(unit, key, target, diagnostics) -> list[str]:
     if all(item.points is None for item in target.items):
         diagnostics.append(_diag("SL005", f"Erwartungshorizont: {label} hat keine Teilpunkte `(xP)`."))
     for number, item in enumerate(target.items, start=1):
-        points = format_points(item.points) if item.points is not None else ""
+        points = _item_points_text(item)
         rows.append(f"<tr><td class='num'>{number}</td><td>{_inline(item.text)}</td><td class='pts'>{points}</td><td class='pts'></td></tr>")
     return rows
+
+
+def _item_points_text(item) -> str:
+    """Punktspalte eines Erwartungspunkts: `2` bei `(2P)`, `1/3` bei Teilpunkten `(1/3P)`.
+
+    Teilpunkte alternativer Lösungswege bleiben als Bruch sichtbar, damit
+    die Korrektur erkennt, dass die Zeilen nicht aufsummiert werden.
+    """
+    if item.points is None:
+        return ""
+    if item.of_total is not None:
+        return f"{format_points(item.points)}/{format_points(item.of_total)}"
+    return format_points(item.points)
 
 
 def _part_sum(part) -> str:

@@ -100,6 +100,11 @@ Subprozess siehe `tests/test_blatt_diagnostics_cli.py` (Validator) sowie
 - `SL006`: Nur ein Teil der Erwartungspunkte einer (Teil-)Aufgabe hat `(xP)`; keine Summenpruefung. Warnung.
 - `SL007`: Erwartungshorizont: Eine (Teil-)Aufgabe hat keine nummerierte Erwartung; es erscheint "keine Erwartung hinterlegt". Warnung beim Export des Erwartungshorizonts.
 - `SL008`: Ungueltiges `target=` an `:::solution` (kein Subtask mit diesem Bezeichner in derselben Aufgabe bzw. keine Aufgabe davor). Fehler.
+- `SL009`: Teilpunkte `(x/nP)`: Der Nenner n entspricht nicht der Punktzahl der (Teil-)Aufgabe. Fehler. Entfaellt, wenn die Punktzahl selbst fehlt oder widerspruechlich ist (dann `PK006`/`PK001`/`PK004`).
+- `SL010`: Teilpunkte `(x/nP)`: Ein einzelner Zaehler x ist groesser als n. Fehler.
+- `SL011`: Teilpunkte `(x/nP)`: Die Summe der Zaehler ist kleiner als die Punktzahl -- erreichbare Punkte fehlen. Fehler. Eine groessere Summe ist der beabsichtigte Normalfall (alternative Wege sind nicht summativ) und wird nicht gemeldet; `PK002` entfaellt fuer solche Ziele.
+- `SL012`: Teilpunkte `(x/nP)`: Die Summe der Zaehler ist genau die Punktzahl -- die k/n-Schreibweise ist redundant, `(xP)` genuegt. Warnung.
+- `SL013`: `(xP)` und `(x/nP)` in derselben Loesung gemischt. Warnung; die Summenregeln `SL011`/`SL012` entfallen dann.
 - `BL001`: Unbekannter Blocktyp.
 - `BL002`: Leerzeichen direkt nach `:::` im Marker (`::: block`) ist ungueltig.
 - `BL003`: Schliessender Marker `:::` ohne passenden offenen Block.

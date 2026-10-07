@@ -15,6 +15,12 @@ Zuordnungsregel:
 Items sind nur Top-Level-Einträge nummerierter Listen (Einrückung 0–3);
 Unterlisten gehören als Fortsetzung zum Eltern-Item. `(xP)` zählt nur am
 Zeilenende eines Top-Level-Items (SL004 sonst).
+
+Teilpunkte für alternative Lösungswege: `(x/nP)` bedeutet „x von n
+erreichbaren Punkten“. Alternative Wege sind nicht summativ -- die Summe
+der Zähler darf deshalb die Punktzahl n des Ziels übersteigen (Überzahl ist
+der beabsichtigte Normalfall). `n` landet in `SolutionItem.of_total`; die
+Prüfregeln dazu stehen in `blatt_validator_points` (SL009–SL013).
 """
 
 from __future__ import annotations
@@ -25,7 +31,7 @@ from decimal import Decimal
 
 from .points_model import iter_units, parse_points
 
-POINTS_SUFFIX_RE = re.compile(r"\((\d+(?:[.,]\d+)?)\s*P\)\s*$")
+POINTS_SUFFIX_RE = re.compile(r"\((\d+(?:[.,]\d+)?)(?:\s*/\s*(\d+(?:[.,]\d+)?))?\s*P\)\s*$")
 _TOP_ITEM_RE = re.compile(r"^ {0,3}(\d+)[.)]\s+(.*)$")
 _BULLET_RE = re.compile(r"^\s*[-*+]\s+")
 _NESTED_ITEM_RE = re.compile(r"^(?: {4,}|\t)\s*(?:\d+[.)]|[-*+])\s+")
@@ -33,10 +39,15 @@ _NESTED_ITEM_RE = re.compile(r"^(?: {4,}|\t)\s*(?:\d+[.)]|[-*+])\s+")
 
 @dataclass
 class SolutionItem:
-    """Ein nummerierter Erwartungspunkt (Text ohne Punkt-Suffix)."""
+    """Ein nummerierter Erwartungspunkt (Text ohne Punkt-Suffix).
+
+    `points` ist x aus `(xP)` bzw. `(x/nP)`; `of_total` ist n bei der
+    Teilpunkt-Schreibweise für alternative Lösungswege, sonst ``None``.
+    """
 
     text: str
     points: Decimal | None
+    of_total: Decimal | None = None
 
 
 @dataclass
@@ -91,9 +102,10 @@ def parse_solution_items(content: str) -> tuple[list[SolutionItem], bool]:
         first = group[0]
         match = POINTS_SUFFIX_RE.search(first)
         value = parse_points(match.group(1)) if match else None
+        of_total = parse_points(match.group(2)) if match and match.group(2) else None
         head = POINTS_SUFFIX_RE.sub("", first).rstrip() if match else first
         continuation = " ".join(part for part in group[1:] if part)
-        items.append(SolutionItem((head + (" " + continuation if continuation else "")).strip(), value))
+        items.append(SolutionItem((head + (" " + continuation if continuation else "")).strip(), value, of_total))
     return items, misplaced
 
 

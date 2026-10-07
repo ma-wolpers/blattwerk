@@ -147,6 +147,75 @@ def test_renderer_shows_points_display_also_non_numeric_and_subtask_points():
     assert "ca. 5 P" in task_html and "2,5 P" in sub_html
 
 
+def _diags(body):
+    return inspect_markdown_text(HEAD + body).diagnostics
+
+
+def _partial(lines, points=3):
+    return f":::task points={points}\nA\n:::\n:::solution\n" + "".join(f"{n}. Weg {n} {s}\n" for n, s in enumerate(lines, 1)) + ":::\n"
+
+
+def test_partial_points_item_parses_numerator_and_denominator():
+    from app.core.solution_items import parse_solution_items
+
+    items, misplaced = parse_solution_items("1. Weg A (1/3P)\n2. Weg B (1,5 / 3 P)\n3. normal (2P)\n")
+    assert not misplaced
+    assert [(i.text, i.points, i.of_total) for i in items] == [
+        ("Weg A", Decimal(1), Decimal(3)),
+        ("Weg B", Decimal("1.5"), Decimal(3)),
+        ("normal", Decimal(2), None),
+    ]
+
+
+def test_partial_points_surplus_is_normal_case_without_diagnostics_and_without_pk002():
+    # Σx = 6 > n = 3: alternative Wege, nicht summativ -- beabsichtigt.
+    body = _partial(["(1/3P)", "(2/3P)", "(3/3P)"])
+    codes = [d.code for d in _diags(body)]
+    assert not {"PK002", "SL009", "SL010", "SL011", "SL012", "SL013"} & set(codes)
+
+
+def test_partial_points_denominator_must_match_target_points_sl009_error():
+    diagnostics = _diags(_partial(["(2/4P)", "(3/4P)"]))
+    assert any(d.code == "SL009" and d.severity == "error" for d in diagnostics)
+
+
+def test_partial_points_numerator_above_denominator_is_sl010_error():
+    diagnostics = _diags(_partial(["(4/3P)", "(1/3P)"]))
+    assert any(d.code == "SL010" and d.severity == "error" for d in diagnostics)
+
+
+def test_partial_points_sum_below_target_is_sl011_error():
+    diagnostics = _diags(_partial(["(1/3P)", "(1/3P)"]))
+    assert any(d.code == "SL011" and d.severity == "error" for d in diagnostics)
+
+
+def test_partial_points_sum_equal_target_is_redundant_sl012_warning():
+    diagnostics = _diags(_partial(["(1/3P)", "(2/3P)"]))
+    assert [(d.code, d.severity) for d in diagnostics if d.code.startswith(("SL", "PK"))] == [("SL012", "warning")]
+
+
+def test_mixed_plain_and_partial_points_is_sl013_warning_without_sum_checks():
+    codes = [d.code for d in _diags(_partial(["(1P)", "(2/3P)", "(3/3P)"]))]
+    assert "SL013" in codes
+    assert not {"PK002", "SL011", "SL012"} & set(codes)
+
+
+def test_partial_points_on_subtask_compare_with_subtask_points():
+    body = ":::task\nA\n:::\n:::subtask points=2\na\n:::\n:::subtask points=1\nb\n:::\n:::solution target=a\n1. x (2/2P)\n2. y (1/2P)\n:::\n:::solution\n1. z (1P)\n:::\n"
+    codes = [d.code for d in _diags(body)]
+    assert not {"PK002", "SL009", "SL011"} & set(codes)
+
+
+def test_expectation_horizon_shows_partial_points_as_fraction():
+    from app.core.exam_expectation_horizon import build_expectation_horizon_html
+
+    head = "---\ndocument_type: exam\nTitel: K\nFach: M\n---\n"
+    html, diagnostics = build_expectation_horizon_html(head + ":::task points=3 afb=1\nA\n:::\n:::solution\n1. Weg A (3/3P)\n2. Weg B (2/3P)\n:::\n")
+    assert "<td class='pts'>3/3</td>" in html and "<td class='pts'>2/3</td>" in html
+    assert "Aufgabe 1 (3 P)" in html
+    assert diagnostics == []
+
+
 @pytest.mark.parametrize(("raw", "expected"), [("0.5", "0,5"), ("2,50", "2,5"), ("3", "3"), ("ca. 5", "ca. 5"), ("  ", None)])
 def test_points_label_normalizes_numbers_and_keeps_text(raw, expected):
     from app.core.points_model import points_label
