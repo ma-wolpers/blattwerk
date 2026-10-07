@@ -1,9 +1,9 @@
 """Reine, renderer-unabhängige Validitätsprädikate für `polygons`/`circles`-Einträge.
 
 Ausgelagert aus `answer_grid_entries.py` (300-Zeilen-Konvention). Bleibt
-trotzdem ein von `answer_grid_shapes.py` (Renderer/Parser) UNABHÄNGIGES
+trotzdem ein von `answer_grid_shapes.py`/`answer_grid_circles.py` (Renderer/Parser) UNABHÄNGIGES
 Modul: sowohl der Parser (`_parse_polygons`/`_parse_circles`,
-`answer_grid_shapes.py`) als auch der Validator (`AN017`/`AN018`,
+`answer_grid_shapes.py`/`answer_grid_circles.py`) als auch der Validator (`AN017`/`AN018`,
 `blatt_validator_yaml_entries.py`) importieren dieselben Funktionen von
 hier, damit kein zweites, potenziell abweichendes Regelwerk entsteht und
 der Validator nie von einem Renderer-Modul abhängen muss.

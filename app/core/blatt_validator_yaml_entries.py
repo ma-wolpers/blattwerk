@@ -218,7 +218,7 @@ def _validate_geometry_shape_entries(diagnostics, block_index, answer_type, pars
     """Validiert `polygons[]`/`circles[]`-Ganz-Eintrag-Gültigkeit (`AN017`/`AN018`).
 
     Nutzt exakt dieselben Prädikate wie die jeweiligen Parser
-    (`_parse_polygons`/`_parse_circles`, `answer_grid_shapes.py`) --
+    (`_parse_polygons`/`_parse_circles`, `answer_grid_shapes.py`/`answer_grid_circles.py`) --
     importiert aus dem neutralen `answer_grid_validity.py`, nicht aus dem
     Renderer-Modul selbst, damit der Validator nie von Renderer-Code
     abhängen muss. `AN018` deckt beide Fehlerklassen eines `circles`-

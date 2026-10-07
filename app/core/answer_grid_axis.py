@@ -10,8 +10,8 @@ da Achsen-Rendering und Objekt-Parsing unabhängig veränderbar sein sollen.
 from __future__ import annotations
 
 import math
-from html import escape
 
+from .answer_grid_label_model import TIER_AXIS, LabelSpec, Obstacle, stroke_pad
 from .answer_special_shared import _option_is_enabled
 
 
@@ -222,14 +222,16 @@ def _render_axis_ticks_and_labels(
     des logischen Ursprungs positioniert, aber am sichtbaren Achsenkreuz
     angezeichnet werden.
 
-    Liefert `(shapes, labels)` getrennt statt einer flachen Liste: die
-    Tick-Zahlenwerte sind Text-Labels wie jedes andere Geometry-Label und
-    gehören in der Z-Order ganz nach oben, nicht in die Achsen-Bodenschicht
-    (siehe `_render_grid_primitives_svg`) -- nur die Tick-Striche selbst
-    bleiben unten.
+    Liefert `(shapes, label_specs, obstacles)`: die Tick-Zahlenwerte sind
+    Text-Labels wie jedes andere Geometry-Label und gehören in der Z-Order
+    ganz nach oben, nicht in die Achsen-Bodenschicht (siehe
+    `_render_grid_primitives_svg`) -- nur die Tick-Striche selbst bleiben
+    unten. Tick-Zahlen sind feste Labels (`movable=False`): das Layout
+    verschiebt sie nie, behandelt sie aber wie Tick-Striche als Hindernis
+    der Achsen-Stufe.
     """
-    shapes = []
-    labels = []
+    shapes, labels, obstacles = [], [], []
+    tick_pad = stroke_pad(0.7)
     x_positions = _iter_axis_tick_positions(logical_origin_x, cols, step_x)
     y_positions = _iter_axis_tick_positions(logical_origin_y, rows, step_y)
     x_label_stride = _choose_axis_label_stride(len(x_positions))
@@ -239,73 +241,26 @@ def _render_axis_ticks_and_labels(
         shapes.append(
             f"<line class='grid-axis-tick' x1='{gx:.4f}' y1='{axis_origin_y - 0.18:.4f}' x2='{gx:.4f}' y2='{axis_origin_y + 0.18:.4f}' />"
         )
+        obstacles.append(Obstacle(TIER_AXIS, "segment", (gx, axis_origin_y - 0.18, gx, axis_origin_y + 0.18), tick_pad))
         if _should_render_axis_label(logical_x, x_label_stride) and _is_inside_axis_label_safe_area(
             gx, cols
         ):
-            labels.append(
-                f"<text class='grid-axis-label' x='{gx:.4f}' y='{axis_origin_y + 0.1:.4f}'>{_format_axis_label(logical_x)}</text>"
-            )
+            labels.append(LabelSpec(
+                text=_format_axis_label(logical_x), css_class="grid-axis-label", x=gx, y=axis_origin_y + 0.1,
+                kind="tick", anchor=(gx, axis_origin_y), movable=False,
+            ))
 
     for gy, logical_y in y_positions:
         shapes.append(
             f"<line class='grid-axis-tick' x1='{axis_origin_x - 0.18:.4f}' y1='{gy:.4f}' x2='{axis_origin_x + 0.18:.4f}' y2='{gy:.4f}' />"
         )
+        obstacles.append(Obstacle(TIER_AXIS, "segment", (axis_origin_x - 0.18, gy, axis_origin_x + 0.18, gy), tick_pad))
         if _should_render_axis_label(logical_y, y_label_stride) and _is_inside_axis_label_safe_area(
             gy, rows
         ):
-            labels.append(
-                f"<text class='grid-axis-label grid-axis-label-y' x='{axis_origin_x - 0.28:.4f}' y='{gy + 0.04:.4f}'>{_format_axis_label(-logical_y)}</text>"
-            )
+            labels.append(LabelSpec(
+                text=_format_axis_label(-logical_y), css_class="grid-axis-label grid-axis-label-y",
+                x=axis_origin_x - 0.28, y=gy + 0.04, kind="tick", anchor=(axis_origin_x, gy), movable=False,
+            ))
 
-    return shapes, labels
-
-
-def _render_axis_arrowheads_and_names(origin_x, origin_y, cols, rows, axis_label_x, axis_label_y):
-    """Rendert Pfeilspitzen am positiven Achsenende sowie die Achsennamen (z. B. `x`, `y`).
-
-    Pfeilspitzen werden nur gezeichnet, wenn zwischen Ursprung und Rasterrand
-    genug Platz ist (`x_base < x_tip` / `y_tip < y_base`) — bei sehr kleinen
-    Rastern oder einem Ursprung nahe am Rand würde eine erzwungene Pfeilspitze
-    sonst invertiert oder verzerrt wirken.
-
-    Liefert `(shapes, labels)` getrennt statt einer flachen Liste: die
-    Achsennamen (`axis_label_x`/`axis_label_y`) sind Text-Labels wie jedes
-    andere Geometry-Label und gehören in der Z-Order ganz nach oben, nicht
-    in die Achsen-Bodenschicht -- nur die Pfeilspitzen selbst bleiben unten.
-    """
-    shapes = []
-    labels = []
-
-    x_tip = float(cols) + 0.34
-    x_base = max(origin_x + 0.24, x_tip - 0.44)
-    x_top = max(0.04, origin_y - 0.18)
-    x_bottom = min(float(rows) - 0.04, origin_y + 0.18)
-    if x_base < x_tip:
-        shapes.append(
-            "<polygon class='grid-axis' points='"
-            f"{x_tip:.4f},{origin_y:.4f} {x_base:.4f},{x_top:.4f} {x_base:.4f},{x_bottom:.4f}' />"
-        )
-    if axis_label_x:
-        x_name_y = origin_y - 0.28
-        x_name_x = x_tip + 0.16
-        labels.append(
-            f"<text class='grid-axis-label grid-axis-name' x='{x_name_x:.4f}' y='{x_name_y:.4f}' text-anchor='start'>{escape(axis_label_x)}</text>"
-        )
-
-    y_tip = -0.34
-    y_base = min(origin_y - 0.24, y_tip + 0.44)
-    y_left = max(0.04, origin_x - 0.18)
-    y_right = min(float(cols) - 0.04, origin_x + 0.18)
-    if y_tip < y_base:
-        shapes.append(
-            "<polygon class='grid-axis' points='"
-            f"{origin_x:.4f},{y_tip:.4f} {y_left:.4f},{y_base:.4f} {y_right:.4f},{y_base:.4f}' />"
-        )
-    if axis_label_y:
-        y_name_x = origin_x - 0.1
-        y_name_y = y_tip - 0.9
-        labels.append(
-            f"<text class='grid-axis-label grid-axis-name' x='{y_name_x:.4f}' y='{y_name_y:.4f}' text-anchor='end'>{escape(axis_label_y)}</text>"
-        )
-
-    return shapes, labels
+    return shapes, labels, obstacles
