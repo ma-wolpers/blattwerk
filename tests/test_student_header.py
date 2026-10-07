@@ -40,6 +40,15 @@ def test_empty_and_placeholder_learner_group_stay_empty(value):
     assert _filled(html) == []
 
 
+def test_filled_line_grows_with_text_so_value_sits_on_the_line():
+    """Regression: in der festen 0.95em-Box ragte der Wert unten über den Strich hinaus."""
+    from pathlib import Path
+
+    css = (Path(__file__).resolve().parents[1] / "assets" / "worksheet.css").read_text(encoding="utf-8")
+    rule = css.split(".student-line-filled {", 1)[1].split("}", 1)[0]
+    assert "height: auto;" in rule and "padding" in rule
+
+
 def test_values_are_escaped():
     html = render_student_header({"show_student_header": "ja", "Lerngruppe": "<b>11a</b>"})
     assert _filled(html) == ["&lt;b&gt;11a&lt;/b&gt;"]
