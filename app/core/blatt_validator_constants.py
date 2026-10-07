@@ -40,7 +40,9 @@ künstlich vereinheitlicht."""
 class FrontmatterFieldSpec:
     """Normativer Fakt über ein optionales Frontmatter-Feld -- Validator-Eigentum, keine Prosa.
 
-    `kind` ∈ {"free_text", "scalar_nonempty", "enum", "boolean"}.
+    `kind` ∈ {"free_text", "scalar_nonempty", "enum", "boolean", "header_text",
+    "header_date"}; die beiden `header_*`-Arten sind die vorbefüllbaren Felder
+    der Schülerkopfzeile (Typregeln in `student_header.py`, Diagnose `FM011`).
     `validated=False` heißt: das Feld existiert (und wird ggf. an anderer
     Stelle im Code funktional gelesen), aber der Validator prüft seinen
     Wert aktuell nicht -- eine ehrliche normative Aussage, kein
@@ -720,6 +722,8 @@ OPTIONAL_FRONTMATTER_FIELDS = (
     ),
     FrontmatterFieldSpec("worksheet_type", "free_text", None, MISSING, False),
     FrontmatterFieldSpec("font_profile", "free_text", None, MISSING, False),
+    FrontmatterFieldSpec("Lerngruppe", "header_text", None, MISSING, True),
+    FrontmatterFieldSpec("Datum", "header_date", None, MISSING, True),
 )
 """Vollständiger normativer Katalog optionaler Frontmatter-Felder.
 

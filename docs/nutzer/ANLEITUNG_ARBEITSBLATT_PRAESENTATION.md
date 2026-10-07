@@ -82,6 +82,8 @@ In Präsentationen (`.pbw`) gibt es **keinen Lösungs-Umschalter**: Blöcke mit 
 | `Stufe` | nein | enum | `10`, `11`, `12`, `13`, `5`, `6`, `7`, `8`, `9`, `e`, `q1`, `q2`, `sek1`, `sek2` | ja |
 | `worksheet_type` | nein | free_text | -- | nein |
 | `font_profile` | nein | free_text | -- | nein |
+| `Lerngruppe` | nein | header_text | -- | ja |
+| `Datum` | nein | header_date | -- | ja |
 
 - **`Titel`** (Pflichtfeld): Der Titel des Dokuments, erscheint im Dokumentkopf und in der Fensterleiste.
 - **`Fach`** (Pflichtfeld): Das Unterrichtsfach, erscheint zusammen mit `Thema` in der Metazeile des Dokumentkopfs.
@@ -90,7 +92,7 @@ In Präsentationen (`.pbw`) gibt es **keinen Lösungs-Umschalter**: Blöcke mit 
 - **`presentation_show_mini_header`** (optional): Blendet in Präsentationen den kleinen Kopfbereich pro Folie (Phasenübersicht) ein/aus. Standard: an.
 - **`presentation_show_section_footer`** (optional): Blendet in Präsentationen den Abschnittsfooter (Folienzähler) pro Folie ein/aus. Standard: an.
 - **`tag`** (optional): Freier Kurzbezeichner, der z. B. als Präfix für automatisch generierte Lernhilfe-Label verwendet werden kann (siehe `help`/`hilfe`-Block-Option `tag`). Muss ein einfacher, nicht-leerer Textwert sein -- kein YAML-Mapping oder -Liste.
-- **`show_student_header`** (optional): Blendet die Schülerkopfzeile (Name/Lerngruppe/Datum-Felder) am Dokumentanfang ein/aus. Standard: aus. Erwartet einen booleschen Wert im Format `ja`/`nein` (auch `true`/`false`, `1`/`0`, `j`/`n` werden akzeptiert).
+- **`show_student_header`** (optional): Blendet die Schülerkopfzeile (Name/Lerngruppe/Datum-Felder) am Dokumentanfang ein/aus. Standard: aus. Erwartet einen booleschen Wert im Format `ja`/`nein` (auch `true`/`false`, `1`/`0`, `j`/`n` werden akzeptiert). Stehen `Lerngruppe` bzw. `Datum` im Frontmatter, sind die Felder vorausgefüllt.
 - **`show_document_header`** (optional): Blendet den Dokumentkopf (Titel, Fach/Thema-Metazeile) ein/aus. Standard: an. Erwartet denselben booleschen Werttyp wie `show_student_header`.
 - **`document_type`** (optional): Konsistenzmarker für den Dokumenttyp: muss zur Dateiendung passen (`.abw` → `worksheet`, `.pbw` → `presentation`, `.kbw` → `exam`, `.ebw` → `kurzentwurf`, `.sbw` → `schild`, `.md` → `markdown`). Der Typ selbst kommt immer aus der Endung; ein abweichender Wert erzeugt eine Warnung (`FM008`), ein ungültiger `FM010`, ein fehlender in Blattwerk-Dateien `FM009`. Blattwerk setzt ihn beim Anlegen und bei Speichern-unter in einen anderen Blattwerk-Typ automatisch.
 - **`lochen`** (optional): Aktiviert einen vergrößerten linken Rand für Lochung beim Ausdrucken (`ja`/`nein`, Standard: `nein`). Aktuell nicht durch den Markdown-Validator wertgeprüft; ungültige Werte werden beim Rendern stillschweigend als `nein` behandelt.
@@ -98,6 +100,8 @@ In Präsentationen (`.pbw`) gibt es **keinen Lösungs-Umschalter**: Blöcke mit 
 - **`Stufe`** (optional): Die Jahrgangsstufe -- schränkt ein, welche `!!Operator!!`-Bezeichnungen für dieses Dokument gültig sind und im Editor vorgeschlagen werden (siehe `data/operatoren/<fach>.json`, `stufengruppen`). Ohne `Stufe` gelten alle für `Fach` hinterlegten Operatoren als verfügbar, unabhängig von ihrer Stufenzuordnung. Hat aktuell keine Wirkung außerhalb der Operatoren-Verfügbarkeit (kein Einfluss auf Layout/Rendering).
 - **`worksheet_type`** (optional): Rein informatives Feld für eine Dokumentart-Bezeichnung. **Hinweis:** wird aktuell an keiner Stelle aus dem Dokument gelesen oder angezeigt -- ohne Wirkung im Build-/Render-Pfad.
 - **`font_profile`** (optional): **Hinweis:** wird aktuell nicht aus dem Dokument gelesen -- die Schriftart wird ausschließlich über die App-Einstellung gesteuert, nicht über das Frontmatter. Dieses Feld hat aktuell keine Wirkung im Build-/Render-Pfad.
+- **`Lerngruppe`** (optional): Füllt das Feld „Lerngruppe“ der Schülerkopfzeile vor (nur sichtbar mit `show_student_header: ja`). Muss Text sein: Werte, die YAML als Zahl liest, bitte in Anführungszeichen setzen, z. B. `Lerngruppe: "11.6"` (sonst Warnung `FM011`, das Feld bleibt leer). Der Vorlagen-Platzhalter `Lerngruppe eintragen` zählt als leer.
+- **`Datum`** (optional): Füllt das Feld „Datum“ der Schülerkopfzeile vor (nur sichtbar mit `show_student_header: ja`) und erscheint im Erwartungshorizont. Freier Text wie `25.09.26` wird unverändert übernommen, ein ISO-Datum wie `2026-09-25` als `25.09.2026` angezeigt. Der Vorlagen-Platzhalter `Datum eintragen` zählt als leer.
 
 ## 5. Blockreferenz
 

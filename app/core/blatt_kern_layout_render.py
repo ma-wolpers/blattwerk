@@ -43,6 +43,7 @@ from .blatt_kern_layout_columns import render_body_with_columns, render_columns_
 from .blatt_kern_layout_presentation import _render_presentation_html
 from .document_semantics import annotate_aid_parts
 from .evaluation_table import annotate_evaluation_blocks
+from .student_header import render_student_header
 from .document_type_registry import has_slide_layout
 
 
@@ -165,24 +166,7 @@ def render_html(
             "<span class='solution-version-inline'>Lösungsversion</span>"
         )
 
-    student_header = ""
-    if _meta_bool_ja_nein(meta.get("show_student_header"), default=False):
-        student_header = """
-        <div class="student-header">
-            <div class="student-field">
-                <span class="student-label">Name</span>
-                <span class="student-line"></span>
-            </div>
-            <div class="student-field">
-                <span class="student-label">Lerngruppe</span>
-                <span class="student-line"></span>
-            </div>
-            <div class="student-field">
-                <span class="student-label">Datum</span>
-                <span class="student-line"></span>
-            </div>
-        </div>
-        """
+    student_header = render_student_header(meta)
 
     document_header = ""
     if _meta_bool_ja_nein(meta.get("show_document_header"), default=True):

@@ -105,9 +105,20 @@ def _build_presentation_template(preferences: Mapping[str, object]) -> str:
     )
 
 
+DATE_PLACEHOLDER = "Datum eintragen"
+LEARNER_GROUP_PLACEHOLDER = "Lerngruppe eintragen"
+HEADER_PLACEHOLDERS = frozenset({DATE_PLACEHOLDER, LEARNER_GROUP_PLACEHOLDER})
+"""Template-Platzhalter, die die Schülerkopfzeile als „leer“ behandelt (`student_header`)."""
+
+
 def _build_exam_template(preferences: Mapping[str, object]) -> str:
     metadata_lines = _common_metadata_lines(DOCUMENT_TYPE_EXAM, preferences)
-    metadata_lines.extend(["Datum: Datum eintragen", "Dauer: 90 Minuten", "Hilfsmittel: Hilfsmittel eintragen"])
+    metadata_lines.extend([
+        f"Lerngruppe: {LEARNER_GROUP_PLACEHOLDER}",
+        f"Datum: {DATE_PLACEHOLDER}",
+        "Dauer: 90 Minuten",
+        "Hilfsmittel: Hilfsmittel eintragen",
+    ])
     metadata_lines.append("---")
     return (
         "\n".join(metadata_lines)

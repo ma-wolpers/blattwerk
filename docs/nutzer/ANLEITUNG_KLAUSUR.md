@@ -18,6 +18,7 @@ document_type: exam
 Titel: Neue Klausur
 Fach: Fach eintragen
 Thema: Thema eintragen
+Lerngruppe: Lerngruppe eintragen
 Datum: Datum eintragen
 Dauer: 90 Minuten
 Hilfsmittel: Hilfsmittel eintragen

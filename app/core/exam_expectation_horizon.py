@@ -33,6 +33,7 @@ from .frontmatter import content_after_frontmatter
 from .math_span_protection import convert_markdown_with_math
 from .points_model import build_points_model, format_points, subtask_effective
 from .solution_items import collect_solution_targets
+from .student_header import HEADER_DATE_KIND, InvalidHeaderValue, resolve_header_value
 
 _REGION = "exam:expectation-horizon"
 _STYLE = """
@@ -104,9 +105,25 @@ def build_expectation_horizon_html(text: str) -> tuple[str, list[BuildDiagnostic
 
 
 def _meta_line(meta) -> str:
+    """Kopfzeile des Erwartungshorizonts: Titel · Fach · Thema · Datum · Dauer.
+
+    `Datum` folgt denselben Typregeln wie die Schülerkopfzeile
+    (`student_header.resolve_header_value`): ISO-Datum → `TT.MM.JJJJ`,
+    Platzhalter und ungültige Typen entfallen.
+    """
     if not isinstance(meta, dict):
         return ""
-    parts = [str(meta.get(key)).strip() for key in ("Titel", "Fach", "Thema", "Datum", "Dauer") if meta.get(key)]
+    parts = []
+    for key in ("Titel", "Fach", "Thema", "Datum", "Dauer"):
+        if key == "Datum":
+            try:
+                value = resolve_header_value(HEADER_DATE_KIND, meta.get(key))
+            except InvalidHeaderValue:
+                value = None
+        else:
+            value = str(meta.get(key)).strip() if meta.get(key) else None
+        if value:
+            parts.append(value)
     return f"<p class='meta'>{escape(' · '.join(parts))}</p>" if parts else ""
 
 

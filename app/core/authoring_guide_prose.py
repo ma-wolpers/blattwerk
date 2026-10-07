@@ -54,7 +54,20 @@ PROSE_SECTIONS: dict[str, str] = {
     "frontmatter:show_student_header": (
         "Blendet die Schülerkopfzeile (Name/Lerngruppe/Datum-Felder) am Dokumentanfang ein/aus. "
         "Standard: aus. Erwartet einen booleschen Wert im Format `ja`/`nein` (auch `true`/`false`, "
-        "`1`/`0`, `j`/`n` werden akzeptiert)."
+        "`1`/`0`, `j`/`n` werden akzeptiert). Stehen `Lerngruppe` bzw. `Datum` im Frontmatter, sind "
+        "die Felder vorausgefüllt."
+    ),
+    "frontmatter:Lerngruppe": (
+        "Füllt das Feld „Lerngruppe“ der Schülerkopfzeile vor (nur sichtbar mit "
+        "`show_student_header: ja`). Muss Text sein: Werte, die YAML als Zahl liest, bitte in "
+        "Anführungszeichen setzen, z. B. `Lerngruppe: \"11.6\"` (sonst Warnung `FM011`, das Feld "
+        "bleibt leer). Der Vorlagen-Platzhalter `Lerngruppe eintragen` zählt als leer."
+    ),
+    "frontmatter:Datum": (
+        "Füllt das Feld „Datum“ der Schülerkopfzeile vor (nur sichtbar mit `show_student_header: ja`) "
+        "und erscheint im Erwartungshorizont. Freier Text wie `25.09.26` wird unverändert übernommen, "
+        "ein ISO-Datum wie `2026-09-25` als `25.09.2026` angezeigt. Der Vorlagen-Platzhalter "
+        "`Datum eintragen` zählt als leer."
     ),
     "frontmatter:show_document_header": (
         "Blendet den Dokumentkopf (Titel, Fach/Thema-Metazeile) ein/aus. Standard: an. Erwartet "

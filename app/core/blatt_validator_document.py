@@ -35,6 +35,8 @@ from .blatt_validator_region import compute_block_region_id
 from .document_type_registry import shows_empty_answer_hint
 from .blatt_validator_types import BuildDiagnostic
 from .blatt_validator_word_notes import validate_word_notes
+from .blatt_validator_header_fields import validate_header_field
+from .student_header import HEADER_FIELD_KINDS
 
 _FRONTMATTER_REGION_ID = "worksheet:frontmatter"
 from .blatt_validator_value_helpers import _get_matching_item_counts
@@ -135,7 +137,7 @@ def _validate_optional_scalar_nonempty_field(field, raw_value):
 
 
 def _validate_frontmatter(meta):
-    """Validiert Frontmatter-Felder (`FM001`-`FM006`) und liefert die gefundenen Diagnosen.
+    """Validiert Frontmatter-Felder (`FM001`-`FM007`, `FM011`) und liefert die gefundenen Diagnosen.
 
     Pflichtfelder (`FM001`) kommen direkt aus `REQUIRED_FRONTMATTER_FIELDS`;
     optionale Felder werden generisch über `OPTIONAL_FRONTMATTER_FIELDS`
@@ -169,6 +171,8 @@ def _validate_frontmatter(meta):
             diagnostic = _validate_optional_boolean_field(field, raw_value)
         elif field.kind == "scalar_nonempty":
             diagnostic = _validate_optional_scalar_nonempty_field(field, raw_value)
+        elif field.kind in HEADER_FIELD_KINDS:
+            diagnostic = validate_header_field(field, raw_value, _FRONTMATTER_REGION_ID)
         else:
             diagnostic = None
 
