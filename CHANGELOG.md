@@ -41,6 +41,7 @@ The format is based on Keep a Changelog.
 
 - Neue Anleitung `docs/nutzer/ANLEITUNG_KLAUSUR.md` (auch in der Hilfe-Ansicht der App).
 - **Punkte stehen überall am rechten Zeilenrand:** Auch bei einer einzelnen Teilaufgabe oder Teilaufgaben ohne Symbole stehen die Punkte jetzt rechts außen wie im Aufgabenkopf, statt direkt hinter dem Text.
+- **Prozent und Note unter der Bewertungstabelle:** `:::evaluation grade=true:::` ergänzt rechtsbündig die leeren Felder `Dies sind ___ %` und `Note: ___`. Bei mehreren Bewertungstabellen gilt die Option je Tabelle.
 - **Teilpunkte für alternative Lösungswege:** In `:::solution` bedeutet `1. Weg über Steigungsdreieck (1/3P)` „einer von drei erreichbaren Punkten“. Damit lassen sich mehrere alternative Lösungswege bepunkten, deren Teilpunkte zusammen mehr als die Punktzahl ergeben – Blattwerk meldet dann keinen Summenfehler. Geprüft wird stattdessen: Der Nenner passt zur Punktzahl, kein Schritt bringt mehr als erreichbar, und insgesamt sind genug Punkte erreichbar. Im Erwartungshorizont erscheinen die Punkte als `1/3`.
 - **Halbe Punkte einheitlich:** `points=0.5` wird wie `points=0,5` als `0,5 P` angezeigt (bisher erschien die Angabe unverändert, z. B. `0.5 P`).
 

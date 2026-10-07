@@ -28,7 +28,8 @@ def render_exam_guide(catalog: MarkdownConventionCatalog) -> str:
         "## 4. Hilfsmittelfreier Teil (`--hm`)\n\n" + _prose("marker:aidsplit"),
         "## 5. Bewertungstabelle\n\n" + _prose("block:evaluation") + "\n\n"
         "- `level`: " + _prose("block:evaluation.level") + "\n"
-        "- `parts`: " + _prose("block:evaluation.parts"),
+        "- `parts`: " + _prose("block:evaluation.parts") + "\n"
+        "- `grade`: " + _prose("block:evaluation.grade"),
         "## 6. Klausur-Übersicht\n\n" + _prose("exam:overview"),
         "## 7. Erwartungshorizont\n\n" + _prose("exam:expectation_horizon"),
     ]

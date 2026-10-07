@@ -660,6 +660,7 @@ BLOCK_OPTION_SPECS: dict[str, tuple[BlockOptionSpec, ...]] = {
         BlockOptionSpec("level", "enum", frozenset({"task", "subtask"}), True, "task"),
         _OPT_TITLE,
         BlockOptionSpec("parts", "boolean", None, False, False),
+        BlockOptionSpec("grade", "boolean", None, False, False),
     ),
     "sectionmark": (_OPT_TITLE,),
     "vspacer": (

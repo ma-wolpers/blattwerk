@@ -69,6 +69,32 @@ def test_level_value_is_validated():
     assert "OP002" in codes
 
 
+def test_grade_fields_only_with_option():
+    with_grade = render_evaluation_html(_table(BODY, {"grade": "true"}))
+    without = render_evaluation_html(_table(BODY))
+    assert "evaluation-grade" in with_grade and "Dies sind" in with_grade and "Note:" in with_grade
+    assert "evaluation-grade" not in without
+
+
+def test_grade_fields_once_even_with_parts():
+    body = ":::task points=2 afb=1\nA\n:::\n--hm\n:::task points=3 afb=1\nB\n:::\n"
+    html = render_evaluation_html(_table(body, {"parts": "true", "grade": "true"}, "exam"))
+    assert html.count("class='evaluation-grade'") == 1
+    assert html.index("Gesamt: 5 P") < html.index("evaluation-grade")
+
+
+def test_grade_is_per_block_with_multiple_evaluation_blocks():
+    blocks = parse_blocks(BODY + ":::evaluation grade=true:::\n:::evaluation:::\n")
+    body_html = render_html({"Titel": "T"}, blocks, document_type="exam").split("</style>")[-1]
+    assert body_html.count("evaluation-table") == 2
+    assert body_html.count("class='evaluation-grade'") == 1
+
+
+def test_grade_option_is_known():
+    codes = [d.code for d in inspect_markdown_text(HEAD + ":::task points=1\nA\n:::\n:::evaluation grade=true:::\n").diagnostics]
+    assert "OP001" not in codes
+
+
 def test_insert_menu_and_snippet():
     families = dict(BLOCK_INSERT_FAMILIES)
     assert ("Bewertungstabelle (evaluation)", "evaluation") in families["Aufgaben"]

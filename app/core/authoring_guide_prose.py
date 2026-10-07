@@ -567,6 +567,11 @@ PROSE_SECTIONS: dict[str, str] = {
         "`true` teilt die Tabelle in Klausuren mit `--hm` in Teil A und Teil B (je mit Summe) und weist "
         "zusätzlich die Gesamtsumme aus. Ohne `--hm` ohne Wirkung."
     ),
+    "block:evaluation.grade": (
+        "`true` ergänzt unter der Tabelle rechtsbündig leere Felder „Dies sind ___ %“ und „Note: ___“ "
+        "(auch bei `parts=true` nur einmal). Gilt nur für diesen Block: Bei mehreren Bewertungstabellen "
+        "bekommt jede mit `grade=true` ihre eigenen Felder."
+    ),
     "block:aidsplit": ("Hilfsmittel-Trenner einer Klausur -- siehe Control-Marker `--hm`."),
     "block:pagebreak": ("Erzwingt einen harten Seiten-/Folienumbruch -- siehe Control-Marker `--!`."),
     "block:framebreak": (

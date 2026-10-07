@@ -11,6 +11,9 @@ Punkte kommen ausschließlich aus `points_model`, Teile aus `resolve_aid_split`.
 * Fehlende Punkte zeigen „–“ (EV001), inkonsistente „?“.
 * Σ nur, wenn alle Zellen bekannt sind, sonst „–“ mit Fußnote.
 * `parts=true` gruppiert bei gültigem Hilfsmittel-Trenner nach Teil A/B.
+* `grade=true` hängt unter die Tabelle rechtsbündig leere Felder „Dies sind ___ %“
+  und „Note: ___“ an -- genau einmal je Block (auch bei `parts=true`). Die
+  Option gilt pro `evaluation`-Block; Blöcke ohne `grade` bekommen keine Felder.
 """
 
 from __future__ import annotations
@@ -51,6 +54,7 @@ class EvaluationTable:
     title: str | None
     groups: list[EvaluationGroup]
     missing_units: list[str] = field(default_factory=list)
+    grade: bool = False
 
     @property
     def grand_total(self) -> Decimal | None:
@@ -76,7 +80,7 @@ def build_evaluation_table(blocks, options: dict, document_type: str) -> Evaluat
     title = str((options or {}).get("title") or "").strip() or None
     units = build_points_model(blocks)
     split = resolve_aid_split(blocks, document_type)
-    use_parts = split is not None and str((options or {}).get("parts") or "").strip().lower() in {"true", "1", "ja", "yes"}
+    use_parts = split is not None and _option_true(options, "parts")
     groups = [EvaluationGroup("Teil A"), EvaluationGroup("Teil B")] if use_parts else [EvaluationGroup(None)]
     missing = []
     for unit in units:
@@ -84,7 +88,22 @@ def build_evaluation_table(blocks, options: dict, document_type: str) -> Evaluat
         group.cells.extend(_unit_cells(unit, level))
         if unit.status == STATUS_MISSING:
             missing.append(unit.number)
-    return EvaluationTable(title, groups, missing)
+    return EvaluationTable(title, groups, missing, grade=_option_true(options, "grade"))
+
+
+def _option_true(options: dict | None, key: str) -> bool:
+    """Ob eine boolesche Block-Option gesetzt ist (`true`, `1`, `ja`, `yes`)."""
+    return str((options or {}).get(key) or "").strip().lower() in {"true", "1", "ja", "yes"}
+
+
+def _grade_html() -> str:
+    """Leere Felder für Prozent und Note, rechtsbündig unter der Tabelle."""
+    return (
+        "<div class='evaluation-grade'>"
+        "<div class='evaluation-grade-row'>Dies sind <span class='evaluation-blank'></span> %</div>"
+        "<div class='evaluation-grade-row'>Note: <span class='evaluation-blank'></span></div>"
+        "</div>"
+    )
 
 
 def _group_html(group: EvaluationGroup) -> str:
@@ -113,6 +132,8 @@ def render_evaluation_html(table: EvaluationTable) -> str:
         parts.append(f"<div class='evaluation-grand-total'>Gesamt: {format_points(grand) if grand is not None else CELL_MISSING + '*'} P</div>")
     if any(group.total is None for group in table.groups):
         parts.append("<div class='evaluation-footnote'>* Summe nicht ausgewiesen, weil nicht alle Punktzahlen bekannt sind.</div>")
+    if table.grade:
+        parts.append(_grade_html())
     return f"<div class='evaluation'>{''.join(parts)}</div>"
 
 
