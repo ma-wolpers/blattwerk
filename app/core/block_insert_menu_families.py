@@ -47,6 +47,7 @@ BLOCK_INSERT_FAMILIES: list[tuple[str, list[tuple[str, str]]]] = [
             ("Aufgabe (task)", "task"),
             ("Teilaufgabe (subtask)", "subtask"),
             ("Bewertungstabelle (evaluation)", "evaluation"),
+            ("Operatorentabelle (operators)", "operators"),
         ],
     ),
     (

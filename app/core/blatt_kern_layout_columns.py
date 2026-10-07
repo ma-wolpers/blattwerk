@@ -14,6 +14,7 @@ from html import escape
 
 from .blatt_kern_layout_estimate import auto_columns_template
 from .blatt_kern_task_render import render_block
+from .operator_legend_blocks import OPERATORS_BLOCK_TYPE, as_own_section
 
 
 def _normalize_object_alignment(raw_value):
@@ -256,6 +257,8 @@ def render_body_with_columns(
             include_solutions=include_solutions,
             document_type=document_type,
         )
+        if rendered and block_type == OPERATORS_BLOCK_TYPE:
+            rendered = as_own_section(rendered)
         if rendered:
             html_parts.append(rendered)
 

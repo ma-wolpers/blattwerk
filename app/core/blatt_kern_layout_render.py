@@ -25,7 +25,7 @@ from __future__ import annotations
 from html import escape
 
 from .inline_markup.word_notes import collect_word_notes
-from .operator_legend_parts import build_part_legends
+from .operator_legend_blocks import annotate_operator_blocks
 from ..styles.blatt_styles import build_stylesheet, resolve_printable_height_cm, resolve_printable_width_cm
 from ..styles.page_geometry import resolve_gutter_widths_cm
 from .blatt_kern_shared import (
@@ -79,16 +79,14 @@ def render_html(
     documents currently render through a separate path that does not yet
     consume `cache` (out of scope until a block needing it appears there).
 
-    Appends the Operatoren-Legende (`operator_legend.py`, the "Garage" in
-    the Haus/Garage split -- this function itself stays fach-/stufen-
-    neutral) only when `include_solutions=False`; the presentation branch
-    above returns before this point, so Kurzentwurf/presentation documents
-    never see it either. A document with no `!!...!!`-marked operator is
-    an unaffected no-op (see `collect_used_operators`'s cheap guard).
-    With a valid aid split (`--hm`, exams) there is one legend per part
-    (`operator_legend_parts.build_part_legends`): part A's legend is rendered
-    at the end of part A (before the page break), part B's at the end of
-    the document; a part without operators gets no legend.
+    The Operatoren-Legende (`operator_legend.py`, the "Garage" in the
+    Haus/Garage split -- this function itself stays fach-/stufen-neutral)
+    is never appended automatically: it renders only where the author
+    places an explicit `:::operators:::` block
+    (`operator_legend_blocks.annotate_operator_blocks`, scope
+    `previous|all|part`). By default that block is worksheet-only like the
+    former automatic legend (`should_render_block`). The presentation branch
+    above returns before this point, so presentations never render it.
     """
     if has_slide_layout(document_type):
         presentation_format = str(page_format or "").strip()
@@ -119,9 +117,7 @@ def render_html(
 
     blocks = annotate_evaluation_blocks(blocks, document_type)
     # Vor annotate_aid_parts: dort verschiebt der synthetische Teil-A-Block die Indizes.
-    blocks, operator_legend_html = build_part_legends(
-        blocks, meta, document_type, include_solutions=include_solutions
-    )
+    blocks = annotate_operator_blocks(blocks, meta, document_type)
     blocks = annotate_aid_parts(blocks, document_type)
     numbered_blocks = assign_task_numbers(blocks)
     enriched_blocks = annotate_standalone_subtasks(numbered_blocks)
@@ -230,8 +226,6 @@ window.MathJax = {{
 <h1>{meta.get("Titel", "")}</h1>
 
 {sectioned_body}
-
-{operator_legend_html}
 
 <!-- Footer wird nach PDF-Erzeugung einheitlich per PyMuPDF gesetzt. -->
 

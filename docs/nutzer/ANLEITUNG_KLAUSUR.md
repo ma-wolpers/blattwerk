@@ -56,10 +56,16 @@ Bewertungstabelle (selbstschließend: `:::evaluation:::`) mit den Zeilen Aufgabe
 - `parts`: `true` teilt die Tabelle in Klausuren mit `--hm` in Teil A und Teil B (je mit Summe) und weist zusätzlich die Gesamtsumme aus. Ohne `--hm` ohne Wirkung.
 - `grade`: `true` ergänzt unter der Tabelle rechtsbündig leere Felder „Dies sind ___ %“ und „Note: ___“ (auch bei `parts=true` nur einmal). Gilt nur für diesen Block: Bei mehreren Bewertungstabellen bekommt jede mit `grade=true` ihre eigenen Felder.
 
-## 6. Klausur-Übersicht
+## 6. Operatorentabelle
+
+Operatorentabelle (selbstschließend: `:::operators:::`) mit den Definitionen der mit `!!…!!` markierten Operatoren. Nur in Arbeitsblättern und Klausuren, standardmäßig nur im Arbeitsblatt (nicht in der Lösung; `mode=solution` kehrt das um). Im PDF rutscht die Tabelle ans Seitenende, wenn über ihr schon Inhalt steht -- typisch direkt vor `--!` oder `--hm`; steht sie als Erstes auf einer Seite, bleibt sie oben. `title="Operatoren"` setzt eine Überschrift. Ohne Tabelle meldet Blattwerk verwendete Operatoren (`OPR004`) bzw. Operatoren hinter der letzten Tabelle (`OPR005`); eine Tabelle ohne Operatoren ist ein Fehler (`OPR006`), sich überschneidende Bereiche eine Warnung (`OPR008`).
+
+- `scope`: `previous` (Standard): Operatoren seit der vorigen Operatorentabelle bzw. seit Dokumentanfang; `all`: alle Operatoren des Dokuments, auch solche nach der Tabelle; `part`: alle Operatoren des Klausurteils (`--hm`), in dem die Tabelle steht -- Deckblatt und Teil A zählen zusammen, ohne `--hm` das ganze Dokument.
+
+## 7. Klausur-Übersicht
 
 Unter der Diagnostik zeigt der Editor bei Klausuren live die Gesamtpunkte und ihre Verteilung auf AFB I/II/III, mit `--hm` zusätzlich je Teil. Die Prozentangaben beziehen sich immer auf die Gesamtpunktzahl der Klausur. Fehlen Punkte oder Anforderungsbereiche, steht dort „unvollständig“ mit dem Grund statt einer Prozentzahl.
 
-## 7. Erwartungshorizont
+## 8. Erwartungshorizont
 
 Im Exportdialog einer Klausur gibt es unter „Inhalt“ den Punkt „Erwartungshorizont“ (PDF oder HTML). Er listet je (Teil-)Aufgabe nur die nummerierten Lösungspunkte mit ihren Teilpunkten, ohne Aufgabentext, mit einer leeren Spalte „erreicht“, dazu Teilsummen je Hilfsmittel-Teil und die AFB-Tabelle. Widersprüchliche Punkte verhindern den Export; fehlende Teilpunkte (`SL005`) oder Erwartungen (`SL007`) werden nur angemerkt.

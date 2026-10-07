@@ -255,11 +255,21 @@ def annotate_task_help_references(
     return annotated_blocks
 
 
+DEFAULT_SHOW_MODE_BY_BLOCK_TYPE = {"operators": "worksheet"}
+"""Blocktypspezifischer Standard, wenn weder `mode` noch `show` gesetzt ist (sonst „both“).
+
+`operators`: Die Operatorentabelle erscheint wie die frühere automatische
+Liste nur in der Arbeitsblattfassung; `mode=solution` zeigt sie nur in der
+Lösungsfassung.
+"""
+
+
 def should_render_block(block_type, options, include_solutions, document_type="worksheet"):
     """Entscheidet, ob ein Block in der aktuellen Ausgabe sichtbar sein soll.
 
     `:::solution` ist per Definition nur in der Lösungsfassung sichtbar; seine
     Optionen `mode`/`show` sind veraltet und werden ignoriert (`OP004`).
+    Ohne `mode`/`show` gilt `DEFAULT_SHOW_MODE_BY_BLOCK_TYPE` bzw. „both“.
     """
     if block_type == "solution":
         return bool(include_solutions) and not has_slide_layout(document_type)
@@ -272,7 +282,7 @@ def should_render_block(block_type, options, include_solutions, document_type="w
         if show_mode_raw in {"worksheet", "solution", "both"}:
             show_mode = show_mode_raw
         else:
-            show_mode = "both"
+            show_mode = DEFAULT_SHOW_MODE_BY_BLOCK_TYPE.get(block_type, "both")
 
 
     if has_slide_layout(document_type) and show_mode == "solution":

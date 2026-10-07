@@ -53,6 +53,14 @@
     ],
     "description": "Insert a Blattwerk evaluation (grading) table"
   },
+  "Operator Table": {
+    "scope": "blattwerk",
+    "prefix": "bwoperators",
+    "body": [
+      ":::operators scope=${1|previous,all,part|}:::"
+    ],
+    "description": "Insert a Blattwerk operator table (operators used before it, in the whole document, or in the current --hm part)"
+  },
   "Aid Split Marker": {
     "scope": "blattwerk",
     "prefix": "bwhm",

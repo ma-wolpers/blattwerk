@@ -4,7 +4,7 @@ Chromium kennt kein CSS „unten auf der Seite platzieren“. Deshalb wird nach 
 Rendern gemessen (gleiches Muster wie `word_note_pdf_check`):
 
 1. Pass 1 drucken.
-2. Je Liste die beiden Messmarken (`operator_legend_parts`, Link-Rechtecke) suchen.
+2. Je Liste die beiden Messmarken (`operator_legend_blocks`, Link-Rechtecke) suchen.
 3. Steht die Liste allein auf ihrer Seite (kein Inhalt darüber im Satzspiegel),
    bleibt sie oben. Sonst wird sie per ``padding-top`` auf ihrem Wrapper so weit
    nach unten geschoben, dass ihre Unterkante am Ende des Inhaltsbereichs liegt.
@@ -33,7 +33,7 @@ import fitz
 
 from ..styles.blatt_styles import PAGE_LAYOUTS, _css_length_to_cm, resolve_page_side_margins_cm
 from .blatt_kern_io_pdf import write_pdf_from_html
-from .operator_legend_parts import LEGEND_ELEMENT_ID_PREFIX, LEGEND_PROBE_URI_PREFIX
+from .operator_legend_blocks import LEGEND_ELEMENT_ID_PREFIX, LEGEND_PROBE_URI_PREFIX
 
 _LOG = logging.getLogger(__name__)
 _POINTS_PER_CM = 72.0 / 2.54

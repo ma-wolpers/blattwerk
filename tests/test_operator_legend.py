@@ -154,7 +154,7 @@ def test_full_pipeline_survives_unquoted_stufe_int_in_frontmatter(tmp_path):
     md_path = tmp_path / "doc.md"
     md_path.write_text(
         "---\nTitel: T\nFach: Mathematik\nThema: X\nStufe: 11\n---\n"
-        ":::task\n!!Begründe!! deine Antwort.\n:::\n",
+        ":::task\n!!Begründe!! deine Antwort.\n:::\n:::operators:::\n",
         encoding="utf-8",
     )
     html_path = tmp_path / "doc.html"
@@ -172,7 +172,7 @@ def test_render_html_legend_appears_only_in_worksheet_mode_not_solution(tmp_path
     md_path = tmp_path / "doc.md"
     md_path.write_text(
         "---\nTitel: T\nFach: Mathematik\nThema: X\n---\n"
-        ":::task\n!!Bestimme!! die Nullstellen.\n:::\n",
+        ":::task\n!!Bestimme!! die Nullstellen.\n:::\n:::operators:::\n",
         encoding="utf-8",
     )
     html_path = tmp_path / "doc.html"

@@ -16,6 +16,8 @@ from app.core.block_insert_snippets import BLOCK_INSERT_SNIPPETS
 from app.core.blatt_validator import inspect_markdown_text
 from app.core.markdown_conventions import collect_markdown_conventions
 
+_CONTEXT_BEFORE = {"operators": ":::task\n!!Bestimme!! die Nullstellen.\n:::\n"}
+
 
 def test_every_block_insert_snippet_is_valid_markdown():
     """Beweist nur syntaktische Gültigkeit -- nicht, dass das Snippet das in der
@@ -32,10 +34,16 @@ def test_every_block_insert_snippet_is_valid_markdown():
     es nur `severity="warning"` ist: ein Snippet mit ungültigem Options-Wert
     (z. B. ein nicht existierender `type=`) ist immer ein Snippet-Fehler, nie
     eine akzeptable Best-Practice-Warnung wie `AN005`.
+
+    Manche Blöcke beziehen sich auf vorangehenden Inhalt und werden nur dort
+    eingefügt (`_CONTEXT_BEFORE`): Eine Operatorentabelle ohne einen einzigen
+    Operator davor ist bewusst ein Fehler (`OPR006`, leere Tabelle) -- geprüft
+    wird deshalb das Snippet im Kontext einer Aufgabe mit Operator.
     """
     for block_type, snippet in BLOCK_INSERT_SNIPPETS.items():
         cleaned = snippet.replace("\x01", "")
-        document = "---\nTitel: T\nFach: M\nThema: X\n---\n" + cleaned + "\n"
+        context = _CONTEXT_BEFORE.get(block_type, "")
+        document = "---\nTitel: T\nFach: M\nThema: X\n---\n" + context + cleaned + "\n"
         diagnostics = inspect_markdown_text(document).diagnostics
         error_diagnostics = [d for d in diagnostics if d.severity == "error"]
         assert error_diagnostics == [], f"Snippet für {block_type!r} validiert nicht sauber: {error_diagnostics}"

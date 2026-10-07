@@ -585,6 +585,22 @@ PROSE_SECTIONS: dict[str, str] = {
         "(auch bei `parts=true` nur einmal). Gilt nur für diesen Block: Bei mehreren Bewertungstabellen "
         "bekommt jede mit `grade=true` ihre eigenen Felder."
     ),
+    "block:operators": (
+        "Operatorentabelle (selbstschließend: `:::operators:::`) mit den Definitionen der mit "
+        "`!!…!!` markierten Operatoren. Nur in Arbeitsblättern und Klausuren, standardmäßig nur im "
+        "Arbeitsblatt (nicht in der Lösung; `mode=solution` kehrt das um). Im PDF rutscht die "
+        "Tabelle ans Seitenende, wenn über ihr schon Inhalt steht -- typisch direkt vor `--!` oder "
+        "`--hm`; steht sie als Erstes auf einer Seite, bleibt sie oben. `title=\"Operatoren\"` setzt "
+        "eine Überschrift. Ohne Tabelle meldet Blattwerk verwendete Operatoren (`OPR004`) bzw. "
+        "Operatoren hinter der letzten Tabelle (`OPR005`); eine Tabelle ohne Operatoren ist ein "
+        "Fehler (`OPR006`), sich überschneidende Bereiche eine Warnung (`OPR008`)."
+    ),
+    "block:operators.scope": (
+        "`previous` (Standard): Operatoren seit der vorigen Operatorentabelle bzw. seit "
+        "Dokumentanfang; `all`: alle Operatoren des Dokuments, auch solche nach der Tabelle; "
+        "`part`: alle Operatoren des Klausurteils (`--hm`), in dem die Tabelle steht -- Deckblatt "
+        "und Teil A zählen zusammen, ohne `--hm` das ganze Dokument."
+    ),
     "block:aidsplit": ("Hilfsmittel-Trenner einer Klausur -- siehe Control-Marker `--hm`."),
     "block:pagebreak": ("Erzwingt einen harten Seiten-/Folienumbruch -- siehe Control-Marker `--!`."),
     "block:framebreak": (
@@ -1031,9 +1047,9 @@ PROSE_SECTIONS: dict[str, str] = {
         "`!!Text!!` markiert einen Aufgaben-Operator (z. B. `!!Bestimme!! die Nullstellen.`) -- "
         "sichtbar identisch zu `**fett**`, aber zusätzlich semantisch als Operator erkennbar. Wird "
         "im Frontmatter ein `Fach` mit passender Operatoren-Datei (`data/operatoren/`) verwendet, "
-        "erscheint am Ende des Arbeitsblatts automatisch eine Legende mit den Definitionen aller "
-        "tatsächlich verwendeten Operatoren (nicht in der Lösung, nicht im Kurzentwurf). Aktuell "
-        "ohne eigene Editor-Taste -- von Hand eingetippt."
+        "erklärt eine Operatorentabelle `:::operators:::` die verwendeten Operatoren -- sie wird nicht "
+        "mehr automatisch angehängt, sondern steht dort, wo du den Block setzt (Warnung `OPR004`, wenn "
+        "Operatoren ohne Tabelle bleiben). Aktuell ohne eigene Editor-Taste -- von Hand eingetippt."
     ),
     "inline_mark:word_note": (
         "`??Begriff|Erklärung??` ist eine Worterklärung als sprachliche Hilfe: der Begriff bleibt normal "

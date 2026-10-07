@@ -61,6 +61,9 @@ class DocumentTypeSpec:
         empty_answer_hint: Ob leere Antwortblöcke als Best-Practice-Hinweis
             (AN005) gemeldet werden. In Klausuren nicht: Antwortfelder sind dort
             absichtlich leer, die Lösung steht in `:::solution`.
+        operator_legend: Ob `:::operators:::` eine Operatorentabelle rendert
+            und fehlende Tabellen gemeldet werden (OPR004–OPR008). Sonst
+            rendert der Block nichts und es gibt OPR007.
     """
 
     id: str
@@ -80,6 +83,7 @@ class DocumentTypeSpec:
     marker_required: bool
     expectation_horizon: bool = False
     empty_answer_hint: bool = True
+    operator_legend: bool = False
 
 
 DOCUMENT_TYPE_SPECS: tuple[DocumentTypeSpec, ...] = (
@@ -99,6 +103,7 @@ DOCUMENT_TYPE_SPECS: tuple[DocumentTypeSpec, ...] = (
         aid_split=False,
         evaluation=True,
         marker_required=True,
+        operator_legend=True,
     ),
     DocumentTypeSpec(
         id=DOCUMENT_TYPE_PRESENTATION,
@@ -135,6 +140,7 @@ DOCUMENT_TYPE_SPECS: tuple[DocumentTypeSpec, ...] = (
         marker_required=True,
         expectation_horizon=True,
         empty_answer_hint=False,
+        operator_legend=True,
     ),
     DocumentTypeSpec(
         id=DOCUMENT_TYPE_KURZENTWURF,
@@ -233,6 +239,12 @@ def shows_empty_answer_hint(document_type: str | None) -> bool:
     """Ob leere Antwortblöcke gemeldet werden (AN005; unbekannte Typen: ja, wie Arbeitsblatt)."""
     spec = _SPECS_BY_ID.get(document_type)
     return True if spec is None else spec.empty_answer_hint
+
+
+def shows_operator_legend(document_type: str | None) -> bool:
+    """Ob `:::operators:::` eine Operatorentabelle rendert (unbekannte Typen: nein)."""
+    spec = _SPECS_BY_ID.get(document_type)
+    return bool(spec and spec.operator_legend)
 
 
 def solutions_renderable(document_type: str) -> bool:

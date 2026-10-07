@@ -111,6 +111,10 @@ BLOCK_INSERT_SNIPPETS: dict[str, str] = {
         ":::evaluation level=task:::\n"
         "\x01"
     ),
+    "operators": (
+        ":::operators:::\n"
+        "\x01"
+    ),
     "solution": (
         ":::solution\n"
         "\x01Musterlösung hier…\n"

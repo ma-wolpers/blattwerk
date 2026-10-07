@@ -18,7 +18,7 @@ import fitz
 import pytest
 
 from app.core.blatt_kern_io_pdf import find_chromium_executable
-from app.core.operator_legend_parts import legend_probe_uri
+from app.core.operator_legend_blocks import legend_probe_uri
 from app.core.operator_legend_placement import (
     SAFETY_PT,
     compute_shifts,
@@ -176,14 +176,14 @@ def _build_and_box(tmp_path, body, document_type="worksheet", name="doc"):
 
 @needs_chromium
 def test_fitting_legend_ends_at_content_bottom(tmp_path):
-    page, _top, bottom, area, _above, pages = _build_and_box(tmp_path, ":::task\n!!Nenne!! zwei Beispiele.\n:::\n")
+    page, _top, bottom, area, _above, pages = _build_and_box(tmp_path, ":::task\n!!Nenne!! zwei Beispiele.\n:::\n:::operators:::\n")
     assert pages == 1 and page == 0
     assert area.bottom - 6 <= bottom <= area.bottom + 0.5
 
 
 @needs_chromium
 def test_legend_that_does_not_fit_goes_to_next_page_top(tmp_path):
-    page, top, _bottom, area, above, pages = _build_and_box(tmp_path, ":::task\n!!Nenne!! zwei Beispiele.\n:::\n-=21.5cm\n")
+    page, top, _bottom, area, above, pages = _build_and_box(tmp_path, ":::task\n!!Nenne!! zwei Beispiele.\n:::\n-=21.5cm\n:::operators:::\n")
     assert pages == 2 and page == 1 and not above
     assert top < area.top + 40
 
@@ -193,7 +193,7 @@ def test_legend_that_does_not_fit_goes_to_next_page_top(tmp_path):
 def test_page_boundary_is_either_bottom_aligned_or_alone_on_top(tmp_path, height_cm):
     """Grenzfall Seitenumbruch (inkl. 1-px-Messmarken): nie aufgeteilt, nie halb verschoben."""
     _page, top, bottom, area, above, _pages = _build_and_box(
-        tmp_path, f":::task\n!!Nenne!! zwei Beispiele.\n:::\n-={height_cm}cm\n", name=f"b{height_cm}"
+        tmp_path, f":::task\n!!Nenne!! zwei Beispiele.\n:::\n-={height_cm}cm\n:::operators:::\n", name=f"b{height_cm}"
     )
     bottom_aligned = area.bottom - 6 <= bottom <= area.bottom + 0.5
     alone_on_top = not above and top < area.top + 40
@@ -201,8 +201,24 @@ def test_page_boundary_is_either_bottom_aligned_or_alone_on_top(tmp_path, height
 
 
 @needs_chromium
+def test_block_before_pagebreak_goes_to_bottom_of_its_page(tmp_path):
+    body = ":::task\n!!Nenne!! zwei Beispiele.\n:::\n:::operators:::\n--!\n:::task\nWeiter ohne Operator.\n:::\n"
+    page, _top, bottom, area, _above, pages = _build_and_box(tmp_path, body)
+    assert pages == 2 and page == 0
+    assert area.bottom - 6 <= bottom <= area.bottom + 0.5
+
+
+@needs_chromium
+def test_block_first_on_page_stays_on_top(tmp_path):
+    body = ":::task\n!!Nenne!! zwei Beispiele.\n:::\n--!\n:::operators scope=all:::\n:::task\nWeiter ohne Operator.\n:::\n"
+    page, top, _bottom, area, above, pages = _build_and_box(tmp_path, body)
+    assert pages == 2 and page == 1 and not above
+    assert top < area.top + 40
+
+
+@needs_chromium
 def test_exam_legend_a_at_bottom_of_last_page_of_part_a(tmp_path):
-    body = ":::task points=2 afb=1\n!!Nenne!! zwei Beispiele.\n:::\n--hm\n:::task points=3 afb=2\n!!Beschreibe!! den Ablauf.\n:::\n"
+    body = ":::task points=2 afb=1\n!!Nenne!! zwei Beispiele.\n:::\n:::operators:::\n--hm\n:::task points=3 afb=2\n!!Beschreibe!! den Ablauf.\n:::\n:::operators:::\n"
     page, _top, bottom, area, _above, pages = _build_and_box(tmp_path, body, document_type="exam")
     assert pages == 2 and page == 0
     assert area.bottom - 6 <= bottom <= area.bottom + 0.5

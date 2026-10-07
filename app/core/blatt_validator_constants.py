@@ -95,6 +95,7 @@ KNOWN_BLOCK_TYPES = {
     "vspacer",
     "aidsplit",
     "evaluation",
+    "operators",
 }
 KNOWN_SHOW_VALUES = {"worksheet", "solution", "both"}
 KNOWN_BLOCK_MODE_VALUES = {"worksheet", "solution"}
@@ -664,6 +665,12 @@ BLOCK_OPTION_SPECS: dict[str, tuple[BlockOptionSpec, ...]] = {
         BlockOptionSpec("parts", "boolean", None, False, False),
         BlockOptionSpec("grade", "boolean", None, False, False),
     ),
+    "operators": (
+        BlockOptionSpec("scope", "enum", frozenset({"previous", "all", "part"}), True, "previous"),
+        _OPT_TITLE,
+        _OPT_MODE,
+        _OPT_SHOW,
+    ),  # Sichtbarkeits-Standard `worksheet` (blocktypspezifisch, `should_render_block`)
     "sectionmark": (_OPT_TITLE,),
     "vspacer": (
         BlockOptionSpec("height", "css_length", None, False, MISSING),

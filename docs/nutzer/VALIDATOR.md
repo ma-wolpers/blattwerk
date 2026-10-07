@@ -117,6 +117,14 @@ Subprozess siehe `tests/test_blatt_diagnostics_cli.py` (Validator) sowie
 - `BL009`: `columns`-Block wird bis Dokument- bzw. Folienende nicht mit `endcolumns` geschlossen.
 - `BL010`: Verschachtelter `columns`-Block (ein neuer `columns` startet, bevor der vorherige mit `endcolumns` geschlossen wurde).
 - `BL011`: Anzahl `nextcol`-Marker zwischen `columns` und `endcolumns` weicht von `cols - 1` ab (Warnung).
+- `OPR001`: Ein `!!...!!`-Operator-Marker passt zu keinem bekannten Operator des Fachs. Warnung.
+- `OPR002`: **entfallen** (frueher Laufzeitpruefung der Operatoren-Daten; jetzt Test der Daten-Dateien).
+- `OPR003`: Operator-Marker verwendet, aber keine Operatoren-Datei fuer `Fach` in `data/operatoren/`. Warnung.
+- `OPR004`: Operatoren verwendet, aber keine Operatorentabelle `:::operators:::` im Dokument (sie wird nicht mehr automatisch angehaengt). Warnung.
+- `OPR005`: Operatoren, die keine Operatorentabelle abdeckt (z. B. nach der letzten Tabelle mit `scope=previous`). Warnung; eine Fundstelle ist abgedeckt, sobald mindestens eine Tabelle sie einschliesst.
+- `OPR006`: Operatorentabelle ohne einen einzigen Operator-Marker in ihrem Bereich -- sie bliebe leer. Fehler.
+- `OPR007`: Operatorentabelle in einem Dokumenttyp ohne diese Funktion (z. B. Praesentation); sie wird nicht angezeigt. Warnung.
+- `OPR008`: Die Bereiche zweier Operatorentabellen ueberschneiden sich (dieselben Operatoren stehen in mehreren Tabellen). Warnung, einmal je beteiligter Tabelle.
 - `OP001`: Unbekannte Option fuer einen bekannten Block.
 - `OP002`: Ungueltiger Wert einer bekannten Option.
 - `OP003`: Option `show` in einem Block ist veraltet; `mode=worksheet|solution` verwenden.
