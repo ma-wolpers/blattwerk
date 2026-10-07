@@ -571,12 +571,21 @@ h1 {
     margin: 1em 0 0.35em 1.4em;
 }
 
+/* Feste Spalten: Fehlen Präfix (nur eine Teilaufgabe) oder Symbole, würden
+   die Punkte sonst per Auto-Placement direkt hinter den Text rutschen statt
+   wie im Aufgabenkopf an den rechten Zeilenrand. */
 .subtask-prefix {
+    grid-column: 1;
     min-width: 1.4em;
     font-weight: bold;
 }
 
+.subtask-content {
+    grid-column: 3;
+}
+
 .subtask-symbols {
+    grid-column: 2;
     display: inline-flex;
     align-items: center;
     gap: 0.22em;
@@ -592,6 +601,7 @@ h1 {
 }
 
 .subtask-meta {
+    grid-column: 4;
     display: inline-flex;
     justify-self: end;
     align-self: start;

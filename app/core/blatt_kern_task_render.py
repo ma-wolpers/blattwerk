@@ -23,7 +23,7 @@ from .answer_special_writebox import render_writebox_block
 from .blatt_kern_answer_dispatch import _render_answer_block
 from .document_type_registry import shows_work_hints
 from .operator_legend_parts import PART_END_HTML_KEY
-from .points_model import points_display
+from .points_model import points_label
 from .qrcode_block import render_qrcode_block
 
 
@@ -356,7 +356,7 @@ def _render_subtask_block(
 
     help_reference_text = (options.get("_help_reference_text") or "").strip()
     time_minutes = (options.get("time") or "").strip()
-    subtask_points = points_display(options)
+    subtask_points = points_label(options)
 
     prefix_html = ""
     if total_subtasks > 1:
@@ -435,7 +435,7 @@ def _render_task_block(
     die Bezeichnung bleibt als `title`-Attribut des Icons erhalten.
     """
     task_id = options.get("_auto_number")
-    points = points_display(options)
+    points = points_label(options)
     time_minutes = (options.get("time") or "").strip()
     task_work_info = get_work_info(options.get("work", "single"))
     task_action_info = get_task_action_info(options.get("action"))
@@ -468,7 +468,7 @@ def _render_task_block(
             f"<span class='task-help-reference'>{help_reference_text}</span>"
         )
     if points:
-        header_right_parts.append(f"<span class='task-points'>{points} P</span>")
+        header_right_parts.append(f"<span class='task-points'>{escape(points)} P</span>")
     if time_minutes:
         header_right_parts.append(f"<span class='task-time'>{time_minutes} min</span>")
     if header_right_parts:

@@ -649,8 +649,9 @@ PROSE_SECTIONS: dict[str, str] = {
         "Erwartungshorizont ausgewertet. Eine Teilaufgabe ohne eigene Angabe erbt die AFB ihrer Aufgabe."
     ),
     "option:points": (
-        "Punktzahl der Aufgabe bzw. Teilaufgabe, wird als `X P` angezeigt (Zahl, Komma oder Punkt als "
-        "Dezimaltrenner, z. B. `2,5`). Sind alle Teilaufgaben bepunktet, ergibt ihre Summe die Punktzahl "
+        "Punktzahl der Aufgabe bzw. Teilaufgabe, wird rechts am Zeilenrand als `X P` angezeigt (Zahl, "
+        "Komma oder Punkt als Dezimaltrenner). Halbe Punkte sind möglich: `points=0,5` oder `points=1.5` "
+        "erscheinen einheitlich als `0,5 P` bzw. `1,5 P`. Sind alle Teilaufgaben bepunktet, ergibt ihre Summe die Punktzahl "
         "der Aufgabe; ein zusätzlich gesetztes `points` an der Aufgabe muss genau dieser Summe "
         "entsprechen (`PK001`). Nur einen Teil der Teilaufgaben zu bepunkten ist ein Fehler (`PK004`)."
     ),

@@ -147,6 +147,42 @@ def test_renderer_shows_points_display_also_non_numeric_and_subtask_points():
     assert "ca. 5 P" in task_html and "2,5 P" in sub_html
 
 
+@pytest.mark.parametrize(("raw", "expected"), [("0.5", "0,5"), ("2,50", "2,5"), ("3", "3"), ("ca. 5", "ca. 5"), ("  ", None)])
+def test_points_label_normalizes_numbers_and_keeps_text(raw, expected):
+    from app.core.points_model import points_label
+
+    assert points_label({"points": raw}) == expected
+
+
+def test_renderer_shows_half_points_with_german_comma_and_escapes_task_points():
+    from app.core.blatt_kern_task_render import render_block
+
+    task_html = render_block("task", {"points": "0.5", "_show_task_label": "1"}, "A", include_solutions=False)
+    sub_html = render_block("subtask", {"points": "1.5"}, "a", include_solutions=False)
+    evil_html = render_block("task", {"points": "<b>", "_show_task_label": "1"}, "A", include_solutions=False)
+    assert "<span class='task-points'>0,5 P</span>" in task_html
+    assert "1,5 P" in sub_html
+    assert "&lt;b&gt; P" in evil_html
+
+
+def test_half_points_sum_in_evaluation_table():
+    from app.core.evaluation_table import build_evaluation_table, render_evaluation_html
+
+    body = ":::task\nA\n:::\n:::subtask points=0,5\na\n:::\n:::subtask points=1,5\nb\n:::\n:::task points=2,5\nB\n:::\n"
+    table = build_evaluation_table(parse_blocks(body), {"level": "subtask"}, "worksheet")
+    assert table.groups[0].total == Decimal("4.5")
+    html = render_evaluation_html(table)
+    assert "<td>0,5</td>" in html and "<td>1,5</td>" in html and "<td>4,5</td>" in html
+
+
+def test_subtask_points_have_fixed_right_column_like_task_header():
+    css = (Path(__file__).resolve().parents[1] / "assets" / "worksheet.css").read_text(encoding="utf-8")
+    meta_rule = css.split(".subtask-meta {", 1)[1].split("}", 1)[0]
+    assert "grid-column: 4;" in meta_rule
+    for selector, column in ((".subtask-prefix {", 1), (".subtask-symbols {", 2), (".subtask-content {", 3)):
+        assert f"grid-column: {column};" in css.split(selector, 1)[1].split("}", 1)[0]
+
+
 def test_raw_points_option_is_read_only_in_points_model():
     app_root = Path(__file__).resolve().parents[1] / "app"
     offenders = []

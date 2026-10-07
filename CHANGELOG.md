@@ -40,6 +40,8 @@ The format is based on Keep a Changelog.
 - VS-Code-Erweiterung: Die Snippets (z. B. `bwtask`) waren nach der Umstellung auf die neuen Endungen nur für Markdown registriert und deshalb in Blattwerk-Dateien nicht verfügbar; jetzt gelten sie für Blattwerk-Dateien. Neu: `bwevaluation`, `bwhm`.
 
 - Neue Anleitung `docs/nutzer/ANLEITUNG_KLAUSUR.md` (auch in der Hilfe-Ansicht der App).
+- **Punkte stehen überall am rechten Zeilenrand:** Auch bei einer einzelnen Teilaufgabe oder Teilaufgaben ohne Symbole stehen die Punkte jetzt rechts außen wie im Aufgabenkopf, statt direkt hinter dem Text.
+- **Halbe Punkte einheitlich:** `points=0.5` wird wie `points=0,5` als `0,5 P` angezeigt (bisher erschien die Angabe unverändert, z. B. `0.5 P`).
 
 ### Removed
 

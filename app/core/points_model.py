@@ -1,8 +1,9 @@
 """Gemeinsamer Punktkern (Invariante I4): einzige Interpretation von `points=`.
 
 Validator, Klausuranalyse, Bewertungstabelle, Erwartungshorizont und Editor
-lesen Punktangaben ausschließlich hier. Der Renderer zeigt den Originaltext
-über `points_display` an (auch nicht-numerische Angaben wie bisher).
+lesen Punktangaben ausschließlich hier. Der Renderer zeigt Punktangaben über
+`points_label` an: numerische Werte normalisiert mit deutschem Komma
+(`0.5` → `0,5`), nicht-numerische Angaben weiterhin als Originaltext.
 
 Effektive Punkte einer Aufgabeneinheit (task + folgende subtasks):
 
@@ -49,6 +50,25 @@ def points_display(options: dict) -> str | None:
         return None
     text = str(raw).strip()
     return text or None
+
+
+def points_label(options: dict) -> str | None:
+    """Anzeigetext der Punktangabe für den Renderer (ohne Einheit „P“).
+
+    Numerische Angaben werden einheitlich mit deutschem Komma und ohne
+    unnötige Nachkommastellen dargestellt (`0.5` → `0,5`, `2,50` → `2,5`),
+    damit Aufgabenkopf, Bewertungstabelle und Erwartungshorizont dieselbe
+    Schreibweise zeigen. Nicht-numerische Angaben (`ca. 5`) bleiben als
+    Rohtext erhalten (Diagnose PK003 meldet sie separat). Ohne Angabe
+    liefert die Funktion ``None``.
+    """
+    raw = points_display(options)
+    if raw is None:
+        return None
+    value = parse_points(raw)
+    if isinstance(value, Decimal):
+        return format_points(value)
+    return raw
 
 
 def parse_points(raw) -> Decimal | NonNumeric | None:

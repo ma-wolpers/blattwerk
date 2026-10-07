@@ -35,7 +35,7 @@ Formuliere hier die erste Aufgabe.
 
 ## 2. Punkte und Teilpunkte
 
-Punktzahl der Aufgabe bzw. Teilaufgabe, wird als `X P` angezeigt (Zahl, Komma oder Punkt als Dezimaltrenner, z. B. `2,5`). Sind alle Teilaufgaben bepunktet, ergibt ihre Summe die Punktzahl der Aufgabe; ein zusätzlich gesetztes `points` an der Aufgabe muss genau dieser Summe entsprechen (`PK001`). Nur einen Teil der Teilaufgaben zu bepunkten ist ein Fehler (`PK004`).
+Punktzahl der Aufgabe bzw. Teilaufgabe, wird rechts am Zeilenrand als `X P` angezeigt (Zahl, Komma oder Punkt als Dezimaltrenner). Halbe Punkte sind möglich: `points=0,5` oder `points=1.5` erscheinen einheitlich als `0,5 P` bzw. `1,5 P`. Sind alle Teilaufgaben bepunktet, ergibt ihre Summe die Punktzahl der Aufgabe; ein zusätzlich gesetztes `points` an der Aufgabe muss genau dieser Summe entsprechen (`PK001`). Nur einen Teil der Teilaufgaben zu bepunkten ist ein Fehler (`PK004`).
 
 Musterlösungstext. `label=true|false` (Standard `true`) blendet das Label "Lösung" ein/aus. Gehört zur nächsten vorangehenden Aufgabe bzw. Teilaufgabe (nie über `--hm` hinweg); mit `target=task` bzw. `target=b` lässt sie sich gezielt der Aufgabe bzw. Teilaufgabe b derselben Aufgabe zuordnen. Nummerierte Lösungspunkte können Teilpunkte am Zeilenende tragen, z. B. `1. Ansatz aufgestellt (2P)` oder `(1,5P)`; sind alle Punkte einer Aufgabe annotiert, muss ihre Summe zur Punktzahl der Aufgabe passen (sonst Fehler `PK002`).
 
