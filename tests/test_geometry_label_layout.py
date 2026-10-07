@@ -125,6 +125,53 @@ def test_labels_option_is_validated():
     assert "OP002" in [d.code for d in inspect_markdown_text(HEAD + body).diagnostics]
 
 
+def _css_rules():
+    from pathlib import Path
+    import re
+
+    css = (Path(__file__).resolve().parents[1] / "assets" / "worksheet.css").read_text(encoding="utf-8")
+    rules = {}
+    for selector, body in re.findall(r"^\.([\w-]+)\s*\{([^}]*)\}", css, flags=re.MULTILINE):
+        properties = dict(re.findall(r"([\w-]+)\s*:\s*([^;]+);", body))
+        rules.setdefault(selector, {}).update(properties)
+    return rules
+
+
+@pytest.mark.parametrize(
+    "css_class",
+    ["grid-point-label", "grid-segment-label", "grid-function-label", "grid-polygon-label", "grid-circle-label",
+     "grid-axis-label", "grid-axis-label grid-axis-label-y", "grid-axis-label grid-axis-name"],
+)
+def test_label_anchors_match_css(css_class):
+    from app.core.answer_grid_label_model import LabelSpec
+
+    rules = _css_rules()
+    effective = {"text-anchor": "start", "dominant-baseline": "auto"}
+    for name in css_class.split():
+        effective.update(rules.get(name, {}))
+    spec = LabelSpec(text="A", css_class=css_class, x=0, y=0, kind="point", anchor=(0, 0))
+    h_align, v_align, font_px = spec.alignment
+    assert (h_align, v_align) == (effective["text-anchor"].strip(), effective["dominant-baseline"].strip())
+    assert font_px == pytest.approx(float(effective["font-size"].strip().removesuffix("px")))
+
+
+def test_y_axis_name_is_right_aligned_left_of_the_axis():
+    """Regression: CSS darf das SVG-Attribut `text-anchor` der Achsennamen nicht überschreiben.
+
+    CSS schlägt Präsentationsattribute immer; ohne eigene Regel erbte der Name
+    `middle` von `.grid-axis-label`, mit der früheren Regel `start` -- beides
+    falsch für den y-Namen (`end`, links neben der Achse).
+    """
+    from pathlib import Path
+
+    css = (Path(__file__).resolve().parents[1] / "assets" / "worksheet.css").read_text(encoding="utf-8")
+    assert "text-anchor" not in _css_rules()["grid-axis-name"]
+    assert ".grid-axis-name[text-anchor='end'] {\n    text-anchor: end;" in css.replace("\r\n", "\n")
+    assert ".grid-axis-name[text-anchor='start'] {\n    text-anchor: start;" in css.replace("\r\n", "\n")
+    html = render_geometry_answer({**AXIS, "labels": "fixed"}, "", False, lambda text: text)
+    assert "class='grid-axis-label grid-axis-name' x='4.9000' y='-1.2400' text-anchor='end'>y</text>" in html
+
+
 @pytest.mark.parametrize("text", ["A", "P1", "Strecke g", "f(x)", "v in km/h", "WWW", "MMm", "Dreieck"])
 def test_width_estimate_is_at_least_helvetica_bold(text):
     assert estimate_text_width(text, 1.0) >= fitz.get_text_length(text, fontname="hebo", fontsize=1.0)

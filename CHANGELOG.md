@@ -56,6 +56,7 @@ The format is based on Keep a Changelog.
 
 ### Fixed
 
+- Geometry: Der Name der y-Achse (z. B. `axis_label_y="v in km/h"`) stand bisher nach rechts über die Achse hinaus, weil eine CSS-Regel seine Ausrichtung überschrieb. Er steht jetzt wie vorgesehen links neben der Achse und endet an der Pfeilspitze (gilt auch mit `labels=fixed`).
 - Die automatische Qualitätsprüfung auf GitHub (Quality-Guardrails-CI) lief seit Mai 2026 nicht mehr durch (kaputter Submodul-Eintrag, fehlende Pakete, Chromium-Sandbox unter Ubuntu). Sie prüft jetzt wieder Guardrails und alle Tests auf einem frischen Checkout von Blattwerk und bw-gui. Nebenbei gibt der Einzelinstanz-Server seinen Port unter Linux sofort beim Beenden frei.
 - Der Frontmatter-Kopf (`---` … `---`) endete bisher an *jedem* `---`, auch mitten in einer Zeile (z. B. `Titel: Teil 1---Teil 2`), und wurde in Dateien mit UTF-8-BOM gar nicht erkannt. Jetzt endet er nur an einer eigenen Zeile `---` (oder `...`), und Dateien mit BOM funktionieren.
 - Einbuchstaben-Tastenkürzel (z. B. `Z` zum Öffnen) lösten bei eingeschaltetem NumLock nicht aus: Windows meldet NumLock mit demselben Bit, das Blattwerk fälschlich als „Alt gedrückt“ wertete. Jetzt funktionieren sie unabhängig von NumLock/CapsLock; mit gehaltenem Strg oder Alt lösen sie wie vorgesehen nicht aus.

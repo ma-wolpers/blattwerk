@@ -995,7 +995,17 @@ h1 {
 .grid-axis-name {
     font-size: 0.78px;
     font-weight: 500;
+}
+
+/* Achsennamen tragen ihre Ausrichtung als SVG-Attribut (x-Name start, y-Name end).
+   Jede CSS-Regel schlägt ein Präsentationsattribut -- auch das geerbte `middle` von
+   `.grid-axis-label` -- daher übernehmen diese Selektoren den Attributwert explizit. */
+.grid-axis-name[text-anchor='start'] {
     text-anchor: start;
+}
+
+.grid-axis-name[text-anchor='end'] {
+    text-anchor: end;
 }
 
 .grid-point {

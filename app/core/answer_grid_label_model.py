@@ -51,7 +51,7 @@ LABEL_ANCHORS = {
     "grid-circle-label": ("middle", "middle", 0.60),
     "grid-axis-label": ("middle", "hanging", 0.66),
     "grid-axis-label-y": ("end", "middle", 0.66),
-    "grid-axis-name": ("start", "hanging", 0.78),
+    "grid-axis-name": ("middle", "hanging", 0.78),  # Ausrichtung kommt immer als SVG-Attribut
 }
 """Ausrichtung (`text-anchor`, `dominant-baseline`) und Schriftgröße je Label-Klasse.
 
