@@ -42,7 +42,7 @@ from .answer_grid_label_model import (
     LabelSpec,
     Obstacle,
     emit_label,
-    point_cross_obstacle,
+    point_cross_obstacles,
     polyline_obstacles,
     stroke_pad,
 )
@@ -79,7 +79,7 @@ def _render_points_section(raw_entries, coord_system, cols, rows, include_soluti
         if not _inside_grid(px, py, cols, rows):
             continue
         shapes.extend(_point_cross_svg(px, py, mode, _svg_stroke_style_attr(color, thickness)))
-        obstacles.append(point_cross_obstacle(px, py, thickness or 1.15))
+        obstacles.extend(point_cross_obstacles(px, py, thickness or 1.15))
         if label:
             labels.append(_point_label(label, color, mode, px, py))
     return shapes, labels, obstacles
@@ -103,7 +103,7 @@ def _render_sequence_section(raw_entries, coord_system, cols, rows, include_solu
 
     for px, py, label, color, thickness, mode in visible:
         shapes.extend(_point_cross_svg(px, py, mode, _svg_stroke_style_attr(color, thickness)))
-        obstacles.append(point_cross_obstacle(px, py, thickness or 1.15))
+        obstacles.extend(point_cross_obstacles(px, py, thickness or 1.15))
         if label:
             labels.append(_point_label(label, color, mode, px, py))
     return shapes, labels, obstacles
@@ -118,9 +118,9 @@ def _render_pairs_section(raw_entries, coord_system, cols, rows, include_solutio
         shapes.append(
             f"<line class='grid-segment grid-segment-{line_style} grid-mode-{mode}'{stroke_style} x1='{gx1:.4f}' y1='{gy1:.4f}' x2='{gx2:.4f}' y2='{gy2:.4f}' />"
         )
-        obstacles.append(Obstacle(TIER_LINE, "segment", (gx1, gy1, gx2, gy2), stroke_pad(thickness or 2.5)))
+        mid_x, mid_y = (gx1 + gx2) / 2, (gy1 + gy2) / 2
+        obstacles.append(Obstacle(TIER_LINE, "segment", (gx1, gy1, gx2, gy2), stroke_pad(thickness or 2.5), ("segment", (mid_x, mid_y))))
         if label:
-            mid_x, mid_y = (gx1 + gx2) / 2, (gy1 + gy2) / 2
             labels.append(LabelSpec(
                 text=label, css_class=f"grid-segment-label grid-mode-{mode}", x=mid_x + 0.16, y=mid_y - 0.16,
                 kind="segment", anchor=(mid_x, mid_y), style_attr=_svg_fill_style_attr(color),
@@ -141,7 +141,7 @@ def _render_functions_section(raw_entries, coord_system, cols, rows, include_sol
         shapes.append(
             f"<polyline class='grid-function-line grid-mode-{mode}'{stroke_style} points='{points_attr}' />"
         )
-        obstacles.extend(polyline_obstacles(poly_points, TIER_LINE, stroke_pad(thickness or 1.1)))
+        obstacles.extend(polyline_obstacles(poly_points, TIER_LINE, stroke_pad(thickness or 1.1), owner=("function", poly_points[-1])))
         if label:
             end_x, end_y = poly_points[-1]
             labels.append(LabelSpec(

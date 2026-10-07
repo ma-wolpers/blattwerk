@@ -450,6 +450,7 @@ BLOCK_OPTION_SPECS: dict[str, tuple[BlockOptionSpec, ...]] = {
         BlockOptionSpec("axis", "boolean", None, False, False),
         BlockOptionSpec("axis_label_x", "text", None, False, "x"),
         BlockOptionSpec("axis_label_y", "text", None, False, "y"),
+    BlockOptionSpec("labels", "enum", frozenset({"auto", "fixed"}), True, "auto"),
         BlockOptionSpec("origin", "text", None, False, MISSING),  # Format "col,row"
         BlockOptionSpec("step_x", "number", None, False, 1.0),
         BlockOptionSpec("step_y", "number", None, False, 1.0),

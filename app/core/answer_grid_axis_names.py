@@ -40,7 +40,7 @@ def _render_axis_arrowheads_and_names(origin_x, origin_y, cols, rows, axis_label
             "<polygon class='grid-axis' points='"
             f"{x_tip:.4f},{origin_y:.4f} {x_base:.4f},{x_top:.4f} {x_base:.4f},{x_bottom:.4f}' />"
         )
-        obstacles.append(Obstacle(TIER_LINE, "rect", (x_base, x_top, x_tip, x_bottom), pad))
+        obstacles.append(Obstacle(TIER_LINE, "rect", (x_base, x_top, x_tip, x_bottom), pad, ("axis_name", (x_tip, origin_y))))
     if axis_label_x:
         labels.append(LabelSpec(
             text=axis_label_x, css_class="grid-axis-label grid-axis-name",
@@ -57,7 +57,7 @@ def _render_axis_arrowheads_and_names(origin_x, origin_y, cols, rows, axis_label
             "<polygon class='grid-axis' points='"
             f"{origin_x:.4f},{y_tip:.4f} {y_left:.4f},{y_base:.4f} {y_right:.4f},{y_base:.4f}' />"
         )
-        obstacles.append(Obstacle(TIER_LINE, "rect", (y_left, y_tip, y_right, y_base), pad))
+        obstacles.append(Obstacle(TIER_LINE, "rect", (y_left, y_tip, y_right, y_base), pad, ("axis_name", (origin_x, y_tip))))
     if axis_label_y:
         labels.append(LabelSpec(
             text=axis_label_y, css_class="grid-axis-label grid-axis-name",

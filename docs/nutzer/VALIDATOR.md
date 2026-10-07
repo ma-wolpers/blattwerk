@@ -143,6 +143,7 @@ Subprozess siehe `tests/test_blatt_diagnostics_cli.py` (Validator) sowie
 - `AN013`: Ungueltiger `color`- oder `fill`-Wert in einem `geometry`-Objekt-Eintrag (kein von `parse_svg_color` akzeptiertes CSS-Farbformat).
 - `AN014`: Ungueltiger `thickness`-Wert in einem `geometry`-Objekt-Eintrag (keine positive Zahl).
 - `AN015`: `functions`-Eintraege ohne aktiven Achsenmodus (`axis=true` mit gueltigem `origin`) -- rendern nie etwas, da Funktionsgraphen ohne mathematisches Koordinatensystem nicht definiert sind.
+- `AN019`: Eine `geometry`-Beschriftung findet bei `labels=auto` keinen Platz, an dem sie kein Punktkreuz und keine andere Beschriftung ueberdeckt (auch nicht nach erweiterter Suche). Warnung; die Beschriftung steht dann an der am wenigsten stoerenden Stelle. Abhilfe: Zeichnung groesser, Punkte weiter auseinander, Text kuerzer -- oder bewusst `labels=fixed`.
 - `AN017`: Ungueltiges Polygon in einem `polygons`-Eintrag (`vertices` mit weniger als 3 Eintraegen, oder mindestens ein Eckpunkt ohne numerisches `x`/`y`) -- das gesamte Polygon wird nicht gerendert, keine Teil-Reparatur einzelner Eckpunkte.
 - `AN018`: Ungueltiger Kreis/Bogen in einem `circles`-Eintrag (`cx`/`cy`/`r` fehlt/nicht positiv, ODER genau einer von `start_angle`/`end_angle` gesetzt, ODER beide gesetzt aber mindestens einer nicht numerisch parsebar) -- der gesamte Eintrag wird nicht gerendert.
 - `CW001`: `crossword`-Block konnte mit den gegebenen Woertern nicht innerhalb der `maxw`x`maxh`-Rastergroesse platziert werden.

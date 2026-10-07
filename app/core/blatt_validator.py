@@ -49,6 +49,7 @@ from .blatt_validator_value_helpers import (
 )
 from .blatt_validator_evaluation import validate_evaluation
 from .blatt_validator_exam import validate_exam
+from .blatt_validator_geometry_labels import validate_geometry_labels
 from .blatt_validator_operator_legend import validate_operator_legend
 from .blatt_validator_points import validate_points
 from .operator_legend import collect_used_operators
@@ -151,6 +152,7 @@ def _collect_document_diagnostics(meta, blocks, content_text, content_base_line=
     _, operator_diagnostics = collect_used_operators(blocks, meta)
     diagnostics.extend(operator_diagnostics)
     diagnostics.extend(validate_operator_legend(blocks, meta, document_type))
+    diagnostics.extend(validate_geometry_labels(blocks))
     return _collapse_mj001_diagnostics(diagnostics)
 
 

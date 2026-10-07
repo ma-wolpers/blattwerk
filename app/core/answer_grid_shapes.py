@@ -141,9 +141,11 @@ def _render_polygons_section(raw_entries, coord_system, cols, rows, include_solu
         shapes.append(
             f"<polygon class='grid-polygon grid-mode-{polygon.mode}'{style} points='{points_attr}' />"
         )
-        obstacles.extend(polyline_obstacles(polygon.vertices, TIER_LINE, stroke_pad(polygon.thickness or 1.1), closed=True))
+        label_x, label_y = _polygon_centroid(polygon.vertices)
+        obstacles.extend(polyline_obstacles(
+            polygon.vertices, TIER_LINE, stroke_pad(polygon.thickness or 1.1), closed=True, owner=("area", (label_x, label_y))
+        ))
         if polygon.label:
-            label_x, label_y = _polygon_centroid(polygon.vertices)
             labels.append(LabelSpec(
                 text=polygon.label, css_class=f"grid-polygon-label grid-mode-{polygon.mode}", x=label_x, y=label_y,
                 kind="area", anchor=(label_x, label_y), style_attr=_svg_fill_style_attr(polygon.color),

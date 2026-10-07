@@ -40,7 +40,8 @@ breitesten -- mit dieser Untergrenze ist die Aufblähung nie zu knapp.
 """
 OBSTACLE_SAFETY = 0.06
 LABEL_PADDING = 0.05
-TEXT_HEIGHT_FACTOR = 1.15
+TEXT_HEIGHT_FACTOR = 1.0
+"""Glyphenhöhe (Oberlänge bis Unterlänge) in em; Helvetica: 0,718 + 0,207."""
 
 LABEL_ANCHORS = {
     "grid-point-label": ("start", "middle", 0.60),
@@ -94,6 +95,11 @@ class LabelSpec:
     area: tuple[tuple[float, float], ...] | None = None
 
     @property
+    def owner(self) -> tuple:
+        """Schlüssel des eigenen Objekts; Hindernisse mit gleichem `owner` zählen ohne Sicherheitsaufschlag."""
+        return (self.kind, self.anchor)
+
+    @property
     def alignment(self) -> tuple[str, str, float]:
         """`(h_align, v_align, font_px)` aus `LABEL_ANCHORS`, ggf. mit explizitem `text-anchor`."""
         h_align, v_align, font_px = "start", "auto", 0.60
@@ -117,12 +123,17 @@ class Obstacle:
 
     `pad` ist die Aufblähung um halbe Strichbreite plus Sicherheitsabstand;
     `bbox` die bereits aufgeblähte Hüllbox für den schnellen Vorfilter.
+    `owner` verbindet ein Hindernis mit dem Label seines eigenen Objekts
+    (`LabelSpec.owner`): Für dieses Label zählt nur die echte Geometrie ohne
+    Aufblähung -- ein Punktlabel soll dicht neben seinem Kreuz stehen dürfen,
+    ohne es zu überdecken. Für alle anderen Labels gilt die volle Aufblähung.
     """
 
     tier: int
     shape: str
     coords: tuple[float, ...]
     pad: float = 0.0
+    owner: tuple | None = None
     bbox: tuple[float, float, float, float] = field(init=False)
 
     def __post_init__(self):
@@ -143,20 +154,26 @@ def stroke_pad(stroke_px: float) -> float:
     return max(0.0, float(stroke_px)) / 2.0 / MIN_PX_PER_UNIT + OBSTACLE_SAFETY
 
 
-def polyline_obstacles(points, tier: int, pad: float, closed: bool = False) -> list[Obstacle]:
+def polyline_obstacles(points, tier: int, pad: float, closed: bool = False, owner: tuple | None = None) -> list[Obstacle]:
     """Zerlegt eine Polylinie (bzw. geschlossene Kontur) in Segment-Hindernisse, in Punktreihenfolge."""
     sequence = list(points)
     if closed and len(sequence) > 2:
         sequence.append(sequence[0])
     return [
-        Obstacle(tier, "segment", (x1, y1, x2, y2), pad)
+        Obstacle(tier, "segment", (x1, y1, x2, y2), pad, owner)
         for (x1, y1), (x2, y2) in zip(sequence, sequence[1:])
     ]
 
 
-def point_cross_obstacle(px: float, py: float, stroke_px: float = 1.15) -> Obstacle:
-    """Punktkreuz als Scheibe (Eckabstand des Kreuzes plus Strich), Stufe `TIER_POINT`."""
-    return Obstacle(TIER_POINT, "disc", (px, py, POINT_CROSS_HALF * 1.4143), stroke_pad(stroke_px))
+def point_cross_obstacles(px: float, py: float, stroke_px: float = 1.15) -> list[Obstacle]:
+    """Die beiden Linien eines Punktkreuzes als Hindernisse der Stufe `TIER_POINT` (Besitzer: Punktlabel)."""
+    h = POINT_CROSS_HALF
+    pad = stroke_pad(stroke_px)
+    owner = ("point", (px, py))
+    return [
+        Obstacle(TIER_POINT, "segment", (px - h, py - h, px + h, py + h), pad, owner),
+        Obstacle(TIER_POINT, "segment", (px - h, py + h, px + h, py - h), pad, owner),
+    ]
 
 
 def estimate_text_width(text: str, font_px: float) -> float:

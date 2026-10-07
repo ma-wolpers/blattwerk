@@ -17,18 +17,13 @@ import re
 
 from .answer_special_shared import _safe_int
 from .answer_yaml_payload import parse_yaml_answer_payload_with_solution
-from .answer_grid_axis import _resolve_axis_name, _resolve_axis_state, origin_to_canvas
-from .answer_grid_entries import _parse_positive_float
+from .answer_grid_frame import DEFAULT_GEOMETRY_COLS, resolve_geometry_frame
 from .answer_grid_primitives import _render_grid_primitives_svg
-from .answer_grid_svg_frame import (
-    _estimate_geometry_bleed_units,
-    _render_geometry_background_dots_svg,
-    _render_grid_background_svg,
-)
+from .answer_grid_svg_frame import _render_geometry_background_dots_svg, _render_grid_background_svg
 from .blatt_validator_constants import KNOWN_GEOMETRY_BACKGROUND_STYLES, KNOWN_GRID_LINE_STYLES
 
 
-_DEFAULT_GEOMETRY_COLS = 20
+_DEFAULT_GEOMETRY_COLS = DEFAULT_GEOMETRY_COLS
 _DEFAULT_PRINTABLE_WIDTH_CM = 18.0
 
 
@@ -186,44 +181,11 @@ def render_geometry_answer(options, content, include_solutions, render_solution_
     Viewport-Mathematik, kein DSL-Konzept) -- nur hier, am Options-Rand,
     heißen die lokalen Variablen `width_units`/`height_units`.
     """
-    height_units = max(1, _safe_int(options.get("height", 5), 5))
+    frame = resolve_geometry_frame(options)
+    height_units, width_units = frame.height_units, frame.width_units
     scale = _parse_grid_scale(options.get("scale"))
     cell_size_cm = _grid_cell_size_to_cm(scale)
-    width_option = options.get("width")
-    has_explicit_width = width_option is not None and str(width_option).strip() != ""
-    width_units = (
-        max(1, _safe_int(width_option, _DEFAULT_GEOMETRY_COLS)) if has_explicit_width else _DEFAULT_GEOMETRY_COLS
-    )
-
-    axis_state, logical_origin = _resolve_axis_state(options)
-    # `origin` zählt die Zeile von unten (0,0 = links unten); ab hier SVG-Rasterkoordinate.
-    logical_origin = origin_to_canvas(logical_origin, height_units)
-    axis_enabled = axis_state == "active"
-    step_x = _parse_positive_float(options.get("step_x"), 1.0)
-    step_y = _parse_positive_float(options.get("step_y"), 1.0)
-    axis_label_x = _resolve_axis_name(
-        options,
-        "axis_label_x",
-        aliases=("x_label", "axis_x_label"),
-        default="x",
-    )
-    axis_label_y = _resolve_axis_name(
-        options,
-        "axis_label_y",
-        aliases=("y_label", "axis_y_label"),
-        default="y",
-    )
-
-    bleed_top_units, bleed_right_units, bleed_bottom_units, bleed_left_units = _estimate_geometry_bleed_units(
-        logical_origin,
-        width_units,
-        height_units,
-        step_x,
-        step_y,
-        axis_enabled,
-        axis_label_x,
-        axis_label_y,
-    )
+    bleed_top_units, bleed_right_units, bleed_bottom_units, bleed_left_units = frame.bleed_units
 
     payload, fallback_solution_text = _parse_grid_payload(content)
     background_bleed_units = (bleed_top_units, bleed_right_units, bleed_bottom_units, bleed_left_units)

@@ -776,6 +776,12 @@ PROSE_SECTIONS: dict[str, str] = {
     ),
     "block:geometry.axis_label_x": ("Beschriftung der x-Achse (Standard `x`), nur wirksam bei aktivem Achsenmodus (siehe `axis`)."),
     "block:geometry.axis_label_y": ("Beschriftung der y-Achse (Standard `y`), nur wirksam bei aktivem Achsenmodus (siehe `axis`)."),
+    "block:geometry.labels": (
+        "`auto` (Standard): Beschriftungen suchen sich automatisch einen Platz, an dem sie keinen Punkt, "
+        "keine Linie und keine andere Beschriftung überdecken -- eine Beschriftung, die schon frei steht, "
+        "bleibt an ihrer gewohnten Stelle. Findet eine Beschriftung keinen freien Platz, gibt es die "
+        "Warnung `AN019`. `fixed`: alle Beschriftungen an der festen Standardposition (früheres Verhalten)."
+    ),
     "block:geometry.origin": (
         "Ursprung des Koordinatensystems im Raster, Format `\"spalte,zeile\"`, gezählt von der "
         "**linken unteren Ecke** aus (`\"0,0\"` = unten links, die Zeile zählt nach oben; z. B. "

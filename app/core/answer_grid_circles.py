@@ -154,7 +154,9 @@ def _render_circles_section(raw_entries, coord_system, cols, rows, include_solut
 
         outline = _circle_outline(circle)
         is_full = circle.start_angle is None or circle.end_angle is None
-        obstacles.extend(polyline_obstacles(outline, TIER_LINE, stroke_pad(circle.thickness or 1.1), closed=is_full))
+        obstacles.extend(polyline_obstacles(
+            outline, TIER_LINE, stroke_pad(circle.thickness or 1.1), closed=is_full, owner=("area", (label_x, label_y))
+        ))
         if circle.label:
             labels.append(LabelSpec(
                 text=circle.label, css_class=f"grid-circle-label grid-mode-{circle.mode}", x=label_x, y=label_y,
