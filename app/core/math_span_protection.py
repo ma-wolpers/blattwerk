@@ -78,7 +78,7 @@ def _wrap_math_span_bold(span):
     seiner Formel-Schriftart, was (anders als umgebendes `<strong>`/CSS)
     tatsaechlich sichtbar ist, da Formeln als SVG-Pfade gezeichnet werden.
 
-    Bekannte Grenze: bricht `\\boldsymbol{}` um eine ganze
+    GRENZE: bricht `\\boldsymbol{}` um eine ganze
     `\\begin{...}...\\end{...}`-Umgebung (z. B. `aligned` mit `\\\\`-Zeilen-
     umbruechen), da `\\boldsymbol` ein einzelnes Formel-Argument erwartet,
     keine Umgebung -- siehe `docs/nutzer/ANLEITUNG_ARBEITSBLATT_PRAESENTATION.md`.

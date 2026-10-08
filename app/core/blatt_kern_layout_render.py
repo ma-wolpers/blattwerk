@@ -75,9 +75,10 @@ def render_html(
     `cache` is an optional `BlockComputationCache` opened by the application
     layer (see `app/core/block_computation_cache.py`); it is threaded down to
     every block via `_with_runtime_layout_options()` so block renderers can
-    reuse a computation already performed during validation. Presentation
-    documents currently render through a separate path that does not yet
-    consume `cache` (out of scope until a block needing it appears there).
+    reuse a computation already performed during validation. GRENZE:
+    presentation documents currently render through a separate path that
+    does not yet consume `cache` (out of scope until a block needing it
+    appears there).
 
     The Operatoren-Legende (`operator_legend.py`, the "Garage" in the
     Haus/Garage split -- this function itself stays fach-/stufen-neutral)

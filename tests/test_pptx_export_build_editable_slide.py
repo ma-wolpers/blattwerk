@@ -121,8 +121,8 @@ def test_multiple_runs_produce_multiple_paragraph_runs_with_own_formatting():
 
 
 def test_text_element_word_wrap_enabled_and_auto_size_disabled():
-    # v1 uses fixed geometry (the extracted box), not PowerPoint auto-fit --
-    # see the editable-export module's documented v1 limitations.
+    # GRENZE(v1): fixed geometry (the extracted box), not PowerPoint
+    # auto-fit -- see the editable-export module's documented v1 limitations.
     slide = _blank_slide()
     build_editable_slide(slide, [_text_element()])
 

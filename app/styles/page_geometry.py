@@ -128,8 +128,8 @@ body {{
     margin-right: calc(-1 * var(--word-note-gutter) - 1em / var(--word-note-font-scale));
 }}
 
-/* Nicht unterstützte Container (v1): Tabellenzellen und alle Spalten außer der
-   letzten. Notizen der letzten Spalte erreichen den Seitenrand von selbst; aus
+/* GRENZE(v1): nicht unterstützte Container sind Tabellenzellen und alle
+   Spalten außer der letzten. Notizen der letzten Spalte erreichen den Seitenrand von selbst; aus
    den anderen würden sie in die Nachbarspalte ragen. Ausgeblendet statt
    überlappend -- die Nachprüfung (`word_note_pdf_check.py`) meldet `IM003`. */
 td .word-note-text,

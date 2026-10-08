@@ -11,7 +11,8 @@ typisierte Knoten parsen" in diesem Ökosystem.
 `kind` unterscheidet drei grundsätzlich verschiedene Laufarten:
 - "text": normaler Text, trägt die Stil-Flags.
 - "code": Inline-Code oder Fenced-Code-Block-Inhalt, roh, keine Stil-Flags
-  (verschachteltes Fett um Inline-Code wird bewusst NICHT unterstützt).
+  (GRENZE: verschachteltes Fett um Inline-Code wird bewusst NICHT
+  unterstützt).
 - "math": eine geschützte `$...$`/`$$...$$`-Formel, roh (inkl. `$`-
   Begrenzer), keine Stil-Flags.
 

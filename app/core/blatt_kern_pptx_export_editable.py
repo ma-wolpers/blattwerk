@@ -102,7 +102,7 @@ class TableCell:
     `RenderableElement.runs` (B3) -- gemischte Inline-Formatierung
     *innerhalb* einer Tabellenzelle (z. B. `**fett**` mitten im Zellinhalt)
     wird v1 nicht in mehrere PPTX-Runs zerlegt, sondern bleibt einfacher
-    Text ohne Formatierung dieser Stelle. Bewusste, dokumentierte v1-Grenze,
+    Text ohne Formatierung dieser Stelle. GRENZE(v1): bewusst und dokumentiert,
     kein zweiter, eigenständiger Run-Parser neben B3s Absatz-Modell.
     `bold` gilt für die GANZE Zelle (z. B. eine `<th>`- oder einheitlich
     fett formatierte Zelle) -- keine Scheingenauigkeit bei gemischter

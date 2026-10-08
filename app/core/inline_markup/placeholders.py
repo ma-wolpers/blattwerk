@@ -52,8 +52,8 @@ def expand_placeholders(
     """Ersetzt verbleibende Platzhalter-Tokens durch eigene Runs.
 
     Mathe -> `kind="math"`, Code -> `kind="code"`, Worterklärung ->
-    `kind="text"` mit `annotation`. Verschachteltes Fett um Inline-Code/Mathe
-    wird dadurch bewusst NICHT unterstützt (siehe `runs.py`-Docstring):
+    `kind="text"` mit `annotation`. GRENZE: verschachteltes Fett um
+    Inline-Code/Mathe wird dadurch bewusst NICHT unterstützt (siehe `runs.py`-Docstring):
     Stil-Flags eines umgebenden Runs gehen für den ausgelösten Code-/Mathe-Run
     verloren. Der Begriff einer Worterklärung behält dagegen die Flags des
     umgebenden Runs (ein Begriff in `**fett**` bleibt fett).

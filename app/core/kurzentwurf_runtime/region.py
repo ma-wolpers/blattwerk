@@ -18,8 +18,9 @@ KURZENTWURF_DOCUMENT_REGION_ID = "kurzentwurf:document"
 def compute_phase_region_id(phase, duration_minutes, start_time) -> str:
     """Region for a diagnostic anchored to one phase block's own header.
 
-    Two phases with identical (phase, duration, start_time) intentionally
-    collide -- same accepted trade-off as `compute_block_region_id`.
+    GRENZE: two phases with identical (phase, duration, start_time)
+    intentionally collide -- same accepted trade-off as
+    `compute_block_region_id`.
     """
 
     payload = f"{phase}|{duration_minutes}|{start_time}"

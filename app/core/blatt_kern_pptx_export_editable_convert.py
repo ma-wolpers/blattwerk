@@ -44,7 +44,8 @@ diese Menge hier ist eine reine PPTX-Export-Entscheidung ("ist primär
 visuell/grafisch, kein sinnvoll editierbarer Fließtext"). `mc`/`cloze`/
 `ordering`/`task`/`subtask`/`info`/`material`/`solution`/`writebox`/`help`
 bleiben bewusst text-fähig -- ihr Inhalt ist überwiegend Text, auch wenn
-sie Checkboxen/Lückenlinien/Rahmen verlieren (dokumentierte v1-Grenze).
+sie Checkboxen/Lückenlinien/Rahmen verlieren (GRENZE(v1): bewusst in Kauf
+genommen).
 
 `"table"` ist bewusst NICHT hier enthalten -- `:::table` bekommt seit B4
 eine eigene, echte zellbasierte PPTX-Tabelle (`kind="table"`, siehe
@@ -307,7 +308,7 @@ def _parse_rgb(css_color) -> tuple[int, int, int]:
 def _is_bold(font_weight) -> bool:
     """v1 reduces every CSS weight to a binary bold/not-bold -- `400`/`500`
     both count as not-bold, `600`+ as bold. Finer weight gradations aren't
-    reconstructed (documented v1 limitation, not silently approximated as
+    reconstructed (GRENZE(v1): documented, not silently approximated as
     if it were exact)."""
 
     text = str(font_weight or "").strip().lower()
@@ -503,7 +504,7 @@ def build_slide_elements(raw_slide: dict, slide_width_emu: int, slide_height_emu
     with EMU-scaled `column_widths_emu`/`row_heights_emu` and a flat
     `"cells"` list (`row`/`col`/`row_span`/`col_span`/`text`/`bold`/`align`/
     `background_rgb`) -- unlike `kind="text"`, cell text has NO inline-run
-    list (documented v1 limitation, see `TableCell` in
+    list (GRENZE(v1): documented, see `TableCell` in
     `blatt_kern_pptx_export_editable.py`).
     """
 

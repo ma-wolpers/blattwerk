@@ -16,8 +16,8 @@ def compute_block_region_id(block_type: str, options: dict) -> str:
 
     Uses `block_type` + all current options, deliberately excluding the
     block's body text -- editing unrelated prose inside the block must
-    not change its region. Two blocks of the same type with identical
-    options (true duplicates) intentionally collide here; see
+    not change its region. GRENZE: two blocks of the same type with
+    identical options (true duplicates) intentionally collide here; see
     `docs/intern/ARCHITEKTUR.md` for the accepted trade-off.
     """
 
