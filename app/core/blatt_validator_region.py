@@ -18,7 +18,8 @@ def compute_block_region_id(block_type: str, options: dict) -> str:
     block's body text -- editing unrelated prose inside the block must
     not change its region. GRENZE: two blocks of the same type with
     identical options (true duplicates) intentionally collide here; see
-    `docs/intern/ARCHITEKTUR.md` for the accepted trade-off.
+    the "bewusste Duplikat-Entscheidung" entry in
+    `docs/intern/DEVELOPMENT_LOG.md` for the accepted trade-off.
     """
 
     canonical_options = ",".join(f"{key}={options[key]}" for key in sorted(options))
