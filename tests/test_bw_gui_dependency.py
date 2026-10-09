@@ -28,5 +28,7 @@ def test_bw_gui_provides_widgets_blattwerk_needs():
     import bw_gui
     from bw_gui.widgets import CollapsibleSection
 
-    assert Path(bw_gui.__file__).resolve().is_relative_to((REPO_ROOT.parent / "bw-gui" / "src").resolve())
+    from bw_gui.testing.import_source import assert_bw_gui_from_sibling
+
+    assert assert_bw_gui_from_sibling(REPO_ROOT) == (REPO_ROOT.parent / "bw-gui" / "src").resolve()
     assert callable(CollapsibleSection.set_collapsed)
