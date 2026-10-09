@@ -51,6 +51,8 @@ from .ui_theme import (
 )
 
 ensure_bw_gui_on_path()
+from bw_gui.contracts.screen_geometry import Rect, Side
+from bw_gui.runtime.screen_placement import place_overlay_now
 from bw_gui.runtime import ui, widgets
 from bw_gui.menu import MenuItem as SharedMenuItem
 
@@ -286,24 +288,17 @@ class BlattwerkAppStyleMixin:
             label.pack()
             tooltip.update_idletasks()
 
-            x_pos = int(getattr(event, "x_root", self.root.winfo_rootx()) + 10)
-            y_pos = int(getattr(event, "y_root", self.root.winfo_rooty()) + 12)
-
-            screen_width = max(1, int(self.root.winfo_screenwidth()))
-            screen_height = max(1, int(self.root.winfo_screenheight()))
-            tip_width = max(1, int(tooltip.winfo_reqwidth()))
-            tip_height = max(1, int(tooltip.winfo_reqheight()))
-            margin = 8
-
-            if y_pos + tip_height + margin > screen_height:
-                y_pos = int(getattr(event, "y_root", self.root.winfo_rooty()) - tip_height - 10)
-
-            max_x = max(margin, screen_width - tip_width - margin)
-            max_y = max(margin, screen_height - tip_height - margin)
-            x_pos = max(margin, min(x_pos, max_x))
-            y_pos = max(margin, min(y_pos, max_y))
-
-            tooltip.geometry(f"+{x_pos}+{y_pos}")
+            # Below-right of the cursor, flipping above when it does not fit; clamped to
+            # the work area of the cursor's monitor (bw-gui screen-placement contract).
+            cursor_x = int(getattr(event, "x_root", self.root.winfo_rootx()))
+            cursor_y = int(getattr(event, "y_root", self.root.winfo_rooty()))
+            place_overlay_now(
+                tooltip,
+                anchor=Rect(cursor_x + 10, cursor_y, cursor_x + 11, cursor_y + 2),
+                placement=(Side.BELOW, Side.ABOVE),
+                tk_context=self.root,
+                gap=10,
+            )
             self._swatch_tooltip = tooltip
 
     def _hide_swatch_tooltip(self):
