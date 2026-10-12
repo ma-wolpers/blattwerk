@@ -176,26 +176,10 @@ CHANGELOG_RELEVANT_PREFIXES = (
     "app/core/",
     "bw_libs/",
 )
-CHANGELOG_CODEV_RELEVANT_PATHS = {
-    ".gitmodules",
-    ".github/workflows/quality-guardrails.yml",
-    "AGENTS.md",
-    ".github/copilot-instructions.md",
-    ".github/pull_request_template.md",
-    "tools/ci/check_ai_guardrails.py",
-    "tools/ci/guardrails_config.py",
-    "tools/ci/guardrails_common.py",
-    "tools/ci/guardrails_process.py",
-    "tools/ci/guardrails_extension_sync.py",
-    "tools/ci/guardrails_gui_contracts.py",
-    "tools/ci/guardrails_docs_sync.py",
-    "docs/intern/GUI_MIGRATION_BACKLOG.md",
-    "bw_libs/ui_contract/keybinding.py",
-    "bw_libs/ui_contract/popup.py",
-    "bw_libs/ui_contract/hsm.py",
-    "bw_libs/ui_contract/laufkern.py",
-    "bw_libs/app_paths.py",
-}
+# CHANGELOG.md ist nur fuer Aenderungen gedacht, die Nutzer:innen oder Mitentwickler:innen
+# beim Benutzen bemerken. Rein interne Aenderungen unter den Praefixen oben belegen das
+# mit diesem Satz in ihrem gestagten DEVELOPMENT_LOG-Eintrag.
+CHANGELOG_OPT_OUT_MARKER = "Kein CHANGELOG-Eintrag"
 LAUFKERN_BRIDGE_PATH = "bw_libs/ui_contract/laufkern.py"
 LAUFKERN_FALLBACK_SCAN_ROOTS = ("app", "bw_libs")
 

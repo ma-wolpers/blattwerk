@@ -70,6 +70,30 @@ def _has_relevant_staged_changes(staged: set[str], repo_root: Path) -> bool:
     return False
 
 
+def _staged_added_lines(repo_root: Path, rel_path: str) -> list[str]:
+    """Return the lines a staged change adds to ``rel_path`` (without the leading ``+``).
+
+    Used to read the newly staged DEVELOPMENT_LOG entry, e.g. for the changelog
+    opt-out marker. Returns ``[]`` if git fails or nothing is staged for the file.
+    """
+    try:
+        result = subprocess.run(
+            ["git", "diff", "--cached", "--unified=0", "--", rel_path],
+            cwd=str(repo_root),
+            check=True,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+        )
+    except Exception:
+        return []
+    return [
+        line[1:]
+        for line in result.stdout.splitlines()
+        if line.startswith("+") and not line.startswith("+++")
+    ]
+
+
 def _read(rel_path: str) -> str:
     path = ROOT / rel_path
     if not path.exists():

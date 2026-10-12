@@ -7,7 +7,7 @@ from __future__ import annotations
 import os
 
 from guardrails_config import (
-    CHANGELOG_CODEV_RELEVANT_PATHS,
+    CHANGELOG_OPT_OUT_MARKER,
     CHANGELOG_RELEVANT_PREFIXES,
     PROCESS_GUIDANCE_RULES,
     ROOT,
@@ -41,23 +41,38 @@ def _check_development_log_updated(staged: set[str], errors: list[str]) -> None:
         )
 
 
-def _check_changelog_updated(staged: set[str], errors: list[str]) -> None:
-    """Require changelog updates for user- or co-developer-relevant changes."""
-    normalized = {path.replace("\\", "/") for path in staged}
-    if not normalized:
-        return
+def _check_changelog_updated(
+    staged: set[str], errors: list[str], dev_log_added_lines: list[str] | None = None
+) -> None:
+    """Require a CHANGELOG.md update for staged app/library changes, unless marked internal.
 
-    if "CHANGELOG.md" in normalized:
+    CHANGELOG.md is for changes users or co-developers notice while using the app.
+    Staged changes under ``CHANGELOG_RELEVANT_PREFIXES`` (``app/ui``, ``app/core``,
+    ``bw_libs``) need a changelog update -- or, for purely internal changes (refactors,
+    tests-only behaviour, tooling), a staged DEVELOPMENT_LOG line containing
+    ``CHANGELOG_OPT_OUT_MARKER`` ("Kein CHANGELOG-Eintrag"). Tooling and governance
+    files (``tools/``, ``AGENTS.md``, workflows) never require a changelog entry.
+
+    Args:
+        staged: Repo-relative staged paths.
+        errors: Error list to append to.
+        dev_log_added_lines: Lines the staged change adds to DEVELOPMENT_LOG.md.
+    """
+    normalized = {path.replace("\\", "/") for path in staged}
+    if not normalized or "CHANGELOG.md" in normalized:
         return
 
     requires_changelog = any(
         path.startswith(prefix) for path in normalized for prefix in CHANGELOG_RELEVANT_PREFIXES
-    ) or any(path in CHANGELOG_CODEV_RELEVANT_PATHS for path in normalized)
-
-    if requires_changelog:
-        errors.append(
-            "CHANGELOG.md missing update: user- or co-developer-relevant changes require a changelog entry"
-        )
+    )
+    if not requires_changelog:
+        return
+    if any(CHANGELOG_OPT_OUT_MARKER in line for line in dev_log_added_lines or ()):
+        return
+    errors.append(
+        "CHANGELOG.md missing update: user-facing app changes require a changelog entry "
+        f"(purely internal changes: add '{CHANGELOG_OPT_OUT_MARKER}' to the staged DEVELOPMENT_LOG entry)"
+    )
 
 
 def _collect_process_guidance_warnings() -> list[str]:

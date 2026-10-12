@@ -14,6 +14,7 @@ from guardrails_common import (
     _read,
     _repo_root,
     _require_substring,
+    _staged_added_lines,
     _staged_files,
 )
 from guardrails_process import (
@@ -106,7 +107,9 @@ def main() -> int:
     )
 
     _check_development_log_updated(staged, errors)
-    _check_changelog_updated(staged, errors)
+    _check_changelog_updated(
+        staged, errors, _staged_added_lines(repo_root, "docs/intern/DEVELOPMENT_LOG.md")
+    )
     _check_marker_token_consistency(errors)
     _check_blattwerker_solution_rule(errors)
     _check_shared_ui_contract_hardening(errors)

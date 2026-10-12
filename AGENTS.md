@@ -19,6 +19,7 @@ Verbindliche Regeln:
 
 3. Public-Kommunikation
 - Nutzerrelevante Aenderungen werden in `CHANGELOG.md` gepflegt.
+- Rein interne Aenderungen unter `app/` oder `bw_libs/` (Refactor, Tooling, Tests) bekommen keinen Changelog-Eintrag; ihr Eintrag in `docs/intern/DEVELOPMENT_LOG.md` enthaelt dann den Satz `Kein CHANGELOG-Eintrag` (vom Guardrail geprueft).
 - PRs verwenden die Checkliste in `.github/pull_request_template.md`.
 
 4. Automatische Gates
