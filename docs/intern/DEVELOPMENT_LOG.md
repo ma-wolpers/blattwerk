@@ -8,6 +8,7 @@ Regel:
 
 ## [Unreleased]
 
+- **AI-Guardrails zerlegt (Refactor, Verhalten unveraendert; Blattwerk-Wunschliste Schritt 0, 2026-10-12).** `tools/ci/check_ai_guardrails.py` (794 ausfuehrbare Zeilen) aufgeteilt in `guardrails_config.py` (Konstanten, `# line-limit: data-only`), `guardrails_common.py`, `guardrails_process.py`, `guardrails_extension_sync.py`, `guardrails_gui_contracts.py`, `guardrails_docs_sync.py`; der Einstiegspunkt enthaelt nur noch `main()` (76 Zeilen), alle Module < 300. Imports pro Modul per AST aus den tatsaechlich genutzten Namen abgeleitet. Nachweis: Ausgabe und Exit-Code von Original und Zerlegung auf demselben Stand identisch; `_check_development_log_updated`, `_check_changelog_updated` und `_has_relevant_staged_changes` fuer fuenf kuenstliche Staged-Mengen identisch. Neue Module in `GUARDRAIL_RELEVANT_PATHS`/`CHANGELOG_CODEV_RELEVANT_PATHS` aufgenommen. Voraussetzung fuer die Einbindung des gemeinsamen Zeilenlimit-Checks (`bw_gui.testing.line_limits`). Kein CHANGELOG-Eintrag (rein intern).
 - Farbfeld-Tooltip (bw-gui-Wunschliste Schritt 1, 2026-10-09): `blatt_ui_style.py` positioniert über `place_overlay_now(anchor=Cursor-Streifen, placement=(BELOW, ABOVE), gap=10)` statt mit `winfo_screenwidth/height` (nur Primärmonitor) zu clampen. Abstände 1:1 (+10/+12 unter dem Cursor, 10 darüber).
 - Schritt-0-Invariante (bw-gui-Wunschliste, 2026-10-09): `tests/test_bw_gui_dependency.py` nutzt jetzt den gemeinsamen Helper `bw_gui.testing.import_source.assert_bw_gui_from_sibling` (schließt verschachtelte Kopien ausdrücklich aus).
 ### Changed

@@ -199,6 +199,15 @@ Historische Änderungen, Migrationsschritte und laufende Arbeitsprotokolle stehe
 5. Development-Log-Pflicht:
    - keine Feature- oder Architekturänderung ohne Update in `docs/intern/DEVELOPMENT_LOG.md`
    - der Log-Eintrag wird im selben Arbeitszyklus gepflegt
+6. AI-Guardrails sind nach Verantwortung zerlegt (`tools/ci/`):
+   - `check_ai_guardrails.py`: Einstiegspunkt (lokal, CI, VS-Code-Tasks) und Reihenfolge der Checks
+   - `guardrails_config.py`: alle Pfadlisten und Marker-Konstanten (reines Datenmodul)
+   - `guardrails_common.py`: Git-/Datei-Helfer und Datei-Iteratoren
+   - `guardrails_process.py`: Development-Log-/Changelog-Pflicht, Prozess- und Shortcut-Warnungen
+   - `guardrails_extension_sync.py`: Core-Kataloge gegen VS-Code-Grammatik und `extension.ts`
+   - `guardrails_gui_contracts.py`: bw-gui-/GUI-Vertraege, Migrations-Backlog, Bridge-Abbau
+   - `guardrails_docs_sync.py`: generierte Anleitungen, KZF-Doku, Kurzentwurf-Runtime-Pfad
+   - neue Checks kommen in das passende Modul, nicht in den Einstiegspunkt
 
 ## Merge-Checkliste
 
