@@ -27,6 +27,7 @@ Autocomplete-Popup. `app/core` darf nie von `tools/docs` abhängen -- nur
 umgekehrt --, deshalb muss die gemeinsam genutzte Prosa hier liegen, nicht dort.
 """
 
+# line-limit: data-only
 from __future__ import annotations
 
 PROSE_SECTIONS: dict[str, str] = {

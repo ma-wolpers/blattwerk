@@ -24,6 +24,7 @@ from guardrails_process import (
     _collect_shortcut_coverage_warnings,
     _is_ci_environment,
 )
+from guardrails_line_limits import _check_line_limits
 from guardrails_extension_sync import (
     _check_extension_validator_sync,
     _check_marker_token_consistency,
@@ -50,14 +51,16 @@ def main() -> int:
 
     errors: list[str] = []
 
-    # Laufen unconditionally, vor dem Staged-File-Skip-Gate unten: beide
-    # gleichen generierte/abgeleitete Artefakte gegen Code-Konstanten ab
-    # und duerfen nicht uebersprungen werden, nur weil zufaellig keine der
+    # Laufen unconditionally, vor dem Staged-File-Skip-Gate unten: die
+    # Sync-Checks gleichen generierte/abgeleitete Artefakte gegen
+    # Code-Konstanten ab, der Zeilenlimit-Check gilt fuer jede beruehrte
+    # Datei -- keiner darf uebersprungen werden, nur weil zufaellig keine der
     # in GUARDRAIL_RELEVANT_PATHS gelisteten Dateien gestaged ist (siehe
     # _check_authoring_guides_sync-Docstring).
     _check_extension_validator_sync(errors)
     _check_authoring_guides_sync(errors)
     _check_kurzentwurf_diagnostics_sync(errors)
+    _check_line_limits(errors)
 
     if staged and not _has_relevant_staged_changes(staged, repo_root):
         if errors:

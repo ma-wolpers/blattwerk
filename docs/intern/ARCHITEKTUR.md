@@ -209,6 +209,14 @@ Historische Änderungen, Migrationsschritte und laufende Arbeitsprotokolle stehe
    - `guardrails_docs_sync.py`: generierte Anleitungen, KZF-Doku, Kurzentwurf-Runtime-Pfad
    - neue Checks kommen in das passende Modul, nicht in den Einstiegspunkt
 
+## Ausnahmen 300-Zeilen-Regel
+
+Gezaehlt werden nur ausfuehrbare Zeilen (ohne Leer-, Kommentar-, Docstring- und Import-Zeilen). Der Guardrail `tools/ci/guardrails_line_limits.py` prueft jede beruehrte Python-Datei (auch Tests) mit dem gemeinsamen Werkzeug `bw_gui.testing.line_limits`; Datenmodule tragen `# line-limit: data-only` (abgelehnt, sobald sie `def`/`class` enthalten). Begruendete Ausnahmen stehen hier, je Zeile `` - `pfad` — Begruendung ``:
+
+- `app/core/kurzentwurf_runtime/render_html.py` — besteht zum Grossteil aus der eingebetteten CSS/HTML-Vorlage; neue Teilaufgaben kommen in eigene Module
+- `app/core/kurzentwurf_runtime/validator.py` — zusammenhaengende Zeitrechnung; neue Teilaufgaben kommen in eigene Module
+- `app/core/blatt_validator_constants.py` — normativer Katalog (Daten) plus zwei Spec-Dataclasses; die Dataclasses werden beim naechsten inhaltlichen Eingriff ausgelagert, danach gilt der Datenmarker
+
 ## Merge-Checkliste
 
 Vor Merge einer Architektur-relevanten Änderung:

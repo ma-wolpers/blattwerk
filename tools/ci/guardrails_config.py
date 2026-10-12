@@ -42,6 +42,7 @@ GUARDRAIL_RELEVANT_PATHS = {
     "tools/ci/guardrails_extension_sync.py",
     "tools/ci/guardrails_gui_contracts.py",
     "tools/ci/guardrails_docs_sync.py",
+    "tools/ci/guardrails_line_limits.py",
     "tools/docs/generate_authoring_guides.py",
     "app/core/authoring_guide_prose.py",
     "tools/docs/authoring_guide_coverage.py",
