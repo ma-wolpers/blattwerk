@@ -81,7 +81,7 @@ Die Leiste über der Vorschau zeigt nur Optionen, die zur Dokumentart passen (di
 - **Seitenformat** (`DIN A4` / `DIN A5` bzw. `16:9` / `16:10` / `4:3`) steuert die Seitengröße im späteren Export.
 - **Modus** (`Aufgabe` / `Lösung`) steuert bei Arbeitsblättern und Klausuren, welche Inhalte in der Vorschau gerendert werden.
 - Präsentationen werden immer als Folien gerendert (kein Aufgaben/Lösung-Umschalter).
-- **Black-Screen** (`Aus` / `Vorher` / `Nachher` / `Beides`) fügt bei Präsentationen schwarze Folien vor und/oder nach dem Deck ein.
+- **Black-Screen** (`Aus` / `Vorher` / `Nachher` / `Beides`) fügt bei Präsentationen schwarze Folien vor und/oder nach dem Deck ein. Standard ist `Beides`; den Startwert stellst du unter *Einstellungen → Export → Black-Screen (Praesentation)* ein. Der Präsentations-Export übernimmt die Auswahl aus der Vorschau.
 - **Phasen** steuert bei Präsentationen den Abschnitts-Footer der Folien (Trenner `·` oder `→`, künftige Abschnitte ausblenden).
 - Die Tastenkürzel wirken nur, wenn die Option für die Dokumentart angezeigt wird (z. B. `K` nur bei Präsentationen, `4`/`5` nur bei Arbeitsblatt und Klausur).
 - **Druckprofil** (`Standard` / `Stärker`) erhöht bzw. reduziert den Kontrast für den Ausdruck.

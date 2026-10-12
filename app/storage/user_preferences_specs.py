@@ -309,6 +309,15 @@ PREFERENCE_SPECS = {
         "default": "presentation_16_9",
         "values": ["presentation_16_9", "presentation_16_10", "presentation_4_3"],
     },
+    "default_black_screen_presentation": {
+        "tab": "export",
+        "label": "Black-Screen (Praesentation)",
+        "hint": "Schwarze Folien: none = aus, before = vorher, after = nachher, both = vorher und nachher",
+        "type": "enum",
+        "default": "both",
+        "values": ["none", "before", "after", "both"],
+        "live_apply": True,
+    },
     "default_export_format_worksheet": {
         "tab": "export",
         "label": "Export Dateiformat (Arbeitsblatt)",

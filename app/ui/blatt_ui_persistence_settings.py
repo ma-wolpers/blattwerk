@@ -96,6 +96,7 @@ class BlattwerkAppPersistenceSettingsMixin:
             self.design_font_profile_var.set(normalized["default_font_profile"])
             self.design_font_size_profile_var.set(normalized["default_font_size_profile"])
             self.preview_contrast_var.set(normalized["default_contrast_profile"])
+            self._apply_presentation_preview_defaults(normalized)
             self._responsive_controls_wrap_enabled = bool(normalized.get("responsive_controls_wrap", True))
             self._reduce_motion = bool(normalized.get("reduce_motion", False))
             self._ui_density = str(normalized.get("ui_density", "comfort") or "comfort")
@@ -159,6 +160,20 @@ class BlattwerkAppPersistenceSettingsMixin:
             if getattr(self, "root", None) is not None:
                 self._refresh_custom_menu_model()
 
+
+    def _apply_presentation_preview_defaults(self, normalized: dict[str, object]) -> None:
+            """Set the presentation preview options from the user preferences.
+
+            Black-Screen starts at `default_black_screen_presentation` (default
+            ``both``: black slides before and after the deck). The preview variable
+            also seeds the presentation export dialog, so preview and export start
+            from the same choice. The core build functions keep ``none`` as their
+            own default; only the GUI applies this preference.
+
+            Args:
+                normalized: Output of `normalize_user_preferences`.
+            """
+            self.preview_black_screen_var.set(str(normalized["default_black_screen_presentation"]))
 
     def _commit_user_preferences(self, preferences: dict[str, object]):
             normalized = normalize_user_preferences(preferences)

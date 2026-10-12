@@ -38,6 +38,8 @@ def _build_dialog_spec() -> SettingsDialogSpec:
                 hint_parts.append("Dezimalzahl")
             if spec.get("min") is not None or spec.get("max") is not None:
                 hint_parts.append(f"min={spec.get('min')} max={spec.get('max')}")
+            if spec.get("hint"):
+                hint_parts.append(str(spec["hint"]))
 
             fields.append(
                 SettingsFieldSpec(
