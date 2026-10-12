@@ -35,7 +35,7 @@ class _FakeButton:
 
 class _DummyPreviewControlsApp(BlattwerkAppBuildMixin):
     def __init__(self):
-        self.preview_controls_collapsed_var = _FakeVar(False)
+        self.preview_controls_collapsed_var = _FakeVar(True)
         self._preview_controls_frame = _FakeFrame()
         self.preview_controls_toggle_btn = _FakeButton()
         self._preview_controls_after_anchor = object()
@@ -45,29 +45,18 @@ class _DummyPreviewControlsApp(BlattwerkAppBuildMixin):
         self.save_calls += 1
 
 
-def test_initial_state_is_expanded():
+def test_initial_state_is_collapsed():
     app = _DummyPreviewControlsApp()
 
     app._apply_preview_controls_collapsed_state()
 
-    assert app._preview_controls_frame.packed is True
-    assert app.preview_controls_toggle_btn.text == "▾"
-
-
-def test_toggle_collapses_the_frame_and_flips_chevron():
-    app = _DummyPreviewControlsApp()
-
-    app._toggle_preview_controls_collapsed()
-
-    assert app.preview_controls_collapsed_var.get() is True
     assert app._preview_controls_frame.packed is False
     assert app.preview_controls_toggle_btn.text == "▸"
 
 
-def test_toggle_twice_returns_to_expanded():
+def test_toggle_expands_the_frame_and_flips_chevron():
     app = _DummyPreviewControlsApp()
 
-    app._toggle_preview_controls_collapsed()
     app._toggle_preview_controls_collapsed()
 
     assert app.preview_controls_collapsed_var.get() is False
@@ -75,12 +64,24 @@ def test_toggle_twice_returns_to_expanded():
     assert app.preview_controls_toggle_btn.text == "▾"
 
 
-def test_toggle_persists_ui_settings():
+def test_toggle_twice_returns_to_collapsed():
+    app = _DummyPreviewControlsApp()
+
+    app._toggle_preview_controls_collapsed()
+    app._toggle_preview_controls_collapsed()
+
+    assert app.preview_controls_collapsed_var.get() is True
+    assert app._preview_controls_frame.packed is False
+    assert app.preview_controls_toggle_btn.text == "▸"
+
+
+def test_toggle_does_not_persist_anything():
+    """Der Zustand gilt nur fuer die Sitzung."""
     app = _DummyPreviewControlsApp()
 
     app._toggle_preview_controls_collapsed()
 
-    assert app.save_calls == 1
+    assert app.save_calls == 0
 
 
 def test_apply_state_is_noop_before_widgets_exist():

@@ -8,6 +8,7 @@ The format is based on Keep a Changelog.
 
 ### Changed
 
+- **Vorschau-Optionen starten eingeklappt:** Die Optionsleiste über der Vorschau ist bei jedem Start eingeklappt und lässt sich mit ▸ aufklappen. Der Zustand wird nicht mehr gespeichert.
 - **Präsentationen starten mit schwarzen Folien davor und danach:** Black-Screen steht in Vorschau und Präsentations-Export standardmäßig auf `Beides`. Der Startwert lässt sich unter *Einstellungen → Export → Black-Screen (Praesentation)* ändern. Arbeitsblätter und Klausuren bleiben ohne schwarze Folien.
 - **Vorschau-Leiste zeigt nur passende Optionen:** Black-Screen und Phasen erscheinen nur noch bei Präsentationen, nicht mehr (ausgegraut) bei Arbeitsblättern und Klausuren. Die Tasten `K` (Black-Screen) und `4`/`5` (Seitenformat) wirken nur noch bei Dokumentarten, für die die Option angezeigt wird.
 - **Geometry: Koordinaten immer von links unten.** Bei `:::geometry` ist `(0, 0)` jetzt überall die **linke untere Ecke**, die Zeile zählt nach oben – auch beim `origin` (`origin="0,0"` = unten links) und bei `points` ohne Achse (`col`/`row`). Bisher zählten diese beiden die Zeile von oben. Bestehende Dateien wurden automatisch umgerechnet und sehen unverändert aus (per Bildvergleich geprüft); wer eigene Dateien außerhalb des Vaults hat, rechnet die Zeile als `Höhe − alte Zeile` um. Die Vorlage im Einfügen-Menü ist jetzt ein zentriertes 20×10-Koordinatensystem.

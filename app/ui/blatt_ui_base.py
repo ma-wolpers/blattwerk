@@ -82,7 +82,8 @@ class BlattwerkAppBase(
         self.preview_black_screen_var = ui.StringVar(value="none")
         self.preview_section_separator_var = ui.StringVar(value="dot")
         self.preview_hide_future_sections_var = ui.BooleanVar(value=False)
-        self.preview_controls_collapsed_var = ui.BooleanVar(value=False)
+        # Vorschau-Optionsleiste startet bei jedem Programmstart eingeklappt (bewusst nicht persistiert).
+        self.preview_controls_collapsed_var = ui.BooleanVar(value=True)
         self.preview_page_format_var = ui.StringVar(value="a4_portrait")
         self.preview_contrast_var = ui.StringVar(value="standard")
         self.preview_fit_mode_var = ui.StringVar(value=VIEW_FIT_WIDTH)

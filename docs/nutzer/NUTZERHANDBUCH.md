@@ -69,7 +69,7 @@ Nach einer einmaligen Einrichtung (`register-blattwerk-file-association.ps1`) la
 
 ## 3) Vorschau – was passiert bei welcher Einstellung?
 
-Die Leiste über der Vorschau zeigt nur Optionen, die zur Dokumentart passen (die Dokumentart steht in der Dateiendung):
+Die Leiste „Vorschau-Optionen“ über der Vorschau startet eingeklappt; mit ▸ klappst du sie bei Bedarf auf (gilt bis zum Beenden). Sie zeigt nur Optionen, die zur Dokumentart passen (die Dokumentart steht in der Dateiendung):
 
 | Option | Arbeitsblatt `.abw` | Klausur `.kbw` | Präsentation `.pbw` | Kurzentwurf, Schild, Markdown |
 |---|---|---|---|---|

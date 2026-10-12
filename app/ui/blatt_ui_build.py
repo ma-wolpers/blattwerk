@@ -139,11 +139,15 @@ class BlattwerkAppBuildMixin(BlattwerkPreviewBuildMixin):
 
 
     def _toggle_preview_controls_collapsed(self):
-        """Klappt die Vorschau-Knopfleiste ein oder aus."""
+        """Klappt die Vorschau-Knopfleiste ein oder aus.
+
+        Der Zustand gilt nur fuer die laufende Sitzung: Die Leiste startet bei jedem
+        Programmstart eingeklappt und wird nur bei Bedarf aufgeklappt, deshalb wird
+        nichts gespeichert.
+        """
 
         self.preview_controls_collapsed_var.set(not self.preview_controls_collapsed_var.get())
         self._apply_preview_controls_collapsed_state()
-        self._save_ui_settings()
 
     def _apply_preview_controls_collapsed_state(self):
         """Zeigt oder verbirgt die Vorschau-Knopfleiste je nach Toggle-Zustand."""

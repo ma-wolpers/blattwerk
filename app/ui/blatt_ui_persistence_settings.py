@@ -242,7 +242,9 @@ class BlattwerkAppPersistenceSettingsMixin:
                 self.ui_settings,
                 color_profile_order=COLOR_PROFILE_ORDER,
             )
-            self.preview_controls_collapsed_var.set(bool(self.ui_settings.get("preview_controls_collapsed", False)))
+            # Die Vorschau-Optionsleiste startet immer eingeklappt; ein frueher
+            # gespeicherter Zustand (`preview_controls_collapsed`) wird ignoriert.
+            self.preview_controls_collapsed_var.set(True)
             self.preview_contrast_var.set(resolved_profiles["worksheet_contrast"])
             self.design_color_profile_var.set(resolved_profiles["worksheet_color_profile"])
             self.design_font_profile_var.set(resolved_profiles["worksheet_font_profile"])
@@ -258,7 +260,8 @@ class BlattwerkAppPersistenceSettingsMixin:
             """Speichert aktuelle UI-Einstellungen."""
 
             self.ui_settings["theme"] = normalize_theme_key(self.theme_var.get())
-            self.ui_settings["preview_controls_collapsed"] = bool(self.preview_controls_collapsed_var.get())
+            # Veralteten Schluessel nicht mehr schreiben und aus alten Dateien entfernen.
+            self.ui_settings.pop("preview_controls_collapsed", None)
             # Kanonisches Schema auch für alte/kaputte Werte (siehe blatt_ui_editor_panels).
             self.ui_settings[EDITOR_PANELS_SETTINGS_KEY] = normalize_editor_panels_collapsed(
                 self.ui_settings.get(EDITOR_PANELS_SETTINGS_KEY)
