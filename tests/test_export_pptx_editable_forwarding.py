@@ -32,7 +32,7 @@ def test_export_pptx_forwards_editable_flag(monkeypatch, tmp_path, editable_flag
         raise _StopAfterCall()
 
     monkeypatch.setattr(
-        "app.ui.blatt_ui_export.build_presentation_pptx", _fake_build_presentation_pptx
+        "app.ui.blatt_ui_export_images.build_presentation_pptx", _fake_build_presentation_pptx
     )
     exporter = _make_exporter()
 
@@ -57,7 +57,7 @@ def test_export_pptx_defaults_editable_to_false_when_not_passed(monkeypatch, tmp
         raise _StopAfterCall()
 
     monkeypatch.setattr(
-        "app.ui.blatt_ui_export.build_presentation_pptx", _fake_build_presentation_pptx
+        "app.ui.blatt_ui_export_images.build_presentation_pptx", _fake_build_presentation_pptx
     )
     exporter = _make_exporter()
 

@@ -22,7 +22,7 @@ def _diag(code, message="msg"):
 def test_pt002_still_surfaces(monkeypatch):
     calls = []
     monkeypatch.setattr(
-        "app.ui.blatt_ui_export.messagebox.showwarning",
+        "app.ui.blatt_ui_export_support.messagebox.showwarning",
         lambda title, text, **kwargs: calls.append((title, text)),
     )
     exporter = _make_exporter()
@@ -36,7 +36,7 @@ def test_pt002_still_surfaces(monkeypatch):
 def test_pptx001_surfaces(monkeypatch):
     calls = []
     monkeypatch.setattr(
-        "app.ui.blatt_ui_export.messagebox.showwarning",
+        "app.ui.blatt_ui_export_support.messagebox.showwarning",
         lambda title, text, **kwargs: calls.append((title, text)),
     )
     exporter = _make_exporter()
@@ -52,7 +52,7 @@ def test_pptx001_surfaces(monkeypatch):
 def test_pptx002_surfaces(monkeypatch):
     calls = []
     monkeypatch.setattr(
-        "app.ui.blatt_ui_export.messagebox.showwarning",
+        "app.ui.blatt_ui_export_support.messagebox.showwarning",
         lambda title, text, **kwargs: calls.append((title, text)),
     )
     exporter = _make_exporter()
@@ -68,7 +68,7 @@ def test_pptx002_surfaces(monkeypatch):
 def test_unrelated_codes_stay_filtered_out(monkeypatch):
     calls = []
     monkeypatch.setattr(
-        "app.ui.blatt_ui_export.messagebox.showwarning",
+        "app.ui.blatt_ui_export_support.messagebox.showwarning",
         lambda title, text, **kwargs: calls.append((title, text)),
     )
     exporter = _make_exporter()
@@ -81,7 +81,7 @@ def test_unrelated_codes_stay_filtered_out(monkeypatch):
 def test_multiple_pptx_and_pt_diagnostics_all_appear_together(monkeypatch):
     calls = []
     monkeypatch.setattr(
-        "app.ui.blatt_ui_export.messagebox.showwarning",
+        "app.ui.blatt_ui_export_support.messagebox.showwarning",
         lambda title, text, **kwargs: calls.append((title, text)),
     )
     exporter = _make_exporter()

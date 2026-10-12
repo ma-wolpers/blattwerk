@@ -33,7 +33,7 @@ def test_show_export_diagnostics_skips_kurzentwurf(monkeypatch, tmp_path):
     called = {"warning_payload": 0, "messagebox": 0}
 
     monkeypatch.setattr(
-        "app.ui.blatt_ui_export.build_warning_payload",
+        "app.ui.blatt_ui_export_support.build_warning_payload",
         lambda *args, **kwargs: (
             called.__setitem__("warning_payload", called["warning_payload"] + 1)
             or {
@@ -44,7 +44,7 @@ def test_show_export_diagnostics_skips_kurzentwurf(monkeypatch, tmp_path):
         ),
     )
     monkeypatch.setattr(
-        "app.ui.blatt_ui_export.messagebox.showwarning",
+        "app.ui.blatt_ui_export_support.messagebox.showwarning",
         lambda *args, **kwargs: called.__setitem__("messagebox", called["messagebox"] + 1),
     )
 
@@ -63,7 +63,7 @@ def test_open_worksheet_export_dialog_disables_mode_selection_for_kurzentwurf(mo
             seen.update(kwargs)
             self.result = None
 
-    monkeypatch.setattr("app.ui.blatt_ui_export.WorksheetExportDialog", _FakeDialog)
+    monkeypatch.setattr("app.ui.blatt_ui_export_dialogs.WorksheetExportDialog", _FakeDialog)
 
     app.open_worksheet_export_dialog(input_path=tmp_path / "kurzentwurf.md")
 
@@ -80,7 +80,7 @@ def test_open_worksheet_export_dialog_keeps_mode_selection_for_worksheet(monkeyp
             seen.update(kwargs)
             self.result = None
 
-    monkeypatch.setattr("app.ui.blatt_ui_export.WorksheetExportDialog", _FakeDialog)
+    monkeypatch.setattr("app.ui.blatt_ui_export_dialogs.WorksheetExportDialog", _FakeDialog)
 
     app.open_worksheet_export_dialog(input_path=tmp_path / "blatt.md")
 
@@ -111,7 +111,7 @@ def test_render_lernhilfe_card_images_always_uses_a6_page_format(monkeypatch, tm
         recorded_page_formats.append(page_format)
         raise _StopAfterRenderHelpCards()
 
-    monkeypatch.setattr("app.ui.blatt_ui_export.render_help_cards_html", _fake_render_help_cards_html)
+    monkeypatch.setattr("app.ui.blatt_ui_export_help_cards.render_help_cards_html", _fake_render_help_cards_html)
 
     app = _DummyExportApp(DOCUMENT_TYPE_WORKSHEET)
     app._worksheet_design_options = lambda: _DummyDesignOptions()

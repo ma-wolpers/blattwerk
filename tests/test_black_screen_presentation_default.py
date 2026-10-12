@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pytest
 
-import app.ui.blatt_ui_export as export_module
+import app.ui.blatt_ui_export_dialogs as export_module
 import app.ui.blatt_ui_preview_render as render_module
 from app.core.blatt_kern_layout_render import render_html
 from app.storage.user_preferences_adapter import normalize_user_preferences
