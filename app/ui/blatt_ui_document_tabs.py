@@ -20,7 +20,13 @@ class BlattwerkDocumentTabsMixin:
     """Document tab state, preview mode and option cycling (BlattwerkAppBase mixin)."""
 
     def _set_page_format(self, page_format):
-        """Set page format."""
+        """Set the preview page format (keyboard 4/5 and toolbar).
+
+        Ignored when the active document type has no page-format choice (e.g.
+        Kurzentwurf, Schild, Markdown), so a shortcut never sets a hidden option.
+        """
+        if not self._preview_capability_active("show_page_format"):
+            return
         if self.preview_page_format_var.get() == page_format:
             return
 
@@ -40,7 +46,13 @@ class BlattwerkDocumentTabsMixin:
         self.refresh_preview()
 
     def _set_preview_black_screen_both(self):
-        """Enable black-screen insertion before and after for preview/export parity."""
+        """Enable black-screen insertion before and after (keyboard K).
+
+        Only for presentations: on other types the Black-Screen group is hidden
+        and the option has no effect, so the shortcut does nothing there.
+        """
+        if not self._preview_capability_active("show_black_screen"):
+            return
         if self.preview_black_screen_var.get() != "both":
             self.preview_black_screen_var.set("both")
         self.refresh_preview()

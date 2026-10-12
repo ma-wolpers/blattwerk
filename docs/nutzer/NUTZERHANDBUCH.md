@@ -69,21 +69,27 @@ Nach einer einmaligen Einrichtung (`register-blattwerk-file-association.ps1`) la
 
 ## 3) Vorschau – was passiert bei welcher Einstellung?
 
-- **Seitenformat** (`DIN A4` / `DIN A5` / `16:9` / `16:10` / `4:3`) steuert die Seitengröße im späteren Export.
-- **Modus** (`Aufgabe` / `Lösung`) steuert bei Arbeitsblättern, welche Inhalte in der Vorschau gerendert werden.
-- Im Dokumentmodus `presentation` wird die Vorschau immer als Folienausgabe gerendert (kein Aufgaben/Lösung-Toggle).
+Die Leiste über der Vorschau zeigt nur Optionen, die zur Dokumentart passen (die Dokumentart steht in der Dateiendung):
+
+| Option | Arbeitsblatt `.abw` | Klausur `.kbw` | Präsentation `.pbw` | Kurzentwurf, Schild, Markdown |
+|---|---|---|---|---|
+| Aufgabe / Lösung | ja | ja | – | – |
+| Seitenformat | ja | ja | ja (Folienformate) | – |
+| Black-Screen, Phasen | – | – | ja | – |
+| Gestaltung (Druckprofil, Farbe, Schrift, Größe) | ja | ja | ja | – |
+
+- **Seitenformat** (`DIN A4` / `DIN A5` bzw. `16:9` / `16:10` / `4:3`) steuert die Seitengröße im späteren Export.
+- **Modus** (`Aufgabe` / `Lösung`) steuert bei Arbeitsblättern und Klausuren, welche Inhalte in der Vorschau gerendert werden.
+- Präsentationen werden immer als Folien gerendert (kein Aufgaben/Lösung-Umschalter).
 - **Black-Screen** (`Aus` / `Vorher` / `Nachher` / `Beides`) fügt bei Präsentationen schwarze Folien vor und/oder nach dem Deck ein.
+- **Phasen** steuert bei Präsentationen den Abschnitts-Footer der Folien (Trenner `·` oder `→`, künftige Abschnitte ausblenden).
+- Die Tastenkürzel wirken nur, wenn die Option für die Dokumentart angezeigt wird (z. B. `K` nur bei Präsentationen, `4`/`5` nur bei Arbeitsblatt und Klausur).
 - **Druckprofil** (`Standard` / `Stärker`) erhöht bzw. reduziert den Kontrast für den Ausdruck.
 - **Schrift** steuert die Schriftfamilie für das gesamte Arbeitsblatt.
 - **Größe** steuert die Grundschriftgröße (`Klein` / `Normal` / `Groß`). Dabei passen sich die Puffer von Antwortboxen automatisch an (kleiner = enger, größer = luftiger).
 - **Ansicht** (`Seitenbreite` / `Ganze Seite`) setzt Fit-Presets; bei manuellem Zoom wird auf Custom gewechselt.
 - **Layout** (`Einzelseite` / `Nebeneinander` / `Untereinander`) betrifft nur die Vorschau-Darstellung.
-- **AB-YAML Dokumentmodus** (`mode` im Frontmatter):
-	- `mode: worksheet` (Standard, Alias `ws`) zeigt normale Arbeitsform-Hinweise.
-	- `mode: presentation` rendert Folien mit Mini-Header, `Folie X/Y` und Abschnitts-Footer.
-	- `mode: solution` rendert globale Loesungsausgabe.
-	- `mode: test` blendet `work`-Emoji und `work`-Label in Aufgaben/Teilaufgaben aus (auch in der Loesungsausgabe).
-	- `action`- und `hint`-Symbole bleiben sichtbar.
+- Ein Frontmatter-Feld `mode` gibt es nicht mehr: Die Dokumentart folgt aus der Dateiendung, die Fassung (Aufgabe/Lösung) wählst du in der Vorschau bzw. beim Export.
 
 ## 4) Wichtige Shortcuts (Vorschau)
 

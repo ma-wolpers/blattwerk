@@ -278,11 +278,88 @@ def test_build_document_tab_state_forces_worksheet_preview_for_kurzentwurf(tmp_p
     assert state["preview_mode"] == "worksheet"
 
 
-def test_preview_toolbar_capabilities_follow_registry():
-    caps = BlattwerkAppPreviewMixin._preview_toolbar_capabilities
+# Sichtbarkeit je Dokumenttyp: (Loesung, Seitenformat, Phasen, Black-Screen, Gestaltung)
+_TOOLBAR_VISIBILITY = {
+    DOCUMENT_TYPE_WORKSHEET: (True, True, False, False, True),
+    DOCUMENT_TYPE_PRESENTATION: (False, True, True, True, True),
+    DOCUMENT_TYPE_EXAM: (True, True, False, False, True),
+    DOCUMENT_TYPE_KURZENTWURF: (False, False, False, False, False),
+    DOCUMENT_TYPE_SCHILD: (False, False, False, False, False),
+    DOCUMENT_TYPE_MARKDOWN: (False, False, False, False, False),
+    None: (False, False, False, False, False),
+}
+_TOOLBAR_KEYS = (
+    "show_solution_toggle",
+    "show_page_format",
+    "show_phase_controls",
+    "show_black_screen",
+    "show_design_controls",
+)
 
-    assert caps(DOCUMENT_TYPE_PRESENTATION)["phase_controls_enabled"] is True
-    assert caps(DOCUMENT_TYPE_PRESENTATION)["show_solution_toggle"] is False
-    assert caps(DOCUMENT_TYPE_EXAM)["show_solution_toggle"] is True
-    assert caps(DOCUMENT_TYPE_MARKDOWN)["show_page_format"] is False
-    assert caps(None)["show_design_controls"] is False
+
+@pytest.mark.parametrize("document_type", list(_TOOLBAR_VISIBILITY))
+def test_preview_toolbar_shows_only_options_for_the_document_type(document_type):
+    """Black-Screen und Phasen nur bei Praesentationen; nichts Typfremdes wird angezeigt."""
+    caps = BlattwerkAppPreviewMixin._preview_toolbar_capabilities(document_type)
+    assert tuple(caps[key] for key in _TOOLBAR_KEYS) == _TOOLBAR_VISIBILITY[document_type]
+    assert set(caps) == set(_TOOLBAR_KEYS)
+
+
+class _SettableVar(_DummyVar):
+    def set(self, value):
+        self._value = value
+
+
+class _GateHost(BlattwerkAppPreviewMixin):
+    """Minimal host for the shortcut gates: records refreshes instead of rendering."""
+
+    def __init__(self, document_type):
+        self._current_preview_document_type = document_type
+        self.preview_black_screen_var = _SettableVar("none")
+        self.preview_page_format_var = _SettableVar("a4_portrait")
+        self.refresh_count = 0
+
+    def refresh_preview(self, force_rebuild=False):
+        self.refresh_count += 1
+
+
+def _gate_host(document_type):
+    from app.ui.blatt_ui_document_tabs import BlattwerkDocumentTabsMixin
+
+    host_type = type("_Host", (BlattwerkDocumentTabsMixin, _GateHost), {})
+    return host_type(document_type)
+
+
+@pytest.mark.parametrize(
+    "document_type, applies",
+    [
+        (DOCUMENT_TYPE_PRESENTATION, True),
+        (DOCUMENT_TYPE_WORKSHEET, False),
+        (DOCUMENT_TYPE_EXAM, False),
+        (DOCUMENT_TYPE_KURZENTWURF, False),
+        (None, False),
+    ],
+)
+def test_black_screen_shortcut_only_acts_on_presentations(document_type, applies):
+    """K setzt Black-Screen nur dort, wo die Option sichtbar ist."""
+    host = _gate_host(document_type)
+    host._set_preview_black_screen_both()
+    assert host.preview_black_screen_var.get() == ("both" if applies else "none")
+    assert host.refresh_count == (1 if applies else 0)
+
+
+@pytest.mark.parametrize(
+    "document_type, applies",
+    [
+        (DOCUMENT_TYPE_WORKSHEET, True),
+        (DOCUMENT_TYPE_EXAM, True),
+        (DOCUMENT_TYPE_KURZENTWURF, False),
+        (DOCUMENT_TYPE_SCHILD, False),
+        (DOCUMENT_TYPE_MARKDOWN, False),
+    ],
+)
+def test_page_format_shortcut_only_acts_where_page_format_is_shown(document_type, applies):
+    """4/5 aendern das Seitenformat nur bei Typen mit Seitenformat-Auswahl."""
+    host = _gate_host(document_type)
+    host._set_page_format("a5_landscape")
+    assert host.preview_page_format_var.get() == ("a5_landscape" if applies else "a4_portrait")
