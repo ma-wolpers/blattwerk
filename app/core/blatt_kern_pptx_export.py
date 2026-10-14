@@ -46,6 +46,7 @@ _PAGE_SIZE_CM = {
     "presentation_16_10": (30.48,  19.05),
     "presentation_4_3":   (25.4,   19.05),
     "a4_portrait":        (21.0,   29.7),
+    "a4_landscape":       (29.7,   21.0),
     "a5_landscape":       (21.0,   14.8),
 }
 
@@ -58,7 +59,15 @@ def _cm_to_emu(value_cm: float) -> int:
 
 
 def _slide_size_emu(page_format: str) -> tuple[int, int]:
-    width_cm, height_cm = _PAGE_SIZE_CM.get(page_format, _PAGE_SIZE_CM["presentation_16_9"])
+    """Return the slide size in EMU for a known page format.
+
+    An unknown format raises instead of silently falling back to 16:9, so a new
+    format that was forgotten here can never export with the wrong size.
+    """
+    try:
+        width_cm, height_cm = _PAGE_SIZE_CM[page_format]
+    except KeyError:
+        raise ValueError(f"Unbekanntes Seitenformat fuer PPTX: {page_format!r}") from None
     return _cm_to_emu(width_cm), _cm_to_emu(height_cm)
 
 

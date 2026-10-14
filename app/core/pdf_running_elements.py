@@ -17,6 +17,29 @@ except ImportError:
     fitz = None
 
 
+LARGE_PAGE_MIN_LONG_SIDE_PT = 700
+"""Ab dieser laengeren Seitenkante (pt) gilt das grosse Laufelement-Layout (A4 hoch/quer,
+Folien); darunter das kompakte (A5 quer: 595 pt)."""
+
+
+def is_large_running_layout(width_pt: float, height_pt: float) -> bool:
+    """Decide whether a page gets the large running-elements layout.
+
+    The longer page edge decides, so A4 landscape (842 x 595 pt) is treated like A4
+    portrait. Checking only the height (the former rule) put A4 landscape into the
+    compact A5 layout with small header/footer fonts.
+
+    Args:
+        width_pt: Page width in PDF points.
+        height_pt: Page height in PDF points.
+
+    Example:
+        >>> is_large_running_layout(842, 595), is_large_running_layout(595, 420)
+        (True, False)
+    """
+    return max(width_pt, height_pt) > LARGE_PAGE_MIN_LONG_SIDE_PT
+
+
 def wait_for_file_stable(path, checks=8, delay_seconds=0.15):
     """Wartet, bis sich Dateigröße/mtime über zwei Messungen nicht mehr ändern."""
 
@@ -77,7 +100,7 @@ def annotate_pdf_running_elements(
             page = doc.load_page(index)
             rect = page.rect
 
-            is_a4_like = rect.height > 700
+            is_a4_like = is_large_running_layout(rect.width, rect.height)
 
             if is_a4_like:
                 side_inset = 32

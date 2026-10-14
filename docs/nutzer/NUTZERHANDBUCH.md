@@ -78,7 +78,7 @@ Die Leiste „Vorschau-Optionen“ über der Vorschau startet eingeklappt; mit �
 | Black-Screen, Phasen | – | – | ja | – |
 | Gestaltung (Druckprofil, Farbe, Schrift, Größe) | ja | ja | ja | – |
 
-- **Seitenformat** (`DIN A4` / `DIN A5` bzw. `16:9` / `16:10` / `4:3`) steuert die Seitengröße im späteren Export.
+- **Seitenformat** (`DIN A4` / `A4 quer` / `DIN A5` bzw. `16:9` / `16:10` / `4:3`) steuert die Seitengröße. Der Export übernimmt das Format, das in der Vorschau des Dokuments gewählt ist; die Einstellung *Export Seitenformat* gilt nur als Startwert. Bei `A4 quer` werden Antwortfelder wie Zahlenstrahl und Raster entsprechend breiter.
 - **Modus** (`Aufgabe` / `Lösung`) steuert bei Arbeitsblättern und Klausuren, welche Inhalte in der Vorschau gerendert werden.
 - Präsentationen werden immer als Folien gerendert (kein Aufgaben/Lösung-Umschalter).
 - **Black-Screen** (`Aus` / `Vorher` / `Nachher` / `Beides`) fügt bei Präsentationen schwarze Folien vor und/oder nach dem Deck ein. Standard ist `Beides`; den Startwert stellst du unter *Einstellungen → Export → Black-Screen (Praesentation)* ein. Der Präsentations-Export übernimmt die Auswahl aus der Vorschau.

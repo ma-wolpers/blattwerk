@@ -12,7 +12,15 @@ from bw_gui.runtime import ui, widgets
 from bw_gui.widgets import Switch
 
 from .ui_theme import get_theme
-from ..styles.blatt_styles import FONT_PROFILE_ORDER, FONT_PROFILE_PRESETS, FONT_SIZE_PROFILE_LABELS, FONT_SIZE_PROFILE_ORDER
+from ..styles.blatt_styles import (
+    FONT_PROFILE_ORDER,
+    FONT_PROFILE_PRESETS,
+    FONT_SIZE_PROFILE_LABELS,
+    FONT_SIZE_PROFILE_ORDER,
+    PRESENTATION_PAGE_FORMATS,
+    WORKSHEET_PAGE_FORMAT_LABELS,
+    WORKSHEET_PAGE_FORMATS,
+)
 from ..styles.worksheet_design import (
     COLOR_PROFILE_ORDER,
     CONTRAST_PROFILE_LABELS,
@@ -78,46 +86,25 @@ class BlattwerkPreviewBuildMixin:
 
         format_group_dina = widgets.Frame(format_section)
         widgets.Separator(format_group_dina, orient="vertical").pack(side="left", fill="y", padx=(0, 12))
-        self.preview_page_format_btn_a4 = widgets.Radiobutton(
-            format_group_dina,
-            text="DIN A4",
-            value="a4_portrait",
-            variable=self.preview_page_format_var,
-            command=self.refresh_preview,
-        )
-        self.preview_page_format_btn_a4.pack(side="left")
-        self.preview_page_format_btn_a5 = widgets.Radiobutton(
-            format_group_dina,
-            text="DIN A5",
-            value="a5_landscape",
-            variable=self.preview_page_format_var,
-            command=self.refresh_preview,
-        )
-        self.preview_page_format_btn_a5.pack(side="left", padx=(10, 0))
-        self.preview_page_format_btn_16_9 = widgets.Radiobutton(
-            format_group_dina,
-            text="16:9",
-            value="presentation_16_9",
-            variable=self.preview_page_format_var,
-            command=self.refresh_preview,
-        )
-        self.preview_page_format_btn_16_9.pack(side="left", padx=(10, 0))
-        self.preview_page_format_btn_16_10 = widgets.Radiobutton(
-            format_group_dina,
-            text="16:10",
-            value="presentation_16_10",
-            variable=self.preview_page_format_var,
-            command=self.refresh_preview,
-        )
-        self.preview_page_format_btn_16_10.pack(side="left", padx=(10, 0))
-        self.preview_page_format_btn_4_3 = widgets.Radiobutton(
-            format_group_dina,
-            text="4:3",
-            value="presentation_4_3",
-            variable=self.preview_page_format_var,
-            command=self.refresh_preview,
-        )
-        self.preview_page_format_btn_4_3.pack(side="left", padx=(10, 0))
+        # Ein Radio je Format aus dem Katalog (`blatt_styles`): Arbeitsblatt-/Klausurformate
+        # und Folienformate; welche sichtbar sind, entscheidet `_apply_preview_page_format_controls`.
+        self.preview_page_format_buttons = {}
+        page_format_labels = {
+            **WORKSHEET_PAGE_FORMAT_LABELS,
+            "presentation_16_9": "16:9",
+            "presentation_16_10": "16:10",
+            "presentation_4_3": "4:3",
+        }
+        for index, page_format in enumerate((*WORKSHEET_PAGE_FORMATS, *PRESENTATION_PAGE_FORMATS)):
+            button = widgets.Radiobutton(
+                format_group_dina,
+                text=page_format_labels[page_format],
+                value=page_format,
+                variable=self.preview_page_format_var,
+                command=self.refresh_preview,
+            )
+            button.pack(side="left", padx=(0, 0) if index == 0 else (10, 0))
+            self.preview_page_format_buttons[page_format] = button
 
         format_group_black = self.format_group_black = widgets.Frame(format_section)
         widgets.Separator(format_group_black, orient="vertical").pack(side="left", fill="y", padx=(0, 12))

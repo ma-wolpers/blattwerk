@@ -18,6 +18,10 @@ from ..styles.blatt_styles import (
     DEFAULT_FONT_SIZE_PROFILE,
     FONT_PROFILE_ORDER,
     FONT_SIZE_PROFILE_ORDER,
+    DEFAULT_PRESENTATION_PAGE_FORMAT,
+    DEFAULT_WORKSHEET_PAGE_FORMAT,
+    PRESENTATION_PAGE_FORMATS,
+    WORKSHEET_PAGE_FORMATS,
 )
 from ..styles.worksheet_design import (
     CONTRAST_PROFILE_ORDER,
@@ -299,15 +303,15 @@ PREFERENCE_SPECS = {
         "tab": "export",
         "label": "Export Seitenformat (Arbeitsblatt)",
         "type": "enum",
-        "default": "a4_portrait",
-        "values": ["a4_portrait", "a5_landscape"],
+        "default": DEFAULT_WORKSHEET_PAGE_FORMAT,
+        "values": list(WORKSHEET_PAGE_FORMATS),
     },
     "default_export_page_format_presentation": {
         "tab": "export",
         "label": "Export Seitenformat (Praesentation)",
         "type": "enum",
-        "default": "presentation_16_9",
-        "values": ["presentation_16_9", "presentation_16_10", "presentation_4_3"],
+        "default": DEFAULT_PRESENTATION_PAGE_FORMAT,
+        "values": list(PRESENTATION_PAGE_FORMATS),
     },
     "default_black_screen_presentation": {
         "tab": "export",

@@ -4,6 +4,12 @@
 
 from __future__ import annotations
 
+from ..styles.blatt_styles import (
+    DEFAULT_PRESENTATION_PAGE_FORMAT,
+    DEFAULT_WORKSHEET_PAGE_FORMAT,
+    PRESENTATION_PAGE_FORMATS,
+    WORKSHEET_PAGE_FORMATS,
+)
 from ..core.document_type_registry import (
     PIPELINE_WORKSHEET,
     has_slide_layout,
@@ -34,15 +40,13 @@ class BlattwerkAppPreviewToolbarMixin:
 
     def _resolve_preview_page_format_for_document_type(self, page_format: str, document_type: str | None) -> str:
             """Resolves a valid page format and remembers the last used format per layout family."""
-            worksheet_formats = {"a4_portrait", "a5_landscape"}
-            presentation_formats = {
-                "presentation_16_9",
-                "presentation_16_10",
-                "presentation_4_3",
-            }
             mode_key = "presentation" if has_slide_layout(document_type or "") else "worksheet"
-            allowed_formats = presentation_formats if mode_key == "presentation" else worksheet_formats
-            default_format = "presentation_16_9" if mode_key == "presentation" else "a4_portrait"
+            if mode_key == "presentation":
+                allowed_formats = set(PRESENTATION_PAGE_FORMATS)
+                default_format = DEFAULT_PRESENTATION_PAGE_FORMAT
+            else:
+                allowed_formats = set(WORKSHEET_PAGE_FORMATS)
+                default_format = DEFAULT_WORKSHEET_PAGE_FORMAT
 
             remembered = getattr(self, "_last_preview_page_format_by_mode", None)
             if not isinstance(remembered, dict):
@@ -128,44 +132,23 @@ class BlattwerkAppPreviewToolbarMixin:
     def _apply_preview_page_format_controls(self, document_type: str | None):
             """Shows only valid page-format options for the active document type."""
             capabilities = self._preview_toolbar_capabilities(document_type)
+            buttons = getattr(self, "preview_page_format_buttons", {}) or {}
             if not capabilities["show_page_format"]:
-                for name in (
-                    "preview_page_format_btn_a4",
-                    "preview_page_format_btn_a5",
-                    "preview_page_format_btn_16_9",
-                    "preview_page_format_btn_16_10",
-                    "preview_page_format_btn_4_3",
-                ):
-                    self._toggle_preview_page_format_button(getattr(self, name, None), False)
-                return
-
-            is_presentation = has_slide_layout(document_type or "")
-
-            self._toggle_preview_page_format_button(
-                getattr(self, "preview_page_format_btn_a4", None),
-                not is_presentation,
-                padx=(0, 0),
-            )
-            self._toggle_preview_page_format_button(
-                getattr(self, "preview_page_format_btn_a5", None),
-                not is_presentation,
-                padx=(10, 0),
-            )
-            self._toggle_preview_page_format_button(
-                getattr(self, "preview_page_format_btn_16_9", None),
-                is_presentation,
-                padx=(10, 0),
-            )
-            self._toggle_preview_page_format_button(
-                getattr(self, "preview_page_format_btn_16_10", None),
-                is_presentation,
-                padx=(10, 0),
-            )
-            self._toggle_preview_page_format_button(
-                getattr(self, "preview_page_format_btn_4_3", None),
-                is_presentation,
-                padx=(10, 0),
-            )
+                visible_formats = ()
+            elif has_slide_layout(document_type or ""):
+                visible_formats = PRESENTATION_PAGE_FORMATS
+            else:
+                visible_formats = WORKSHEET_PAGE_FORMATS
+            first_visible = True
+            for page_format, button in buttons.items():
+                visible = page_format in visible_formats
+                self._toggle_preview_page_format_button(
+                    button,
+                    visible,
+                    padx=(0, 0) if first_visible else (10, 0),
+                )
+                if visible:
+                    first_visible = False
 
 
     def _apply_preview_mode_controls(self, document_type: str | None):

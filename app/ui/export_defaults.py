@@ -6,6 +6,12 @@ Praesentations-/Arbeitsblatt-Exportdialog.
 
 from __future__ import annotations
 
+from ..styles.blatt_styles import (
+    DEFAULT_PRESENTATION_PAGE_FORMAT,
+    DEFAULT_WORKSHEET_PAGE_FORMAT,
+    PRESENTATION_PAGE_FORMATS,
+    WORKSHEET_PAGE_FORMATS,
+)
 from ..core.document_type_registry import (
     DOCUMENT_TYPE_PRESENTATION,
     DOCUMENT_TYPE_WORKSHEET,
@@ -20,12 +26,10 @@ _ALLOWED_LERNHILFEN_EXPORT_FORMATS = {"pdf", "png", "pngzip"}
 _ALLOWED_EXPORT_MODES = {"worksheet", "solution", "both"}
 _ALLOWED_BLACK_SCREEN_MODES = {"none", "before", "after", "both"}
 _ALLOWED_SECTION_SEPARATOR_MODES = {"dot", "arrow"}
-_ALLOWED_WORKSHEET_PAGE_FORMATS = {"a4_portrait", "a5_landscape"}
-_ALLOWED_PRESENTATION_PAGE_FORMATS = {
-    "presentation_16_9",
-    "presentation_16_10",
-    "presentation_4_3",
-}
+# Aus dem Formatkatalog abgeleitet: Ein Format, das die Vorschau anbietet, darf der
+# Export nie stillschweigend durch den Praeferenz-Fallback ersetzen.
+_ALLOWED_WORKSHEET_PAGE_FORMATS = set(WORKSHEET_PAGE_FORMATS)
+_ALLOWED_PRESENTATION_PAGE_FORMATS = set(PRESENTATION_PAGE_FORMATS)
 
 
 def _normalize_choice(value, allowed_values, default):
@@ -57,12 +61,12 @@ def _resolve_export_default_page_format(preferences, layout_family):
     if layout_family == "presentation":
         preferred = preferences.get(
             "default_export_page_format_presentation",
-            preferences.get("default_export_page_format", "presentation_16_9"),
+            preferences.get("default_export_page_format", DEFAULT_PRESENTATION_PAGE_FORMAT),
         )
-        return _normalize_choice(preferred, _ALLOWED_PRESENTATION_PAGE_FORMATS, "presentation_16_9")
+        return _normalize_choice(preferred, _ALLOWED_PRESENTATION_PAGE_FORMATS, DEFAULT_PRESENTATION_PAGE_FORMAT)
 
     preferred = preferences.get(
         "default_export_page_format_worksheet",
-        preferences.get("default_export_page_format", "a4_portrait"),
+        preferences.get("default_export_page_format", DEFAULT_WORKSHEET_PAGE_FORMAT),
     )
-    return _normalize_choice(preferred, _ALLOWED_WORKSHEET_PAGE_FORMATS, "a4_portrait")
+    return _normalize_choice(preferred, _ALLOWED_WORKSHEET_PAGE_FORMATS, DEFAULT_WORKSHEET_PAGE_FORMAT)

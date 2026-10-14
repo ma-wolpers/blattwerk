@@ -222,6 +222,17 @@ PAGE_LAYOUTS = {
         "document_header_size": "0.78em",
         "solution_badge_size": "0.84em",
     },
+    "a4_landscape": {
+        "page_size_css": "A4 landscape",
+        "page_margin_top_css": "2.0cm",
+        "page_margin_right_css": "1.5cm",
+        "page_margin_bottom_css": "1.5cm",
+        "page_margin_left_css": "1.5cm",
+        "page_margin_right_hole_punch_css": "0.9cm",
+        "page_margin_left_hole_punch_css": "2.3cm",
+        "document_header_size": "0.78em",
+        "solution_badge_size": "0.84em",
+    },
     "a5_landscape": {
         "page_size_css": "A5 landscape",
         "page_margin_top_css": "1.1cm",
@@ -278,6 +289,20 @@ PAGE_LAYOUTS = {
         "solution_badge_size": "0.84em",
     },
 }
+
+
+# Seitenformate, die Arbeitsblatt und Klausur anbieten (Reihenfolge = Anzeige in Vorschau
+# und Einstellungen). Einzige Quelle fuer Vorschau-Buttons, Export-Normalisierung und
+# Praeferenzwerte; jedes Format braucht einen Eintrag in `PAGE_LAYOUTS`.
+WORKSHEET_PAGE_FORMATS = ("a4_portrait", "a4_landscape", "a5_landscape")
+WORKSHEET_PAGE_FORMAT_LABELS = {
+    "a4_portrait": "DIN A4",
+    "a4_landscape": "A4 quer",
+    "a5_landscape": "DIN A5",
+}
+DEFAULT_WORKSHEET_PAGE_FORMAT = "a4_portrait"
+PRESENTATION_PAGE_FORMATS = ("presentation_16_9", "presentation_16_10", "presentation_4_3")
+DEFAULT_PRESENTATION_PAGE_FORMAT = "presentation_16_9"
 
 
 _PAGE_DIMENSIONS_CM = {

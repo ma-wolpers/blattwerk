@@ -8,6 +8,8 @@ The format is based on Keep a Changelog.
 
 ### Changed
 
+- **Neues Seitenformat „A4 quer“** für Arbeitsblätter und Klausuren (Vorschau-Leiste, Export und *Einstellungen → Export Seitenformat*). Kopf- und Fußzeile erscheinen dabei so groß wie bei A4 hoch.
+- **Zahlenstrahl nutzt die Seitenbreite:** Ohne eigene Breitenangabe richtet sich die Maximalbreite jetzt nach der druckbaren Breite (A4 hoch etwas breiter als bisher, A4 quer deutlich breiter, A5 schmaler). In Spalten bleibt der Zahlenstrahl immer innerhalb seiner Spalte.
 - **Vorschau-Optionen starten eingeklappt:** Die Optionsleiste über der Vorschau ist bei jedem Start eingeklappt und lässt sich mit ▸ aufklappen. Der Zustand wird nicht mehr gespeichert.
 - **Präsentationen starten mit schwarzen Folien davor und danach:** Black-Screen steht in Vorschau und Präsentations-Export standardmäßig auf `Beides`. Der Startwert lässt sich unter *Einstellungen → Export → Black-Screen (Praesentation)* ändern. Arbeitsblätter und Klausuren bleiben ohne schwarze Folien.
 - **Vorschau-Leiste zeigt nur passende Optionen:** Black-Screen und Phasen erscheinen nur noch bei Präsentationen, nicht mehr (ausgegraut) bei Arbeitsblättern und Klausuren. Die Tasten `K` (Black-Screen) und `4`/`5` (Seitenformat) wirken nur noch bei Dokumentarten, für die die Option angezeigt wird.

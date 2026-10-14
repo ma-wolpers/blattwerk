@@ -1249,6 +1249,7 @@ h1 {
 }
 
 .answer.numberline {
+    max-width: 100%;
     border: var(--field-border-width) solid var(--field-border-color);
     border-radius: var(--box-radius, 0.18em);
     padding: var(--box-buffer-block, 0.13cm) var(--box-buffer-inline, 0.2cm) calc(var(--box-buffer-block, 0.13cm) * 0.92) var(--box-buffer-inline, 0.2cm);
