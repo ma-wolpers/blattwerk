@@ -217,7 +217,6 @@ Gezaehlt werden nur ausfuehrbare Zeilen (ohne Leer-, Kommentar-, Docstring- und 
 
 - `app/core/kurzentwurf_runtime/render_html.py` — besteht zum Grossteil aus der eingebetteten CSS/HTML-Vorlage; neue Teilaufgaben kommen in eigene Module
 - `app/core/kurzentwurf_runtime/validator.py` — zusammenhaengende Zeitrechnung; neue Teilaufgaben kommen in eigene Module
-- `app/core/blatt_validator_constants.py` — normativer Katalog (Daten) plus zwei Spec-Dataclasses; die Dataclasses werden beim naechsten inhaltlichen Eingriff ausgelagert, danach gilt der Datenmarker
 
 ## Merge-Checkliste
 
