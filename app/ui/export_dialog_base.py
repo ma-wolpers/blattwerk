@@ -6,10 +6,17 @@ from pathlib import Path
 from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 
 ensure_bw_gui_on_path()
-from bw_gui.runtime import ui
+from bw_gui.contracts.key_spec import KeySpec
+from bw_gui.runtime import WindowShortcutBinder, ui
 from bw_gui.shortcuts import compose_hover_text as compose_shared_hover_text
 
+from .local_keys import bind_actions
 from .ui_theme import apply_window_theme, configure_ttk_theme
+
+
+EXPORT_KEY = KeySpec.parse("Ctrl+E")
+CANCEL_KEY = KeySpec.parse("Escape (tolerate: Shift)")
+_ENTER_KEY = KeySpec.parse("Enter (tolerate: Shift)")
 
 
 def _localize_shortcut_label(shortcut_label: str) -> str:
@@ -19,11 +26,16 @@ def _localize_shortcut_label(shortcut_label: str) -> str:
     return text.replace("Ctrl", "Strg").replace("Escape", "Esc")
 
 
-def _shortcut_help_entry(description: str, sequence: str | None) -> str:
-    """Build one compact shortcut help entry via the shared formatter."""
+def _shortcut_help_entry(description: str, shortcut: KeySpec | str | None) -> str:
+    """Build one compact shortcut help entry via the shared formatter.
+
+    Args:
+        description: Action text.
+        shortcut: The bound ``KeySpec`` (help and binding share it) or a display text.
+    """
 
     desc = str(description or "").strip()
-    merged = compose_shared_hover_text(desc, sequence)
+    merged = compose_shared_hover_text(desc, shortcut)
     marker = "\nShortcut: "
     if marker not in merged:
         return merged
@@ -35,8 +47,8 @@ def _shortcut_help_entry(description: str, sequence: str | None) -> str:
     return f"{shortcut}: {resolved_desc}"
 
 
-def _build_shortcuts_help_text(*rows: tuple[tuple[str, str | None], ...]) -> str:
-    """Compose multi-line shortcuts help text from action/sequence rows."""
+def _build_shortcuts_help_text(*rows: tuple[tuple[str, KeySpec | str | None], ...]) -> str:
+    """Compose multi-line shortcuts help text from action/shortcut rows."""
 
     lines: list[str] = []
     for row in rows:
@@ -65,22 +77,41 @@ class _BaseExportDialog:
         apply_window_theme(self.window, self.theme_key)
         configure_ttk_theme(self.window, self.theme_key)
 
-    @staticmethod
-    def _is_text_input_widget(widget):
-        if widget is None:
-            return False
+    def _bind_shortcuts(self):
+        """Bind the dialog keys on a window binder of the dialog (bw-gui keyboard contract).
 
-        widget_class = widget.winfo_class().lower()
-        return widget_class in {
-            "entry",
-            "ttk::entry",
-            "text",
-            "spinbox",
-            "ttk::combobox",
-        }
+        Common to all export dialogs: Enter is swallowed (no accidental export),
+        Ctrl+E exports, Escape cancels (both also while a text field has focus); the
+        letter keys ``?``/D/P and the dialog-specific ones from
+        :meth:`_extra_char_shortcuts` only act while no text field has focus - the
+        binder's text-input gating replaces the former class-name check, which missed
+        ttk entries.
+        """
+        keys = WindowShortcutBinder(self.window)
+        always = ((_ENTER_KEY, "swallow_enter", lambda: None), (EXPORT_KEY, "confirm", self._confirm), (CANCEL_KEY, "cancel", self._cancel))
+        bind_actions(keys, always, text=True, prefix="export")
+        letters = (
+            (KeySpec.char("?"), "help", self._toggle_shortcuts_help),
+            (KeySpec.char("d"), "browse", self._pick_output),
+            (KeySpec.char("p"), "format", self._cycle_export_format),
+            *self._extra_char_shortcuts(),
+        )
+        bind_actions(keys, letters, text=False, prefix="export")
 
-    def _can_handle_char_shortcut(self):
-        return not self._is_text_input_widget(self.window.focus_get())
+    def _extra_char_shortcuts(self):
+        """Dialog-specific letter shortcuts ``(KeySpec, binding_id, action)``; none by default."""
+        return ()
+
+    def _cycle_export_format(self):
+        """P: switch to the next allowed export format and refresh the output suggestion."""
+        export_formats = self._allowed_formats()
+        current = self.format_var.get()
+        try:
+            index = export_formats.index(current)
+        except ValueError:
+            index = 0
+        self.format_var.set(export_formats[(index + 1) % len(export_formats)])
+        self._refresh_output_suggestion(force=True)
 
     def _show_window(self):
         self.window.update_idletasks()
@@ -99,13 +130,5 @@ class _BaseExportDialog:
     def _toggle_shortcuts_help(self):
         self._set_shortcuts_help_visible(not self.shortcuts_visible)
 
-    def _toggle_shortcuts_help_shortcut(self):
-        if not self._can_handle_char_shortcut():
-            return "break"
-
-        self._toggle_shortcuts_help()
-        return "break"
-
     def _cancel(self):
         self.window.destroy()
-        return "break"

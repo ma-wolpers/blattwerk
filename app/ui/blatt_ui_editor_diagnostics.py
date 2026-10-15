@@ -13,7 +13,8 @@ from __future__ import annotations
 from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 
 ensure_bw_gui_on_path()
-from bw_gui.runtime import widgets
+from bw_gui.contracts.pointer import Button
+from bw_gui.runtime import bind_click, widgets
 
 import re
 
@@ -73,9 +74,10 @@ class BlattwerkAppEditorDiagnosticsMixin:
         self.editor_diagnostics_listbox.column("message", width=400, anchor="w", stretch=True)
         self.editor_diagnostics_listbox.grid(row=0, column=0, sticky="nsew", padx=(8, 0), pady=(6, 8))
         self.editor_diagnostics_listbox.bind("<<TreeviewSelect>>", self._on_editor_diagnostic_selected)
-        self.editor_diagnostics_listbox.bind("<ButtonRelease-1>", self._on_editor_diagnostic_click)
-        self.editor_diagnostics_listbox.bind("<Button-1>", self._on_editor_diagnostics_ack_column_click)
-        self.editor_diagnostics_listbox.bind("<Button-3>", self._on_editor_diagnostics_context_menu)
+        # Checkbox column first: a click there is consumed (no native selection, no jump).
+        bind_click(self.editor_diagnostics_listbox, self._on_editor_diagnostics_ack_column_click)
+        bind_click(self.editor_diagnostics_listbox, self._on_editor_diagnostic_click)
+        bind_click(self.editor_diagnostics_listbox, self._on_editor_diagnostics_context_menu, button=Button.SECONDARY)
         self.editor_diagnostics_listbox.tag_configure("ack_done", foreground="gray")
 
         diagnostics_scrollbar = widgets.Scrollbar(

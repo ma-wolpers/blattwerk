@@ -8,6 +8,7 @@ The format is based on Keep a Changelog.
 
 ### Changed
 
+- Tastenkürzel mit Strg gelten genau für die angegebene Kombination (z. B. löst Strg+Alt+E keinen Export mehr aus). Ziffern- und Plus/Minus-Kürzel wirken auch auf dem Ziffernblock. Mausrad und Touchpad scrollen bzw. zoomen in ganzen Rasten; kleine Touchpad-Bewegungen sammeln sich. Ein Klick in die Gliederung oder Diagnose springt schon beim Drücken der Maustaste.
 - **Vorschau-Optionen starten eingeklappt:** Die Optionsleiste über der Vorschau ist bei jedem Start eingeklappt und lässt sich mit ▸ aufklappen. Der Zustand wird nicht mehr gespeichert.
 - **Präsentationen starten mit schwarzen Folien davor und danach:** Black-Screen steht in Vorschau und Präsentations-Export standardmäßig auf `Beides`. Der Startwert lässt sich unter *Einstellungen → Export → Black-Screen (Praesentation)* ändern. Arbeitsblätter und Klausuren bleiben ohne schwarze Folien.
 - **Vorschau-Leiste zeigt nur passende Optionen:** Black-Screen und Phasen erscheinen nur noch bei Präsentationen, nicht mehr (ausgegraut) bei Arbeitsblättern und Klausuren. Die Tasten `K` (Black-Screen) und `4`/`5` (Seitenformat) wirken nur noch bei Dokumentarten, für die die Option angezeigt wird.
@@ -58,6 +59,8 @@ The format is based on Keep a Changelog.
 - Einstellung „Arbeits-Emoji standardmäßig sichtbar“: entfällt. Dokumente ohne Sozialform-Symbole legst du als Klausur (`.kbw`) an.
 
 ### Fixed
+- Im Exportdialog lösen D, P, A, L, B, K und ? beim Tippen in einem Eingabefeld nicht mehr aus.
+- Strg+Umschalt+H (Lernhilfenansicht), Strg+Umschalt+S (Speichern unter), Strg+Umschalt+F (Schriftprofil) sowie Strg+Umschalt+D/O funktionieren jetzt ohne eingeschaltete Feststelltaste; umgekehrt bremst die Feststelltaste die Einbuchstaben-Kürzel (S, F, K, O, Z …) nicht mehr aus.
 - Der Tooltip der Farbprofil-Felder bleibt auf Mehrschirm-Systemen auf dem Monitor des Mauszeigers und oberhalb der Taskleiste.
 
 - Geometry: Der Name der y-Achse (z. B. `axis_label_y="v in km/h"`) stand bisher nach rechts über die Achse hinaus, weil eine CSS-Regel seine Ausrichtung überschrieb. Er steht jetzt wie vorgesehen links neben der Achse und endet an der Pfeilspitze (gilt auch mit `labels=fixed`).

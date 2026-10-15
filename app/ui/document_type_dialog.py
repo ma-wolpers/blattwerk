@@ -5,8 +5,10 @@ from __future__ import annotations
 from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 
 ensure_bw_gui_on_path()
-from bw_gui.runtime import ui, widgets
+from bw_gui.contracts.key_spec import KeySpec
+from bw_gui.runtime import WindowShortcutBinder, ui, widgets
 
+from .local_keys import bind_actions
 from ..core.document_type_registry import (
     DOCUMENT_TYPE_EXAM,
     DOCUMENT_TYPE_KURZENTWURF,
@@ -107,8 +109,15 @@ def prompt_new_document_type(app, *, initial_value: str = DOCUMENT_TYPE_WORKSHEE
         padx=(8, 0),
     )
 
-    window.bind("<Escape>", _cancel)
-    window.bind("<Return>", _confirm)
+    bind_actions(
+        WindowShortcutBinder(window),
+        (
+            (KeySpec.parse("Escape (tolerate: Shift)"), "cancel", _cancel),
+            (KeySpec.parse("Enter (tolerate: Shift)"), "confirm", _confirm),
+        ),
+        text=True,
+        prefix="document_type",
+    )
 
     window.update_idletasks()
     _center_modal_on_root(window, app.root)

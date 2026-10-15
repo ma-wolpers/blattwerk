@@ -11,6 +11,7 @@ import pytest
 from app.storage import local_config_store as lcs
 from app.ui.blatt_ui_editor_diagnostics import BlattwerkAppEditorDiagnosticsMixin
 from app.ui.blatt_ui_editor_diagnostics_ack import BlattwerkAppEditorDiagnosticsAckMixin
+from bw_gui.contracts.events import EventResult
 
 
 class _FakeTreeview:
@@ -112,7 +113,7 @@ def test_checkbox_click_toggles_and_persists(temp_config):
         y = 5
 
     result = app._on_editor_diagnostics_ack_column_click(_Event())
-    assert result == "break"
+    assert result is EventResult.HANDLED
     assert tree.item("row-0", "values")[0] == "☑"
     assert tree.item("row-0", "tags") == ("ack_done",)
     assert store.get_acknowledged(str(temp_config)) == {"ident-1"}
@@ -154,7 +155,7 @@ def test_error_row_is_never_ackable(temp_config):
         y = 5
 
     result = app._on_editor_diagnostics_ack_column_click(_Event())
-    assert result == "break"
+    assert result is EventResult.HANDLED
     assert tree.item("row-0", "values")[0] == ""  # unchanged, still not ackable
 
 

@@ -33,7 +33,7 @@ class BlattwerkShortcutDebugMixin:
                 rows.append(
                     (
                         mode,
-                        definition.sequence,
+                        str(definition.primary_key),
                         definition.binding_id,
                         "active" if can_execute else "disabled",
                         "" if can_execute else reason,

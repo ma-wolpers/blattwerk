@@ -20,6 +20,7 @@ from ..styles.blatt_styles import (
     normalize_font_size_profile,
 )
 from ..styles.worksheet_design import COLOR_PROFILE_LABELS, COLOR_PROFILE_ORDER, get_color_profile_preview, normalize_color_profile
+from .blatt_shortcuts import iter_menu_labels
 from .preview_geometry import clamp, get_fit_scales
 from .ui_constants import EDITOR_DOCUMENT_LOADED, PREVIEW_ZOOM_MAX_PERCENT, PREVIEW_ZOOM_MIN_PERCENT, VIEW_FIT_WIDTH, VIEW_LAYOUT_SINGLE, VIEW_LAYOUT_STACK, VIEW_LAYOUT_STRIP, VIEW_MODE_LABELS
 from .ui_theme import (
@@ -384,7 +385,7 @@ class BlattwerkAppStyleMixin(BlattwerkAppMenuItemsMixin):
             if not bool(preferences.get("shortcuts_menu_hints_visible", True)):
                 return
 
-            yield from self.shortcut_manager.iter_menu_labels(self.shortcut_bindings)
+            yield from iter_menu_labels(self.keybinding_registry.all())
 
     def _refresh_zoom_label(self):
             """Aktualisiert den Zoomtext (immer seitenbreitenbezogene Prozent)."""

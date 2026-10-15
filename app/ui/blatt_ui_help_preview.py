@@ -5,10 +5,12 @@ from __future__ import annotations
 from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 
 ensure_bw_gui_on_path()
-from bw_gui.contracts import NO_MODIFIERS, UNKNOWN_MODIFIERS, modifiers_from_event
-from bw_gui.runtime import ui, widgets
+from bw_gui.contracts.events import EventResult
+from bw_gui.contracts.key_spec import KeySpec
+from bw_gui.runtime import WindowShortcutBinder, bind_click, bind_wheel, ui, widgets
 
 
+from .local_keys import bind_actions, scroll_or_zoom
 from .ui_constants import PREVIEW_ZOOM_MAX_PERCENT, PREVIEW_ZOOM_MIN_PERCENT
 from .preview_geometry import clamp
 from .ui_theme import get_theme
@@ -54,7 +56,6 @@ class BlattwerkAppHelpPreviewMixin(BlattwerkAppHelpPreviewRenderMixin):
 
         if hasattr(self, "open_lernhilfen_export_dialog"):
             self.open_lernhilfen_export_dialog()
-        return "break"
 
     def _ensure_help_preview_window(self):
         """Ensures the lernhilfen preview window exists and is wired."""
@@ -163,27 +164,27 @@ class BlattwerkAppHelpPreviewMixin(BlattwerkAppHelpPreviewRenderMixin):
         )
 
         canvas.bind("<Configure>", self._on_help_canvas_resize)
-        canvas.bind("<Button-1>", lambda _event: canvas.focus_set())
-        canvas.bind("<MouseWheel>", self._on_help_mousewheel)
-        canvas.bind("<Shift-MouseWheel>", self._on_help_mousewheel)
-        canvas.bind("<Control-MouseWheel>", self._on_help_mousewheel)
-        canvas.bind("<Button-4>", self._on_help_mousewheel)
-        canvas.bind("<Button-5>", self._on_help_mousewheel)
-        canvas.bind("<Shift-Button-4>", self._on_help_mousewheel)
-        canvas.bind("<Shift-Button-5>", self._on_help_mousewheel)
-        canvas.bind("<Control-Button-4>", self._on_help_mousewheel)
-        canvas.bind("<Control-Button-5>", self._on_help_mousewheel)
+        bind_click(canvas, lambda _event: canvas.focus_set())
+        bind_wheel(canvas, self._on_help_mousewheel)
 
-        window.bind("<Left>", lambda _event: self._help_prev_page())
-        window.bind("<Right>", lambda _event: self._help_next_page())
-        window.bind("<Up>", lambda _event: self._help_scroll_vertical(-4))
-        window.bind("<Down>", lambda _event: self._help_scroll_vertical(4))
-        window.bind("<KeyPress-minus>", lambda _event: self._help_change_zoom(-10))
-        window.bind("<KeyPress-plus>", lambda _event: self._help_change_zoom(10))
-        window.bind("<KP_Subtract>", lambda _event: self._help_change_zoom(-10))
-        window.bind("<KP_Add>", lambda _event: self._help_change_zoom(10))
-        window.bind("<KeyPress-0>", lambda _event: self._help_reset_zoom())
-        window.bind("<Control-e>", lambda _event: self._open_lernhilfen_export_from_window())
+        # Fenster-Kürzel (Toplevel-Binder). Pfeile tolerieren Shift wie die früheren
+        # rohen Bindungen; die Ziffernblock-Zeichen +/- sind dieselben Specs.
+        _k = KeySpec.parse
+        bind_actions(
+            WindowShortcutBinder(window),
+            (
+                (_k("Left (tolerate: Shift)"), "prev_page", self._help_prev_page),
+                (_k("Right (tolerate: Shift)"), "next_page", self._help_next_page),
+                (_k("Up (tolerate: Shift)"), "scroll_up", lambda: self._help_scroll_vertical(-4)),
+                (_k("Down (tolerate: Shift)"), "scroll_down", lambda: self._help_scroll_vertical(4)),
+                (_k("-"), "zoom_out", lambda: self._help_change_zoom(-10)),
+                (_k("+"), "zoom_in", lambda: self._help_change_zoom(10)),
+                (_k("0"), "zoom_reset", self._help_reset_zoom),
+                (_k("Ctrl+E"), "export", self._open_lernhilfen_export_from_window),
+            ),
+            text=True,
+            prefix="help_preview",
+        )
 
         self.help_preview_window = window
         self.help_preview_canvas = canvas
@@ -230,7 +231,6 @@ class BlattwerkAppHelpPreviewMixin(BlattwerkAppHelpPreviewRenderMixin):
         self.help_zoom_info_var.set(f"Zoom: {int(round(self.help_zoom_percent))}%")
         if self.help_preview_images:
             self._show_help_current_page()
-        return "break"
 
     def _help_reset_zoom(self):
         """Resets lernhilfen zoom to 100%."""
@@ -238,14 +238,12 @@ class BlattwerkAppHelpPreviewMixin(BlattwerkAppHelpPreviewRenderMixin):
         self.help_zoom_info_var.set("Zoom: 100%")
         if self.help_preview_images:
             self._show_help_current_page()
-        return "break"
 
     def _help_prev_page(self):
         """Jumps to the previous lernhilfe card."""
         if not self.help_preview_images or self.help_current_page_index <= 0:
-            return "break"
+            return
         self._jump_to_help_index(self.help_current_page_index - 1)
-        return "break"
 
     def _help_next_page(self):
         """Jumps to the next lernhilfe card."""
@@ -253,39 +251,17 @@ class BlattwerkAppHelpPreviewMixin(BlattwerkAppHelpPreviewRenderMixin):
             not self.help_preview_images
             or self.help_current_page_index >= len(self.help_preview_images) - 1
         ):
-            return "break"
+            return
         self._jump_to_help_index(self.help_current_page_index + 1)
-        return "break"
 
     def _help_scroll_vertical(self, units: int):
         """Performs vertical canvas scroll in lernhilfen preview."""
         if self.help_preview_canvas is None:
-            return "break"
+            return
         self.help_preview_canvas.yview_scroll(units, "units")
-        return "break"
 
     def _on_help_mousewheel(self, event):
-        """Handles mousewheel scrolling and zoom for lernhilfen preview."""
-        direction = self._wheel_direction(event)
-        if direction == 0 or self.help_preview_canvas is None:
-            return "break"
-
-        # Modifier-Semantik aus dem bw-gui-Contract (kein eigenes event.state-Bitraten).
-        # Unbekannter Zustand -> normales Scrollen (beim Mausrad der harmlose Fall).
-        modifiers = modifiers_from_event(event)
-        if modifiers is UNKNOWN_MODIFIERS:
-            modifiers = NO_MODIFIERS
-        shift_pressed = modifiers.shift
-        control_pressed = modifiers.control
-
-        if control_pressed:
-            self._help_change_zoom(10 if direction > 0 else -10)
-            return "break"
-
-        scroll_units = -direction
-        if shift_pressed:
-            self.help_preview_canvas.xview_scroll(scroll_units, "units")
-        else:
-            self.help_preview_canvas.yview_scroll(scroll_units, "units")
-
-        return "break"
+        """Mausrad über der Lernhilfenvorschau (``WheelEvent``): Strg zoomt, Shift horizontal."""
+        if self.help_preview_canvas is not None:
+            scroll_or_zoom(event, self.help_preview_canvas, self._help_change_zoom)
+        return EventResult.HANDLED

@@ -6,11 +6,12 @@ from pathlib import Path
 from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 
 ensure_bw_gui_on_path()
+from bw_gui.contracts.key_spec import KeySpec
 from bw_gui.runtime import ui, widgets
 
 from .dialog_services import filedialog, messagebox
 from .ui_theme import get_theme
-from .export_dialog_base import _BaseExportDialog, _build_shortcuts_help_text, _shortcut_help_entry
+from .export_dialog_base import CANCEL_KEY, EXPORT_KEY, _BaseExportDialog, _build_shortcuts_help_text, _shortcut_help_entry
 
 
 class WorksheetExportDialog(_BaseExportDialog):
@@ -103,8 +104,8 @@ class WorksheetExportDialog(_BaseExportDialog):
     @staticmethod
     def _build_shortcuts_help_text(allow_mode_selection: bool) -> str:
         first_row = (
-            ("Exportieren", "<Control-e>"),
-            ("Abbrechen", "<Escape>"),
+            ("Exportieren", EXPORT_KEY),
+            ("Abbrechen", CANCEL_KEY),
         )
         if allow_mode_selection:
             first_line = _build_shortcuts_help_text(first_row)
@@ -124,65 +125,26 @@ class WorksheetExportDialog(_BaseExportDialog):
             ),
         )
 
-    def _bind_shortcuts(self):
-        self.window.bind("<Return>", lambda _event: "break")
-        self.window.bind("<KP_Enter>", lambda _event: "break")
-        self.window.bind("<Control-e>", lambda _event: self._confirm_shortcut())
-        self.window.bind("<Escape>", lambda _event: self._cancel())
-        self.window.bind("<KeyPress-question>", lambda _event: self._toggle_shortcuts_help_shortcut())
-
-        if self.allow_mode_selection:
-            self.window.bind("<KeyPress-a>", lambda _event: self._set_mode("worksheet"))
-            self.window.bind("<KeyPress-l>", lambda _event: self._set_mode("solution"))
-            self.window.bind("<KeyPress-b>", lambda _event: self._set_mode("both"))
-            if self.allow_expectation_horizon:
-                self.window.bind("<KeyPress-h>", lambda _event: self._set_mode("expectation"))
-
-        self.window.bind("<KeyPress-d>", lambda _event: self._browse_output_shortcut())
-        self.window.bind("<KeyPress-p>", lambda _event: self._toggle_export_format())
+    def _extra_char_shortcuts(self):
+        """A/L/B (and H with expectation horizon): choose the content, only with mode selection."""
+        if not self.allow_mode_selection:
+            return ()
+        rows = [("a", "worksheet"), ("l", "solution"), ("b", "both")]
+        if self.allow_expectation_horizon:
+            rows.append(("h", "expectation"))
+        return tuple((KeySpec.char(key), f"mode.{mode}", lambda mode=mode: self._set_mode(mode)) for key, mode in rows)
 
     def _set_mode(self, mode):
-        if not self.allow_mode_selection:
-            return "break"
-        if not self._can_handle_char_shortcut():
-            return "break"
-
+        """Select the export content *mode* and adapt the format choice."""
         if self.mode_var.get() != mode:
             self.mode_var.set(mode)
         self._on_mode_changed()
-        return "break"
 
     def _on_mode_changed(self):
         """Erwartungshorizont gibt es nur als PDF oder HTML; die Formatwahl wird angepasst."""
         if self.format_var.get() not in self._allowed_formats():
             self.format_var.set("pdf")
         self._refresh_output_suggestion(force=True)
-
-    def _browse_output_shortcut(self):
-        if not self._can_handle_char_shortcut():
-            return "break"
-
-        self._pick_output()
-        return "break"
-
-    def _toggle_export_format(self):
-        if not self._can_handle_char_shortcut():
-            return "break"
-
-        export_formats = self._allowed_formats()
-        current = self.format_var.get()
-        try:
-            index = export_formats.index(current)
-        except ValueError:
-            index = 0
-        new_value = export_formats[(index + 1) % len(export_formats)]
-        self.format_var.set(new_value)
-        self._refresh_output_suggestion(force=True)
-        return "break"
-
-    def _confirm_shortcut(self):
-        self._confirm()
-        return "break"
 
     def _allowed_formats(self):
         if self.mode_var.get() == "expectation":

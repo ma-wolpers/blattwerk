@@ -7,18 +7,18 @@ from __future__ import annotations
 from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 
 ensure_bw_gui_on_path()
-from bw_gui.runtime import ui
+from bw_gui.contracts.events import EventResult
+from bw_gui.runtime import WindowShortcutBinder, accepts_text_input, ui
 
 
 from .ui_constants import EDITOR_VIEW_BOTH, EDITOR_VIEW_EDITOR_ONLY, EDITOR_VIEW_PREVIEW_ONLY
 from bw_gui.contracts.keybinding import (
-    UI_MODE_DIALOG,
     UI_MODE_EDITOR,
     UI_MODE_GLOBAL,
-    UI_MODE_OFFLINE,
     UI_MODE_PREVIEW,
     KeyBindingDefinition,
     KeybindingRuntimeContext,
+    derive_active_mode,
 )
 from bw_gui.contracts.hsm import ESCAPE_CLOSE_POPUP, ESCAPE_EXIT_INLINE_EDITOR, ESCAPE_POP_PARENT
 from bw_gui.laufkern import aggregate_completion, emit_tracking_artifact, verify_manifest, verify_reachability
@@ -109,26 +109,65 @@ class BlattwerkShortcutRuntimeMixin:
         self.popup_policy_registry.open_popup(popup_id=popup_id, title=popup_title, policy_id=policy_id)
         self._tracked_popup_ids.add(popup_id)
 
-    def _collect_shortcut_runtime_context(self) -> dict[str, object]:
-        """Collect current runtime context used by shortcut resolver and diagnostics."""
+    def _install_window_shortcuts(self) -> None:
+        """Bind every registry definition on a ``WindowShortcutBinder`` of the main window.
+
+        The registry (``self.keybinding_registry``) stays the declarative source for
+        debug overlay, LaufKern manifest and HSM intents; the binder keeps its own
+        internal registry. Gating sources are the same ones the debug overlay uses
+        (:meth:`_shortcut_base_mode`, :meth:`_has_dialog_context`, the offline toggle,
+        bw-gui's text-input contract). An executed shortcut consumes the key.
+        """
+        binder = WindowShortcutBinder(
+            self.root,
+            hsm_contract=self.hsm_contract,
+            dialog_open=self._has_dialog_context,
+            offline=lambda: bool(self.shortcut_debug_offline_var.get()),
+            mode_provider=self._shortcut_base_mode,
+            on_dispatch=self._record_laufkern_intent_dispatch,
+        )
+        for definition in self.keybinding_registry.all():
+            action = definition.handler or (lambda: None)
+
+            def _run(_event, action=action) -> EventResult:
+                action()
+                return EventResult.HANDLED
+
+            binder.bind(
+                definition.keys,
+                _run,
+                binding_id=definition.binding_id,
+                intent=definition.intent,
+                modes=definition.modes,
+                allow_when_text_input=definition.allow_when_text_input,
+                allow_when_offline=definition.allow_when_offline,
+                description=definition.description,
+            )
+        self._window_shortcut_binder = binder
+
+    def _shortcut_base_mode(self) -> str:
+        """Base UI mode without offline/dialog/text overrides: preview focus, editor view or global."""
 
         focused_widget = self.root.focus_get()
-        text_input_focused = self.shortcut_manager._is_text_input_widget(focused_widget)
+        if self._is_widget_descendant_of(focused_widget, getattr(self, "preview_container", None)):
+            return UI_MODE_PREVIEW
+        if self.editor_view_mode_var.get() in {EDITOR_VIEW_BOTH, EDITOR_VIEW_EDITOR_ONLY}:
+            return UI_MODE_EDITOR
+        return UI_MODE_GLOBAL
+
+    def _collect_shortcut_runtime_context(self) -> dict[str, object]:
+        """Collect current runtime context used by shortcut diagnostics (same sources as the binder)."""
+
+        focused_widget = self.root.focus_get()
+        text_input_focused = accepts_text_input(focused_widget)
         dialog_open = self._has_dialog_context()
         offline = bool(self.shortcut_debug_offline_var.get())
-
-        if offline:
-            active_mode = UI_MODE_OFFLINE
-        elif dialog_open:
-            active_mode = UI_MODE_DIALOG
-        elif text_input_focused:
-            active_mode = UI_MODE_EDITOR
-        elif self._is_widget_descendant_of(focused_widget, getattr(self, "preview_container", None)):
-            active_mode = UI_MODE_PREVIEW
-        elif self.editor_view_mode_var.get() in {EDITOR_VIEW_BOTH, EDITOR_VIEW_EDITOR_ONLY}:
-            active_mode = UI_MODE_EDITOR
-        else:
-            active_mode = UI_MODE_GLOBAL
+        active_mode = derive_active_mode(
+            offline=offline,
+            dialog_open=dialog_open,
+            text_input_focused=text_input_focused,
+            base_mode=self._shortcut_base_mode(),
+        )
 
         return {
             "active_mode": active_mode,
@@ -187,14 +226,12 @@ class BlattwerkShortcutRuntimeMixin:
             has_parent_state=has_parent_state,
         )
         if action == ESCAPE_CLOSE_POPUP and self._close_active_popup_on_escape():
-            return "break"
+            return
         if action == ESCAPE_EXIT_INLINE_EDITOR:
             self._close_editor_completion()
-            return "break"
+            return
         if action == ESCAPE_POP_PARENT:
             self._set_editor_view_mode(EDITOR_VIEW_PREVIEW_ONLY)
-            return "break"
-        return "break"
 
     def _evaluate_keybinding_runtime(
         self,

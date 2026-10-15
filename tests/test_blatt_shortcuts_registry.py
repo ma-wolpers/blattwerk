@@ -1,4 +1,5 @@
 from app.ui.blatt_shortcuts import build_preview_keybinding_registry
+from bw_gui.contracts.key_spec import KeySpec
 
 
 class _AnyMethodStubApp:
@@ -20,18 +21,19 @@ class _AnyMethodStubApp:
 def test_preview_keybinding_registry_has_no_sequence_conflicts():
     registry = build_preview_keybinding_registry(_AnyMethodStubApp())
 
-    assert registry.conflicts() == {}
+    assert registry.find_conflicts() == []
 
 
 def test_search_shortcuts_are_freed_up_from_previous_global_bindings():
     registry = build_preview_keybinding_registry(_AnyMethodStubApp())
-    sequences = {definition.binding_id: definition.sequence for definition in registry.all()}
+    keys = {definition.binding_id: definition.keys for definition in registry.all()}
+    all_specs = {spec for specs in keys.values() for spec in specs}
 
     # Strg+F/Strg+H sind fuer Suchen/Ersetzen im Schreibbereich reserviert
     # (editor-lokal gebunden, nicht Teil dieser globalen Registry) --
-    # Schriftprofil/Lernhilfenansicht muessen daher auf andere Sequenzen
+    # Schriftprofil/Lernhilfenansicht muessen daher auf andere Tasten
     # verlegt worden sein.
-    assert sequences["global.cycle_font"] == "<Control-Shift-f>"
-    assert sequences["global.help_preview"] == "<Control-Shift-h>"
-    assert "<Control-f>" not in sequences.values()
-    assert "<Control-h>" not in sequences.values()
+    assert keys["global.cycle_font"] == (KeySpec.parse("Ctrl+Shift+F"),)
+    assert keys["global.help_preview"] == (KeySpec.parse("Ctrl+Shift+H"),)
+    assert KeySpec.parse("Ctrl+F") not in all_specs
+    assert KeySpec.parse("Ctrl+H") not in all_specs

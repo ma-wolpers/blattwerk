@@ -9,7 +9,8 @@ from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 
 ensure_bw_gui_on_path()
 
-from bw_gui.contracts import NO_MODIFIERS, UNKNOWN_MODIFIERS, modifiers_from_event
+from bw_gui.contracts.events import EventResult
+from .local_keys import scroll_or_zoom
 from .ui_constants import (
     CUSTOM_FIT_MODE,
     PREVIEW_CANVAS_PADDING_PX,
@@ -300,53 +301,14 @@ class BlattwerkAppPreviewViewMixin:
                 self._persist_active_document_tab_state()
 
 
-    @staticmethod
-    def _wheel_direction(event):
-            """Liefert +1 für Rad hoch und -1 für Rad runter (plattformübergreifend)."""
-
-            if getattr(event, "num", None) == 4:
-                return 1
-            if getattr(event, "num", None) == 5:
-                return -1
-
-            delta = getattr(event, "delta", 0)
-            if delta > 0:
-                return 1
-            if delta < 0:
-                return -1
-            return 0
-
-
     def _on_preview_mousewheel(self, event):
-            """Mausrad: Strg=Zoom, Shift=horizontal scroll, sonst vertikal scroll."""
+            """Mausrad (``WheelEvent``): Strg=Zoom, Shift=horizontal scroll, sonst vertikal scroll."""
 
-            direction = self._wheel_direction(event)
-            if direction == 0:
-                return "break"
-
-            # Modifier-Semantik aus dem bw-gui-Contract (kein eigenes event.state-Bitraten).
-            # Unbekannter Zustand -> normales Scrollen (beim Mausrad der harmlose Fall).
-            modifiers = modifiers_from_event(event)
-            if modifiers is UNKNOWN_MODIFIERS:
-                modifiers = NO_MODIFIERS
-            shift_pressed = modifiers.shift
-            control_pressed = modifiers.control
-
-            if control_pressed:
-                self.change_zoom(10 if direction > 0 else -10)
-                return "break"
-
-            scroll_units = -direction
-            if shift_pressed:
-                self.preview_canvas.xview_scroll(scroll_units, "units")
-            else:
-                self.preview_canvas.yview_scroll(scroll_units, "units")
-
-            self._update_current_page_from_viewport_center()
-            if hasattr(self, "_persist_active_document_tab_state"):
-                self._persist_active_document_tab_state()
-
-            return "break"
+            if scroll_or_zoom(event, self.preview_canvas, self.change_zoom):
+                self._update_current_page_from_viewport_center()
+                if hasattr(self, "_persist_active_document_tab_state"):
+                    self._persist_active_document_tab_state()
+            return EventResult.HANDLED
 
 
     def reset_zoom(self):

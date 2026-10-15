@@ -13,6 +13,7 @@ from __future__ import annotations
 from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 
 ensure_bw_gui_on_path()
+from bw_gui.contracts.events import EventResult
 from bw_gui.runtime import ui
 
 from ..storage import acknowledged_warnings_store
@@ -38,7 +39,7 @@ class BlattwerkAppEditorDiagnosticsAckMixin:
     def _on_editor_diagnostics_ack_column_click(self, event):
         """Toggles acknowledgment when the checkbox column is clicked.
 
-        Returns `"break"` for such a click so the Treeview's own
+        Returns `HANDLED` for such a click so the Treeview's own
         selection/navigation handling never runs for it -- ticking the box
         must not also jump the cursor to that line.
         """
@@ -53,10 +54,10 @@ class BlattwerkAppEditorDiagnosticsAckMixin:
 
         item = self._editor_diagnostics_by_row_id.get(row_id)
         if item is None or item["severity"] != "warning" or item.get("identity") is None:
-            return "break"
+            return EventResult.HANDLED
 
         self._toggle_editor_diagnostic_acknowledged(row_id, item)
-        return "break"
+        return EventResult.HANDLED
 
     def _toggle_editor_diagnostic_acknowledged(self, row_id, item):
         """Sets/unsets acknowledgment for one row -- shared by the checkbox click and the context menu."""
@@ -123,4 +124,4 @@ class BlattwerkAppEditorDiagnosticsAckMixin:
             menu.tk_popup(event.x_root, event.y_root)
         finally:
             menu.grab_release()
-        return "break"
+        return EventResult.HANDLED
