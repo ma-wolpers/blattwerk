@@ -57,12 +57,12 @@ class _DummyEditor(BlattwerkAppEditorMixin):
 def test_no_tables_leaves_document_untouched_and_shows_info(monkeypatch):
     info_calls = []
     monkeypatch.setattr(
-        "app.ui.blatt_ui_editor.messagebox.showinfo",
+        "app.ui.blatt_ui_editor_view.messagebox.showinfo",
         lambda title, message: info_calls.append((title, message)),
     )
     warning_calls = []
     monkeypatch.setattr(
-        "app.ui.blatt_ui_editor.messagebox.showwarning",
+        "app.ui.blatt_ui_editor_view.messagebox.showwarning",
         lambda title, message: warning_calls.append((title, message)),
     )
 
@@ -78,12 +78,12 @@ def test_no_tables_leaves_document_untouched_and_shows_info(monkeypatch):
 def test_all_tables_skipped_leaves_document_untouched_and_shows_warning(monkeypatch):
     info_calls = []
     monkeypatch.setattr(
-        "app.ui.blatt_ui_editor.messagebox.showinfo",
+        "app.ui.blatt_ui_editor_view.messagebox.showinfo",
         lambda title, message: info_calls.append((title, message)),
     )
     warning_calls = []
     monkeypatch.setattr(
-        "app.ui.blatt_ui_editor.messagebox.showwarning",
+        "app.ui.blatt_ui_editor_view.messagebox.showwarning",
         lambda title, message: warning_calls.append((title, message)),
     )
 
@@ -101,8 +101,8 @@ def test_all_tables_skipped_leaves_document_untouched_and_shows_warning(monkeypa
 
 
 def test_successful_conversion_is_a_single_undo_group_and_updates_status(monkeypatch):
-    monkeypatch.setattr("app.ui.blatt_ui_editor.messagebox.showinfo", lambda *a, **k: None)
-    monkeypatch.setattr("app.ui.blatt_ui_editor.messagebox.showwarning", lambda *a, **k: None)
+    monkeypatch.setattr("app.ui.blatt_ui_editor_view.messagebox.showinfo", lambda *a, **k: None)
+    monkeypatch.setattr("app.ui.blatt_ui_editor_view.messagebox.showwarning", lambda *a, **k: None)
 
     text = "| A | B |\n| --- | --- |\n| 1 | 2 |\n"
     editor = _DummyEditor(text)
@@ -119,8 +119,8 @@ def test_successful_conversion_is_a_single_undo_group_and_updates_status(monkeyp
 
 
 def test_autoseparators_restored_even_if_insert_raises(monkeypatch):
-    monkeypatch.setattr("app.ui.blatt_ui_editor.messagebox.showinfo", lambda *a, **k: None)
-    monkeypatch.setattr("app.ui.blatt_ui_editor.messagebox.showwarning", lambda *a, **k: None)
+    monkeypatch.setattr("app.ui.blatt_ui_editor_view.messagebox.showinfo", lambda *a, **k: None)
+    monkeypatch.setattr("app.ui.blatt_ui_editor_view.messagebox.showwarning", lambda *a, **k: None)
 
     text = "| A | B |\n| --- | --- |\n| 1 | 2 |\n"
     editor = _DummyEditor(text, raise_on_insert=True)
