@@ -8,6 +8,7 @@ The format is based on Keep a Changelog.
 
 ### Changed
 
+- Tastenkürzel mit Strg gelten genau für die angegebene Kombination (z. B. löst Strg+Alt+E keinen Export mehr aus). Ziffern- und Plus/Minus-Kürzel wirken auch auf dem Ziffernblock. Mausrad und Touchpad scrollen bzw. zoomen in ganzen Rasten; kleine Touchpad-Bewegungen sammeln sich. Ein Klick in die Gliederung oder Diagnose springt schon beim Drücken der Maustaste.
 - **Neue mitgelieferte Schriften:** Comic Neue, Andika, Fredoka, Patrick Hand, Indie Flower, Gloria Hallelujah und Short Stack (freie OFL-Lizenz, Lizenztexte unter `assets/fonts/`) stehen im Schriftmenü zur Wahl und sehen in Vorschau, PDF und HTML auf jedem Rechner gleich aus.
 - **Die Schrift gehört jetzt zum Dokument:** Die Wahl im Schriftmenü (und `Strg+Shift+F`) wird als `font_profile` im Frontmatter gespeichert und hat Vorrang vor der App-Einstellung; `Standard (App-Einstellung)` entfernt den Eintrag. Ein unbekannter Wert ergibt die Warnung `FM012`.
 - **Neues Seitenformat „A4 quer“** für Arbeitsblätter und Klausuren (Vorschau-Leiste, Export und *Einstellungen → Export Seitenformat*). Kopf- und Fußzeile erscheinen dabei so groß wie bei A4 hoch.
@@ -62,6 +63,8 @@ The format is based on Keep a Changelog.
 - Einstellung „Arbeits-Emoji standardmäßig sichtbar“: entfällt. Dokumente ohne Sozialform-Symbole legst du als Klausur (`.kbw`) an.
 
 ### Fixed
+- Im Exportdialog lösen D, P, A, L, B, K und ? beim Tippen in einem Eingabefeld nicht mehr aus.
+- Strg+Umschalt+H (Lernhilfenansicht), Strg+Umschalt+S (Speichern unter), Strg+Umschalt+F (Schriftprofil) sowie Strg+Umschalt+D/O funktionieren jetzt ohne eingeschaltete Feststelltaste; umgekehrt bremst die Feststelltaste die Einbuchstaben-Kürzel (S, F, K, O, Z …) nicht mehr aus.
 - Der Tooltip der Farbprofil-Felder bleibt auf Mehrschirm-Systemen auf dem Monitor des Mauszeigers und oberhalb der Taskleiste.
 
 - Geometry: Der Name der y-Achse (z. B. `axis_label_y="v in km/h"`) stand bisher nach rechts über die Achse hinaus, weil eine CSS-Regel seine Ausrichtung überschrieb. Er steht jetzt wie vorgesehen links neben der Achse und endet an der Pfeilspitze (gilt auch mit `labels=fixed`).

@@ -12,8 +12,7 @@ from bw_gui.runtime import AppShellConfig
 
 from app.app_info import APP_INFO
 from app.bootstrap.wiring import AppDependencies
-from .blatt_shortcuts import build_preview_keybinding_registry, build_preview_shortcuts
-from .shortcut_manager import ShortcutManager
+from .blatt_shortcuts import build_preview_keybinding_registry
 from .ui_constants import EDITOR_DOCUMENT_NOT_LOADED, EDITOR_VIEW_PREVIEW_ONLY, VIEW_FIT_WIDTH, VIEW_LAYOUT_SINGLE
 from bw_gui.contracts.hsm import build_ui_hsm_contract
 from bw_gui.contracts.popup import POPUP_KIND_MODAL, POPUP_KIND_NON_MODAL, PopupPolicy, PopupPolicyRegistry
@@ -168,12 +167,10 @@ class BlattwerkAppBase(
         self.recent_files = []
         self.recent_menu = None
         self.ui_settings = {}
-        self.shortcut_manager = ShortcutManager(self.root)
         self.keybinding_registry = build_preview_keybinding_registry(self)
         self.hsm_contract = build_ui_hsm_contract(
             intents=[definition.intent for definition in self.keybinding_registry.all()]
         )
-        self.shortcut_bindings = build_preview_shortcuts(self, registry=self.keybinding_registry)
         self.shortcut_debug_enabled_var = ui.BooleanVar(value=False)
         self.shortcut_debug_offline_var = ui.BooleanVar(value=False)
         self.shortcut_debug_context_var = ui.StringVar(value="")
@@ -322,6 +319,6 @@ class BlattwerkAppBase(
         if not bool(preferences.get("shortcuts_preview_group_enabled", True)):
             return
 
-        self.shortcut_manager.bind_all(self.shortcut_bindings)
+        self._install_window_shortcuts()
 
 

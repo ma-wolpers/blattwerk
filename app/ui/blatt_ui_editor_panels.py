@@ -18,7 +18,7 @@ from __future__ import annotations
 from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 
 ensure_bw_gui_on_path()
-from bw_gui.runtime import ui, widgets
+from bw_gui.runtime import bind_click, ui, widgets
 from bw_gui.widgets import CollapsibleSection
 
 EDITOR_PANELS_SETTINGS_KEY = "editor_panels_collapsed"
@@ -89,7 +89,7 @@ class BlattwerkEditorPanelsMixin:
         )
         self.editor_outline_listbox.grid(row=0, column=0, sticky="nsew", padx=(8, 0), pady=(6, 8))
         self.editor_outline_listbox.bind("<<ListboxSelect>>", self._on_editor_outline_selected)
-        self.editor_outline_listbox.bind("<ButtonRelease-1>", self._on_editor_outline_click)
+        bind_click(self.editor_outline_listbox, self._on_editor_outline_click)
 
         outline_scrollbar = widgets.Scrollbar(
             outline_frame,

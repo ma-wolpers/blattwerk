@@ -20,8 +20,6 @@ class UiIntent:
     PREVIEW_LAYOUT_STACK = "preview.layout_stack"
     PREVIEW_ZOOM_OUT = "preview.zoom_out"
     PREVIEW_ZOOM_IN = "preview.zoom_in"
-    PREVIEW_ZOOM_OUT_NUMPAD = "preview.zoom_out_numpad"
-    PREVIEW_ZOOM_IN_NUMPAD = "preview.zoom_in_numpad"
     PREVIEW_TOGGLE_MODE = "preview.toggle_mode"
     PREVIEW_REFRESH = "preview.refresh"
 

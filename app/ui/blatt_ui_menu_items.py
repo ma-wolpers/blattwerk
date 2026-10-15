@@ -1,27 +1,22 @@
-"""Menueleiste: Menuemodell (Datei, Extras, Ansicht, Shortcuts) fuer die bw-gui-Menueleiste.
-"""
+"""Menümodell der Hauptansicht: Datei-, Ansicht-, Extras- und Kürzel-Einträge (BlattwerkApp-Mixin).
+
+Aus ``blatt_ui_style.py`` ausgelagert (300-Zeilen-Regel), Methoden unverändert; beim
+Zusammenführen mit der Style-Zerlegung kam ``_iter_shortcut_menu_labels`` (einziger Nutzer:
+``_menu_shortcuts_items``) hierher."""
 
 from __future__ import annotations
 
-from .ui_constants import (
-    EDITOR_VIEW_BOTH,
-    EDITOR_VIEW_EDITOR_ONLY,
-    EDITOR_VIEW_PREVIEW_ONLY,
-    VIEW_FIT_PAGE,
-    VIEW_FIT_WIDTH,
-    VIEW_LAYOUT_SINGLE,
-    VIEW_LAYOUT_STACK,
-    VIEW_LAYOUT_STRIP,
-)
 from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 
 ensure_bw_gui_on_path()
-
 from bw_gui.menu import MenuItem as SharedMenuItem
 
+from .blatt_shortcuts import iter_menu_labels
+from .ui_constants import EDITOR_VIEW_BOTH, EDITOR_VIEW_EDITOR_ONLY, EDITOR_VIEW_PREVIEW_ONLY, VIEW_FIT_PAGE, VIEW_FIT_WIDTH, VIEW_LAYOUT_SINGLE, VIEW_LAYOUT_STACK, VIEW_LAYOUT_STRIP
 
-class BlattwerkAppStyleMenuMixin:
-    """Baut das Menuemodell der Hauptfensters."""
+
+class BlattwerkAppMenuItemsMixin:
+    """Menümodell der Hauptansicht: Datei-, Ansicht-, Extras- und Kürzel-Einträge (BlattwerkApp-Mixin)."""
 
     def _to_shared_menu_items(self, items: list[dict]):
             """Convert local dict-based menu rows into shared menu item objects."""
@@ -188,4 +183,4 @@ class BlattwerkAppStyleMenuMixin:
             if not bool(preferences.get("shortcuts_menu_hints_visible", True)):
                 return
 
-            yield from self.shortcut_manager.iter_menu_labels(self.shortcut_bindings)
+            yield from iter_menu_labels(self.keybinding_registry.all())

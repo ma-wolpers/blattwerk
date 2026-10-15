@@ -77,7 +77,7 @@ def _check_shared_ui_contract_hardening(errors: list[str]) -> None:
     export_module = _read(export_base_path)
     for snippet in (
         "from bw_gui.shortcuts import compose_hover_text as compose_shared_hover_text",
-        "merged = compose_shared_hover_text(desc, sequence)",
+        "merged = compose_shared_hover_text(desc, shortcut)",
     ):
         _require_substring(export_module, snippet, export_base_path, errors)
 

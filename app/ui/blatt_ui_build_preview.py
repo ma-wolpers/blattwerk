@@ -8,7 +8,7 @@ from __future__ import annotations
 from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 
 ensure_bw_gui_on_path()
-from bw_gui.runtime import ui, widgets
+from bw_gui.runtime import bind_click, bind_wheel, ui, widgets
 from bw_gui.widgets import Switch
 
 from .blatt_ui_document_font import APP_DEFAULT_FONT_CHOICE
@@ -192,7 +192,7 @@ class BlattwerkPreviewBuildMixin:
                 cursor="hand2",
             )
             swatch.pack(side="left", padx=(6, 0))
-            swatch.bind("<Button-1>", lambda _event, key=profile_key: self._set_color_profile(key))
+            bind_click(swatch, lambda _event, key=profile_key: self._set_color_profile(key))
             swatch.bind("<Enter>", lambda event, key=profile_key: self._on_color_profile_swatch_enter(event, key))
             swatch.bind("<Leave>", self._on_color_profile_swatch_leave)
             self._color_profile_swatches[profile_key] = swatch
@@ -324,15 +324,5 @@ class BlattwerkPreviewBuildMixin:
         )
 
         self.preview_canvas.bind("<Configure>", self._on_canvas_resize)
-        self.preview_canvas.bind("<Button-1>", lambda _event: self.preview_canvas.focus_set())
-        self.preview_canvas.bind("<MouseWheel>", self._on_preview_mousewheel)
-        self.preview_canvas.bind("<Shift-MouseWheel>", self._on_preview_mousewheel)
-        self.preview_canvas.bind("<Control-MouseWheel>", self._on_preview_mousewheel)
-
-        # Linux/X11 Fallbacks
-        self.preview_canvas.bind("<Button-4>", self._on_preview_mousewheel)
-        self.preview_canvas.bind("<Button-5>", self._on_preview_mousewheel)
-        self.preview_canvas.bind("<Shift-Button-4>", self._on_preview_mousewheel)
-        self.preview_canvas.bind("<Shift-Button-5>", self._on_preview_mousewheel)
-        self.preview_canvas.bind("<Control-Button-4>", self._on_preview_mousewheel)
-        self.preview_canvas.bind("<Control-Button-5>", self._on_preview_mousewheel)
+        bind_click(self.preview_canvas, lambda _event: self.preview_canvas.focus_set())
+        bind_wheel(self.preview_canvas, self._on_preview_mousewheel)  # X11-Rad (Buttons 4/5) inklusive

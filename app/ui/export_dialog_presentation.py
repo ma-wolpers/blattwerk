@@ -6,13 +6,14 @@ from pathlib import Path
 from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 
 ensure_bw_gui_on_path()
+from bw_gui.contracts.key_spec import KeySpec
 from bw_gui.runtime import ui, widgets
 from bw_gui.widgets import Checkbox
 
 from ..core.blatt_kern_pptx_export_editable import is_editable_pptx_available
 from .dialog_services import filedialog, messagebox
 from .ui_theme import get_theme
-from .export_dialog_base import _BaseExportDialog, _build_shortcuts_help_text
+from .export_dialog_base import CANCEL_KEY, EXPORT_KEY, _BaseExportDialog, _build_shortcuts_help_text
 
 
 class PresentationExportDialog(_BaseExportDialog):
@@ -118,8 +119,8 @@ class PresentationExportDialog(_BaseExportDialog):
     def _build_shortcuts_help_text() -> str:
         return _build_shortcuts_help_text(
             (
-                ("Exportieren", "<Control-e>"),
-                ("Abbrechen", "<Escape>"),
+                ("Exportieren", EXPORT_KEY),
+                ("Abbrechen", CANCEL_KEY),
             ),
             (
                 ("Format wechseln", "P"),
@@ -128,52 +129,13 @@ class PresentationExportDialog(_BaseExportDialog):
             ),
         )
 
-    def _bind_shortcuts(self):
-        self.window.bind("<Return>", lambda _event: "break")
-        self.window.bind("<KP_Enter>", lambda _event: "break")
-        self.window.bind("<Control-e>", lambda _event: self._confirm_shortcut())
-        self.window.bind("<Escape>", lambda _event: self._cancel())
-        self.window.bind("<KeyPress-question>", lambda _event: self._toggle_shortcuts_help_shortcut())
-        self.window.bind("<KeyPress-d>", lambda _event: self._browse_output_shortcut())
-        self.window.bind("<KeyPress-p>", lambda _event: self._toggle_export_format())
-        self.window.bind("<KeyPress-k>", lambda _event: self._set_black_screen_both())
-
     @staticmethod
     def _allowed_formats():
         return ["pdf", "pptx", "png", "pngzip", "html"]
 
-    def _set_black_screen_both(self):
-        if not self._can_handle_char_shortcut():
-            return "break"
-
-        self.black_screen_var.set("both")
-        return "break"
-
-    def _browse_output_shortcut(self):
-        if not self._can_handle_char_shortcut():
-            return "break"
-
-        self._pick_output()
-        return "break"
-
-    def _toggle_export_format(self):
-        if not self._can_handle_char_shortcut():
-            return "break"
-
-        export_formats = self._allowed_formats()
-        current = self.format_var.get()
-        try:
-            index = export_formats.index(current)
-        except ValueError:
-            index = 0
-        new_value = export_formats[(index + 1) % len(export_formats)]
-        self.format_var.set(new_value)
-        self._refresh_output_suggestion(force=True)
-        return "break"
-
-    def _confirm_shortcut(self):
-        self._confirm()
-        return "break"
+    def _extra_char_shortcuts(self):
+        """K: Black-Screen beides."""
+        return ((KeySpec.char("k"), "black_both", lambda: self.black_screen_var.set("both")),)
 
     def _extension(self):
         selected_format = self.format_var.get()

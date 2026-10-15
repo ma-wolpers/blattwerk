@@ -11,7 +11,7 @@ from bw_gui.widgets import Checkbox
 
 from .dialog_services import filedialog, messagebox
 from .ui_theme import get_theme
-from .export_dialog_base import _BaseExportDialog, _build_shortcuts_help_text
+from .export_dialog_base import CANCEL_KEY, EXPORT_KEY, _BaseExportDialog, _build_shortcuts_help_text
 
 
 class LernhilfenExportDialog(_BaseExportDialog):
@@ -81,8 +81,8 @@ class LernhilfenExportDialog(_BaseExportDialog):
             justify="left",
             text=_build_shortcuts_help_text(
                 (
-                    ("Exportieren", "<Control-e>"),
-                    ("Abbrechen", "<Escape>"),
+                    ("Exportieren", EXPORT_KEY),
+                    ("Abbrechen", CANCEL_KEY),
                 ),
                 (
                     ("Format wechseln", "P"),
@@ -94,43 +94,8 @@ class LernhilfenExportDialog(_BaseExportDialog):
         self._set_shortcuts_help_visible(False)
         self.window.configure(bg=theme["bg_main"])
 
-    def _bind_shortcuts(self):
-        self.window.bind("<Return>", lambda _event: "break")
-        self.window.bind("<KP_Enter>", lambda _event: "break")
-        self.window.bind("<Control-e>", lambda _event: self._confirm_shortcut())
-        self.window.bind("<Escape>", lambda _event: self._cancel())
-        self.window.bind("<KeyPress-question>", lambda _event: self._toggle_shortcuts_help_shortcut())
-        self.window.bind("<KeyPress-d>", lambda _event: self._browse_output_shortcut())
-        self.window.bind("<KeyPress-p>", lambda _event: self._toggle_export_format())
-
     def _allowed_formats(self):
         return ["pdf", "png", "pngzip"]
-
-    def _browse_output_shortcut(self):
-        if not self._can_handle_char_shortcut():
-            return "break"
-
-        self._pick_output()
-        return "break"
-
-    def _toggle_export_format(self):
-        if not self._can_handle_char_shortcut():
-            return "break"
-
-        export_formats = self._allowed_formats()
-        current = self.format_var.get()
-        try:
-            index = export_formats.index(current)
-        except ValueError:
-            index = 0
-        new_value = export_formats[(index + 1) % len(export_formats)]
-        self.format_var.set(new_value)
-        self._refresh_output_suggestion(force=True)
-        return "break"
-
-    def _confirm_shortcut(self):
-        self._confirm()
-        return "break"
 
     def _extension(self):
         if self.allow_all_tabs_export and bool(self.export_all_tabs_var.get()):
