@@ -5,7 +5,7 @@ from __future__ import annotations
 from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 
 ensure_bw_gui_on_path()
-from bw_gui.runtime import ui, widgets
+from bw_gui.runtime import on_tab_changed, ui, widgets
 from bw_gui.widgets import ScrollableFrame
 
 _TAB_SCAN_STEP_PX = 2
@@ -48,8 +48,8 @@ class BlattwerkAppTabStripMixin:
 
         self.document_notebook = widgets.Notebook(self.document_tab_strip.content, style="ControlStrip.TNotebook")
         self.document_notebook.pack(side="left")
-        self.document_notebook.bind("<<NotebookTabChanged>>", self._on_document_tab_changed)
-        self.document_notebook.bind("<<NotebookTabChanged>>", self._schedule_scroll_active_tab_into_view, add="+")
+        on_tab_changed(self.document_notebook, self._on_document_tab_changed)
+        on_tab_changed(self.document_notebook, self._schedule_scroll_active_tab_into_view)
 
     def _document_tab_x_range(self, tab_index: int) -> tuple[int, int] | None:
         """Return the ``(left, right)`` x-span of a tab in notebook coordinates.

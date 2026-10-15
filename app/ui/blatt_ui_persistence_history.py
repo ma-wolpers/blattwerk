@@ -147,7 +147,11 @@ class BlattwerkAppPersistenceHistoryMixin:
 
             if getattr(self, "root", None) is None:
                 return
-            self.root.bind("<Configure>", self._on_root_configure_for_geometry, add="+")
+            from bw_gui.runtime import on_resize
+
+            # Geometrie des Hauptfensters selbst (Groesse/Position); frueher sah das Root-Binding
+            # auch jedes Konfigurieren eines Nachfahren und stiess nur ueberfluessige Speicherungen an.
+            on_resize(self.root, self._on_root_configure_for_geometry)
 
 
     def _on_root_configure_for_geometry(self, _event=None):

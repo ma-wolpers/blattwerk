@@ -12,7 +12,7 @@ import shutil
 from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 
 ensure_bw_gui_on_path()
-from bw_gui.runtime import ui, widgets
+from bw_gui.runtime import reset_text_modified, ui, widgets
 
 from .dialog_services import messagebox
 from .ui_constants import EDITOR_DOCUMENT_LOADED, EDITOR_DOCUMENT_LOADING, EDITOR_DOCUMENT_NOT_LOADED
@@ -119,7 +119,7 @@ class BlattwerkAppEditorSourceMixin:
 
         with self._editor_widget_unlocked_for_mutation():
             self.editor_widget.delete("1.0", "end")
-            self.editor_widget.edit_modified(False)
+            reset_text_modified(self.editor_widget)
         self._editor_last_loaded_path = None
         self._editor_last_known_source_path = None
         self._editor_last_known_source_mtime_ns = None
@@ -189,7 +189,7 @@ class BlattwerkAppEditorSourceMixin:
             with self._editor_widget_unlocked_for_mutation():
                 self.editor_widget.delete("1.0", "end")
                 self.editor_widget.insert("1.0", content)
-                self.editor_widget.edit_modified(False)
+                reset_text_modified(self.editor_widget)
 
             # Ab hier ist alles Vorbereitete UND die Widget-Mutation
             # erfolgreich abgeschlossen -- gemeinsamer, unterbrechungsfreier
@@ -434,19 +434,14 @@ class BlattwerkAppEditorSourceMixin:
         self.refresh_preview(force_rebuild=force_rebuild)
 
     def _on_editor_modified(self, _event=None):
-        """Schedules a debounced save after user edits."""
+        """Schedules a debounced save after user edits (``on_text_modified``: flag check and reset are bw-gui's)."""
 
         if self.editor_widget is None:
             return
 
         if self._editor_loading_content:
-            self.editor_widget.edit_modified(False)
             return
 
-        if not self.editor_widget.edit_modified():
-            return
-
-        self.editor_widget.edit_modified(False)
         became_dirty = not self._editor_has_unsaved_changes
         self._editor_has_unsaved_changes = True
         self.status_var.set("Ungespeichert")

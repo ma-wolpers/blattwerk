@@ -7,7 +7,7 @@ from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 ensure_bw_gui_on_path()
 from bw_gui.contracts.events import EventResult
 from bw_gui.contracts.key_spec import KeySpec
-from bw_gui.runtime import WindowShortcutBinder, bind_click, bind_wheel, ui, widgets
+from bw_gui.runtime import WindowShortcutBinder, bind_click, bind_wheel, on_resize, ui, widgets
 
 
 from .local_keys import bind_actions, scroll_or_zoom
@@ -164,7 +164,7 @@ class BlattwerkAppHelpPreviewMixin(BlattwerkAppHelpPreviewRenderMixin):
             font=("Segoe UI", 10),
         )
 
-        canvas.bind("<Configure>", self._on_help_canvas_resize)
+        on_resize(canvas, self._on_help_canvas_resize)
         bind_click(canvas, lambda _event: canvas.focus_set())
         bind_wheel(canvas, self._on_help_mousewheel)
 

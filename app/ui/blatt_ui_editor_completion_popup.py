@@ -18,7 +18,7 @@ from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 ensure_bw_gui_on_path()
 from bw_gui.contracts.events import EventResult
 from bw_gui.contracts.key_spec import KeySpec
-from bw_gui.runtime import WidgetShortcutBinder, bind_click, ui, widgets
+from bw_gui.runtime import WidgetShortcutBinder, bind_click, bind_hover, listbox_selection, on_listbox_select, ui, widgets
 from bw_gui.runtime.overlay_stack import OverlayCategory, register_overlay
 
 from .local_keys import bind_actions
@@ -42,8 +42,7 @@ class BlattwerkAppEditorCompletionPopupMixin:
         selection = self._editor_completion_listbox.curselection()
         current = selection[0] if selection else 0
         new_index = max(0, current - 1)
-        self._editor_completion_listbox.selection_clear(0, "end")
-        self._editor_completion_listbox.selection_set(new_index)
+        listbox_selection.set(self._editor_completion_listbox, [new_index])
         self._editor_completion_listbox.activate(new_index)
         self._editor_completion_listbox.see(new_index)
         self._update_editor_completion_detail_panel()
@@ -59,8 +58,7 @@ class BlattwerkAppEditorCompletionPopupMixin:
         current = selection[0] if selection else 0
         max_index = max(0, len(self._editor_completion_items) - 1)
         new_index = min(max_index, current + 1)
-        self._editor_completion_listbox.selection_clear(0, "end")
-        self._editor_completion_listbox.selection_set(new_index)
+        listbox_selection.set(self._editor_completion_listbox, [new_index])
         self._editor_completion_listbox.activate(new_index)
         self._editor_completion_listbox.see(new_index)
         self._update_editor_completion_detail_panel()
@@ -149,8 +147,8 @@ class BlattwerkAppEditorCompletionPopupMixin:
                 text=True,
                 prefix="completion_list",
             )
-            listbox.bind("<<ListboxSelect>>", self._on_editor_completion_selection_changed)
-            listbox.bind("<Motion>", self._on_editor_completion_hover)
+            on_listbox_select(listbox, self._on_editor_completion_selection_changed)
+            bind_hover(listbox, on_motion=self._on_editor_completion_hover)
 
             detail_column = ui.Frame(content_row)
             # Not packed here -- `_update_editor_completion_detail_panel` packs
@@ -204,8 +202,7 @@ class BlattwerkAppEditorCompletionPopupMixin:
         for item in self._editor_completion_items:
             self._editor_completion_listbox.insert("end", item["label"])
 
-        self._editor_completion_listbox.selection_clear(0, "end")
-        self._editor_completion_listbox.selection_set(0)
+        listbox_selection.set(self._editor_completion_listbox, [0])
         self._editor_completion_listbox.activate(0)
         self._update_editor_completion_detail_panel()
 
@@ -385,8 +382,7 @@ class BlattwerkAppEditorCompletionPopupMixin:
         if listbox.curselection() == (index,):
             return
 
-        listbox.selection_clear(0, "end")
-        listbox.selection_set(index)
+        listbox_selection.set(listbox, [index])
         listbox.activate(index)
         self._update_editor_completion_detail_panel()
 

@@ -8,7 +8,7 @@ from __future__ import annotations
 from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 
 ensure_bw_gui_on_path()
-from bw_gui.runtime import bind_click, bind_wheel, ui, widgets
+from bw_gui.runtime import bind_click, bind_hover, bind_wheel, on_combobox_select, on_resize, ui, widgets
 from bw_gui.widgets import Switch
 
 from .ui_theme import get_theme
@@ -205,8 +205,11 @@ class BlattwerkPreviewBuildMixin:
             )
             swatch.pack(side="left", padx=(6, 0))
             bind_click(swatch, lambda _event, key=profile_key: self._set_color_profile(key))
-            swatch.bind("<Enter>", lambda event, key=profile_key: self._on_color_profile_swatch_enter(event, key))
-            swatch.bind("<Leave>", self._on_color_profile_swatch_leave)
+            bind_hover(
+                swatch,
+                on_enter=lambda event, key=profile_key: self._on_color_profile_swatch_enter(event, key),
+                on_leave=self._on_color_profile_swatch_leave,
+            )
             self._color_profile_swatches[profile_key] = swatch
 
         self._refresh_color_profile_swatches()
@@ -238,7 +241,7 @@ class BlattwerkPreviewBuildMixin:
         )
         self.font_size_profile_combo.pack(side="left", padx=(8, 0))
         self._sync_font_size_profile_combo()
-        self.font_size_profile_combo.bind("<<ComboboxSelected>>", self._on_font_size_profile_selected)
+        on_combobox_select(self.font_size_profile_combo, self._on_font_size_profile_selected)
 
         self._register_responsive_section(
             container=design_section,
@@ -328,6 +331,6 @@ class BlattwerkPreviewBuildMixin:
             font=("Segoe UI", 11),
         )
 
-        self.preview_canvas.bind("<Configure>", self._on_canvas_resize)
+        on_resize(self.preview_canvas, self._on_canvas_resize)
         bind_click(self.preview_canvas, lambda _event: self.preview_canvas.focus_set())
         bind_wheel(self.preview_canvas, self._on_preview_mousewheel)  # X11-Rad (Buttons 4/5) inklusive
