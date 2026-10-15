@@ -35,6 +35,7 @@ ensure_bw_gui_on_path()
 from bw_gui.contracts.screen_geometry import Rect, Side
 from bw_gui.runtime.screen_placement import place_overlay_now
 from bw_gui.runtime import ui, widgets
+from bw_gui.runtime.overlay_stack import OverlayCategory, register_overlay
 from .blatt_ui_menu_items import BlattwerkAppMenuItemsMixin
 
 BW_COLOR_PROFILE_KEYS = {"bw"}
@@ -258,6 +259,8 @@ class BlattwerkAppStyleMixin(BlattwerkAppMenuItemsMixin):
                 return
 
             tooltip = ui.Toplevel(self.root)
+            # Tooltip: sperrt nie Kuerzel (der fruehere Scan zaehlte ihn zufaellig als Dialog).
+            register_overlay(tooltip, OverlayCategory.TRANSIENT, toplevel=tooltip)
             tooltip.overrideredirect(True)
 
             label = widgets.Label(

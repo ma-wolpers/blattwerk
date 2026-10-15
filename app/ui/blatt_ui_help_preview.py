@@ -66,6 +66,7 @@ class BlattwerkAppHelpPreviewMixin(BlattwerkAppHelpPreviewRenderMixin):
             return
 
         window = ui.Toplevel(self.root)
+        self._register_popup_window(window)  # blockierte als sichtbares Root-Kind schon frueher
         window.title("Lernhilfen Vorschau")
         window.geometry("700x560")
         window.minsize(460, 360)

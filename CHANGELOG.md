@@ -60,6 +60,7 @@ The format is based on Keep a Changelog.
 - Einstellung „Arbeits-Emoji standardmäßig sichtbar“: entfällt. Dokumente ohne Sozialform-Symbole legst du als Klausur (`.kbw`) an.
 
 ### Fixed
+- Beim Überfahren eines Farbprofil-Felds mit der Maus waren alle Tastenkürzel gesperrt, solange der kleine Hinweis zum Farbprofil sichtbar war. Kürzel funktionieren jetzt auch dann.
 - Im Exportdialog lösen D, P, A, L, B, K und ? beim Tippen in einem Eingabefeld nicht mehr aus.
 - Strg+Umschalt+H (Lernhilfenansicht), Strg+Umschalt+S (Speichern unter), Strg+Umschalt+F (Schriftprofil) sowie Strg+Umschalt+D/O funktionieren jetzt ohne eingeschaltete Feststelltaste; umgekehrt bremst die Feststelltaste die Einbuchstaben-Kürzel (S, F, K, O, Z …) nicht mehr aus.
 - Der Tooltip der Farbprofil-Felder bleibt auf Mehrschirm-Systemen auf dem Monitor des Mauszeigers und oberhalb der Taskleiste.

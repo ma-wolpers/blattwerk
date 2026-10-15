@@ -65,7 +65,7 @@ class BlattwerkAppHelpDocsMixin:
         window.title("Dokumentation")
         window.geometry("1000x680")
         window.minsize(760, 480)
-        self._track_popup_window(window, policy_id="dialog.non_blocking")
+        self._register_popup_window(window, blocking_shortcuts=False)
         window.protocol("WM_DELETE_WINDOW", self._close_help_docs_window)
 
         body = widgets.Frame(window, padding=10)

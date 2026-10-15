@@ -15,7 +15,6 @@ from app.bootstrap.wiring import AppDependencies
 from .blatt_shortcuts import build_preview_keybinding_registry
 from .ui_constants import EDITOR_DOCUMENT_NOT_LOADED, EDITOR_VIEW_PREVIEW_ONLY, VIEW_FIT_WIDTH, VIEW_LAYOUT_SINGLE
 from bw_gui.contracts.hsm import build_ui_hsm_contract
-from bw_gui.contracts.popup import POPUP_KIND_MODAL, POPUP_KIND_NON_MODAL, PopupPolicy, PopupPolicyRegistry
 from .ui_theme import DEFAULT_THEME
 from ..styles.blatt_styles import DEFAULT_FONT_PROFILE, DEFAULT_FONT_SIZE_PROFILE
 from ..styles.worksheet_design import DEFAULT_COLOR_PROFILE
@@ -182,17 +181,6 @@ class BlattwerkAppBase(
         self._laufkern_tracking_sequence = 0
         self._laufkern_tracking_step_ids: dict[str, str] = {}
         self._laufkern_tracking_artifacts = []
-        self.popup_policy_registry = PopupPolicyRegistry()
-        self.popup_policy_registry.register_policy(PopupPolicy(policy_id="dialog.modal", kind=POPUP_KIND_MODAL))
-        self.popup_policy_registry.register_policy(
-            PopupPolicy(
-                policy_id="dialog.non_blocking",
-                kind=POPUP_KIND_NON_MODAL,
-                trap_focus=False,
-                affects_mode=False,
-            )
-        )
-        self._tracked_popup_ids: set[str] = set()
         self._color_profile_swatches = {}
         self._hovered_color_profile = None
         self._swatch_tooltip = None

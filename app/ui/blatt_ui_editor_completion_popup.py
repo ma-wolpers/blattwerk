@@ -19,6 +19,7 @@ ensure_bw_gui_on_path()
 from bw_gui.contracts.events import EventResult
 from bw_gui.contracts.key_spec import KeySpec
 from bw_gui.runtime import WidgetShortcutBinder, bind_click, ui, widgets
+from bw_gui.runtime.overlay_stack import OverlayCategory, register_overlay
 
 from .local_keys import bind_actions
 
@@ -218,6 +219,13 @@ class BlattwerkAppEditorCompletionPopupMixin:
         self._editor_completion_popup.geometry(f"+{x}+{y}")
         self._editor_completion_popup.deiconify()
         self._editor_completion_popup.lift()
+        # Aufklappliste: zaehlt nur, solange sie sichtbar ist (das Popup wird versteckt und
+        # wiederverwendet), als Menue -- wie frueher im Scan der sichtbaren Root-Kinder.
+        overlay = getattr(self, "_editor_completion_overlay", None)
+        if overlay is None or not overlay.active:
+            self._editor_completion_overlay = register_overlay(
+                self._editor_completion_popup, OverlayCategory.MENU, toplevel=self._editor_completion_popup
+            )
 
     def _on_editor_completion_accept(self, _event=None):
         """Applies currently selected completion entry to the editor text."""
@@ -317,6 +325,9 @@ class BlattwerkAppEditorCompletionPopupMixin:
 
         if self._editor_completion_popup is not None and self._editor_completion_popup.winfo_exists():
             self._editor_completion_popup.withdraw()
+        overlay = getattr(self, "_editor_completion_overlay", None)
+        if overlay is not None:
+            overlay.remove()
 
         self._editor_completion_items = []
         self._editor_completion_replace_start = None

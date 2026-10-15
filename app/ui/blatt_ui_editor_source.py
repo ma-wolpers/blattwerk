@@ -251,6 +251,7 @@ class BlattwerkAppEditorSourceMixin:
         """Shows a modal conflict dialog and returns discard, overwrite, or cancel."""
 
         dialog = ui.Toplevel(self.root)
+        self._register_popup_window(dialog)
         dialog.title("Externe Änderung erkannt")
         dialog.transient(self.root)
         dialog.resizable(False, False)

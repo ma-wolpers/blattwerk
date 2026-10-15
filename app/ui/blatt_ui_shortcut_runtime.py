@@ -1,6 +1,12 @@
-"""Popup tracking, shortcut runtime context, Escape escalation and Laufkern hooks (BlattwerkAppBase mixin).
+"""Popup gating, shortcut runtime context, Escape escalation and Laufkern hooks (BlattwerkAppBase mixin).
 
-Split out of blatt_ui_base.py (file-size rule); method bodies unchanged."""
+Split out of blatt_ui_base.py (file-size rule). Popup gating and the Escape target read
+the bw-gui overlay stack (``OVERLAY_STACK_CONTRACT.md``): modal dialogs and menu popups
+(the completion list registers as a menu while visible) block the window shortcuts
+(``blocking(include_menus=True)``); the help and shortcut-debug windows register as
+non-modal and do not. This reproduces the former scan, which counted every visible
+direct child toplevel of the root unless it had been tracked as non-blocking
+(``tests/test_overlay_gating_tk.py``)."""
 
 from __future__ import annotations
 
@@ -8,7 +14,8 @@ from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 
 ensure_bw_gui_on_path()
 from bw_gui.contracts.events import EventResult
-from bw_gui.runtime import WindowShortcutBinder, accepts_text_input, ui
+from bw_gui.runtime import WindowShortcutBinder, accepts_text_input, topmost_window, ui
+from bw_gui.runtime.overlay_stack import OverlayCategory, blocking, register_overlay
 
 
 from .ui_constants import EDITOR_VIEW_BOTH, EDITOR_VIEW_EDITOR_ONLY, EDITOR_VIEW_PREVIEW_ONLY
@@ -26,7 +33,7 @@ from .laufkern_manifest_provider import build_runtime_shortcut_manifest
 
 
 class BlattwerkShortcutRuntimeMixin:
-    """Popup tracking, shortcut runtime context, Escape escalation and Laufkern hooks (BlattwerkAppBase mixin)."""
+    """Popup gating, shortcut runtime context, Escape escalation and Laufkern hooks (BlattwerkAppBase mixin)."""
 
     @staticmethod
     def _is_widget_descendant_of(widget: ui.Misc | None, parent: ui.Misc | None) -> bool:
@@ -43,71 +50,24 @@ class BlattwerkShortcutRuntimeMixin:
         return False
 
     def _has_dialog_context(self) -> bool:
-        """Return whether a dialog-like context currently has focus priority."""
+        """Return whether a modal dialog or a menu popup is open (bw-gui overlay stack).
 
-        self._sync_popup_sessions_from_windows()
+        Menu popups include the editor completion list while it is visible (it
+        registers as ``MENU``); the help and shortcut-debug windows are non-modal and do
+        not count.
+        """
+        return blocking(self.root, include_menus=True)()
 
-        menu_bar = getattr(self, "_menu_bar", None)
-        if menu_bar is not None and bool(getattr(menu_bar, "_popup_stack", [])):
-            return True
+    def _register_popup_window(self, window: ui.Toplevel, *, blocking_shortcuts: bool = True) -> None:
+        """Register a raw ``Toplevel`` of the app in the bw-gui overlay stack (ends on ``<Destroy>``).
 
-        if self.popup_policy_registry.has_mode_blocking_popup():
-            return True
-
-        return False
-
-    def _sync_popup_sessions_from_windows(self) -> None:
-        """Synchronize popup policy stack from currently visible Tk toplevel windows."""
-
-        visible_popup_ids: set[str] = set()
-
-        for child in self.root.winfo_children():
-            if not isinstance(child, ui.Toplevel):
-                continue
-            try:
-                if not int(child.winfo_exists()):
-                    continue
-                if str(child.state()).lower() == "withdrawn":
-                    continue
-            except Exception:
-                continue
-
-            popup_id = str(child)
-            visible_popup_ids.add(popup_id)
-            if popup_id in self._tracked_popup_ids:
-                continue
-
-            popup_title = ""
-            try:
-                popup_title = str(child.title() or "")
-            except Exception:
-                popup_title = ""
-
-            self.popup_policy_registry.open_popup(
-                popup_id=popup_id,
-                title=popup_title,
-                policy_id="dialog.modal",
-            )
-            self._tracked_popup_ids.add(popup_id)
-
-        stale_popup_ids = self._tracked_popup_ids - visible_popup_ids
-        for popup_id in tuple(stale_popup_ids):
-            self.popup_policy_registry.close_popup(popup_id)
-            self._tracked_popup_ids.discard(popup_id)
-
-    def _track_popup_window(self, window: ui.Toplevel, *, policy_id: str = "dialog.modal") -> None:
-        """Register a popup immediately in the popup policy registry."""
-
-        popup_id = str(window)
-        if popup_id in self._tracked_popup_ids:
-            return
-        popup_title = ""
-        try:
-            popup_title = str(window.title() or "")
-        except Exception:
-            popup_title = ""
-        self.popup_policy_registry.open_popup(popup_id=popup_id, title=popup_title, policy_id=policy_id)
-        self._tracked_popup_ids.add(popup_id)
+        Args:
+            blocking_shortcuts: ``True`` (default) registers a ``MODAL_DIALOG`` that blocks
+                the window shortcuts while open; ``False`` a ``NON_MODAL_POPUP`` tool window
+                (help documentation, shortcut debug) that does not.
+        """
+        category = OverlayCategory.MODAL_DIALOG if blocking_shortcuts else OverlayCategory.NON_MODAL_POPUP
+        register_overlay(window, category, toplevel=window)
 
     def _install_window_shortcuts(self) -> None:
         """Bind every registry definition on a ``WindowShortcutBinder`` of the main window.
@@ -175,48 +135,25 @@ class BlattwerkShortcutRuntimeMixin:
             "dialog_open": dialog_open,
             "text_input_focused": text_input_focused,
             "focused_widget_class": focused_widget.winfo_class() if focused_widget is not None else "none",
-            "active_popup": (
-                self.popup_policy_registry.active_popup().popup_id
-                if self.popup_policy_registry.active_popup() is not None
-                else "none"
-            ),
+            "active_popup": str(topmost_window(self.root) or "none"),
         }
 
     def _close_active_popup_on_escape(self) -> bool:
-        """Close top-most escape-closable popup and return success."""
+        """Close the most recently opened escape-closable popup (``topmost_window``) and return success."""
 
-        self._sync_popup_sessions_from_windows()
-        active_popup = self.popup_policy_registry.active_popup()
-        if active_popup is None:
+        popup = topmost_window(self.root)
+        if popup is None:
             return False
-
         try:
-            policy = self.popup_policy_registry.policy(active_popup.policy_id)
+            popup.destroy()  # also ends its overlay registration
         except Exception:
-            policy = None
-        if policy is not None and not policy.close_on_escape:
-            return False
-
-        popup_id = active_popup.popup_id
-        for child in self.root.winfo_children():
-            if not isinstance(child, ui.Toplevel):
-                continue
-            if str(child) != popup_id:
-                continue
-            try:
-                child.destroy()
-            except Exception:
-                pass
-            break
-
-        self.popup_policy_registry.close_popup(popup_id)
-        self._tracked_popup_ids.discard(popup_id)
+            pass
         return True
 
     def _handle_global_escape(self, _event=None):
         """Resolve escape action via centralized HSM priority rules."""
 
-        has_popup = self.popup_policy_registry.has_active_popup()
+        has_popup = topmost_window(self.root) is not None
         has_inline_editor = bool(getattr(self, "_editor_completion_popup", None))
         has_parent_state = self.editor_view_mode_var.get() != EDITOR_VIEW_PREVIEW_ONLY
 
