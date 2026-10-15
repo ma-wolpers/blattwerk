@@ -26,7 +26,14 @@ from html import escape
 
 from .inline_markup.word_notes import collect_word_notes
 from .operator_legend_blocks import annotate_operator_blocks
-from ..styles.blatt_styles import build_stylesheet, resolve_printable_height_cm, resolve_printable_width_cm
+from ..styles.blatt_styles import (
+    DEFAULT_PRESENTATION_PAGE_FORMAT,
+    PRESENTATION_PAGE_FORMATS,
+    build_stylesheet,
+    resolve_printable_height_cm,
+    resolve_printable_width_cm,
+)
+from .document_font import resolve_document_font_profile
 from ..styles.page_geometry import resolve_gutter_widths_cm
 from .blatt_kern_shared import (
     _meta_bool_ja_nein,
@@ -89,17 +96,15 @@ def render_html(
     former automatic legend (`should_render_block`). The presentation branch
     above returns before this point, so presentations never render it.
     """
+    # Ein gueltiges `font_profile` im Frontmatter hat Vorrang vor der App-Auswahl.
+    font_profile, _ = resolve_document_font_profile(meta, font_profile)
     if has_slide_layout(document_type):
         presentation_format = str(page_format or "").strip()
-        if not presentation_format or presentation_format not in {
-            "presentation_16_9",
-            "presentation_16_10",
-            "presentation_4_3",
-        }:
+        if not presentation_format or presentation_format not in PRESENTATION_PAGE_FORMATS:
             presentation_format = str(
                 (meta or {}).get("presentation_layout")
                 or (meta or {}).get("presentation_format")
-                or "presentation_16_9"
+                or DEFAULT_PRESENTATION_PAGE_FORMAT
             ).strip()
         return _render_presentation_html(
             meta,

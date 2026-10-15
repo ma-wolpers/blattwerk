@@ -11,6 +11,7 @@ ensure_bw_gui_on_path()
 from bw_gui.runtime import ui, widgets
 from bw_gui.widgets import Switch
 
+from .blatt_ui_document_font import APP_DEFAULT_FONT_CHOICE
 from .ui_theme import get_theme
 from ..styles.blatt_styles import (
     FONT_PROFILE_ORDER,
@@ -203,6 +204,13 @@ class BlattwerkPreviewBuildMixin:
         widgets.Label(design_group_font, text="Schrift: ").pack(side="left")
         self.font_profile_menubutton = widgets.Menubutton(design_group_font, width=14)
         font_profile_menu = ui.Menu(self.font_profile_menubutton, tearoff=False)
+        font_profile_menu.add_radiobutton(
+            label="Standard (App-Einstellung)",
+            value=APP_DEFAULT_FONT_CHOICE,
+            variable=self._font_profile_menu_var,
+            command=lambda: self._set_font_profile(APP_DEFAULT_FONT_CHOICE),
+        )
+        font_profile_menu.add_separator()
         for key in FONT_PROFILE_ORDER:
             profile = FONT_PROFILE_PRESETS[key]
             font_profile_menu.add_radiobutton(

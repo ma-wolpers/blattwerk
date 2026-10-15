@@ -189,6 +189,9 @@ class BlattwerkAppPreviewRenderMixin:
                     return
                 self._current_preview_document_type = document_type
                 self._apply_preview_mode_controls(document_type)
+                if hasattr(self, "_sync_font_profile_combo"):
+                    # Schriftmenue zeigt den `font_profile` des aktiven Dokuments.
+                    self._sync_font_profile_combo()
                 self._apply_preview_page_format_controls(document_type)
                 if hasattr(self, "_refresh_migration_bar"):
                     self._refresh_migration_bar()

@@ -8,6 +8,8 @@ The format is based on Keep a Changelog.
 
 ### Changed
 
+- **Neue mitgelieferte Schriften:** Comic Neue, Andika, Fredoka, Patrick Hand, Indie Flower, Gloria Hallelujah und Short Stack (freie OFL-Lizenz, Lizenztexte unter `assets/fonts/`) stehen im Schriftmenü zur Wahl und sehen in Vorschau, PDF und HTML auf jedem Rechner gleich aus.
+- **Die Schrift gehört jetzt zum Dokument:** Die Wahl im Schriftmenü (und `Strg+Shift+F`) wird als `font_profile` im Frontmatter gespeichert und hat Vorrang vor der App-Einstellung; `Standard (App-Einstellung)` entfernt den Eintrag. Ein unbekannter Wert ergibt die Warnung `FM012`.
 - **Neues Seitenformat „A4 quer“** für Arbeitsblätter und Klausuren (Vorschau-Leiste, Export und *Einstellungen → Export Seitenformat*). Kopf- und Fußzeile erscheinen dabei so groß wie bei A4 hoch.
 - **Zahlenstrahl nutzt die Seitenbreite:** Ohne eigene Breitenangabe richtet sich die Maximalbreite jetzt nach der druckbaren Breite (A4 hoch etwas breiter als bisher, A4 quer deutlich breiter, A5 schmaler). In Spalten bleibt der Zahlenstrahl immer innerhalb seiner Spalte.
 - **Vorschau-Optionen starten eingeklappt:** Die Optionsleiste über der Vorschau ist bei jedem Start eingeklappt und lässt sich mit ▸ aufklappen. Der Zustand wird nicht mehr gespeichert.

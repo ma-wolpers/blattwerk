@@ -17,6 +17,7 @@ import re
 
 from .page_geometry import build_gutter_css
 from .worksheet_design import build_design_css
+from .bundled_fonts import font_face_css
 from .blatt_styles_data import (
     PRINT_PROFILE_PRESETS,
     PRINT_PROFILE_ALIASES,
@@ -107,10 +108,17 @@ def build_print_profile_css(profile_name):
 
 
 def build_font_profile_css(font_profile):
-    """Erzeugt CSS-Variablen für das gewählte Schriftprofil."""
+    """Erzeugt CSS-Variablen für das gewählte Schriftprofil.
+
+    Ist das Profil eine mitgelieferte Schrift (`bundled_fonts.py`), werden deren
+    `@font-face`-Regeln mit eingebettet -- nur für dieses eine Profil, damit nicht
+    alle Schriftdateien in jedem Dokument landen.
+    """
     profile_key = normalize_font_profile(font_profile)
     profile = FONT_PROFILE_PRESETS[profile_key]
+    font_faces = font_face_css([profile_key])
     return f"""
+{font_faces}
 :root {{
     --font-family-base: {profile["css_family"]};
 }}

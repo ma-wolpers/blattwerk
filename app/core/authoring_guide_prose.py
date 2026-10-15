@@ -102,9 +102,12 @@ PROSE_SECTIONS: dict[str, str] = {
         "Stelle aus dem Dokument gelesen oder angezeigt -- ohne Wirkung im Build-/Render-Pfad."
     ),
     "frontmatter:font_profile": (
-        "**Hinweis:** wird aktuell nicht aus dem Dokument gelesen -- die Schriftart wird ausschließlich "
-        "über die App-Einstellung gesteuert, nicht über das Frontmatter. Dieses Feld hat aktuell keine "
-        "Wirkung im Build-/Render-Pfad."
+        "Legt die Schrift des Dokuments fest und hat Vorrang vor der Schriftwahl der App. Erlaubt sind "
+        "die Schlüssel der Schriftprofile, z. B. `segoe`, `arial`, `comic_sans_ms` oder die mitgelieferten "
+        "Schriften `comic_neue`, `andika`, `fredoka`, `patrick_hand`, `indie_flower`, `gloria_hallelujah`, "
+        "`short_stack`. Das Schriftmenü der Vorschau schreibt diesen Eintrag selbst; \"Standard "
+        "(App-Einstellung)\" entfernt ihn. Ein unbekannter Wert ergibt die Warnung `FM012`, gerendert wird "
+        "dann mit der App-Schrift."
     ),
     # -- Control-Marker ----------------------------------------------------
     "marker:pagebreak": (

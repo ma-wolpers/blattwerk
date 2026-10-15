@@ -59,6 +59,7 @@ from .blatt_validator_yaml_entries import (
 _ENUM_FIELD_DIAGNOSTICS = {
     "presentation_layout": {"code": "FM004", "severity": "error", "skip_when_empty": True},
     "Stufe": {"code": "FM007", "severity": "warning", "skip_when_empty": True},
+    "font_profile": {"code": "FM012", "severity": "warning", "skip_when_empty": True},
 }
 _BOOLEAN_FIELD_DIAGNOSTIC_CODES = {
     "presentation_show_mini_header": "FM005",

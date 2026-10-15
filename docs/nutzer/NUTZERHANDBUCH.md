@@ -85,7 +85,7 @@ Die Leiste „Vorschau-Optionen“ über der Vorschau startet eingeklappt; mit �
 - **Phasen** steuert bei Präsentationen den Abschnitts-Footer der Folien (Trenner `·` oder `→`, künftige Abschnitte ausblenden).
 - Die Tastenkürzel wirken nur, wenn die Option für die Dokumentart angezeigt wird (z. B. `K` nur bei Präsentationen, `4`/`5` nur bei Arbeitsblatt und Klausur).
 - **Druckprofil** (`Standard` / `Stärker`) erhöht bzw. reduziert den Kontrast für den Ausdruck.
-- **Schrift** steuert die Schriftfamilie für das gesamte Arbeitsblatt.
+- **Schrift** steuert die Schriftfamilie des Dokuments und wird als `font_profile` im Frontmatter gespeichert (gilt damit auch beim Export und auf anderen Rechnern). `Standard (App-Einstellung)` entfernt den Eintrag; dann gilt die Schrift aus *Einstellungen → Design*. Neben Systemschriften gibt es mitgelieferte freie Schriften (Comic Neue, Andika, Fredoka, Patrick Hand, Indie Flower, Gloria Hallelujah, Short Stack), die in Vorschau, PDF und HTML auf jedem Rechner gleich aussehen.
 - **Größe** steuert die Grundschriftgröße (`Klein` / `Normal` / `Groß`). Dabei passen sich die Puffer von Antwortboxen automatisch an (kleiner = enger, größer = luftiger).
 - **Ansicht** (`Seitenbreite` / `Ganze Seite`) setzt Fit-Presets; bei manuellem Zoom wird auf Custom gewechselt.
 - **Layout** (`Einzelseite` / `Nebeneinander` / `Untereinander`) betrifft nur die Vorschau-Darstellung.

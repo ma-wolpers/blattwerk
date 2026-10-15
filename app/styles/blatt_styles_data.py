@@ -7,6 +7,8 @@ das diese Namen re-exportiert (bestehende Importe bleiben gueltig).
 # line-limit: data-only
 from __future__ import annotations
 
+from .bundled_fonts import bundled_font_presets
+
 
 PRINT_PROFILE_PRESETS = {
     "standard": {
@@ -169,6 +171,8 @@ FONT_PROFILE_PRESETS = {
     },
 }
 
+# Mitgelieferte OFL-Schriften (`bundled_fonts.py`) als weitere Schriftprofile.
+FONT_PROFILE_PRESETS.update(bundled_font_presets())
 FONT_PROFILE_ORDER = list(FONT_PROFILE_PRESETS.keys())
 FONT_PROFILE_LABELS = {
     key: value["label"] for key, value in FONT_PROFILE_PRESETS.items()

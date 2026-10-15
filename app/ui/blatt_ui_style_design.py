@@ -9,10 +9,7 @@ from .dialog_services import messagebox
 from ..core.color_mentions import detect_bw_mode_color_warning_mentions
 from ..core.build_requests import WorksheetDesignOptions
 from ..styles.blatt_styles import (
-    DEFAULT_FONT_PROFILE,
     DEFAULT_FONT_SIZE_PROFILE,
-    FONT_PROFILE_LABELS,
-    FONT_PROFILE_ORDER,
     FONT_SIZE_PROFILE_LABELS,
     FONT_SIZE_PROFILE_ORDER,
     normalize_font_profile,
@@ -54,11 +51,6 @@ class BlattwerkAppStyleDesignMixin:
             self._warn_if_bw_mode_has_color_mentions(previous_profile=previous_profile)
             self._on_worksheet_design_changed()
 
-    def _cycle_font_profile(self, step: int = 1):
-            """Cycle through available worksheet font profiles."""
-            self._cycle_option(self.design_font_profile_var, FONT_PROFILE_ORDER, step=step)
-            self._on_worksheet_design_changed()
-
     def _worksheet_design_kwargs(self):
             """Worksheet design kwargs."""
             return self._worksheet_design_options().as_kwargs()
@@ -70,15 +62,6 @@ class BlattwerkAppStyleDesignMixin:
                 font_profile=normalize_font_profile(self.design_font_profile_var.get()),
                 font_size_profile=normalize_font_size_profile(self.design_font_size_profile_var.get()),
             )
-
-    def _set_font_profile(self, profile_key: str):
-            """Set font profile."""
-            normalized_key = normalize_font_profile(profile_key)
-            if self.design_font_profile_var.get() == normalized_key:
-                return
-
-            self.design_font_profile_var.set(normalized_key)
-            self._on_worksheet_design_changed()
 
     def _set_font_size_profile(self, profile_key: str):
             """Set font size profile."""
@@ -105,17 +88,6 @@ class BlattwerkAppStyleDesignMixin:
                 selected_key = DEFAULT_FONT_SIZE_PROFILE
 
             self._set_font_size_profile(selected_key)
-
-    def _sync_font_profile_combo(self):
-            """Reflects the current font profile onto the Schrift menu button/menu-radio state."""
-            if not hasattr(self, "font_profile_menubutton"):
-                return
-
-            current_key = normalize_font_profile(self.design_font_profile_var.get())
-            self._font_profile_menu_var.set(current_key)
-            self.font_profile_menubutton.configure(
-                text=FONT_PROFILE_LABELS.get(current_key, FONT_PROFILE_LABELS[DEFAULT_FONT_PROFILE])
-            )
 
     def _sync_font_size_profile_combo(self):
             """Sync font size profile combo."""

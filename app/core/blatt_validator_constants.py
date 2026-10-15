@@ -15,6 +15,7 @@ from __future__ import annotations
 from .blatt_kern_shared_data import JA_NEIN_BOOLEAN_TOKENS
 from .crossword_symbol_presets import SYMBOL_THEME_NAMES
 from .document_type_registry import KNOWN_DOCUMENT_TYPES
+from ..styles.blatt_styles_data import FONT_PROFILE_ORDER
 from .blatt_validator_specs import MISSING, BlockOptionSpec, FrontmatterFieldSpec  # noqa: F401 -- re-exportiert
 
 REQUIRED_FRONTMATTER_FIELDS = ("Titel", "Fach", "Thema")
@@ -669,7 +670,7 @@ OPTIONAL_FRONTMATTER_FIELDS = (
         MISSING, True,
     ),
     FrontmatterFieldSpec("worksheet_type", "free_text", None, MISSING, False),
-    FrontmatterFieldSpec("font_profile", "free_text", None, MISSING, False),
+    FrontmatterFieldSpec("font_profile", "enum", frozenset(FONT_PROFILE_ORDER), MISSING, True),
     FrontmatterFieldSpec("Lerngruppe", "header_text", None, MISSING, True),
     FrontmatterFieldSpec("Datum", "header_date", None, MISSING, True),
 )
@@ -682,10 +683,12 @@ OPTIONAL_FRONTMATTER_FIELDS = (
 bereits bestehenden `FM005`-Felder. `document_type`/`lochen` sind
 funktional genutzt, aber bewusst `validated=False` (siehe
 `docs/nutzer/ANLEITUNG_ARBEITSBLATT_PRAESENTATION.md`, Vier-Zustands-Raster).
-`worksheet_type`/`font_profile` sind `validated=False` **und** werden
-aktuell an keiner Stelle aus dem Dokument-Meta gelesen (verifiziert per
-Repo-weitem Grep) -- toter, aber weiterhin syntaktisch akzeptierter
-Frontmatter-Inhalt. `Stufe` ist dagegen jetzt `validated=True` mit einem
+`worksheet_type` ist `validated=False` **und** wird aktuell an keiner
+Stelle aus dem Dokument-Meta gelesen -- toter, aber weiterhin syntaktisch
+akzeptierter Frontmatter-Inhalt. `font_profile` ist dagegen wirksam
+(`app/core/document_font.py`, Vorrang vor der App-Auswahl) und als Enum
+ueber alle Schriftprofile validiert; ein unbekannter Wert ist die Warnung
+`FM012` (Rueckfall auf die App-Schrift, Build laeuft weiter). `Stufe` ist dagegen jetzt `validated=True` mit einem
 festen (aber inhaltlich bedeutungslosen) Wertebereich und wird von
 `app/core/operator_legend.py` gelesen, um Operatoren-Definitionen
 (`data/operatoren/*.json`) nach den dort selbst definierten

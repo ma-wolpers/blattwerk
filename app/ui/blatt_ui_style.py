@@ -5,6 +5,7 @@ Vorschau-Ansicht zusammen. Klassenname und Importpfad bleiben stabil.
 from __future__ import annotations
 
 
+from .blatt_ui_document_font import BlattwerkAppDocumentFontMixin
 from .blatt_ui_style_design import BlattwerkAppStyleDesignMixin
 from .blatt_ui_style_theme import BlattwerkAppStyleThemeMixin
 from .blatt_ui_style_menu import BlattwerkAppStyleMenuMixin
@@ -12,6 +13,7 @@ from .blatt_ui_style_view import BlattwerkAppStyleViewMixin
 
 
 class BlattwerkAppStyleMixin(
+    BlattwerkAppDocumentFontMixin,
     BlattwerkAppStyleDesignMixin,
     BlattwerkAppStyleThemeMixin,
     BlattwerkAppStyleMenuMixin,
