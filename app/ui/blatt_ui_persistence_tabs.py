@@ -24,32 +24,6 @@ class BlattwerkAppPersistenceTabsMixin:
             return Path(path_text).name
 
 
-    def _on_document_notebook_click(self, event=None):
-            """Handles close-clicks on tab title markers."""
-
-            notebook = getattr(self, "document_notebook", None)
-            if notebook is None or event is None:
-                return None
-
-            try:
-                tab_index = notebook.index(f"@{event.x},{event.y}")
-            except Exception:
-                return None
-
-            tabs = notebook.tabs()
-            if tab_index < 0 or tab_index >= len(tabs):
-                return None
-
-            tab_id = tabs[tab_index]
-            x_pos, _y_pos, width, _height = notebook.bbox(tab_index)
-            close_hitbox_start = x_pos + max(0, width - 24)
-            if event.x < close_hitbox_start:
-                return None
-
-            self._close_document_tab(tab_id)
-            return "break"
-
-
     def _find_open_tab_id_for_path(self, input_path: Path):
             """Returns the notebook tab id for a currently open document path."""
 
