@@ -1,8 +1,16 @@
 """Schreibbereich: Tastenhandler, Completion-Abgleich beim Tippen, Marker-Tasten, Wortlöschen, Snippets (BlattwerkApp-Mixin).
 
-Aus ``blatt_ui_editor.py`` ausgelagert (300-Zeilen-Regel), Methoden unverändert."""
+Aus ``blatt_ui_editor.py`` ausgelagert (300-Zeilen-Regel); Tasten über den bw-gui-Keyboard-Contract."""
 
 from __future__ import annotations
+
+from bw_libs.shared_gui_core import ensure_bw_gui_on_path
+
+ensure_bw_gui_on_path()
+from bw_gui.contracts import Key
+from bw_gui.contracts.events import EventResult
+from bw_gui.contracts.key_spec import KeySpec
+from bw_gui.runtime import WidgetShortcutBinder
 
 from .editor_marker_shortcuts import apply_backtick_marker, apply_caret_marker, apply_dollar_marker, apply_highlight_marker, apply_pipe_marker, apply_star_marker, apply_tilde_marker, apply_underscore_marker, selection_crosses_math_boundary
 from .ui_constants import EDITOR_DOCUMENT_LOADED
@@ -11,35 +19,69 @@ from .ui_constants import EDITOR_DOCUMENT_LOADED
 class BlattwerkAppEditorKeysMixin:
     """Schreibbereich: Tastenhandler, Completion-Abgleich beim Tippen, Marker-Tasten, Wortlöschen, Snippets (BlattwerkApp-Mixin)."""
 
-    def _on_editor_key_release(self, event=None):
-        """Keeps completion popup in sync while typing on matching contexts."""
+    def _bind_editor_keys(self):
+        """Bind the editor shortcuts on a ``WidgetShortcutBinder`` of the editor (before Text class bindings).
 
-        if self.editor_widget is None:
+        Every definition is active while the editor itself has text focus. A handler
+        returning ``None`` lets the key reach the Text class binding (e.g. ↑ moves
+        the cursor while no completion is open, a marker key without selection is
+        typed). Modifiers are exact; Shift+Tab therefore no longer needs a no-op
+        binding to keep Tab's completion accept from firing. Ctrl+Shift+Enter keeps
+        rejecting the completion like Ctrl+Enter (formerly Tk picked either binding).
+        """
+        _k = KeySpec.parse
+        rows = [
+            (_k("Ctrl+Space"), "completion.trigger", self._on_editor_completion_trigger),
+            # Ctrl+":" -- formerly <Control-colon> plus <Control-Shift-period>; on the German
+            # and US layouts ":" *is* Shift+".", so one logical spec covers both.
+            (_k("Ctrl+:"), "insert_triple_pair", self._on_editor_insert_triple_pair),
+            (_k("Escape (tolerate: Shift)"), "escape", self._on_editor_escape),
+            (_k("Tab"), "completion.tab", self._on_editor_tab),
+            (_k("Up"), "completion.up", self._on_editor_completion_move_up),
+            (_k("Down"), "completion.down", self._on_editor_completion_move_down),
+            (_k("Enter"), "completion.enter", self._on_editor_completion_enter),
+            ([_k("Ctrl+Enter (tolerate: Shift)"), _k("Shift+Enter")], "completion.reject_newline", self._on_editor_completion_reject_and_newline),
+            (_k("Ctrl+Backspace (tolerate: Shift)"), "delete_word_before", self._on_editor_delete_word_before),
+            (_k("Ctrl+Delete (tolerate: Shift)"), "delete_word_after", self._on_editor_delete_word_after),
+            (_k("Ctrl+F"), "find", self._toggle_editor_find_bar),
+            (_k("Ctrl+H"), "replace", self._toggle_editor_replace_bar),
+            (KeySpec.char("`"), "marker.backtick", self._on_editor_backtick_key),
+        ]
+        rows += [
+            (KeySpec.char(marker), f"marker.{name}", lambda event, m=marker: self._on_editor_marker_key(event, m))
+            for name, marker in (("star", "*"), ("underscore", "_"), ("equal", "="), ("tilde", "~"),
+                                 ("caret", "^"), ("bar", "|"), ("dollar", "$"))
+        ]
+        keys = WidgetShortcutBinder(self.editor_widget)
+        for spec, binding_id, handler in rows:
+            keys.bind(spec, handler, binding_id=f"editor.{binding_id}", intent=f"editor.{binding_id}", allow_when_text_input=True)
+        self._editor_keys = keys
+
+    _EDITOR_ARROWS = frozenset({Key.UP, Key.DOWN, Key.LEFT, Key.RIGHT})
+
+    def _on_editor_key_after(self, event=None):
+        """Keeps the completion popup in sync after a key reached the editor (``on_key(phase="after")``).
+
+        Runs after the Text class binding inserted or deleted text, and only for keys
+        no editor shortcut consumed (formerly ``<KeyRelease>``, which also fired after
+        consumed keys -- e.g. after accepting a suggestion with Enter it reopened the
+        list beside the explicit chaining rule). Lock and modifier keys (``Key.OTHER``
+        without text) are ignored, the typed character comes from ``KeyEvent.text``.
+        """
+
+        if self.editor_widget is None or event is None:
             return
 
-        if event is None:
+        if event.key is Key.ESCAPE:
             return
 
-        if event.keysym in {"Escape"}:
+        if event.key is Key.OTHER and event.text is None:
             return
 
-        if event.keysym in {
-            "Shift_L",
-            "Shift_R",
-            "Control_L",
-            "Control_R",
-            "Alt_L",
-            "Alt_R",
-            "Meta_L",
-            "Meta_R",
-            "ISO_Level3_Shift",
-        }:
+        if event.text in {".", ":"} and self._is_editor_completion_visible():
             return
 
-        if event.keysym in {"period", "colon"} and self._is_editor_completion_visible():
-            return
-
-        if event.keysym in {"Up", "Down", "Left", "Right"}:
+        if event.key in self._EDITOR_ARROWS:
             self._queue_editor_block_pair_highlight()
             return
 
@@ -54,13 +96,12 @@ class BlattwerkAppEditorKeysMixin:
         if bool(preferences.get("completion_trigger_equals", True)):
             trigger_chars.add("=")
 
-        trigger_keys = {"BackSpace"}
+        trigger_keys = {Key.BACKSPACE}
         if bool(preferences.get("completion_trigger_enter", True)):
-            trigger_keys.add("Return")
+            trigger_keys.add(Key.ENTER)
 
-        should_trigger = (
-            event.keysym in trigger_keys
-            or bool(event.char and (event.char.isalnum() or event.char in trigger_chars))
+        should_trigger = event.key in trigger_keys or bool(
+            event.text and (event.text.isalnum() or event.text in trigger_chars)
         )
 
         if should_trigger:
@@ -74,7 +115,7 @@ class BlattwerkAppEditorKeysMixin:
         """Inserts `::: :::` and opens completion at center cursor position."""
 
         if self.editor_widget is None:
-            return "break"
+            return EventResult.HANDLED
 
         insert_index = self.editor_widget.index("insert")
         self.editor_widget.insert(insert_index, "::: :::")
@@ -84,7 +125,7 @@ class BlattwerkAppEditorKeysMixin:
         self._queue_editor_diagnostics(immediate=True)
         self._queue_editor_outline(immediate=True)
         self._open_editor_completion(auto=False)
-        return "break"
+        return EventResult.HANDLED
 
     _MARKER_KEY_HANDLERS = {
         "*": apply_star_marker,
@@ -188,12 +229,12 @@ class BlattwerkAppEditorKeysMixin:
         before, selected, after, sel_first, sel_last = context
         if self._editor_selection_crosses_math(sel_first, sel_last):
             self.status_var.set("Markierung überschneidet eine Formel ($...$) -- Aktion abgebrochen.")
-            return "break"
+            return EventResult.HANDLED
 
         handler = self._MARKER_KEY_HANDLERS[marker_char]
         edit = handler(before, selected, after)
         self._apply_editor_marker_edit(sel_first, sel_last, edit)
-        return "break"
+        return EventResult.HANDLED
 
     def _on_editor_backtick_key(self, _event=None):
         """Wie `_on_editor_marker_key`, aber für `` ` `` mit Einzeilig/Mehrzeilig-Verzweigung."""
@@ -204,12 +245,12 @@ class BlattwerkAppEditorKeysMixin:
         before, selected, after, sel_first, sel_last = context
         if self._editor_selection_crosses_math(sel_first, sel_last):
             self.status_var.set("Markierung überschneidet eine Formel ($...$) -- Aktion abgebrochen.")
-            return "break"
+            return EventResult.HANDLED
 
         is_multiline = str(sel_first).split(".")[0] != str(sel_last).split(".")[0]
         edit = apply_backtick_marker(before, selected, after, is_multiline=is_multiline)
         self._apply_editor_marker_edit(sel_first, sel_last, edit)
-        return "break"
+        return EventResult.HANDLED
 
     def _on_editor_escape(self, _event=None):
         """Closes completion popup when escape is pressed in editor."""
@@ -217,18 +258,13 @@ class BlattwerkAppEditorKeysMixin:
         self._close_editor_completion()
         if self.root is not None and bool(self.root.winfo_exists()):
             self.root.focus_set()
-        return "break"
+        return EventResult.HANDLED
 
     def _on_editor_tab(self, _event=None):
         """Applies selected completion on tab when popup is visible."""
 
         if self._editor_completion_items:
             return self._on_editor_completion_accept()
-        return None
-
-    def _on_editor_shift_tab(self, _event=None):
-        """No-op for completion flow when no popup action applies."""
-
         return None
 
     def _on_editor_delete_word_before(self, _event=None):
@@ -240,7 +276,7 @@ class BlattwerkAppEditorKeysMixin:
         if col == 0:
             if line > 1:
                 self.editor_widget.delete("insert -1c", "insert")
-            return "break"
+            return EventResult.HANDLED
 
         text_before = self.editor_widget.get(f"{line}.0", cursor_pos)
         pos = len(text_before)
@@ -258,7 +294,7 @@ class BlattwerkAppEditorKeysMixin:
         chars_to_delete = len(text_before) - pos
         if chars_to_delete > 0:
             self.editor_widget.delete(f"insert -{chars_to_delete}c", "insert")
-        return "break"
+        return EventResult.HANDLED
 
     def _on_editor_delete_word_after(self, _event=None):
         """Deletes the word (or whitespace token) after the cursor (Ctrl+Delete)."""
@@ -268,7 +304,7 @@ class BlattwerkAppEditorKeysMixin:
 
         if self.editor_widget.compare(cursor_pos, "==", line_end):
             self.editor_widget.delete("insert", "insert +1c")
-            return "break"
+            return EventResult.HANDLED
 
         text_after = self.editor_widget.get(cursor_pos, line_end)
         pos = 0
@@ -285,13 +321,13 @@ class BlattwerkAppEditorKeysMixin:
 
         if pos > 0:
             self.editor_widget.delete("insert", f"insert +{pos}c")
-        return "break"
+        return EventResult.HANDLED
 
     def _insert_editor_snippet(self, template: str):
         """Inserts a block snippet at the cursor. \\x01 in template marks cursor landing position."""
 
         if self.editor_widget is None:
-            return "break"
+            return
 
         cursor_mark = "\x01"
         cursor_offset = template.find(cursor_mark)
@@ -316,24 +352,23 @@ class BlattwerkAppEditorKeysMixin:
         self._queue_editor_highlighting(immediate=True)
         self._queue_editor_diagnostics(immediate=True)
         self._queue_editor_outline(immediate=True)
-        return "break"
 
     def _on_editor_mouse_click(self, _event=None):
         """Closes completion popup when user clicks in editor.
 
-        Returns "break" while no document is loaded, which stops Tk's
+        Returns ``HANDLED`` while no document is loaded, which stops Tk's
         built-in Text class binding for <Button-1> from running -- that
         binding unconditionally moves keyboard focus into the widget
         regardless of its `-state` (verified empirically: state="disabled"
         and takefocus=0 alone do not prevent click-to-focus). Without this
         guard, clicking the disabled editor would still focus it and make
         it the "text input focused" target for the global shortcut gating
-        in shortcut_manager.py/keybinding.py, silently blocking shortcuts
+        of the window binder (bw-gui text-input contract), silently blocking shortcuts
         like open-file ('o') and open-recent ('z').
         """
 
         if self._editor_document_state != EDITOR_DOCUMENT_LOADED:
-            return "break"
+            return EventResult.HANDLED
 
         self._close_editor_completion()
         if hasattr(self, "root"):

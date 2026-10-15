@@ -1,4 +1,5 @@
 from app.ui.blatt_ui_editor_completion_popup import BlattwerkAppEditorCompletionPopupMixin
+from bw_gui.contracts.events import EventResult
 
 
 class _FakeEditorWidget:
@@ -73,7 +74,7 @@ def test_reject_and_newline_returns_break_to_stop_further_event_propagation():
 
     result = editor._on_editor_completion_reject_and_newline()
 
-    assert result == "break"
+    assert result is EventResult.HANDLED
 
 
 def test_reject_and_newline_also_works_without_an_open_popup():
@@ -82,5 +83,5 @@ def test_reject_and_newline_also_works_without_an_open_popup():
 
     result = editor._on_editor_completion_reject_and_newline()
 
-    assert result == "break"
+    assert result is EventResult.HANDLED
     assert editor.editor_widget.inserted == [("insert", "\n")]

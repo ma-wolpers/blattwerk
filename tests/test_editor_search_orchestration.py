@@ -1,4 +1,5 @@
 from app.ui.blatt_ui_editor_search import BlattwerkAppEditorSearchMixin
+from bw_gui.contracts.events import EventResult
 
 
 class _FakeVar:
@@ -146,7 +147,7 @@ def test_empty_query_replace_current_is_noop():
 
     result = editor._replace_current_editor_match()
 
-    assert result == "break"
+    assert result is EventResult.HANDLED
     assert editor.editor_widget.deleted == []
 
 
@@ -156,7 +157,7 @@ def test_empty_query_replace_all_is_noop():
 
     result = editor._replace_all_editor_matches()
 
-    assert result == "break"
+    assert result is EventResult.HANDLED
     assert editor.editor_widget.deleted == []
 
 
@@ -313,7 +314,7 @@ def test_replace_current_match_without_active_match_is_noop():
 
     result = editor._replace_current_editor_match()
 
-    assert result == "break"
+    assert result is EventResult.HANDLED
     assert editor.editor_widget.deleted == []
 
 

@@ -18,8 +18,12 @@ from __future__ import annotations
 from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 
 ensure_bw_gui_on_path()
-from bw_gui.runtime import ui, widgets
+from bw_gui.contracts.events import EventResult
+from bw_gui.contracts.key_spec import KeySpec
+from bw_gui.runtime import WidgetShortcutBinder, ui, widgets
 from bw_gui.widgets import Switch
+
+from .local_keys import bind_actions
 
 
 def _find_all_matches(text: str, query: str, case_sensitive: bool = False) -> list[tuple[int, int]]:
@@ -94,11 +98,17 @@ class BlattwerkAppEditorSearchMixin:
             find_row, textvariable=self._editor_search_query_var, width=28
         )
         self._editor_search_query_entry.pack(side="left", padx=(4, 4))
-        self._editor_search_query_entry.bind("<Return>", lambda _event: self._run_editor_search(direction=1))
-        self._editor_search_query_entry.bind(
-            "<Shift-Return>", lambda _event: self._run_editor_search(direction=-1)
+        _k = KeySpec.parse
+        bind_actions(
+            WidgetShortcutBinder(self._editor_search_query_entry),
+            (
+                (_k("Enter"), "next", lambda: self._run_editor_search(direction=1)),
+                (_k("Shift+Enter"), "previous", lambda: self._run_editor_search(direction=-1)),
+                (_k("Escape (tolerate: Shift)"), "close", self._close_editor_search_bar),
+            ),
+            text=True,
+            prefix="editor_search",
         )
-        self._editor_search_query_entry.bind("<Escape>", self._close_editor_search_bar)
         self._editor_search_query_var.trace_add("write", self._on_editor_search_query_changed)
 
         widgets.Label(find_row, textvariable=self._editor_search_match_count_var, width=8).pack(
@@ -126,10 +136,15 @@ class BlattwerkAppEditorSearchMixin:
             self._editor_search_replace_row, textvariable=self._editor_search_replace_var, width=28
         )
         self._editor_search_replace_entry.pack(side="left", padx=(4, 4))
-        self._editor_search_replace_entry.bind(
-            "<Return>", lambda _event: self._replace_current_editor_match()
+        bind_actions(
+            WidgetShortcutBinder(self._editor_search_replace_entry),
+            (
+                (KeySpec.parse("Enter (tolerate: Shift)"), "replace", self._replace_current_editor_match),
+                (KeySpec.parse("Escape (tolerate: Shift)"), "close", self._close_editor_search_bar),
+            ),
+            text=True,
+            prefix="editor_replace",
         )
-        self._editor_search_replace_entry.bind("<Escape>", self._close_editor_search_bar)
         widgets.Button(
             self._editor_search_replace_row, text="Ersetzen", command=self._replace_current_editor_match
         ).pack(side="left", padx=(0, 4))
@@ -141,13 +156,13 @@ class BlattwerkAppEditorSearchMixin:
         """Opens the find bar in find-only mode (Ctrl+F) or refocuses it if already open."""
 
         self._open_editor_search_bar(show_replace=False)
-        return "break"
+        return EventResult.HANDLED
 
     def _toggle_editor_replace_bar(self, _event=None):
         """Opens the find bar with the replace row visible (Ctrl+H) or reveals it if already open."""
 
         self._open_editor_search_bar(show_replace=True)
-        return "break"
+        return EventResult.HANDLED
 
     def _open_editor_search_bar(self, show_replace: bool):
         """Shows the search bar (prefilled from selection if any), reveals the replace row if requested."""
@@ -197,7 +212,7 @@ class BlattwerkAppEditorSearchMixin:
             self.editor_widget.tag_remove("search_match_current", "1.0", "end")
             self.editor_widget.focus_set()
 
-        return "break"
+        return EventResult.HANDLED
 
     def _current_editor_cursor_char_offset(self) -> int:
         """Returns the current cursor position as a character offset from the start of the buffer."""
@@ -274,9 +289,9 @@ class BlattwerkAppEditorSearchMixin:
 
         query = self._editor_search_query_var.get()
         if not query or self.editor_widget is None:
-            return "break"
+            return EventResult.HANDLED
         if self._editor_search_current_index is None or not self._editor_search_matches:
-            return "break"
+            return EventResult.HANDLED
 
         replacement = self._editor_search_replace_var.get()
         start, end = self._editor_search_matches[self._editor_search_current_index]
@@ -288,14 +303,14 @@ class BlattwerkAppEditorSearchMixin:
         self._queue_editor_diagnostics(immediate=True)
         self._queue_editor_outline(immediate=True)
         self._run_editor_search(direction=0)
-        return "break"
+        return EventResult.HANDLED
 
     def _replace_all_editor_matches(self, _event=None):
         """Replaces every current match in the editor buffer and recomputes the match display."""
 
         query = self._editor_search_query_var.get()
         if not query or self.editor_widget is None:
-            return "break"
+            return EventResult.HANDLED
 
         case_sensitive = bool(self._editor_search_case_sensitive_var.get())
         text = self.editor_widget.get("1.0", "end-1c")
@@ -304,7 +319,7 @@ class BlattwerkAppEditorSearchMixin:
             self._editor_search_matches = []
             self._editor_search_current_index = None
             self._update_editor_search_match_display()
-            return "break"
+            return EventResult.HANDLED
 
         replacement = self._editor_search_replace_var.get()
         # Rueckwaerts ersetzen, damit bereits verarbeitete Offsets die noch
@@ -321,4 +336,4 @@ class BlattwerkAppEditorSearchMixin:
 
         self._editor_search_current_index = None
         self._run_editor_search(direction=0)
-        return "break"
+        return EventResult.HANDLED

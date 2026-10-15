@@ -21,6 +21,7 @@ from app.ui.ui_constants import (
     EDITOR_DOCUMENT_NOT_LOADED,
 )
 from app.ui.ui_theme import get_theme
+from bw_gui.runtime import bind_click
 
 
 @pytest.fixture
@@ -59,7 +60,7 @@ class _RealEditor(BlattwerkAppEditorMixin):
         self.root = root
         self.editor_widget = tk.Text(root, undo=True)
         self.editor_widget.pack()
-        self.editor_widget.bind("<Button-1>", self._on_editor_mouse_click)
+        bind_click(self.editor_widget, self._on_editor_mouse_click)
         self._editor_document_state = EDITOR_DOCUMENT_NOT_LOADED
         self._editor_loading_content = False
         self._editor_has_unsaved_changes = False

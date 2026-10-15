@@ -17,6 +17,8 @@ import re
 
 from app.ui.blatt_ui_editor import BlattwerkAppEditorMixin
 from app.ui.blatt_ui_editor_diagnostics import BlattwerkAppEditorDiagnosticsMixin
+from bw_gui.contracts.key_event import RawKey, classify_key
+from bw_gui.contracts.key_modifiers import TkBackend
 
 
 class _FakeRoot:
@@ -68,10 +70,9 @@ class _FakeTextWidget:
         self.tag_add_calls.append((tag, start, end))
 
 
-class _FakeKeyEvent:
-    def __init__(self, keysym: str, char: str = ""):
-        self.keysym = keysym
-        self.char = char
+def _FakeKeyEvent(keysym: str, char: str = ""):
+    """Build the real bw-gui ``KeyEvent`` that the editor's after-phase handler receives."""
+    return classify_key(RawKey(keysym, char, 0), TkBackend.WIN32)[0]
 
 
 class _DummyEditor(BlattwerkAppEditorDiagnosticsMixin, BlattwerkAppEditorMixin):
@@ -183,7 +184,7 @@ def test_key_release_arrow_navigation_debounces_block_pair_highlight():
     app = _DummyEditor(_SAMPLE_DOCUMENT)
 
     for _ in range(5):
-        app._on_editor_key_release(_FakeKeyEvent("Right"))
+        app._on_editor_key_after(_FakeKeyEvent("Right"))
 
     # Each keystroke schedules a new timer and cancels the previous pending
     # one -- rapid navigation collapses into a single pending refresh instead

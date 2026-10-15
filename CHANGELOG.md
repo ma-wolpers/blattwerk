@@ -7,6 +7,7 @@ The format is based on Keep a Changelog.
 ## [Unreleased]
 
 ### Changed
+- Nach dem Übernehmen eines Vorschlags mit Enter öffnet sich die Vorschlagsliste nur noch, wenn der übernommene Eintrag eine Folgeauswahl hat (wie schon bei Tab und Doppelklick); nach Tab bleibt eine solche Folgeauswahl jetzt offen. Strg+Umschalt+Enter fügt wie Strg+Enter eine Zeile ein, ohne den Vorschlag zu übernehmen.
 
 - Tastenkürzel mit Strg gelten genau für die angegebene Kombination (z. B. löst Strg+Alt+E keinen Export mehr aus). Ziffern- und Plus/Minus-Kürzel wirken auch auf dem Ziffernblock. Mausrad und Touchpad scrollen bzw. zoomen in ganzen Rasten; kleine Touchpad-Bewegungen sammeln sich. Ein Klick in die Gliederung oder Diagnose springt schon beim Drücken der Maustaste.
 - **Vorschau-Optionen starten eingeklappt:** Die Optionsleiste über der Vorschau ist bei jedem Start eingeklappt und lässt sich mit ▸ aufklappen. Der Zustand wird nicht mehr gespeichert.
