@@ -63,13 +63,16 @@ def _task(points, *lines):
         ("Weg A (1,5 / 3 P)", SUFFIX_LEGACY, None, None),
         ("Weg A (1/2P An)", SUFFIX_LEGACY, None, None),
         ("Ansatz (0,5abP)", SUFFIX_INVALID, None, None),
-        ("Ansatz (-1P)", SUFFIX_INVALID, None, None),
+        ("Ansatz (-1P)", SUFFIX_VALID, Decimal(-1), None),
+        ("Ansatz (−0,5P)", SUFFIX_VALID, Decimal("-0.5"), None),
+        ("Ansatz (– 1 a P)", SUFFIX_VALID, Decimal(-1), "a"),
+        ("Ansatz (-1P An)", SUFFIX_INVALID, None, None),
         ("Ansatz (1P An)", SUFFIX_INVALID, None, None),
         ("Ansatz (1AP)", SUFFIX_INVALID, None, None),
     ],
 )
 def test_suffix_contract_status_and_value(head, status, value, path):
-    """Jeder Status; nur `valid` trägt Zahlenwert und Weg (Minus und Typ folgen erst mit ihrer Semantik)."""
+    """Jeder Status; nur `valid` trägt Zahlenwert und Weg (das Typ-Token folgt erst mit seiner Semantik)."""
     suffix = parse_points_suffix(head)
     assert (suffix.status, suffix.value, suffix.path) == (status, value, path)
 
@@ -92,7 +95,7 @@ def test_legacy_suffix_reports_only_sl014():
 def test_invalid_suffix_reports_only_sl018_and_no_sum_check():
     """Unlesbar: SL018 (Fehler) je Punkt; die übrigen Werte werden nicht summiert."""
     assert _codes(_task(2, "(0,5abP)", "(1P)")) == [("SL018", "error")]
-    assert _codes(_task(2, "(-1P)", "(5P)")) == [("SL018", "error")]
+    assert _codes(_task(2, "(1 a b P)", "(5P)")) == [("SL018", "error")]
 
 
 def test_snail_6c_paths_sum_to_points():

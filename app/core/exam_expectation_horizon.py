@@ -31,7 +31,7 @@ from .exam_analysis import AFB_LEVELS, analyze_exam
 from .export_path_guardrails import validate_export_output_path
 from .frontmatter import content_after_frontmatter
 from .math_span_protection import convert_markdown_with_math
-from .points_model import build_points_model, format_points, subtask_effective
+from .points_model import build_points_model, format_points, format_signed_points, subtask_effective
 from .solution_items import collect_solution_targets
 from .exam_part_render import AID_PART_LABELS
 from .student_header import HEADER_DATE_KIND, InvalidHeaderValue, resolve_header_value
@@ -46,7 +46,7 @@ table { border-collapse: collapse; width: 100%; margin: 0.2em 0 0.6em; }
 th, td { border: 1px solid #999; padding: 0.25em 0.45em; vertical-align: top; text-align: left; }
 th { background: #eee; } td.num, th.num { width: 2.4em; text-align: center; }
 td.pts, th.pts { width: 4.5em; text-align: center; } .target-row td { background: #f6f6f6; font-weight: 600; }
-.missing { color: #a33; font-style: italic; } .path { font-weight: 600; } .sum { font-weight: 600; margin: 0.2em 0 0.8em; }
+.missing { color: #a33; font-style: italic; } .path { font-weight: 600; } .deduction td { background: #fbf3f3; } .deduction-label { font-weight: 600; color: #a33; } .sum { font-weight: 600; margin: 0.2em 0 0.8em; }
 """
 
 
@@ -148,22 +148,29 @@ def _target_rows(unit, key, target, diagnostics) -> list[str]:
         return rows
     if all(item.points is None for item in target.items):
         diagnostics.append(_diag("SL005", f"Erwartungshorizont: {label} hat keine Teilpunkte `(xP)`."))
-    for number, item in enumerate(target.items, start=1):
+    expectations = [item for item in target.items if not item.is_deduction]
+    for number, item in enumerate(expectations, start=1):
         points = _item_points_text(item)
         path = f"<span class='path'>Weg {escape(item.path)}:</span> " if item.path else ""
         rows.append(f"<tr><td class='num'>{number}</td><td>{path}{_inline(item.text)}</td><td class='pts'>{points}</td><td class='pts'></td></tr>")
+    for item in target.items:
+        if item.is_deduction:
+            rows.append(
+                f"<tr class='deduction'><td class='num'></td><td><span class='deduction-label'>Abzug je Fehler:</span> "
+                f"{_inline(item.text)}</td><td class='pts'>{_item_points_text(item)}</td><td class='pts'></td></tr>"
+            )
     return rows
 
 
 def _item_points_text(item) -> str:
-    """Punktspalte eines Erwartungspunkts: `2` bei `(2P)`, leer ohne Zahlenwert.
+    """Punktspalte eines Erwartungspunkts: `2` bei `(2P)`, `−0,5` bei einem Abzug, leer ohne Zahlenwert.
 
     Alternative Wege erkennt die Korrektur an der Kennzeichnung `Weg a:` in
     der Erwartungsspalte, nicht an der Punktzahl.
     """
     if item.points is None:
         return ""
-    return format_points(item.points)
+    return format_signed_points(item.points)
 
 
 def _part_sum(part) -> str:

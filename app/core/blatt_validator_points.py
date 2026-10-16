@@ -1,4 +1,4 @@
-"""Punkt- und Lösungsdiagnosen (PK001–PK006, SL001/SL004/SL006/SL008, SL014/SL015/SL018).
+"""Punkt- und Lösungsdiagnosen (PK001–PK006, SL001/SL004/SL006/SL008, SL014–SL016/SL018).
 
 Liest Punkte nur über `points_model`, Lösungs-Items und ihre Summe nur über
 `solution_items` und die Suffix-Grammatik nur über `points_suffix`
@@ -6,7 +6,10 @@ Liest Punkte nur über `points_model`, Lösungs-Items und ihre Summe nur über
 
 Fehler (blockieren den Export wie alle Blattwerk-Fehler): PK001, PK002,
 PK004, PK005, SL008, SL014, SL018. Warnungen: PK003, PK006, SL001, SL004,
-SL006, SL015.
+SL006, SL015, SL016.
+
+Abzüge je Fehler (`(−0,5P)`) zählen in keine Summe; ein Weg-Buchstabe daran
+ist wirkungslos (SL016).
 
 Alternative Wege (`(0,5aP)`/`(1bP)`): PK002 vergleicht gemeinsam + bester
 Weg exakt mit der Punktzahl. Ein altes (`(x/nP)`, SL014) oder unlesbares
@@ -101,7 +104,15 @@ def _target_diagnostics(target, unit: TaskUnit, blocks) -> list[BuildDiagnostic]
     unreadable = _unreadable_suffix_diagnostics(target, label, blocks, anchor_index)
     if unreadable:
         return result + unreadable
-    paths = sorted({item.path for item in target.items if item.path})
+    for item in target.items:
+        if item.is_deduction and item.path:
+            result.append(_diag(
+                "SL016",
+                f"Loesung zu {label}: Abzug `{item.suffix_text}` mit Weg-Buchstabe -- Abzuege gelten fuer die ganze "
+                "(Teil-)Aufgabe, der Buchstabe wird ignoriert.",
+                blocks, anchor_index,
+            ))
+    paths = sorted({item.path for item in target.items if item.path and not item.is_deduction})
     if len(paths) == 1:
         result.append(_diag(
             "SL015",

@@ -18,6 +18,9 @@ Unterlisten gehören als Fortsetzung zum Eltern-Item. `(xP)` zählt nur am
 Zeilenende der Kopfzeile eines Punkts (SL004 sonst); die Grammatik des
 Suffixes steht ausschließlich in `points_suffix`.
 
+Abzüge je Fehler (`(−0,5P)`, negative `points`) gehören zu keiner Summe
+und zu keinem Weg; sie werden im Erwartungshorizont getrennt ausgewiesen.
+
 Alternative Lösungswege: Ein Buchstabe im Suffix (`(0,5aP)`, `(1bP)`)
 ordnet den Punkt einem Weg zu; Punkte ohne Buchstabe gelten für alle Wege.
 Erreichbar ist dann Σ(ohne Buchstabe) + max über die Wege von Σ(Weg)
@@ -50,6 +53,7 @@ class SolutionItem:
             gültiges Suffix; ein altes oder unlesbares Suffix bleibt im Text).
         points: Punktzahl, **nur** bei gültigem Suffix (`points_suffix`),
             sonst ``None`` -- alte und unlesbare Suffixe gehen so in keine Summe ein.
+            Negativ = Abzug je Fehler (`is_deduction`).
         path: Weg-Buchstabe des Suffixes oder ``None`` (gilt für alle Wege).
         suffix_status: Status aus `points_suffix` (`none`/`valid`/`legacy`/`invalid`).
         suffix_text: Wortlaut der Suffix-Klammer (für Diagnosetexte), sonst leer.
@@ -60,6 +64,11 @@ class SolutionItem:
     path: str | None = None
     suffix_status: str = SUFFIX_NONE
     suffix_text: str = ""
+
+    @property
+    def is_deduction(self) -> bool:
+        """Ob der Punkt ein Abzug je Fehler ist (negativer Zahlenwert)."""
+        return self.points is not None and self.points < 0
 
 
 @dataclass
@@ -135,7 +144,8 @@ class PointsTotal:
 def solution_points_total(items) -> PointsTotal:
     """Erreichbare Punkte: Σ(ohne Buchstabe) + max über die Wege von Σ(Weg).
 
-    Berücksichtigt nur Punkte mit Zahlenwert (gültiges Suffix). Alle Werte
+    Berücksichtigt nur Punkte mit Zahlenwert (gültiges Suffix); Abzüge je
+    Fehler (negative Werte) zählen nie mit, auch nicht mit Buchstabe. Alle Werte
     sind `Decimal` aus `points_model.parse_points` (aus Strings, nie `float`),
     der Vergleich mit `points=` ist daher exakt.
 
@@ -144,7 +154,7 @@ def solution_points_total(items) -> PointsTotal:
     """
     shared, paths = Decimal(0), {}
     for item in items:
-        if item.points is None:
+        if item.points is None or item.points < 0:
             continue
         if item.path is None:
             shared += item.points

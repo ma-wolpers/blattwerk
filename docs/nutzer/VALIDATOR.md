@@ -90,7 +90,7 @@ Subprozess siehe `tests/test_blatt_diagnostics_cli.py` (Validator) sowie
 - `KL007`: Vor dem ersten von zwei `--hm` (Deckblatt) steht eine Aufgabe, Teilaufgabe oder Loesung. Das Deckblatt darf alles andere enthalten (Hinweise, `:::info`, `:::evaluation` ...), aber keine Aufgaben. Fehler.
 - `KL006`: `afb` an einer Teilaufgabe wirkt nicht, weil die Teilaufgaben keine eigenen Punkte haben. Warnung.
 - `PK001`: Aufgabe hat `points`, die nicht der Summe ihrer (vollstaendig bepunkteten) Teilaufgaben entsprechen. Fehler (blockiert den Export).
-- `PK002`: Summe der Teilpunkte `(xP)` in den Loesungen einer (Teil-)Aufgabe weicht von deren Punktzahl ab (nur wenn alle Loesungspunkte annotiert sind). Bei alternativen Wegen (`(0,5aP)`/`(1bP)`) zaehlt gemeinsam (ohne Buchstabe) + bester Weg; der Vergleich ist exakt. Fehler.
+- `PK002`: Summe der Teilpunkte `(xP)` in den Loesungen einer (Teil-)Aufgabe weicht von deren Punktzahl ab (nur wenn alle Loesungspunkte annotiert sind). Bei alternativen Wegen (`(0,5aP)`/`(1bP)`) zaehlt gemeinsam (ohne Buchstabe) + bester Weg; Abzuege je Fehler (`(−0,5P)`) zaehlen nie mit; der Vergleich ist exakt. Fehler.
 - `PK003`: Punktangabe ist keine Zahl (erlaubt: `2`, `2,5`, `2.5`). Warnung; der Text wird trotzdem angezeigt.
 - `PK004`: Nur ein Teil der Teilaufgaben einer Aufgabe ist bepunktet. Fehler.
 - `PK005`: Teilpunkte `(xP)` auf Aufgabenebene (auch per `target=task`), obwohl die Teilaufgaben bepunktet sind. Fehler.
@@ -104,6 +104,7 @@ Subprozess siehe `tests/test_blatt_diagnostics_cli.py` (Validator) sowie
 - `SL009`-`SL013`: **entfallen.** Prueften frueher die Teilpunkt-Schreibweise `(x/nP)`, die durch Weg-Buchstaben ersetzt ist (siehe `SL014`).
 - `SL014`: Alte Teilpunkt-Schreibweise `(x/nP)` in einer Loesung. Fehler; alternative Wege mit Buchstaben angeben (`(0,5aP)`, `(1bP)`), Punkte ohne Buchstabe gelten fuer alle Wege. Fuer diese (Teil-)Aufgabe entfallen `SL006`, `SL015` und `PK002`.
 - `SL015`: In einer (Teil-)Aufgabe ist nur ein Weg-Buchstabe vergeben -- ohne zweiten Weg gibt es keine Alternative. Warnung. Die Buchstaben gelten je (Teil-)Aufgabe (auch ueber mehrere `:::solution`-Bloecke derselben Teilaufgabe); eine (Teil-)Aufgabe hat genau eine Wahlentscheidung -- zwei unabhaengige Entscheidungen auf zwei Teilaufgaben verteilen.
+- `SL016`: Abzug je Fehler mit Weg-Buchstabe (z. B. `(−0,5aP)`). Warnung; Abzuege gelten fuer die ganze (Teil-)Aufgabe, der Buchstabe wird ignoriert.
 - `SL018`: Punktangabe am Ende eines Loesungspunkts ist nicht lesbar (beginnt mit einer Zahl und enthaelt `P`, passt aber zu keiner erlaubten Form, z. B. `(0,5abP)`). Fehler; fuer diese (Teil-)Aufgabe entfallen `SL006`, `SL015` und `PK002`.
 - `BL001`: Unbekannter Blocktyp.
 - `BL002`: Leerzeichen direkt nach `:::` im Marker (`::: block`) ist ungueltig.

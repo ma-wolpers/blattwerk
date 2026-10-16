@@ -551,7 +551,11 @@ PROSE_SECTIONS: dict[str, str] = {
         "das muss die Punktzahl ergeben. In der Lösung erscheint `(0,5P, Weg a)`, im Erwartungshorizont "
         "„Weg a:“ vor dem Text. Die Buchstaben gelten je (Teil-)Aufgabe; zwei voneinander unabhängige "
         "Wahlmöglichkeiten gehören in zwei Teilaufgaben. Die frühere Schreibweise `(x/nP)` gibt es nicht "
-        "mehr (Fehler `SL014`), eine unlesbare Punktangabe wie `(0,5abP)` ist Fehler `SL018`."
+        "mehr (Fehler `SL014`), eine unlesbare Punktangabe wie `(0,5abP)` ist Fehler `SL018`. Ein "
+        "Minuszeichen macht einen Lösungspunkt zum Abzug je Fehler, z. B. `5. Je falsches Kreuz (−0,5P)` "
+        "oder `(-1P)` (`-`, `−` und `–` gelten gleich): Abzüge zählen nicht zur Summe, gelten für die ganze "
+        "(Teil-)Aufgabe (ein Weg-Buchstabe daran wird ignoriert, Hinweis `SL016`) und stehen im "
+        "Erwartungshorizont als „Abzug je Fehler“ am Ende der Tabelle."
     ),
     "block:columns": (
         "Spaltenlayout für nebeneinander angeordnete Inhalte. `cols=2..6` (Standard 2) setzt die "
