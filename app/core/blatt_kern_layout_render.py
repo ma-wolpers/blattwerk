@@ -44,6 +44,7 @@ from .blatt_kern_layout_presentation import _render_presentation_html
 from .document_semantics import annotate_aid_parts
 from .evaluation_table import annotate_evaluation_blocks
 from .student_header import render_student_header
+from .exam_part_render import attach_part_headers
 from .document_type_registry import has_slide_layout
 
 
@@ -120,6 +121,9 @@ def render_html(
     # Vor annotate_aid_parts: dort verschiebt der synthetische Teil-A-Block die Indizes.
     blocks = annotate_operator_blocks(blocks, meta, document_type)
     blocks = annotate_aid_parts(blocks, document_type)
+    student_header = render_student_header(meta)
+    # Jeder Klausurteil auf neuer Seite bekommt dieselbe Kopfzeile wie der Dokumentanfang.
+    blocks = attach_part_headers(blocks, student_header)
     numbered_blocks = assign_task_numbers(blocks)
     enriched_blocks = annotate_standalone_subtasks(numbered_blocks)
     enriched_blocks = annotate_task_help_references(
@@ -162,8 +166,6 @@ def render_html(
         right_header_html = (
             "<span class='solution-version-inline'>Lösungsversion</span>"
         )
-
-    student_header = render_student_header(meta)
 
     document_header = ""
     if _meta_bool_ja_nein(meta.get("show_document_header"), default=True):

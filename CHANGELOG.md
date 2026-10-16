@@ -6,6 +6,9 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added
+- **Klausuren: Kopfzeile je Teil.** Mit `show_student_header: ja` steht die Schülerkopfzeile (Name, Lerngruppe, Datum) jetzt auch oben auf Teil B – und mit Deckblatt auf Teil A –, damit getrennt eingesammelte Teile beschriftet sind.
+
 ### Changed
 - Nach dem Übernehmen eines Vorschlags mit Enter öffnet sich die Vorschlagsliste nur noch, wenn der übernommene Eintrag eine Folgeauswahl hat (wie schon bei Tab und Doppelklick); nach Tab bleibt eine solche Folgeauswahl jetzt offen. Strg+Umschalt+Enter fügt wie Strg+Enter eine Zeile ein, ohne den Vorschlag zu übernehmen.
 

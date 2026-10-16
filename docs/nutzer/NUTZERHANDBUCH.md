@@ -132,6 +132,7 @@ Die Leiste „Vorschau-Optionen“ über der Vorschau startet eingeklappt; mit �
 - Neue Klausur über `Neu` → „Klausur (.kbw)“. Klausuren zeigen keine Sozialform-Symbole.
 - `afb=1|2|3` an Aufgaben/Teilaufgaben, `--hm` als eigene Zeile zwischen zwei Aufgaben für Teil A (hilfsmittelfrei) und Teil B, Teilpunkte in Lösungen als `(2P)`.
 - Mit einem zweiten `--hm` davor bekommt die Klausur ein **Deckblatt**: Alles vor dem ersten `--hm` (Hinweise, Bewertungstabelle …, aber keine Aufgaben) steht auf der ersten Seite ohne Teilüberschrift; „Teil A“ beginnt auf einer neuen Seite.
+- Mit `show_student_header: ja` steht die **Schülerkopfzeile** (Name, Lerngruppe, Datum) zusätzlich oben auf jedem Teil, der auf einer neuen Seite beginnt – so tragen auch getrennt eingesammelte Teile Name und Datum.
 - Unter der Diagnostik zeigt die **Klausur-Übersicht** Punkte und AFB-Verteilung (Prozent bezogen auf die Gesamtpunkte).
 - Im Exportdialog unter „Inhalt“ → **Erwartungshorizont** (PDF/HTML, Taste `H`).
 - `:::evaluation:::` fügt eine Bewertungstabelle ein (auch in Arbeitsblättern).

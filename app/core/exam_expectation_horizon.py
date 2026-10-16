@@ -33,6 +33,7 @@ from .frontmatter import content_after_frontmatter
 from .math_span_protection import convert_markdown_with_math
 from .points_model import build_points_model, format_points, subtask_effective
 from .solution_items import collect_solution_targets
+from .exam_part_render import AID_PART_LABELS
 from .student_header import HEADER_DATE_KIND, InvalidHeaderValue, resolve_header_value
 
 _REGION = "exam:expectation-horizon"
@@ -79,7 +80,7 @@ def build_expectation_horizon_html(text: str) -> tuple[str, list[BuildDiagnostic
         if part != current_part and part is not None:
             if current_part is not None:
                 body.append(_part_sum(analysis.parts[0]))
-            body.append(f"<h2>{'Teil A – hilfsmittelfrei' if part == 'A' else 'Teil B – mit Hilfsmitteln'}</h2>")
+            body.append(f"<h2>{AID_PART_LABELS[part]}</h2>")
             current_part = part
         body.append(f"<h3>Aufgabe {unit.number} ({format_points(unit.effective)} P)</h3>")
         body.append("<table><tr><th class='num'>Nr.</th><th>Erwartung</th><th class='pts'>max. P.</th><th class='pts'>erreicht</th></tr>")

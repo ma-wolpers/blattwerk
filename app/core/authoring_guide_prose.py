@@ -56,7 +56,8 @@ PROSE_SECTIONS: dict[str, str] = {
         "Blendet die Schülerkopfzeile (Name/Lerngruppe/Datum-Felder) am Dokumentanfang ein/aus. "
         "Standard: aus. Erwartet einen booleschen Wert im Format `ja`/`nein` (auch `true`/`false`, "
         "`1`/`0`, `j`/`n` werden akzeptiert). Stehen `Lerngruppe` bzw. `Datum` im Frontmatter, sind "
-        "die Felder vorausgefüllt."
+        "die Felder vorausgefüllt. In Klausuren mit `--hm` steht dieselbe Kopfzeile zusätzlich oben "
+        "auf jedem Teil, der auf einer neuen Seite beginnt (Teil B, mit Deckblatt auch Teil A)."
     ),
     "frontmatter:Lerngruppe": (
         "Füllt das Feld „Lerngruppe“ der Schülerkopfzeile vor (nur sichtbar mit "
@@ -155,7 +156,9 @@ PROSE_SECTIONS: dict[str, str] = {
         "und AFB werden je Teil ausgewertet. Nur zwischen zwei Aufgaben; in anderen Dokumenttypen "
         "ohne Wirkung. Ein zweites `--hm` davor trennt ein Deckblatt ab: Alles vor dem ersten `--hm` "
         "(Hinweise, Bewertungstabelle …, aber keine Aufgaben) steht auf der ersten Seite ohne "
-        "Teilüberschrift, \"Teil A\" beginnt dann auf einer neuen Seite. Mehr als zwei `--hm` sind ein Fehler."
+        "Teilüberschrift, \"Teil A\" beginnt dann auf einer neuen Seite. Mehr als zwei `--hm` sind ein Fehler. "
+        "Mit `show_student_header: ja` trägt jeder Teil, der auf einer neuen Seite beginnt, oben "
+        "die Schülerkopfzeile (Name, Lerngruppe, Datum), damit getrennt eingesammelte Teile beschriftet sind."
     ),
     "marker:sectionmark": (
         "`--# Abschnittsname` setzt den aktuellen Abschnittsnamen für die Footer-Navigation in "
