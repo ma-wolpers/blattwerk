@@ -12,9 +12,10 @@ Zuordnungsregel:
 * Mehrere Lösungen mit demselben Ziel werden in Dokumentreihenfolge
   zusammengeführt.
 
-Items sind nur Top-Level-Einträge nummerierter Listen (Einrückung 0–3);
+Items sind die Lösungspunkte aus `solution_structure.classify_solution` --
+dieselbe Zerlegung, aus der `solution_display` die oberste Liste rendert.
 Unterlisten gehören als Fortsetzung zum Eltern-Item. `(xP)` zählt nur am
-Zeilenende eines Top-Level-Items (SL004 sonst).
+Zeilenende der Kopfzeile eines Punkts (SL004 sonst).
 
 Teilpunkte für alternative Lösungswege: `(x/nP)` bedeutet „x von n
 erreichbaren Punkten“. Alternative Wege sind nicht summativ -- die Summe
@@ -30,11 +31,9 @@ from dataclasses import dataclass, field
 from decimal import Decimal
 
 from .points_model import iter_units, parse_points
+from .solution_structure import LIST_LINE_RE, classify_solution
 
 POINTS_SUFFIX_RE = re.compile(r"\((\d+(?:[.,]\d+)?)(?:\s*/\s*(\d+(?:[.,]\d+)?))?\s*P\)\s*$")
-_TOP_ITEM_RE = re.compile(r"^ {0,3}(\d+)[.)]\s+(.*)$")
-_BULLET_RE = re.compile(r"^\s*[-*+]\s+")
-_NESTED_ITEM_RE = re.compile(r"^(?: {4,}|\t)\s*(?:\d+[.)]|[-*+])\s+")
 
 
 @dataclass
@@ -63,6 +62,7 @@ class SolutionTarget:
 
     @property
     def is_task_level(self) -> bool:
+        """Ob die Lösung zur Aufgabe selbst statt zu einer Teilaufgabe gehört."""
         return self.subtask_position is None
 
 
@@ -78,33 +78,26 @@ class SolutionIssue:
 def parse_solution_items(content: str) -> tuple[list[SolutionItem], bool]:
     """Liefert die Items und ob `(xP)` an einer nicht zählenden Stelle stand (SL004).
 
-    Ein nicht eingerückter Absatz beendet das aktuelle Item; eingerückte
-    Zeilen (z. B. Unterlisten) und Leerzeilen davor gehören zum Item.
+    Die Punkte kommen ausschließlich aus `classify_solution` (Kopfzeile plus
+    Fortsetzung). Nicht zählend ist ein Suffix in einer Listen- oder
+    Aufzählungszeile, die keine Kopfzeile ist -- außerhalb geschützter
+    Bereiche (Mathe, Kommentar, Codezaun), die nie ausgewertet werden.
     """
-    groups: list[list[str]] = []
-    current: list[str] | None = None
-    misplaced = False
-    for raw in (content or "").split("\n"):
-        line = raw.rstrip("\r")
-        top = _TOP_ITEM_RE.match(line)
-        if top:
-            current = [top.group(2)]
-            groups.append(current)
-            continue
-        if POINTS_SUFFIX_RE.search(line) and (_NESTED_ITEM_RE.match(line) or _BULLET_RE.match(line)):
-            misplaced = True
-        if current is not None and (line.startswith((" ", "\t")) or not line.strip()):
-            current.append(line.strip())
-        elif line.strip():
-            current = None
+    layout = classify_solution(content)
+    head_lines = {entry.head_line for entry in layout.entries}
+    misplaced = any(
+        LIST_LINE_RE.match(line) and POINTS_SUFFIX_RE.search(line)
+        for number, line in enumerate(layout.lines)
+        if number not in head_lines and number not in layout.protected_lines
+    )
     items = []
-    for group in groups:
-        first = group[0]
-        match = POINTS_SUFFIX_RE.search(first)
+    for entry in layout.entries:
+        visible_head, *visible_rest = entry.visible_lines()
+        match = POINTS_SUFFIX_RE.search(visible_head)
         value = parse_points(match.group(1)) if match else None
         of_total = parse_points(match.group(2)) if match and match.group(2) else None
-        head = POINTS_SUFFIX_RE.sub("", first).rstrip() if match else first
-        continuation = " ".join(part for part in group[1:] if part)
+        head = POINTS_SUFFIX_RE.sub("", visible_head).rstrip() if match else visible_head
+        continuation = " ".join(part.strip() for part in visible_rest if part.strip())
         items.append(SolutionItem((head + (" " + continuation if continuation else "")).strip(), value, of_total))
     return items, misplaced
 
@@ -139,12 +132,14 @@ def collect_solution_targets(blocks) -> tuple[list[SolutionTarget], list[Solutio
 
 
 def _new_target(units, key) -> SolutionTarget:
+    """Leeres Ziel für `(unit_index, subtask_position)` mit angezeigtem Teilaufgaben-Buchstaben."""
     unit_index, position = key
     letter = None if position is None else units[unit_index].subtasks[position].letter
     return SolutionTarget(unit_index, letter, position)
 
 
 def _resolve_target(options, current_unit, last_target, units, index, issues):
+    """Ziel einer Lösung nach `target=` bzw. der vorangehenden Aufgabe; meldet SL001/SL008 in `issues`."""
     raw_target = options.get("target")
     if raw_target is None:
         if last_target is None:

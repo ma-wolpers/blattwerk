@@ -31,10 +31,12 @@ from ..math_span_protection import protect_math_spans
 from .runs import IM001_UNCLOSED_COMMENT, ParseDiagnostic
 from .word_notes import WordNoteSpan, protect_word_notes
 
-_COMMENT_PATTERN = re.compile(r"(?<!\\)%%(.*?)(?<!\\)%%", re.DOTALL)
+COMMENT_PATTERN = re.compile(r"(?<!\\)%%(.*?)(?<!\\)%%", re.DOTALL)
 _UNMATCHED_COMMENT_START_PATTERN = re.compile(r"(?<!\\)%%")
 
-_FENCE_PATTERN = re.compile(r"^```[^\n]*\n(.*?)\n^```[ \t]*$", re.DOTALL | re.MULTILINE)
+FENCE_PATTERN = re.compile(r"^```[^\n]*\n(.*?)\n^```[ \t]*$", re.DOTALL | re.MULTILINE)
+"""`COMMENT_PATTERN`/`FENCE_PATTERN` sind öffentlich, weil `solution_items.classify_solution`
+dieselben Bereiche wie die Render-Pipeline ausnehmen muss (keine zweite Regex)."""
 _INLINE_CODE_PATTERN = re.compile(r"(?<!\\)`([^`\n]+?)(?<!\\)`")
 
 _CODE_PLACEHOLDER_START = ""
@@ -68,7 +70,7 @@ def strip_comments(text: str) -> tuple[str, list[ParseDiagnostic]]:
     if not text:
         return text, []
 
-    without_paired = _COMMENT_PATTERN.sub("", text)
+    without_paired = COMMENT_PATTERN.sub("", text)
 
     diagnostics: list[ParseDiagnostic] = []
     unmatched = _UNMATCHED_COMMENT_START_PATTERN.search(without_paired)
@@ -99,13 +101,15 @@ def protect_code(text: str) -> tuple[str, list[CodeSpan]]:
     spans: list[CodeSpan] = []
 
     def _replace_fence(match: re.Match[str]) -> str:
+        """Merkt den Zaun-Inhalt als Block-Span und ersetzt ihn durch einen Platzhalter."""
         index = len(spans)
         spans.append(CodeSpan(text=match.group(1), is_block=True))
         return f"{_CODE_PLACEHOLDER_START}{index}{_CODE_PLACEHOLDER_END}"
 
-    without_fences = _FENCE_PATTERN.sub(_replace_fence, text)
+    without_fences = FENCE_PATTERN.sub(_replace_fence, text)
 
     def _replace_inline(match: re.Match[str]) -> str:
+        """Merkt den Inline-Code als Span und ersetzt ihn durch einen Platzhalter."""
         index = len(spans)
         spans.append(CodeSpan(text=match.group(1), is_block=False))
         return f"{_CODE_PLACEHOLDER_START}{index}{_CODE_PLACEHOLDER_END}"

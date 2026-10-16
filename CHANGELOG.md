@@ -11,6 +11,7 @@ The format is based on Keep a Changelog.
 - **Klausuren: Kopfzeile je Teil.** Mit `show_student_header: ja` steht die Schülerkopfzeile (Name, Lerngruppe, Datum) jetzt auch oben auf Teil B – und mit Deckblatt auf Teil A –, damit getrennt eingesammelte Teile beschriftet sind.
 
 ### Changed
+- **Lösungen: dargestellte und bewertete Lösungspunkte sind jetzt immer dieselben.** Unterpunkte mit weniger als vier Leerzeichen Einrückung (z. B. `   - Aussage 1`) erscheinen als Unterliste ihres Punkts statt als eigene nummerierte Punkte; Zeilen in Codeblöcken, `%%`-Kommentaren und Formeln zählen nie als Lösungspunkt; `Text (1P) %%Notiz%%` zählt wie angezeigt. `1) …` ist (wie in der Darstellung schon immer) kein Lösungspunkt -- Punkte daran meldet jetzt `SL004`.
 - Nach dem Übernehmen eines Vorschlags mit Enter öffnet sich die Vorschlagsliste nur noch, wenn der übernommene Eintrag eine Folgeauswahl hat (wie schon bei Tab und Doppelklick); nach Tab bleibt eine solche Folgeauswahl jetzt offen. Strg+Umschalt+Enter fügt wie Strg+Enter eine Zeile ein, ohne den Vorschlag zu übernehmen.
 
 - Tastenkürzel mit Strg gelten genau für die angegebene Kombination (z. B. löst Strg+Alt+E keinen Export mehr aus). Ziffern- und Plus/Minus-Kürzel wirken auch auf dem Ziffernblock. Mausrad und Touchpad scrollen bzw. zoomen in ganzen Rasten; kleine Touchpad-Bewegungen sammeln sich. Ein Klick in die Gliederung oder Diagnose springt schon beim Drücken der Maustaste.
