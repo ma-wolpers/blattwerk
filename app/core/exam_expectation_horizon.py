@@ -34,6 +34,7 @@ from .math_span_protection import convert_markdown_with_math
 from .points_model import build_points_model, format_points, format_signed_points, subtask_effective
 from .solution_items import collect_solution_targets
 from .exam_part_render import AID_PART_LABELS
+from .expectation_kinds import EXPECTATION_KINDS, kind_by_key
 from .student_header import HEADER_DATE_KIND, InvalidHeaderValue, resolve_header_value
 
 _REGION = "exam:expectation-horizon"
@@ -46,7 +47,8 @@ table { border-collapse: collapse; width: 100%; margin: 0.2em 0 0.6em; }
 th, td { border: 1px solid #999; padding: 0.25em 0.45em; vertical-align: top; text-align: left; }
 th { background: #eee; } td.num, th.num { width: 2.4em; text-align: center; }
 td.pts, th.pts { width: 4.5em; text-align: center; } .target-row td { background: #f6f6f6; font-weight: 600; }
-.missing { color: #a33; font-style: italic; } .path { font-weight: 600; } .deduction td { background: #fbf3f3; } .deduction-label { font-weight: 600; color: #a33; } .sum { font-weight: 600; margin: 0.2em 0 0.8em; }
+.missing { color: #a33; font-style: italic; } .path { font-weight: 600; } .deduction td { background: #fbf3f3; } .deduction-label { font-weight: 600; color: #a33; }
+table.legend { width: auto; } td.kind { text-align: center; } .sum { font-weight: 600; margin: 0.2em 0 0.8em; }
 """
 
 
@@ -95,6 +97,7 @@ def build_expectation_horizon_html(text: str) -> tuple[str, list[BuildDiagnostic
         body.append("</table>")
     if split is not None and analysis.parts:
         body.append(_part_sum(analysis.parts[1]))
+    body.append(_kinds_legend(targets))
     body.append(_afb_table(analysis))
     title = escape(str(meta.get("Titel") or "Erwartungshorizont")) if isinstance(meta, dict) else "Erwartungshorizont"
     html = (
@@ -152,14 +155,34 @@ def _target_rows(unit, key, target, diagnostics) -> list[str]:
     for number, item in enumerate(expectations, start=1):
         points = _item_points_text(item)
         path = f"<span class='path'>Weg {escape(item.path)}:</span> " if item.path else ""
-        rows.append(f"<tr><td class='num'>{number}</td><td>{path}{_inline(item.text)}</td><td class='pts'>{points}</td><td class='pts'></td></tr>")
+        rows.append(f"<tr><td class='num'>{number}</td><td>{path}{_kind_symbol(item)}{_inline(item.text)}</td><td class='pts'>{points}</td><td class='pts'></td></tr>")
     for item in target.items:
         if item.is_deduction:
             rows.append(
                 f"<tr class='deduction'><td class='num'></td><td><span class='deduction-label'>Abzug je Fehler:</span> "
-                f"{_inline(item.text)}</td><td class='pts'>{_item_points_text(item)}</td><td class='pts'></td></tr>"
+                f"{_kind_symbol(item)}{_inline(item.text)}</td><td class='pts'>{_item_points_text(item)}</td><td class='pts'></td></tr>"
             )
     return rows
+
+
+def _kind_symbol(item) -> str:
+    """Symbol des Erwartungstyps vor dem Text (leer ohne bzw. mit unbekanntem Typ)."""
+    if item.kind is None:
+        return ""
+    kind = kind_by_key(item.kind)
+    return f"<span class='kind' title='{escape(kind.label)}'>{kind.symbol}</span> "
+
+
+def _kinds_legend(targets) -> str:
+    """Eine Legende der tatsächlich verwendeten Erwartungstypen (Katalogreihenfolge), sonst leer."""
+    used = {item.kind for target in targets for item in target.items if item.kind}
+    if not used:
+        return ""
+    rows = "".join(
+        f"<tr><td class='kind'>{kind.symbol}</td><td>{escape(kind.label)}</td></tr>"
+        for kind in EXPECTATION_KINDS if kind.key in used
+    )
+    return f"<h2>Erwartungstypen</h2>\n<table class='legend'><tr><th>Symbol</th><th>Typ</th></tr>{rows}</table>"
 
 
 def _item_points_text(item) -> str:

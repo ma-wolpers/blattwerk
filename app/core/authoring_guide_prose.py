@@ -146,7 +146,9 @@ PROSE_SECTIONS: dict[str, str] = {
         "Im Exportdialog einer Klausur gibt es unter „Inhalt“ den Punkt „Erwartungshorizont“ (PDF oder "
         "HTML). Er listet je (Teil-)Aufgabe nur die nummerierten Lösungspunkte mit ihren Teilpunkten, "
         "ohne Aufgabentext, mit einer leeren Spalte „erreicht“, dazu Teilsummen je Hilfsmittel-Teil "
-        "und die AFB-Tabelle. Widersprüchliche Punkte verhindern den Export; fehlende Teilpunkte "
+        "und die AFB-Tabelle. Alternative Wege stehen mit „Weg a:“ vor dem Text, Abzüge je Fehler am "
+        "Tabellenende, Erwartungstypen als Symbol vor dem Text mit einer Legende vor der AFB-Tabelle. "
+        "Widersprüchliche Punkte verhindern den Export; fehlende Teilpunkte "
         "(`SL005`) oder Erwartungen (`SL007`) werden nur angemerkt."
     ),
     "marker:aidsplit": (
@@ -555,7 +557,12 @@ PROSE_SECTIONS: dict[str, str] = {
         "Minuszeichen macht einen Lösungspunkt zum Abzug je Fehler, z. B. `5. Je falsches Kreuz (−0,5P)` "
         "oder `(-1P)` (`-`, `−` und `–` gelten gleich): Abzüge zählen nicht zur Summe, gelten für die ganze "
         "(Teil-)Aufgabe (ein Weg-Buchstabe daran wird ignoriert, Hinweis `SL016`) und stehen im "
-        "Erwartungshorizont als „Abzug je Fehler“ am Ende der Tabelle."
+        "Erwartungshorizont als „Abzug je Fehler“ am Ende der Tabelle. Optional benennt ein Wort nach dem P, "
+        "was für eine Leistung erwartet wird (Erwartungstyp, Name oder Kürzel): Ansatz (An), Anwendung (Aw), "
+        "Antwortsatz (Sa), Fachsprache (Fs), Entscheidung (En), Ergebnis (Er), Beobachtung (Be), Begründung "
+        "(Bg), Einheit/Größe (Ei), Darstellung (Da) -- z. B. `(0,5P An)`, `(1aP Anwendung)`, `(−1P Bg)`. "
+        "Der Erwartungshorizont zeigt dafür ein Symbol vor dem Text und eine Legende der verwendeten Typen, "
+        "die Lösung blendet den Typ aus. Ein unbekannter Typ ist eine Warnung (`SL017`)."
     ),
     "block:columns": (
         "Spaltenlayout für nebeneinander angeordnete Inhalte. `cols=2..6` (Standard 2) setzt die "

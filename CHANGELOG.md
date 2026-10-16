@@ -7,6 +7,7 @@ The format is based on Keep a Changelog.
 ## [Unreleased]
 
 ### Added
+- **Erwartungstypen für Lösungspunkte:** Ein Wort nach dem P benennt, was erwartet wird – Ansatz (An) 💡, Anwendung (Aw) 🛠️, Antwortsatz (Sa) 💬, Fachsprache (Fs) 📚, Entscheidung (En) ⚖️, Ergebnis (Er) ✅, Beobachtung (Be) 🔍, Begründung (Bg) 🧩, Einheit/Größe (Ei) 📏, Darstellung (Da) 📐, z. B. `(0,5P An)` oder `(1aP Anwendung)`, auch an Abzügen (`(−1P Bg)`). Der Erwartungshorizont zeigt das Symbol vor dem Text und darunter eine Legende der verwendeten Typen; die Lösung blendet den Typ aus. Ein unbekannter Typ ergibt eine Warnung (`SL017`). In `LZK 1 v2` wurden die von Hand gesetzten Emojis in Typen umgewandelt (die Lösungsversion zeigt deshalb keine Emojis mehr).
 - **Minuspunkte in Lösungen:** `(−0,5P)` bzw. `(-1P)` kennzeichnet einen Abzug je Fehler, z. B. für Ankreuzaufgaben („+0,5 je richtig, −0,5 je falsch“) oder Begründungen. Abzüge zählen nicht zur Summenprüfung – die Pluspunkte müssen die Punktzahl ergeben –, erscheinen in der Lösung als `(−0,5P)` und im Erwartungshorizont getrennt als „Abzug je Fehler“ am Ende der Tabelle. Ein Weg-Buchstabe an einem Abzug wird ignoriert (Hinweis `SL016`).
 - **Erwartungshorizont kompakter:** kleinere Schrift (9 pt statt 10,5 pt, Überschriften entsprechend kleiner), damit mehr Erwartungen auf eine Seite passen.
 - **Klausuren: Kopfzeile je Teil.** Mit `show_student_header: ja` steht die Schülerkopfzeile (Name, Lerngruppe, Datum) jetzt auch oben auf Teil B – und mit Deckblatt auf Teil A –, damit getrennt eingesammelte Teile beschriftet sind.

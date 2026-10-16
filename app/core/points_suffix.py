@@ -23,8 +23,11 @@ ist nie zugleich `invalid` (keine Doppelmeldung SL014/SL018). `legacy` und
 eingehen können.
 
 Gültige Grammatik (wächst nur zusammen mit ihrer Semantik):
-`([−] Zahl [Weg] P)` -- Zahl mit Komma oder Punkt, Weg ein Kleinbuchstabe
-direkt vor `P`, Leerraum erlaubt (`(0,5aP)`, `(1 b P)`). Ein Minuszeichen
+`([−] Zahl [Weg] P [Typ])` -- Zahl mit Komma oder Punkt, Weg ein
+Kleinbuchstabe direkt vor `P`, Leerraum erlaubt (`(0,5aP)`, `(1 b P)`),
+Typ ein Wort nach `P` (`(0,5P An)`, `(0,5aP Ansatz)`, Katalog in
+`expectation_kinds`). Ein unbekannter Typ lässt das Suffix gültig (Wert und
+Weg zählen), nur `kind` bleibt ``None`` (SL017). Ein Minuszeichen
 (`-`, `−` oder `–`) macht den Punkt zum **Abzug je Fehler** (`value < 0`):
 Abzüge zählen in keine Summe und gelten für die ganze (Teil-)Aufgabe, ein
 Weg-Buchstabe daran wird ignoriert (SL016).
@@ -36,6 +39,7 @@ import re
 from dataclasses import dataclass
 from decimal import Decimal
 
+from .expectation_kinds import resolve_expectation_kind
 from .points_model import format_signed_points, parse_points
 
 SUFFIX_NONE = "none"
@@ -45,13 +49,13 @@ SUFFIX_INVALID = "invalid"
 
 SUFFIX_GRAMMAR_HINT = (
     "`(Zahl P)`, für alternative Wege mit Buchstabe vor dem P, z. B. `(0,5aP)` und `(1bP)`, "
-    "für Abzüge je Fehler mit Minus, z. B. `(−0,5P)`"
+    "für Abzüge je Fehler mit Minus, z. B. `(−0,5P)`, optional mit Erwartungstyp nach dem P, z. B. `(0,5P An)`"
 )
 """Kurzbeschreibung der gültigen Grammatik für Diagnosetexte (SL014/SL018)."""
 
 _CANDIDATE_RE = re.compile(r"\((?P<body>\s*[-−–]?\s*\d[^()]*)\)\s*$")
 _P_TOKEN_RE = re.compile(r"P(?=\s|$)")
-_VALID_BODY_RE = re.compile(r"^\s*(?P<sign>[-−–])?\s*(?P<value>\d+(?:[.,]\d+)?)\s*(?P<path>[a-z])?\s*P\s*$")
+_VALID_BODY_RE = re.compile(r"^\s*(?P<sign>[-−–])?\s*(?P<value>\d+(?:[.,]\d+)?)\s*(?P<path>[a-z])?\s*P(?:\s+(?P<kind>[^\s()]+))?\s*$")
 _LEGACY_BODY_RE = re.compile(r"^\s*\d+(?:[.,]\d+)?\s*/\s*\d+(?:[.,]\d+)?\s*P(?:\s[^()]*)?$")
 
 
@@ -66,12 +70,17 @@ class PointsSuffix:
         value: Punktzahl, nur bei `valid`; negativ bei einem Abzug.
         path: Weg-Buchstabe, nur bei `valid` mit Buchstabe (bei Abzügen
             ohne Wirkung, siehe `is_deduction`).
+        kind_token: Typ-Token wie geschrieben (`An`, `Ansatz`) oder ``None``.
+        kind: Katalogschlüssel aus `expectation_kinds` oder ``None`` (kein
+            oder unbekannter Typ).
     """
 
     status: str
     span: tuple[int, int] | None = None
     value: Decimal | None = None
     path: str | None = None
+    kind_token: str | None = None
+    kind: str | None = None
 
     @property
     def is_deduction(self) -> bool:
@@ -92,7 +101,11 @@ def parse_points_suffix(head: str) -> PointsSuffix:
     valid = _VALID_BODY_RE.match(match.group("body"))
     if valid:
         value = parse_points(valid.group("value"))
-        return PointsSuffix(SUFFIX_VALID, span, -value if valid.group("sign") else value, valid.group("path"))
+        kind = resolve_expectation_kind(valid.group("kind"))
+        return PointsSuffix(
+            SUFFIX_VALID, span, -value if valid.group("sign") else value, valid.group("path"),
+            valid.group("kind"), kind.key if kind else None,
+        )
     if _LEGACY_BODY_RE.match(match.group("body")):
         return PointsSuffix(SUFFIX_LEGACY, span)
     return PointsSuffix(SUFFIX_INVALID, span)
@@ -113,7 +126,8 @@ def strip_valid_suffix(head: str, suffix: PointsSuffix) -> str:
 def display_suffix(suffix: PointsSuffix) -> str:
     """Anzeigeform eines gültigen Suffixes in der Lösung: `(0,5P)`, `(0,5P, Weg a)`, `(−0,5P)`.
 
-    Abzüge zeigen nie einen Weg (der Buchstabe ist wirkungslos, SL016).
+    Abzüge zeigen nie einen Weg (der Buchstabe ist wirkungslos, SL016). Das
+    Typ-Token wird in der Lösung nie angezeigt (Symbole nur im Erwartungshorizont).
     """
     text = f"{format_signed_points(suffix.value)}P"
     if suffix.path and not suffix.is_deduction:

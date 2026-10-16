@@ -105,6 +105,7 @@ Subprozess siehe `tests/test_blatt_diagnostics_cli.py` (Validator) sowie
 - `SL014`: Alte Teilpunkt-Schreibweise `(x/nP)` in einer Loesung. Fehler; alternative Wege mit Buchstaben angeben (`(0,5aP)`, `(1bP)`), Punkte ohne Buchstabe gelten fuer alle Wege. Fuer diese (Teil-)Aufgabe entfallen `SL006`, `SL015` und `PK002`.
 - `SL015`: In einer (Teil-)Aufgabe ist nur ein Weg-Buchstabe vergeben -- ohne zweiten Weg gibt es keine Alternative. Warnung. Die Buchstaben gelten je (Teil-)Aufgabe (auch ueber mehrere `:::solution`-Bloecke derselben Teilaufgabe); eine (Teil-)Aufgabe hat genau eine Wahlentscheidung -- zwei unabhaengige Entscheidungen auf zwei Teilaufgaben verteilen.
 - `SL016`: Abzug je Fehler mit Weg-Buchstabe (z. B. `(−0,5aP)`). Warnung; Abzuege gelten fuer die ganze (Teil-)Aufgabe, der Buchstabe wird ignoriert.
+- `SL017`: Unbekannter Erwartungstyp im Punkt-Suffix (z. B. `(1P Xy)`). Warnung mit Liste der gueltigen Typen (Name oder Kuerzel); Punktwert und Weg zaehlen trotzdem, nur Symbol und Legende entfallen fuer diesen Punkt.
 - `SL018`: Punktangabe am Ende eines Loesungspunkts ist nicht lesbar (beginnt mit einer Zahl und enthaelt `P`, passt aber zu keiner erlaubten Form, z. B. `(0,5abP)`). Fehler; fuer diese (Teil-)Aufgabe entfallen `SL006`, `SL015` und `PK002`.
 - `BL001`: Unbekannter Blocktyp.
 - `BL002`: Leerzeichen direkt nach `:::` im Marker (`::: block`) ist ungueltig.

@@ -1,4 +1,4 @@
-"""Punkt- und Lösungsdiagnosen (PK001–PK006, SL001/SL004/SL006/SL008, SL014–SL016/SL018).
+"""Punkt- und Lösungsdiagnosen (PK001–PK006, SL001/SL004/SL006/SL008, SL014–SL018).
 
 Liest Punkte nur über `points_model`, Lösungs-Items und ihre Summe nur über
 `solution_items` und die Suffix-Grammatik nur über `points_suffix`
@@ -6,7 +6,10 @@ Liest Punkte nur über `points_model`, Lösungs-Items und ihre Summe nur über
 
 Fehler (blockieren den Export wie alle Blattwerk-Fehler): PK001, PK002,
 PK004, PK005, SL008, SL014, SL018. Warnungen: PK003, PK006, SL001, SL004,
-SL006, SL015, SL016.
+SL006, SL015, SL016, SL017.
+
+Erwartungstypen (`(0,5P An)`) sind optional; ein unbekannter Typ ist nur eine
+Warnung (SL017), Wert und Weg des Punkts zählen trotzdem.
 
 Abzüge je Fehler (`(−0,5P)`) zählen in keine Summe; ein Weg-Buchstabe daran
 ist wirkungslos (SL016).
@@ -33,6 +36,7 @@ from .points_model import (
     format_points,
     subtask_effective,
 )
+from .expectation_kinds import valid_kinds_hint
 from .points_suffix import SUFFIX_GRAMMAR_HINT, SUFFIX_INVALID, SUFFIX_LEGACY
 from .solution_items import collect_solution_targets, solution_points_total
 
@@ -105,6 +109,13 @@ def _target_diagnostics(target, unit: TaskUnit, blocks) -> list[BuildDiagnostic]
     if unreadable:
         return result + unreadable
     for item in target.items:
+        if item.kind_token and item.kind is None:
+            result.append(_diag(
+                "SL017",
+                f"Loesung zu {label}: unbekannter Erwartungstyp `{item.kind_token}` in `{item.suffix_text}`. "
+                f"Gueltig (Name oder Kuerzel): {valid_kinds_hint()}.",
+                blocks, anchor_index,
+            ))
         if item.is_deduction and item.path:
             result.append(_diag(
                 "SL016",

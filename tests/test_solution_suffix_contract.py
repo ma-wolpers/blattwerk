@@ -66,13 +66,14 @@ def _task(points, *lines):
         ("Ansatz (-1P)", SUFFIX_VALID, Decimal(-1), None),
         ("Ansatz (−0,5P)", SUFFIX_VALID, Decimal("-0.5"), None),
         ("Ansatz (– 1 a P)", SUFFIX_VALID, Decimal(-1), "a"),
-        ("Ansatz (-1P An)", SUFFIX_INVALID, None, None),
-        ("Ansatz (1P An)", SUFFIX_INVALID, None, None),
+        ("Ansatz (-1P An)", SUFFIX_VALID, Decimal(-1), None),
+        ("Ansatz (1P An)", SUFFIX_VALID, Decimal(1), None),
+        ("Ansatz (1P An Er)", SUFFIX_INVALID, None, None),
         ("Ansatz (1AP)", SUFFIX_INVALID, None, None),
     ],
 )
 def test_suffix_contract_status_and_value(head, status, value, path):
-    """Jeder Status; nur `valid` trägt Zahlenwert und Weg (das Typ-Token folgt erst mit seiner Semantik)."""
+    """Jeder Status; nur `valid` trägt Zahlenwert und Weg."""
     suffix = parse_points_suffix(head)
     assert (suffix.status, suffix.value, suffix.path) == (status, value, path)
 

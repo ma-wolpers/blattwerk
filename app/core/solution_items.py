@@ -57,6 +57,8 @@ class SolutionItem:
         path: Weg-Buchstabe des Suffixes oder ``None`` (gilt für alle Wege).
         suffix_status: Status aus `points_suffix` (`none`/`valid`/`legacy`/`invalid`).
         suffix_text: Wortlaut der Suffix-Klammer (für Diagnosetexte), sonst leer.
+        kind: Erwartungstyp (Schlüssel aus `expectation_kinds`) oder ``None``.
+        kind_token: Typ-Token wie geschrieben; gesetzt, aber `kind` ``None`` = unbekannter Typ (SL017).
     """
 
     text: str
@@ -64,6 +66,8 @@ class SolutionItem:
     path: str | None = None
     suffix_status: str = SUFFIX_NONE
     suffix_text: str = ""
+    kind: str | None = None
+    kind_token: str | None = None
 
     @property
     def is_deduction(self) -> bool:
@@ -119,7 +123,9 @@ def parse_solution_items(content: str) -> tuple[list[SolutionItem], bool]:
         head = strip_valid_suffix(visible_head, suffix)
         continuation = " ".join(part.strip() for part in visible_rest if part.strip())
         text = (head + (" " + continuation if continuation else "")).strip()
-        items.append(SolutionItem(text, suffix.value, suffix.path, suffix.status, suffix.text_in(visible_head)))
+        items.append(SolutionItem(
+            text, suffix.value, suffix.path, suffix.status, suffix.text_in(visible_head), suffix.kind, suffix.kind_token,
+        ))
     return items, misplaced
 
 
