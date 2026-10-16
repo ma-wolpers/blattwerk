@@ -186,7 +186,7 @@ def test_task_body_pipeline_preserves_backslash_commands_in_formulas():
     # End-to-end regression for the originally reported bug: the real
     # task/subtask rendering pipeline runs filter_answer_content_for_mode()
     # (answer_line_markers.py) BEFORE convert_markdown_with_math() -- see
-    # blatt_kern_task_render.py::_render_task_content/_render_subtask_body.
+    # blatt_kern_task_header_render.py::_render_task_content/_render_subtask_block.
     # Backslash LaTeX commands must survive that composition unmangled.
     content = r"Loese: $\frac{a}{b} = \mid c \mid$"
     filtered = filter_answer_content_for_mode(content, include_solutions=False, default_show="both")
