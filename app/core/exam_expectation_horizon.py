@@ -39,9 +39,9 @@ from .student_header import HEADER_DATE_KIND, InvalidHeaderValue, resolve_header
 _REGION = "exam:expectation-horizon"
 _STYLE = """
 @page { size: A4 portrait; margin: 1.8cm; }
-body { font-family: "Segoe UI", Arial, sans-serif; font-size: 10.5pt; color: #111; }
-h1 { font-size: 16pt; margin: 0 0 0.2em; } h2 { font-size: 13pt; margin: 1em 0 0.3em; }
-h3 { font-size: 11.5pt; margin: 0.9em 0 0.3em; } .meta { color: #444; margin: 0 0 0.8em; }
+body { font-family: "Segoe UI", Arial, sans-serif; font-size: 9pt; color: #111; }
+h1 { font-size: 14pt; margin: 0 0 0.2em; } h2 { font-size: 11.5pt; margin: 1em 0 0.3em; }
+h3 { font-size: 10pt; margin: 0.9em 0 0.3em; } .meta { color: #444; margin: 0 0 0.8em; }
 table { border-collapse: collapse; width: 100%; margin: 0.2em 0 0.6em; }
 th, td { border: 1px solid #999; padding: 0.25em 0.45em; vertical-align: top; text-align: left; }
 th { background: #eee; } td.num, th.num { width: 2.4em; text-align: center; }

@@ -7,6 +7,7 @@ The format is based on Keep a Changelog.
 ## [Unreleased]
 
 ### Added
+- **Erwartungshorizont kompakter:** kleinere Schrift (9 pt statt 10,5 pt, Überschriften entsprechend kleiner), damit mehr Erwartungen auf eine Seite passen.
 - **Klausuren: Kopfzeile je Teil.** Mit `show_student_header: ja` steht die Schülerkopfzeile (Name, Lerngruppe, Datum) jetzt auch oben auf Teil B – und mit Deckblatt auf Teil A –, damit getrennt eingesammelte Teile beschriftet sind.
 
 ### Changed
