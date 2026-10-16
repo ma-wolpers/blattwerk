@@ -46,11 +46,12 @@ table { border-collapse: collapse; width: 100%; margin: 0.2em 0 0.6em; }
 th, td { border: 1px solid #999; padding: 0.25em 0.45em; vertical-align: top; text-align: left; }
 th { background: #eee; } td.num, th.num { width: 2.4em; text-align: center; }
 td.pts, th.pts { width: 4.5em; text-align: center; } .target-row td { background: #f6f6f6; font-weight: 600; }
-.missing { color: #a33; font-style: italic; } .sum { font-weight: 600; margin: 0.2em 0 0.8em; }
+.missing { color: #a33; font-style: italic; } .path { font-weight: 600; } .sum { font-weight: 600; margin: 0.2em 0 0.8em; }
 """
 
 
 def _inline(text: str) -> str:
+    """Erwartungstext als Inline-HTML (Markdown + Mathe-Schutz, ein einzelner Absatz ausgepackt)."""
     html = convert_markdown_with_math(markdown.Markdown(), text, lambda value: value).strip()
     if html.startswith("<p>") and html.endswith("</p>") and html.count("<p>") == 1:
         html = html[3:-4]
@@ -58,6 +59,7 @@ def _inline(text: str) -> str:
 
 
 def _diag(code: str, message: str) -> BuildDiagnostic:
+    """Export-Hinweis des Erwartungshorizonts (SL005/SL007), ohne Blockbezug."""
     return BuildDiagnostic(code=code, message=message, region_id=_REGION, anchor=message)
 
 
@@ -129,6 +131,7 @@ def _meta_line(meta) -> str:
 
 
 def _target_rows(unit, key, target, diagnostics) -> list[str]:
+    """Tabellenzeilen eines Ziels (Aufgabe oder Teilaufgabe); ergänzt SL005/SL007 in `diagnostics`."""
     _unit_index, position = key
     if position is None:
         label, expected = f"Aufgabe {unit.number}", unit.effective
@@ -147,28 +150,29 @@ def _target_rows(unit, key, target, diagnostics) -> list[str]:
         diagnostics.append(_diag("SL005", f"Erwartungshorizont: {label} hat keine Teilpunkte `(xP)`."))
     for number, item in enumerate(target.items, start=1):
         points = _item_points_text(item)
-        rows.append(f"<tr><td class='num'>{number}</td><td>{_inline(item.text)}</td><td class='pts'>{points}</td><td class='pts'></td></tr>")
+        path = f"<span class='path'>Weg {escape(item.path)}:</span> " if item.path else ""
+        rows.append(f"<tr><td class='num'>{number}</td><td>{path}{_inline(item.text)}</td><td class='pts'>{points}</td><td class='pts'></td></tr>")
     return rows
 
 
 def _item_points_text(item) -> str:
-    """Punktspalte eines Erwartungspunkts: `2` bei `(2P)`, `1/3` bei Teilpunkten `(1/3P)`.
+    """Punktspalte eines Erwartungspunkts: `2` bei `(2P)`, leer ohne Zahlenwert.
 
-    Teilpunkte alternativer Lösungswege bleiben als Bruch sichtbar, damit
-    die Korrektur erkennt, dass die Zeilen nicht aufsummiert werden.
+    Alternative Wege erkennt die Korrektur an der Kennzeichnung `Weg a:` in
+    der Erwartungsspalte, nicht an der Punktzahl.
     """
     if item.points is None:
         return ""
-    if item.of_total is not None:
-        return f"{format_points(item.points)}/{format_points(item.of_total)}"
     return format_points(item.points)
 
 
 def _part_sum(part) -> str:
+    """Summenzeile eines Hilfsmittel-Teils."""
     return f"<p class='sum'>Summe {escape(part.label)}: {format_points(part.points)} P</p>"
 
 
 def _afb_table(analysis) -> str:
+    """AFB-Tabelle (je Teil und gesamt) aus `exam_analysis`, mit Hinweis bei unvollständiger Auswertung."""
     rows = ["<h2>Anforderungsbereiche</h2>", "<table><tr><th></th><th>Punkte</th>"]
     rows[-1] += "".join(f"<th>AFB {'I' * level}</th>" for level in AFB_LEVELS) + "</tr>"
     for part in (analysis.parts + [analysis.total]) if analysis.parts else [analysis.total]:

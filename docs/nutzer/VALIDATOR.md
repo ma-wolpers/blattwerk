@@ -90,22 +90,21 @@ Subprozess siehe `tests/test_blatt_diagnostics_cli.py` (Validator) sowie
 - `KL007`: Vor dem ersten von zwei `--hm` (Deckblatt) steht eine Aufgabe, Teilaufgabe oder Loesung. Das Deckblatt darf alles andere enthalten (Hinweise, `:::info`, `:::evaluation` ...), aber keine Aufgaben. Fehler.
 - `KL006`: `afb` an einer Teilaufgabe wirkt nicht, weil die Teilaufgaben keine eigenen Punkte haben. Warnung.
 - `PK001`: Aufgabe hat `points`, die nicht der Summe ihrer (vollstaendig bepunkteten) Teilaufgaben entsprechen. Fehler (blockiert den Export).
-- `PK002`: Summe der Teilpunkte `(xP)` in den Loesungen einer (Teil-)Aufgabe weicht von deren Punktzahl ab (nur wenn alle Loesungspunkte annotiert sind). Fehler.
+- `PK002`: Summe der Teilpunkte `(xP)` in den Loesungen einer (Teil-)Aufgabe weicht von deren Punktzahl ab (nur wenn alle Loesungspunkte annotiert sind). Bei alternativen Wegen (`(0,5aP)`/`(1bP)`) zaehlt gemeinsam (ohne Buchstabe) + bester Weg; der Vergleich ist exakt. Fehler.
 - `PK003`: Punktangabe ist keine Zahl (erlaubt: `2`, `2,5`, `2.5`). Warnung; der Text wird trotzdem angezeigt.
 - `PK004`: Nur ein Teil der Teilaufgaben einer Aufgabe ist bepunktet. Fehler.
 - `PK005`: Teilpunkte `(xP)` auf Aufgabenebene (auch per `target=task`), obwohl die Teilaufgaben bepunktet sind. Fehler.
 - `PK006`: Teilpunkte `(xP)` vergeben, aber die (Teil-)Aufgabe hat keine eigene Punktzahl. Warnung.
 - `SL001`: `:::solution` ohne vorangehende Aufgabe (bzw. erste Loesung hinter `--hm`); wird keiner Aufgabe zugeordnet. Warnung.
-- `SL004`: `(xP)` in einem verschachtelten oder Aufzaehlungs-Punkt; zaehlt nicht. Warnung.
+- `SL004`: `(xP)` an einer Listen- oder Aufzaehlungszeile, die nicht die erste Zeile eines Loesungspunkts `1. …` ist (Unterpunkt, `- …`, `1) …`); zaehlt nicht. Warnung.
 - `SL005`: Erwartungshorizont: Eine (Teil-)Aufgabe hat Erwartungen, aber keine einzige Teilpunkt-Angabe `(xP)`; die Punktspalte bleibt leer. Warnung beim Export des Erwartungshorizonts.
 - `SL006`: Nur ein Teil der Erwartungspunkte einer (Teil-)Aufgabe hat `(xP)`; keine Summenpruefung. Warnung.
 - `SL007`: Erwartungshorizont: Eine (Teil-)Aufgabe hat keine nummerierte Erwartung; es erscheint "keine Erwartung hinterlegt". Warnung beim Export des Erwartungshorizonts.
 - `SL008`: Ungueltiges `target=` an `:::solution` (kein Subtask mit diesem Bezeichner in derselben Aufgabe bzw. keine Aufgabe davor). Fehler.
-- `SL009`: Teilpunkte `(x/nP)`: Der Nenner n entspricht nicht der Punktzahl der (Teil-)Aufgabe. Fehler. Entfaellt, wenn die Punktzahl selbst fehlt oder widerspruechlich ist (dann `PK006`/`PK001`/`PK004`).
-- `SL010`: Teilpunkte `(x/nP)`: Ein einzelner Zaehler x ist groesser als n. Fehler.
-- `SL011`: Teilpunkte `(x/nP)`: Die Summe der Zaehler ist kleiner als die Punktzahl -- erreichbare Punkte fehlen. Fehler. Eine groessere Summe ist der beabsichtigte Normalfall (alternative Wege sind nicht summativ) und wird nicht gemeldet; `PK002` entfaellt fuer solche Ziele.
-- `SL012`: Teilpunkte `(x/nP)`: Die Summe der Zaehler ist genau die Punktzahl -- die k/n-Schreibweise ist redundant, `(xP)` genuegt. Warnung.
-- `SL013`: `(xP)` und `(x/nP)` in derselben Loesung gemischt. Warnung; die Summenregeln `SL011`/`SL012` entfallen dann.
+- `SL009`-`SL013`: **entfallen.** Prueften frueher die Teilpunkt-Schreibweise `(x/nP)`, die durch Weg-Buchstaben ersetzt ist (siehe `SL014`).
+- `SL014`: Alte Teilpunkt-Schreibweise `(x/nP)` in einer Loesung. Fehler; alternative Wege mit Buchstaben angeben (`(0,5aP)`, `(1bP)`), Punkte ohne Buchstabe gelten fuer alle Wege. Fuer diese (Teil-)Aufgabe entfallen `SL006`, `SL015` und `PK002`.
+- `SL015`: In einer (Teil-)Aufgabe ist nur ein Weg-Buchstabe vergeben -- ohne zweiten Weg gibt es keine Alternative. Warnung. Die Buchstaben gelten je (Teil-)Aufgabe (auch ueber mehrere `:::solution`-Bloecke derselben Teilaufgabe); eine (Teil-)Aufgabe hat genau eine Wahlentscheidung -- zwei unabhaengige Entscheidungen auf zwei Teilaufgaben verteilen.
+- `SL018`: Punktangabe am Ende eines Loesungspunkts ist nicht lesbar (beginnt mit einer Zahl und enthaelt `P`, passt aber zu keiner erlaubten Form, z. B. `(0,5abP)`). Fehler; fuer diese (Teil-)Aufgabe entfallen `SL006`, `SL015` und `PK002`.
 - `BL001`: Unbekannter Blocktyp.
 - `BL002`: Leerzeichen direkt nach `:::` im Marker (`::: block`) ist ungueltig.
 - `BL003`: Schliessender Marker `:::` ohne passenden offenen Block.

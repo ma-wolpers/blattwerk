@@ -546,11 +546,12 @@ PROSE_SECTIONS: dict[str, str] = {
         "Zeile tragen, z. B. "
         "`1. Ansatz aufgestellt (2P)` oder `(1,5P)`; sind alle Punkte einer Aufgabe annotiert, muss ihre "
         "Summe zur Punktzahl der Aufgabe passen (sonst Fehler `PK002`). Für alternative Lösungswege "
-        "gibt es Teilpunkte `(x/nP)`: `(1/3P)` heißt „einer von drei erreichbaren Punkten“. Weil "
-        "alternative Wege nicht addiert werden, darf die Summe die Punktzahl übersteigen -- das ist "
-        "gewollt. Der Nenner muss der Punktzahl der (Teil-)Aufgabe entsprechen (`SL009`), kein Schritt "
-        "darf mehr als n Punkte bringen (`SL010`), und zusammen müssen mindestens n Punkte erreichbar "
-        "sein (`SL011`). Ergibt die Summe genau n, genügt die normale Schreibweise `(xP)` (Hinweis `SL012`)."
+        "steht ein Buchstabe vor dem P: `(0,5aP)` gehört zu Weg a, `(1bP)` zu Weg b, Punkte ohne Buchstabe "
+        "gelten für alle Wege. Erreichbar sind dann die gemeinsamen Punkte plus der beste Weg, und genau "
+        "das muss die Punktzahl ergeben. In der Lösung erscheint `(0,5P, Weg a)`, im Erwartungshorizont "
+        "„Weg a:“ vor dem Text. Die Buchstaben gelten je (Teil-)Aufgabe; zwei voneinander unabhängige "
+        "Wahlmöglichkeiten gehören in zwei Teilaufgaben. Die frühere Schreibweise `(x/nP)` gibt es nicht "
+        "mehr (Fehler `SL014`), eine unlesbare Punktangabe wie `(0,5abP)` ist Fehler `SL018`."
     ),
     "block:columns": (
         "Spaltenlayout für nebeneinander angeordnete Inhalte. `cols=2..6` (Standard 2) setzt die "

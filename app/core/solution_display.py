@@ -18,6 +18,7 @@ from __future__ import annotations
 import re
 
 from .blatt_kern_shared import _new_markdown_converter, convert_markdown_with_math, normalize_markdown
+from .points_suffix import SUFFIX_VALID, display_suffix, parse_points_suffix
 from .solution_structure import SolutionEntry, classify_solution
 
 _LIST_INDENT = 4
@@ -39,8 +40,15 @@ def render_solution_html(content: str) -> str:
 
 
 def display_head(visible_head: str) -> str:
-    """Anzeigeform der Kopfzeile eines Punkts (derzeit unverändert)."""
-    return visible_head
+    """Anzeigeform der Kopfzeile: gültiges Suffix normalisiert (`(0,5aP)` → `(0,5P, Weg a)`).
+
+    Alte (`(x/nP)`) und unlesbare Suffixe bleiben unverändert sichtbar, damit
+    die zugehörige Diagnose (SL014/SL018) am angezeigten Text nachvollziehbar ist.
+    """
+    suffix = parse_points_suffix(visible_head)
+    if suffix.status != SUFFIX_VALID:
+        return visible_head
+    return f"{visible_head[: suffix.span[0]]}{display_suffix(suffix)}{visible_head[suffix.span[1]:]}"
 
 
 def _render_entry(entry: SolutionEntry, loose: bool) -> str:
