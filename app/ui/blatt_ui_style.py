@@ -178,7 +178,6 @@ class BlattwerkAppStyleMixin(BlattwerkAppMenuItemsMixin):
             """
 
             theme_key = self.theme_var.get()
-            theme = get_theme(theme_key)
 
             if hasattr(self, "preview_canvas"):
                 style_canvas(self.preview_canvas, theme_key)

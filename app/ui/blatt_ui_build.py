@@ -12,18 +12,7 @@ from .ui_constants import (
     EDITOR_VIEW_BOTH,
     EDITOR_VIEW_EDITOR_ONLY,
     EDITOR_VIEW_PREVIEW_ONLY,
-    PREVIEW_CANVAS_PADDING_PX,
-    PREVIEW_MIN_FRAME_PX,
-    PREVIEW_PAGE_GAP_PX,
-    PREVIEW_PAGE_MARGIN_PX,
-    PREVIEW_SCALE_MAX,
-    PREVIEW_SCALE_MIN,
-    PREVIEW_ZOOM_MAX_PERCENT,
-    PREVIEW_ZOOM_MIN_PERCENT,
-    VIEW_LAYOUT_STACK,
-    VIEW_LAYOUT_STRIP,
 )
-from ..styles.blatt_styles import FONT_PROFILE_LABELS
 from .blatt_ui_build_preview import BlattwerkPreviewBuildMixin
 
 
