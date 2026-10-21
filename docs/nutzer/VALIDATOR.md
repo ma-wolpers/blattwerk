@@ -90,7 +90,7 @@ Subprozess siehe `tests/test_blatt_diagnostics_cli.py` (Validator) sowie
 - `KL007`: Vor dem ersten von zwei `--hm` (Deckblatt) steht eine Aufgabe, Teilaufgabe oder Loesung. Das Deckblatt darf alles andere enthalten (Hinweise, `:::info`, `:::evaluation` ...), aber keine Aufgaben. Fehler.
 - `KL006`: `afb` an einer Teilaufgabe wirkt nicht, weil die Teilaufgaben keine eigenen Punkte haben. Warnung.
 - `PK001`: Aufgabe hat `points`, die nicht der Summe ihrer (vollstaendig bepunkteten) Teilaufgaben entsprechen. Fehler (blockiert den Export).
-- `PK002`: Summe der Teilpunkte `(xP)` in den Loesungen einer (Teil-)Aufgabe weicht von deren Punktzahl ab (nur wenn alle Loesungspunkte annotiert sind). Bei alternativen Wegen (`(0,5aP)`/`(1bP)`) zaehlt gemeinsam (ohne Buchstabe) + bester Weg; Abzuege je Fehler (`(−0,5P)`) zaehlen nie mit; der Vergleich ist exakt. Fehler.
+- `PK002`: Summe der Teilpunkte `(xP)` in den Loesungen einer (Teil-)Aufgabe weicht von deren Punktzahl ab (nur wenn alle Loesungspunkte annotiert sind). Bei alternativen Wegen (`(0,5aP)`/`(1bP)`) zaehlt gemeinsam (ohne Buchstabe) + bester Weg, bei summativen Optionen (`(1/2P)`) zusaetzlich deren Summe bis zum Hoechstwert; Abzuege je Fehler (`(−0,5P)`) zaehlen nie mit; der Vergleich ist exakt. Fehler.
 - `PK003`: Punktangabe ist keine Zahl (erlaubt: `2`, `2,5`, `2.5`). Warnung; der Text wird trotzdem angezeigt.
 - `PK004`: Nur ein Teil der Teilaufgaben einer Aufgabe ist bepunktet. Fehler.
 - `PK005`: Teilpunkte `(xP)` auf Aufgabenebene (auch per `target=task`), obwohl die Teilaufgaben bepunktet sind. Fehler.
@@ -101,12 +101,15 @@ Subprozess siehe `tests/test_blatt_diagnostics_cli.py` (Validator) sowie
 - `SL006`: Nur ein Teil der Erwartungspunkte einer (Teil-)Aufgabe hat `(xP)`; keine Summenpruefung. Warnung.
 - `SL007`: Erwartungshorizont: Eine (Teil-)Aufgabe hat keine nummerierte Erwartung; es erscheint "keine Erwartung hinterlegt". Warnung beim Export des Erwartungshorizonts.
 - `SL008`: Ungueltiges `target=` an `:::solution` (kein Subtask mit diesem Bezeichner in derselben Aufgabe bzw. keine Aufgabe davor). Fehler.
-- `SL009`-`SL013`: **entfallen.** Prueften frueher die Teilpunkt-Schreibweise `(x/nP)`, die durch Weg-Buchstaben ersetzt ist (siehe `SL014`).
-- `SL014`: Alte Teilpunkt-Schreibweise `(x/nP)` in einer Loesung. Fehler; alternative Wege mit Buchstaben angeben (`(0,5aP)`, `(1bP)`), Punkte ohne Buchstabe gelten fuer alle Wege. Fuer diese (Teil-)Aufgabe entfallen `SL006`, `SL015` und `PK002`.
-- `SL015`: In einer (Teil-)Aufgabe ist nur ein Weg-Buchstabe vergeben -- ohne zweiten Weg gibt es keine Alternative. Warnung. Die Buchstaben gelten je (Teil-)Aufgabe (auch ueber mehrere `:::solution`-Bloecke derselben Teilaufgabe); eine (Teil-)Aufgabe hat genau eine Wahlentscheidung -- zwei unabhaengige Entscheidungen auf zwei Teilaufgaben verteilen.
+- `SL009`-`SL014`: **entfallen.** Prueften frueher die nicht summative Teilpunkt-Schreibweise `(x/nP)`. Alternative Wege tragen heute einen Buchstaben (`(0,5aP)`); `(x/kP)` bedeutet jetzt eine summative Option (siehe `SL019`-`SL022`).
+- `SL015`: In einer (Teil-)Aufgabe ist nur ein Weg-Buchstabe vergeben (angezeigt als „Weg A“) -- ohne zweiten Weg gibt es keine Alternative. Warnung. Die Buchstaben gelten je (Teil-)Aufgabe (auch ueber mehrere `:::solution`-Bloecke derselben Teilaufgabe); eine (Teil-)Aufgabe hat genau eine Wahlentscheidung -- zwei unabhaengige Entscheidungen auf zwei Teilaufgaben verteilen.
 - `SL016`: Abzug je Fehler mit Weg-Buchstabe (z. B. `(−0,5aP)`). Warnung; Abzuege gelten fuer die ganze (Teil-)Aufgabe, der Buchstabe wird ignoriert.
 - `SL017`: Unbekannter Erwartungstyp im Punkt-Suffix (z. B. `(1P Xy)`). Warnung mit Liste der gueltigen Typen (Name oder Kuerzel); Punktwert und Weg zaehlen trotzdem, nur Symbol und Legende entfallen fuer diesen Punkt.
 - `SL018`: Punktangabe am Ende eines Loesungspunkts ist nicht lesbar (beginnt mit einer Zahl und enthaelt `P`, passt aber zu keiner erlaubten Form, z. B. `(0,5abP)`). Fehler; fuer diese (Teil-)Aufgabe entfallen `SL006`, `SL015` und `PK002`.
+- `SL019`: Summative Optionen `(x/kP)` mit verschiedenen Hoechstwerten k in derselben (Teil-)Aufgabe. Fehler; alle Optionen eines Ziels brauchen dasselbe k (eine Optionsgruppe je (Teil-)Aufgabe).
+- `SL020`: Eine einzelne Option `(x/kP)` bringt mehr als den Hoechstwert (x > k). Fehler.
+- `SL021`: Die Optionen einer (Teil-)Aufgabe ergeben zusammen weniger als den Hoechstwert k -- er ist nicht erreichbar. Fehler.
+- `SL022`: Die Optionen ergeben genau den Hoechstwert -- jede wird gebraucht, `(xP)` genuegt statt `(x/kP)`. Warnung.
 - `BL001`: Unbekannter Blocktyp.
 - `BL002`: Leerzeichen direkt nach `:::` im Marker (`::: block`) ist ungueltig.
 - `BL003`: Schliessender Marker `:::` ohne passenden offenen Block.

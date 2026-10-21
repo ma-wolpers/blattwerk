@@ -1,12 +1,12 @@
-"""Punkt- und Lösungsdiagnosen (PK001–PK006, SL001/SL004/SL006/SL008, SL014–SL018).
+"""Punkt- und Lösungsdiagnosen (PK001–PK006, SL001/SL004/SL006/SL008, SL015–SL022).
 
 Liest Punkte nur über `points_model`, Lösungs-Items und ihre Summe nur über
 `solution_items` und die Suffix-Grammatik nur über `points_suffix`
 (Invariante I4). Gilt für Arbeitsblätter und Klausuren.
 
 Fehler (blockieren den Export wie alle Blattwerk-Fehler): PK001, PK002,
-PK004, PK005, SL008, SL014, SL018. Warnungen: PK003, PK006, SL001, SL004,
-SL006, SL015, SL016, SL017.
+PK004, PK005, SL008, SL018, SL019, SL020, SL021. Warnungen: PK003, PK006, SL001, SL004,
+SL006, SL015, SL016, SL017, SL022.
 
 Erwartungstypen (`(0,5P An)`) sind optional; ein unbekannter Typ ist nur eine
 Warnung (SL017), Wert und Weg des Punkts zählen trotzdem.
@@ -15,10 +15,12 @@ Abzüge je Fehler (`(−0,5P)`) zählen in keine Summe; ein Weg-Buchstabe daran
 ist wirkungslos (SL016).
 
 Alternative Wege (`(0,5aP)`/`(1bP)`): PK002 vergleicht gemeinsam + bester
-Weg exakt mit der Punktzahl. Ein altes (`(x/nP)`, SL014) oder unlesbares
-(SL018) Suffix hat keinen Zahlenwert; für dieses Ziel entfallen deshalb
-SL006, SL015 und PK002 (keine Doppelmeldung aus derselben Ursache). Die
-früheren Teilpunkt-Diagnosen SL009–SL013 entfallen.
+Weg (+ summative Optionen `(x/kP)`, höchstens k) exakt mit der Punktzahl.
+Ein unlesbares Suffix (SL018) hat keinen Zahlenwert; für dieses Ziel
+entfallen deshalb SL006, SL015 und PK002 (keine Doppelmeldung aus
+derselben Ursache). Optionen: SL019 (verschiedene Höchstwerte), SL020
+(Option > k), SL021 (Σ < k) sind Fehler, SL022 (Σ = k, Schreibweise
+unnötig) eine Warnung. Entfallen: SL009–SL014.
 """
 
 from __future__ import annotations
@@ -37,7 +39,7 @@ from .points_model import (
     subtask_effective,
 )
 from .expectation_kinds import valid_kinds_hint
-from .points_suffix import SUFFIX_GRAMMAR_HINT, SUFFIX_INVALID, SUFFIX_LEGACY
+from .points_suffix import SUFFIX_GRAMMAR_HINT, SUFFIX_INVALID, path_label
 from .solution_items import collect_solution_targets, solution_points_total
 
 POINTS_DOCUMENT_TYPES = frozenset({"worksheet", "exam"})
@@ -127,7 +129,7 @@ def _target_diagnostics(target, unit: TaskUnit, blocks) -> list[BuildDiagnostic]
     if len(paths) == 1:
         result.append(_diag(
             "SL015",
-            f"Loesung zu {label}: Nur Weg `{paths[0]}` ist markiert -- ohne zweiten Weg gibt es keine Alternative.",
+            f"Loesung zu {label}: Nur {path_label(paths[0])} (`{paths[0]}`) ist markiert -- ohne zweiten Weg gibt es keine Alternative.",
             blocks, anchor_index,
         ))
     annotated = [item.points for item in target.items if item.points is not None]
@@ -157,6 +159,10 @@ def _target_diagnostics(target, unit: TaskUnit, blocks) -> list[BuildDiagnostic]
         ))
         return result
     total = solution_points_total(target.items)
+    option_problems = _option_diagnostics(target, total, label, blocks, anchor_index)
+    result.extend(option_problems)
+    if any(d.severity == "error" for d in option_problems):
+        return result
     if total.total != expected and unit.status == STATUS_OK:
         result.append(_diag(
             "PK002",
@@ -168,17 +174,10 @@ def _target_diagnostics(target, unit: TaskUnit, blocks) -> list[BuildDiagnostic]
 
 
 def _unreadable_suffix_diagnostics(target, label: str, blocks, anchor_index: int) -> list[BuildDiagnostic]:
-    """SL014 (alte Schreibweise `(x/nP)`) und SL018 (unlesbares Suffix), je betroffenem Punkt, als Fehler."""
+    """SL018 (unlesbares Suffix) je betroffenem Punkt, als Fehler."""
     result = []
     for item in target.items:
-        if item.suffix_status == SUFFIX_LEGACY:
-            result.append(_diag(
-                "SL014",
-                f"Loesung zu {label}: `{item.suffix_text}` -- die Teilpunkt-Schreibweise `(x/nP)` gibt es nicht mehr. "
-                f"Erlaubt: {SUFFIX_GRAMMAR_HINT}; Punkte ohne Buchstabe gelten fuer alle Wege.",
-                blocks, anchor_index, "error",
-            ))
-        elif item.suffix_status == SUFFIX_INVALID:
+        if item.suffix_status == SUFFIX_INVALID:
             result.append(_diag(
                 "SL018",
                 f"Loesung zu {label}: Punktangabe `{item.suffix_text}` ist nicht lesbar. Erlaubt: {SUFFIX_GRAMMAR_HINT}.",
@@ -191,8 +190,47 @@ def _total_text(total) -> str:
     """Summe für PK002: `2` bzw. bei Wegen `gemeinsam 1 + bester Weg a 1 = 2`."""
     if not total.paths:
         return format_points(total.total)
-    best = total.paths[total.best_path]
-    return (
-        f"gemeinsam {format_points(total.shared)} + bester Weg {total.best_path} "
-        f"{format_points(best)} = {format_points(total.total)}"
-    )
+    parts = [f"gemeinsam {format_points(total.shared)}"]
+    if total.paths:
+        parts.append(f"bester {path_label(total.best_path)} {format_points(total.paths[total.best_path])}")
+    if total.option_caps:
+        cap = max(total.option_caps)
+        parts.append(f"Optionen {format_points(min(total.options, cap))} (hoechstens {format_points(cap)})")
+    return " + ".join(parts) + f" = {format_points(total.total)}"
+
+
+def _option_diagnostics(target, total, label: str, blocks, anchor_index: int) -> list[BuildDiagnostic]:
+    """Prüft summative Optionen `(x/kP)` eines Ziels (SL019–SL022).
+
+    * SL019 (Fehler): verschiedene Höchstwerte k in einem Ziel -- unklar,
+      welcher gilt (GRENZE: eine Optionsgruppe je Ziel).
+    * SL020 (Fehler): eine einzelne Option bringt mehr als k Punkte.
+    * SL021 (Fehler): Σ Optionen < k -- der Höchstwert ist nicht erreichbar.
+    * SL022 (Warnung): Σ Optionen = k -- jede Option wird gebraucht, die
+      Schreibweise `(x/kP)` ist unnötig, `(xP)` genügt.
+    """
+    if not total.option_caps:
+        return []
+    if len(total.option_caps) > 1:
+        caps = ", ".join(format_points(cap) for cap in sorted(total.option_caps))
+        return [_diag(
+            "SL019", f"Loesung zu {label}: Optionen mit verschiedenen Hoechstwerten ({caps}) -- alle `(x/kP)` "
+            "eines Ziels brauchen dasselbe k.", blocks, anchor_index, "error",
+        )]
+    cap = next(iter(total.option_caps))
+    result = [
+        _diag("SL020", f"Loesung zu {label}: Option `{item.suffix_text}` bringt mehr als den Hoechstwert {format_points(cap)}.",
+              blocks, anchor_index, "error")
+        for item in target.items if item.is_option and item.points > cap
+    ]
+    if total.options < cap:
+        result.append(_diag(
+            "SL021", f"Loesung zu {label}: Die Optionen ergeben zusammen nur {format_points(total.options)} von "
+            f"hoechstens {format_points(cap)} Punkten -- der Hoechstwert ist nicht erreichbar.", blocks, anchor_index, "error",
+        ))
+    elif total.options == cap:
+        result.append(_diag(
+            "SL022", f"Loesung zu {label}: Die Optionen ergeben genau den Hoechstwert {format_points(cap)} -- jede wird "
+            "gebraucht, `(xP)` genuegt statt `(x/kP)`.", blocks, anchor_index,
+        ))
+    return result

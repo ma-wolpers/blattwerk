@@ -7,9 +7,8 @@ Lösungspunkts (`solution_structure`). Jede Kopfzeile hat genau einen Status:
 Status      Bedingung                                           Zahlenwert
 ==========  ==================================================  ==================
 `none`      kein Kandidat (s. u.) -- die Klammer ist Text       --
-`valid`     strenge Grammatik passt                             `value`, `path`
-`legacy`    alte Teilpunkt-Schreibweise `(x/nP …)`              **keiner**
-`invalid`   Kandidat, aber weder `valid` noch `legacy`          **keiner**
+`valid`     strenge Grammatik passt                             `value`, `path`, `cap`
+`invalid`   Kandidat, aber nicht `valid`                        **keiner**
 ==========  ==================================================  ==================
 
 **Kandidat** ist eine Klammer am Zeilenende, deren Inhalt mit einer Zahl
@@ -17,14 +16,16 @@ beginnt (davor optional ein Minuszeichen) und ein `P` enthält, auf das
 Leerraum oder das Klammerende folgt. `(3 Punkte)` oder `(2 Pkt)` sind
 keine Kandidaten und bleiben gewöhnlicher Text (wie bisher).
 
-Prüfreihenfolge `valid` → `legacy` → `invalid`: eine alte Schreibweise
-ist nie zugleich `invalid` (keine Doppelmeldung SL014/SL018). `legacy` und
-`invalid` tragen bewusst **keinen** Zahlenwert, damit sie in keine Summe
-eingehen können.
+`invalid` trägt bewusst **keinen** Zahlenwert, damit ein unlesbares
+Suffix in keine Summe eingehen kann (SL018).
 
 Gültige Grammatik (wächst nur zusammen mit ihrer Semantik):
-`([−] Zahl [Weg] P [Typ])` -- Zahl mit Komma oder Punkt, Weg ein
-Kleinbuchstabe direkt vor `P`, Leerraum erlaubt (`(0,5aP)`, `(1 b P)`),
+`([−] Zahl [Weg | /Höchstwert] P [Typ])` -- Zahl mit Komma oder Punkt, Weg
+ein Kleinbuchstabe direkt vor `P`, Leerraum erlaubt (`(0,5aP)`, `(1 b P)`).
+`/k` statt eines Buchstabens macht den Punkt zur **Option**: Optionen
+werden summativ gewertet, zusammen höchstens k Punkte (`(1/2P)` = „1 Punkt,
+alle Optionen zusammen höchstens 2“). Buchstabe und `/k` zugleich oder ein
+Abzug mit `/k` sind ungültig. Typ
 Typ ein Wort nach `P` (`(0,5P An)`, `(0,5aP Ansatz)`, Katalog in
 `expectation_kinds`). Ein unbekannter Typ lässt das Suffix gültig (Wert und
 Weg zählen), nur `kind` bleibt ``None`` (SL017). Ein Minuszeichen
@@ -40,23 +41,22 @@ from dataclasses import dataclass
 from decimal import Decimal
 
 from .expectation_kinds import resolve_expectation_kind
-from .points_model import format_signed_points, parse_points
+from .points_model import format_points, format_signed_points, parse_points
 
 SUFFIX_NONE = "none"
 SUFFIX_VALID = "valid"
-SUFFIX_LEGACY = "legacy"
 SUFFIX_INVALID = "invalid"
 
 SUFFIX_GRAMMAR_HINT = (
     "`(Zahl P)`, für alternative Wege mit Buchstabe vor dem P, z. B. `(0,5aP)` und `(1bP)`, "
+    "für summative Optionen mit Höchstwert, z. B. `(1/2P)` (alle Optionen zusammen höchstens 2 P), "
     "für Abzüge je Fehler mit Minus, z. B. `(−0,5P)`, optional mit Erwartungstyp nach dem P, z. B. `(0,5P An)`"
 )
-"""Kurzbeschreibung der gültigen Grammatik für Diagnosetexte (SL014/SL018)."""
+"""Kurzbeschreibung der gültigen Grammatik für Diagnosetexte (SL018)."""
 
 _CANDIDATE_RE = re.compile(r"\((?P<body>\s*[-−–]?\s*\d[^()]*)\)\s*$")
 _P_TOKEN_RE = re.compile(r"P(?=\s|$)")
-_VALID_BODY_RE = re.compile(r"^\s*(?P<sign>[-−–])?\s*(?P<value>\d+(?:[.,]\d+)?)\s*(?P<path>[a-z])?\s*P(?:\s+(?P<kind>[^\s()]+))?\s*$")
-_LEGACY_BODY_RE = re.compile(r"^\s*\d+(?:[.,]\d+)?\s*/\s*\d+(?:[.,]\d+)?\s*P(?:\s[^()]*)?$")
+_VALID_BODY_RE = re.compile(r"^\s*(?P<sign>[-−–])?\s*(?P<value>\d+(?:[.,]\d+)?)\s*(?:(?P<path>[a-z])|/\s*(?P<cap>\d+(?:[.,]\d+)?))?\s*P(?:\s+(?P<kind>[^\s()]+))?\s*$")
 
 
 @dataclass(frozen=True)
@@ -64,12 +64,13 @@ class PointsSuffix:
     """Ergebnis von `parse_points_suffix` (siehe Tabelle im Moduldocstring).
 
     Attributes:
-        status: `SUFFIX_NONE`, `SUFFIX_VALID`, `SUFFIX_LEGACY` oder `SUFFIX_INVALID`.
+        status: `SUFFIX_NONE`, `SUFFIX_VALID` oder `SUFFIX_INVALID`.
         span: Zeichenbereich der Klammer in der Kopfzeile (ohne Leerraum am
             Ende), bei `none` ``None``.
         value: Punktzahl, nur bei `valid`; negativ bei einem Abzug.
         path: Weg-Buchstabe, nur bei `valid` mit Buchstabe (bei Abzügen
             ohne Wirkung, siehe `is_deduction`).
+        cap: Höchstwert k einer Option `(x/kP)`, sonst ``None``.
         kind_token: Typ-Token wie geschrieben (`An`, `Ansatz`) oder ``None``.
         kind: Katalogschlüssel aus `expectation_kinds` oder ``None`` (kein
             oder unbekannter Typ).
@@ -81,6 +82,7 @@ class PointsSuffix:
     path: str | None = None
     kind_token: str | None = None
     kind: str | None = None
+    cap: Decimal | None = None
 
     @property
     def is_deduction(self) -> bool:
@@ -99,16 +101,15 @@ def parse_points_suffix(head: str) -> PointsSuffix:
         return PointsSuffix(SUFFIX_NONE)
     span = (match.start(), match.start() + len(match.group(0).rstrip()))
     valid = _VALID_BODY_RE.match(match.group("body"))
-    if valid:
-        value = parse_points(valid.group("value"))
-        kind = resolve_expectation_kind(valid.group("kind"))
-        return PointsSuffix(
-            SUFFIX_VALID, span, -value if valid.group("sign") else value, valid.group("path"),
-            valid.group("kind"), kind.key if kind else None,
-        )
-    if _LEGACY_BODY_RE.match(match.group("body")):
-        return PointsSuffix(SUFFIX_LEGACY, span)
-    return PointsSuffix(SUFFIX_INVALID, span)
+    if valid is None or (valid.group("sign") and valid.group("cap")):
+        return PointsSuffix(SUFFIX_INVALID, span)
+    value = parse_points(valid.group("value"))
+    kind = resolve_expectation_kind(valid.group("kind"))
+    cap = parse_points(valid.group("cap")) if valid.group("cap") else None
+    return PointsSuffix(
+        SUFFIX_VALID, span, -value if valid.group("sign") else value, valid.group("path"),
+        valid.group("kind"), kind.key if kind else None, cap,
+    )
 
 
 def has_points_candidate(line: str) -> bool:
@@ -124,12 +125,19 @@ def strip_valid_suffix(head: str, suffix: PointsSuffix) -> str:
 
 
 def display_suffix(suffix: PointsSuffix) -> str:
-    """Anzeigeform eines gültigen Suffixes in der Lösung: `(0,5P)`, `(0,5P, Weg a)`, `(−0,5P)`.
+    """Anzeigeform in der Lösung: `(0,5P)`, `(0,5P, Weg A)`, `(1P, Option, max. 2P)`, `(−0,5P)`.
 
     Abzüge zeigen nie einen Weg (der Buchstabe ist wirkungslos, SL016). Das
     Typ-Token wird in der Lösung nie angezeigt (Symbole nur im Erwartungshorizont).
     """
     text = f"{format_signed_points(suffix.value)}P"
     if suffix.path and not suffix.is_deduction:
-        text += f", Weg {suffix.path}"
+        text += f", {path_label(suffix.path)}"
+    elif suffix.cap is not None:
+        text += f", Option, max. {format_points(suffix.cap)}P"
     return f"({text})"
+
+
+def path_label(letter: str) -> str:
+    """Anzeigename eines Wegs: Buchstabe aus dem Suffix großgeschrieben (`a` → `Weg A`)."""
+    return f"Weg {letter.upper()}"

@@ -83,7 +83,7 @@ def test_typed_deductions(suffix, codes):
 def test_solution_hides_the_kind_token_and_shows_no_symbol():
     """Lösungsversion: kein Typ-Token, kein Symbol."""
     html = render_block("solution", {}, "1. Ansatz (0,5aP An)\n2. Je Fehler (-1P Bg)", include_solutions=True)
-    assert "Ansatz (0,5P, Weg a)" in html and "Je Fehler (−1P)" in html
+    assert "Ansatz (0,5P, Weg A)" in html and "Je Fehler (−1P)" in html
     assert "An)" not in html and "Bg" not in html and "💡" not in html and "🧩" not in html
 
 

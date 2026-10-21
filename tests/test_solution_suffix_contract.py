@@ -1,9 +1,10 @@
-"""Punkt-Suffix-Vertrag (`points_suffix`) und alternative Wege `(0,5aP)` (ersetzen `(x/nP)`).
+"""Punkt-Suffix-Vertrag (`points_suffix`) und alternative Wege `(0,5aP)`.
 
-Abgedeckt: jeder Status des Vertrags (none/valid/legacy/invalid), dass alte
-und unlesbare Suffixe keinen Zahlenwert tragen und genau eine Diagnose
-auslösen, der Geltungsbereich der Weg-Buchstaben (ein Ziel), die exakte
-Decimal-Summe sowie der echte Validierungs- und Exportpfad.
+Abgedeckt: jeder Status des Vertrags (none/valid/invalid), dass unlesbare
+Suffixe keinen Zahlenwert tragen und genau eine Diagnose auslösen, der
+Geltungsbereich der Weg-Buchstaben (ein Ziel), die exakte Decimal-Summe
+sowie der echte Validierungs- und Exportpfad. Summative Optionen `(x/kP)`:
+tests/test_solution_options.py.
 """
 
 from __future__ import annotations
@@ -19,7 +20,6 @@ from app.core.blatt_validator import has_blocking_diagnostics, inspect_markdown_
 from app.core.exam_expectation_horizon import build_expectation_horizon, build_expectation_horizon_html
 from app.core.points_suffix import (
     SUFFIX_INVALID,
-    SUFFIX_LEGACY,
     SUFFIX_NONE,
     SUFFIX_VALID,
     parse_points_suffix,
@@ -59,9 +59,11 @@ def _task(points, *lines):
         ("Ansatz (2 Pkt)", SUFFIX_NONE, None, None),
         ("f(2) = 3", SUFFIX_NONE, None, None),
         ("Ansatz (2P) im Text", SUFFIX_NONE, None, None),
-        ("Weg A (1/3P)", SUFFIX_LEGACY, None, None),
-        ("Weg A (1,5 / 3 P)", SUFFIX_LEGACY, None, None),
-        ("Weg A (1/2P An)", SUFFIX_LEGACY, None, None),
+        ("Option (1/3P)", SUFFIX_VALID, Decimal(1), None),
+        ("Option (1,5 / 3 P)", SUFFIX_VALID, Decimal("1.5"), None),
+        ("Option (1/2P An)", SUFFIX_VALID, Decimal(1), None),
+        ("Option (1a/2P)", SUFFIX_INVALID, None, None),
+        ("Option (-1/2P)", SUFFIX_INVALID, None, None),
         ("Ansatz (0,5abP)", SUFFIX_INVALID, None, None),
         ("Ansatz (-1P)", SUFFIX_VALID, Decimal(-1), None),
         ("Ansatz (−0,5P)", SUFFIX_VALID, Decimal("-0.5"), None),
@@ -78,19 +80,13 @@ def test_suffix_contract_status_and_value(head, status, value, path):
     assert (suffix.status, suffix.value, suffix.path) == (status, value, path)
 
 
-def test_legacy_and_invalid_items_carry_no_points_and_keep_their_text():
-    """Kein Zahlenwert für alte/unlesbare Suffixe; das Suffix bleibt im Erwartungstext sichtbar."""
-    items, _misplaced = parse_solution_items("1. a (1/2P)\n2. b (0,5abP)\n3. c (1aP)\n")
+def test_invalid_items_carry_no_points_and_keep_their_text():
+    """Kein Zahlenwert für unlesbare Suffixe; das Suffix bleibt im Erwartungstext sichtbar."""
+    items, _misplaced = parse_solution_items("1. b (0,5abP)\n2. c (1aP)\n")
     assert [(i.text, i.points, i.path, i.suffix_status) for i in items] == [
-        ("a (1/2P)", None, None, SUFFIX_LEGACY),
         ("b (0,5abP)", None, None, SUFFIX_INVALID),
         ("c", Decimal(1), "a", SUFFIX_VALID),
     ]
-
-
-def test_legacy_suffix_reports_only_sl014():
-    """Alte Schreibweise: genau SL014 (Fehler), kein SL018/SL006/PK002 aus derselben Ursache."""
-    assert _codes(_task(3, "(1/3P)", "(2/3P)", "(3/3P)")) == [("SL014", "error")] * 3
 
 
 def test_invalid_suffix_reports_only_sl018_and_no_sum_check():
@@ -109,7 +105,7 @@ def test_wrong_path_sum_is_pk002_naming_shared_and_best_path():
     diagnostics = inspect_markdown_text(HEAD + SNAIL_6C.replace("(1bP)", "(2bP)"), document_type="exam").diagnostics
     pk002 = [d for d in diagnostics if d.code == "PK002"]
     assert len(pk002) == 1 and pk002[0].severity == "error"
-    assert "gemeinsam 1 + bester Weg b 2 = 3" in pk002[0].message
+    assert "gemeinsam 1 + bester Weg B 2 = 3" in pk002[0].message
 
 
 def test_paths_of_different_length_take_the_best_path():
@@ -119,8 +115,10 @@ def test_paths_of_different_length_take_the_best_path():
 
 
 def test_single_path_letter_is_sl015_warning():
-    """Nur ein Buchstabe: keine echte Alternative (Warnung)."""
+    """Nur ein Buchstabe: keine echte Alternative (Warnung), im Text als „Weg A“."""
     assert _codes(_task(2, "(1aP)", "(1P)")) == [("SL015", "warning")]
+    messages = [d.message for d in inspect_markdown_text(HEAD + _task(2, "(1aP)", "(1P)"), document_type="exam").diagnostics]
+    assert any("Nur Weg A (`a`)" in m for m in messages)
 
 
 def test_path_scope_is_one_target_subtasks_are_independent():
@@ -182,21 +180,21 @@ def test_subtask_points_with_tenths_compare_exactly():
 
 
 def test_solution_display_normalizes_valid_suffix_and_keeps_others_raw():
-    """Lösung: `(0,5P, Weg a)`, `(1P)`; alte/unlesbare Suffixe bleiben sichtbar unverändert."""
-    html = render_block("solution", {}, "1. a (0.5aP)\n2. b (1 P)\n3. c (1/2P)\n4. d (0,5abP)", include_solutions=True)
-    assert "a (0,5P, Weg a)" in html and "b (1P)" in html and "c (1/2P)" in html and "d (0,5abP)" in html
+    """Lösung: `(0,5P, Weg A)`, `(1P)`; unlesbare Suffixe bleiben sichtbar unverändert."""
+    html = render_block("solution", {}, "1. a (0.5aP)\n2. b (1 P)\n3. d (0,5abP)", include_solutions=True)
+    assert "a (0,5P, Weg A)" in html and "b (1P)" in html and "d (0,5abP)" in html
 
 
 def test_expectation_horizon_marks_paths_and_shows_plain_points():
-    """Horizont: `Weg a:` vor dem Text, Punktspalte ohne Bruch."""
+    """Horizont: `Weg A:` vor dem Text (großgeschrieben), Punktspalte ohne Bruch."""
     html, diagnostics = build_expectation_horizon_html(HEAD + SNAIL_6C)
-    assert "<span class='path'>Weg a:</span> Entweder" in html and "<span class='path'>Weg b:</span> Oder" in html
+    assert "<span class='path'>Weg A:</span> Entweder" in html and "<span class='path'>Weg B:</span> Oder" in html
     points_cells = re.findall(r"<td class='pts'>([^<]*)</td>", html)
     assert "0,5" in points_cells and "1" in points_cells and not any("/" in cell for cell in points_cells)
     assert diagnostics == []
 
 
-@pytest.mark.parametrize("suffix", ["(1/2P)", "(0,5abP)"])
+@pytest.mark.parametrize("suffix", ["(1a/2P)", "(0,5abP)"])
 def test_unreadable_suffix_blocks_validation_and_every_export_path(tmp_path, suffix):
     """Integration: Fehler im Validator, Horizont-Export wirft ohne Datei, Klausur-Export blockiert, Vorschau läuft."""
     from app.core.blatt_kern_io_build import build_worksheet

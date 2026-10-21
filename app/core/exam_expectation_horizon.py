@@ -35,6 +35,7 @@ from .points_model import build_points_model, format_points, format_signed_point
 from .solution_items import collect_solution_targets
 from .exam_part_render import AID_PART_LABELS
 from .expectation_kinds import EXPECTATION_KINDS, kind_by_key
+from .points_suffix import path_label
 from .student_header import HEADER_DATE_KIND, InvalidHeaderValue, resolve_header_value
 
 _REGION = "exam:expectation-horizon"
@@ -48,7 +49,7 @@ th, td { border: 1px solid #999; padding: 0.25em 0.45em; vertical-align: top; te
 th { background: #eee; } td.num, th.num { width: 2.4em; text-align: center; }
 td.pts, th.pts { width: 4.5em; text-align: center; } .target-row td { background: #f6f6f6; font-weight: 600; }
 .missing { color: #a33; font-style: italic; } .path { font-weight: 600; } .deduction td { background: #fbf3f3; } .deduction-label { font-weight: 600; color: #a33; }
-table.legend { width: auto; } td.kind { text-align: center; } .sum { font-weight: 600; margin: 0.2em 0 0.8em; }
+.option-cap td { font-style: italic; color: #444; } table.legend { width: auto; } td.kind { text-align: center; } .sum { font-weight: 600; margin: 0.2em 0 0.8em; }
 """
 
 
@@ -154,8 +155,14 @@ def _target_rows(unit, key, target, diagnostics) -> list[str]:
     expectations = [item for item in target.items if not item.is_deduction]
     for number, item in enumerate(expectations, start=1):
         points = _item_points_text(item)
-        path = f"<span class='path'>Weg {escape(item.path)}:</span> " if item.path else ""
+        path = _alternative_label(item)
         rows.append(f"<tr><td class='num'>{number}</td><td>{path}{_kind_symbol(item)}{_inline(item.text)}</td><td class='pts'>{points}</td><td class='pts'></td></tr>")
+    caps = sorted({item.cap for item in expectations if item.is_option})
+    if caps:
+        rows.append(
+            "<tr class='option-cap'><td class='num'></td><td>Optionen zählen zusammen höchstens "
+            f"{escape(' bzw. '.join(format_points(cap) for cap in caps))} P</td><td class='pts'></td><td class='pts'></td></tr>"
+        )
     for item in target.items:
         if item.is_deduction:
             rows.append(
@@ -163,6 +170,15 @@ def _target_rows(unit, key, target, diagnostics) -> list[str]:
                 f"{_kind_symbol(item)}{_inline(item.text)}</td><td class='pts'>{_item_points_text(item)}</td><td class='pts'></td></tr>"
             )
     return rows
+
+
+def _alternative_label(item) -> str:
+    """Kennzeichnung vor dem Text: `Weg A:` für alternative Wege, `Option:` für summative Optionen."""
+    if item.path and not item.is_deduction:
+        return f"<span class='path'>{escape(path_label(item.path))}:</span> "
+    if item.is_option:
+        return "<span class='path'>Option:</span> "
+    return ""
 
 
 def _kind_symbol(item) -> str:
@@ -188,7 +204,7 @@ def _kinds_legend(targets) -> str:
 def _item_points_text(item) -> str:
     """Punktspalte eines Erwartungspunkts: `2` bei `(2P)`, `−0,5` bei einem Abzug, leer ohne Zahlenwert.
 
-    Alternative Wege erkennt die Korrektur an der Kennzeichnung `Weg a:` in
+    Alternative Wege und Optionen erkennt die Korrektur an der Kennzeichnung `Weg A:` bzw. `Option:` in
     der Erwartungsspalte, nicht an der Punktzahl.
     """
     if item.points is None:

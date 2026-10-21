@@ -24,7 +24,12 @@ und zu keinem Weg; sie werden im Erwartungshorizont getrennt ausgewiesen.
 Alternative Lösungswege: Ein Buchstabe im Suffix (`(0,5aP)`, `(1bP)`)
 ordnet den Punkt einem Weg zu; Punkte ohne Buchstabe gelten für alle Wege.
 Erreichbar ist dann Σ(ohne Buchstabe) + max über die Wege von Σ(Weg)
-(`solution_points_total`). Geltungsbereich ist genau ein Ziel
+(`solution_points_total`).
+
+Summative Optionen: `(x/kP)` -- alle Optionen eines Ziels zählen zusammen,
+höchstens k Punkte („von diesen vier Begründungen brauchst du zwei“).
+Erreichbar ist insgesamt gemeinsam + bester Weg + min(Σ Optionen, k).
+Geltungsbereich (für Wege und Optionen) ist genau ein Ziel
 (`SolutionTarget`): Mehrere Lösungsblöcke desselben Ziels teilen sich die
 Buchstaben, Aufgabenebene und jede Teilaufgabe sind getrennt, am `--hm`
 wird zurückgesetzt.
@@ -52,10 +57,11 @@ class SolutionItem:
         text: Sichtbarer Text (Kopf + Fortsetzung, ohne Kommentare und ohne
             gültiges Suffix; ein altes oder unlesbares Suffix bleibt im Text).
         points: Punktzahl, **nur** bei gültigem Suffix (`points_suffix`),
-            sonst ``None`` -- alte und unlesbare Suffixe gehen so in keine Summe ein.
+            sonst ``None`` -- unlesbare Suffixe gehen so in keine Summe ein.
             Negativ = Abzug je Fehler (`is_deduction`).
         path: Weg-Buchstabe des Suffixes oder ``None`` (gilt für alle Wege).
-        suffix_status: Status aus `points_suffix` (`none`/`valid`/`legacy`/`invalid`).
+        suffix_status: Status aus `points_suffix` (`none`/`valid`/`invalid`).
+        cap: Höchstwert k einer summativen Option `(x/kP)`, sonst ``None``.
         suffix_text: Wortlaut der Suffix-Klammer (für Diagnosetexte), sonst leer.
         kind: Erwartungstyp (Schlüssel aus `expectation_kinds`) oder ``None``.
         kind_token: Typ-Token wie geschrieben; gesetzt, aber `kind` ``None`` = unbekannter Typ (SL017).
@@ -68,6 +74,12 @@ class SolutionItem:
     suffix_text: str = ""
     kind: str | None = None
     kind_token: str | None = None
+    cap: Decimal | None = None
+
+    @property
+    def is_option(self) -> bool:
+        """Ob der Punkt eine summative Option `(x/kP)` ist."""
+        return self.cap is not None
 
     @property
     def is_deduction(self) -> bool:
@@ -125,6 +137,7 @@ def parse_solution_items(content: str) -> tuple[list[SolutionItem], bool]:
         text = (head + (" " + continuation if continuation else "")).strip()
         items.append(SolutionItem(
             text, suffix.value, suffix.path, suffix.status, suffix.text_in(visible_head), suffix.kind, suffix.kind_token,
+            suffix.cap,
         ))
     return items, misplaced
 
@@ -139,16 +152,20 @@ class PointsTotal:
         paths: Summe je Weg-Buchstabe (alphabetisch).
         best_path: Buchstabe des Wegs mit der höchsten Summe (bei Gleichstand
             der alphabetisch erste) oder ``None`` ohne Wege.
+        options: Summe aller Optionen `(x/kP)` (ungekappt).
+        option_caps: alle vorkommenden Höchstwerte k (gültig ist genau einer, sonst SL019).
     """
 
     total: Decimal
     shared: Decimal
     paths: dict[str, Decimal]
     best_path: str | None
+    options: Decimal = Decimal(0)
+    option_caps: frozenset[Decimal] = frozenset()
 
 
 def solution_points_total(items) -> PointsTotal:
-    """Erreichbare Punkte: Σ(ohne Buchstabe) + max über die Wege von Σ(Weg).
+    """Erreichbare Punkte: Σ(ohne Buchstabe) + max über die Wege von Σ(Weg) + min(Σ Optionen, k).
 
     Berücksichtigt nur Punkte mit Zahlenwert (gültiges Suffix); Abzüge je
     Fehler (negative Werte) zählen nie mit, auch nicht mit Buchstabe. Alle Werte
@@ -158,17 +175,23 @@ def solution_points_total(items) -> PointsTotal:
     GRENZE: Alle Buchstaben eines Ziels bilden *eine* Wahlentscheidung
     (siehe Moduldocstring).
     """
-    shared, paths = Decimal(0), {}
+    shared, paths, options, caps = Decimal(0), {}, Decimal(0), set()
     for item in items:
         if item.points is None or item.points < 0:
             continue
-        if item.path is None:
+        if item.is_option:
+            options += item.points
+            caps.add(item.cap)
+        elif item.path is None:
             shared += item.points
         else:
             paths[item.path] = paths.get(item.path, Decimal(0)) + item.points
     ordered = dict(sorted(paths.items()))
     best = max(ordered, key=lambda letter: ordered[letter]) if ordered else None
-    return PointsTotal(shared + (ordered[best] if best else Decimal(0)), shared, ordered, best)
+    # Bei mehreren Höchstwerten (SL019) zählt der größte -- der Validator meldet das vor jeder Summenprüfung.
+    capped = min(options, max(caps)) if caps else Decimal(0)
+    total = shared + (ordered[best] if best else Decimal(0)) + capped
+    return PointsTotal(total, shared, ordered, best, options, frozenset(caps))
 
 
 def collect_solution_targets(blocks) -> tuple[list[SolutionTarget], list[SolutionIssue]]:
