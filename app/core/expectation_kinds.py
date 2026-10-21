@@ -5,6 +5,8 @@ oder ganzes Wort (`(0,5P An)`, `(0,5P Ansatz)`, `(−1P Bg)`). Der Typ sagt,
 *was für eine Leistung* erwartet wird; der Erwartungshorizont zeigt dafür das
 Symbol vor dem Text und eine Legende der tatsächlich verwendeten Typen.
 „Rechnung“ ist bewusst kein eigener Typ, sondern ein Fall von Anwendung.
+„Formales“ meint formale Anforderungen wie eine verlangte Schreibweise
+(`S(x_S|y_S)`); sie stehen meist als Abzug bei Nichteinhaltung (`(−0,5P Fo)`).
 
 Die Auflösung ignoriert Groß-/Kleinschreibung und akzeptiert Name, Kürzel
 und die angegebenen Aliasse (z. B. Umlaut-Ersatzschreibungen). Alle Tokens
@@ -50,8 +52,9 @@ EXPECTATION_KINDS: tuple[ExpectationKind, ...] = (
     ExpectationKind("begruendung", "Begründung", "🧩", "Bg", ("Begruendung",)),
     ExpectationKind("einheit", "Einheit/Größe", "📏", "Ei", ("Einheit", "Größe", "Groesse")),
     ExpectationKind("darstellung", "Darstellung", "📐", "Da"),
+    ExpectationKind("formales", "Formales", "📝", "Fo", ("Formal", "Form")),
 )
-"""Katalog in Legendenreihenfolge (Wunschliste Blattwerk → Klausur, 2026-10-16)."""
+"""Katalog in Legendenreihenfolge (Wunschliste Blattwerk → Klausur, 2026-10-16; „Formales“ 2026-10-21)."""
 
 _BY_TOKEN = {token: kind for kind in EXPECTATION_KINDS for token in kind.tokens()}
 _BY_KEY = {kind.key: kind for kind in EXPECTATION_KINDS}

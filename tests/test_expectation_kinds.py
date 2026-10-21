@@ -36,7 +36,7 @@ def test_tokens_are_unique_across_the_catalog():
     """Kein Kürzel, Name oder Alias darf zwei Typen meinen (ohne Groß-/Kleinschreibung)."""
     tokens = [token for kind in EXPECTATION_KINDS for token in kind.tokens()]
     assert len(tokens) == len(set(tokens))
-    assert len(EXPECTATION_KINDS) == 10
+    assert len(EXPECTATION_KINDS) == 11
 
 
 @pytest.mark.parametrize(
@@ -44,7 +44,7 @@ def test_tokens_are_unique_across_the_catalog():
     [("An", "ansatz"), ("ansatz", "ansatz"), ("AW", "anwendung"), ("Sa", "antwortsatz"), ("Fs", "fachsprache"),
      ("En", "entscheidung"), ("Er", "ergebnis"), ("Be", "beobachtung"), ("Bg", "begruendung"), ("Begründung", "begruendung"),
      ("Begruendung", "begruendung"), ("Ei", "einheit"), ("Größe", "einheit"), ("Groesse", "einheit"),
-     ("Einheit/Größe", "einheit"), ("Da", "darstellung"), ("Rechnung", None), ("Xy", None)],
+     ("Einheit/Größe", "einheit"), ("Da", "darstellung"), ("Fo", "formales"), ("formal", "formales"), ("Rechnung", None), ("Xy", None)],
 )
 def test_resolution_by_name_abbreviation_alias_case_insensitive(token, key):
     """Name, Kürzel, Alias; „Rechnung“ ist bewusst kein Typ."""

@@ -567,7 +567,7 @@ PROSE_SECTIONS: dict[str, str] = {
         "Erwartungshorizont als „Abzug je Fehler“ am Ende der Tabelle. Optional benennt ein Wort nach dem P, "
         "was für eine Leistung erwartet wird (Erwartungstyp, Name oder Kürzel): Ansatz (An), Anwendung (Aw), "
         "Antwortsatz (Sa), Fachsprache (Fs), Entscheidung (En), Ergebnis (Er), Beobachtung (Be), Begründung "
-        "(Bg), Einheit/Größe (Ei), Darstellung (Da) -- z. B. `(0,5P An)`, `(1aP Anwendung)`, `(−1P Bg)`. "
+        "(Bg), Einheit/Größe (Ei), Darstellung (Da), Formales (Fo) -- z. B. `(0,5P An)`, `(1aP Anwendung)`, `(−1P Bg)`. "
         "Der Erwartungshorizont zeigt dafür ein Symbol vor dem Text und eine Legende der verwendeten Typen, "
         "die Lösung blendet den Typ aus. Ein unbekannter Typ ist eine Warnung (`SL017`)."
     ),
