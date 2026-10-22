@@ -146,9 +146,11 @@ PROSE_SECTIONS: dict[str, str] = {
         "Im Exportdialog einer Klausur gibt es unter „Inhalt“ den Punkt „Erwartungshorizont“ (PDF oder "
         "HTML). Er listet je (Teil-)Aufgabe nur die nummerierten Lösungspunkte mit ihren Teilpunkten, "
         "ohne Aufgabentext, mit einer leeren Spalte „erreicht“, dazu Teilsummen je Hilfsmittel-Teil "
-        "und die AFB-Tabelle. Alternative Wege stehen mit „Weg A:“ vor dem Text, Optionen mit „Option:“ "
-        "(dazu eine Zeile mit ihrem Höchstwert), Abzüge je Fehler am "
-        "Tabellenende, Erwartungstypen als Symbol vor dem Text mit einer Legende vor der AFB-Tabelle. "
+        "(Bonuspunkte getrennt, z. B. „17 P + 2 Bonuspunkte“). Die AFB-Verteilung ist eine interne "
+        "Statistik und steht nur in der Klausur-Übersicht des Editors. Alternative Wege stehen mit „Weg A:“ "
+        "vor dem Text, Optionen mit „Option:“ (dazu eine Zeile mit ihrem Höchstwert), Abzüge je Fehler am "
+        "Tabellenende, Erwartungstypen als Symbol vor dem Text; am Ende erklärt eine Legende die "
+        "verwendeten Typen mit je einem kurzen Satz. "
         "Widersprüchliche Punkte verhindern den Export; fehlende Teilpunkte "
         "(`SL005`) oder Erwartungen (`SL007`) werden nur angemerkt."
     ),
@@ -710,8 +712,16 @@ PROSE_SECTIONS: dict[str, str] = {
     ),
     "option:afb": (
         "Anforderungsbereich der Aufgabe bzw. Teilaufgabe (`1`, `2` oder `3`). Rein informativ: wird "
-        "nicht im Schülerdokument angezeigt, sondern in der Klausur-Übersicht und im "
-        "Erwartungshorizont ausgewertet. Eine Teilaufgabe ohne eigene Angabe erbt die AFB ihrer Aufgabe."
+        "nicht im Schülerdokument angezeigt, sondern in der Klausur-Übersicht des Editors ausgewertet "
+        "(interne Statistik, nicht im Erwartungshorizont). Bonuspunkte zählen nicht mit. Eine "
+        "Teilaufgabe ohne eigene Angabe erbt die AFB ihrer Aufgabe."
+    ),
+    "option:bonus": (
+        "`bonus=true` an einer Aufgabe oder Teilaufgabe macht ihre Punkte zu Bonuspunkten: Sie zählen "
+        "nicht zur Gesamtpunktzahl (= 100 %), können aber zusätzlich erreicht werden. Am Kopf steht "
+        "„+2 Bonuspunkte“ statt „2 P“; die Bewertungstabelle `:::evaluation` lässt Bonuspunkte weg, "
+        "der Erwartungshorizont weist sie getrennt aus (z. B. „Aufgabe 3 (2 P + 2 Bonuspunkte)“). Eine "
+        "Lösung zu einer Bonus-Teilaufgabe wird wie üblich gegen deren Punkte geprüft."
     ),
     "option:points": (
         "Punktzahl der Aufgabe bzw. Teilaufgabe, wird rechts am Zeilenrand als `X P` angezeigt (Zahl, "

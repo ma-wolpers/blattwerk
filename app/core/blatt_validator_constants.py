@@ -380,6 +380,7 @@ _OPT_HINT = BlockOptionSpec("hint", "enum", frozenset(KNOWN_HINT_VALUES), True, 
 _OPT_LINE = BlockOptionSpec("line", "enum", frozenset(KNOWN_GRID_LINE_STYLES), True, "solid")
 _OPT_TITLE = BlockOptionSpec("title", "text", None, False, MISSING)
 _OPT_AFB = BlockOptionSpec("afb", "enum", frozenset({"1", "2", "3"}), True, MISSING)
+_OPT_BONUS = BlockOptionSpec("bonus", "boolean", None, False, False)
 _OPT_WIDTHS = BlockOptionSpec("widths", "text", None, False, MISSING)
 _OPT_SCALE = BlockOptionSpec("scale", "css_length", None, False, "0.5cm")
 
@@ -406,6 +407,7 @@ BLOCK_OPTION_SPECS: dict[str, tuple[BlockOptionSpec, ...]] = {
         _OPT_ACTION,
         _OPT_HINT,
         _OPT_AFB,
+        _OPT_BONUS,
         _OPT_SHOW,
         _OPT_MODE,
         _OPT_TITLE,
@@ -415,6 +417,7 @@ BLOCK_OPTION_SPECS: dict[str, tuple[BlockOptionSpec, ...]] = {
         BlockOptionSpec("points", "text", None, False, MISSING),
         BlockOptionSpec("time", "text", None, False, MISSING),
         _OPT_AFB,
+        _OPT_BONUS,
         _OPT_WORK,
         _OPT_ACTION,
         _OPT_SHOW,

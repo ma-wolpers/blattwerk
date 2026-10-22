@@ -32,6 +32,11 @@ def _task(points, *lines):
     return f":::task points={points} afb=1\nA\n:::\n:::solution\n" + "".join(f"{n}. Schritt {n} {s}\n" for n, s in enumerate(lines, 1)) + ":::\n"
 
 
+def test_every_kind_has_a_short_explanation():
+    """Jeder Typ hat einen Erklärsatz für die Legende (ein Satz mit Punkt am Ende)."""
+    assert all(kind.description.endswith(".") and len(kind.description) < 120 for kind in EXPECTATION_KINDS)
+
+
 def test_tokens_are_unique_across_the_catalog():
     """Kein Kürzel, Name oder Alias darf zwei Typen meinen (ohne Groß-/Kleinschreibung)."""
     tokens = [token for kind in EXPECTATION_KINDS for token in kind.tokens()]
@@ -88,7 +93,7 @@ def test_solution_hides_the_kind_token_and_shows_no_symbol():
 
 
 def test_horizon_shows_symbols_and_one_legend_of_used_kinds_including_deductions():
-    """Horizont: Symbol vor dem Text (auch in der Abzugszeile), eine Legende in Katalogreihenfolge vor der AFB-Tabelle."""
+    """Horizont: Symbol vor dem Text (auch in der Abzugszeile), eine Legende (Typ + Erklärsatz) in Katalogreihenfolge."""
     body = (
         _task(2, "(1P Er)", "(1P An)", "(-1P Bg)")
         + ":::task points=1 afb=2\nB\n:::\n:::solution\n1. Satz (1P Sa)\n:::\n"
@@ -97,8 +102,9 @@ def test_horizon_shows_symbols_and_one_legend_of_used_kinds_including_deductions
     assert "<span class='kind' title='Ergebnis'>✅</span> Schritt 1" in html
     assert re.search(r"<tr class='deduction'>.*?<span class='kind' title='Begründung'>🧩</span>", html)
     legend = re.search(r"<h2>Erwartungstypen</h2>.*?</table>", html, re.S).group(0)
-    assert re.findall(r"<td>([^<]+)</td></tr>", legend) == ["Ansatz", "Antwortsatz", "Ergebnis", "Begründung"]
-    assert html.count("<h2>Erwartungstypen</h2>") == 1 and html.index("Erwartungstypen") < html.index("Anforderungsbereiche")
+    assert re.findall(r"<td>([^<]+)</td><td>[^<]+</td></tr>", legend) == ["Ansatz", "Antwortsatz", "Ergebnis", "Begründung"]
+    assert "<th>Bedeutung</th>" in legend and "schlüssig begründet" in legend
+    assert html.count("<h2>Erwartungstypen</h2>") == 1
     assert diagnostics == []
 
 

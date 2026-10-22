@@ -134,7 +134,8 @@ Die Leiste „Vorschau-Optionen“ über der Vorschau startet eingeklappt; mit �
 - In der Punktklammer einer Lösungszeile außerdem: Weg-Buchstabe für alternative Lösungswege (`(0,5aP)`, `(1bP)`, angezeigt als „Weg A/B“; Zeilen ohne Buchstabe gelten für alle Wege), Höchstwert für summative Optionen (`(1/2P)` = Option mit 1 Punkt, alle Optionen zusammen höchstens 2), Minus für Abzüge je Fehler (`(−0,5P)`) und ein Erwartungstyp (`(0,5P An)` = Ansatz; Kürzel An, Aw, Sa, Fs, En, Er, Be, Bg, Ei, Da, Fo). Der Erwartungshorizont zeigt Wege, Abzüge und Typ-Symbole mit Legende.
 - Mit einem zweiten `--hm` davor bekommt die Klausur ein **Deckblatt**: Alles vor dem ersten `--hm` (Hinweise, Bewertungstabelle …, aber keine Aufgaben) steht auf der ersten Seite ohne Teilüberschrift; „Teil A“ beginnt auf einer neuen Seite.
 - Mit `show_student_header: ja` steht die **Schülerkopfzeile** (Name, Lerngruppe, Datum) zusätzlich oben auf jedem Teil, der auf einer neuen Seite beginnt – so tragen auch getrennt eingesammelte Teile Name und Datum.
-- Unter der Diagnostik zeigt die **Klausur-Übersicht** Punkte und AFB-Verteilung (Prozent bezogen auf die Gesamtpunkte).
+- **Bonuspunkte:** `bonus=true` an Aufgabe oder Teilaufgabe (z. B. `:::subtask points=2 bonus=true`) – am Kopf steht „+2 Bonuspunkte“; die Punkte zählen nicht zur Gesamtpunktzahl und erscheinen nicht in der Bewertungstabelle, im Erwartungshorizont stehen sie getrennt.
+- Unter der Diagnostik zeigt die **Klausur-Übersicht** Punkte und AFB-Verteilung (Prozent bezogen auf die Gesamtpunkte, ohne Bonuspunkte). Die AFB-Verteilung ist eine interne Statistik und steht nicht im Erwartungshorizont.
 - Im Exportdialog unter „Inhalt“ → **Erwartungshorizont** (PDF/HTML, Taste `H`).
 - `:::evaluation:::` fügt eine Bewertungstabelle ein (auch in Arbeitsblättern).
 - Ausführlich: `docs/nutzer/ANLEITUNG_KLAUSUR.md`.

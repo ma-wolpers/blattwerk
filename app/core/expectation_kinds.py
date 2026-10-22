@@ -27,6 +27,7 @@ class ExpectationKind:
         label: Anzeigename in der Legende.
         symbol: Emoji vor dem Erwartungstext im Erwartungshorizont.
         abbreviation: Kürzel für das Suffix.
+        description: kurzer Erklärsatz für die Legende im Erwartungshorizont.
         aliases: weitere erlaubte Schreibweisen (zusätzlich zu Name und Kürzel).
     """
 
@@ -34,6 +35,7 @@ class ExpectationKind:
     label: str
     symbol: str
     abbreviation: str
+    description: str
     aliases: tuple[str, ...] = ()
 
     def tokens(self) -> tuple[str, ...]:
@@ -42,17 +44,17 @@ class ExpectationKind:
 
 
 EXPECTATION_KINDS: tuple[ExpectationKind, ...] = (
-    ExpectationKind("ansatz", "Ansatz", "💡", "An"),
-    ExpectationKind("anwendung", "Anwendung", "🛠️", "Aw"),
-    ExpectationKind("antwortsatz", "Antwortsatz", "💬", "Sa"),
-    ExpectationKind("fachsprache", "Fachsprache", "📚", "Fs"),
-    ExpectationKind("entscheidung", "Entscheidung", "⚖️", "En"),
-    ExpectationKind("ergebnis", "Ergebnis", "✅", "Er"),
-    ExpectationKind("beobachtung", "Beobachtung", "🔍", "Be"),
-    ExpectationKind("begruendung", "Begründung", "🧩", "Bg", ("Begruendung",)),
-    ExpectationKind("einheit", "Einheit/Größe", "📏", "Ei", ("Einheit", "Größe", "Groesse")),
-    ExpectationKind("darstellung", "Darstellung", "📐", "Da"),
-    ExpectationKind("formales", "Formales", "📝", "Fo", ("Formal", "Form")),
+    ExpectationKind("ansatz", "Ansatz", "💡", "An", "Ein passender Lösungsansatz bzw. das Vorgehen ist gewählt und notiert."),
+    ExpectationKind("anwendung", "Anwendung", "🛠️", "Aw", "Ein Verfahren ist richtig durchgeführt, z. B. gerechnet, umgeformt oder eingesetzt."),
+    ExpectationKind("antwortsatz", "Antwortsatz", "💬", "Sa", "Das Ergebnis ist in einem Satz auf die Frage bezogen formuliert."),
+    ExpectationKind("fachsprache", "Fachsprache", "📚", "Fs", "Fachbegriffe sind passend und korrekt verwendet."),
+    ExpectationKind("entscheidung", "Entscheidung", "⚖️", "En", "Eine Entscheidung (z. B. wahr/falsch, ja/nein, schneller/langsamer) ist richtig getroffen."),
+    ExpectationKind("ergebnis", "Ergebnis", "✅", "Er", "Das (Teil-)Ergebnis ist richtig."),
+    ExpectationKind("beobachtung", "Beobachtung", "🔍", "Be", "Etwas ist aus Graph, Tabelle oder Text richtig abgelesen bzw. beschrieben."),
+    ExpectationKind("begruendung", "Begründung", "🧩", "Bg", "Eine Aussage ist schlüssig begründet.", ("Begruendung",)),
+    ExpectationKind("einheit", "Einheit/Größe", "📏", "Ei", "Die passende Einheit bzw. Größe ist angegeben.", ("Einheit", "Größe", "Groesse")),
+    ExpectationKind("darstellung", "Darstellung", "📐", "Da", "Graph, Skizze oder Tabelle ist richtig und sauber dargestellt."),
+    ExpectationKind("formales", "Formales", "📝", "Fo", "Eine formale Anforderung ist erfüllt, z. B. eine verlangte Schreibweise.", ("Formal", "Form")),
 )
 """Katalog in Legendenreihenfolge (Wunschliste Blattwerk → Klausur, 2026-10-16; „Formales“ 2026-10-21)."""
 

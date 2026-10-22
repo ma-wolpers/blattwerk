@@ -9,6 +9,8 @@ jede Teilaufgabe (mit eigener oder vom Task geerbter AFB), sonst der Task.
 * Prozente gibt es nur, wenn die Gesamtauswertung vollständig ist und die
   Gesamtpunktzahl > 0 ist; sonst nur Absolutwerte und markierte Gründe.
 * Ohne gültigen Hilfsmittel-Trenner gibt es keine Teile.
+* Bonuspunkte (`bonus=true`) zählen weder zur Punktzahl noch zur AFB-Verteilung;
+  sie werden je Teil getrennt als `bonus_points` geführt.
 """
 
 from __future__ import annotations
@@ -41,9 +43,11 @@ class PartResult:
     afb_points: dict[int, Decimal] = field(default_factory=lambda: {level: Decimal(0) for level in AFB_LEVELS})
     unassigned_points: Decimal = Decimal(0)
     reasons: list[str] = field(default_factory=list)
+    bonus_points: Decimal = Decimal(0)
 
     @property
     def complete(self) -> bool:
+        """Ob die Auswertung dieses Teils ohne fehlende Angaben ist."""
         return not self.reasons
 
 
@@ -62,20 +66,28 @@ class ExamAnalysis:
 
 
 def parse_afb(options: dict) -> int | None:
+    """AFB-Stufe aus `afb=1|2|3` (sonst ``None``)."""
     raw = str((options or {}).get("afb") or "").strip()
     return int(raw) if raw in {"1", "2", "3"} else None
 
 
 def iter_scored_leaves(units: list[TaskUnit]):
-    """Liefert `(unit, leaf | None, grund | None)` für jede Einheit bzw. jedes Blatt."""
+    """Liefert `(unit, leaf | None, grund | None)` für jede Einheit bzw. jedes reguläre Blatt.
+
+    Bonus-Aufgaben und Bonus-Teilaufgaben sind keine Blätter (siehe `bonus_points`).
+    """
     for unit in units:
         task_afb = parse_afb(unit.options)
+        if unit.status == STATUS_OK and unit.is_bonus:
+            continue
         if unit.status != STATUS_OK:
             reason = f"Aufgabe {unit.number} ohne Punkte" if unit.status == STATUS_MISSING else f"Aufgabe {unit.number} inkonsistent"
             yield unit, None, reason
             continue
         if unit.subtasks_pointed:
             for sub in unit.subtasks:
+                if sub.is_bonus:
+                    continue
                 afb = parse_afb(sub.options) or task_afb
                 yield unit, ScoredLeaf(sub.block_index, f"Aufgabe {unit.number}{sub.letter or ''}", sub.value, afb), None
         else:
@@ -88,6 +100,9 @@ def analyze_exam(blocks, document_type: str) -> ExamAnalysis:
     split = resolve_aid_split(blocks, document_type)
     total = PartResult("Gesamt")
     parts = [PartResult("Teil A"), PartResult("Teil B")] if split else []
+    for unit in units:
+        for part in [total] + ([parts[0] if unit.block_index < split.index else parts[1]] if split else []):
+            part.bonus_points += unit.bonus_points
     for unit, leaf, reason in iter_scored_leaves(units):
         targets = [total] + ([parts[0] if unit.block_index < split.index else parts[1]] if split else [])
         for part in targets:
@@ -109,7 +124,8 @@ def format_analysis_lines(analysis: ExamAnalysis) -> list[str]:
     """Textzeilen für Editor-Panel und Erwartungshorizont (gleiche Definition überall)."""
     lines = []
     for part in ([analysis.total] if not analysis.parts else analysis.parts + [analysis.total]):
-        lines.append(f"{part.label}: {format_points(part.points)} P")
+        bonus = f" + {format_points(part.bonus_points)} Bonuspunkte" if part.bonus_points else ""
+        lines.append(f"{part.label}: {format_points(part.points)} P{bonus}")
         for level in AFB_LEVELS:
             share = analysis.percent(part.afb_points[level])
             suffix = f" · {format_points(share)} %" if share is not None else ""

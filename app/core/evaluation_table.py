@@ -10,6 +10,9 @@ Punkte kommen ausschließlich aus `points_model`, Teile aus `resolve_aid_split`.
   sonst eine Spalte für die Aufgabe.
 * Fehlende Punkte zeigen „–“ (EV001), inkonsistente „?“.
 * Σ nur, wenn alle Zellen bekannt sind, sonst „–“ mit Fußnote.
+* Bonuspunkte (`bonus=true`) erscheinen nicht in der Tabelle: Bonus-Aufgaben
+  fehlen, Bonus-Teilaufgaben fehlen bei `level=subtask` und zählen bei
+  `level=task` nicht zur Aufgabenspalte (Nutzerentscheidung 2026-10-21).
 * `parts=true` gruppiert bei gültigem Hilfsmittel-Trenner nach Teil A/B.
 * `grade=true` hängt unter die Tabelle rechtsbündig leere Felder „Dies sind ___ %“
   und „Note: ___“ an -- genau einmal je Block (auch bei `parts=true`). Die
@@ -24,7 +27,14 @@ from html import escape
 
 from .document_semantics import resolve_aid_split
 from .document_type_registry import spec_for_type
-from .points_model import STATUS_MISSING, STATUS_OK, build_points_model, format_points, subtask_effective
+from .points_model import (
+    STATUS_MISSING,
+    STATUS_OK,
+    build_points_model,
+    format_points,
+    option_is_true,
+    subtask_effective,
+)
 
 CELL_MISSING = "–"
 CELL_INCONSISTENT = "?"
@@ -32,6 +42,7 @@ CELL_INCONSISTENT = "?"
 
 @dataclass(frozen=True)
 class EvaluationCell:
+    """Eine Spalte der Tabelle: Beschriftung, Höchstpunkte oder Markierung (`–`/`?`)."""
     label: str
     points: Decimal | None
     marker: str | None  # None, "–" oder "?"
@@ -39,11 +50,13 @@ class EvaluationCell:
 
 @dataclass
 class EvaluationGroup:
+    """Spaltengruppe (ganze Klausur oder ein Hilfsmittel-Teil)."""
     title: str | None
     cells: list[EvaluationCell] = field(default_factory=list)
 
     @property
     def total(self) -> Decimal | None:
+        """Summe der Gruppe oder ``None``, wenn eine Zelle unbekannt ist."""
         if any(cell.points is None for cell in self.cells):
             return None
         return sum((cell.points for cell in self.cells), Decimal(0))
@@ -51,6 +64,7 @@ class EvaluationGroup:
 
 @dataclass
 class EvaluationTable:
+    """Fachliche Bewertungstabelle eines `:::evaluation`-Blocks."""
     title: str | None
     groups: list[EvaluationGroup]
     missing_units: list[str] = field(default_factory=list)
@@ -58,18 +72,22 @@ class EvaluationTable:
 
     @property
     def grand_total(self) -> Decimal | None:
+        """Gesamtsumme aller Gruppen oder ``None``, wenn eine Gruppe unbekannt ist."""
         totals = [group.total for group in self.groups]
         return None if any(total is None for total in totals) else sum(totals, Decimal(0))
 
 
 def _unit_cells(unit, level: str) -> list[EvaluationCell]:
+    """Zellen einer Aufgabeneinheit; Bonus-Aufgaben und -Teilaufgaben bleiben außen vor."""
+    if unit.status == STATUS_OK and unit.is_bonus:
+        return []
     if unit.status == STATUS_OK and level == "subtask" and unit.subtasks_pointed:
         return [
             EvaluationCell(f"{unit.number}{sub.letter or ''}", subtask_effective(unit, sub), None)
-            for sub in unit.subtasks
+            for sub in unit.subtasks if not sub.is_bonus
         ]
     if unit.status == STATUS_OK:
-        return [EvaluationCell(unit.number, unit.effective, None)]
+        return [EvaluationCell(unit.number, unit.regular_points, None)]
     marker = CELL_MISSING if unit.status == STATUS_MISSING else CELL_INCONSISTENT
     return [EvaluationCell(unit.number, None, marker)]
 
@@ -80,7 +98,7 @@ def build_evaluation_table(blocks, options: dict, document_type: str) -> Evaluat
     title = str((options or {}).get("title") or "").strip() or None
     units = build_points_model(blocks)
     split = resolve_aid_split(blocks, document_type)
-    use_parts = split is not None and _option_true(options, "parts")
+    use_parts = split is not None and option_is_true(options, "parts")
     groups = [EvaluationGroup("Teil A"), EvaluationGroup("Teil B")] if use_parts else [EvaluationGroup(None)]
     missing = []
     for unit in units:
@@ -88,12 +106,7 @@ def build_evaluation_table(blocks, options: dict, document_type: str) -> Evaluat
         group.cells.extend(_unit_cells(unit, level))
         if unit.status == STATUS_MISSING:
             missing.append(unit.number)
-    return EvaluationTable(title, groups, missing, grade=_option_true(options, "grade"))
-
-
-def _option_true(options: dict | None, key: str) -> bool:
-    """Ob eine boolesche Block-Option gesetzt ist (`true`, `1`, `ja`, `yes`)."""
-    return str((options or {}).get(key) or "").strip().lower() in {"true", "1", "ja", "yes"}
+    return EvaluationTable(title, groups, missing, grade=option_is_true(options, "grade"))
 
 
 def _grade_html() -> str:
@@ -107,6 +120,7 @@ def _grade_html() -> str:
 
 
 def _group_html(group: EvaluationGroup) -> str:
+    """HTML einer Spaltengruppe mit Kopf, Höchstpunkten und leerer Zeile „erreicht“."""
     total = group.total
     header = "".join(f"<th>{escape(cell.label)}</th>" for cell in group.cells)
     maxima = "".join(

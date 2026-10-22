@@ -19,6 +19,16 @@ nicht-numerische Angabe                         None (non_numeric)      PK003
 ==============================================  ======================  ==========
 
 Kein Konsument löst `inconsistent` durch die Wahl eines Werts auf.
+
+**Bonuspunkte** (`bonus=true` an Teilaufgabe oder Aufgabe): Sie zählen nicht
+zur regulären Punktzahl (= 100 %), können aber zusätzlich erreicht werden.
+Bonus-Teilaufgaben bleiben in `subtasks` (eigene Lösungsprüfung gegen ihre
+Punkte), fließen aber nicht in `effective` ein, sondern in `bonus_points`.
+`task.points` muss dann der Summe der regulären Teilaufgaben entsprechen.
+Eine Bonus-Aufgabe behält `effective` (für ihre Lösungsprüfung), zählt aber
+mit `regular_points` = 0 und `bonus_points` = `effective`. Verbraucher, die
+Gesamtpunkte bilden (Klausuranalyse, Bewertungstabelle, Erwartungshorizont),
+lesen `regular_points`/`bonus_points` bzw. `SubtaskPoints.is_bonus`.
 """
 
 from __future__ import annotations
@@ -34,6 +44,26 @@ STATUS_INCONSISTENT = "inconsistent"
 STATUS_NON_NUMERIC = "non_numeric"
 
 _NUMBER_RE = re.compile(r"^\d+(?:[.,]\d+)?$")
+_TRUE_TOKENS = frozenset({"true", "1", "ja", "yes"})
+BONUS_KEY = "bonus"
+
+
+def option_is_true(options: dict | None, key: str) -> bool:
+    """Ob eine boolesche Block-Option gesetzt ist (`true`, `1`, `ja`, `yes`; ohne Groß-/Kleinschreibung)."""
+    return str((options or {}).get(key) or "").strip().lower() in _TRUE_TOKENS
+
+
+def is_bonus(options: dict | None) -> bool:
+    """Ob eine Aufgabe/Teilaufgabe Bonuspunkte vergibt (`bonus=true`)."""
+    return option_is_true(options, BONUS_KEY)
+
+
+def points_badge(options: dict) -> str | None:
+    """Punktanzeige am Aufgaben-/Teilaufgabenkopf: `2 P` bzw. `+2 Bonuspunkte` (``None`` ohne Punkte)."""
+    label = points_label(options)
+    if label is None:
+        return None
+    return f"+{label} Bonuspunkte" if is_bonus(options) else f"{label} P"
 
 
 class NonNumeric:
@@ -116,6 +146,11 @@ class SubtaskPoints:
     value: Decimal | NonNumeric | None
     options: dict
 
+    @property
+    def is_bonus(self) -> bool:
+        """Ob die Teilaufgabe Bonuspunkte vergibt (zählt nicht zur regulären Punktzahl)."""
+        return is_bonus(self.options)
+
 
 @dataclass
 class TaskUnit:
@@ -130,6 +165,26 @@ class TaskUnit:
     effective: Decimal | None = None
     status: str = STATUS_MISSING
     codes: list[str] = field(default_factory=list)
+    subtask_bonus: Decimal = Decimal(0)
+
+    @property
+    def is_bonus(self) -> bool:
+        """Ob die ganze Aufgabe Bonuspunkte vergibt (`bonus=true` am Task)."""
+        return is_bonus(self.options)
+
+    @property
+    def regular_points(self) -> Decimal | None:
+        """Punkte, die zur regulären Punktzahl zählen (0 bei einer Bonus-Aufgabe)."""
+        if self.effective is None:
+            return None
+        return Decimal(0) if self.is_bonus else self.effective
+
+    @property
+    def bonus_points(self) -> Decimal:
+        """Zusätzlich erreichbare Bonuspunkte (Bonus-Aufgabe ganz, sonst ihre Bonus-Teilaufgaben)."""
+        if self.is_bonus:
+            return (self.effective or Decimal(0)) + self.subtask_bonus
+        return self.subtask_bonus
 
     @property
     def subtasks_pointed(self) -> bool:
@@ -195,11 +250,14 @@ def _resolve_from_subtasks(unit: TaskUnit) -> None:
         unit.status, unit.effective = STATUS_NON_NUMERIC, None
         unit.codes.append("PK003")
         return
-    total = sum((sub.value for sub in unit.subtasks), Decimal(0))
+    total = sum((sub.value for sub in unit.subtasks if not sub.is_bonus), Decimal(0))
+    unit.subtask_bonus = sum((sub.value for sub in unit.subtasks if sub.is_bonus), Decimal(0))
     if unit.value is not None and unit.value != total:
         unit.status, unit.effective = STATUS_INCONSISTENT, None
         unit.codes.append("PK001")
         return
+    if unit.is_bonus:  # Bonus-Aufgabe: alle Teilaufgaben sind Bonus
+        total, unit.subtask_bonus = total + unit.subtask_bonus, Decimal(0)
     unit.status, unit.effective = STATUS_OK, total
 
 

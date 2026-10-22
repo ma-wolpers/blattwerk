@@ -42,7 +42,7 @@ Musterlösungstext. `label=true|false` (Standard `true`) blendet das Label "Lös
 
 ## 3. Anforderungsbereiche (`afb`)
 
-Anforderungsbereich der Aufgabe bzw. Teilaufgabe (`1`, `2` oder `3`). Rein informativ: wird nicht im Schülerdokument angezeigt, sondern in der Klausur-Übersicht und im Erwartungshorizont ausgewertet. Eine Teilaufgabe ohne eigene Angabe erbt die AFB ihrer Aufgabe.
+Anforderungsbereich der Aufgabe bzw. Teilaufgabe (`1`, `2` oder `3`). Rein informativ: wird nicht im Schülerdokument angezeigt, sondern in der Klausur-Übersicht des Editors ausgewertet (interne Statistik, nicht im Erwartungshorizont). Bonuspunkte zählen nicht mit. Eine Teilaufgabe ohne eigene Angabe erbt die AFB ihrer Aufgabe.
 
 ## 4. Hilfsmittelfreier Teil (`--hm`)
 
@@ -68,4 +68,4 @@ Unter der Diagnostik zeigt der Editor bei Klausuren live die Gesamtpunkte und ih
 
 ## 8. Erwartungshorizont
 
-Im Exportdialog einer Klausur gibt es unter „Inhalt“ den Punkt „Erwartungshorizont“ (PDF oder HTML). Er listet je (Teil-)Aufgabe nur die nummerierten Lösungspunkte mit ihren Teilpunkten, ohne Aufgabentext, mit einer leeren Spalte „erreicht“, dazu Teilsummen je Hilfsmittel-Teil und die AFB-Tabelle. Alternative Wege stehen mit „Weg A:“ vor dem Text, Optionen mit „Option:“ (dazu eine Zeile mit ihrem Höchstwert), Abzüge je Fehler am Tabellenende, Erwartungstypen als Symbol vor dem Text mit einer Legende vor der AFB-Tabelle. Widersprüchliche Punkte verhindern den Export; fehlende Teilpunkte (`SL005`) oder Erwartungen (`SL007`) werden nur angemerkt.
+Im Exportdialog einer Klausur gibt es unter „Inhalt“ den Punkt „Erwartungshorizont“ (PDF oder HTML). Er listet je (Teil-)Aufgabe nur die nummerierten Lösungspunkte mit ihren Teilpunkten, ohne Aufgabentext, mit einer leeren Spalte „erreicht“, dazu Teilsummen je Hilfsmittel-Teil (Bonuspunkte getrennt, z. B. „17 P + 2 Bonuspunkte“). Die AFB-Verteilung ist eine interne Statistik und steht nur in der Klausur-Übersicht des Editors. Alternative Wege stehen mit „Weg A:“ vor dem Text, Optionen mit „Option:“ (dazu eine Zeile mit ihrem Höchstwert), Abzüge je Fehler am Tabellenende, Erwartungstypen als Symbol vor dem Text; am Ende erklärt eine Legende die verwendeten Typen mit je einem kurzen Satz. Widersprüchliche Punkte verhindern den Export; fehlende Teilpunkte (`SL005`) oder Erwartungen (`SL007`) werden nur angemerkt.

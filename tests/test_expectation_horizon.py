@@ -39,17 +39,18 @@ def test_missing_points_and_missing_expectations_are_warnings():
     assert "keine Erwartung hinterlegt" in html
 
 
-def test_parts_subtotals_and_afb_table_relative_to_total():
+def test_parts_subtotals_and_no_afb_statistics():
+    """Teilsummen je Hilfsmittel-Teil; die AFB-Statistik ist intern und fehlt im Horizont."""
     html, _ = _html(":::task points=4 afb=1\nA\n:::\n:::solution\n1. x (4P)\n:::\n--hm\n:::task points=6 afb=3\nB\n:::\n:::solution\n1. y (6P)\n:::\n")
     assert html.index("Teil A – hilfsmittelfrei") < html.index("Summe Teil A: 4 P") < html.index("Teil B – mit Hilfsmitteln")
     assert "Summe Teil B: 6 P" in html
-    assert "4 P (40 %)" in html and "6 P (60 %)" in html
+    assert "Anforderungsbereich" not in html and "AFB" not in html and "%" not in html.split("<body>")[1]
 
 
-def test_no_parts_without_aid_split_and_incomplete_afb_without_percent():
+def test_no_parts_without_aid_split():
+    """Ohne `--hm` keine Teilüberschriften und keine Teilsummen."""
     html, _ = _html(":::task points=4\nA\n:::\n:::solution\n1. x (4P)\n:::\n")
     assert "Teil A" not in html and "Summe Teil" not in html
-    assert "unvollständig" in html and "%" not in html.split("Anforderungsbereiche")[1]
 
 
 @pytest.mark.parametrize(

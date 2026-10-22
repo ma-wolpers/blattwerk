@@ -1,8 +1,12 @@
 """Erwartungshorizont einer Klausur als HTML/PDF (Plan Phase 6).
 
 Datenquellen ausschließlich: `solution_items` (Erwartungen und `(xP)`),
-`points_model` (Punktzahlen), `exam_analysis` (AFB) und `resolve_aid_split`
-(Teile). Es gibt **keinen Aufgabentext**, nur die nummerierten Erwartungen.
+`points_model` (Punktzahlen), `exam_analysis` (Teilsummen) und
+`resolve_aid_split` (Teile). Es gibt **keinen Aufgabentext**, nur die
+nummerierten Erwartungen, und keine AFB-Statistik (intern, nur in der
+Klausur-Übersicht des Editors). Bonuspunkte (`bonus=true`) stehen getrennt:
+„Aufgabe 3 (2 P + 2 Bonuspunkte)“, „Aufgabe 3b (+2 Bonuspunkte)“, Teilsummen
+ohne Bonus mit Bonus-Zusatz.
 
 Fehlerverhalten:
 
@@ -12,7 +16,6 @@ Fehlerverhalten:
 * Teilweise annotiert (SL006) → Export mit der Validator-Warnung.
 * (Teil-)Aufgabe ohne nummerierte Erwartung → Zeile „keine Erwartung
   hinterlegt“, SL007.
-* AFB unvollständig → AFB-Tabelle zeigt „unvollständig“, keine Prozente.
 """
 
 from __future__ import annotations
@@ -27,7 +30,7 @@ from .blatt_kern_shared import parse_blocks, split_front_matter
 from .blatt_validator import has_blocking_diagnostics, inspect_markdown_text, summarize_blocking_diagnostics
 from .blatt_validator_types import BuildDiagnostic
 from .document_semantics import resolve_aid_split
-from .exam_analysis import AFB_LEVELS, analyze_exam
+from .exam_analysis import analyze_exam
 from .export_path_guardrails import validate_export_output_path
 from .frontmatter import content_after_frontmatter
 from .math_span_protection import convert_markdown_with_math
@@ -87,7 +90,7 @@ def build_expectation_horizon_html(text: str) -> tuple[str, list[BuildDiagnostic
                 body.append(_part_sum(analysis.parts[0]))
             body.append(f"<h2>{AID_PART_LABELS[part]}</h2>")
             current_part = part
-        body.append(f"<h3>Aufgabe {unit.number} ({format_points(unit.effective)} P)</h3>")
+        body.append(f"<h3>Aufgabe {unit.number} ({_unit_points_text(unit)})</h3>")
         body.append("<table><tr><th class='num'>Nr.</th><th>Erwartung</th><th class='pts'>max. P.</th><th class='pts'>erreicht</th></tr>")
         keys = []
         if not unit.subtasks or (unit_index, None) in targets_by_key:
@@ -99,7 +102,6 @@ def build_expectation_horizon_html(text: str) -> tuple[str, list[BuildDiagnostic
     if split is not None and analysis.parts:
         body.append(_part_sum(analysis.parts[1]))
     body.append(_kinds_legend(targets))
-    body.append(_afb_table(analysis))
     title = escape(str(meta.get("Titel") or "Erwartungshorizont")) if isinstance(meta, dict) else "Erwartungshorizont"
     html = (
         "<!DOCTYPE html>\n<html lang=\"de\">\n<head>\n<meta charset=\"utf-8\">\n"
@@ -138,14 +140,16 @@ def _target_rows(unit, key, target, diagnostics) -> list[str]:
     """Tabellenzeilen eines Ziels (Aufgabe oder Teilaufgabe); ergänzt SL005/SL007 in `diagnostics`."""
     _unit_index, position = key
     if position is None:
-        label, expected = f"Aufgabe {unit.number}", unit.effective
+        label = f"Aufgabe {unit.number}"
     else:
         sub = unit.subtasks[position]
         label = f"Aufgabe {unit.number}{sub.letter or ''}"
         expected = subtask_effective(unit, sub)
+        bonus = sub.is_bonus or unit.is_bonus
+        points = f"+{format_points(expected)} Bonuspunkte" if bonus else f"{format_points(expected)} P"
     rows = []
     if position is not None:
-        rows.append(f"<tr class='target-row'><td colspan='4'>{escape(label)} ({format_points(expected)} P)</td></tr>")
+        rows.append(f"<tr class='target-row'><td colspan='4'>{escape(label)} ({points})</td></tr>")
     if target is None or not target.items:
         diagnostics.append(_diag("SL007", f"Erwartungshorizont: {label} hat keine nummerierte Erwartung."))
         rows.append("<tr><td class='num'></td><td class='missing'>keine Erwartung hinterlegt</td><td class='pts'></td><td class='pts'></td></tr>")
@@ -195,10 +199,13 @@ def _kinds_legend(targets) -> str:
     if not used:
         return ""
     rows = "".join(
-        f"<tr><td class='kind'>{kind.symbol}</td><td>{escape(kind.label)}</td></tr>"
+        f"<tr><td class='kind'>{kind.symbol}</td><td>{escape(kind.label)}</td><td>{escape(kind.description)}</td></tr>"
         for kind in EXPECTATION_KINDS if kind.key in used
     )
-    return f"<h2>Erwartungstypen</h2>\n<table class='legend'><tr><th>Symbol</th><th>Typ</th></tr>{rows}</table>"
+    return (
+        "<h2>Erwartungstypen</h2>\n<table class='legend'><tr><th>Symbol</th><th>Typ</th><th>Bedeutung</th></tr>"
+        f"{rows}</table>"
+    )
 
 
 def _item_points_text(item) -> str:
@@ -212,27 +219,18 @@ def _item_points_text(item) -> str:
     return format_signed_points(item.points)
 
 
+def _unit_points_text(unit) -> str:
+    """Punktangabe im Aufgabentitel: `4 P`, `2 P + 2 Bonuspunkte` oder `+3 Bonuspunkte`."""
+    if unit.is_bonus:
+        return f"+{format_points(unit.bonus_points)} Bonuspunkte"
+    text = f"{format_points(unit.regular_points)} P"
+    return text + (f" + {format_points(unit.bonus_points)} Bonuspunkte" if unit.bonus_points else "")
+
+
 def _part_sum(part) -> str:
-    """Summenzeile eines Hilfsmittel-Teils."""
-    return f"<p class='sum'>Summe {escape(part.label)}: {format_points(part.points)} P</p>"
-
-
-def _afb_table(analysis) -> str:
-    """AFB-Tabelle (je Teil und gesamt) aus `exam_analysis`, mit Hinweis bei unvollständiger Auswertung."""
-    rows = ["<h2>Anforderungsbereiche</h2>", "<table><tr><th></th><th>Punkte</th>"]
-    rows[-1] += "".join(f"<th>AFB {'I' * level}</th>" for level in AFB_LEVELS) + "</tr>"
-    for part in (analysis.parts + [analysis.total]) if analysis.parts else [analysis.total]:
-        cells = []
-        for level in AFB_LEVELS:
-            share = analysis.percent(part.afb_points[level])
-            cells.append(f"{format_points(part.afb_points[level])} P" + (f" ({format_points(share)} %)" if share is not None else ""))
-        rows.append(f"<tr><td>{escape(part.label)}</td><td>{format_points(part.points)} P</td>" + "".join(f"<td>{c}</td>" for c in cells) + "</tr>")
-    rows.append("</table>")
-    if not analysis.total.complete:
-        rows.append(f"<p class='missing'>unvollständig: {escape('; '.join(dict.fromkeys(analysis.total.reasons)))}</p>")
-    elif analysis.total.points <= 0:
-        rows.append("<p class='missing'>Keine Punkte vergeben.</p>")
-    return "\n".join(rows)
+    """Summenzeile eines Hilfsmittel-Teils (Bonuspunkte getrennt dahinter)."""
+    bonus = f" + {format_points(part.bonus_points)} Bonuspunkte" if part.bonus_points else ""
+    return f"<p class='sum'>Summe {escape(part.label)}: {format_points(part.points)} P{bonus}</p>"
 
 
 def build_expectation_horizon(input_path, output_path, *, diagnostics_out: list | None = None) -> Path:
