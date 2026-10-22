@@ -17,7 +17,9 @@ Kopfzeile je Teil: Jeder Teil, der auf einer neuen Seite beginnt, bekommt
 dieselbe Schülerkopfzeile wie der Dokumentanfang (`student_header`), damit
 getrennt eingesammelte Teile (z. B. hilfsmittelfreier Teil A) Name und
 Datum tragen. Ohne `show_student_header` ist die Kopfzeile leer, und es
-ändert sich nichts.
+ändert sich nichts. Jede Kopfzeile einer Klausur mit Teilen trägt
+`data-header-for` (`cover` = Deckblatt, sonst die `part_id`), damit Tests und
+Prüfungen die Zuordnung „ein Kopf je Teilanfang“ direkt ablesen können.
 """
 
 from __future__ import annotations
@@ -75,6 +77,21 @@ def annotate_exam_parts(blocks, document_type: str | None):
     return prefix + annotated
 
 
+def document_header_owner(blocks, document_type: str | None) -> str | None:
+    """Wem die Kopfzeile am Dokumentanfang gehört: `cover`, dem ersten Teil oder ``None`` (keine Teile)."""
+    layout = resolve_exam_parts(blocks, document_type).layout
+    if layout is None:
+        return None
+    return "cover" if layout.cover_end is not None else layout.parts[0].part_id
+
+
+def tag_student_header(header_html: str, owner: str | None) -> str:
+    """Ergänzt `data-header-for="<owner>"` an der Kopfzeile (unverändert ohne Kopfzeile oder Besitzer)."""
+    if not header_html or owner is None:
+        return header_html
+    return header_html.replace('<div class="student-header"', f'<div class="student-header" data-header-for="{escape(owner)}"', 1)
+
+
 def part_starts_new_page(options) -> bool:
     """Ob der an diesem Block beginnende Teil auf einer neuen Seite beginnt."""
     return bool((options or {}).get(PART_BREAK_KEY))
@@ -97,7 +114,7 @@ def attach_part_headers(blocks, header_html: str):
     result = []
     for block_type, options, content in blocks:
         if PART_ID_KEY in (options or {}) and part_starts_new_page(options):
-            options = {**options, PART_HEADER_HTML_KEY: header_html}
+            options = {**options, PART_HEADER_HTML_KEY: tag_student_header(header_html, options[PART_ID_KEY])}
         result.append((block_type, options, content))
     return result
 

@@ -147,12 +147,13 @@ HEAD = "---\ndocument_type: {dt}\nTitel: T\nFach: Informatik\nThema: X\n---\n"
 LEGEND_WORD = "Angeben"  # nur im Schlüssel „Nennen/Angeben“, nicht im Aufgabentext
 
 
-def _build(tmp_path, body, document_type="worksheet", name="doc"):
+def _build(tmp_path, body, document_type="worksheet", name="doc", meta_lines=""):
     from app.core.blatt_kern_io_build import build_worksheet
 
     suffix = ".kbw" if document_type == "exam" else ".abw"
     md = tmp_path / f"{name}{suffix}"
-    md.write_text(HEAD.format(dt=document_type) + body, encoding="utf-8")
+    head = HEAD.format(dt=document_type)
+    md.write_text(head[: -len("---\n")] + meta_lines + "---\n" + body, encoding="utf-8")
     return Path(build_worksheet(str(md), str(tmp_path / f"{name}.pdf"), include_solutions=False, document_type=document_type))
 
 
@@ -170,8 +171,8 @@ def _legend_box(pdf_path):
         return number, rect.y0, max(bottoms), area, bool(texts_above), doc.page_count
 
 
-def _build_and_box(tmp_path, body, document_type="worksheet", name="doc"):
-    return _legend_box(_build(tmp_path, body, document_type, name))
+def _build_and_box(tmp_path, body, document_type="worksheet", name="doc", meta_lines=""):
+    return _legend_box(_build(tmp_path, body, document_type, name, meta_lines))
 
 
 @needs_chromium
@@ -220,5 +221,16 @@ def test_block_first_on_page_stays_on_top(tmp_path):
 def test_exam_legend_a_at_bottom_of_last_page_of_part_a(tmp_path):
     body = ":::task points=2 afb=1\n!!Nenne!! zwei Beispiele.\n:::\n:::operators:::\n--hm\n:::task points=3 afb=2\n!!Beschreibe!! den Ablauf.\n:::\n:::operators:::\n"
     page, _top, bottom, area, _above, pages = _build_and_box(tmp_path, body, document_type="exam")
+    assert pages == 2 and page == 0
+    assert area.bottom - 6 <= bottom <= area.bottom + 0.5
+
+
+@needs_chromium
+def test_exam_legend_a_stays_at_bottom_of_part_a_with_part_headers(tmp_path):
+    """Mit `show_student_header` verschiebt der zusätzliche Kopf von Teil B die Messung nicht."""
+    body = ":::task points=2 afb=1\n!!Nenne!! zwei Beispiele.\n:::\n:::operators scope=part:::\n--hm\n:::task points=3 afb=2\n!!Beschreibe!! den Ablauf.\n:::\n:::operators scope=part:::\n"
+    page, _top, bottom, area, _above, pages = _build_and_box(
+        tmp_path, body, document_type="exam", name="hdr", meta_lines="show_student_header: ja\n"
+    )
     assert pages == 2 and page == 0
     assert area.bottom - 6 <= bottom <= area.bottom + 0.5

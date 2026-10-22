@@ -8,6 +8,10 @@ Dokumentanfang (`student_header.render_student_header`) und erscheint nur mit
 
 from __future__ import annotations
 
+import re
+
+import pytest
+
 from app.core.blatt_kern_layout_render import render_html
 from app.core.blatt_kern_shared import parse_blocks
 from app.core.exam_expectation_horizon import build_expectation_horizon_html
@@ -81,3 +85,66 @@ def test_part_b_page_of_the_pdf_starts_with_the_header(tmp_path):
     with fitz.open(out) as doc:
         page_b = next(page.get_text() for page in doc if "Teil B" in page.get_text())
     assert "Name" in page_b and "11.6" in page_b
+
+
+def _task(points, name):
+    return f":::task points={points} afb=1\n{name}\n:::\n"
+
+
+WITH_COVER_AND_CHOICES = (
+    "Hinweise zur Klausur.\n\n--hm\n" + _task(2, "Pflicht A")
+    + "--w[1] Analysis\n" + _task(5, "Ana") + "--w Stochastik\n" + _task(5, "Sto")
+    + "--hm\n" + _task(3, "Teil B")
+    + "--w[1] X\n" + _task(4, "Wx") + "--w Y\n" + _task(4, "Wy")
+)
+
+
+@pytest.mark.parametrize(
+    ("body", "expected"),
+    [
+        (ONE_MARKER, ["A", "B"]),
+        (WITH_COVER, ["cover", "A", "B"]),
+        (WITH_COVER_AND_CHOICES, ["cover", "A", "W1.1", "W1.2", "B", "W2.1", "W2.2"]),
+    ],
+)
+def test_every_header_names_its_part_exactly_once(body, expected):
+    """HTML-Ebene: genau ein Kopf je Teilanfang (Deckblatt behält seinen Kopf), in Dokumentreihenfolge."""
+    html = _html(body)
+    assert re.findall(r'class="student-header" data-header-for="([^"]+)"', html) == expected
+    assert html.count(HEADER) == len(expected)
+
+
+def test_header_owner_absent_without_parts_or_when_switched_off():
+    assert "data-header-for" not in _html(ONE_MARKER, document_type="worksheet")
+    assert "data-header-for" not in _html(WITH_COVER_AND_CHOICES, meta={"Titel": "T"})
+
+
+def test_pdf_pages_with_header_are_exactly_the_part_starts(tmp_path):
+    """Echte PDF: Kopf genau auf Deckblatt und jeder Teilanfangsseite, nie zweimal auf einer Seite.
+
+    Teil A ist künstlich zweiseitig (`-=`-Abstand), damit es auch eine Seite ohne Kopf gibt.
+    """
+    fitz = pytest.importorskip("fitz")
+    from app.core.blatt_kern_io_build import build_worksheet
+    from app.core.blatt_kern_io_pdf import find_chromium_executable
+
+    if find_chromium_executable() is None:
+        pytest.skip("kein Chromium-Browser fuer den PDF-Druck")
+    body = WITH_COVER_AND_CHOICES.replace(_task(2, "Pflicht A"), _task(2, "Pflicht A") + "-=24cm\n")
+    source = tmp_path / "klausur.kbw"
+    source.write_text(
+        "---\ndocument_type: exam\nTitel: T\nFach: M\nThema: X\nshow_student_header: ja\n---\n" + body,
+        encoding="utf-8",
+    )
+    out = tmp_path / "klausur.pdf"
+    build_worksheet(source, out, document_type="exam", block_on_critical=False)
+    with fitz.open(out) as doc:
+        pages = [page.get_text() for page in doc]
+    headers = [text.count("Lerngruppe") for text in pages]
+    starts = {0} | {
+        next(i for i, text in enumerate(pages) if marker in text)
+        for marker in ("Teil A – hilfsmittelfrei", "Wahlteil 1 – Analysis", "Wahlteil 2 – Stochastik", "Teil B – mit Hilfsmitteln", "Wahlteil 1 – X", "Wahlteil 2 – Y")
+    }
+    assert max(headers) == 1
+    assert {i for i, count in enumerate(headers) if count} == starts
+    assert len(pages) > len(starts)  # mindestens eine Folgeseite ohne Kopf
