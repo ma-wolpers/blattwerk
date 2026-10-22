@@ -48,7 +48,7 @@ def _load_core_block_and_option_catalogs(errors: list[str]) -> tuple[set[str], s
     option_map = getattr(validator, "BLOCK_ALLOWED_OPTIONS", {})
     if isinstance(option_map, dict):
         for values in option_map.values():
-            if isinstance(values, set):
+            if isinstance(values, (set, frozenset, tuple, list)):
                 core_option_keys.update(
                     str(value).strip()
                     for value in values
@@ -114,14 +114,19 @@ def _extract_block_types_from_tm_language(rel_path: str, errors: list[str]) -> t
 
 
 def _extract_option_keys_from_tm_language(rel_path: str, errors: list[str]) -> set[str]:
-    """Extract option-key highlighting catalog from tmLanguage option-key regex."""
+    """Extract option-key highlighting catalog from the general block pattern (`meta.block.blattwerk`).
+
+    Nur dieses Muster gilt fuer alle Blocktypen; spezielle Blockmuster (z. B.
+    `meta.block.struktogramm.blattwerk`) haben eigene, kleinere Optionslisten
+    und duerfen nicht als Katalog gelesen werden.
+    """
     try:
         payload = json.loads(_read(rel_path))
     except Exception:
         return set()
 
     for pattern in payload.get("patterns", []):
-        if not isinstance(pattern, dict):
+        if not isinstance(pattern, dict) or pattern.get("name") != "meta.block.blattwerk":
             continue
         inner_patterns = pattern.get("patterns")
         if not isinstance(inner_patterns, list):
@@ -232,3 +237,31 @@ def _check_inline_style_grammar_sync(errors: list[str]) -> None:
                 f"{tm_path}: {label} inline-style regex differs from STYLE_MARKER_REGEX "
                 f"({found[0].get('match')!r} != {STYLE_MARKER_REGEX!r})"
             )
+
+
+CONTROL_SCOPE = "keyword.control.blattwerk"
+
+
+def _check_control_marker_grammar_sync(errors: list[str]) -> None:
+    """Die VS-Code-Grammatik muss Kontrollmarker mit der aus `CONTROL_MARKERS` abgeleiteten Regex hervorheben.
+
+    Genau ein Top-Level-Muster mit Capture 2 = `keyword.control.blattwerk` und
+    `match` == `control_markers.CONTROL_MARKER_LINE_REGEX` (dieselbe Regex nutzt
+    der Blattwerk-Editor). Ein neuer Marker in `CONTROL_MARKERS` ohne
+    Grammatik-Update faellt damit sofort auf (AGENTS.md Regel 5).
+    """
+    from app.core.control_markers import CONTROL_MARKER_LINE_REGEX
+
+    tm_path = "vscode-extension/blattwerk-language/syntaxes/blattwerk-injection.tmLanguage.json"
+    grammar = json.loads(_read(tm_path))
+    found = [
+        p for p in grammar.get("patterns", [])
+        if "match" in p and p.get("captures", {}).get("2", {}).get("name") == CONTROL_SCOPE
+    ]
+    if len(found) != 1:
+        errors.append(f"{tm_path}: expected exactly one top-level control-marker pattern, found {len(found)}")
+    elif found[0]["match"] != CONTROL_MARKER_LINE_REGEX:
+        errors.append(
+            f"{tm_path}: control-marker regex differs from CONTROL_MARKER_LINE_REGEX "
+            f"({found[0]['match']!r} != {CONTROL_MARKER_LINE_REGEX!r})"
+        )

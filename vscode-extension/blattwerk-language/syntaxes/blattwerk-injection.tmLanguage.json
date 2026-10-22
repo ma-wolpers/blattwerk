@@ -3,7 +3,7 @@
   "injectionSelector": "L:text.html.markdown",
   "patterns": [
     {
-      "match": "^(\\s*)(--!|-\\+|--hf|--hm|-=\\s*\\d+(?:\\.\\d+)?(?:cm|mm|px|pt|em|rem|vh|vw|%)|--#\\s+.+?)\\s*$",
+      "match": "^(\\s*)(\\-\\-!|\\-\\+|\\-\\-hf|--#\\s+(?:.+)|-=\\s*(?:\\d+(?:\\.\\d+)?(?:cm|mm|px|pt|em|rem|vh|vw|%))|\\-\\-hm|\\-\\-)(?<=\\S)\\s*$",
       "captures": {
         "2": {
           "name": "keyword.control.blattwerk"
@@ -74,7 +74,7 @@
       },
       "patterns": [
         {
-          "match": "\\b(show|mode|scope|grade|type|work|action|hint|points|time|rows|cols|height|width|widths|alignment|row_height|column_headers|row_headers|axis|axis_label_x|axis_label_y|labels|origin|step_x|step_y|min|max|minimum|maximum|tick_step|ticks|tick_spacing_mm|tick_spacing_cm|tick_spacing|major_every|max_width_mm|max_width_cm|full_width|positive_sign|signed_positive|inline|tf|true_false|correct|options|gap|gap_length|words|words_multi|layout|orientation|left|right|top|bottom|matches|worksheet_matches|links|min_size|min_rows|min_cols|diagonal|horizontal|vertical|title|level|label|ratio|scale|line|align|height_mode|lane_align|show_guides|tag|url|w|h|maxw|max-width)\\b(?==)",
+          "match": "\\b(show|mode|scope|grade|type|work|action|hint|points|time|rows|cols|height|width|widths|alignment|row_height|column_headers|row_headers|axis|axis_label_x|axis_label_y|labels|origin|step_x|step_y|min|max|minimum|maximum|tick_step|ticks|tick_spacing_mm|tick_spacing_cm|tick_spacing|major_every|max_width_mm|max_width_cm|full_width|positive_sign|signed_positive|inline|tf|true_false|correct|options|gap|gap_length|words|words_multi|layout|orientation|left|right|top|bottom|matches|worksheet_matches|links|min_size|min_rows|min_cols|diagonal|horizontal|vertical|title|level|label|ratio|scale|line|align|height_mode|lane_align|show_guides|tag|url|w|h|maxw|max-width|afb|background|branches|code|code_numbering|code_row|code_symbol_set|dual|label1|label2|lines|maxh|numbering|parts|position|prefill|shape|signature|steps|style|subbranches|symbol_set|target)\\b(?==)",
           "name": "variable.parameter.blattwerk"
         },
         {

@@ -11,6 +11,7 @@ from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 ensure_bw_gui_on_path()
 from bw_gui.runtime import ui
 
+from ..core.control_markers import control_marker_line_match
 from ..core.inline_markup.style_spans import STYLE_MARKER_REGEX
 from ..core.struktogramm_parse import INDENTED_LINE_MARKER_RE, STRUKTOGRAMM_HEADER_RE
 from .ui_theme import get_theme, is_dark_theme
@@ -42,6 +43,7 @@ _SYNTAX_TAGS = (
     "syn_option_value",
     "syn_marker",
     "syn_inline_style",
+    "syn_control",
     "syn_block_close_error",
     "syn_block_pair",
 )
@@ -82,6 +84,7 @@ class BlattwerkAppEditorHighlightMixin:
             self.editor_widget.tag_configure("syn_option_value", foreground="#CE9178")
             self.editor_widget.tag_configure("syn_marker", foreground="#F44747")
             self.editor_widget.tag_configure("syn_inline_style", foreground="#DCDCAA")
+            self.editor_widget.tag_configure("syn_control", foreground="#D7BA7D")
             self.editor_widget.tag_configure("syn_block_close_error", background="#5A1F2A", foreground="#FF9DA4")
             self.editor_widget.tag_configure("syn_block_pair", background="#2C3744")
             self.editor_widget.tag_configure("search_match", background="#5C4A1E")
@@ -95,6 +98,7 @@ class BlattwerkAppEditorHighlightMixin:
             self.editor_widget.tag_configure("syn_option_value", foreground="#8d6b00")
             self.editor_widget.tag_configure("syn_marker", foreground="#c92a2a")
             self.editor_widget.tag_configure("syn_inline_style", foreground="#5f3dc4")
+            self.editor_widget.tag_configure("syn_control", foreground="#b35c00")
             self.editor_widget.tag_configure("syn_block_close_error", background="#ffe2e2", foreground="#8b0000")
             self.editor_widget.tag_configure("syn_block_pair", background=theme["accent_soft"])
             self.editor_widget.tag_configure("search_match", background="#fff3bf")
@@ -232,6 +236,12 @@ class BlattwerkAppEditorHighlightMixin:
                             f"{line_no}.{error_start}",
                             f"{line_no}.{content_end}",
                         )
+                continue
+
+            # Kontrollmarker (`--hm`, `--!`, `--# …` …): abgeleitet aus `CONTROL_MARKERS`.
+            control_match = control_marker_line_match(line_text)
+            if control_match:
+                self.editor_widget.tag_add("syn_control", f"{line_no}.{control_match.start(2)}", f"{line_no}.{control_match.end(2)}")
                 continue
 
             header_match = re.match(r"^(\s*)(:::(\w+))(.*)$", line_text)

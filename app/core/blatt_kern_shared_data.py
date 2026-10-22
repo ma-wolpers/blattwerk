@@ -144,6 +144,9 @@ class ControlMarkerSpec:
     `KNOWN_BLOCK_TYPES`. `option_capture` benennt, in welche
     Blockoption(en) eine ggf. vorhandene Regex-Gruppe (in Reihenfolge)
     einfließt; bei literalen Markern ohne Gruppen ist das Tupel leer.
+    `detect_prefix` lässt eine Zeile schon über ihr Präfix als Marker-
+    Versuch gelten (Validator BL005, siehe `control_markers.py`), auch wenn
+    das Muster selbst nicht passt (z. B. `--#` ohne Titel).
     """
 
     name: str
@@ -151,6 +154,7 @@ class ControlMarkerSpec:
     kind: str  # "literal" | "pattern"
     literal_or_regex: str | re.Pattern
     option_capture: tuple[str, ...] = ()
+    detect_prefix: str | None = None
 
 
 CONTROL_MARKERS: tuple[ControlMarkerSpec, ...] = (
@@ -178,6 +182,7 @@ CONTROL_MARKERS: tuple[ControlMarkerSpec, ...] = (
         kind="pattern",
         literal_or_regex=PRESENTATION_SECTION_MARK_PATTERN,
         option_capture=("title",),
+        detect_prefix="--#",
     ),
     ControlMarkerSpec(
         name="vspacer",
@@ -185,6 +190,7 @@ CONTROL_MARKERS: tuple[ControlMarkerSpec, ...] = (
         kind="pattern",
         literal_or_regex=PRESENTATION_SPACER_MARK_PATTERN,
         option_capture=("height",),
+        detect_prefix="-=",
     ),
     ControlMarkerSpec(
         name="aidsplit",
