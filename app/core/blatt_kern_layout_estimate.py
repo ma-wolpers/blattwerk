@@ -18,6 +18,8 @@ from .answer_special import (
     estimate_wordsearch_weight,
 )
 from .answer_special_mindmap import estimate_mindmap_weight
+from .answer_special_struktogramm import estimate_struktogramm_weight
+from .blatt_kern_shared_data import STRUKTOGRAMM_BLOCK_TYPES
 from .answer_special_writebox import estimate_writebox_weight
 from .blatt_kern_shared import _safe_int, should_render_block
 
@@ -85,6 +87,9 @@ def estimate_block_weight(
 
     if block_type == "mindmap":
         return estimate_mindmap_weight(options, content)
+
+    if block_type in STRUKTOGRAMM_BLOCK_TYPES:
+        return estimate_struktogramm_weight(options, content)
 
     if block_type == "writebox":
         return estimate_writebox_weight(options, content)

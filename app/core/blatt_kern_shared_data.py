@@ -108,6 +108,9 @@ TASK_HINT_MAP = {
 `experte` -- das Anzeige-Label "Expertenaufgabe" bleibt unverändert."""
 
 HELP_BLOCK_TYPES = {"help", "hilfe"}
+STRUKTOGRAMM_BLOCK_TYPES = frozenset({"struktogramm", "structogram"})
+"""`struktogramm` ist der Hauptname (Begriff aus der GO Informatik),
+`structogram` ein dokumentierter Alias -- gleiches Muster wie `help`/`hilfe`."""
 PRESENTATION_SECTION_MARK_PATTERN = re.compile(r"^--#\s+(.+)$")
 PRESENTATION_SPACER_MARK_PATTERN = re.compile(
     r"^-=\s*(\d+(?:\.\d+)?(?:cm|mm|px|pt|em|rem|vh|vw|%))\s*$",

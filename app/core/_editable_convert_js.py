@@ -25,6 +25,8 @@ _IMAGE_ONLY_BLOCK_TYPES = frozenset(
         "crossword",
         "checkgrid",
         "mindmap",
+        "struktogramm",
+        "structogram",
         "selfcheck",
         "qrcode",
         "chrome",

@@ -529,6 +529,23 @@ PROSE_SECTIONS: dict[str, str] = {
         "eine eigene kleine Fächer aus Unterzweig-Feldern für ein zweistufiges Mindmap. Kein "
         "Arbeitsblatt-/Lösungs-Unterschied -- der Block sieht in beiden Modi gleich aus."
     ),
+    "block:struktogramm": (
+        "Struktogramm in der Gestalt der zentralen Prüfungsaufgaben (Ergänzende Hinweise zur GO "
+        "Informatik, S. 5-6). Eine Zeile ist ein Element, die Einrückung (4 Leerzeichen oder Tab) "
+        "die Schachtelung. Schlüsselwörter am Zeilenanfang: `wenn B` (+ optional `sonst`) für die "
+        "Verzweigung, `auswahl A` mit `fall W`-Zeilen (+ optional `sonst`) für die Mehrfachauswahl, "
+        "`solange …`/`für …`/`wiederhole 100-mal` für kopfgesteuerte Schleifen, `wiederhole` allein "
+        "+ Rumpf + `bis B` für die fußgesteuerte Schleife, `rückgabe X` (angezeigt als „gib X "
+        "zurück“) und `eingabe x` (angezeigt als „lies x ein“). Jede andere Zeile ist eine "
+        "Anweisung; `<-` wird als `←` gesetzt, `//`-Kommentare bleiben Text, `\\` am Zeilenanfang "
+        "hebt ein Schlüsselwort auf. Lücken-Struktogramm: `%` nach der Einrückung blendet den Text "
+        "eines Elements im Arbeitsblatt aus (Struktur bleibt, Zelle bleibt mindestens so hoch wie in "
+        "der Lösung), `%{…}` einen Teiltext. Der Validator prüft Struktur, Signatur und ob "
+        "Rückgaben, Rückgabetyp und Parameter zueinander passen."
+    ),
+    "block:structogram": (
+        "Dokumentierter Alias für `struktogramm` -- identische Optionen und Bedeutung."
+    ),
     "block:selfcheck": (
         "Offene Selbsteinschätzung ohne feste Lösung: der Blockinhalt ist eine Liste von Aussagen "
         "(eine pro Zeile), jede mit einer `steps`-stufigen Symbol-Skala ohne markierte \"richtige\" "
@@ -653,6 +670,15 @@ PROSE_SECTIONS: dict[str, str] = {
         "Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, "
         "`center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische "
         "Schreibweisen gleichwertig)."
+    ),
+    "option:signature": (
+        "Methodenkopf in GO-Notation `Bezeichnung(Parameter: Typ, ...): Rückgabetyp`, fett über "
+        "dem Diagramm, z. B. `signature=\"minimum(a, b: Fließkommazahl): Fließkommazahl\"`. "
+        "Parameter ohne eigenen Typ gehören zur nächsten getypten Gruppe; ohne Rückgabewert "
+        "entfällt `: Rückgabetyp`. Wird streng geprüft; fehlt die Option, gibt es eine Warnung."
+    ),
+    "option:width": (
+        "Breite des Blocks als CSS-Länge (`70%`, `12cm`, ...); Standard ist die volle Zeilenbreite."
     ),
     "option:position": (
         "Position einer Sekundärliste (Hinweisliste, Wortbank o. Ä.) relativ zum Hauptinhalt: "

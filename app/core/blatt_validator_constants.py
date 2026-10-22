@@ -56,6 +56,8 @@ KNOWN_BLOCK_TYPES = {
     "ordering",
     "checkgrid",
     "mindmap",
+    "struktogramm",
+    "structogram",
     "selfcheck",
     "writebox",
     "solution",
@@ -323,6 +325,14 @@ _OPT_TITLE = BlockOptionSpec("title", "text", None, False, MISSING)
 _OPT_AFB = BlockOptionSpec("afb", "enum", frozenset({"1", "2", "3"}), True, MISSING)
 _OPT_WIDTHS = BlockOptionSpec("widths", "text", None, False, MISSING)
 _OPT_SCALE = BlockOptionSpec("scale", "css_length", None, False, "0.5cm")
+_STRUKTOGRAMM_OPTIONS = (
+    BlockOptionSpec("signature", "text", None, False, MISSING),
+    BlockOptionSpec("width", "css_length", None, False, "100%"),
+    _OPT_SHOW,
+    _OPT_MODE,
+    _OPT_ALIGN,
+)
+"""Geteilt von `struktogramm` und dem Alias `structogram`."""
 
 DEPRECATED_IGNORED_OPTIONS = {"solution": frozenset({"mode", "show"})}
 """Optionen, die veraltet sind und **ignoriert** werden (Warnung `OP004`); sie stehen
@@ -539,6 +549,8 @@ BLOCK_OPTION_SPECS: dict[str, tuple[BlockOptionSpec, ...]] = {
         BlockOptionSpec("subbranches", "integer", None, False, 0),
         _OPT_ALIGN,
     ),
+    "struktogramm": _STRUKTOGRAMM_OPTIONS,
+    "structogram": _STRUKTOGRAMM_OPTIONS,  # Alias, identische Optionen (wie help/hilfe)
     "selfcheck": (
         _OPT_SHOW,
         _OPT_MODE,

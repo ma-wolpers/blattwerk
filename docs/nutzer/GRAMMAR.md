@@ -109,6 +109,7 @@ block_name        = "material"
         - `%{...}` -> nur Loesung
         - `&{...}` -> Arbeitsblatt und Loesung
 - Inline-Token (`§{...}`, `%{...}`, `&{...}`) duerfen auch in der Zeilenmitte stehen.
+- Ausnahme `struktogramm`/`structogram`: Dort ist die Einrueckung Teil der Syntax, deshalb steht der Zeilenmarker *nach* der Einrueckung (`    % rückgabe wahr`) und gilt fuer den angezeigten Text dieses Elements; die Struktur bleibt im Arbeitsblatt sichtbar.
 - Text ohne Token ist standardmaessig in beiden Modi sichtbar.
 - Escape-Sequenzen fuer Literale: `\%\{`, `\§\{`, `\&`, `\}`.
 - Syntaxkonflikte (`AN006`) entstehen bei ungeschlossenen Inline-Tokens (z. B. `%{Text`).

@@ -20,6 +20,8 @@ from .blatt_kern_shared import (
     should_render_block,
 )
 from .answer_special_mindmap import render_mindmap_block
+from .answer_special_struktogramm import render_struktogramm_block
+from .blatt_kern_shared_data import STRUKTOGRAMM_BLOCK_TYPES
 from .answer_special_selfcheck import render_selfcheck_block
 from .answer_special_writebox import render_writebox_block
 from .blatt_kern_answer_dispatch import _render_answer_block
@@ -259,6 +261,12 @@ def _render_block_body(
     if block_type == "mindmap":
         return _wrap_with_object_alignment(
             render_mindmap_block(options, normalized_content), object_alignment
+        )
+
+    if block_type in STRUKTOGRAMM_BLOCK_TYPES:
+        # Roher `content`: `normalize_markdown` würde die Einrückung (= Schachtelung) verfälschen.
+        return _wrap_with_object_alignment(
+            render_struktogramm_block(options, content, include_solutions), object_alignment
         )
 
     if block_type == "selfcheck":
