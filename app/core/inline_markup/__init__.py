@@ -16,6 +16,7 @@ from .emphasis import parse_emphasis
 from .html_renderer import render_inline_markup_html
 from .runs import ParseDiagnostic, Run
 from .spans import protect_all
+from .style_spans import apply_inline_styles
 from .syntax import MARKER_SPECS, EscalationLevel, MarkerSpec, marker_spec_by_key, marker_spec_by_name
 
 __all__ = [
@@ -42,9 +43,9 @@ def parse_inline_markup(text: str) -> tuple[list[Run], list[ParseDiagnostic]]:
     if not text:
         return [], []
 
-    protected_text, math_spans, code_spans, word_note_spans, diagnostics = protect_all(text)
+    protected_text, math_spans, code_spans, word_note_spans, styles, diagnostics = protect_all(text)
     runs = parse_emphasis(protected_text, math_spans, code_spans, word_note_spans)
-    return runs, diagnostics
+    return apply_inline_styles(runs, styles), diagnostics
 
 
 def render_inline_markup(text: str) -> str:

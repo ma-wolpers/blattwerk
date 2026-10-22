@@ -1079,6 +1079,21 @@ PROSE_SECTIONS: dict[str, str] = {
         "mehr automatisch angehängt, sondern steht dort, wo du den Block setzt (Warnung `OPR004`, wenn "
         "Operatoren ohne Tabelle bleiben). Aktuell ohne eigene Editor-Taste -- von Hand eingetippt."
     ),
+    "inline_mark:inline_style": (
+        "`-<…>` setzt Schrift, Größe und Farbe für einen Textbereich, `-<>` beendet ihn. Die Angaben "
+        "stehen durch `-` getrennt in beliebiger Reihenfolge: eine Zahl ist die Größe in Punkt (`12`, "
+        "`10,5`), `#rot`/`#red`, `#blau`, `#gruen`, `#gelb`, `#orange`, `#lila`, `#rosa`, `#braun`, `#grau`, "
+        "`#schwarz`, `#weiss`, `#tuerkis` (auch englisch) oder ein Hex-Wert wie `#c62828` ist die Farbe, "
+        "alles andere ist eine Schrift mit ihrem Namen aus dem Schriftmenü (`Arial`, `Times New Roman`, "
+        "`Comic Neue` …; Namen mit `-` in Anführungszeichen). Beispiele: `-<20> groß -<>`, "
+        "`-<Andika-#blau> Aufgabe 1 -<>`. Bereiche lassen sich verschachteln; ein innerer Bereich übernimmt "
+        "alles, was er nicht selbst festlegt (`-<Arial-#rot> a -<20> b -<> -<>`: b ist Arial, rot und 20 pt). "
+        "Je Art ist nur eine Angabe erlaubt. Ein Bereich muss im selben Absatz enden -- vor einer Leerzeile, "
+        "einem neuen Listenpunkt, einer Tabellenzelle oder dem Blockende. In Code, Formeln und Kommentaren "
+        "bleibt `-<…>` wörtlich; ein wörtliches `-<` außerhalb davon schreibt man `\\-<`. Formeln innerhalb "
+        "eines Bereichs werden mit eingefärbt und vergrößert. Fehler (unbekannte Schrift oder Farbe, doppelte "
+        "Angabe, nicht geschlossener Bereich) meldet `IM004`."
+    ),
     "inline_mark:word_note": (
         "`??Begriff|Erklärung??` ist eine Worterklärung als sprachliche Hilfe: der Begriff bleibt normal "
         "im Text (mit gepunkteter Unterstreichung), die Erklärung erscheint klein am rechten Seitenrand "

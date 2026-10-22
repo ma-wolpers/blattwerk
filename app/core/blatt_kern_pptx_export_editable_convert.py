@@ -67,6 +67,20 @@ _ALIGN_MAP = {
 _RGB_PATTERN = re.compile(r"rgba?\((\d+),\s*(\d+),\s*(\d+)")
 
 
+def first_font_family(css_font_family) -> str | None:
+    """Erster Familienname einer CSS-`font-family`-Liste, ohne Anführungszeichen.
+
+    Example:
+        >>> first_font_family("'Comic Neue', 'Comic Sans MS', cursive")
+        'Comic Neue'
+    """
+    for name in str(css_font_family or "").split(","):
+        cleaned = name.strip().strip("'\"").strip()
+        if cleaned:
+            return cleaned
+    return None
+
+
 def _parse_rgb(css_color) -> tuple[int, int, int]:
     """Parses `"rgb(r, g, b)"`/`"rgba(r, g, b, a)"` (the only format
     `getComputedStyle(...).color` ever returns) into an `(r, g, b)` tuple.
@@ -344,6 +358,7 @@ def build_slide_elements(raw_slide: dict, slide_width_emu: int, slide_height_emu
                     "bold": _is_bold(raw_run.get("fontWeight")),
                     "italic": _is_italic(raw_run.get("fontStyle")),
                     "color_rgb": _parse_rgb(raw_run.get("color")),
+                    "font_name": first_font_family(raw_run.get("fontFamily")),
                 }
             )
         if not runs:

@@ -10,7 +10,8 @@ from __future__ import annotations
 
 from html import escape
 
-from ..styles.blatt_styles import build_stylesheet, resolve_printable_width_cm
+from ..styles.blatt_styles import build_inline_font_css, build_stylesheet, resolve_printable_width_cm
+from .inline_markup.style_spans import collect_inline_style_fonts
 from .blatt_kern_layout_columns import render_body_with_columns
 from .blatt_kern_shared import (
     annotate_standalone_subtasks,
@@ -144,13 +145,14 @@ def _render_presentation_html(
         help_tag=(meta or {}).get("tag"),
         document_type="presentation",
     )
-    slides = _build_presentation_slides(
-        enriched_blocks,
-        include_solutions=include_solutions,
-        document_type="presentation",
-        printable_width_cm=printable_width_cm,
-        ignore_framebreaks=bool(presentation_ignore_framebreaks),
-    )
+    with collect_inline_style_fonts() as inline_font_keys:
+        slides = _build_presentation_slides(
+            enriched_blocks,
+            include_solutions=include_solutions,
+            document_type="presentation",
+            printable_width_cm=printable_width_cm,
+            ignore_framebreaks=bool(presentation_ignore_framebreaks),
+        )
 
     if not slides:
         slides = [{"section": "", "body": "<p>Keine Folieninhalte gefunden.</p>"}]
@@ -285,7 +287,7 @@ def _render_presentation_html(
         font_profile=font_profile,
         font_size_profile=font_size_profile,
         slide_layout=True,
-    )
+    ) + build_inline_font_css(inline_font_keys, font_profile)
 
     return f"""<!DOCTYPE html>
 <html lang=\"de\">

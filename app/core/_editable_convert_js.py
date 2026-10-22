@@ -83,6 +83,7 @@ _CLASSIFY_JS = """
         return {
             text: text,
             fontSizePx: parseFloat(style.fontSize) || 12,
+            fontFamily: style.fontFamily,
             fontWeight: style.fontWeight,
             fontStyle: style.fontStyle,
             color: style.color,

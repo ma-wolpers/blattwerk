@@ -25,6 +25,11 @@ Diese Datei definiert die kanonische Grammatik fuer Blattwerk-Markdown.
       ist KEIN Kommentar-Trenner)
     - `OPERATOR` := `!!text!!` (sichtbar wie `**text**`, zusätzlich semantisch als
       Aufgaben-Operator markiert -- siehe `operator_legend.py`)
+    - `INLINE_STYLE` := `-<SPEC>` text `-<>` mit `SPEC` := Token (`-` Token)*; Token = Zahl
+      (pt) | `#farbe`/`#rgb`/`#rrggbb` | Schriftname (mit `-` in Anfuehrungszeichen); je Art
+      hoechstens einmal, verschachtelbar (erbt pro Eigenschaft), endet spaetestens an Leerzeile,
+      Listenpunkt, Tabellenzelle oder Blockende; `\-<` ist ein woertliches `-<`
+      (`app/core/inline_markup/style_spans.py`)
 
 Hinweise:
 - Optionen werden als `key=value` gelesen; Trennzeichen ist Leerraum.

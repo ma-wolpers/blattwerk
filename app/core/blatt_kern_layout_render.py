@@ -25,10 +25,12 @@ from __future__ import annotations
 from html import escape
 
 from .inline_markup.word_notes import collect_word_notes
+from .inline_markup.style_spans import collect_inline_style_fonts
 from .operator_legend_blocks import annotate_operator_blocks
 from ..styles.blatt_styles import (
     DEFAULT_PRESENTATION_PAGE_FORMAT,
     PRESENTATION_PAGE_FORMATS,
+    build_inline_font_css,
     build_stylesheet,
     resolve_printable_height_cm,
     resolve_printable_width_cm,
@@ -149,7 +151,7 @@ def render_html(
         page_format,
         hole_punch_enabled=hole_punch_enabled,
     )
-    with collect_word_notes() as collected_word_notes:
+    with collect_word_notes() as collected_word_notes, collect_inline_style_fonts() as inline_font_keys:
         body = render_body_with_columns(
             enriched_blocks,
             include_solutions=include_solutions,
@@ -195,7 +197,7 @@ def render_html(
         slide_layout=has_slide_layout(document_type),
         reserve_gutters=True,
         has_word_notes=has_word_notes,
-    )
+    ) + build_inline_font_css(inline_font_keys, font_profile)
 
     copyright_text = get_copyright_text(meta)
 

@@ -19,6 +19,8 @@ Umsetzung, `__init__.py::parse_inline_markup` für den Gesamtablauf):
     4. `??Begriff|Erklärung??`-Worterklärungen schützen (word_notes.py);
        nach Code, damit ein `??` in Inline-Code nicht als Worterklärung
        gelesen wird
+    4b. `-<SPEC> … -<>`-Inline-Stile in Platzhalter umwandeln (style_spans.py);
+       der Stil wird erst nach Schritt 6 auf die Runs verteilt
     5. verbleibendes Markup parsen (diese Tabelle)
     6. `list[Run]` erzeugen
     7. rendern (html_renderer.py)
@@ -177,6 +179,20 @@ MARKER_SPECS: tuple[MarkerSpec, ...] = (
                 "??Begriff|Erklärung??",
                 (),
                 "Worterklärung: Begriff bleibt im Text, die Erklärung steht klein am rechten Rand (Arbeitsblatt)",
+            ),
+        ),
+        editor_shortcut=False,
+        applies_to=frozenset({"worksheet"}),
+    ),
+    MarkerSpec(
+        name="inline_style",
+        key="-<",
+        levels=(
+            EscalationLevel(
+                "-<",
+                "`-<Comic Neue-#rot-14> Text -<>`",
+                (),
+                "Schrift, Größe und Farbe für einen Textbereich (eigene Pipeline-Stufe, `style_spans.py`)",
             ),
         ),
         editor_shortcut=False,

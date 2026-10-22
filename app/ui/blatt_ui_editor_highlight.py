@@ -11,7 +11,10 @@ from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 ensure_bw_gui_on_path()
 from bw_gui.runtime import ui
 
+from ..core.inline_markup.style_spans import STYLE_MARKER_REGEX
 from .ui_theme import get_theme, is_dark_theme
+
+_INLINE_STYLE_MARKER_PATTERN = re.compile(STYLE_MARKER_REGEX)
 
 
 _SYNTAX_TAGS = (
@@ -22,6 +25,7 @@ _SYNTAX_TAGS = (
     "syn_option_key",
     "syn_option_value",
     "syn_marker",
+    "syn_inline_style",
     "syn_block_close_error",
     "syn_block_pair",
 )
@@ -61,6 +65,7 @@ class BlattwerkAppEditorHighlightMixin:
             self.editor_widget.tag_configure("syn_option_key", foreground="#4EC9B0")
             self.editor_widget.tag_configure("syn_option_value", foreground="#CE9178")
             self.editor_widget.tag_configure("syn_marker", foreground="#F44747")
+            self.editor_widget.tag_configure("syn_inline_style", foreground="#DCDCAA")
             self.editor_widget.tag_configure("syn_block_close_error", background="#5A1F2A", foreground="#FF9DA4")
             self.editor_widget.tag_configure("syn_block_pair", background="#2C3744")
             self.editor_widget.tag_configure("search_match", background="#5C4A1E")
@@ -73,6 +78,7 @@ class BlattwerkAppEditorHighlightMixin:
             self.editor_widget.tag_configure("syn_option_key", foreground="#0b7285")
             self.editor_widget.tag_configure("syn_option_value", foreground="#8d6b00")
             self.editor_widget.tag_configure("syn_marker", foreground="#c92a2a")
+            self.editor_widget.tag_configure("syn_inline_style", foreground="#5f3dc4")
             self.editor_widget.tag_configure("syn_block_close_error", background="#ffe2e2", foreground="#8b0000")
             self.editor_widget.tag_configure("syn_block_pair", background=theme["accent_soft"])
             self.editor_widget.tag_configure("search_match", background="#fff3bf")
@@ -256,6 +262,14 @@ class BlattwerkAppEditorHighlightMixin:
                     "syn_marker",
                     f"{line_no}.{marker_start}",
                     f"{line_no}.{marker_end}",
+                )
+
+            # Inline-Stile `-<SPEC>`/`-<>`: dieselbe Regex wie der Parser (`style_spans.py`).
+            for style_match in _INLINE_STYLE_MARKER_PATTERN.finditer(line_text):
+                self.editor_widget.tag_add(
+                    "syn_inline_style",
+                    f"{line_no}.{style_match.start()}",
+                    f"{line_no}.{style_match.end()}",
                 )
 
         self._refresh_editor_block_pair_highlight()

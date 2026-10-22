@@ -107,6 +107,16 @@ def build_print_profile_css(profile_name):
 """
 
 
+def build_inline_font_css(inline_font_keys, font_profile):
+    """`@font-face`-Regeln für mitgelieferte Schriften, die nur in Inline-Stilen vorkommen.
+
+    Die Schrift des Dokumentprofils bettet `build_font_profile_css` schon ein und wird
+    hier ausgelassen, damit keine Datei doppelt im Dokument landet.
+    """
+    profile_key = normalize_font_profile(font_profile)
+    return font_face_css(set(inline_font_keys or ()) - {profile_key})
+
+
 def build_font_profile_css(font_profile):
     """Erzeugt CSS-Variablen für das gewählte Schriftprofil.
 

@@ -202,3 +202,33 @@ def _check_extension_validator_sync(errors: list[str]) -> None:
             )
 
 
+
+
+INLINE_STYLE_SCOPE = "markup.other.inline-style.blattwerk"
+
+
+def _check_inline_style_grammar_sync(errors: list[str]) -> None:
+    """Die VS-Code-Grammatik muss Inline-Stile mit exakt der Parser-Regex hervorheben.
+
+    Geprueft werden das Muster auf Dokumentebene und das innerhalb der Bloecke
+    (`meta.block.blattwerk`): beide muessen `STYLE_MARKER_REGEX` aus
+    `app/core/inline_markup/style_spans.py` sein, sonst markiert VS Code etwas
+    anderes als der Blattwerk-Editor bzw. der Parser auswertet (AGENTS.md Regel 5).
+    """
+    from app.core.inline_markup.style_spans import STYLE_MARKER_REGEX
+
+    tm_path = "vscode-extension/blattwerk-language/syntaxes/blattwerk-injection.tmLanguage.json"
+    grammar = json.loads(_read(tm_path))
+    top_level = [p for p in grammar.get("patterns", []) if p.get("name") == INLINE_STYLE_SCOPE]
+    blocks = [p for p in grammar.get("patterns", []) if p.get("name") == "meta.block.blattwerk"]
+    in_blocks = [
+        p for block in blocks for p in block.get("patterns", []) if p.get("name") == INLINE_STYLE_SCOPE
+    ]
+    for label, found in (("top-level", top_level), ("block", in_blocks)):
+        if len(found) != 1:
+            errors.append(f"{tm_path}: expected exactly one {label} pattern '{INLINE_STYLE_SCOPE}', found {len(found)}")
+        elif found[0].get("match") != STYLE_MARKER_REGEX:
+            errors.append(
+                f"{tm_path}: {label} inline-style regex differs from STYLE_MARKER_REGEX "
+                f"({found[0].get('match')!r} != {STYLE_MARKER_REGEX!r})"
+            )

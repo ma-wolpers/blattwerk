@@ -23,6 +23,7 @@ from html import escape
 
 from .escaping import resolve_escape_placeholders
 from .runs import Run
+from .style_spans import record_inline_style_font
 
 _TAG_ORDER = (
     ("highlight", "mark", None),
@@ -74,7 +75,16 @@ def _render_word_note(run: Run) -> str:
 
 
 def render_run(run: Run) -> str:
-    """Rendert einen einzelnen `Run` zu HTML."""
+    """Rendert einen einzelnen `Run` zu HTML; ein Inline-Stil umhüllt das Ergebnis."""
+    html = _render_unstyled_run(run)
+    if run.style is None:
+        return html
+    record_inline_style_font(run.style)
+    return run.style.wrap_html(html)
+
+
+def _render_unstyled_run(run: Run) -> str:
+    """Rendert einen `Run` ohne seinen Inline-Stil (Worterklärung, Formel, Code oder Text)."""
     if run.annotation is not None:
         return _render_word_note(run)
     if run.kind == "math":

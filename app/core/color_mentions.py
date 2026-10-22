@@ -5,6 +5,8 @@ from __future__ import annotations
 from pathlib import Path
 import re
 
+from .inline_markup.style_spans import STYLE_MARKER_REGEX
+
 
 COLOR_TERM_PATTERN = re.compile(
     r"\b("
@@ -19,6 +21,18 @@ COLOR_TERM_PATTERN = re.compile(
 )
 
 
+_INLINE_STYLE_MARKER_PATTERN = re.compile(STYLE_MARKER_REGEX)
+_INLINE_STYLE_COLOR_PATTERN = re.compile(r"#[0-9A-Za-zÄÖÜäöüß]+")
+
+
+def _inline_style_colors(markdown_text: str) -> list[str]:
+    """Farbangaben aus Inline-Stilen `-<…#farbe…>` (Hex und Namen, z. B. `#c62828`, `#red`)."""
+    colors = []
+    for marker in _INLINE_STYLE_MARKER_PATTERN.finditer(markdown_text):
+        colors.extend(_INLINE_STYLE_COLOR_PATTERN.findall(marker.group(1)))
+    return colors
+
+
 def read_markdown_text(input_path: Path):
     """Liest Markdown robust (UTF-8) und ersetzt fehlerhafte Bytes bei Bedarf."""
     try:
@@ -30,14 +44,19 @@ def read_markdown_text(input_path: Path):
 
 
 def find_color_mentions(markdown_text: str, max_hits: int = 6):
-    """Extrahiert eindeutige Farbbegriffe bis zu `max_hits` Treffern."""
+    """Extrahiert eindeutige Farbbegriffe bis zu `max_hits` Treffern.
+
+    Neben Farbwörtern im Text zählen Farbangaben in Inline-Stilen (`-<#c62828>`,
+    `-<#red>`), die im Schwarzweiß-Profil ebenfalls nicht als Farbe sichtbar sind.
+    """
     if not markdown_text:
         return []
 
     mentions = []
     seen = set()
-    for match in COLOR_TERM_PATTERN.finditer(markdown_text):
-        term = match.group(0)
+    terms = [match.group(0) for match in COLOR_TERM_PATTERN.finditer(markdown_text)]
+    terms += _inline_style_colors(markdown_text)
+    for term in terms:
         normalized = term.lower()
         if normalized in seen:
             continue
