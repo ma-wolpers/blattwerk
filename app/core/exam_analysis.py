@@ -1,14 +1,14 @@
 """AFB- und Punkteauswertung einer Klausur (Nutzerentscheidungen R1-C16, R5-1, R5-5, R6-5).
 
-Grundlage sind ausschließlich `points_model` (Punkte) und `resolve_aid_split`
-(Teile). Gezählt werden **Blätter**: bei vollständig bepunkteten Teilaufgaben
+Grundlage sind ausschließlich `points_model` (Punkte) und `exam_parts.resolve_exam_parts`
+(Teile); die Gesamtpunktzahl einer Klausur mit Teilen kommt aus `exam_parts.exam_max_points`. Gezählt werden **Blätter**: bei vollständig bepunkteten Teilaufgaben
 jede Teilaufgabe (mit eigener oder vom Task geerbter AFB), sonst der Task.
 
 * **Prozente beziehen sich immer auf die Gesamtpunktzahl der Klausur** --
   auch in den Zeilen für Teil A/B: `AFB-x-Anteil = AFB-x-Punkte / Gesamtpunkte × 100`.
 * Prozente gibt es nur, wenn die Gesamtauswertung vollständig ist und die
   Gesamtpunktzahl > 0 ist; sonst nur Absolutwerte und markierte Gründe.
-* Ohne gültigen Hilfsmittel-Trenner gibt es keine Teile.
+* Ohne gültige Teilstruktur gibt es keine Teile.
 """
 
 from __future__ import annotations
@@ -16,7 +16,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from decimal import Decimal
 
-from .document_semantics import resolve_aid_split
+from .exam_parts import exam_max_points, resolve_exam_parts
 from .points_model import STATUS_MISSING, STATUS_OK, TaskUnit, build_points_model, format_points
 
 AFB_LEVELS = (1, 2, 3)
@@ -34,7 +34,7 @@ class ScoredLeaf:
 
 @dataclass
 class PartResult:
-    """Auswertung eines Teils (A/B) oder der ganzen Klausur."""
+    """Auswertung eines Klausurteils oder der ganzen Klausur."""
 
     label: str
     points: Decimal = Decimal(0)
@@ -49,7 +49,7 @@ class PartResult:
 
 @dataclass
 class ExamAnalysis:
-    """Gesamtergebnis; `parts` ist leer ohne gültigen Hilfsmittel-Trenner."""
+    """Gesamtergebnis; `parts` (je Klausurteil) ist leer ohne gültige Teilstruktur."""
 
     total: PartResult
     parts: list[PartResult]
@@ -85,11 +85,11 @@ def iter_scored_leaves(units: list[TaskUnit]):
 def analyze_exam(blocks, document_type: str) -> ExamAnalysis:
     """Wertet Punkte und AFB-Verteilung aus (gesamt und, falls vorhanden, je Teil)."""
     units = build_points_model(blocks)
-    split = resolve_aid_split(blocks, document_type)
+    layout = resolve_exam_parts(blocks, document_type).layout
     total = PartResult("Gesamt")
-    parts = [PartResult("Teil A"), PartResult("Teil B")] if split else []
+    parts = [PartResult(part.label) for part in layout.parts] if layout else []
     for unit, leaf, reason in iter_scored_leaves(units):
-        targets = [total] + ([parts[0] if unit.block_index < split.index else parts[1]] if split else [])
+        targets = [total] + ([parts[layout.part_for_block(unit.block_index).order]] if layout else [])
         for part in targets:
             if reason:
                 part.reasons.append(reason)
@@ -99,6 +99,8 @@ def analyze_exam(blocks, document_type: str) -> ExamAnalysis:
                 part.unassigned_points += leaf.points
             else:
                 part.afb_points[leaf.afb] += leaf.points
+    if layout is not None:
+        total.points = exam_max_points(layout, {part.part_id: result.points for part, result in zip(layout.parts, parts)})
     for part in [total] + parts:
         if part.unassigned_points:
             part.reasons.append(f"{format_points(part.unassigned_points)} P ohne AFB")

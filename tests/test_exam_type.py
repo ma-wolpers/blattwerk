@@ -7,7 +7,7 @@ import pytest
 from app.core.blatt_kern_layout_render import render_html
 from app.core.blatt_kern_shared import parse_blocks, split_front_matter
 from app.core.blatt_validator import inspect_markdown_text
-from app.core.document_semantics import resolve_aid_split
+from app.core.exam_parts import resolve_exam_parts
 from app.core.document_type_templates import build_new_document_content
 from app.core.exam_analysis import analyze_exam, format_analysis_lines
 
@@ -57,7 +57,7 @@ def test_hm_inside_block_is_bl005():
 def test_hm_outside_exam_warns_and_has_no_effect(document_type):
     blocks = parse_blocks(SPLIT)
     assert "KL002" in _codes(SPLIT, document_type)
-    assert resolve_aid_split(blocks, document_type) is None
+    assert resolve_exam_parts(blocks, document_type).layout is None
     html = render_html({"Titel": "T"}, blocks, document_type=document_type)
     assert "Teil A" not in html and "Teil B" not in html
     assert analyze_exam(blocks, document_type).parts == []

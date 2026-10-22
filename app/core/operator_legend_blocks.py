@@ -10,9 +10,9 @@ Bereich eines Blocks (`scope=`):
 * ``previous`` (Standard): alle Blöcke nach dem vorigen `operators`-Block (bzw.
   ab Dokumentanfang) bis zu diesem Block.
 * ``all``: das ganze Dokument, auch Blöcke nach der Tabelle.
-* ``part``: der Hilfsmittel-Teil (`--hm`, siehe `resolve_aid_split`), in dem der
-  Block steht -- Deckblatt und Teil A gelten als ein Teil. Ohne gültigen Split
-  ist das das ganze Dokument.
+* ``part``: der Klausurteil (`--hm`, siehe `exam_parts.resolve_exam_parts`), in dem der
+  Block steht -- Deckblatt und Teil A gelten als ein Teil. Ohne gültige
+  Teilstruktur ist das das ganze Dokument.
 
 Bereiche dürfen sich überschneiden (Warnung OPR008). Eine Operator-Fundstelle
 gilt als abgedeckt, sobald **mindestens ein** Block sie abdeckt -- es gibt keine
@@ -36,7 +36,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from html import escape
 
-from .document_semantics import resolve_aid_split
+from .exam_parts import resolve_exam_parts
 from .document_type_registry import shows_operator_legend
 from .inline_markup import parse_inline_markup
 from .operator_legend import collect_used_operators, render_operator_legend_html
@@ -116,11 +116,11 @@ def operator_block_coverages(blocks, document_type: str) -> list[OperatorBlockCo
     """Berechnet für jeden `operators`-Block seinen Bereich (Blockindizes, ohne andere Tabellen).
 
     Args:
-        blocks: Blockliste **vor** `annotate_aid_parts` (Indizes wie in
-            `resolve_aid_split`).
+        blocks: Blockliste **vor** `annotate_exam_parts` (Indizes wie in
+            `resolve_exam_parts`).
         document_type: Dokumenttyp (Teile nur in Klausuren mit gültigem Split).
     """
-    split = resolve_aid_split(blocks, document_type)
+    layout = resolve_exam_parts(blocks, document_type).layout
     every_index = tuple(range(len(blocks)))
     coverages = []
     previous_start = 0
@@ -130,8 +130,9 @@ def operator_block_coverages(blocks, document_type: str) -> list[OperatorBlockCo
         scope = resolve_scope(options)
         if scope == SCOPE_ALL:
             covered = every_index
-        elif scope == SCOPE_PART and split is not None:
-            covered = tuple(range(0, split.index)) if index < split.index else tuple(range(split.index, len(blocks)))
+        elif scope == SCOPE_PART and layout is not None:
+            part = layout.part_for_block(index)
+            covered = tuple(range(part.start_block, part.end_block))
         elif scope == SCOPE_PART:
             covered = every_index
         else:
@@ -178,7 +179,7 @@ def annotate_operator_blocks(blocks, meta, document_type: str):
     sonst bleiben die Blöcke unverändert und rendern nichts (OPR007). Blöcke
     ohne Operatoren im Bereich bekommen leeres HTML und keinen Wrapper
     (Fehler OPR006). Der Index der Messmarken zählt nur gerenderte Tabellen
-    und ist dadurch dokumentweit eindeutig. Muss **vor** `annotate_aid_parts`
+    und ist dadurch dokumentweit eindeutig. Muss **vor** `annotate_exam_parts`
     laufen (der synthetische Teil-A-Block verschiebt sonst die Indizes).
     """
     if not document_type or not shows_operator_legend(document_type):

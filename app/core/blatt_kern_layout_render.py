@@ -50,10 +50,9 @@ from .blatt_kern_shared import (
 )
 from .blatt_kern_layout_columns import render_body_with_columns, render_columns_container
 from .blatt_kern_layout_presentation import _render_presentation_html
-from .document_semantics import annotate_aid_parts
 from .evaluation_table import annotate_evaluation_blocks
 from .student_header import render_student_header
-from .exam_part_render import attach_part_headers
+from .exam_part_render import annotate_exam_parts, attach_part_headers
 from .document_type_registry import has_slide_layout
 
 
@@ -125,9 +124,9 @@ def render_html(
         )
 
     blocks = annotate_evaluation_blocks(blocks, document_type)
-    # Vor annotate_aid_parts: dort verschiebt der synthetische Teil-A-Block die Indizes.
+    # Vor annotate_exam_parts: dort verschiebt der synthetische Teil-A-Block die Indizes.
     blocks = annotate_operator_blocks(blocks, meta, document_type)
-    blocks = annotate_aid_parts(blocks, document_type)
+    blocks = annotate_exam_parts(blocks, document_type)
     student_header = render_student_header(meta)
     # Jeder Klausurteil auf neuer Seite bekommt dieselbe Kopfzeile wie der Dokumentanfang.
     blocks = attach_part_headers(blocks, student_header)

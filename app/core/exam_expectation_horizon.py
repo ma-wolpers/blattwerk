@@ -1,7 +1,7 @@
 """Erwartungshorizont einer Klausur als HTML/PDF (Plan Phase 6).
 
 Datenquellen ausschließlich: `solution_items` (Erwartungen und `(xP)`),
-`points_model` (Punktzahlen), `exam_analysis` (AFB) und `resolve_aid_split`
+`points_model` (Punktzahlen), `exam_analysis` (AFB) und `exam_parts.resolve_exam_parts`
 (Teile). Es gibt **keinen Aufgabentext**, nur die nummerierten Erwartungen.
 
 Fehlerverhalten:
@@ -26,14 +26,13 @@ from .blatt_kern_io_pdf import write_pdf_from_html
 from .blatt_kern_shared import parse_blocks, split_front_matter
 from .blatt_validator import has_blocking_diagnostics, inspect_markdown_text, summarize_blocking_diagnostics
 from .blatt_validator_types import BuildDiagnostic
-from .document_semantics import resolve_aid_split
+from .exam_parts import resolve_exam_parts
 from .exam_analysis import AFB_LEVELS, analyze_exam
 from .export_path_guardrails import validate_export_output_path
 from .frontmatter import content_after_frontmatter
 from .math_span_protection import convert_markdown_with_math
 from .points_model import build_points_model, format_points, format_signed_points, subtask_effective
 from .solution_items import collect_solution_targets
-from .exam_part_render import AID_PART_LABELS
 from .expectation_kinds import EXPECTATION_KINDS, kind_by_key
 from .student_header import HEADER_DATE_KIND, InvalidHeaderValue, resolve_header_value
 
@@ -72,7 +71,7 @@ def build_expectation_horizon_html(text: str) -> tuple[str, list[BuildDiagnostic
     blocks = parse_blocks(content.strip())
     units = build_points_model(blocks)
     targets, _issues = collect_solution_targets(blocks)
-    split = resolve_aid_split(blocks, "exam")
+    layout = resolve_exam_parts(blocks, "exam").layout
     analysis = analyze_exam(blocks, "exam")
     diagnostics: list[BuildDiagnostic] = []
     targets_by_key = {(t.unit_index, t.subtask_position): t for t in targets}
@@ -80,11 +79,11 @@ def build_expectation_horizon_html(text: str) -> tuple[str, list[BuildDiagnostic
     body = [f"<h1>Erwartungshorizont</h1>", _meta_line(meta)]
     current_part = None
     for unit_index, unit in enumerate(units):
-        part = None if split is None else ("A" if unit.block_index < split.index else "B")
-        if part != current_part and part is not None:
+        part = None if layout is None else layout.part_for_block(unit.block_index)
+        if part is not None and part != current_part:
             if current_part is not None:
-                body.append(_part_sum(analysis.parts[0]))
-            body.append(f"<h2>{AID_PART_LABELS[part]}</h2>")
+                body.append(_part_sum(analysis.parts[current_part.order]))
+            body.append(f"<h2>{escape(part.heading)}</h2>")
             current_part = part
         body.append(f"<h3>Aufgabe {unit.number} ({format_points(unit.effective)} P)</h3>")
         body.append("<table><tr><th class='num'>Nr.</th><th>Erwartung</th><th class='pts'>max. P.</th><th class='pts'>erreicht</th></tr>")
@@ -95,8 +94,8 @@ def build_expectation_horizon_html(text: str) -> tuple[str, list[BuildDiagnostic
         for key in keys:
             body.extend(_target_rows(unit, key, targets_by_key.get(key), diagnostics))
         body.append("</table>")
-    if split is not None and analysis.parts:
-        body.append(_part_sum(analysis.parts[1]))
+    if current_part is not None:
+        body.append(_part_sum(analysis.parts[current_part.order]))
     body.append(_kinds_legend(targets))
     body.append(_afb_table(analysis))
     title = escape(str(meta.get("Titel") or "Erwartungshorizont")) if isinstance(meta, dict) else "Erwartungshorizont"

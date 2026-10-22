@@ -2,7 +2,8 @@
 
 `build_evaluation_table` liefert die fachliche Tabelle (Datenklasse), die
 Vorschau, HTML, PDF und PNG identisch über `render_evaluation_html` ausgeben.
-Punkte kommen ausschließlich aus `points_model`, Teile aus `resolve_aid_split`.
+Punkte kommen ausschließlich aus `points_model`, Teile aus `exam_parts.resolve_exam_parts`,
+die Gesamtsumme bei Teilen aus `exam_parts.exam_max_points`.
 
 * `level=task` (Standard): eine Spalte je Aufgabe mit ihren effektiven Punkten
   (bei nur bepunkteten Teilaufgaben deren Summe).
@@ -10,7 +11,7 @@ Punkte kommen ausschließlich aus `points_model`, Teile aus `resolve_aid_split`.
   sonst eine Spalte für die Aufgabe.
 * Fehlende Punkte zeigen „–“ (EV001), inkonsistente „?“.
 * Σ nur, wenn alle Zellen bekannt sind, sonst „–“ mit Fußnote.
-* `parts=true` gruppiert bei gültigem Hilfsmittel-Trenner nach Teil A/B.
+* `parts=true` gruppiert bei gültiger Teilstruktur nach Klausurteilen (eine Gruppe je Teil).
 * `grade=true` hängt unter die Tabelle rechtsbündig leere Felder „Dies sind ___ %“
   und „Note: ___“ an -- genau einmal je Block (auch bei `parts=true`). Die
   Option gilt pro `evaluation`-Block; Blöcke ohne `grade` bekommen keine Felder.
@@ -22,7 +23,7 @@ from dataclasses import dataclass, field
 from decimal import Decimal
 from html import escape
 
-from .document_semantics import resolve_aid_split
+from .exam_parts import ExamPartLayout, exam_max_points, resolve_exam_parts
 from .document_type_registry import spec_for_type
 from .points_model import STATUS_MISSING, STATUS_OK, build_points_model, format_points, subtask_effective
 
@@ -41,6 +42,7 @@ class EvaluationCell:
 class EvaluationGroup:
     title: str | None
     cells: list[EvaluationCell] = field(default_factory=list)
+    part_id: str | None = None
 
     @property
     def total(self) -> Decimal | None:
@@ -55,9 +57,13 @@ class EvaluationTable:
     groups: list[EvaluationGroup]
     missing_units: list[str] = field(default_factory=list)
     grade: bool = False
+    layout: ExamPartLayout | None = None
+    """Teilstruktur bei `parts=true`; dann gilt `exam_max_points` für die Gesamtsumme."""
 
     @property
     def grand_total(self) -> Decimal | None:
+        if self.layout is not None:
+            return exam_max_points(self.layout, {group.part_id: group.total for group in self.groups})
         totals = [group.total for group in self.groups]
         return None if any(total is None for total in totals) else sum(totals, Decimal(0))
 
@@ -79,16 +85,16 @@ def build_evaluation_table(blocks, options: dict, document_type: str) -> Evaluat
     level = "subtask" if str((options or {}).get("level") or "task").strip().lower() == "subtask" else "task"
     title = str((options or {}).get("title") or "").strip() or None
     units = build_points_model(blocks)
-    split = resolve_aid_split(blocks, document_type)
-    use_parts = split is not None and _option_true(options, "parts")
-    groups = [EvaluationGroup("Teil A"), EvaluationGroup("Teil B")] if use_parts else [EvaluationGroup(None)]
+    layout = resolve_exam_parts(blocks, document_type).layout
+    use_parts = layout is not None and _option_true(options, "parts")
+    groups = [EvaluationGroup(part.label, part_id=part.part_id) for part in layout.parts] if use_parts else [EvaluationGroup(None)]
     missing = []
     for unit in units:
-        group = groups[0] if not use_parts or unit.block_index < split.index else groups[1]
+        group = groups[layout.part_for_block(unit.block_index).order] if use_parts else groups[0]
         group.cells.extend(_unit_cells(unit, level))
         if unit.status == STATUS_MISSING:
             missing.append(unit.number)
-    return EvaluationTable(title, groups, missing, grade=_option_true(options, "grade"))
+    return EvaluationTable(title, groups, missing, grade=_option_true(options, "grade"), layout=layout if use_parts else None)
 
 
 def _option_true(options: dict | None, key: str) -> bool:

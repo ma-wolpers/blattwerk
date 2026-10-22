@@ -12,7 +12,8 @@ import pytest
 from app.core.blatt_kern_layout_render import render_html
 from app.core.blatt_kern_shared import parse_blocks
 from app.core.blatt_validator import inspect_markdown_text
-from app.core.document_semantics import annotate_aid_parts, resolve_aid_split
+from app.core.exam_part_render import annotate_exam_parts
+from app.core.exam_parts import resolve_exam_parts
 from app.core.evaluation_table import build_evaluation_table
 from app.core.exam_analysis import analyze_exam, format_analysis_lines
 from app.core.exam_expectation_horizon import build_expectation_horizon_html
@@ -57,10 +58,10 @@ def _targets_signature(blocks):
 
 def test_resolve_with_cover_keeps_ab_boundary_and_marks_cover():
     blocks = _blocks(WITH_COVER)
-    split = resolve_aid_split(blocks, "exam")
+    layout = resolve_exam_parts(blocks, "exam").layout
     markers = [i for i, (bt, _o, _c) in enumerate(blocks) if bt == "aidsplit"]
-    assert split is not None and split.cover_end == markers[0] and split.index == markers[1]
-    assert resolve_aid_split(_blocks(ONE_MARKER), "exam").cover_end is None
+    assert layout is not None and layout.cover_end == markers[0] and layout.parts[1].marker_block == markers[1]
+    assert resolve_exam_parts(_blocks(ONE_MARKER), "exam").layout.cover_end is None
 
 
 def test_realistic_cover_is_valid_without_errors():
@@ -101,7 +102,7 @@ def test_cover_has_no_part_heading_and_part_a_starts_on_new_page():
     assert html.index("Bearbeitungszeit") < html.index("Teil A – hilfsmittelfrei") < html.index("Aufgabe 1")
     assert html.index("Aufgabe 1") < html.index("Teil B – mit Hilfsmitteln") < html.index("Aufgabe 2")
     assert html.count("class='ab-pagebreak'") == 2
-    annotated = annotate_aid_parts(_blocks(WITH_COVER), "exam")
+    annotated = annotate_exam_parts(_blocks(WITH_COVER), "exam")
     assert annotated[0][0] != "aidsplit"
 
 
@@ -109,7 +110,7 @@ def test_cover_has_no_part_heading_and_part_a_starts_on_new_page():
 def test_task_related_block_before_cover_marker_is_kl007(before):
     body = before + "--hm\n" + PART_A + "--hm\n" + PART_B
     assert any(d.code == "KL007" and d.severity == "error" for d in _diagnostics(body))
-    assert resolve_aid_split(_blocks(body), "exam") is None
+    assert resolve_exam_parts(_blocks(body), "exam").layout is None
 
 
 def test_empty_part_a_is_kl004():
@@ -121,7 +122,7 @@ def test_subtask_alone_does_not_count_as_task_in_part_a():
     body = COVER + "--hm\n:::subtask points=1\nlose\n:::\n--hm\n" + PART_B
     codes = {d.code for d in _diagnostics(body) if d.severity == "error"}
     assert codes & {"KL004", "KL005"}
-    assert resolve_aid_split(_blocks(body), "exam") is None
+    assert resolve_exam_parts(_blocks(body), "exam").layout is None
 
 
 def test_cover_followed_by_non_task_is_kl005():
@@ -132,7 +133,7 @@ def test_cover_followed_by_non_task_is_kl005():
 def test_three_markers_report_kl001_and_no_split():
     body = WITH_COVER + "--hm\n:::task points=1 afb=1\nC\n:::\n"
     assert any(d.code == "KL001" and d.severity == "error" for d in _diagnostics(body))
-    assert resolve_aid_split(_blocks(body), "exam") is None
+    assert resolve_exam_parts(_blocks(body), "exam").layout is None
 
 
 def test_cover_markers_outside_exam_only_warn():
