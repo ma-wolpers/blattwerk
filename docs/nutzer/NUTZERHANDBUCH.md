@@ -78,14 +78,14 @@ Die Leiste „Vorschau-Optionen“ über der Vorschau startet eingeklappt; mit �
 | Black-Screen, Phasen | – | – | ja | – |
 | Gestaltung (Druckprofil, Farbe, Schrift, Größe) | ja | ja | ja | – |
 
-- **Seitenformat** (`DIN A4` / `DIN A5` bzw. `16:9` / `16:10` / `4:3`) steuert die Seitengröße im späteren Export.
+- **Seitenformat** (`DIN A4` / `A4 quer` / `DIN A5` bzw. `16:9` / `16:10` / `4:3`) steuert die Seitengröße. Der Export übernimmt das Format, das in der Vorschau des Dokuments gewählt ist; die Einstellung *Export Seitenformat* gilt nur als Startwert. Bei `A4 quer` werden Antwortfelder wie Zahlenstrahl und Raster entsprechend breiter.
 - **Modus** (`Aufgabe` / `Lösung`) steuert bei Arbeitsblättern und Klausuren, welche Inhalte in der Vorschau gerendert werden.
 - Präsentationen werden immer als Folien gerendert (kein Aufgaben/Lösung-Umschalter).
 - **Black-Screen** (`Aus` / `Vorher` / `Nachher` / `Beides`) fügt bei Präsentationen schwarze Folien vor und/oder nach dem Deck ein. Standard ist `Beides`; den Startwert stellst du unter *Einstellungen → Export → Black-Screen (Praesentation)* ein. Der Präsentations-Export übernimmt die Auswahl aus der Vorschau.
 - **Phasen** steuert bei Präsentationen den Abschnitts-Footer der Folien (Trenner `·` oder `→`, künftige Abschnitte ausblenden).
 - Die Tastenkürzel wirken nur, wenn die Option für die Dokumentart angezeigt wird (z. B. `K` nur bei Präsentationen, `4`/`5` nur bei Arbeitsblatt und Klausur).
 - **Druckprofil** (`Standard` / `Stärker`) erhöht bzw. reduziert den Kontrast für den Ausdruck.
-- **Schrift** steuert die Schriftfamilie für das gesamte Arbeitsblatt.
+- **Schrift** steuert die Schriftfamilie des Dokuments und wird als `font_profile` im Frontmatter gespeichert (gilt damit auch beim Export und auf anderen Rechnern). `Standard (App-Einstellung)` entfernt den Eintrag; dann gilt die Schrift aus *Einstellungen → Design*. Neben Systemschriften gibt es mitgelieferte freie Schriften (Comic Neue, Andika, Fredoka, Patrick Hand, Indie Flower, Gloria Hallelujah, Short Stack), die in Vorschau, PDF und HTML auf jedem Rechner gleich aussehen.
 - **Größe** steuert die Grundschriftgröße (`Klein` / `Normal` / `Groß`). Dabei passen sich die Puffer von Antwortboxen automatisch an (kleiner = enger, größer = luftiger).
 - **Ansicht** (`Seitenbreite` / `Ganze Seite`) setzt Fit-Presets; bei manuellem Zoom wird auf Custom gewechselt.
 - **Layout** (`Einzelseite` / `Nebeneinander` / `Untereinander`) betrifft nur die Vorschau-Darstellung.
@@ -97,7 +97,7 @@ Die Leiste „Vorschau-Optionen“ über der Vorschau startet eingeklappt; mit �
 - `↑ / ↓`: Scrollen
 - `S`: Druckprofil wechseln
 - `F`: Farbprofil wechseln
-- `4 / 5`: DIN A4 / DIN A5
+- `4 / Q / 5`: DIN A4 / A4 quer / DIN A5
 - `K`: Black-Screen schnell auf `Beides` setzen
 - `0 / 1`: Seitenbreite / ganze Seite
 - `E / N / U`: Einzel / nebeneinander / untereinander
@@ -133,6 +133,7 @@ Die Leiste „Vorschau-Optionen“ über der Vorschau startet eingeklappt; mit �
 - `afb=1|2|3` an Aufgaben/Teilaufgaben, `--hm` als eigene Zeile zwischen zwei Aufgaben für Teil A (hilfsmittelfrei) und Teil B, Teilpunkte in Lösungen als `(2P)`.
 - In der Punktklammer einer Lösungszeile außerdem: Weg-Buchstabe für alternative Lösungswege (`(0,5aP)`, `(1bP)`, angezeigt als „Weg A/B“; Zeilen ohne Buchstabe gelten für alle Wege), Höchstwert für summative Optionen (`(1/2P)` = Option mit 1 Punkt, alle Optionen zusammen höchstens 2), Minus für Abzüge je Fehler (`(−0,5P)`) und ein Erwartungstyp (`(0,5P An)` = Ansatz; Kürzel An, Aw, Sa, Fs, En, Er, Be, Bg, Ei, Da, Fo). Der Erwartungshorizont zeigt Wege, Abzüge und Typ-Symbole mit Legende.
 - Mit einem zweiten `--hm` davor bekommt die Klausur ein **Deckblatt**: Alles vor dem ersten `--hm` (Hinweise, Bewertungstabelle …, aber keine Aufgaben) steht auf der ersten Seite ohne Teilüberschrift; „Teil A“ beginnt auf einer neuen Seite.
+- **Wahlteile:** `--w[k] Titel` eröffnet einen Wahlbereich, jedes weitere `--w Titel` startet den nächsten Wahlteil; bearbeitet werden k der Wahlteile. Jeder Wahlteil beginnt auf einer neuen Seite mit Überschrift „Wahlteil 1 – Titel“ und Ankreuzfeld, über dem ersten steht „Bearbeite k der n Wahlteile.“. Alle Wahlteile eines Bereichs brauchen gleich viele Punkte; Bewertungstabelle und Erwartungshorizont zeigen „k aus n“, die AFB-Verteilung steht dann nur je Teil. Mit `--hm` kombinierbar (z. B. Wahlbereich in Teil B).
 - Mit `show_student_header: ja` steht die **Schülerkopfzeile** (Name, Lerngruppe, Datum) zusätzlich oben auf jedem Teil, der auf einer neuen Seite beginnt – so tragen auch getrennt eingesammelte Teile Name und Datum.
 - **Bonuspunkte:** `bonus=true` an Aufgabe oder Teilaufgabe (z. B. `:::subtask points=2 bonus=true`) – am Kopf steht „+2 Bonuspunkte“; die Punkte zählen nicht zur Gesamtpunktzahl und erscheinen nicht in der Bewertungstabelle, im Erwartungshorizont stehen sie getrennt.
 - Unter der Diagnostik zeigt die **Klausur-Übersicht** Punkte und AFB-Verteilung (Prozent bezogen auf die Gesamtpunkte, ohne Bonuspunkte). Die AFB-Verteilung ist eine interne Statistik und steht nicht im Erwartungshorizont.

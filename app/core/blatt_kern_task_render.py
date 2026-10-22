@@ -20,11 +20,14 @@ from .blatt_kern_shared import (
     should_render_block,
 )
 from .answer_special_mindmap import render_mindmap_block
+from .answer_special_struktogramm import render_struktogramm_block
+from .blatt_kern_shared_data import STRUKTOGRAMM_BLOCK_TYPES
 from .answer_special_selfcheck import render_selfcheck_block
 from .answer_special_writebox import render_writebox_block
 from .blatt_kern_answer_dispatch import _render_answer_block
 from .blatt_kern_task_header_render import _render_subtask_block, _render_task_block
-from .exam_part_render import render_aid_part
+from .exam_part_render import render_exam_part
+from .exam_parts_position import PART_SPLIT_BLOCKS
 from .operator_legend_blocks import OPERATOR_LEGEND_HTML_KEY, OPERATORS_BLOCK_TYPE
 from .solution_display import render_solution_html
 from .qrcode_block import render_qrcode_block
@@ -176,8 +179,8 @@ def _render_block_body(
             f"style='height:{height_value};'></div>"
         )
 
-    if block_type == "aidsplit":
-        return render_aid_part(options)
+    if block_type in PART_SPLIT_BLOCKS:
+        return render_exam_part(options)
 
     if block_type == "evaluation":
         # Fertiges HTML aus `evaluation_table.annotate_evaluation_blocks` (braucht das ganze Dokument);
@@ -259,6 +262,12 @@ def _render_block_body(
     if block_type == "mindmap":
         return _wrap_with_object_alignment(
             render_mindmap_block(options, normalized_content), object_alignment
+        )
+
+    if block_type in STRUKTOGRAMM_BLOCK_TYPES:
+        # Roher `content`: `normalize_markdown` würde die Einrückung (= Schachtelung) verfälschen.
+        return _wrap_with_object_alignment(
+            render_struktogramm_block(options, content, include_solutions), object_alignment
         )
 
     if block_type == "selfcheck":

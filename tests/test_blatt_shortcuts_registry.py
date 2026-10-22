@@ -1,5 +1,6 @@
 from app.ui.blatt_shortcuts import build_preview_keybinding_registry
 from bw_gui.contracts.key_spec import KeySpec
+from bw_gui.contracts.keybinding import UI_MODE_PREVIEW
 
 
 class _AnyMethodStubApp:
@@ -37,3 +38,20 @@ def test_search_shortcuts_are_freed_up_from_previous_global_bindings():
     assert keys["global.help_preview"] == (KeySpec.parse("Ctrl+Shift+H"),)
     assert KeySpec.parse("Ctrl+F") not in all_specs
     assert KeySpec.parse("Ctrl+H") not in all_specs
+
+
+def test_q_sets_a4_landscape_only_in_preview_and_never_while_typing():
+    calls = []
+
+    class _RecordingApp(_AnyMethodStubApp):
+        def _set_page_format(self, page_format):
+            calls.append(page_format)
+
+    registry = build_preview_keybinding_registry(_RecordingApp())
+    definition = next(d for d in registry.all() if d.keys == (KeySpec.parse("Q"),))
+
+    assert definition.binding_id == "preview.page_a4_landscape"
+    assert definition.modes == (UI_MODE_PREVIEW,)
+    assert definition.allow_when_text_input is False
+    definition.handler()
+    assert calls == ["a4_landscape"]

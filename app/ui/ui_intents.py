@@ -12,6 +12,7 @@ class UiIntent:
     PREVIEW_CYCLE_DESIGN = "preview.cycle_design"
     PREVIEW_BLACK_BOTH = "preview.black_both"
     PREVIEW_PAGE_A4 = "preview.page_a4"
+    PREVIEW_PAGE_A4_LANDSCAPE = "preview.page_a4_landscape"
     PREVIEW_PAGE_A5 = "preview.page_a5"
     PREVIEW_FIT_WIDTH = "preview.fit_width"
     PREVIEW_FIT_PAGE = "preview.fit_page"

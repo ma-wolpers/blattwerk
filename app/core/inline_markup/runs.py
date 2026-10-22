@@ -41,6 +41,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Literal
 
+from .inline_style import InlineStyle
+
 RunKind = Literal["text", "code", "math"]
 
 
@@ -84,6 +86,10 @@ class Run:
     letzten Parser-Schritt. Frühere Durchläufe (`emphasis.py::_expand_runs`)
     bauen Runs nur aus den Stil-Flags neu auf und würden ein Zusatzfeld
     verwerfen -- dieselbe Einschränkung wie bei `is_block`."""
+    style: InlineStyle | None = None
+    """Effektiver Inline-Stil aus `-<SPEC> … -<>` (Schrift/Größe/Farbe, pro Eigenschaft
+    geerbt). Gilt für alle `kind`s (auch Formel und Code) und wird ausschließlich in
+    `style_spans.py::apply_inline_styles`, dem letzten Parser-Schritt, gesetzt."""
 
     @property
     def is_plain(self) -> bool:
@@ -102,6 +108,7 @@ class Run:
         return (
             self.kind == "text"
             and self.annotation is None
+            and self.style is None
             and not any(
                 (
                     self.bold, self.italic, self.underline, self.highlight, self.strike,
@@ -127,7 +134,7 @@ class Run:
         }
         for key, value in extra_flags.items():
             merged[key] = merged[key] or value
-        return Run(kind=self.kind, text=self.text, annotation=self.annotation, **merged)
+        return Run(kind=self.kind, text=self.text, annotation=self.annotation, style=self.style, **merged)
 
 
 @dataclass(frozen=True)
@@ -152,6 +159,7 @@ class ParseDiagnostic:
 IM001_UNCLOSED_COMMENT = "IM001"
 IM002_MALFORMED_WORD_NOTE = "IM002"
 IM003_WORD_NOTE_PLACEMENT = "IM003"
+IM004_INVALID_INLINE_STYLE = "IM004"
 
 STYLE_FLAG_NAMES = (
     "bold",

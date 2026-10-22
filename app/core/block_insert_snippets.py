@@ -173,6 +173,14 @@ BLOCK_INSERT_SNIPPETS: dict[str, str] = {
         "\x01Thema\n"
         ":::\n"
     ),
+    "struktogramm": (
+        ':::struktogramm signature="istEnthalten(d: dyn. Reihung vom Inhaltstyp Ganzzahl, v: Ganzzahl): Wahrheitswert"\n'
+        "\x01für alle Elemente e aus d\n"
+        "    wenn e = v\n"
+        "        rückgabe wahr\n"
+        "rückgabe falsch\n"
+        ":::\n"
+    ),
     "selfcheck": (
         ":::selfcheck scale=smiley steps=3\n"
         "\x01- Ich kann das Thema erklären.\n"

@@ -7,6 +7,8 @@ das diese Namen re-exportiert (bestehende Importe bleiben gueltig).
 # line-limit: data-only
 from __future__ import annotations
 
+from .bundled_fonts import bundled_font_presets
+
 
 PRINT_PROFILE_PRESETS = {
     "standard": {
@@ -169,6 +171,8 @@ FONT_PROFILE_PRESETS = {
     },
 }
 
+# Mitgelieferte OFL-Schriften (`bundled_fonts.py`) als weitere Schriftprofile.
+FONT_PROFILE_PRESETS.update(bundled_font_presets())
 FONT_PROFILE_ORDER = list(FONT_PROFILE_PRESETS.keys())
 FONT_PROFILE_LABELS = {
     key: value["label"] for key, value in FONT_PROFILE_PRESETS.items()
@@ -213,6 +217,17 @@ DEFAULT_FONT_SIZE_PROFILE = "normal"
 PAGE_LAYOUTS = {
     "a4_portrait": {
         "page_size_css": "A4 portrait",
+        "page_margin_top_css": "2.0cm",
+        "page_margin_right_css": "1.5cm",
+        "page_margin_bottom_css": "1.5cm",
+        "page_margin_left_css": "1.5cm",
+        "page_margin_right_hole_punch_css": "0.9cm",
+        "page_margin_left_hole_punch_css": "2.3cm",
+        "document_header_size": "0.78em",
+        "solution_badge_size": "0.84em",
+    },
+    "a4_landscape": {
+        "page_size_css": "A4 landscape",
         "page_margin_top_css": "2.0cm",
         "page_margin_right_css": "1.5cm",
         "page_margin_bottom_css": "1.5cm",
@@ -278,6 +293,20 @@ PAGE_LAYOUTS = {
         "solution_badge_size": "0.84em",
     },
 }
+
+
+# Seitenformate, die Arbeitsblatt und Klausur anbieten (Reihenfolge = Anzeige in Vorschau
+# und Einstellungen). Einzige Quelle fuer Vorschau-Buttons, Export-Normalisierung und
+# Praeferenzwerte; jedes Format braucht einen Eintrag in `PAGE_LAYOUTS`.
+WORKSHEET_PAGE_FORMATS = ("a4_portrait", "a4_landscape", "a5_landscape")
+WORKSHEET_PAGE_FORMAT_LABELS = {
+    "a4_portrait": "DIN A4",
+    "a4_landscape": "A4 quer",
+    "a5_landscape": "DIN A5",
+}
+DEFAULT_WORKSHEET_PAGE_FORMAT = "a4_portrait"
+PRESENTATION_PAGE_FORMATS = ("presentation_16_9", "presentation_16_10", "presentation_4_3")
+DEFAULT_PRESENTATION_PAGE_FORMAT = "presentation_16_9"
 
 
 _PAGE_DIMENSIONS_CM = {

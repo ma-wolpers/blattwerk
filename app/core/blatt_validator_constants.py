@@ -1,6 +1,7 @@
 """Bekannte Blocktypen, erlaubte Optionen und Wertemengen für den Blattwerk-Validator.
 
-Reine Datendatei (Sets/Dicts ohne Logik) — vom 300-Zeilen-Limit ausgenommen.
+Reine Datendatei (Sets/Dicts ohne Logik) — als Datenmodul vom 300-Zeilen-Limit ausgenommen;
+die Spec-Datentypen und `MISSING` stehen in `blatt_validator_specs.py` und werden re-exportiert.
 `BLOCK_ALLOWED_OPTIONS` ist die normative Quelle für "welche `key=value`-
 Optionen darf ein `:::blocktyp ...`-Header haben"; analog zur
 Geometry-Objekt-Ebene (`GEOMETRY_ENTRY_ALLOWED_KEYS` in
@@ -8,19 +9,17 @@ Geometry-Objekt-Ebene (`GEOMETRY_ENTRY_ALLOWED_KEYS` in
 verteilt über Validierungscode.
 """
 
+# line-limit: data-only
 from __future__ import annotations
-
-from dataclasses import dataclass
 
 from .blatt_kern_shared_data import JA_NEIN_BOOLEAN_TOKENS
 from .crossword_symbol_presets import SYMBOL_THEME_NAMES
 from .document_type_registry import KNOWN_DOCUMENT_TYPES
+from ..styles.blatt_styles_data import FONT_PROFILE_ORDER
+from .blatt_validator_specs import MISSING, BlockOptionSpec, FrontmatterFieldSpec  # noqa: F401 -- re-exportiert
 
 REQUIRED_FRONTMATTER_FIELDS = ("Titel", "Fach", "Thema")
 
-MISSING = object()
-"""Sentinel für `FrontmatterFieldSpec.default`: "kein Default vorhanden" --
-unterscheidbar von einem tatsächlichen Default-Wert `None`."""
 
 TRUTHY_META_BOOLEAN_TOKENS = frozenset(
     {
@@ -35,28 +34,6 @@ genutzt von `FM005`) akzeptierte Boolean-Vokabular. **Nicht** identisch mit
 unterschiedliche Boolean-Parser im Code, absichtlich getrennt geführt statt
 künstlich vereinheitlicht."""
 
-
-@dataclass(frozen=True)
-class FrontmatterFieldSpec:
-    """Normativer Fakt über ein optionales Frontmatter-Feld -- Validator-Eigentum, keine Prosa.
-
-    `kind` ∈ {"free_text", "scalar_nonempty", "enum", "boolean", "header_text",
-    "header_date"}; die beiden `header_*`-Arten sind die vorbefüllbaren Felder
-    der Schülerkopfzeile (Typregeln in `student_header.py`, Diagnose `FM011`).
-    `validated=False` heißt: das Feld existiert (und wird ggf. an anderer
-    Stelle im Code funktional gelesen), aber der Validator prüft seinen
-    Wert aktuell nicht -- eine ehrliche normative Aussage, kein
-    Versäumnis im Katalog. Redaktionelle Beschreibungen/Erklärungen
-    gehören bewusst **nicht** hierher, sondern in die
-    `PROSE_SECTIONS`-Registry des Doku-Generators
-    (`tools/docs/generate_authoring_guides.py`).
-    """
-
-    name: str
-    kind: str
-    allowed_values: frozenset[str] | None
-    default: object
-    validated: bool
 
 KNOWN_BLOCK_TYPES = {
     "raw",
@@ -79,6 +56,8 @@ KNOWN_BLOCK_TYPES = {
     "ordering",
     "checkgrid",
     "mindmap",
+    "struktogramm",
+    "structogram",
     "selfcheck",
     "writebox",
     "solution",
@@ -94,6 +73,7 @@ KNOWN_BLOCK_TYPES = {
     "sectionmark",
     "vspacer",
     "aidsplit",
+    "choicesplit",
     "evaluation",
     "operators",
 }
@@ -328,42 +308,6 @@ YAML_ANSWER_TYPES = {
     "checkgrid",
 }
 
-@dataclass(frozen=True)
-class BlockOptionSpec:
-    """Normativer Fakt über eine `:::blocktyp key=value`-Option -- Validator-Eigentum, keine Prosa.
-
-    **`kind` und `validated` sind unabhängige Dimensionen, nicht gekoppelt:**
-    `kind` beschreibt, welche Art von Wert der Code an dieser Stelle
-    tatsächlich erwartet/verarbeitet -- auch wenn das nur im *Renderer*
-    steckt (z. B. `rows` wird über `_safe_int(...)` gelesen -> `kind=
-    "integer"`, unabhängig davon, ob der Validator das prüft). `validated`
-    sagt ausschließlich, ob der **Validator** dieses Format/diese Werte
-    aktuell durchsetzt (d. h. ein falscher Wert eine Diagnose auslöst).
-    `BlockOptionSpec(name="height", kind="css_length", validated=False)`
-    heißt also präzise: *"wird als CSS-Länge interpretiert, aber der
-    Validator prüft das Format nicht"* -- keine automatische normative
-    Verschärfung. `kind` ∈ {"enum", "boolean", "integer", "number",
-    "css_length", "url", "text"}; `"text"` ist der ehrliche Rückfall, wenn
-    der Code den Wert nur als Rohstring durchreicht bzw. keine spezifischere
-    Klassifizierung im Code belegt ist.
-
-    **`default`-Sentinel:** `MISSING` = kein dokumentierbarer expliziter
-    Default im Code gefunden; ein konkreter Wert = der Code verwendet
-    exakt diesen Default; `None` wird nur gesetzt, wenn im Code
-    tatsächlich semantisch "nichts" der Default ist (z. B. `action`/`hint`
-    bei `task`: ohne Angabe wird schlicht kein Symbol gerendert). Ein
-    dynamischer Theme-/Renderer-Fallback (kein fester Wert, z. B. Geometry-
-    `color`/`thickness` ohne gültigen Wert) wird **nicht** hier codiert,
-    sondern bleibt `MISSING` und wird in der redaktionellen Prosa als
-    dynamisches Verhalten beschrieben.
-    """
-
-    name: str
-    kind: str
-    allowed_values: frozenset[str] | None
-    validated: bool
-    default: object
-
 
 # -- Wiederverwendete Optionskonzepte (identische Bedeutung über mehrere Blöcke) --
 # Instanzen werden in mehreren Block-Tupeln unten referenziert statt dupliziert.
@@ -383,6 +327,14 @@ _OPT_AFB = BlockOptionSpec("afb", "enum", frozenset({"1", "2", "3"}), True, MISS
 _OPT_BONUS = BlockOptionSpec("bonus", "boolean", None, False, False)
 _OPT_WIDTHS = BlockOptionSpec("widths", "text", None, False, MISSING)
 _OPT_SCALE = BlockOptionSpec("scale", "css_length", None, False, "0.5cm")
+_STRUKTOGRAMM_OPTIONS = (
+    BlockOptionSpec("signature", "text", None, False, MISSING),
+    BlockOptionSpec("width", "css_length", None, False, "100%"),
+    _OPT_SHOW,
+    _OPT_MODE,
+    _OPT_ALIGN,
+)
+"""Geteilt von `struktogramm` und dem Alias `structogram`."""
 
 DEPRECATED_IGNORED_OPTIONS = {"solution": frozenset({"mode", "show"})}
 """Optionen, die veraltet sind und **ignoriert** werden (Warnung `OP004`); sie stehen
@@ -601,6 +553,8 @@ BLOCK_OPTION_SPECS: dict[str, tuple[BlockOptionSpec, ...]] = {
         BlockOptionSpec("subbranches", "integer", None, False, 0),
         _OPT_ALIGN,
     ),
+    "struktogramm": _STRUKTOGRAMM_OPTIONS,
+    "structogram": _STRUKTOGRAMM_OPTIONS,  # Alias, identische Optionen (wie help/hilfe)
     "selfcheck": (
         _OPT_SHOW,
         _OPT_MODE,
@@ -663,6 +617,7 @@ BLOCK_OPTION_SPECS: dict[str, tuple[BlockOptionSpec, ...]] = {
     "framebreak": (),
     "slidechromeoff": (),
     "aidsplit": (),
+    "choicesplit": (BlockOptionSpec("k", "text", None, False, MISSING), _OPT_TITLE),
     "evaluation": (
         BlockOptionSpec("level", "enum", frozenset({"task", "subtask"}), True, "task"),
         _OPT_TITLE,
@@ -732,7 +687,7 @@ OPTIONAL_FRONTMATTER_FIELDS = (
         MISSING, True,
     ),
     FrontmatterFieldSpec("worksheet_type", "free_text", None, MISSING, False),
-    FrontmatterFieldSpec("font_profile", "free_text", None, MISSING, False),
+    FrontmatterFieldSpec("font_profile", "enum", frozenset(FONT_PROFILE_ORDER), MISSING, True),
     FrontmatterFieldSpec("Lerngruppe", "header_text", None, MISSING, True),
     FrontmatterFieldSpec("Datum", "header_date", None, MISSING, True),
 )
@@ -745,10 +700,12 @@ OPTIONAL_FRONTMATTER_FIELDS = (
 bereits bestehenden `FM005`-Felder. `document_type`/`lochen` sind
 funktional genutzt, aber bewusst `validated=False` (siehe
 `docs/nutzer/ANLEITUNG_ARBEITSBLATT_PRAESENTATION.md`, Vier-Zustands-Raster).
-`worksheet_type`/`font_profile` sind `validated=False` **und** werden
-aktuell an keiner Stelle aus dem Dokument-Meta gelesen (verifiziert per
-Repo-weitem Grep) -- toter, aber weiterhin syntaktisch akzeptierter
-Frontmatter-Inhalt. `Stufe` ist dagegen jetzt `validated=True` mit einem
+`worksheet_type` ist `validated=False` **und** wird aktuell an keiner
+Stelle aus dem Dokument-Meta gelesen -- toter, aber weiterhin syntaktisch
+akzeptierter Frontmatter-Inhalt. `font_profile` ist dagegen wirksam
+(`app/core/document_font.py`, Vorrang vor der App-Auswahl) und als Enum
+ueber alle Schriftprofile validiert; ein unbekannter Wert ist die Warnung
+`FM012` (Rueckfall auf die App-Schrift, Build laeuft weiter). `Stufe` ist dagegen jetzt `validated=True` mit einem
 festen (aber inhaltlich bedeutungslosen) Wertebereich und wird von
 `app/core/operator_legend.py` gelesen, um Operatoren-Definitionen
 (`data/operatoren/*.json`) nach den dort selbst definierten

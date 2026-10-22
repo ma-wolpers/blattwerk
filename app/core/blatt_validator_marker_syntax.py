@@ -20,6 +20,7 @@ from .blatt_validator_patterns import (
     _VALID_VSPACER_MARK_PATTERN,
 )
 from .blatt_validator_types import BuildDiagnostic
+from .control_markers import is_control_marker_line
 
 _DOCUMENT_TEXT_REGION_ID = "worksheet:document-text"
 
@@ -52,11 +53,7 @@ def _collect_block_marker_syntax_diagnostics(content_text, base_line=1):
         absolute_line_no = max(1, int(base_line) + line_no - 1)
         stripped_line = raw_line.strip()
 
-        if block_stack and (
-            stripped_line in {"--", "--!", "-+", "--hf", "--hm"}
-            or stripped_line.startswith("--#")
-            or stripped_line.startswith("-=")
-        ):
+        if block_stack and is_control_marker_line(stripped_line):
             diagnostics.append(
                 BuildDiagnostic(
                     code="BL005",

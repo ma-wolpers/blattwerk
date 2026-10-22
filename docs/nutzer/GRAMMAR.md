@@ -25,6 +25,11 @@ Diese Datei definiert die kanonische Grammatik fuer Blattwerk-Markdown.
       ist KEIN Kommentar-Trenner)
     - `OPERATOR` := `!!text!!` (sichtbar wie `**text**`, zusätzlich semantisch als
       Aufgaben-Operator markiert -- siehe `operator_legend.py`)
+    - `INLINE_STYLE` := `-<SPEC>` text `-<>` mit `SPEC` := Token (`-` Token)*; Token = Zahl
+      (pt) | `#farbe`/`#rgb`/`#rrggbb` | Schriftname (mit `-` in Anfuehrungszeichen); je Art
+      hoechstens einmal, verschachtelbar (erbt pro Eigenschaft), endet spaetestens an Leerzeile,
+      Listenpunkt, Tabellenzelle oder Blockende; `\-<` ist ein woertliches `-<`
+      (`app/core/inline_markup/style_spans.py`)
 
 Hinweise:
 - Optionen werden als `key=value` gelesen; Trennzeichen ist Leerraum.
@@ -104,6 +109,7 @@ block_name        = "material"
         - `%{...}` -> nur Loesung
         - `&{...}` -> Arbeitsblatt und Loesung
 - Inline-Token (`§{...}`, `%{...}`, `&{...}`) duerfen auch in der Zeilenmitte stehen.
+- Ausnahme `struktogramm`/`structogram`: Dort ist die Einrueckung Teil der Syntax, deshalb steht der Zeilenmarker *nach* der Einrueckung (`    % rückgabe wahr`) und gilt fuer den angezeigten Text dieses Elements; die Struktur bleibt im Arbeitsblatt sichtbar.
 - Text ohne Token ist standardmaessig in beiden Modi sichtbar.
 - Escape-Sequenzen fuer Literale: `\%\{`, `\§\{`, `\&`, `\}`.
 - Syntaxkonflikte (`AN006`) entstehen bei ungeschlossenen Inline-Tokens (z. B. `%{Text`).

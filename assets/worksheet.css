@@ -1249,6 +1249,7 @@ h1 {
 }
 
 .answer.numberline {
+    max-width: 100%;
     border: var(--field-border-width) solid var(--field-border-color);
     border-radius: var(--box-radius, 0.18em);
     padding: var(--box-buffer-block, 0.13cm) var(--box-buffer-inline, 0.2cm) calc(var(--box-buffer-block, 0.13cm) * 0.92) var(--box-buffer-inline, 0.2cm);
@@ -2005,6 +2006,126 @@ h1 {
     border-bottom: var(--field-border-width) solid var(--field-border-color);
     height: var(--answer-line-pitch, calc(1.5em + 0.2em));
     margin-bottom: 0;
+}
+
+/* Struktogramm (:::struktogramm / :::structogram) -- Gestalt nach GO
+   Informatik S. 5-6: dünne Linien in Textfarbe, keine Füllung. Struktur
+   und Rationale siehe answer_special_struktogramm.py. */
+
+.stg-block {
+    --stg-line: 1px solid currentColor;
+    --stg-bar: 1.1em;
+    --stg-gap-min-height: 1cm;
+    box-sizing: border-box;
+    max-width: 100%;
+    margin-bottom: 0.45em;
+    break-inside: avoid-page;
+    font-size: 0.88em;
+    line-height: 1.3;
+    /* `align=center` zentriert nur den Block, nicht den Zelltext (GO: linksbündig). */
+    text-align: left;
+}
+
+/* `align=` wirkt über `text-align` (nur auf Inline-Inhalt); der Block-Container
+   wird deshalb per Außenabstand ausgerichtet. */
+.bw-object-align-center > .stg-block {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.bw-object-align-right > .stg-block {
+    margin-left: auto;
+}
+
+.stg-sig {
+    font-weight: 700;
+    margin-bottom: 0.3em;
+}
+
+.stg-sig-part {
+    display: inline-block;
+    max-width: 100%;
+}
+
+.stg {
+    border: var(--stg-line);
+}
+
+.stg-seq > * + * {
+    border-top: var(--stg-line);
+}
+
+.stg-cell {
+    min-height: 1.3em;
+    padding: 0.15em 0.4em 0.15em 1.4em;
+    text-indent: -1em;
+    overflow-wrap: anywhere;
+}
+
+.stg-gap {
+    min-height: var(--stg-gap-min-height);
+}
+
+.stg-hidden {
+    visibility: hidden;
+}
+
+.stg-loop-body {
+    margin-left: var(--stg-bar);
+    border-left: var(--stg-line);
+}
+
+.stg-loop-head > .stg-loop-body {
+    border-top: var(--stg-line);
+}
+
+.stg-loop-foot > .stg-loop-body {
+    border-bottom: var(--stg-line);
+}
+
+.stg-head,
+.stg-cols {
+    display: grid;
+}
+
+.stg-head {
+    grid-template-rows: auto auto;
+    padding: 0.1em 0;
+}
+
+.stg-cols {
+    border-top: var(--stg-line);
+}
+
+.stg-cols > .stg-seq + .stg-seq {
+    border-left: var(--stg-line);
+}
+
+.stg-head-text {
+    position: relative;
+    z-index: 1;
+    padding: 0 0.4em;
+}
+
+.stg-diag {
+    position: relative;
+    grid-row: 1 / 3;
+    margin: -0.1em 0;
+}
+
+.stg-diag svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+.stg-diag polyline {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
 }
 
 .answer-table {

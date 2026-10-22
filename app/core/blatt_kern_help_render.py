@@ -1,6 +1,7 @@
 """Help-card extraction and HTML rendering."""
 
 from __future__ import annotations
+from .document_font import resolve_document_font_profile
 
 from html import escape
 
@@ -130,7 +131,12 @@ def render_help_cards_html(
     font_profile="segoe",
     font_size_profile="normal",
 ):
-    """Rendert ausschließlich Hilfeblöcke als kartenseitige HTML-Ausgabe."""
+    """Rendert ausschließlich Hilfeblöcke als kartenseitige HTML-Ausgabe.
+
+    `font_profile` ist der App-Standard; ein gültiges `font_profile` im Frontmatter
+    hat Vorrang (`resolve_document_font_profile`).
+    """
+    font_profile, _ = resolve_document_font_profile(meta, font_profile)
 
     help_blocks = collect_labeled_help_blocks(
         meta,

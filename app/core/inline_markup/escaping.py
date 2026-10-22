@@ -26,7 +26,13 @@ _ESCAPE_PLACEHOLDER_BASE = 0xF020
 _ESCAPE_PLACEHOLDERS = {ch: chr(_ESCAPE_PLACEHOLDER_BASE + i) for i, ch in enumerate(ESCAPABLE_CHARS)}
 _ESCAPE_PLACEHOLDERS_REVERSE = {placeholder: ch for ch, placeholder in _ESCAPE_PLACEHOLDERS.items()}
 _ESCAPE_PROTECT_PATTERN = re.compile(r"\\([" + re.escape(ESCAPABLE_CHARS) + r"])")
-_ESCAPE_PLACEHOLDER_PATTERN = re.compile("[" + "".join(_ESCAPE_PLACEHOLDERS.values()) + "]")
+_LITERAL_LT_PLACEHOLDER = ""
+"""Wörtliches `<` aus `\\-<` (gesetzt in `style_spans.py`, Wert dort `LITERAL_LT_PLACEHOLDER`).
+
+Direkt gerenderte Runs bekommen `<` (wird anschließend HTML-escaped), rohe Runs für
+python-markdown `&lt;` -- sonst läse markdown `-<Arial>` als HTML-Tag und verschluckte es."""
+_ESCAPE_PLACEHOLDERS_REVERSE[_LITERAL_LT_PLACEHOLDER] = "<"
+_ESCAPE_PLACEHOLDER_PATTERN = re.compile("[" + "".join(_ESCAPE_PLACEHOLDERS.values()) + _LITERAL_LT_PLACEHOLDER + "]")
 
 
 def protect_escapes(text: str) -> str:
@@ -67,4 +73,7 @@ def restore_escape_backslashes(text: str) -> str:
     """
     if not _ESCAPE_PLACEHOLDER_PATTERN.search(text):
         return text
-    return _ESCAPE_PLACEHOLDER_PATTERN.sub(lambda m: "\\" + _ESCAPE_PLACEHOLDERS_REVERSE[m.group(0)], text)
+    return _ESCAPE_PLACEHOLDER_PATTERN.sub(
+        lambda m: "&lt;" if m.group(0) == _LITERAL_LT_PLACEHOLDER else "\\" + _ESCAPE_PLACEHOLDERS_REVERSE[m.group(0)],
+        text,
+    )

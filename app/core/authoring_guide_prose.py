@@ -103,9 +103,12 @@ PROSE_SECTIONS: dict[str, str] = {
         "Stelle aus dem Dokument gelesen oder angezeigt -- ohne Wirkung im Build-/Render-Pfad."
     ),
     "frontmatter:font_profile": (
-        "**Hinweis:** wird aktuell nicht aus dem Dokument gelesen -- die Schriftart wird ausschließlich "
-        "über die App-Einstellung gesteuert, nicht über das Frontmatter. Dieses Feld hat aktuell keine "
-        "Wirkung im Build-/Render-Pfad."
+        "Legt die Schrift des Dokuments fest und hat Vorrang vor der Schriftwahl der App. Erlaubt sind "
+        "die Schlüssel der Schriftprofile, z. B. `segoe`, `arial`, `comic_sans_ms` oder die mitgelieferten "
+        "Schriften `comic_neue`, `andika`, `fredoka`, `patrick_hand`, `indie_flower`, `gloria_hallelujah`, "
+        "`short_stack`. Das Schriftmenü der Vorschau schreibt diesen Eintrag selbst; \"Standard "
+        "(App-Einstellung)\" entfernt ihn. Ein unbekannter Wert ergibt die Warnung `FM012`, gerendert wird "
+        "dann mit der App-Schrift."
     ),
     # -- Control-Marker ----------------------------------------------------
     "marker:pagebreak": (
@@ -164,6 +167,21 @@ PROSE_SECTIONS: dict[str, str] = {
         "Teilüberschrift, \"Teil A\" beginnt dann auf einer neuen Seite. Mehr als zwei `--hm` sind ein Fehler. "
         "Mit `show_student_header: ja` trägt jeder Teil, der auf einer neuen Seite beginnt, oben "
         "die Schülerkopfzeile (Name, Lerngruppe, Datum), damit getrennt eingesammelte Teile beschriftet sind."
+    ),
+    "marker:choicesplit": (
+        "Wahlteile in einer Klausur (`.kbw`): `--w[k] Titel` auf einer eigenen Zeile eröffnet einen "
+        "Wahlbereich, jedes weitere `--w Titel` startet den nächsten Wahlteil desselben Bereichs. Von den "
+        "n Wahlteilen bearbeiten die Schülerinnen und Schüler k (1 ≤ k < n). Der Bereich endet am nächsten "
+        "`--hm` oder am Dokumentende; nach `--hm` kann ein weiterer Bereich mit `--w[k]` beginnen. Jeder "
+        "Wahlteil beginnt auf einer neuen Seite mit der Überschrift \"Wahlteil 1 – Titel\" (ohne Titel nur "
+        "\"Wahlteil 1\") und einem Ankreuzfeld \"Diesen Wahlteil bearbeite ich.\"; über dem ersten steht "
+        "\"Bearbeite k der n Wahlteile.\". Alle Wahlteile eines Bereichs müssen gleich viele Punkte haben; "
+        "die erreichbare Gesamtpunktzahl zählt k Wahlteile. Aufgabennummern laufen durch. Bewertungstabelle "
+        "und Erwartungshorizont gruppieren nach Teilen mit \"k aus n\"; die AFB-Verteilung steht dann nur "
+        "je Teil. Aufgaben vor dem ersten Bereich (ohne `--hm`) bilden den Pflichtteil (ohne Überschrift). "
+        "Fehler blockieren den Export: `--w` ohne offenen Bereich (`KL008`), `--w[k]` in einem offenen "
+        "Bereich (`KL009`), ungültiges k (`KL010`), ungleiche Punkte (`KL011`), `--w` außerhalb von "
+        "Klausuren (`KL012`); jeder Wahlteil braucht eine Aufgabe (`KL004`)."
     ),
     "marker:sectionmark": (
         "`--# Abschnittsname` setzt den aktuellen Abschnittsnamen für die Footer-Navigation in "
@@ -529,6 +547,23 @@ PROSE_SECTIONS: dict[str, str] = {
         "eine eigene kleine Fächer aus Unterzweig-Feldern für ein zweistufiges Mindmap. Kein "
         "Arbeitsblatt-/Lösungs-Unterschied -- der Block sieht in beiden Modi gleich aus."
     ),
+    "block:struktogramm": (
+        "Struktogramm in der Gestalt der zentralen Prüfungsaufgaben (Ergänzende Hinweise zur GO "
+        "Informatik, S. 5-6). Eine Zeile ist ein Element, die Einrückung (4 Leerzeichen oder Tab) "
+        "die Schachtelung. Schlüsselwörter am Zeilenanfang: `wenn B` (+ optional `sonst`) für die "
+        "Verzweigung, `auswahl A` mit `fall W`-Zeilen (+ optional `sonst`) für die Mehrfachauswahl, "
+        "`solange …`/`für …`/`wiederhole 100-mal` für kopfgesteuerte Schleifen, `wiederhole` allein "
+        "+ Rumpf + `bis B` für die fußgesteuerte Schleife, `rückgabe X` (angezeigt als „gib X "
+        "zurück“) und `eingabe x` (angezeigt als „lies x ein“). Jede andere Zeile ist eine "
+        "Anweisung; `<-` wird als `←` gesetzt, `//`-Kommentare bleiben Text, `\\` am Zeilenanfang "
+        "hebt ein Schlüsselwort auf. Lücken-Struktogramm: `%` nach der Einrückung blendet den Text "
+        "eines Elements im Arbeitsblatt aus (Struktur bleibt, Zelle bleibt mindestens so hoch wie in "
+        "der Lösung), `%{…}` einen Teiltext. Der Validator prüft Struktur, Signatur und ob "
+        "Rückgaben, Rückgabetyp und Parameter zueinander passen."
+    ),
+    "block:structogram": (
+        "Dokumentierter Alias für `struktogramm` -- identische Optionen und Bedeutung."
+    ),
     "block:selfcheck": (
         "Offene Selbsteinschätzung ohne feste Lösung: der Blockinhalt ist eine Liste von Aussagen "
         "(eine pro Zeile), jede mit einer `steps`-stufigen Symbol-Skala ohne markierte \"richtige\" "
@@ -606,7 +641,8 @@ PROSE_SECTIONS: dict[str, str] = {
     ),
     "block:evaluation.parts": (
         "`true` teilt die Tabelle in Klausuren mit `--hm` in Teil A und Teil B (je mit Summe) und weist "
-        "zusätzlich die Gesamtsumme aus. Ohne `--hm` ohne Wirkung."
+        "zusätzlich die Gesamtsumme aus. Ohne `--hm` ohne Wirkung. Mit Wahlteilen (`--w`) ist die Tabelle "
+        "immer nach Teilen gruppiert (\"Wahlteile: k aus n\"), die Gesamtsumme zählt k Wahlteile."
     ),
     "block:evaluation.grade": (
         "`true` ergänzt unter der Tabelle rechtsbündig leere Felder „Dies sind ___ %“ und „Note: ___“ "
@@ -630,6 +666,11 @@ PROSE_SECTIONS: dict[str, str] = {
         "und Teil A zählen zusammen, ohne `--hm` das ganze Dokument."
     ),
     "block:aidsplit": ("Hilfsmittel-Trenner einer Klausur -- siehe Control-Marker `--hm`."),
+    "block:choicesplit": ("Wahlteil-Trenner einer Klausur -- siehe Control-Marker `--w[k] Titel`."),
+    "block:choicesplit.k": (
+        "Anzahl der zu bearbeitenden Wahlteile, als `[k]` direkt hinter `--w` am ersten Wahlteil eines "
+        "Bereichs (z. B. `--w[1] Analysis`)."
+    ),
     "block:pagebreak": ("Erzwingt einen harten Seiten-/Folienumbruch -- siehe Control-Marker `--!`."),
     "block:framebreak": (
         "Erzeugt im Präsentationsmodus einen neuen Frame mit dem bisherigen plus neuem Inhalt -- "
@@ -659,6 +700,15 @@ PROSE_SECTIONS: dict[str, str] = {
         "Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, "
         "`center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische "
         "Schreibweisen gleichwertig)."
+    ),
+    "option:signature": (
+        "Methodenkopf in GO-Notation `Bezeichnung(Parameter: Typ, ...): Rückgabetyp`, fett über "
+        "dem Diagramm, z. B. `signature=\"minimum(a, b: Fließkommazahl): Fließkommazahl\"`. "
+        "Parameter ohne eigenen Typ gehören zur nächsten getypten Gruppe; ohne Rückgabewert "
+        "entfällt `: Rückgabetyp`. Wird streng geprüft; fehlt die Option, gibt es eine Warnung."
+    ),
+    "option:width": (
+        "Breite des Blocks als CSS-Länge (`70%`, `12cm`, ...); Standard ist die volle Zeilenbreite."
     ),
     "option:position": (
         "Position einer Sekundärliste (Hinweisliste, Wortbank o. Ä.) relativ zum Hauptinhalt: "
@@ -1092,6 +1142,21 @@ PROSE_SECTIONS: dict[str, str] = {
         "erklärt eine Operatorentabelle `:::operators:::` die verwendeten Operatoren -- sie wird nicht "
         "mehr automatisch angehängt, sondern steht dort, wo du den Block setzt (Warnung `OPR004`, wenn "
         "Operatoren ohne Tabelle bleiben). Aktuell ohne eigene Editor-Taste -- von Hand eingetippt."
+    ),
+    "inline_mark:inline_style": (
+        "`-<…>` setzt Schrift, Größe und Farbe für einen Textbereich, `-<>` beendet ihn. Die Angaben "
+        "stehen durch `-` getrennt in beliebiger Reihenfolge: eine Zahl ist die Größe in Punkt (`12`, "
+        "`10,5`), `#rot`/`#red`, `#blau`, `#gruen`, `#gelb`, `#orange`, `#lila`, `#rosa`, `#braun`, `#grau`, "
+        "`#schwarz`, `#weiss`, `#tuerkis` (auch englisch) oder ein Hex-Wert wie `#c62828` ist die Farbe, "
+        "alles andere ist eine Schrift mit ihrem Namen aus dem Schriftmenü (`Arial`, `Times New Roman`, "
+        "`Comic Neue` …; Namen mit `-` in Anführungszeichen). Beispiele: `-<20> groß -<>`, "
+        "`-<Andika-#blau> Aufgabe 1 -<>`. Bereiche lassen sich verschachteln; ein innerer Bereich übernimmt "
+        "alles, was er nicht selbst festlegt (`-<Arial-#rot> a -<20> b -<> -<>`: b ist Arial, rot und 20 pt). "
+        "Je Art ist nur eine Angabe erlaubt. Ein Bereich muss im selben Absatz enden -- vor einer Leerzeile, "
+        "einem neuen Listenpunkt, einer Tabellenzelle oder dem Blockende. In Code, Formeln und Kommentaren "
+        "bleibt `-<…>` wörtlich; ein wörtliches `-<` außerhalb davon schreibt man `\\-<`. Formeln innerhalb "
+        "eines Bereichs werden mit eingefärbt und vergrößert. Fehler (unbekannte Schrift oder Farbe, doppelte "
+        "Angabe, nicht geschlossener Bereich) meldet `IM004`."
     ),
     "inline_mark:word_note": (
         "`??Begriff|Erklärung??` ist eine Worterklärung als sprachliche Hilfe: der Begriff bleibt normal "

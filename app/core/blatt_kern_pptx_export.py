@@ -36,6 +36,7 @@ from pathlib import Path
 
 from .blatt_kern_pptx_export_editable import EditableExportUnavailable, extract_slide_elements
 from .blatt_validator_types import BuildDiagnostic
+from .pptx_font_hint import bundled_font_hint
 from .build_requests import WorksheetBuildRequest, build_worksheet_from_request
 from .document_type_registry import DOCUMENT_TYPE_PRESENTATION
 
@@ -46,6 +47,7 @@ _PAGE_SIZE_CM = {
     "presentation_16_10": (30.48,  19.05),
     "presentation_4_3":   (25.4,   19.05),
     "a4_portrait":        (21.0,   29.7),
+    "a4_landscape":       (29.7,   21.0),
     "a5_landscape":       (21.0,   14.8),
 }
 
@@ -58,7 +60,15 @@ def _cm_to_emu(value_cm: float) -> int:
 
 
 def _slide_size_emu(page_format: str) -> tuple[int, int]:
-    width_cm, height_cm = _PAGE_SIZE_CM.get(page_format, _PAGE_SIZE_CM["presentation_16_9"])
+    """Return the slide size in EMU for a known page format.
+
+    An unknown format raises instead of silently falling back to 16:9, so a new
+    format that was forgotten here can never export with the wrong size.
+    """
+    try:
+        width_cm, height_cm = _PAGE_SIZE_CM[page_format]
+    except KeyError:
+        raise ValueError(f"Unbekanntes Seitenformat fuer PPTX: {page_format!r}") from None
     return _cm_to_emu(width_cm), _cm_to_emu(height_cm)
 
 
@@ -222,6 +232,9 @@ def _build_presentation_pptx_editable(
                 )
             )
 
+    font_hint = bundled_font_hint(results)
+    if font_hint is not None and diagnostics_out is not None:
+        diagnostics_out.append(font_hint)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     prs.save(str(output_path))
 
@@ -332,6 +345,8 @@ def build_editable_slide(slide, elements) -> None:
             run.font.bold = text_run.bold
             run.font.italic = text_run.italic
             run.font.color.rgb = RGBColor(*text_run.color_rgb)
+            if text_run.font_name:
+                run.font.name = text_run.font_name
 
 
 def _build_presentation_pptx_raster(

@@ -25,8 +25,17 @@ from __future__ import annotations
 from html import escape
 
 from .inline_markup.word_notes import collect_word_notes
+from .inline_markup.style_spans import collect_inline_style_fonts
 from .operator_legend_blocks import annotate_operator_blocks
-from ..styles.blatt_styles import build_stylesheet, resolve_printable_height_cm, resolve_printable_width_cm
+from ..styles.blatt_styles import (
+    DEFAULT_PRESENTATION_PAGE_FORMAT,
+    PRESENTATION_PAGE_FORMATS,
+    build_inline_font_css,
+    build_stylesheet,
+    resolve_printable_height_cm,
+    resolve_printable_width_cm,
+)
+from .document_font import resolve_document_font_profile
 from ..styles.page_geometry import resolve_gutter_widths_cm
 from .blatt_kern_shared import (
     _meta_bool_ja_nein,
@@ -41,10 +50,9 @@ from .blatt_kern_shared import (
 )
 from .blatt_kern_layout_columns import render_body_with_columns, render_columns_container
 from .blatt_kern_layout_presentation import _render_presentation_html
-from .document_semantics import annotate_aid_parts
 from .evaluation_table import annotate_evaluation_blocks
 from .student_header import render_student_header
-from .exam_part_render import attach_part_headers
+from .exam_part_render import annotate_exam_parts, attach_part_headers, document_header_owner, tag_student_header
 from .document_type_registry import has_slide_layout
 
 
@@ -90,17 +98,15 @@ def render_html(
     former automatic legend (`should_render_block`). The presentation branch
     above returns before this point, so presentations never render it.
     """
+    # Ein gueltiges `font_profile` im Frontmatter hat Vorrang vor der App-Auswahl.
+    font_profile, _ = resolve_document_font_profile(meta, font_profile)
     if has_slide_layout(document_type):
         presentation_format = str(page_format or "").strip()
-        if not presentation_format or presentation_format not in {
-            "presentation_16_9",
-            "presentation_16_10",
-            "presentation_4_3",
-        }:
+        if not presentation_format or presentation_format not in PRESENTATION_PAGE_FORMATS:
             presentation_format = str(
                 (meta or {}).get("presentation_layout")
                 or (meta or {}).get("presentation_format")
-                or "presentation_16_9"
+                or DEFAULT_PRESENTATION_PAGE_FORMAT
             ).strip()
         return _render_presentation_html(
             meta,
@@ -118,12 +124,14 @@ def render_html(
         )
 
     blocks = annotate_evaluation_blocks(blocks, document_type)
-    # Vor annotate_aid_parts: dort verschiebt der synthetische Teil-A-Block die Indizes.
+    # Vor annotate_exam_parts: dort verschiebt der synthetische Teil-A-Block die Indizes.
     blocks = annotate_operator_blocks(blocks, meta, document_type)
-    blocks = annotate_aid_parts(blocks, document_type)
+    header_owner = document_header_owner(blocks, document_type)
+    blocks = annotate_exam_parts(blocks, document_type)
     student_header = render_student_header(meta)
     # Jeder Klausurteil auf neuer Seite bekommt dieselbe Kopfzeile wie der Dokumentanfang.
     blocks = attach_part_headers(blocks, student_header)
+    student_header = tag_student_header(student_header, header_owner)
     numbered_blocks = assign_task_numbers(blocks)
     enriched_blocks = annotate_standalone_subtasks(numbered_blocks)
     enriched_blocks = annotate_task_help_references(
@@ -144,7 +152,7 @@ def render_html(
         page_format,
         hole_punch_enabled=hole_punch_enabled,
     )
-    with collect_word_notes() as collected_word_notes:
+    with collect_word_notes() as collected_word_notes, collect_inline_style_fonts() as inline_font_keys:
         body = render_body_with_columns(
             enriched_blocks,
             include_solutions=include_solutions,
@@ -190,7 +198,7 @@ def render_html(
         slide_layout=has_slide_layout(document_type),
         reserve_gutters=True,
         has_word_notes=has_word_notes,
-    )
+    ) + build_inline_font_css(inline_font_keys, font_profile)
 
     copyright_text = get_copyright_text(meta)
 

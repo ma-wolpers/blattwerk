@@ -56,7 +56,15 @@ def _resolve_tick_spacing_mm(options):
 
 
 def _resolve_max_width_mm(options):
-    """Resolve maximum rendered width in mm (A4-safe default)."""
+    """Resolve the maximum rendered width in mm.
+
+    Explicit `max_width_mm`/`max_width_cm` win (at least 60 mm). Otherwise the
+    printable width of the page (`_printable_width_cm`, set by the layout for every
+    answer block) is the limit, so the line grows on A4 quer and shrinks on A5.
+    Without that runtime value the historic A4 default of 165 mm applies. The CSS
+    (`.answer.numberline { max-width: 100% }`) additionally keeps the field inside
+    a narrower column.
+    """
     max_width_mm = _parse_numberline_positive_float(options.get("max_width_mm"), None)
     if max_width_mm is not None:
         return max(60.0, max_width_mm)
@@ -64,6 +72,10 @@ def _resolve_max_width_mm(options):
     max_width_cm = _parse_numberline_positive_float(options.get("max_width_cm"), None)
     if max_width_cm is not None:
         return max(60.0, max_width_cm * 10.0)
+
+    printable_width_cm = _parse_numberline_positive_float(options.get("_printable_width_cm"), None)
+    if printable_width_cm is not None:
+        return max(60.0, printable_width_cm * 10.0)
 
     return 165.0
 

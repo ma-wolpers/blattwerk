@@ -1,6 +1,8 @@
 """Menümodell der Hauptansicht: Datei-, Ansicht-, Extras- und Kürzel-Einträge (BlattwerkApp-Mixin).
 
-Aus ``blatt_ui_style.py`` ausgelagert (300-Zeilen-Regel), Methoden unverändert."""
+Aus ``blatt_ui_style.py`` ausgelagert (300-Zeilen-Regel), Methoden unverändert; beim
+Zusammenführen mit der Style-Zerlegung kam ``_iter_shortcut_menu_labels`` (einziger Nutzer:
+``_menu_shortcuts_items``) hierher."""
 
 from __future__ import annotations
 
@@ -9,6 +11,7 @@ from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 ensure_bw_gui_on_path()
 from bw_gui.menu import MenuItem as SharedMenuItem
 
+from .blatt_shortcuts import iter_menu_labels
 from .ui_constants import EDITOR_VIEW_BOTH, EDITOR_VIEW_EDITOR_ONLY, EDITOR_VIEW_PREVIEW_ONLY, VIEW_FIT_PAGE, VIEW_FIT_WIDTH, VIEW_LAYOUT_SINGLE, VIEW_LAYOUT_STACK, VIEW_LAYOUT_STRIP
 
 
@@ -172,3 +175,12 @@ class BlattwerkAppMenuItemsMixin:
                     "command": self.open_help_preview_window,
                 },
             ]
+
+    def _iter_shortcut_menu_labels(self):
+            """Liefert deduplizierte Shortcut-Hinweise in definierter Reihenfolge."""
+
+            preferences = getattr(self, "user_preferences", {})
+            if not bool(preferences.get("shortcuts_menu_hints_visible", True)):
+                return
+
+            yield from iter_menu_labels(self.keybinding_registry.all())

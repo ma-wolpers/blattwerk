@@ -82,6 +82,7 @@ def test_horizon_shows_bonus_separately():
     html, diagnostics = build_expectation_horizon_html(HEAD + WITH_BONUS_SUBTASK)
     assert "<h3>Aufgabe 1 (2 P + 2 Bonuspunkte)</h3>" in html and "Aufgabe 1b (+2 Bonuspunkte)" in html
     assert "Summe Teil A: 2 P + 2 Bonuspunkte" in html and "Summe Teil B: 3 P</p>" in html
+    assert "<p class='sum'>Gesamt: 5 P + 2 Bonuspunkte</p>" in html
     bonus_html, _ = build_expectation_horizon_html(HEAD + BONUS_TASK)
     assert re.search(r"<h3>Aufgabe 2 \(\+2 Bonuspunkte\)</h3>", bonus_html)
     assert diagnostics == []

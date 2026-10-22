@@ -17,6 +17,7 @@ import re
 
 from .page_geometry import build_gutter_css
 from .worksheet_design import build_design_css
+from .bundled_fonts import font_face_css
 from .blatt_styles_data import (
     PRINT_PROFILE_PRESETS,
     PRINT_PROFILE_ALIASES,
@@ -29,6 +30,11 @@ from .blatt_styles_data import (
     FONT_SIZE_PROFILE_LABELS,
     DEFAULT_FONT_SIZE_PROFILE,
     PAGE_LAYOUTS,
+    WORKSHEET_PAGE_FORMATS,
+    WORKSHEET_PAGE_FORMAT_LABELS,
+    DEFAULT_WORKSHEET_PAGE_FORMAT,
+    PRESENTATION_PAGE_FORMATS,
+    DEFAULT_PRESENTATION_PAGE_FORMAT,
     _PAGE_DIMENSIONS_CM,
 )
 
@@ -101,11 +107,28 @@ def build_print_profile_css(profile_name):
 """
 
 
+def build_inline_font_css(inline_font_keys, font_profile):
+    """`@font-face`-Regeln für mitgelieferte Schriften, die nur in Inline-Stilen vorkommen.
+
+    Die Schrift des Dokumentprofils bettet `build_font_profile_css` schon ein und wird
+    hier ausgelassen, damit keine Datei doppelt im Dokument landet.
+    """
+    profile_key = normalize_font_profile(font_profile)
+    return font_face_css(set(inline_font_keys or ()) - {profile_key})
+
+
 def build_font_profile_css(font_profile):
-    """Erzeugt CSS-Variablen für das gewählte Schriftprofil."""
+    """Erzeugt CSS-Variablen für das gewählte Schriftprofil.
+
+    Ist das Profil eine mitgelieferte Schrift (`bundled_fonts.py`), werden deren
+    `@font-face`-Regeln mit eingebettet -- nur für dieses eine Profil, damit nicht
+    alle Schriftdateien in jedem Dokument landen.
+    """
     profile_key = normalize_font_profile(font_profile)
     profile = FONT_PROFILE_PRESETS[profile_key]
+    font_faces = font_face_css([profile_key])
     return f"""
+{font_faces}
 :root {{
     --font-family-base: {profile["css_family"]};
 }}

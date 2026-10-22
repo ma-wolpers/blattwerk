@@ -30,6 +30,8 @@ from dataclasses import dataclass
 from ..math_span_protection import protect_math_spans
 from .runs import IM001_UNCLOSED_COMMENT, ParseDiagnostic
 from .word_notes import WordNoteSpan, protect_word_notes
+from .inline_style import InlineStyle
+from .style_spans import protect_style_markers
 
 COMMENT_PATTERN = re.compile(r"(?<!\\)%%(.*?)(?<!\\)%%", re.DOTALL)
 _UNMATCHED_COMMENT_START_PATTERN = re.compile(r"(?<!\\)%%")
@@ -125,10 +127,11 @@ def find_code_placeholder(text: str, start: int = 0) -> re.Match[str] | None:
 
 def protect_all(
     text: str,
-) -> tuple[str, list[str], list[CodeSpan], list[WordNoteSpan], list[ParseDiagnostic]]:
-    """Wendet Schritt 1-4 der Auswertungsreihenfolge an: Kommentare -> Mathe -> Code -> Worterklärung.
+) -> tuple[str, list[str], list[CodeSpan], list[WordNoteSpan], list[InlineStyle], list[ParseDiagnostic]]:
+    """Wendet Schritt 1-5 der Auswertungsreihenfolge an: Kommentare -> Mathe -> Code -> Worterklärung -> Inline-Stil.
 
-    Liefert `(geschützter_text, mathe_spans, code_spans, word_note_spans, diagnostics)`.
+    Liefert `(geschützter_text, mathe_spans, code_spans, word_note_spans, styles, diagnostics)`
+    (`diagnostics` bleibt bewusst das letzte Element, siehe Validatoren mit `*_, diagnostics`).
     `mathe_spans[i]` ist die rohe `$...$`/`$$...$$`-Formelquelle (inkl.
     `$`-Begrenzer) für Platzhalter `i` -- identisch zum Rückgabewert von
     `math_span_protection.protect_math_spans`, unverändert durchgereicht.
@@ -137,9 +140,20 @@ def protect_all(
     einem Inline-Code-Span ist dann schon Platzhalter und wird nicht als
     Worterklärung gelesen. Enthält eine Worterklärung selbst Code/Mathe,
     löst `placeholders.py` deren Platzhalter zurück zu wörtlichem Text auf.
+
+    Inline-Stile (`style_spans.py`) kommen danach: `-<…>` in Code, Formel,
+    Kommentar oder Worterklärung ist dann schon geschützt und bleibt wörtlich.
     """
     without_comments, diagnostics = strip_comments(text)
     without_math, math_spans = protect_math_spans(without_comments)
     without_code, code_spans = protect_code(without_math)
     without_notes, word_note_spans, note_diagnostics = protect_word_notes(without_code)
-    return without_notes, math_spans, code_spans, word_note_spans, diagnostics + note_diagnostics
+    without_styles, styles, style_diagnostics = protect_style_markers(without_notes)
+    return (
+        without_styles,
+        math_spans,
+        code_spans,
+        word_note_spans,
+        styles,
+        diagnostics + note_diagnostics + style_diagnostics,
+    )

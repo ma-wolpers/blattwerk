@@ -26,13 +26,14 @@ def render_exam_guide(catalog: MarkdownConventionCatalog) -> str:
         "## 2. Punkte und Teilpunkte\n\n" + _prose("option:points") + "\n\n" + _prose("block:solution"),
         "## 3. Anforderungsbereiche (`afb`)\n\n" + _prose("option:afb"),
         "## 4. Hilfsmittelfreier Teil (`--hm`)\n\n" + _prose("marker:aidsplit"),
-        "## 5. Bewertungstabelle\n\n" + _prose("block:evaluation") + "\n\n"
+        "## 5. Wahlteile (`--w`)\n\n" + _prose("marker:choicesplit"),
+        "## 6. Bewertungstabelle\n\n" + _prose("block:evaluation") + "\n\n"
         "- `level`: " + _prose("block:evaluation.level") + "\n"
         "- `parts`: " + _prose("block:evaluation.parts") + "\n"
         "- `grade`: " + _prose("block:evaluation.grade"),
-        "## 6. Operatorentabelle\n\n" + _prose("block:operators") + "\n\n"
+        "## 7. Operatorentabelle\n\n" + _prose("block:operators") + "\n\n"
         "- `scope`: " + _prose("block:operators.scope"),
-        "## 7. Klausur-Übersicht\n\n" + _prose("exam:overview"),
-        "## 8. Erwartungshorizont\n\n" + _prose("exam:expectation_horizon"),
+        "## 8. Klausur-Übersicht\n\n" + _prose("exam:overview"),
+        "## 9. Erwartungshorizont\n\n" + _prose("exam:expectation_horizon"),
     ]
     return _AUTOGEN_HEADER + "\n\n" + "\n\n".join(sections) + "\n"

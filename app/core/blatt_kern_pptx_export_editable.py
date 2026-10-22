@@ -87,6 +87,8 @@ class TextRun:
     bold: bool
     italic: bool
     color_rgb: tuple[int, int, int]
+    font_name: str | None = None
+    """Erste CSS-Schriftfamilie des Laufs (Dokumentschrift oder Inline-Stil)."""
 
 
 @dataclass(frozen=True)
@@ -328,6 +330,7 @@ def _renderable_elements_from_built(built_entries: list[dict], page) -> list[Ren
                             bold=run["bold"],
                             italic=run["italic"],
                             color_rgb=run["color_rgb"],
+                            font_name=run.get("font_name"),
                         )
                         for run in built["runs"]
                     ],

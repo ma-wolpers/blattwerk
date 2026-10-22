@@ -75,6 +75,8 @@ Im CSS gibt es ein Default für Papiergröße und Ränder:
 }
 ```
 
+Dieser Wert ist nur der Grundwert: Blattwerk setzt `@page` beim Erzeugen passend zum gewählten Seitenformat (`DIN A4`, `A4 quer`, `DIN A5` oder Folienformat). Das Format wählst du in der Vorschau, nicht im CSS.
+
 ### 4.3 Inhalte (z. B. Aufgaben, Material, Antwortfelder)
 
 Typische Blöcke:

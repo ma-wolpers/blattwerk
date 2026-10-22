@@ -108,7 +108,16 @@ TASK_HINT_MAP = {
 `experte` -- das Anzeige-Label "Expertenaufgabe" bleibt unverändert."""
 
 HELP_BLOCK_TYPES = {"help", "hilfe"}
+STRUKTOGRAMM_BLOCK_TYPES = frozenset({"struktogramm", "structogram"})
+"""`struktogramm` ist der Hauptname (Begriff aus der GO Informatik),
+`structogram` ein dokumentierter Alias -- gleiches Muster wie `help`/`hilfe`."""
 PRESENTATION_SECTION_MARK_PATTERN = re.compile(r"^--#\s+(.+)$")
+EXAM_CHOICE_MARK_PATTERN = re.compile(r"^--w(\[[^\]\n]*\])?(?:\s+(.+?))?\s*$")
+"""Wahlteil-Trenner `--w[k] Titel` (eröffnet einen Wahlbereich) bzw. `--w Titel`.
+
+Gruppe 1 = `[k]` roh mit Klammern (leer, wenn ohne Klammern -- so bleibt
+`--w[]` als ungültiges `k` von `--w` unterscheidbar), Gruppe 2 = Titel. Die
+Bedeutung prüft allein `exam_parts.resolve_exam_parts`."""
 PRESENTATION_SPACER_MARK_PATTERN = re.compile(
     r"^-=\s*(\d+(?:\.\d+)?(?:cm|mm|px|pt|em|rem|vh|vw|%))\s*$",
     flags=re.IGNORECASE,
@@ -141,6 +150,9 @@ class ControlMarkerSpec:
     `KNOWN_BLOCK_TYPES`. `option_capture` benennt, in welche
     Blockoption(en) eine ggf. vorhandene Regex-Gruppe (in Reihenfolge)
     einfließt; bei literalen Markern ohne Gruppen ist das Tupel leer.
+    `detect_prefix` lässt eine Zeile schon über ihr Präfix als Marker-
+    Versuch gelten (Validator BL005, siehe `control_markers.py`), auch wenn
+    das Muster selbst nicht passt (z. B. `--#` ohne Titel).
     """
 
     name: str
@@ -148,6 +160,7 @@ class ControlMarkerSpec:
     kind: str  # "literal" | "pattern"
     literal_or_regex: str | re.Pattern
     option_capture: tuple[str, ...] = ()
+    detect_prefix: str | None = None
 
 
 CONTROL_MARKERS: tuple[ControlMarkerSpec, ...] = (
@@ -175,6 +188,7 @@ CONTROL_MARKERS: tuple[ControlMarkerSpec, ...] = (
         kind="pattern",
         literal_or_regex=PRESENTATION_SECTION_MARK_PATTERN,
         option_capture=("title",),
+        detect_prefix="--#",
     ),
     ControlMarkerSpec(
         name="vspacer",
@@ -182,12 +196,21 @@ CONTROL_MARKERS: tuple[ControlMarkerSpec, ...] = (
         kind="pattern",
         literal_or_regex=PRESENTATION_SPACER_MARK_PATTERN,
         option_capture=("height",),
+        detect_prefix="-=",
     ),
     ControlMarkerSpec(
         name="aidsplit",
         block_type="aidsplit",
         kind="literal",
         literal_or_regex="--hm",
+    ),
+    ControlMarkerSpec(
+        name="choicesplit",
+        block_type="choicesplit",
+        kind="pattern",
+        literal_or_regex=EXAM_CHOICE_MARK_PATTERN,
+        option_capture=("k", "title"),
+        detect_prefix="--w[",
     ),
     ControlMarkerSpec(
         name="soft_section_break",

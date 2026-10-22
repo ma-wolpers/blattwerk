@@ -81,7 +81,7 @@ In Präsentationen (`.pbw`) gibt es **keinen Lösungs-Umschalter**: Blöcke mit 
 | `copyright` | nein | free_text | -- | nein |
 | `Stufe` | nein | enum | `10`, `11`, `12`, `13`, `5`, `6`, `7`, `8`, `9`, `e`, `q1`, `q2`, `sek1`, `sek2` | ja |
 | `worksheet_type` | nein | free_text | -- | nein |
-| `font_profile` | nein | free_text | -- | nein |
+| `font_profile` | nein | enum | `andika`, `arial`, `bahnschrift`, `book_antiqua`, `calibri`, `cambria`, `candara`, `century_gothic`, `comic_neue`, `comic_sans_ms`, `constantia`, `corbel`, `franklin_gothic_medium`, `fredoka`, `garamond`, `georgia`, `gloria_hallelujah`, `indie_flower`, `lucida_sans`, `patrick_hand`, `rockwell`, `segoe`, `short_stack`, `tahoma`, `times_new_roman`, `trebuchet_ms`, `verdana` | ja |
 | `Lerngruppe` | nein | header_text | -- | ja |
 | `Datum` | nein | header_date | -- | ja |
 
@@ -99,7 +99,7 @@ In Präsentationen (`.pbw`) gibt es **keinen Lösungs-Umschalter**: Blöcke mit 
 - **`copyright`** (optional): Ersetzt den Standard-Copyright-Text im Footer durch einen eigenen Text. Ohne dieses Feld wird automatisch ein Standardtext mit aktuellem Jahr eingesetzt.
 - **`Stufe`** (optional): Die Jahrgangsstufe -- schränkt ein, welche `!!Operator!!`-Bezeichnungen für dieses Dokument gültig sind und im Editor vorgeschlagen werden (siehe `data/operatoren/<fach>.json`, `stufengruppen`). Ohne `Stufe` gelten alle für `Fach` hinterlegten Operatoren als verfügbar, unabhängig von ihrer Stufenzuordnung. Hat aktuell keine Wirkung außerhalb der Operatoren-Verfügbarkeit (kein Einfluss auf Layout/Rendering).
 - **`worksheet_type`** (optional): Rein informatives Feld für eine Dokumentart-Bezeichnung. **Hinweis:** wird aktuell an keiner Stelle aus dem Dokument gelesen oder angezeigt -- ohne Wirkung im Build-/Render-Pfad.
-- **`font_profile`** (optional): **Hinweis:** wird aktuell nicht aus dem Dokument gelesen -- die Schriftart wird ausschließlich über die App-Einstellung gesteuert, nicht über das Frontmatter. Dieses Feld hat aktuell keine Wirkung im Build-/Render-Pfad.
+- **`font_profile`** (optional): Legt die Schrift des Dokuments fest und hat Vorrang vor der Schriftwahl der App. Erlaubt sind die Schlüssel der Schriftprofile, z. B. `segoe`, `arial`, `comic_sans_ms` oder die mitgelieferten Schriften `comic_neue`, `andika`, `fredoka`, `patrick_hand`, `indie_flower`, `gloria_hallelujah`, `short_stack`. Das Schriftmenü der Vorschau schreibt diesen Eintrag selbst; "Standard (App-Einstellung)" entfernt ihn. Ein unbekannter Wert ergibt die Warnung `FM012`, gerendert wird dann mit der App-Schrift.
 - **`Lerngruppe`** (optional): Füllt das Feld „Lerngruppe“ der Schülerkopfzeile vor (nur sichtbar mit `show_student_header: ja`). Muss Text sein: Werte, die YAML als Zahl liest, bitte in Anführungszeichen setzen, z. B. `Lerngruppe: "11.6"` (sonst Warnung `FM011`, das Feld bleibt leer). Der Vorlagen-Platzhalter `Lerngruppe eintragen` zählt als leer.
 - **`Datum`** (optional): Füllt das Feld „Datum“ der Schülerkopfzeile vor (nur sichtbar mit `show_student_header: ja`) und erscheint im Erwartungshorizont. Freier Text wie `25.09.26` wird unverändert übernommen, ein ISO-Datum wie `2026-09-25` als `25.09.2026` angezeigt. Der Vorlagen-Platzhalter `Datum eintragen` zählt als leer.
 
@@ -135,6 +135,15 @@ rows:
     correct: 1
 :::
 ```
+
+### `choicesplit`
+
+Wahlteil-Trenner einer Klausur -- siehe Control-Marker `--w[k] Titel`.
+
+| Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
+|---|---|---|---|---|---|
+| `k` | Text | -- | nein | -- | Anzahl der zu bearbeitenden Wahlteile, als `[k]` direkt hinter `--w` am ersten Wahlteil eines Bereichs (z. B. `--w[1] Analysis`). |
+| `title` | Text | -- | nein | -- | Überschreibt die automatisch erzeugte Standardbeschriftung des Blocks mit einem eigenen Text. |
 
 ### `cloze`
 
@@ -249,7 +258,7 @@ Bewertungstabelle (selbstschließend: `:::evaluation:::`) mit den Zeilen Aufgabe
 |---|---|---|---|---|---|
 | `grade` | Bool | -- | nein | `False` | `true` ergänzt unter der Tabelle rechtsbündig leere Felder „Dies sind ___ %“ und „Note: ___“ (auch bei `parts=true` nur einmal). Gilt nur für diesen Block: Bei mehreren Bewertungstabellen bekommt jede mit `grade=true` ihre eigenen Felder. |
 | `level` | Enum | `subtask`, `task` | ja | `task` | `task` (Standard): eine Spalte je Aufgabe; `subtask`: bei bepunkteten Teilaufgaben je Teilaufgabe eine Spalte (1a, 1b, ...). |
-| `parts` | Bool | -- | nein | `False` | `true` teilt die Tabelle in Klausuren mit `--hm` in Teil A und Teil B (je mit Summe) und weist zusätzlich die Gesamtsumme aus. Ohne `--hm` ohne Wirkung. |
+| `parts` | Bool | -- | nein | `False` | `true` teilt die Tabelle in Klausuren mit `--hm` in Teil A und Teil B (je mit Summe) und weist zusätzlich die Gesamtsumme aus. Ohne `--hm` ohne Wirkung. Mit Wahlteilen (`--w`) ist die Tabelle immer nach Teilen gruppiert ("Wahlteile: k aus n"), die Gesamtsumme zählt k Wahlteile. |
 | `title` | Text | -- | nein | -- | Überschreibt die automatisch erzeugte Standardbeschriftung des Blocks mit einem eigenen Text. |
 
 **Beispiel** (identisch mit dem Menü "Einfügen" (Alt+I) im Editor):
@@ -682,6 +691,41 @@ Freier Leerraum ohne Linien/Raster, z. B. für Zeichnungen.
 :::
 ```
 
+### `structogram`
+
+Dokumentierter Alias für `struktogramm` -- identische Optionen und Bedeutung.
+
+| Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
+|---|---|---|---|---|---|
+| `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
+| `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
+| `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
+| `signature` | Text | -- | nein | -- | Methodenkopf in GO-Notation `Bezeichnung(Parameter: Typ, ...): Rückgabetyp`, fett über dem Diagramm, z. B. `signature="minimum(a, b: Fließkommazahl): Fließkommazahl"`. Parameter ohne eigenen Typ gehören zur nächsten getypten Gruppe; ohne Rückgabewert entfällt `: Rückgabetyp`. Wird streng geprüft; fehlt die Option, gibt es eine Warnung. |
+| `width` | CSS-Länge | -- | nein | `100%` | Breite des Blocks als CSS-Länge (`70%`, `12cm`, ...); Standard ist die volle Zeilenbreite. |
+
+### `struktogramm`
+
+Struktogramm in der Gestalt der zentralen Prüfungsaufgaben (Ergänzende Hinweise zur GO Informatik, S. 5-6). Eine Zeile ist ein Element, die Einrückung (4 Leerzeichen oder Tab) die Schachtelung. Schlüsselwörter am Zeilenanfang: `wenn B` (+ optional `sonst`) für die Verzweigung, `auswahl A` mit `fall W`-Zeilen (+ optional `sonst`) für die Mehrfachauswahl, `solange …`/`für …`/`wiederhole 100-mal` für kopfgesteuerte Schleifen, `wiederhole` allein + Rumpf + `bis B` für die fußgesteuerte Schleife, `rückgabe X` (angezeigt als „gib X zurück“) und `eingabe x` (angezeigt als „lies x ein“). Jede andere Zeile ist eine Anweisung; `<-` wird als `←` gesetzt, `//`-Kommentare bleiben Text, `\` am Zeilenanfang hebt ein Schlüsselwort auf. Lücken-Struktogramm: `%` nach der Einrückung blendet den Text eines Elements im Arbeitsblatt aus (Struktur bleibt, Zelle bleibt mindestens so hoch wie in der Lösung), `%{…}` einen Teiltext. Der Validator prüft Struktur, Signatur und ob Rückgaben, Rückgabetyp und Parameter zueinander passen.
+
+| Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
+|---|---|---|---|---|---|
+| `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
+| `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
+| `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
+| `signature` | Text | -- | nein | -- | Methodenkopf in GO-Notation `Bezeichnung(Parameter: Typ, ...): Rückgabetyp`, fett über dem Diagramm, z. B. `signature="minimum(a, b: Fließkommazahl): Fließkommazahl"`. Parameter ohne eigenen Typ gehören zur nächsten getypten Gruppe; ohne Rückgabewert entfällt `: Rückgabetyp`. Wird streng geprüft; fehlt die Option, gibt es eine Warnung. |
+| `width` | CSS-Länge | -- | nein | `100%` | Breite des Blocks als CSS-Länge (`70%`, `12cm`, ...); Standard ist die volle Zeilenbreite. |
+
+**Beispiel** (identisch mit dem Menü "Einfügen" (Alt+I) im Editor):
+
+```markdown
+:::struktogramm signature="istEnthalten(d: dyn. Reihung vom Inhaltstyp Ganzzahl, v: Ganzzahl): Wahrheitswert"
+für alle Elemente e aus d
+    wenn e = v
+        rückgabe wahr
+rückgabe falsch
+:::
+```
+
 ### `subtask`
 
 Teilaufgabe zu einem vorangehenden `task`. Muss unmittelbar nach dem zugehörigen `task` als eigener Top-Level-Block folgen (nicht verschachtelt); mehrere `subtask`-Blöcke werden automatisch a), b), c) ... nummeriert. Unterstützt `time`/`work`/`action` wie `task`.
@@ -720,7 +764,7 @@ Tabellen-Antwortfeld. **Zellinhalte müssen als `cells:`-YAML-Liste-von-Listen i
 | `row_height` | CSS-Länge | -- | nein | -- | Zeilenhöhe als CSS-Länge. |
 | `rows` | Ganzzahl | -- | nein | -- | Anzahl Zeilen des Rasters/der Linien. Der genaue Standardwert und ob eine fehlende Angabe automatisch berechnet wird, hängt vom Blocktyp ab (siehe Tabelle: Spalte "Standard"). |
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
-| `width` | CSS-Länge | -- | nein | -- | Gesamtbreite der Tabelle als CSS-Länge. |
+| `width` | CSS-Länge | -- | nein | -- | Breite des Blocks als CSS-Länge (`70%`, `12cm`, ...); Standard ist die volle Zeilenbreite. *Besonderheit bei `table`:* Gesamtbreite der Tabelle als CSS-Länge. |
 | `widths` | Text | -- | nein | -- | Relative Breiten (Gewichte, z. B. `"2 1"`) oder feste CSS-Breiten für die Spalten/Elemente dieses Blocks. |
 
 **Beispiel** (identisch mit dem Menü "Einfügen" (Alt+I) im Editor):
@@ -827,6 +871,7 @@ Schreibimpuls hier…
 ## 7. Control-Marker-Referenz
 
 - **aidsplit**: `--hm` auf einer eigenen Zeile trennt in einer Klausur (`.kbw`) den hilfsmittelfreien Teil vom Teil mit Hilfsmitteln: davor erscheint "Teil A – hilfsmittelfrei", am Marker beginnt eine neue Seite mit "Teil B – mit Hilfsmitteln"; die Aufgabennummern laufen weiter, Punkte und AFB werden je Teil ausgewertet. Nur zwischen zwei Aufgaben; in anderen Dokumenttypen ohne Wirkung. Ein zweites `--hm` davor trennt ein Deckblatt ab: Alles vor dem ersten `--hm` (Hinweise, Bewertungstabelle …, aber keine Aufgaben) steht auf der ersten Seite ohne Teilüberschrift, "Teil A" beginnt dann auf einer neuen Seite. Mehr als zwei `--hm` sind ein Fehler. Mit `show_student_header: ja` trägt jeder Teil, der auf einer neuen Seite beginnt, oben die Schülerkopfzeile (Name, Lerngruppe, Datum), damit getrennt eingesammelte Teile beschriftet sind.
+- **choicesplit**: Wahlteile in einer Klausur (`.kbw`): `--w[k] Titel` auf einer eigenen Zeile eröffnet einen Wahlbereich, jedes weitere `--w Titel` startet den nächsten Wahlteil desselben Bereichs. Von den n Wahlteilen bearbeiten die Schülerinnen und Schüler k (1 ≤ k < n). Der Bereich endet am nächsten `--hm` oder am Dokumentende; nach `--hm` kann ein weiterer Bereich mit `--w[k]` beginnen. Jeder Wahlteil beginnt auf einer neuen Seite mit der Überschrift "Wahlteil 1 – Titel" (ohne Titel nur "Wahlteil 1") und einem Ankreuzfeld "Diesen Wahlteil bearbeite ich."; über dem ersten steht "Bearbeite k der n Wahlteile.". Alle Wahlteile eines Bereichs müssen gleich viele Punkte haben; die erreichbare Gesamtpunktzahl zählt k Wahlteile. Aufgabennummern laufen durch. Bewertungstabelle und Erwartungshorizont gruppieren nach Teilen mit "k aus n"; die AFB-Verteilung steht dann nur je Teil. Aufgaben vor dem ersten Bereich (ohne `--hm`) bilden den Pflichtteil (ohne Überschrift). Fehler blockieren den Export: `--w` ohne offenen Bereich (`KL008`), `--w[k]` in einem offenen Bereich (`KL009`), ungültiges k (`KL010`), ungleiche Punkte (`KL011`), `--w` außerhalb von Klausuren (`KL012`); jeder Wahlteil braucht eine Aufgabe (`KL004`).
 - **framebreak**: `-+` auf einer eigenen Zeile erzeugt im Präsentationsmodus einen neuen Frame, der den bisherigen Folieninhalt beibehält und um den folgenden Inhalt ergänzt -- für das schrittweise Aufbauen **desselben** Gedankens auf **derselben** Folie (z. B. Punkt für Punkt aufdecken). Der Präsentations-Exportdialog bietet eine Option, diese schrittweisen Folien beim Export zu einer einzigen finalen Folie zusammenzufassen. **`-+` ist kein Folientrenner:** wird er anstelle von `--!` verwendet, um inhaltlich neue/andere Folien einzuleiten, sammelt sich der gesamte bisherige Inhalt auf einer einzigen, zunehmend überfüllten Folie an, statt eine neue zu beginnen -- für einen echten Folienwechsel immer `--!` verwenden.
 - **pagebreak**: `--!` auf einer eigenen Zeile erzwingt einen harten Seiten-/Folienumbruch an dieser Stelle -- der Marker, um in einer Präsentation gezielt eine **neue** Folie zu beginnen.
 - **sectionmark**: `--# Abschnittsname` setzt den aktuellen Abschnittsnamen für die Footer-Navigation in Präsentationen. Alles nach `--# ` bis Zeilenende wird als Abschnittstitel übernommen.
@@ -913,3 +958,4 @@ Text im Editor markieren und eine Marker-Taste drücken formatiert die Auswahl d
 - **%%Kommentar%%**: `%%Text%%` markiert einen Autor:innen-Kommentar: der eingeschlossene Text erscheint in **keiner** Ausgabe (weder Vorschau noch PDF) und darf beliebiges Markup oder Formeln enthalten, ohne dass diese ausgewertet werden. Ein `%%` ohne passendes schließendes `%%` wird als normaler Text behandelt (keine Formatierung, aber auch kein Verschlucken nachfolgenden Inhalts) und als Diagnose-Hinweis gemeldet. Aktuell ohne eigene Editor-Taste -- von Hand eingetippt.
 - **!!Bestimme!!**: `!!Text!!` markiert einen Aufgaben-Operator (z. B. `!!Bestimme!! die Nullstellen.`) -- sichtbar identisch zu `**fett**`, aber zusätzlich semantisch als Operator erkennbar. Wird im Frontmatter ein `Fach` mit passender Operatoren-Datei (`data/operatoren/`) verwendet, erklärt eine Operatorentabelle `:::operators:::` die verwendeten Operatoren -- sie wird nicht mehr automatisch angehängt, sondern steht dort, wo du den Block setzt (Warnung `OPR004`, wenn Operatoren ohne Tabelle bleiben). Aktuell ohne eigene Editor-Taste -- von Hand eingetippt.
 - **??Begriff|Erklärung??**: `??Begriff|Erklärung??` ist eine Worterklärung als sprachliche Hilfe: der Begriff bleibt normal im Text (mit gepunkteter Unterstreichung), die Erklärung erscheint klein am rechten Seitenrand des Arbeitsblatts, ungefähr auf Höhe des Absatzes, in dem der Begriff steht (keine zeilengenaue Zuordnung; mehrere Erklärungen im selben Absatz stehen in Textreihenfolge untereinander). Sobald ein Arbeitsblatt mindestens eine Worterklärung enthält, wird rechts eine Randspalte reserviert und der Text entsprechend schmaler. Begriff und Erklärung sind reiner Text -- innerhalb von `??...??` wird kein weiteres Markup ausgewertet (`*x*` bleibt `*x*`). `|` trennt Begriff und Erklärung und muss genau einmal vorkommen; ein wörtliches `|` schreibt man `\|`, ein wörtliches `??` schreibt man `\??` (auch außerhalb einer Worterklärung). Fehlendes oder doppeltes `|` sowie ein leerer Begriff oder eine leere Erklärung sind ein Fehler (`IM002`) und blockieren den Export. Passt eine Erklärung nicht mehr vollständig auf die Seite ihres Absatzes, wird sie nicht abgeschnitten, sondern setzt sich im Rand der Folgeseite fort (endet das Dokument dort, entsteht dafür eine zusätzliche Seite); der Export meldet nach dem Rendern eine Warnung (`IM003`). Worterklärungen in Tabellenzellen werden nicht unterstützt (die Erklärung erscheint dort nicht, der Export warnt mit `IM003`); in `:::columns` funktioniert sie in der letzten Spalte (sie erreicht den rechten Seitenrand), in allen anderen Spalten erscheint sie nicht (ebenfalls `IM003`). In Präsentationen und im Kurzentwurf wird nur der Begriff angezeigt. Aktuell ohne eigene Editor-Taste -- von Hand eingetippt.
+- **`-<Comic Neue-#rot-14> Text -<>`**: `-<…>` setzt Schrift, Größe und Farbe für einen Textbereich, `-<>` beendet ihn. Die Angaben stehen durch `-` getrennt in beliebiger Reihenfolge: eine Zahl ist die Größe in Punkt (`12`, `10,5`), `#rot`/`#red`, `#blau`, `#gruen`, `#gelb`, `#orange`, `#lila`, `#rosa`, `#braun`, `#grau`, `#schwarz`, `#weiss`, `#tuerkis` (auch englisch) oder ein Hex-Wert wie `#c62828` ist die Farbe, alles andere ist eine Schrift mit ihrem Namen aus dem Schriftmenü (`Arial`, `Times New Roman`, `Comic Neue` …; Namen mit `-` in Anführungszeichen). Beispiele: `-<20> groß -<>`, `-<Andika-#blau> Aufgabe 1 -<>`. Bereiche lassen sich verschachteln; ein innerer Bereich übernimmt alles, was er nicht selbst festlegt (`-<Arial-#rot> a -<20> b -<> -<>`: b ist Arial, rot und 20 pt). Je Art ist nur eine Angabe erlaubt. Ein Bereich muss im selben Absatz enden -- vor einer Leerzeile, einem neuen Listenpunkt, einer Tabellenzelle oder dem Blockende. In Code, Formeln und Kommentaren bleibt `-<…>` wörtlich; ein wörtliches `-<` außerhalb davon schreibt man `\-<`. Formeln innerhalb eines Bereichs werden mit eingefärbt und vergrößert. Fehler (unbekannte Schrift oder Farbe, doppelte Angabe, nicht geschlossener Bereich) meldet `IM004`.

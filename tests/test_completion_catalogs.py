@@ -54,6 +54,7 @@ def test_self_closing_block_types_contains_exactly_the_bodyless_markers():
         "sectionmark",
         "vspacer",
         "aidsplit",
+        "choicesplit",
     }
 
 

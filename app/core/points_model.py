@@ -37,6 +37,8 @@ import re
 from dataclasses import dataclass, field
 from decimal import Decimal, InvalidOperation
 
+from .exam_parts_position import PART_SPLIT_BLOCKS
+
 POINTS_KEY = "points"
 STATUS_OK = "ok"
 STATUS_MISSING = "missing"
@@ -195,8 +197,8 @@ class TaskUnit:
 def iter_units(blocks):
     """Zerlegt die flache Blockliste in Aufgabeneinheiten.
 
-    Eine Einheit beginnt bei `task` und endet beim nächsten `task` oder am
-    Hilfsmittel-Trenner (`aidsplit`). Teilaufgaben vor der ersten Aufgabe
+    Eine Einheit beginnt bei `task` und endet beim nächsten `task` oder an
+    einem Teil-Trenner (`aidsplit`/`choicesplit`, `PART_SPLIT_BLOCKS`). Teilaufgaben vor der ersten Aufgabe
     gehören zu keiner Einheit.
     """
     units: list[TaskUnit] = []
@@ -206,7 +208,7 @@ def iter_units(blocks):
             raw = points_display(options)
             current = TaskUnit(index, str(len(units) + 1), options, raw, parse_points(raw))
             units.append(current)
-        elif block_type == "aidsplit":
+        elif block_type in PART_SPLIT_BLOCKS:
             current = None
         elif block_type == "subtask" and current is not None:
             raw = points_display(options)

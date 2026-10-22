@@ -28,7 +28,7 @@ class BlattwerkAppExportMixin(
 ):
     """Stellt Export-Workflows für PDF/HTML/PNG/ZIP bereit."""
 
-    _SURFACED_COMPILE_WARNING_CODES = {"SL005", "SL007", "PT002", "IM003", "PPTX001", "PPTX002"}
+    _SURFACED_COMPILE_WARNING_CODES = {"SL005", "SL007", "PT002", "IM003", "PPTX001", "PPTX002", "PPTX003"}
     """`PT002` (Präsentations-Overflow), `IM003` (Worterklärung passt nicht
     sauber an den Seitenrand, nur im gerenderten PDF messbar) plus die beiden Fallback-Diagnosen des
     experimentellen editierbaren PPTX-Exports (`blatt_kern_pptx_export.py`):

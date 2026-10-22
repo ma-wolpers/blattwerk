@@ -79,16 +79,22 @@ Subprozess siehe `tests/test_blatt_diagnostics_cli.py` (Validator) sowie
 - `FM008`: `document_type` passt nicht zur Dateiendung (gueltiger Wert, anderer Typ). Warnung; es gilt immer die Endung. Gilt fuer alle Endungen, auch `.md` (z. B. nach Speichern-unter nach `.md`, das den Marker bewusst unveraendert laesst).
 - `FM009`: `document_type` fehlt in einer Blattwerk-Datei (`.abw`, `.pbw`, `.kbw`, `.ebw`, `.sbw`). Warnung. In `.md` ist der Marker optional, dort gibt es kein `FM009`.
 - `FM010`: Ungueltiger Wert fuer `document_type` (kein bekannter Typ oder Alias, oder kein Text). Warnung.
+- `FM012`: Unbekanntes Schriftprofil in `font_profile` (die Meldung nennt alle erlaubten Werte). Warnung; gerendert wird mit der Schrift der App-Einstellung.
 - `FM011`: `Lerngruppe`/`Datum` hat einen YAML-Typ, der nicht in die Schuelerkopfzeile uebernommen wird (z. B. `Lerngruppe: 11.6` wird als Zahl gelesen -- in Anfuehrungszeichen setzen). Warnung; das Feld bleibt leer. `Datum` darf Text oder ein ISO-Datum sein.
 - `EV001`: Bewertungstabelle `:::evaluation` vorhanden, aber Aufgaben ohne Punkte (Zelle `–`). Warnung.
 - `EV002`: Bewertungstabelle in einem Dokumenttyp ohne diese Funktion (z. B. Praesentation); sie wird nicht angezeigt. Warnung.
 - `KL001`: `--hm` kommt in einer Klausur mehr als zweimal vor (erlaubt: einmal fuer Teil A | Teil B, zweimal fuer Deckblatt | Teil A | Teil B). Fehler.
 - `KL002`: `--hm` ausserhalb einer Klausur (`.kbw`); ohne Wirkung. Warnung.
 - `KL003`: Bepunktete Aufgabe bzw. Teilaufgabe einer Klausur ohne Anforderungsbereich (`afb=1|2|3`); die AFB-Auswertung ist dann unvollstaendig. Warnung.
-- `KL004`: `--hm` steht nicht zwischen zwei Aufgaben auf oberster Ebene (keine Aufgabe davor oder danach, oder innerhalb von `:::columns`). Bei zwei Markern muss zwischen ihnen (Teil A) mindestens eine Aufgabe (`:::task`) stehen -- eine Teilaufgabe allein zaehlt nicht. Fehler.
-- `KL005`: Nach `--hm` folgt keine neue Aufgabe, sondern eine Teilaufgabe oder Loesung (sie wuerde von ihrer Aufgabe getrennt). Fehler.
+- `KL004`: Ein Teil-Trenner steht falsch: `--hm` nicht zwischen zwei Aufgaben auf oberster Ebene, oder ein Wahlteil (`--w`) enthaelt keine Aufgabe, oder der Trenner steht innerhalb von `:::columns`. Fuer `--hm`: `--hm` steht nicht zwischen zwei Aufgaben auf oberster Ebene (keine Aufgabe davor oder danach, oder innerhalb von `:::columns`). Bei zwei Markern muss zwischen ihnen (Teil A) mindestens eine Aufgabe (`:::task`) stehen -- eine Teilaufgabe allein zaehlt nicht. Fehler.
+- `KL005`: Nach `--hm` bzw. `--w` folgt keine neue Aufgabe, sondern eine Teilaufgabe oder Loesung (sie wuerde von ihrer Aufgabe getrennt). Fehler.
 - `KL007`: Vor dem ersten von zwei `--hm` (Deckblatt) steht eine Aufgabe, Teilaufgabe oder Loesung. Das Deckblatt darf alles andere enthalten (Hinweise, `:::info`, `:::evaluation` ...), aber keine Aufgaben. Fehler.
 - `KL006`: `afb` an einer Teilaufgabe wirkt nicht, weil die Teilaufgaben keine eigenen Punkte haben. Warnung.
+- `KL008`: `--w` ohne offenen Wahlbereich -- der erste Wahlteil eines Bereichs braucht die Anzahl (`--w[1] Titel`). Fehler.
+- `KL009`: `--w[k]` in einem bereits offenen Wahlbereich; weitere Wahlteile ohne `[k]`, ein neuer Bereich erst nach `--hm`. Fehler.
+- `KL010`: Ungueltiges k in `--w[k]` (keine ganze Zahl oder nicht 1 <= k < Anzahl der Wahlteile). Fehler.
+- `KL011`: Die Wahlteile eines Bereichs haben unterschiedlich viele Punkte (geprueft, wenn alle Punkte gueltig sind). Fehler.
+- `KL012`: `--w` ausserhalb einer Klausur (`.kbw`). Fehler.
 - `PK001`: Aufgabe hat `points`, die nicht der Summe ihrer (vollstaendig bepunkteten) Teilaufgaben entsprechen. Fehler (blockiert den Export).
 - `PK002`: Summe der Teilpunkte `(xP)` in den Loesungen einer (Teil-)Aufgabe weicht von deren Punktzahl ab (nur wenn alle Loesungspunkte annotiert sind). Bei alternativen Wegen (`(0,5aP)`/`(1bP)`) zaehlt gemeinsam (ohne Buchstabe) + bester Weg, bei summativen Optionen (`(1/2P)`) zusaetzlich deren Summe bis zum Hoechstwert; Abzuege je Fehler (`(−0,5P)`) zaehlen nie mit; der Vergleich ist exakt. Fehler.
 - `PK003`: Punktangabe ist keine Zahl (erlaubt: `2`, `2,5`, `2.5`). Warnung; der Text wird trotzdem angezeigt.
@@ -156,6 +162,8 @@ Subprozess siehe `tests/test_blatt_diagnostics_cli.py` (Validator) sowie
 - `CW004`: `crossword`-Block enthaelt dasselbe Wort mehrfach (nach Normalisierung) -- wird weiterhin platziert (kein Verwerfen), reiner Hinweis, falls das ein Versehen ist (Warnung).
 - `CW005`: `crossword`-Block: `numbering=symbols`/`code_numbering=symbols` braucht mehr Positionen (Hinweis-Nummern bzw. Codewort-Stellen), als das gewaehlte `symbol_set`/`code_symbol_set` Symbole enthaelt. Kein Fallback auf Zahlen, kein Wiederverwenden von Symbolen -- anderes Set waehlen oder `numeric`/`letters` verwenden.
 - `IM002`: Fehlerhafte Worterklaerung `??Begriff|Erklaerung??` -- fehlendes oder mehrfaches `|` oder leerer Begriff/leere Erklaerung (Fehler, blockiert den Export). Ein woertliches `|` schreibt man `\|`, ein woertliches `??` schreibt man `\??`. Der fehlerhafte Text bleibt unveraendert als Text stehen.
+- `IM004`: Fehlerhafter Inline-Stil `-<…>`: unbekannte Schrift oder Farbe, doppelte Angabe, Groesse ausserhalb 4-120 pt, `-<>` ohne offenen Bereich oder ein Bereich, der vor einer Leerzeile, einem Listenpunkt, einer Tabellenzelle oder am Blockende nicht geschlossen ist (Fehler, blockiert den Export).
+- `PPTX003`: Die editierbare PPTX nutzt mitgelieferte Schriften, die PowerPoint nur anzeigt, wenn sie installiert sind; die Meldung nennt die Ersatzschrift (Warnung).
 - `IM003`: Worterklaerung steht im gerenderten PDF nicht (vollstaendig) in der rechten Randspalte -- entweder weil sie in einer Tabellenzelle oder in einer nicht-letzten Spalte steht, oder weil sie nicht mehr auf die Seite ihres Absatzes passt und im Rand der Folgeseite weiterlaeuft (Warnung, nur nach dem PDF-Export messbar; Best-Effort-Pruefung).
 - `MA001`: `matching`-Block mit nur einem Element auf einer Seite (1↔N) -- didaktisch nicht sinnvoll (Warnung).
 - `MJ001`: Block-Inhalt enthaelt `$...$`/`$$...$$`-Formel-Syntax -- die Darstellung laedt MathJax von einem CDN und benoetigt daher beim Export eine Internetverbindung; ohne Internet bleibt die rohe Formel-Quelle als Text sichtbar, wird aber nicht gerendert (Warnung, blocktyp-unabhaengig).
@@ -163,6 +171,12 @@ Subprozess siehe `tests/test_blatt_diagnostics_cli.py` (Validator) sowie
 - `PT002`: Gerenderte PDF-Seitenzahl groesser als erwartete Folienzahl -- Hinweis auf vertikalen Folien-Overflow (Warnung).
 - `QR001`: `qrcode`-Block ohne Pflichtoption `url`.
 - `QR002`: `qrcode`-Block mit ungueltiger `url` (erlaubt: http/https oder relativer Pfad ohne Leerzeichen).
+- `SG001`-`SG008` (`struktogramm`-Block, Fehler; Meldung nennt die Zeile im Block): `SG001` Einrueckung passt nicht zur Einheit der ersten eingerueckten Zeile, `SG002` eingerueckte Zeile ohne Kopf (z. B. unter einer Anweisung), `SG003` `sonst`/`fall`/`bis` ohne passenden Kopf, `SG004` `wiederhole` ohne abschliessendes `bis …`, `SG005` Schleife ohne Rumpf bzw. `auswahl` ohne `fall`, `SG006` Schluesselwort ohne Text dahinter (z. B. `wenn` ohne Bedingung, `rückgabe` ohne Ausdruck), `SG008` in `auswahl` steht etwas anderes als `fall …`/ein abschliessendes `sonst`. `SG007`: Block ist leer (Warnung).
+- `SG010`-`SG013` (`struktogramm`, Fehler): `signature=` folgt nicht der GO-Form `Bezeichnung(Parameter: Typ, ...): Rückgabetyp` -- `SG010` Klammerung/Rest nach `)`, `SG011` ungueltiger oder leerer Bezeichner, `SG012` Parameter ohne Typ, `SG013` leerer oder ungueltiger (Rueckgabe-)Typ.
+- `SG020`: `struktogramm` ohne `signature=` (Warnung; GO-Struktogramme haben immer einen Methodenkopf).
+- `SG021`: `rückgabe` im Struktogramm, aber die Signatur hat keinen Rueckgabetyp (Fehler).
+- `SG022`: Signatur mit Rueckgabetyp, aber nicht jeder Ablauf endet mit `rückgabe` (Warnung). Verzweigung zaehlt nur mit Rueckgabe in beiden Zweigen, Auswahl nur mit `sonst`, kopfgesteuerte Schleifen nie (koennen 0-mal laufen), fussgesteuerte ueber ihren Rumpf. Steht `gib … zurück` woertlich als Anweisung da, nennt die Meldung `rückgabe …` als Schreibweise.
+- `SG023`: Ein Parameter der Signatur kommt im Struktogramm nicht als Wort vor (Warnung).
 - `SC001`: `selfcheck`-Block: `steps=` liegt ausserhalb des gueltigen Bereichs (2-7) oder ausserhalb der fuer die gewaehlte `scale=` kuratierten Werte (z. B. `smiley` nur bei `steps=3`/`5`) -- wird begrenzt bzw. faellt auf nummerierte Kreise zurueck, reiner Hinweis (Warnung).
 
 ## Kurzentwurf-DSL (KZF)
