@@ -8,6 +8,7 @@ from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 ensure_bw_gui_on_path()
 from bw_gui.contracts.key_spec import KeySpec
 from bw_gui.runtime import WindowShortcutBinder, ui
+from bw_gui.runtime.overlay_stack import OverlayCategory, register_overlay
 from bw_gui.shortcuts import compose_hover_text as compose_shared_hover_text
 
 from .local_keys import bind_actions
@@ -70,6 +71,7 @@ class _BaseExportDialog:
         self.shortcuts_visible = False
 
         self.window = ui.Toplevel(parent)
+        register_overlay(self.window, OverlayCategory.MODAL_DIALOG, toplevel=self.window)
         self.window.resizable(False, False)
         self.window.transient(parent)
         self.window.protocol("WM_DELETE_WINDOW", self._cancel)

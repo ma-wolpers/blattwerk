@@ -3,7 +3,7 @@
 `_collect_editor_completion_context` already returns the full operator
 suggestion list for an empty prefix right after `!!` (see
 `test_editor_completion_operator_values.py`) -- the gap fixed here is one
-level up: `_on_editor_key_release`'s `trigger_chars` gate didn't include `!`,
+level up: `_on_editor_key_after`'s `trigger_chars` gate didn't include `!`,
 so typing the second `!` of `!!` never called `_open_editor_completion`
 automatically. This test spies on that call directly, independent of the
 context-detection logic already covered elsewhere.
@@ -13,6 +13,8 @@ from __future__ import annotations
 
 from app.ui.blatt_ui_editor import BlattwerkAppEditorMixin
 from app.ui.blatt_ui_editor_diagnostics import BlattwerkAppEditorDiagnosticsMixin
+from bw_gui.contracts.key_event import RawKey, classify_key
+from bw_gui.contracts.key_modifiers import TkBackend
 
 
 class _FakeRoot:
@@ -24,7 +26,7 @@ class _FakeRoot:
 
 
 class _FakeTextWidget:
-    """Minimal double -- only what `_on_editor_key_release` touches before
+    """Minimal double -- only what `_on_editor_key_after` touches before
     the trigger-chars check (`bbox`/`index` are never reached in this test
     since the completion popup itself is stubbed out below)."""
 
@@ -43,10 +45,9 @@ class _FakeTextWidget:
         raise ValueError(f"unsupported index in fake widget: {idx!r}")
 
 
-class _FakeKeyEvent:
-    def __init__(self, keysym: str, char: str = ""):
-        self.keysym = keysym
-        self.char = char
+def _FakeKeyEvent(keysym: str, char: str = ""):
+    """Build the real bw-gui ``KeyEvent`` that the editor's after-phase handler receives."""
+    return classify_key(RawKey(keysym, char, 0), TkBackend.WIN32)[0]
 
 
 class _DummyEditor(BlattwerkAppEditorDiagnosticsMixin, BlattwerkAppEditorMixin):
@@ -76,7 +77,7 @@ class _DummyEditor(BlattwerkAppEditorDiagnosticsMixin, BlattwerkAppEditorMixin):
 def test_second_exclamation_mark_of_open_operator_marker_triggers_completion():
     app = _DummyEditor("!")
 
-    app._on_editor_key_release(_FakeKeyEvent("exclam", char="!"))
+    app._on_editor_key_after(_FakeKeyEvent("exclam", char="!"))
 
     assert app.open_completion_calls == [True]
 
@@ -92,7 +93,7 @@ def test_lone_exclamation_mark_outside_any_marker_still_triggers_context_lookup(
     # does for the other trigger characters, not the context result itself.
     app = _DummyEditor("Hello!")
 
-    app._on_editor_key_release(_FakeKeyEvent("exclam", char="!"))
+    app._on_editor_key_after(_FakeKeyEvent("exclam", char="!"))
 
     assert app.open_completion_calls == [True]
 
@@ -100,7 +101,7 @@ def test_lone_exclamation_mark_outside_any_marker_still_triggers_context_lookup(
 def test_existing_trigger_characters_still_trigger_completion():
     app = _DummyEditor("foo_")
 
-    app._on_editor_key_release(_FakeKeyEvent("underscore", char="_"))
+    app._on_editor_key_after(_FakeKeyEvent("underscore", char="_"))
 
     assert app.open_completion_calls == [True]
 
@@ -108,7 +109,7 @@ def test_existing_trigger_characters_still_trigger_completion():
 def test_non_trigger_character_closes_completion_instead():
     app = _DummyEditor("x")
 
-    app._on_editor_key_release(_FakeKeyEvent("percent", char="%"))
+    app._on_editor_key_after(_FakeKeyEvent("percent", char="%"))
 
     assert app.open_completion_calls == []
     assert app.close_completion_calls == 1

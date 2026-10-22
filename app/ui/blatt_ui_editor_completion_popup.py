@@ -16,7 +16,12 @@ import re
 from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 
 ensure_bw_gui_on_path()
-from bw_gui.runtime import ui, widgets
+from bw_gui.contracts.events import EventResult
+from bw_gui.contracts.key_spec import KeySpec
+from bw_gui.runtime import WidgetShortcutBinder, bind_click, bind_hover, listbox_selection, on_listbox_select, ui, widgets
+from bw_gui.runtime.overlay_stack import OverlayCategory, register_overlay
+
+from .local_keys import bind_actions
 
 
 class BlattwerkAppEditorCompletionPopupMixin:
@@ -26,7 +31,7 @@ class BlattwerkAppEditorCompletionPopupMixin:
         """Opens completion suggestions manually via Ctrl+Space."""
 
         self._open_editor_completion(auto=False)
-        return "break"
+        return EventResult.HANDLED
 
     def _on_editor_completion_move_up(self, _event=None):
         """Moves completion selection up when popup is visible."""
@@ -37,12 +42,11 @@ class BlattwerkAppEditorCompletionPopupMixin:
         selection = self._editor_completion_listbox.curselection()
         current = selection[0] if selection else 0
         new_index = max(0, current - 1)
-        self._editor_completion_listbox.selection_clear(0, "end")
-        self._editor_completion_listbox.selection_set(new_index)
+        listbox_selection.set(self._editor_completion_listbox, [new_index])
         self._editor_completion_listbox.activate(new_index)
         self._editor_completion_listbox.see(new_index)
         self._update_editor_completion_detail_panel()
-        return "break"
+        return EventResult.HANDLED
 
     def _on_editor_completion_move_down(self, _event=None):
         """Moves completion selection down when popup is visible."""
@@ -54,12 +58,11 @@ class BlattwerkAppEditorCompletionPopupMixin:
         current = selection[0] if selection else 0
         max_index = max(0, len(self._editor_completion_items) - 1)
         new_index = min(max_index, current + 1)
-        self._editor_completion_listbox.selection_clear(0, "end")
-        self._editor_completion_listbox.selection_set(new_index)
+        listbox_selection.set(self._editor_completion_listbox, [new_index])
         self._editor_completion_listbox.activate(new_index)
         self._editor_completion_listbox.see(new_index)
         self._update_editor_completion_detail_panel()
-        return "break"
+        return EventResult.HANDLED
 
     def _on_editor_completion_enter(self, _event=None):
         """Accepts completion on enter when popup is visible."""
@@ -83,7 +86,7 @@ class BlattwerkAppEditorCompletionPopupMixin:
         self._queue_editor_highlighting(immediate=True)
         self._queue_editor_diagnostics(immediate=True)
         self._queue_editor_outline(immediate=True)
-        return "break"
+        return EventResult.HANDLED
 
     def _open_editor_completion(self, auto: bool):
         """Collects completion suggestions and renders popup near caret."""
@@ -134,11 +137,18 @@ class BlattwerkAppEditorCompletionPopupMixin:
                 width=72,
             )
             listbox.pack(side="left", fill="both", expand=True)
-            listbox.bind("<Double-Button-1>", self._on_editor_completion_accept)
-            listbox.bind("<Return>", self._on_editor_completion_accept)
-            listbox.bind("<Escape>", lambda _event: self._close_editor_completion())
-            listbox.bind("<<ListboxSelect>>", self._on_editor_completion_selection_changed)
-            listbox.bind("<Motion>", self._on_editor_completion_hover)
+            bind_click(listbox, self._on_editor_completion_accept, count=2)
+            bind_actions(
+                WidgetShortcutBinder(listbox),
+                (
+                    (KeySpec.parse("Enter (tolerate: Shift)"), "accept", self._on_editor_completion_accept),
+                    (KeySpec.parse("Escape (tolerate: Shift)"), "close", self._close_editor_completion),
+                ),
+                text=True,
+                prefix="completion_list",
+            )
+            on_listbox_select(listbox, self._on_editor_completion_selection_changed)
+            bind_hover(listbox, on_motion=self._on_editor_completion_hover)
 
             detail_column = ui.Frame(content_row)
             # Not packed here -- `_update_editor_completion_detail_panel` packs
@@ -192,8 +202,7 @@ class BlattwerkAppEditorCompletionPopupMixin:
         for item in self._editor_completion_items:
             self._editor_completion_listbox.insert("end", item["label"])
 
-        self._editor_completion_listbox.selection_clear(0, "end")
-        self._editor_completion_listbox.selection_set(0)
+        listbox_selection.set(self._editor_completion_listbox, [0])
         self._editor_completion_listbox.activate(0)
         self._update_editor_completion_detail_panel()
 
@@ -207,26 +216,33 @@ class BlattwerkAppEditorCompletionPopupMixin:
         self._editor_completion_popup.geometry(f"+{x}+{y}")
         self._editor_completion_popup.deiconify()
         self._editor_completion_popup.lift()
+        # Aufklappliste: zaehlt nur, solange sie sichtbar ist (das Popup wird versteckt und
+        # wiederverwendet), als Menue -- wie frueher im Scan der sichtbaren Root-Kinder.
+        overlay = getattr(self, "_editor_completion_overlay", None)
+        if overlay is None or not overlay.active:
+            self._editor_completion_overlay = register_overlay(
+                self._editor_completion_popup, OverlayCategory.MENU, toplevel=self._editor_completion_popup
+            )
 
     def _on_editor_completion_accept(self, _event=None):
         """Applies currently selected completion entry to the editor text."""
 
         if self.editor_widget is None or self._editor_completion_listbox is None:
-            return "break"
+            return EventResult.HANDLED
 
         selection = self._editor_completion_listbox.curselection()
         if not selection:
-            return "break"
+            return EventResult.HANDLED
 
         candidate = self._editor_completion_items[selection[0]]
         if not candidate:
-            return "break"
+            return EventResult.HANDLED
 
         self._record_editor_completion_usage(candidate)
 
         insert_text, cursor_offset = self._resolve_completion_insert(candidate)
         if insert_text is None or cursor_offset is None:
-            return "break"
+            return EventResult.HANDLED
 
         replace_start = self._editor_completion_replace_start or self.editor_widget.index("insert")
         replace_end = self._editor_completion_replace_end or self.editor_widget.index("insert")
@@ -241,7 +257,7 @@ class BlattwerkAppEditorCompletionPopupMixin:
             self._open_editor_completion(auto=True)
         else:
             self._close_editor_completion()
-        return "break"
+        return EventResult.HANDLED
 
     @staticmethod
     def _should_chain_completion_after_accept(candidate: dict, insert_text: str) -> bool:
@@ -306,6 +322,9 @@ class BlattwerkAppEditorCompletionPopupMixin:
 
         if self._editor_completion_popup is not None and self._editor_completion_popup.winfo_exists():
             self._editor_completion_popup.withdraw()
+        overlay = getattr(self, "_editor_completion_overlay", None)
+        if overlay is not None:
+            overlay.remove()
 
         self._editor_completion_items = []
         self._editor_completion_replace_start = None
@@ -363,8 +382,7 @@ class BlattwerkAppEditorCompletionPopupMixin:
         if listbox.curselection() == (index,):
             return
 
-        listbox.selection_clear(0, "end")
-        listbox.selection_set(index)
+        listbox_selection.set(listbox, [index])
         listbox.activate(index)
         self._update_editor_completion_detail_panel()
 

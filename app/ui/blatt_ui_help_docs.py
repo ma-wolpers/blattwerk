@@ -9,7 +9,7 @@ import markdown
 from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 
 ensure_bw_gui_on_path()
-from bw_gui.runtime import ui, widgets
+from bw_gui.runtime import listbox_selection, on_listbox_select, ui, widgets
 from bw_gui.theming._theme_manager import mix_hex
 from bw_gui.widgets import configure_doc_text_tags, html_to_events, render_events_into_text
 
@@ -65,7 +65,7 @@ class BlattwerkAppHelpDocsMixin:
         window.title("Dokumentation")
         window.geometry("1000x680")
         window.minsize(760, 480)
-        self._track_popup_window(window, policy_id="dialog.non_blocking")
+        self._register_popup_window(window, blocking_shortcuts=False)
         window.protocol("WM_DELETE_WINDOW", self._close_help_docs_window)
 
         body = widgets.Frame(window, padding=10)
@@ -82,7 +82,7 @@ class BlattwerkAppHelpDocsMixin:
         side_scroll = widgets.Scrollbar(side, orient="vertical", command=listbox.yview)
         side_scroll.grid(row=0, column=1, sticky="ns")
         listbox.configure(yscrollcommand=side_scroll.set)
-        listbox.bind("<<ListboxSelect>>", self._on_help_doc_selected)
+        on_listbox_select(listbox, self._on_help_doc_selected)
 
         content = widgets.Frame(body)
         content.grid(row=0, column=1, sticky="nsew")
@@ -105,7 +105,7 @@ class BlattwerkAppHelpDocsMixin:
         if self.help_docs_catalog:
             for label, _path in self.help_docs_catalog:
                 listbox.insert("end", label)
-            listbox.selection_set(0)
+            listbox_selection.set(listbox, [0])
             self._render_help_doc(self.help_docs_catalog[0][1])
         else:
             self._render_help_docs_empty_state()

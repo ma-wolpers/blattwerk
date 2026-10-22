@@ -101,3 +101,9 @@ def test_export_dialog_offers_expectation_horizon_only_as_pdf_or_html():
     assert dialog._allowed_formats() == ["pdf", "html"]
     dialog.mode_var = _Var("worksheet")
     assert "png" in dialog._allowed_formats()
+
+
+def test_horizon_uses_the_smaller_base_font():
+    """Kompakter Druck: Grundschrift 9 pt, Überschriften proportional kleiner."""
+    html, _diagnostics = _html(":::task points=1 afb=1\nA\n:::\n:::solution\n1. x (1P)\n:::\n")
+    assert "font-size: 9pt" in html and "h1 { font-size: 14pt" in html

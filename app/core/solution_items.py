@@ -1,4 +1,4 @@
-"""Lösungspunkte: einzige Zuordnung von `:::solution` zu (Teil-)Aufgaben und einzige `(xP)`-Regex.
+"""Lösungspunkte: einzige Zuordnung von `:::solution` zu (Teil-)Aufgaben und einzige Punktsumme.
 
 Zuordnungsregel:
 
@@ -12,42 +12,67 @@ Zuordnungsregel:
 * Mehrere Lösungen mit demselben Ziel werden in Dokumentreihenfolge
   zusammengeführt.
 
-Items sind nur Top-Level-Einträge nummerierter Listen (Einrückung 0–3);
+Items sind die Lösungspunkte aus `solution_structure.classify_solution` --
+dieselbe Zerlegung, aus der `solution_display` die oberste Liste rendert.
 Unterlisten gehören als Fortsetzung zum Eltern-Item. `(xP)` zählt nur am
-Zeilenende eines Top-Level-Items (SL004 sonst).
+Zeilenende der Kopfzeile eines Punkts (SL004 sonst); die Grammatik des
+Suffixes steht ausschließlich in `points_suffix`.
 
-Teilpunkte für alternative Lösungswege: `(x/nP)` bedeutet „x von n
-erreichbaren Punkten“. Alternative Wege sind nicht summativ -- die Summe
-der Zähler darf deshalb die Punktzahl n des Ziels übersteigen (Überzahl ist
-der beabsichtigte Normalfall). `n` landet in `SolutionItem.of_total`; die
-Prüfregeln dazu stehen in `blatt_validator_points` (SL009–SL013).
+Abzüge je Fehler (`(−0,5P)`, negative `points`) gehören zu keiner Summe
+und zu keinem Weg; sie werden im Erwartungshorizont getrennt ausgewiesen.
+
+Alternative Lösungswege: Ein Buchstabe im Suffix (`(0,5aP)`, `(1bP)`)
+ordnet den Punkt einem Weg zu; Punkte ohne Buchstabe gelten für alle Wege.
+Erreichbar ist dann Σ(ohne Buchstabe) + max über die Wege von Σ(Weg)
+(`solution_points_total`). Geltungsbereich ist genau ein Ziel
+(`SolutionTarget`): Mehrere Lösungsblöcke desselben Ziels teilen sich die
+Buchstaben, Aufgabenebene und jede Teilaufgabe sind getrennt, am `--hm`
+wird zurückgesetzt.
+
+GRENZE: eine Wahlentscheidung je Ziel. Zwei unabhängige Entscheidungen in
+derselben (Teil-)Aufgabe lassen sich mit Buchstaben nicht ausdrücken und
+gehören auf zwei Teilaufgaben verteilt (Nutzerentscheidung 2026-10-16).
 """
 
 from __future__ import annotations
 
-import re
 from dataclasses import dataclass, field
 from decimal import Decimal
 
-from .points_model import iter_units, parse_points
-
-POINTS_SUFFIX_RE = re.compile(r"\((\d+(?:[.,]\d+)?)(?:\s*/\s*(\d+(?:[.,]\d+)?))?\s*P\)\s*$")
-_TOP_ITEM_RE = re.compile(r"^ {0,3}(\d+)[.)]\s+(.*)$")
-_BULLET_RE = re.compile(r"^\s*[-*+]\s+")
-_NESTED_ITEM_RE = re.compile(r"^(?: {4,}|\t)\s*(?:\d+[.)]|[-*+])\s+")
+from .points_model import iter_units
+from .points_suffix import SUFFIX_NONE, has_points_candidate, parse_points_suffix, strip_valid_suffix
+from .solution_structure import LIST_LINE_RE, classify_solution
 
 
 @dataclass
 class SolutionItem:
-    """Ein nummerierter Erwartungspunkt (Text ohne Punkt-Suffix).
+    """Ein nummerierter Erwartungspunkt (Text ohne gültiges Punkt-Suffix).
 
-    `points` ist x aus `(xP)` bzw. `(x/nP)`; `of_total` ist n bei der
-    Teilpunkt-Schreibweise für alternative Lösungswege, sonst ``None``.
+    Attributes:
+        text: Sichtbarer Text (Kopf + Fortsetzung, ohne Kommentare und ohne
+            gültiges Suffix; ein altes oder unlesbares Suffix bleibt im Text).
+        points: Punktzahl, **nur** bei gültigem Suffix (`points_suffix`),
+            sonst ``None`` -- alte und unlesbare Suffixe gehen so in keine Summe ein.
+            Negativ = Abzug je Fehler (`is_deduction`).
+        path: Weg-Buchstabe des Suffixes oder ``None`` (gilt für alle Wege).
+        suffix_status: Status aus `points_suffix` (`none`/`valid`/`legacy`/`invalid`).
+        suffix_text: Wortlaut der Suffix-Klammer (für Diagnosetexte), sonst leer.
+        kind: Erwartungstyp (Schlüssel aus `expectation_kinds`) oder ``None``.
+        kind_token: Typ-Token wie geschrieben; gesetzt, aber `kind` ``None`` = unbekannter Typ (SL017).
     """
 
     text: str
     points: Decimal | None
-    of_total: Decimal | None = None
+    path: str | None = None
+    suffix_status: str = SUFFIX_NONE
+    suffix_text: str = ""
+    kind: str | None = None
+    kind_token: str | None = None
+
+    @property
+    def is_deduction(self) -> bool:
+        """Ob der Punkt ein Abzug je Fehler ist (negativer Zahlenwert)."""
+        return self.points is not None and self.points < 0
 
 
 @dataclass
@@ -63,6 +88,7 @@ class SolutionTarget:
 
     @property
     def is_task_level(self) -> bool:
+        """Ob die Lösung zur Aufgabe selbst statt zu einer Teilaufgabe gehört."""
         return self.subtask_position is None
 
 
@@ -78,35 +104,71 @@ class SolutionIssue:
 def parse_solution_items(content: str) -> tuple[list[SolutionItem], bool]:
     """Liefert die Items und ob `(xP)` an einer nicht zählenden Stelle stand (SL004).
 
-    Ein nicht eingerückter Absatz beendet das aktuelle Item; eingerückte
-    Zeilen (z. B. Unterlisten) und Leerzeilen davor gehören zum Item.
+    Die Punkte kommen ausschließlich aus `classify_solution` (Kopfzeile plus
+    Fortsetzung). Nicht zählend ist ein Suffix in einer Listen- oder
+    Aufzählungszeile, die keine Kopfzeile ist -- außerhalb geschützter
+    Bereiche (Mathe, Kommentar, Codezaun), die nie ausgewertet werden.
     """
-    groups: list[list[str]] = []
-    current: list[str] | None = None
-    misplaced = False
-    for raw in (content or "").split("\n"):
-        line = raw.rstrip("\r")
-        top = _TOP_ITEM_RE.match(line)
-        if top:
-            current = [top.group(2)]
-            groups.append(current)
-            continue
-        if POINTS_SUFFIX_RE.search(line) and (_NESTED_ITEM_RE.match(line) or _BULLET_RE.match(line)):
-            misplaced = True
-        if current is not None and (line.startswith((" ", "\t")) or not line.strip()):
-            current.append(line.strip())
-        elif line.strip():
-            current = None
+    layout = classify_solution(content)
+    head_lines = {entry.head_line for entry in layout.entries}
+    misplaced = any(
+        LIST_LINE_RE.match(line) and has_points_candidate(line)
+        for number, line in enumerate(layout.lines)
+        if number not in head_lines and number not in layout.protected_lines
+    )
     items = []
-    for group in groups:
-        first = group[0]
-        match = POINTS_SUFFIX_RE.search(first)
-        value = parse_points(match.group(1)) if match else None
-        of_total = parse_points(match.group(2)) if match and match.group(2) else None
-        head = POINTS_SUFFIX_RE.sub("", first).rstrip() if match else first
-        continuation = " ".join(part for part in group[1:] if part)
-        items.append(SolutionItem((head + (" " + continuation if continuation else "")).strip(), value, of_total))
+    for entry in layout.entries:
+        visible_head, *visible_rest = entry.visible_lines()
+        suffix = parse_points_suffix(visible_head)
+        head = strip_valid_suffix(visible_head, suffix)
+        continuation = " ".join(part.strip() for part in visible_rest if part.strip())
+        text = (head + (" " + continuation if continuation else "")).strip()
+        items.append(SolutionItem(
+            text, suffix.value, suffix.path, suffix.status, suffix.text_in(visible_head), suffix.kind, suffix.kind_token,
+        ))
     return items, misplaced
+
+
+@dataclass(frozen=True)
+class PointsTotal:
+    """Erreichbare Punkte eines Ziels (`solution_points_total`).
+
+    Attributes:
+        total: gemeinsam + bester Weg.
+        shared: Summe der Punkte ohne Weg-Buchstaben.
+        paths: Summe je Weg-Buchstabe (alphabetisch).
+        best_path: Buchstabe des Wegs mit der höchsten Summe (bei Gleichstand
+            der alphabetisch erste) oder ``None`` ohne Wege.
+    """
+
+    total: Decimal
+    shared: Decimal
+    paths: dict[str, Decimal]
+    best_path: str | None
+
+
+def solution_points_total(items) -> PointsTotal:
+    """Erreichbare Punkte: Σ(ohne Buchstabe) + max über die Wege von Σ(Weg).
+
+    Berücksichtigt nur Punkte mit Zahlenwert (gültiges Suffix); Abzüge je
+    Fehler (negative Werte) zählen nie mit, auch nicht mit Buchstabe. Alle Werte
+    sind `Decimal` aus `points_model.parse_points` (aus Strings, nie `float`),
+    der Vergleich mit `points=` ist daher exakt.
+
+    GRENZE: Alle Buchstaben eines Ziels bilden *eine* Wahlentscheidung
+    (siehe Moduldocstring).
+    """
+    shared, paths = Decimal(0), {}
+    for item in items:
+        if item.points is None or item.points < 0:
+            continue
+        if item.path is None:
+            shared += item.points
+        else:
+            paths[item.path] = paths.get(item.path, Decimal(0)) + item.points
+    ordered = dict(sorted(paths.items()))
+    best = max(ordered, key=lambda letter: ordered[letter]) if ordered else None
+    return PointsTotal(shared + (ordered[best] if best else Decimal(0)), shared, ordered, best)
 
 
 def collect_solution_targets(blocks) -> tuple[list[SolutionTarget], list[SolutionIssue]]:
@@ -139,12 +201,14 @@ def collect_solution_targets(blocks) -> tuple[list[SolutionTarget], list[Solutio
 
 
 def _new_target(units, key) -> SolutionTarget:
+    """Leeres Ziel für `(unit_index, subtask_position)` mit angezeigtem Teilaufgaben-Buchstaben."""
     unit_index, position = key
     letter = None if position is None else units[unit_index].subtasks[position].letter
     return SolutionTarget(unit_index, letter, position)
 
 
 def _resolve_target(options, current_unit, last_target, units, index, issues):
+    """Ziel einer Lösung nach `target=` bzw. der vorangehenden Aufgabe; meldet SL001/SL008 in `issues`."""
     raw_target = options.get("target")
     if raw_target is None:
         if last_target is None:

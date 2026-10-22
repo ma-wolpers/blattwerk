@@ -1,14 +1,24 @@
-"""Punkt- und Lösungsdiagnosen (PK001–PK006, SL001/SL004/SL006/SL008–SL013).
+"""Punkt- und Lösungsdiagnosen (PK001–PK006, SL001/SL004/SL006/SL008, SL014–SL018).
 
-Liest Punkte nur über `points_model` und Lösungs-Items nur über
-`solution_items` (Invariante I4). Gilt für Arbeitsblätter und Klausuren.
+Liest Punkte nur über `points_model`, Lösungs-Items und ihre Summe nur über
+`solution_items` und die Suffix-Grammatik nur über `points_suffix`
+(Invariante I4). Gilt für Arbeitsblätter und Klausuren.
 
 Fehler (blockieren den Export wie alle Blattwerk-Fehler): PK001, PK002,
-PK004, PK005, SL008, SL009, SL010, SL011. Warnungen: PK003, PK006, SL001,
-SL004, SL006, SL012, SL013.
+PK004, PK005, SL008, SL014, SL018. Warnungen: PK003, PK006, SL001, SL004,
+SL006, SL015, SL016, SL017.
 
-Teilpunkte `(x/nP)` (alternative Lösungswege, nicht summativ) ersetzen für
-ihr Ziel die Summenprüfung PK002 durch SL009–SL012.
+Erwartungstypen (`(0,5P An)`) sind optional; ein unbekannter Typ ist nur eine
+Warnung (SL017), Wert und Weg des Punkts zählen trotzdem.
+
+Abzüge je Fehler (`(−0,5P)`) zählen in keine Summe; ein Weg-Buchstabe daran
+ist wirkungslos (SL016).
+
+Alternative Wege (`(0,5aP)`/`(1bP)`): PK002 vergleicht gemeinsam + bester
+Weg exakt mit der Punktzahl. Ein altes (`(x/nP)`, SL014) oder unlesbares
+(SL018) Suffix hat keinen Zahlenwert; für dieses Ziel entfallen deshalb
+SL006, SL015 und PK002 (keine Doppelmeldung aus derselben Ursache). Die
+früheren Teilpunkt-Diagnosen SL009–SL013 entfallen.
 """
 
 from __future__ import annotations
@@ -26,12 +36,15 @@ from .points_model import (
     format_points,
     subtask_effective,
 )
-from .solution_items import collect_solution_targets
+from .expectation_kinds import valid_kinds_hint
+from .points_suffix import SUFFIX_GRAMMAR_HINT, SUFFIX_INVALID, SUFFIX_LEGACY
+from .solution_items import collect_solution_targets, solution_points_total
 
 POINTS_DOCUMENT_TYPES = frozenset({"worksheet", "exam"})
 
 
 def _diag(code, message, blocks, index, severity="warning") -> BuildDiagnostic:
+    """Diagnose am Block `index` mit Region und Anker wie alle Block-Diagnosen."""
     block_type, options, _content = blocks[index]
     return BuildDiagnostic(
         code=code,
@@ -60,6 +73,7 @@ def validate_points(blocks, document_type: str = "worksheet") -> list[BuildDiagn
 
 
 def _unit_diagnostics(unit: TaskUnit, blocks) -> list[BuildDiagnostic]:
+    """Punktfehler einer Aufgabeneinheit aus `points_model` (PK001, PK003, PK004)."""
     label = f"Aufgabe {unit.number}"
     result = []
     if "PK001" in unit.codes:
@@ -81,19 +95,43 @@ def _unit_diagnostics(unit: TaskUnit, blocks) -> list[BuildDiagnostic]:
 
 
 def _target_diagnostics(target, unit: TaskUnit, blocks) -> list[BuildDiagnostic]:
+    """Diagnosen eines Lösungsziels (Aufgabe oder Teilaufgabe), Reihenfolge siehe Moduldocstring."""
     anchor_index = target.block_indices[0]
     label = f"Aufgabe {unit.number}" + (f"{target.subtask_letter}" if target.subtask_letter else "")
     result = []
     if target.misplaced_points:
         result.append(_diag(
             "SL004",
-            f"Loesung zu {label}: Punkte `(xP)` zaehlen nur am Ende eines nummerierten Top-Level-Punkts.",
+            f"Loesung zu {label}: Punkte `(xP)` zaehlen nur am Ende der ersten Zeile eines Loesungspunkts `1. …`.",
+            blocks, anchor_index,
+        ))
+    unreadable = _unreadable_suffix_diagnostics(target, label, blocks, anchor_index)
+    if unreadable:
+        return result + unreadable
+    for item in target.items:
+        if item.kind_token and item.kind is None:
+            result.append(_diag(
+                "SL017",
+                f"Loesung zu {label}: unbekannter Erwartungstyp `{item.kind_token}` in `{item.suffix_text}`. "
+                f"Gueltig (Name oder Kuerzel): {valid_kinds_hint()}.",
+                blocks, anchor_index,
+            ))
+        if item.is_deduction and item.path:
+            result.append(_diag(
+                "SL016",
+                f"Loesung zu {label}: Abzug `{item.suffix_text}` mit Weg-Buchstabe -- Abzuege gelten fuer die ganze "
+                "(Teil-)Aufgabe, der Buchstabe wird ignoriert.",
+                blocks, anchor_index,
+            ))
+    paths = sorted({item.path for item in target.items if item.path and not item.is_deduction})
+    if len(paths) == 1:
+        result.append(_diag(
+            "SL015",
+            f"Loesung zu {label}: Nur Weg `{paths[0]}` ist markiert -- ohne zweiten Weg gibt es keine Alternative.",
             blocks, anchor_index,
         ))
     annotated = [item.points for item in target.items if item.points is not None]
     if not annotated:
-        return result
-    if any(not isinstance(value, Decimal) for value in annotated):
         return result
     if target.is_task_level and unit.subtasks_pointed:
         result.append(_diag(
@@ -102,14 +140,6 @@ def _target_diagnostics(target, unit: TaskUnit, blocks) -> list[BuildDiagnostic]
             blocks, anchor_index, "error",
         ))
         return result
-    has_partial = any(item.of_total is not None for item in target.items)
-    if has_partial and any(item.points is not None and item.of_total is None for item in target.items):
-        result.append(_diag(
-            "SL013",
-            f"Loesung zu {label}: `(xP)` und Teilpunkte `(x/nP)` gemischt -- alternative Wege einheitlich "
-            "als `(x/nP)` angeben.",
-            blocks, anchor_index,
-        ))
     if len(annotated) < len(target.items):
         result.append(_diag(
             "SL006",
@@ -126,72 +156,43 @@ def _target_diagnostics(target, unit: TaskUnit, blocks) -> list[BuildDiagnostic]
             blocks, anchor_index,
         ))
         return result
-    if has_partial:
-        # Alternative Wege sind nicht summativ: PK002 entfällt, stattdessen SL009–SL012.
-        if unit.status == STATUS_OK:
-            result.extend(_partial_points_diagnostics(target, expected, label, blocks, anchor_index))
-        return result
-    total = sum(annotated, Decimal(0))
-    if total != expected and unit.status == STATUS_OK:
+    total = solution_points_total(target.items)
+    if total.total != expected and unit.status == STATUS_OK:
         result.append(_diag(
             "PK002",
-            f"Loesung zu {label}: Summe der Teilpunkte ({format_points(total)}) "
+            f"Loesung zu {label}: Summe der Teilpunkte ({_total_text(total)}) "
             f"weicht von der Punktzahl ({format_points(expected)}) ab.",
             blocks, anchor_index, "error",
         ))
     return result
 
 
-def _partial_points_diagnostics(target, expected: Decimal, label: str, blocks, anchor_index: int) -> list[BuildDiagnostic]:
-    """Prüft Teilpunkte `(x/nP)` alternativer Lösungswege eines Ziels.
-
-    Semantik: „x von n erreichbaren Punkten“, n ist die Punktzahl des Ziels.
-    Alternative Wege sind nicht summativ, eine Überzahl (Σx > n) ist daher
-    der beabsichtigte Normalfall und bleibt ohne Diagnose. Gemeldet werden:
-
-    * SL009 (Fehler): ein Nenner n weicht von der Punktzahl des Ziels ab.
-    * SL010 (Fehler): ein einzelner Zähler x ist größer als sein Nenner.
-    * SL011 (Fehler): Σx < Punktzahl -- erreichbares Punktpotenzial fehlt.
-    * SL012 (Warnung): Σx = Punktzahl -- die k/n-Notation ist redundant,
-      dieselben Angaben gingen auch als gewöhnliche `(xP)`.
-
-    Die Summenregeln SL011/SL012 gelten nur, wenn ausschließlich `(x/nP)`
-    verwendet wird; bei Mischung meldet der Aufrufer bereits SL013.
-    """
+def _unreadable_suffix_diagnostics(target, label: str, blocks, anchor_index: int) -> list[BuildDiagnostic]:
+    """SL014 (alte Schreibweise `(x/nP)`) und SL018 (unlesbares Suffix), je betroffenem Punkt, als Fehler."""
     result = []
-    partial_items = [item for item in target.items if item.of_total is not None]
-    for item in partial_items:
-        if not isinstance(item.of_total, Decimal) or not isinstance(item.points, Decimal):
-            continue
-        if item.of_total != expected:
+    for item in target.items:
+        if item.suffix_status == SUFFIX_LEGACY:
             result.append(_diag(
-                "SL009",
-                f"Loesung zu {label}: Teilpunkte `({format_points(item.points)}/{format_points(item.of_total)}P)` -- "
-                f"der Nenner muss die Punktzahl von {label} sein ({format_points(expected)}).",
+                "SL014",
+                f"Loesung zu {label}: `{item.suffix_text}` -- die Teilpunkt-Schreibweise `(x/nP)` gibt es nicht mehr. "
+                f"Erlaubt: {SUFFIX_GRAMMAR_HINT}; Punkte ohne Buchstabe gelten fuer alle Wege.",
                 blocks, anchor_index, "error",
             ))
-        if item.points > item.of_total:
+        elif item.suffix_status == SUFFIX_INVALID:
             result.append(_diag(
-                "SL010",
-                f"Loesung zu {label}: `({format_points(item.points)}/{format_points(item.of_total)}P)` -- "
-                "ein Loesungsschritt kann nicht mehr Punkte bringen als erreichbar sind.",
+                "SL018",
+                f"Loesung zu {label}: Punktangabe `{item.suffix_text}` ist nicht lesbar. Erlaubt: {SUFFIX_GRAMMAR_HINT}.",
                 blocks, anchor_index, "error",
             ))
-    if len(partial_items) != len(target.items):
-        return result
-    total = sum((item.points for item in partial_items if isinstance(item.points, Decimal)), Decimal(0))
-    if total < expected:
-        result.append(_diag(
-            "SL011",
-            f"Loesung zu {label}: Summe der Teilpunkte ({format_points(total)}) ist kleiner als die "
-            f"Punktzahl ({format_points(expected)}) -- erreichbare Punkte fehlen.",
-            blocks, anchor_index, "error",
-        ))
-    elif total == expected:
-        result.append(_diag(
-            "SL012",
-            f"Loesung zu {label}: Summe der Teilpunkte entspricht genau der Punktzahl -- die Schreibweise "
-            "`(x/nP)` ist hier unnoetig, `(xP)` genuegt.",
-            blocks, anchor_index,
-        ))
     return result
+
+
+def _total_text(total) -> str:
+    """Summe für PK002: `2` bzw. bei Wegen `gemeinsam 1 + bester Weg a 1 = 2`."""
+    if not total.paths:
+        return format_points(total.total)
+    best = total.paths[total.best_path]
+    return (
+        f"gemeinsam {format_points(total.shared)} + bester Weg {total.best_path} "
+        f"{format_points(best)} = {format_points(total.total)}"
+    )

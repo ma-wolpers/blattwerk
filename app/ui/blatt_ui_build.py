@@ -5,25 +5,14 @@ from __future__ import annotations
 from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 
 ensure_bw_gui_on_path()
-from bw_gui.runtime import ui, widgets
+from bw_gui.runtime import on_resize, ui, widgets
 from bw_gui.widgets import HoverTooltip
 
 from .ui_constants import (
     EDITOR_VIEW_BOTH,
     EDITOR_VIEW_EDITOR_ONLY,
     EDITOR_VIEW_PREVIEW_ONLY,
-    PREVIEW_CANVAS_PADDING_PX,
-    PREVIEW_MIN_FRAME_PX,
-    PREVIEW_PAGE_GAP_PX,
-    PREVIEW_PAGE_MARGIN_PX,
-    PREVIEW_SCALE_MAX,
-    PREVIEW_SCALE_MIN,
-    PREVIEW_ZOOM_MAX_PERCENT,
-    PREVIEW_ZOOM_MIN_PERCENT,
-    VIEW_LAYOUT_STACK,
-    VIEW_LAYOUT_STRIP,
 )
-from ..styles.blatt_styles import FONT_PROFILE_LABELS
 from .blatt_ui_build_preview import BlattwerkPreviewBuildMixin
 
 
@@ -191,7 +180,7 @@ class BlattwerkAppBuildMixin(BlattwerkPreviewBuildMixin):
             group.grid(row=0, column=index, sticky="w", padx=(gap_px, 0))
 
         self._responsive_sections.append(section)
-        container.bind("<Configure>", lambda _event, s=section: self._reflow_responsive_section(s))
+        on_resize(container, lambda _event, s=section: self._reflow_responsive_section(s))
 
     def _set_responsive_group_hidden(self, group, hidden: bool) -> None:
         """Permanently hides/shows a responsive-section group across resize reflows.

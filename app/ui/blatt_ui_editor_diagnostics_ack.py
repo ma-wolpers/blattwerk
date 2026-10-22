@@ -14,7 +14,7 @@ from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 
 ensure_bw_gui_on_path()
 from bw_gui.contracts.events import EventResult
-from bw_gui.runtime import ui
+from bw_gui.runtime import treeview_selection, ui
 
 from ..storage import acknowledged_warnings_store
 
@@ -106,7 +106,7 @@ class BlattwerkAppEditorDiagnosticsAckMixin:
         if row_id:
             item = self._editor_diagnostics_by_row_id.get(row_id)
             if item is not None and item["severity"] == "warning" and item.get("identity") is not None:
-                tree.selection_set(row_id)
+                treeview_selection.set(tree, [row_id], notify=True)
                 is_acked = "ack_done" in tree.item(row_id, "tags")
                 label = "Wieder anzeigen" if is_acked else "Als gelesen markieren"
                 menu.add_command(

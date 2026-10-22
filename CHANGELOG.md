@@ -6,7 +6,17 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added
+- **Erwartungstypen für Lösungspunkte:** Ein Wort nach dem P benennt, was erwartet wird – Ansatz (An) 💡, Anwendung (Aw) 🛠️, Antwortsatz (Sa) 💬, Fachsprache (Fs) 📚, Entscheidung (En) ⚖️, Ergebnis (Er) ✅, Beobachtung (Be) 🔍, Begründung (Bg) 🧩, Einheit/Größe (Ei) 📏, Darstellung (Da) 📐, z. B. `(0,5P An)` oder `(1aP Anwendung)`, auch an Abzügen (`(−1P Bg)`). Der Erwartungshorizont zeigt das Symbol vor dem Text und darunter eine Legende der verwendeten Typen; die Lösung blendet den Typ aus. Ein unbekannter Typ ergibt eine Warnung (`SL017`). In `LZK 1 v2` wurden die von Hand gesetzten Emojis in Typen umgewandelt (die Lösungsversion zeigt deshalb keine Emojis mehr).
+- **Minuspunkte in Lösungen:** `(−0,5P)` bzw. `(-1P)` kennzeichnet einen Abzug je Fehler, z. B. für Ankreuzaufgaben („+0,5 je richtig, −0,5 je falsch“) oder Begründungen. Abzüge zählen nicht zur Summenprüfung – die Pluspunkte müssen die Punktzahl ergeben –, erscheinen in der Lösung als `(−0,5P)` und im Erwartungshorizont getrennt als „Abzug je Fehler“ am Ende der Tabelle. Ein Weg-Buchstabe an einem Abzug wird ignoriert (Hinweis `SL016`).
+- **Erwartungshorizont kompakter:** kleinere Schrift (9 pt statt 10,5 pt, Überschriften entsprechend kleiner), damit mehr Erwartungen auf eine Seite passen.
+- **Klausuren: Kopfzeile je Teil.** Mit `show_student_header: ja` steht die Schülerkopfzeile (Name, Lerngruppe, Datum) jetzt auch oben auf Teil B – und mit Deckblatt auf Teil A –, damit getrennt eingesammelte Teile beschriftet sind.
+
 ### Changed
+- **Schlanke Scrollbars:** Alle Scrollbars sind jetzt die schlanke native Scrollbar statt der mit Pfeilknöpfen; unter Windows werden sie im dunklen Theme dunkel. Das Mausrad über der Scrollbar eines scrollbaren Bereichs (z. B. im Einstellungsdialog) scrollt jetzt genau dreimal so weit wie über dem Inhalt (bisher unbeabsichtigt fünfmal).
+- **Alternative Lösungswege mit Buchstaben statt `(x/nP)`:** `(0,5aP)` gehört zu Weg a, `(1bP)` zu Weg b, Punkte ohne Buchstabe gelten für alle Wege. Geprüft wird jetzt exakt: gemeinsame Punkte + bester Weg = Punktzahl (`PK002`). In der Lösung steht `(0,5P, Weg a)`, im Erwartungshorizont „Weg a:“ vor dem Text. Die alte Schreibweise `(x/nP)` ist ein Fehler (`SL014`, mit Hinweis zur Umstellung), ebenso eine unlesbare Punktangabe wie `(0,5abP)` (`SL018`); nur ein einziger Weg-Buchstabe ergibt eine Warnung (`SL015`). Punktangaben in Lösungen erscheinen einheitlich mit Komma (`(0.5P)` → `(0,5P)`). `LZK 1 v2` (deutsch und portugiesisch) wurde umgestellt.
+- **Lösungen: dargestellte und bewertete Lösungspunkte sind jetzt immer dieselben.** Unterpunkte mit weniger als vier Leerzeichen Einrückung (z. B. `   - Aussage 1`) erscheinen als Unterliste ihres Punkts statt als eigene nummerierte Punkte; Zeilen in Codeblöcken, `%%`-Kommentaren und Formeln zählen nie als Lösungspunkt; `Text (1P) %%Notiz%%` zählt wie angezeigt. `1) …` ist (wie in der Darstellung schon immer) kein Lösungspunkt -- Punkte daran meldet jetzt `SL004`.
+- Nach dem Übernehmen eines Vorschlags mit Enter öffnet sich die Vorschlagsliste nur noch, wenn der übernommene Eintrag eine Folgeauswahl hat (wie schon bei Tab und Doppelklick); nach Tab bleibt eine solche Folgeauswahl jetzt offen. Strg+Umschalt+Enter fügt wie Strg+Enter eine Zeile ein, ohne den Vorschlag zu übernehmen.
 
 - Tastenkürzel mit Strg gelten genau für die angegebene Kombination (z. B. löst Strg+Alt+E keinen Export mehr aus). Ziffern- und Plus/Minus-Kürzel wirken auch auf dem Ziffernblock. Mausrad und Touchpad scrollen bzw. zoomen in ganzen Rasten; kleine Touchpad-Bewegungen sammeln sich. Ein Klick in die Gliederung oder Diagnose springt schon beim Drücken der Maustaste.
 - **Neue mitgelieferte Schriften:** Comic Neue, Andika, Fredoka, Patrick Hand, Indie Flower, Gloria Hallelujah und Short Stack (freie OFL-Lizenz, Lizenztexte unter `assets/fonts/`) stehen im Schriftmenü zur Wahl und sehen in Vorschau, PDF und HTML auf jedem Rechner gleich aus.
@@ -63,6 +73,7 @@ The format is based on Keep a Changelog.
 - Einstellung „Arbeits-Emoji standardmäßig sichtbar“: entfällt. Dokumente ohne Sozialform-Symbole legst du als Klausur (`.kbw`) an.
 
 ### Fixed
+- Beim Überfahren eines Farbprofil-Felds mit der Maus waren alle Tastenkürzel gesperrt, solange der kleine Hinweis zum Farbprofil sichtbar war. Kürzel funktionieren jetzt auch dann.
 - Im Exportdialog lösen D, P, A, L, B, K und ? beim Tippen in einem Eingabefeld nicht mehr aus.
 - Strg+Umschalt+H (Lernhilfenansicht), Strg+Umschalt+S (Speichern unter), Strg+Umschalt+F (Schriftprofil) sowie Strg+Umschalt+D/O funktionieren jetzt ohne eingeschaltete Feststelltaste; umgekehrt bremst die Feststelltaste die Einbuchstaben-Kürzel (S, F, K, O, Z …) nicht mehr aus.
 - Der Tooltip der Farbprofil-Felder bleibt auf Mehrschirm-Systemen auf dem Monitor des Mauszeigers und oberhalb der Taskleiste.

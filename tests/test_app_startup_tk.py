@@ -61,3 +61,11 @@ def test_ctrl_shift_d_toggles_the_debug_overlay(app):
     assert press_key(app.root, "D", state=CONTROL | SHIFT) is True
     app.root.update()
     assert bool(app.shortcut_debug_enabled_var.get()) is not before
+
+
+def test_editor_keys_run_on_the_editor_widget_binder(app):
+    """Strg+F im Schreibbereich öffnet die Suchleiste, Esc in der Suche schließt sie wieder."""
+    assert press_key(app.editor_widget, "f", state=CONTROL) is True
+    assert app._editor_search_visible is True
+    assert press_key(app._editor_search_query_entry, "Escape") is True
+    assert app._editor_search_visible is False

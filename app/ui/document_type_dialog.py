@@ -7,6 +7,7 @@ from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 ensure_bw_gui_on_path()
 from bw_gui.contracts.key_spec import KeySpec
 from bw_gui.runtime import WindowShortcutBinder, ui, widgets
+from bw_gui.runtime.overlay_stack import OverlayCategory, register_overlay
 
 from .local_keys import bind_actions
 from ..core.document_type_registry import (
@@ -51,8 +52,7 @@ def prompt_new_document_type(app, *, initial_value: str = DOCUMENT_TYPE_WORKSHEE
     except Exception:
         pass
 
-    if hasattr(app, "_track_popup_window"):
-        app._track_popup_window(window)
+    register_overlay(window, OverlayCategory.MODAL_DIALOG, toplevel=window)
 
     container = widgets.Frame(window, padding=14)
     container.grid(row=0, column=0, sticky="nsew")

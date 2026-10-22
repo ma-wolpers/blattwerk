@@ -95,6 +95,17 @@ def format_points(value: Decimal | None) -> str:
     return text.replace(".", ",")
 
 
+def format_signed_points(value: Decimal | None) -> str:
+    """Wie `format_points`, negative Werte mit typografischem Minus (`−0,5`, U+2212).
+
+    Für Abzüge je Fehler in Lösung und Erwartungshorizont; positive Werte
+    bleiben ohne Vorzeichen.
+    """
+    if value is not None and value < 0:
+        return "\u2212" + format_points(-value)
+    return format_points(value)
+
+
 @dataclass
 class SubtaskPoints:
     """Punkte einer Teilaufgabe innerhalb einer Einheit."""
@@ -168,6 +179,7 @@ def build_points_model(blocks) -> list[TaskUnit]:
 
 
 def _resolve_single(unit: TaskUnit) -> None:
+    """Status und effektive Punkte einer Einheit ohne bepunktete Teilaufgaben (aus `task.points`)."""
     if unit.value is None:
         unit.status = STATUS_MISSING
     elif isinstance(unit.value, NonNumeric):
@@ -178,6 +190,7 @@ def _resolve_single(unit: TaskUnit) -> None:
 
 
 def _resolve_from_subtasks(unit: TaskUnit) -> None:
+    """Status und effektive Punkte aus vollständig bepunkteten Teilaufgaben (PK001/PK003)."""
     if any(isinstance(sub.value, NonNumeric) for sub in unit.subtasks) or isinstance(unit.value, NonNumeric):
         unit.status, unit.effective = STATUS_NON_NUMERIC, None
         unit.codes.append("PK003")

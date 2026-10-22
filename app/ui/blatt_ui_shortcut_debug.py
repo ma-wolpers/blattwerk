@@ -162,7 +162,7 @@ class BlattwerkShortcutDebugMixin:
         window.title("Shortcut-Runtime-Debug")
         window.geometry("980x540")
         window.minsize(820, 420)
-        self._track_popup_window(window, policy_id="dialog.non_blocking")
+        self._register_popup_window(window, blocking_shortcuts=False)
 
         toolbar = widgets.Frame(window, padding=(10, 8))
         toolbar.pack(fill="x")
