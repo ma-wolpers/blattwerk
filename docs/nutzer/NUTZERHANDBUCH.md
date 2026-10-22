@@ -97,7 +97,7 @@ Die Leiste „Vorschau-Optionen“ über der Vorschau startet eingeklappt; mit �
 - `↑ / ↓`: Scrollen
 - `S`: Druckprofil wechseln
 - `F`: Farbprofil wechseln
-- `4 / 5`: DIN A4 / DIN A5
+- `4 / Q / 5`: DIN A4 / A4 quer / DIN A5
 - `K`: Black-Screen schnell auf `Beides` setzen
 - `0 / 1`: Seitenbreite / ganze Seite
 - `E / N / U`: Einzel / nebeneinander / untereinander
