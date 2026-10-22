@@ -73,6 +73,7 @@ KNOWN_BLOCK_TYPES = {
     "sectionmark",
     "vspacer",
     "aidsplit",
+    "choicesplit",
     "evaluation",
     "operators",
 }
@@ -613,6 +614,7 @@ BLOCK_OPTION_SPECS: dict[str, tuple[BlockOptionSpec, ...]] = {
     "framebreak": (),
     "slidechromeoff": (),
     "aidsplit": (),
+    "choicesplit": (BlockOptionSpec("k", "text", None, False, MISSING), _OPT_TITLE),
     "evaluation": (
         BlockOptionSpec("level", "enum", frozenset({"task", "subtask"}), True, "task"),
         _OPT_TITLE,

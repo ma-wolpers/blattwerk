@@ -68,5 +68,21 @@
       "--hm"
     ],
     "description": "Insert the exam aid split marker (Teil A / Teil B)"
+  },
+  "Choice Parts": {
+    "scope": "blattwerk",
+    "prefix": "bwwahl",
+    "body": [
+      "--w[${1:1}] ${2:Titel}",
+      ":::task points=${3:10} afb=${4|1,2,3|}",
+      "$5",
+      ":::",
+      "",
+      "--w ${6:Titel}",
+      ":::task points=${3:10} afb=${7|1,2,3|}",
+      "$0",
+      ":::"
+    ],
+    "description": "Insert an exam choice region: --w[k] opens it (k of n parts are worked on), each further --w starts the next choice part"
   }
 }

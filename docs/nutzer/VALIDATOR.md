@@ -86,10 +86,15 @@ Subprozess siehe `tests/test_blatt_diagnostics_cli.py` (Validator) sowie
 - `KL001`: `--hm` kommt in einer Klausur mehr als zweimal vor (erlaubt: einmal fuer Teil A | Teil B, zweimal fuer Deckblatt | Teil A | Teil B). Fehler.
 - `KL002`: `--hm` ausserhalb einer Klausur (`.kbw`); ohne Wirkung. Warnung.
 - `KL003`: Bepunktete Aufgabe bzw. Teilaufgabe einer Klausur ohne Anforderungsbereich (`afb=1|2|3`); die AFB-Auswertung ist dann unvollstaendig. Warnung.
-- `KL004`: `--hm` steht nicht zwischen zwei Aufgaben auf oberster Ebene (keine Aufgabe davor oder danach, oder innerhalb von `:::columns`). Bei zwei Markern muss zwischen ihnen (Teil A) mindestens eine Aufgabe (`:::task`) stehen -- eine Teilaufgabe allein zaehlt nicht. Fehler.
-- `KL005`: Nach `--hm` folgt keine neue Aufgabe, sondern eine Teilaufgabe oder Loesung (sie wuerde von ihrer Aufgabe getrennt). Fehler.
+- `KL004`: Ein Teil-Trenner steht falsch: `--hm` nicht zwischen zwei Aufgaben auf oberster Ebene, oder ein Wahlteil (`--w`) enthaelt keine Aufgabe, oder der Trenner steht innerhalb von `:::columns`. Fuer `--hm`: `--hm` steht nicht zwischen zwei Aufgaben auf oberster Ebene (keine Aufgabe davor oder danach, oder innerhalb von `:::columns`). Bei zwei Markern muss zwischen ihnen (Teil A) mindestens eine Aufgabe (`:::task`) stehen -- eine Teilaufgabe allein zaehlt nicht. Fehler.
+- `KL005`: Nach `--hm` bzw. `--w` folgt keine neue Aufgabe, sondern eine Teilaufgabe oder Loesung (sie wuerde von ihrer Aufgabe getrennt). Fehler.
 - `KL007`: Vor dem ersten von zwei `--hm` (Deckblatt) steht eine Aufgabe, Teilaufgabe oder Loesung. Das Deckblatt darf alles andere enthalten (Hinweise, `:::info`, `:::evaluation` ...), aber keine Aufgaben. Fehler.
 - `KL006`: `afb` an einer Teilaufgabe wirkt nicht, weil die Teilaufgaben keine eigenen Punkte haben. Warnung.
+- `KL008`: `--w` ohne offenen Wahlbereich -- der erste Wahlteil eines Bereichs braucht die Anzahl (`--w[1] Titel`). Fehler.
+- `KL009`: `--w[k]` in einem bereits offenen Wahlbereich; weitere Wahlteile ohne `[k]`, ein neuer Bereich erst nach `--hm`. Fehler.
+- `KL010`: Ungueltiges k in `--w[k]` (keine ganze Zahl oder nicht 1 <= k < Anzahl der Wahlteile). Fehler.
+- `KL011`: Die Wahlteile eines Bereichs haben unterschiedlich viele Punkte (geprueft, wenn alle Punkte gueltig sind). Fehler.
+- `KL012`: `--w` ausserhalb einer Klausur (`.kbw`). Fehler.
 - `PK001`: Aufgabe hat `points`, die nicht der Summe ihrer (vollstaendig bepunkteten) Teilaufgaben entsprechen. Fehler (blockiert den Export).
 - `PK002`: Summe der Teilpunkte `(xP)` in den Loesungen einer (Teil-)Aufgabe weicht von deren Punktzahl ab (nur wenn alle Loesungspunkte annotiert sind). Bei alternativen Wegen (`(0,5aP)`/`(1bP)`) zaehlt gemeinsam (ohne Buchstabe) + bester Weg; Abzuege je Fehler (`(−0,5P)`) zaehlen nie mit; der Vergleich ist exakt. Fehler.
 - `PK003`: Punktangabe ist keine Zahl (erlaubt: `2`, `2,5`, `2.5`). Warnung; der Text wird trotzdem angezeigt.

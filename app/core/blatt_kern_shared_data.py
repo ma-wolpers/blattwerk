@@ -112,6 +112,12 @@ STRUKTOGRAMM_BLOCK_TYPES = frozenset({"struktogramm", "structogram"})
 """`struktogramm` ist der Hauptname (Begriff aus der GO Informatik),
 `structogram` ein dokumentierter Alias -- gleiches Muster wie `help`/`hilfe`."""
 PRESENTATION_SECTION_MARK_PATTERN = re.compile(r"^--#\s+(.+)$")
+EXAM_CHOICE_MARK_PATTERN = re.compile(r"^--w(\[[^\]\n]*\])?(?:\s+(.+?))?\s*$")
+"""Wahlteil-Trenner `--w[k] Titel` (eröffnet einen Wahlbereich) bzw. `--w Titel`.
+
+Gruppe 1 = `[k]` roh mit Klammern (leer, wenn ohne Klammern -- so bleibt
+`--w[]` als ungültiges `k` von `--w` unterscheidbar), Gruppe 2 = Titel. Die
+Bedeutung prüft allein `exam_parts.resolve_exam_parts`."""
 PRESENTATION_SPACER_MARK_PATTERN = re.compile(
     r"^-=\s*(\d+(?:\.\d+)?(?:cm|mm|px|pt|em|rem|vh|vw|%))\s*$",
     flags=re.IGNORECASE,
@@ -197,6 +203,14 @@ CONTROL_MARKERS: tuple[ControlMarkerSpec, ...] = (
         block_type="aidsplit",
         kind="literal",
         literal_or_regex="--hm",
+    ),
+    ControlMarkerSpec(
+        name="choicesplit",
+        block_type="choicesplit",
+        kind="pattern",
+        literal_or_regex=EXAM_CHOICE_MARK_PATTERN,
+        option_capture=("k", "title"),
+        detect_prefix="--w[",
     ),
     ControlMarkerSpec(
         name="soft_section_break",

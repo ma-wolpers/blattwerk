@@ -48,24 +48,28 @@ Anforderungsbereich der Aufgabe bzw. Teilaufgabe (`1`, `2` oder `3`). Rein infor
 
 `--hm` auf einer eigenen Zeile trennt in einer Klausur (`.kbw`) den hilfsmittelfreien Teil vom Teil mit Hilfsmitteln: davor erscheint "Teil A – hilfsmittelfrei", am Marker beginnt eine neue Seite mit "Teil B – mit Hilfsmitteln"; die Aufgabennummern laufen weiter, Punkte und AFB werden je Teil ausgewertet. Nur zwischen zwei Aufgaben; in anderen Dokumenttypen ohne Wirkung. Ein zweites `--hm` davor trennt ein Deckblatt ab: Alles vor dem ersten `--hm` (Hinweise, Bewertungstabelle …, aber keine Aufgaben) steht auf der ersten Seite ohne Teilüberschrift, "Teil A" beginnt dann auf einer neuen Seite. Mehr als zwei `--hm` sind ein Fehler. Mit `show_student_header: ja` trägt jeder Teil, der auf einer neuen Seite beginnt, oben die Schülerkopfzeile (Name, Lerngruppe, Datum), damit getrennt eingesammelte Teile beschriftet sind.
 
-## 5. Bewertungstabelle
+## 5. Wahlteile (`--w`)
+
+Wahlteile in einer Klausur (`.kbw`): `--w[k] Titel` auf einer eigenen Zeile eröffnet einen Wahlbereich, jedes weitere `--w Titel` startet den nächsten Wahlteil desselben Bereichs. Von den n Wahlteilen bearbeiten die Schülerinnen und Schüler k (1 ≤ k < n). Der Bereich endet am nächsten `--hm` oder am Dokumentende; nach `--hm` kann ein weiterer Bereich mit `--w[k]` beginnen. Jeder Wahlteil beginnt auf einer neuen Seite mit der Überschrift "Wahlteil 1 – Titel" (ohne Titel nur "Wahlteil 1") und einem Ankreuzfeld "Diesen Wahlteil bearbeite ich."; über dem ersten steht "Bearbeite k der n Wahlteile.". Alle Wahlteile eines Bereichs müssen gleich viele Punkte haben; die erreichbare Gesamtpunktzahl zählt k Wahlteile. Aufgabennummern laufen durch. Bewertungstabelle und Erwartungshorizont gruppieren nach Teilen mit "k aus n"; die AFB-Verteilung steht dann nur je Teil. Aufgaben vor dem ersten Bereich (ohne `--hm`) bilden den Pflichtteil (ohne Überschrift). Fehler blockieren den Export: `--w` ohne offenen Bereich (`KL008`), `--w[k]` in einem offenen Bereich (`KL009`), ungültiges k (`KL010`), ungleiche Punkte (`KL011`), `--w` außerhalb von Klausuren (`KL012`); jeder Wahlteil braucht eine Aufgabe (`KL004`).
+
+## 6. Bewertungstabelle
 
 Bewertungstabelle (selbstschließend: `:::evaluation:::`) mit den Zeilen Aufgaben, maximale Punkte und leeren Feldern für die erreichten Punkte, rechts die Summe. Nur in Arbeitsblättern und Klausuren. Aufgaben ohne Punkte erscheinen mit `–` (Warnung `EV001`), widersprüchliche mit `?`; die Summe wird nur ausgewiesen, wenn alle Punktzahlen bekannt sind.
 
 - `level`: `task` (Standard): eine Spalte je Aufgabe; `subtask`: bei bepunkteten Teilaufgaben je Teilaufgabe eine Spalte (1a, 1b, ...).
-- `parts`: `true` teilt die Tabelle in Klausuren mit `--hm` in Teil A und Teil B (je mit Summe) und weist zusätzlich die Gesamtsumme aus. Ohne `--hm` ohne Wirkung.
+- `parts`: `true` teilt die Tabelle in Klausuren mit `--hm` in Teil A und Teil B (je mit Summe) und weist zusätzlich die Gesamtsumme aus. Ohne `--hm` ohne Wirkung. Mit Wahlteilen (`--w`) ist die Tabelle immer nach Teilen gruppiert ("Wahlteile: k aus n"), die Gesamtsumme zählt k Wahlteile.
 - `grade`: `true` ergänzt unter der Tabelle rechtsbündig leere Felder „Dies sind ___ %“ und „Note: ___“ (auch bei `parts=true` nur einmal). Gilt nur für diesen Block: Bei mehreren Bewertungstabellen bekommt jede mit `grade=true` ihre eigenen Felder.
 
-## 6. Operatorentabelle
+## 7. Operatorentabelle
 
 Operatorentabelle (selbstschließend: `:::operators:::`) mit den Definitionen der mit `!!…!!` markierten Operatoren. Nur in Arbeitsblättern und Klausuren, standardmäßig nur im Arbeitsblatt (nicht in der Lösung; `mode=solution` kehrt das um). Im PDF rutscht die Tabelle ans Seitenende, wenn über ihr schon Inhalt steht -- typisch direkt vor `--!` oder `--hm`; steht sie als Erstes auf einer Seite, bleibt sie oben. `title="Operatoren"` setzt eine Überschrift. Ohne Tabelle meldet Blattwerk verwendete Operatoren (`OPR004`) bzw. Operatoren hinter der letzten Tabelle (`OPR005`); eine Tabelle ohne Operatoren ist ein Fehler (`OPR006`), sich überschneidende Bereiche eine Warnung (`OPR008`).
 
 - `scope`: `previous` (Standard): Operatoren seit der vorigen Operatorentabelle bzw. seit Dokumentanfang; `all`: alle Operatoren des Dokuments, auch solche nach der Tabelle; `part`: alle Operatoren des Klausurteils (`--hm`), in dem die Tabelle steht -- Deckblatt und Teil A zählen zusammen, ohne `--hm` das ganze Dokument.
 
-## 7. Klausur-Übersicht
+## 8. Klausur-Übersicht
 
 Unter der Diagnostik zeigt der Editor bei Klausuren live die Gesamtpunkte und ihre Verteilung auf AFB I/II/III, mit `--hm` zusätzlich je Teil. Die Prozentangaben beziehen sich immer auf die Gesamtpunktzahl der Klausur. Fehlen Punkte oder Anforderungsbereiche, steht dort „unvollständig“ mit dem Grund statt einer Prozentzahl.
 
-## 8. Erwartungshorizont
+## 9. Erwartungshorizont
 
 Im Exportdialog einer Klausur gibt es unter „Inhalt“ den Punkt „Erwartungshorizont“ (PDF oder HTML). Er listet je (Teil-)Aufgabe nur die nummerierten Lösungspunkte mit ihren Teilpunkten, ohne Aufgabentext, mit einer leeren Spalte „erreicht“, dazu Teilsummen je Hilfsmittel-Teil und die AFB-Tabelle. Alternative Wege stehen mit „Weg a:“ vor dem Text, Abzüge je Fehler am Tabellenende, Erwartungstypen als Symbol vor dem Text mit einer Legende vor der AFB-Tabelle. Widersprüchliche Punkte verhindern den Export; fehlende Teilpunkte (`SL005`) oder Erwartungen (`SL007`) werden nur angemerkt.

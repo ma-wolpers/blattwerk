@@ -12,6 +12,10 @@ die Gesamtsumme bei Teilen aus `exam_parts.exam_max_points`.
 * Fehlende Punkte zeigen „–“ (EV001), inkonsistente „?“.
 * Σ nur, wenn alle Zellen bekannt sind, sonst „–“ mit Fußnote.
 * `parts=true` gruppiert bei gültiger Teilstruktur nach Klausurteilen (eine Gruppe je Teil).
+  Mit Wahlteilen wird immer nach Teilen gruppiert (eine gemeinsame Σ über alle
+  Wahlaufgaben wäre falsch); vor dem ersten Wahlteil eines Bereichs steht
+  „Wahlteile: k aus n“, die Gesamtsumme kommt aus `exam_max_points`. Teile ohne
+  Aufgaben (z. B. ein Pflichtteil nur mit Einleitung) erscheinen nicht.
 * `grade=true` hängt unter die Tabelle rechtsbündig leere Felder „Dies sind ___ %“
   und „Note: ___“ an -- genau einmal je Block (auch bei `parts=true`). Die
   Option gilt pro `evaluation`-Block; Blöcke ohne `grade` bekommen keine Felder.
@@ -43,6 +47,7 @@ class EvaluationGroup:
     title: str | None
     cells: list[EvaluationCell] = field(default_factory=list)
     part_id: str | None = None
+    choice_note: str | None = None
 
     @property
     def total(self) -> Decimal | None:
@@ -86,8 +91,8 @@ def build_evaluation_table(blocks, options: dict, document_type: str) -> Evaluat
     title = str((options or {}).get("title") or "").strip() or None
     units = build_points_model(blocks)
     layout = resolve_exam_parts(blocks, document_type).layout
-    use_parts = layout is not None and _option_true(options, "parts")
-    groups = [EvaluationGroup(part.label, part_id=part.part_id) for part in layout.parts] if use_parts else [EvaluationGroup(None)]
+    use_parts = layout is not None and (_option_true(options, "parts") or bool(layout.groups))
+    groups = [EvaluationGroup(part.label, part_id=part.part_id, choice_note=_choice_note(layout, part)) for part in layout.parts] if use_parts else [EvaluationGroup(None)]
     missing = []
     for unit in units:
         group = groups[layout.part_for_block(unit.block_index).order] if use_parts else groups[0]
@@ -95,6 +100,12 @@ def build_evaluation_table(blocks, options: dict, document_type: str) -> Evaluat
         if unit.status == STATUS_MISSING:
             missing.append(unit.number)
     return EvaluationTable(title, groups, missing, grade=_option_true(options, "grade"), layout=layout if use_parts else None)
+
+
+def _choice_note(layout, part) -> str | None:
+    """„Wahlteile: k aus n“ am ersten Wahlteil eines Bereichs, sonst ``None``."""
+    group = next((group for group in layout.groups if group.part_ids[0] == part.part_id), None)
+    return None if group is None else f"Wahlteile: {group.k} aus {len(group.part_ids)}"
 
 
 def _option_true(options: dict | None, key: str) -> bool:
@@ -121,6 +132,8 @@ def _group_html(group: EvaluationGroup) -> str:
     empty = "<td></td>" * len(group.cells)
     total_text = format_points(total) if total is not None else f"{CELL_MISSING}*"
     caption = f"<div class='evaluation-group-title'>{escape(group.title)}</div>" if group.title else ""
+    if group.choice_note:
+        caption = f"<div class='evaluation-choice-note'>{escape(group.choice_note)}</div>" + caption
     return (
         f"{caption}<table class='evaluation-table'>"
         f"<tr><th>Aufgabe</th>{header}<th>Σ</th></tr>"
@@ -132,7 +145,7 @@ def _group_html(group: EvaluationGroup) -> str:
 def render_evaluation_html(table: EvaluationTable) -> str:
     """HTML der Bewertungstabelle (für alle Renderpfade gleich)."""
     parts = [f"<div class='evaluation-title'>{escape(table.title)}</div>"] if table.title else []
-    parts.extend(_group_html(group) for group in table.groups)
+    parts.extend(_group_html(group) for group in table.groups if group.cells or len(table.groups) == 1)
     if len(table.groups) > 1:
         grand = table.grand_total
         parts.append(f"<div class='evaluation-grand-total'>Gesamt: {format_points(grand) if grand is not None else CELL_MISSING + '*'} P</div>")

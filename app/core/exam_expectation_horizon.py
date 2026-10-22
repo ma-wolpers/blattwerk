@@ -83,7 +83,7 @@ def build_expectation_horizon_html(text: str) -> tuple[str, list[BuildDiagnostic
         if part is not None and part != current_part:
             if current_part is not None:
                 body.append(_part_sum(analysis.parts[current_part.order]))
-            body.append(f"<h2>{escape(part.heading)}</h2>")
+            body.extend(_part_heading(layout, part))
             current_part = part
         body.append(f"<h3>Aufgabe {unit.number} ({format_points(unit.effective)} P)</h3>")
         body.append("<table><tr><th class='num'>Nr.</th><th>Erwartung</th><th class='pts'>max. P.</th><th class='pts'>erreicht</th></tr>")
@@ -195,18 +195,34 @@ def _item_points_text(item) -> str:
     return format_signed_points(item.points)
 
 
+def _part_heading(layout, part) -> list[str]:
+    """Überschrift eines Teils; vor dem ersten Wahlteil eines Bereichs der Hinweis „k aus n“."""
+    html = []
+    group = next((group for group in layout.groups if group.part_ids[0] == part.part_id), None)
+    if group is not None:
+        html.append(f"<p class='choice-note'>Wahlbereich: {group.k} aus {len(group.part_ids)} Wahlteilen werden bearbeitet und gewertet.</p>")
+    html.append(f"<h2>{escape(part.heading or part.label)}</h2>")
+    return html
+
+
 def _part_sum(part) -> str:
     """Summenzeile eines Hilfsmittel-Teils."""
     return f"<p class='sum'>Summe {escape(part.label)}: {format_points(part.points)} P</p>"
 
 
 def _afb_table(analysis) -> str:
-    """AFB-Tabelle (je Teil und gesamt) aus `exam_analysis`, mit Hinweis bei unvollständiger Auswertung."""
+    """AFB-Tabelle (je Teil und gesamt) aus `exam_analysis`, mit Hinweis bei unvollständiger Auswertung.
+
+    Mit Wahlteilen zeigt die Gesamtzeile nur die erreichbaren Punkte, keine AFB-Anteile.
+    """
     rows = ["<h2>Anforderungsbereiche</h2>", "<table><tr><th></th><th>Punkte</th>"]
     rows[-1] += "".join(f"<th>AFB {'I' * level}</th>" for level in AFB_LEVELS) + "</tr>"
-    for part in (analysis.parts + [analysis.total]) if analysis.parts else [analysis.total]:
+    shown = [part for part in analysis.parts if part.leaf_count]
+    for part in (shown + [analysis.total]) if analysis.parts else [analysis.total]:
         cells = []
-        for level in AFB_LEVELS:
+        if part is analysis.total and analysis.has_choices:
+            cells = ["–"] * len(AFB_LEVELS)  # keine Gesamt-AFB mit Wahlteilen (Nutzerentscheidung 6b)
+        for level in AFB_LEVELS if not cells else ():
             share = analysis.percent(part.afb_points[level])
             cells.append(f"{format_points(part.afb_points[level])} P" + (f" ({format_points(share)} %)" if share is not None else ""))
         rows.append(f"<tr><td>{escape(part.label)}</td><td>{format_points(part.points)} P</td>" + "".join(f"<td>{c}</td>" for c in cells) + "</tr>")

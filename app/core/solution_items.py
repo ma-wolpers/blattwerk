@@ -4,7 +4,7 @@ Zuordnungsregel:
 
 * **Ohne `target=`:** Ziel ist der nächste vorangehende `task`- oder
   `subtask`-Block; andere Blöcke dazwischen werden übersprungen. Die Suche
-  stoppt am Hilfsmittel-Trenner (`aidsplit`) -- eine Lösung wird nie einer
+  stoppt an jedem Teil-Trenner (`aidsplit`/`choicesplit`) -- eine Lösung wird nie einer
   Aufgabe des anderen Teils zugeordnet. Keine vorangehende Aufgabe → SL001.
 * **`target=task`** → Task der aktuellen Einheit; **`target=a|b|…`** → die
   Teilaufgabe mit genau diesem angezeigten Bezeichner (ohne Groß/Klein) in
@@ -42,6 +42,7 @@ from decimal import Decimal
 from .points_model import iter_units
 from .points_suffix import SUFFIX_NONE, has_points_candidate, parse_points_suffix, strip_valid_suffix
 from .solution_structure import LIST_LINE_RE, classify_solution
+from .exam_parts_position import PART_SPLIT_BLOCKS
 
 
 @dataclass
@@ -183,7 +184,7 @@ def collect_solution_targets(blocks) -> tuple[list[SolutionTarget], list[Solutio
         if block_type == "task":
             current_unit = unit_by_task_index[index]
             last_target = (current_unit, None)
-        elif block_type == "aidsplit":
+        elif block_type in PART_SPLIT_BLOCKS:
             current_unit, last_target = None, None
         elif block_type == "subtask" and current_unit is not None:
             position = next(i for i, sub in enumerate(units[current_unit].subtasks) if sub.block_index == index)

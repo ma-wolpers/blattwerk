@@ -165,6 +165,21 @@ PROSE_SECTIONS: dict[str, str] = {
         "Mit `show_student_header: ja` trägt jeder Teil, der auf einer neuen Seite beginnt, oben "
         "die Schülerkopfzeile (Name, Lerngruppe, Datum), damit getrennt eingesammelte Teile beschriftet sind."
     ),
+    "marker:choicesplit": (
+        "Wahlteile in einer Klausur (`.kbw`): `--w[k] Titel` auf einer eigenen Zeile eröffnet einen "
+        "Wahlbereich, jedes weitere `--w Titel` startet den nächsten Wahlteil desselben Bereichs. Von den "
+        "n Wahlteilen bearbeiten die Schülerinnen und Schüler k (1 ≤ k < n). Der Bereich endet am nächsten "
+        "`--hm` oder am Dokumentende; nach `--hm` kann ein weiterer Bereich mit `--w[k]` beginnen. Jeder "
+        "Wahlteil beginnt auf einer neuen Seite mit der Überschrift \"Wahlteil 1 – Titel\" (ohne Titel nur "
+        "\"Wahlteil 1\") und einem Ankreuzfeld \"Diesen Wahlteil bearbeite ich.\"; über dem ersten steht "
+        "\"Bearbeite k der n Wahlteile.\". Alle Wahlteile eines Bereichs müssen gleich viele Punkte haben; "
+        "die erreichbare Gesamtpunktzahl zählt k Wahlteile. Aufgabennummern laufen durch. Bewertungstabelle "
+        "und Erwartungshorizont gruppieren nach Teilen mit \"k aus n\"; die AFB-Verteilung steht dann nur "
+        "je Teil. Aufgaben vor dem ersten Bereich (ohne `--hm`) bilden den Pflichtteil (ohne Überschrift). "
+        "Fehler blockieren den Export: `--w` ohne offenen Bereich (`KL008`), `--w[k]` in einem offenen "
+        "Bereich (`KL009`), ungültiges k (`KL010`), ungleiche Punkte (`KL011`), `--w` außerhalb von "
+        "Klausuren (`KL012`); jeder Wahlteil braucht eine Aufgabe (`KL004`)."
+    ),
     "marker:sectionmark": (
         "`--# Abschnittsname` setzt den aktuellen Abschnittsnamen für die Footer-Navigation in "
         "Präsentationen. Alles nach `--# ` bis Zeilenende wird als Abschnittstitel übernommen."
@@ -617,7 +632,8 @@ PROSE_SECTIONS: dict[str, str] = {
     ),
     "block:evaluation.parts": (
         "`true` teilt die Tabelle in Klausuren mit `--hm` in Teil A und Teil B (je mit Summe) und weist "
-        "zusätzlich die Gesamtsumme aus. Ohne `--hm` ohne Wirkung."
+        "zusätzlich die Gesamtsumme aus. Ohne `--hm` ohne Wirkung. Mit Wahlteilen (`--w`) ist die Tabelle "
+        "immer nach Teilen gruppiert (\"Wahlteile: k aus n\"), die Gesamtsumme zählt k Wahlteile."
     ),
     "block:evaluation.grade": (
         "`true` ergänzt unter der Tabelle rechtsbündig leere Felder „Dies sind ___ %“ und „Note: ___“ "
@@ -641,6 +657,11 @@ PROSE_SECTIONS: dict[str, str] = {
         "und Teil A zählen zusammen, ohne `--hm` das ganze Dokument."
     ),
     "block:aidsplit": ("Hilfsmittel-Trenner einer Klausur -- siehe Control-Marker `--hm`."),
+    "block:choicesplit": ("Wahlteil-Trenner einer Klausur -- siehe Control-Marker `--w[k] Titel`."),
+    "block:choicesplit.k": (
+        "Anzahl der zu bearbeitenden Wahlteile, als `[k]` direkt hinter `--w` am ersten Wahlteil eines "
+        "Bereichs (z. B. `--w[1] Analysis`)."
+    ),
     "block:pagebreak": ("Erzwingt einen harten Seiten-/Folienumbruch -- siehe Control-Marker `--!`."),
     "block:framebreak": (
         "Erzeugt im Präsentationsmodus einen neuen Frame mit dem bisherigen plus neuem Inhalt -- "

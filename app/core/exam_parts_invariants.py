@@ -10,14 +10,15 @@ Ein Verstoß ist ein Programmierfehler im Resolver, keine Nutzerdiagnose:
 * Gruppen: `group_id` eindeutig, nicht leer, kein Teil doppelt oder in zwei
   Gruppen, nur bekannte `part_id`s, 1 ≤ k < n, Teile in `order` lückenlos;
 * Teil ↔ Gruppe: jedes `choice`-Teil verweist auf genau die Gruppe, die es
-  enthält; `aid`-Teile haben keine Gruppe und stehen in keiner.
+  enthält; alle anderen Teile haben keine Gruppe und stehen in keiner.
 """
 
 from __future__ import annotations
 
 PART_KIND_AID = "aid"
 PART_KIND_CHOICE = "choice"
-PART_KINDS = frozenset({PART_KIND_AID, PART_KIND_CHOICE})
+PART_KIND_REQUIRED = "required"
+PART_KINDS = frozenset({PART_KIND_AID, PART_KIND_CHOICE, PART_KIND_REQUIRED})
 
 
 def check_layout(layout) -> None:
@@ -73,8 +74,8 @@ def _check_groups(groups, parts_by_id) -> dict[str, str]:
 def _check_part_group_links(parts, membership: dict[str, str]) -> None:
     """Teil ↔ Gruppe in beiden Richtungen konsistent."""
     for part in parts:
-        if part.kind == PART_KIND_AID and (part.group_id is not None or part.part_id in membership):
-            raise ValueError(f"Hilfsmittelteil {part.part_id} darf keiner Wahlgruppe angehören")
+        if part.kind != PART_KIND_CHOICE and (part.group_id is not None or part.part_id in membership):
+            raise ValueError(f"Teil {part.part_id} ist kein Wahlteil und darf keiner Wahlgruppe angehören")
         if part.kind == PART_KIND_CHOICE and (part.group_id is None or membership.get(part.part_id) != part.group_id):
             raise ValueError(f"Wahlteil {part.part_id}: group_id {part.group_id!r} passt nicht zur Gruppe, die ihn enthält")
 

@@ -4,10 +4,14 @@ Die Semantik (wo welcher Teil beginnt, Deckblatt) liegt allein in
 `exam_parts.resolve_exam_parts`; dieses Modul überträgt das Layout in
 Block-Annotationen (`annotate_exam_parts`) und diese in HTML.
 
-Regel „neue Seite“: Ein Teil beginnt genau dann auf einer neuen Seite, wenn
-er an einem Trenner beginnt (`ExamPart.marker_block`). Ohne Deckblatt steht
-Teil A am Dokumentanfang (synthetischer Block, kein Umbruch) und teilt sich
-die Kopfzeile des Dokuments.
+Regel „neue Seite“: `ExamPart.page_break` (Teil beginnt an einem Trenner und
+ist der erste Teil oder folgt auf einen Teil mit Aufgaben). Ohne Deckblatt
+steht Teil A am Dokumentanfang (synthetischer Block, kein Umbruch) und teilt
+sich die Kopfzeile des Dokuments; der Pflichtteil hat keine Überschrift und
+damit auch keinen synthetischen Block.
+
+Wahlteile: Der erste Wahlteil eines Bereichs trägt den Hinweis „Bearbeite k
+der n Wahlteile.“, jeder Wahlteil unter seiner Überschrift ein Ankreuzfeld.
 
 Kopfzeile je Teil: Jeder Teil, der auf einer neuen Seite beginnt, bekommt
 dieselbe Schülerkopfzeile wie der Dokumentanfang (`student_header`), damit
@@ -21,6 +25,7 @@ from __future__ import annotations
 from html import escape
 
 from .exam_parts import AID_PART_LABELS, AID_SPLIT_BLOCK, resolve_exam_parts  # noqa: F401 (AID_PART_LABELS: Re-Export)
+from .exam_parts_invariants import PART_KIND_CHOICE
 
 PART_ID_KEY = "_exam_part"
 """Block-Option: `part_id` des Teils, der an diesem (Pseudo-)Block beginnt."""
@@ -28,6 +33,11 @@ PART_HEADING_KEY = "_exam_part_heading"
 """Block-Option: Überschrift des Teils (`ExamPart.heading`)."""
 PART_BREAK_KEY = "_exam_part_break"
 """Block-Option: Teil beginnt auf einer neuen Seite."""
+PART_CHOICE_NOTE_KEY = "_exam_part_choice_note"
+"""Block-Option: Hinweistext des Wahlbereichs (nur am ersten Wahlteil)."""
+PART_CHOICE_CHECK_KEY = "_exam_part_choice_check"
+"""Block-Option: Wahlteil bekommt ein Ankreuzfeld."""
+CHOICE_CHECK_TEXT = "Diesen Wahlteil bearbeite ich."
 PART_HEADER_HTML_KEY = "_exam_part_header_html"
 """Block-Option mit dem fertigen Kopfzeilen-HTML; gesetzt nur von `attach_part_headers`."""
 
@@ -48,10 +58,17 @@ def annotate_exam_parts(blocks, document_type: str | None):
         return blocks
     annotated = list(blocks)
     prefix = []
+    groups = {group.group_id: group for group in layout.groups}
     for part in layout.parts:
-        marks = {PART_ID_KEY: part.part_id, PART_HEADING_KEY: part.heading, PART_BREAK_KEY: part.marker_block is not None}
+        marks = {PART_ID_KEY: part.part_id, PART_HEADING_KEY: part.heading, PART_BREAK_KEY: part.page_break}
+        if part.kind == PART_KIND_CHOICE:
+            group = groups[part.group_id]
+            marks[PART_CHOICE_CHECK_KEY] = True
+            if group.part_ids[0] == part.part_id:
+                marks[PART_CHOICE_NOTE_KEY] = f"Bearbeite {group.k} der {len(group.part_ids)} Wahlteile."
         if part.marker_block is None:
-            prefix.append((AID_SPLIT_BLOCK, marks, ""))
+            if part.heading:
+                prefix.append((AID_SPLIT_BLOCK, marks, ""))
             continue
         block_type, options, content = annotated[part.marker_block]
         annotated[part.marker_block] = (block_type, {**options, **marks}, content)
@@ -96,7 +113,12 @@ def render_exam_part(options) -> str:
     opts = options or {}
     if PART_ID_KEY not in opts:
         return ""
-    heading = f"<h2 class='aid-part'>{escape(str(opts.get(PART_HEADING_KEY) or ''))}</h2>"
+    html = ""
+    if opts.get(PART_CHOICE_NOTE_KEY):
+        html += f"<p class='exam-choice-note'>{escape(str(opts[PART_CHOICE_NOTE_KEY]))}</p>"
+    html += f"<h2 class='aid-part'>{escape(str(opts.get(PART_HEADING_KEY) or ''))}</h2>"
+    if opts.get(PART_CHOICE_CHECK_KEY):
+        html += f"<p class='exam-choice-check'><span class='exam-choice-box' aria-hidden='true'>☐</span> {CHOICE_CHECK_TEXT}</p>"
     if part_starts_new_page(opts):
-        return _PAGEBREAK_HTML + str(opts.get(PART_HEADER_HTML_KEY) or "") + heading
-    return heading
+        return _PAGEBREAK_HTML + str(opts.get(PART_HEADER_HTML_KEY) or "") + html
+    return html
