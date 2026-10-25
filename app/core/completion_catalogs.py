@@ -1,9 +1,10 @@
 """Completion catalog queries for the editor -- one import path for the UI layer.
 
-Mostly sourced from core validation constants (`blatt_validator`), plus a
-thin pass-through to `operator_legend.py`'s operator-suggestion data
-(`get_completion_operator_forms`) so the UI never needs to import that
-module directly.
+Mostly sourced from core validation constants (`blatt_validator`), plus
+thin pass-throughs to `operator_legend.py`'s operator-suggestion data
+(`get_completion_operator_forms`) and the expectation-kind catalog
+(`get_completion_expectation_kinds`) so the UI never needs to import those
+modules directly.
 """
 
 from __future__ import annotations
@@ -14,6 +15,7 @@ from . import authoring_guide_prose
 from . import operator_legend
 from . import blatt_validator as validator
 from .blatt_validator_constants import MISSING, BlockOptionSpec, FrontmatterFieldSpec
+from .expectation_kinds import EXPECTATION_KINDS, ExpectationKind
 from .option_prose_resolution import resolve_option_prose_key
 
 _SELF_CLOSING_BLOCK_TYPES = frozenset(
@@ -427,6 +429,41 @@ def get_completion_option_value_detail(block_type: str, option_key: str, value: 
 
     return CompletionDetail(
         title=option_key, description=description, value_hint=_format_selected_value_hint(spec, value)
+    )
+
+
+def get_completion_expectation_kinds(prefix: str = "") -> tuple[ExpectationKind, ...]:
+    """Returns the expectation kinds offered after `(… P ` in a solution point, filtered by `prefix`.
+
+    Keeps catalog/legend order (`EXPECTATION_KINDS`) -- no ranking, so the
+    list always reads like the legend in the expectation horizon. A kind
+    matches when *any* of its accepted spellings (`ExpectationKind.tokens()`:
+    name, abbreviation, aliases) starts with `prefix`, case-insensitively --
+    so `Bg` still finds „Begründung“ and `groe` finds „Einheit/Größe“ via its
+    alias. An empty prefix returns the whole catalog.
+    """
+
+    prefix_norm = str(prefix or "").strip().casefold()
+    return tuple(
+        kind for kind in EXPECTATION_KINDS if any(token.startswith(prefix_norm) for token in kind.tokens())
+    )
+
+
+def get_completion_expectation_kind_detail(kind: ExpectationKind) -> CompletionDetail:
+    """Returns the autocomplete detail overlay content for one expectation kind.
+
+    `description` is `ExpectationKind.description` -- the very sentence the
+    expectation-horizon legend (`exam_expectation_horizon._kinds_legend`) and
+    the exam guide's „Erwartungstypen“ table show, never a second copy. The
+    title carries symbol, name and abbreviation (`💡 Ansatz (An)`);
+    `value_hint` lists further accepted spellings (aliases), if any.
+    """
+
+    value_hint = f"Auch: {', '.join(kind.aliases)}" if kind.aliases else None
+    return CompletionDetail(
+        title=f"{kind.symbol} {kind.label} ({kind.abbreviation})",
+        description=kind.description,
+        value_hint=value_hint,
     )
 
 

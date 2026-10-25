@@ -112,3 +112,29 @@ def test_horizon_without_kinds_has_no_legend():
     """Ohne Typen keine Legende."""
     html, _diagnostics = build_expectation_horizon_html(HEAD + _task(1, "(1P)"))
     assert "Erwartungstypen" not in html and "class='kind'" not in html
+
+
+def test_completion_detail_uses_legend_sentence_for_every_kind():
+    """Completion-Detail, Legende und Anleitung teilen sich `ExpectationKind.description`."""
+    from app.core.completion_catalogs import get_completion_expectation_kind_detail
+
+    for kind in EXPECTATION_KINDS:
+        detail = get_completion_expectation_kind_detail(kind)
+        assert detail["description"] == kind.description
+        assert detail["title"] == f"{kind.symbol} {kind.label} ({kind.abbreviation})"
+
+
+@pytest.mark.parametrize(
+    ("prefix", "expected_keys"),
+    [
+        ("", [kind.key for kind in EXPECTATION_KINDS]),
+        ("be", ["beobachtung", "begruendung"]),
+        ("Bg", ["begruendung"]),
+        ("groe", ["einheit"]),
+        ("xy", []),
+    ],
+)
+def test_completion_kinds_filter_by_any_token_in_catalog_order(prefix, expected_keys):
+    from app.core.completion_catalogs import get_completion_expectation_kinds
+
+    assert [kind.key for kind in get_completion_expectation_kinds(prefix)] == expected_keys

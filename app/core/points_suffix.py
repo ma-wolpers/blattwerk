@@ -56,7 +56,10 @@ SUFFIX_GRAMMAR_HINT = (
 
 _CANDIDATE_RE = re.compile(r"\((?P<body>\s*[-−–]?\s*\d[^()]*)\)\s*$")
 _P_TOKEN_RE = re.compile(r"P(?=\s|$)")
-_VALID_BODY_RE = re.compile(r"^\s*(?P<sign>[-−–])?\s*(?P<value>\d+(?:[.,]\d+)?)\s*(?:(?P<path>[a-z])|/\s*(?P<cap>\d+(?:[.,]\d+)?))?\s*P(?:\s+(?P<kind>[^\s()]+))?\s*$")
+_POINTS_HEAD = r"\s*(?P<sign>[-−–])?\s*(?P<value>\d+(?:[.,]\d+)?)\s*(?:(?P<path>[a-z])|/\s*(?P<cap>\d+(?:[.,]\d+)?))?\s*P"
+"""Gemeinsamer Teil von `_VALID_BODY_RE` und `_KIND_SLOT_RE`: Vorzeichen, Zahl, Weg oder Höchstwert, `P`."""
+_VALID_BODY_RE = re.compile(rf"^{_POINTS_HEAD}(?:\s+(?P<kind>[^\s()]+))?\s*$")
+_KIND_SLOT_RE = re.compile(rf"\({_POINTS_HEAD}\s+(?P<kind>[^\s()]*)$")
 
 
 @dataclass(frozen=True)
@@ -110,6 +113,31 @@ def parse_points_suffix(head: str) -> PointsSuffix:
         SUFFIX_VALID, span, -value if valid.group("sign") else value, valid.group("path"),
         valid.group("kind"), kind.key if kind else None, cap,
     )
+
+
+def find_kind_slot(left_text: str) -> tuple[int, str] | None:
+    """Ob der Text links vom Cursor in der Typ-Stelle eines Punkt-Suffixes endet.
+
+    Gedacht für die Editor-Completion der Erwartungstypen: `left_text` ist die
+    Zeile bis zur Cursorposition. Trifft, wenn sie mit einer geöffneten Klammer
+    nach derselben Grammatik wie ein gültiges Suffix endet -- Vorzeichen, Zahl,
+    Weg oder Höchstwert, `P` --, gefolgt von mindestens einem Leerzeichen und
+    optional einem schon teilweise getippten Typ-Wort (`(0,5P `, `(1aP An`,
+    `(−1P Bg`). Die schließende Klammer muss noch nicht stehen. Ob das Wort ein
+    bekannter Typ ist, prüft diese Funktion nicht (das ist Sache des Katalogs).
+
+    Args:
+        left_text: Zeilentext links vom Cursor.
+
+    Returns:
+        ``(start, prefix)`` mit der Spalte, an der das Typ-Wort beginnt, und dem
+        bisher getippten Teil (ggf. leer), sonst ``None``. Ungültige Grammatik
+        wie `(0,5abP ` oder ein Abzug mit Höchstwert (`(−1/2P `) trifft nicht.
+    """
+    match = _KIND_SLOT_RE.search(left_text or "")
+    if match is None or (match.group("sign") and match.group("cap")):
+        return None
+    return match.start("kind"), match.group("kind")
 
 
 def has_points_candidate(line: str) -> bool:
