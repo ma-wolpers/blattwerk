@@ -108,3 +108,44 @@ def test_horizon_uses_the_smaller_base_font():
     """Kompakter Druck: Grundschrift 9 pt, Überschriften proportional kleiner."""
     html, _diagnostics = _html(":::task points=1 afb=1\nA\n:::\n:::solution\n1. x (1P)\n:::\n")
     assert "font-size: 9pt" in html and "h1 { font-size: 14pt" in html
+
+
+def _preview(source, document_type="exam"):
+    from app.core.build_requests import WorksheetDesignOptions
+    from app.core.document_preview_build import build_preview_images_for_document
+
+    return build_preview_images_for_document(
+        source,
+        document_type=document_type,
+        include_solutions=False,
+        page_format="a4",
+        contrast_profile="standard",
+        worksheet_design=WorksheetDesignOptions("default", "default", "normal"),
+        preview_variant="expectation",
+    )
+
+
+def test_preview_variant_expectation_rasterizes_the_horizon(tmp_path):
+    source = tmp_path / "k.kbw"
+    source.write_text(HEAD + ":::task points=2\nA\n:::\n:::solution\n1. ohne Punkte\n:::\n:::task points=1\nB\n:::\n", encoding="utf-8")
+
+    pages, diagnostics = _preview(source)
+
+    assert len(pages) >= 1
+    assert [diag.code for diag in diagnostics] == ["SL005", "SL007"]  # Hinweise des Horizonts kommen mit
+
+
+def test_preview_variant_expectation_blocks_on_point_errors(tmp_path):
+    source = tmp_path / "k.kbw"
+    source.write_text(HEAD + ":::task points=4\nA\n:::\n:::solution\n1. x (3P)\n:::\n", encoding="utf-8")
+
+    with pytest.raises(ValueError):
+        _preview(source)
+
+
+def test_preview_variant_expectation_requires_a_type_with_horizon(tmp_path):
+    source = tmp_path / "a.abw"
+    source.write_text("---\ndocument_type: worksheet\n---\n:::task\nA\n:::\n", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="keinen Erwartungshorizont"):
+        _preview(source, document_type="worksheet")

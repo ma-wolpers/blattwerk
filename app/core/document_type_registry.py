@@ -36,6 +36,12 @@ PIPELINE_KURZENTWURF = "kurzentwurf"
 PIPELINE_SCHILD = "schild"
 PIPELINE_MARKDOWN = "markdown"
 
+PREVIEW_VARIANT_WORKSHEET = "worksheet"
+PREVIEW_VARIANT_SOLUTION = "solution"
+PREVIEW_VARIANT_EXPECTATION = "expectation"
+"""Ansichten der Vorschau. Dieselben Tokens nutzt der Exportdialog als Inhalts-Modus
+(`export_dialog_worksheet.py`), damit die Vorschau-Ansicht direkt als Vorauswahl taugt."""
+
 
 @dataclass(frozen=True)
 class DocumentTypeSpec:
@@ -251,3 +257,47 @@ def solutions_renderable(document_type: str) -> bool:
     """Ob eine Lösungsfassung erzeugt werden kann (unbekannte Typen: ja)."""
     spec = _SPECS_BY_ID.get(document_type)
     return True if spec is None else spec.solutions_renderable
+
+
+def preview_variants(document_type: str | None) -> tuple[str, ...]:
+    """Die Vorschau-Ansichten eines Typs in UI- und Tab-Reihenfolge -- einzige Quelle dafür.
+
+    Immer `worksheet` (die normale Ansicht); dazu `solution`, wenn der Typ über
+    die Worksheet-Pipeline läuft und eine Lösungsfassung hat, und
+    `expectation`, wenn er einen Erwartungshorizont hat (Klausur). Toolbar,
+    Tab-Taste, Tab-Zustand, Vorschau-Rendering und Exportdialog fragen alle
+    hier bzw. über `coerce_preview_variant`/`next_preview_variant`.
+
+    Args:
+        document_type: kanonischer Typ; ``None`` oder unbekannt ergibt nur
+            `worksheet` (ohne bekannten Typ gibt es keine Lösungsfassung).
+    """
+    spec = _SPECS_BY_ID.get(document_type)
+    if spec is None or spec.pipeline != PIPELINE_WORKSHEET:
+        return (PREVIEW_VARIANT_WORKSHEET,)
+    variants = [PREVIEW_VARIANT_WORKSHEET]
+    if spec.solutions_renderable:
+        variants.append(PREVIEW_VARIANT_SOLUTION)
+    if spec.expectation_horizon:
+        variants.append(PREVIEW_VARIANT_EXPECTATION)
+    return tuple(variants)
+
+
+def coerce_preview_variant(document_type: str | None, variant: str | None) -> str:
+    """`variant`, wenn der Typ diese Vorschau-Ansicht hat, sonst `worksheet`.
+
+    Ersetzt die früher an vier UI-Stellen wiederholte Regel „ohne
+    Lösungsfassung zurück auf Aufgabe“ und deckt den Erwartungshorizont mit ab.
+    """
+    return variant if variant in preview_variants(document_type) else PREVIEW_VARIANT_WORKSHEET
+
+
+def next_preview_variant(document_type: str | None, variant: str | None) -> str:
+    """Die zyklisch nächste Vorschau-Ansicht (Tab-Taste); bei nur einer Ansicht bleibt sie.
+
+    Eine für den Typ unbekannte `variant` zählt wie `worksheet`, die Antwort
+    ist dann die zweite Ansicht.
+    """
+    variants = preview_variants(document_type)
+    current = variants.index(coerce_preview_variant(document_type, variant))
+    return variants[(current + 1) % len(variants)]

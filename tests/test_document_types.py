@@ -21,7 +21,10 @@ from app.core.document_type_registry import (
     DOCUMENT_TYPE_PRESENTATION,
     DOCUMENT_TYPE_WORKSHEET,
     KNOWN_DOCUMENT_TYPES,
+    coerce_preview_variant,
     has_slide_layout,
+    next_preview_variant,
+    preview_variants,
     shows_work_hints,
     solutions_renderable,
     spec_for_type,
@@ -363,3 +366,38 @@ def test_page_format_shortcut_only_acts_where_page_format_is_shown(document_type
     host = _gate_host(document_type)
     host._set_page_format("a5_landscape")
     assert host.preview_page_format_var.get() == ("a5_landscape" if applies else "a4_portrait")
+
+
+# Vorschau-Ansichten je Dokumenttyp (einzige Quelle: `preview_variants`).
+_PREVIEW_VARIANTS = {
+    DOCUMENT_TYPE_WORKSHEET: ("worksheet", "solution"),
+    DOCUMENT_TYPE_PRESENTATION: ("worksheet",),
+    DOCUMENT_TYPE_EXAM: ("worksheet", "solution", "expectation"),
+    DOCUMENT_TYPE_KURZENTWURF: ("worksheet",),
+    DOCUMENT_TYPE_SCHILD: ("worksheet",),
+    DOCUMENT_TYPE_MARKDOWN: ("worksheet",),
+    None: ("worksheet",),
+    "unbekannt": ("worksheet",),
+}
+
+
+@pytest.mark.parametrize("document_type", list(_PREVIEW_VARIANTS))
+def test_preview_variants_per_document_type(document_type):
+    assert preview_variants(document_type) == _PREVIEW_VARIANTS[document_type]
+
+
+def test_coerce_preview_variant_falls_back_to_worksheet():
+    assert coerce_preview_variant(DOCUMENT_TYPE_EXAM, "expectation") == "expectation"
+    assert coerce_preview_variant(DOCUMENT_TYPE_WORKSHEET, "expectation") == "worksheet"
+    assert coerce_preview_variant(DOCUMENT_TYPE_PRESENTATION, "solution") == "worksheet"
+    assert coerce_preview_variant(None, "solution") == "worksheet"
+    assert coerce_preview_variant(DOCUMENT_TYPE_EXAM, None) == "worksheet"
+
+
+def test_next_preview_variant_cycles_through_the_type_variants():
+    assert next_preview_variant(DOCUMENT_TYPE_EXAM, "worksheet") == "solution"
+    assert next_preview_variant(DOCUMENT_TYPE_EXAM, "solution") == "expectation"
+    assert next_preview_variant(DOCUMENT_TYPE_EXAM, "expectation") == "worksheet"
+    assert next_preview_variant(DOCUMENT_TYPE_WORKSHEET, "solution") == "worksheet"
+    assert next_preview_variant(DOCUMENT_TYPE_WORKSHEET, "expectation") == "solution"
+    assert next_preview_variant(DOCUMENT_TYPE_KURZENTWURF, "worksheet") == "worksheet"

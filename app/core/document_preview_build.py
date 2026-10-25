@@ -15,7 +15,15 @@ from .blatt_validator import BuildDiagnostic
 from .block_computation_cache import BlockComputationCache
 from .build_requests import WorksheetBuildRequest, WorksheetDesignOptions, build_worksheet_from_request
 from .kurzentwurf_settings import resolve_kurzentwurf_runtime_options
-from .document_type_registry import PIPELINE_KURZENTWURF, PIPELINE_MARKDOWN, PIPELINE_SCHILD, spec_for_type
+from .document_type_registry import (
+    PIPELINE_KURZENTWURF,
+    PIPELINE_MARKDOWN,
+    PIPELINE_SCHILD,
+    PREVIEW_VARIANT_EXPECTATION,
+    PREVIEW_VARIANT_WORKSHEET,
+    spec_for_type,
+)
+from .exam_expectation_horizon import build_expectation_horizon
 from .plain_markdown_render import build_plain_markdown
 from .schild_render import build_schild
 
@@ -36,13 +44,28 @@ def build_preview_images_for_document(
     presentation_ignore_framebreaks: bool = False,
     kurzentwurf_options: Mapping[str, object] | None = None,
     computation_cache: BlockComputationCache | None = None,
+    preview_variant: str = PREVIEW_VARIANT_WORKSHEET,
 ) -> tuple[list[Image.Image], list[BuildDiagnostic]]:
     """Build preview images for the active document family.
 
     `computation_cache` is only meaningful for the worksheet/presentation
     family (threaded through to `build_worksheet_from_request`); the
     Kurzentwurf runtime does not use the block computation cache.
+
+    `preview_variant` (`document_type_registry.preview_variants`) selects the
+    expectation horizon instead of the document itself; `include_solutions`
+    stays the switch between worksheet and solution within the worksheet
+    pipeline (callers derive it from the same variant).
+
+    Raises:
+        ValueError: for `expectation` on a type without an expectation
+            horizon, or when blocking diagnostics prevent the build.
     """
+
+    if preview_variant == PREVIEW_VARIANT_EXPECTATION:
+        if not spec_for_type(document_type).expectation_horizon:
+            raise ValueError(f"Dokumenttyp {document_type!r} hat keinen Erwartungshorizont.")
+        return _build_expectation_horizon_preview_images(input_path)
 
     pipeline = spec_for_type(document_type).pipeline
     if pipeline == PIPELINE_KURZENTWURF:
@@ -135,7 +158,8 @@ def _build_markdown_preview_images(input_path: Path) -> tuple[list[Image.Image],
 def _build_html_pipeline_preview_images(input_path: Path, build) -> tuple[list[Image.Image], list[BuildDiagnostic]]:
     """Vorschau für Pipelines mit eigener `build(input, output.pdf)`-Funktion.
 
-    Genutzt von den Schildern (`build_schild`): Die Vorschau ist die gerasterte
+    Genutzt von den Schildern (`build_schild`) und vom Erwartungshorizont
+    (`_build_expectation_horizon_preview_images`): Die Vorschau ist die gerasterte
     Export-PDF, damit Vorschau und PDF garantiert identisch sind.
 
     Args:
@@ -152,6 +176,22 @@ def _build_html_pipeline_preview_images(input_path: Path, build) -> tuple[list[I
             temp_pdf_path.unlink(missing_ok=True)
         except Exception:
             pass
+
+
+def _build_expectation_horizon_preview_images(input_path: Path) -> tuple[list[Image.Image], list[BuildDiagnostic]]:
+    """Vorschau des Erwartungshorizonts: die gerasterte Export-PDF (`build_expectation_horizon`).
+
+    Gleiches Prinzip wie bei den Schildern (`_build_html_pipeline_preview_images`):
+    Vorschau und Export sind garantiert identisch. Die Hinweise des Horizonts
+    (z. B. fehlende Teilpunkte) kommen als Diagnosen zurück; blockierende
+    Fehler werfen wie beim Export einen `ValueError`.
+    """
+    diagnostics: list[BuildDiagnostic] = []
+    pages, _ = _build_html_pipeline_preview_images(
+        input_path,
+        lambda source, pdf_path: build_expectation_horizon(source, pdf_path, diagnostics_out=diagnostics),
+    )
+    return pages, diagnostics
 
 
 def _render_pdf_pages(pdf_path: Path) -> list[Image.Image]:
