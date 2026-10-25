@@ -145,6 +145,12 @@ PROSE_SECTIONS: dict[str, str] = {
         "die Gesamtpunktzahl der Klausur. Fehlen Punkte oder Anforderungsbereiche, steht dort "
         "„unvollständig“ mit dem Grund statt einer Prozentzahl."
     ),
+    "exam:expectation_kinds": (
+        "Ein Wort nach dem P eines Lösungspunkts benennt, was für eine Leistung erwartet wird, z. B. "
+        "`1. Ableitung gebildet (0,5P Anwendung)` oder kurz `(0,5P Aw)`; Groß-/Kleinschreibung ist egal. "
+        "Der Erwartungshorizont zeigt das Symbol vor dem Text und erklärt am Ende die verwendeten Typen "
+        "mit genau den Sätzen aus dieser Tabelle; in der Lösung wird der Typ nicht angezeigt."
+    ),
     "exam:expectation_horizon": (
         "Im Exportdialog einer Klausur gibt es unter „Inhalt“ den Punkt „Erwartungshorizont“ (PDF oder "
         "HTML). Er listet je (Teil-)Aufgabe nur die nummerierten Lösungspunkte mit ihren Teilpunkten, "
@@ -606,7 +612,8 @@ PROSE_SECTIONS: dict[str, str] = {
         "Antwortsatz (Sa), Fachsprache (Fs), Entscheidung (En), Ergebnis (Er), Beobachtung (Be), Begründung "
         "(Bg), Einheit/Größe (Ei), Darstellung (Da), Formales (Fo) -- z. B. `(0,5P An)`, `(1aP Anwendung)`, `(−1P Bg)`. "
         "Der Erwartungshorizont zeigt dafür ein Symbol vor dem Text und eine Legende der verwendeten Typen, "
-        "die Lösung blendet den Typ aus. Ein unbekannter Typ ist eine Warnung (`SL017`)."
+        "die Lösung blendet den Typ aus. Ein unbekannter Typ ist eine Warnung (`SL017`). Was jeder Typ "
+        "bedeutet, erklärt die Klausur-Anleitung im Abschnitt „Erwartungstypen“."
     ),
     "block:columns": (
         "Spaltenlayout für nebeneinander angeordnete Inhalte. `cols=2..6` (Standard 2) setzt die "

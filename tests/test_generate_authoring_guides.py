@@ -84,6 +84,16 @@ def test_kurzentwurf_guide_phase_table_shows_hashtag_not_display_name_only():
     assert "`#reserve`" in guide_text
 
 
+def test_exam_guide_explains_every_expectation_kind_with_legend_text():
+    """Die Anleitung nutzt für jeden Typ genau den Satz der Erwartungshorizont-Legende."""
+    from app.core.expectation_kinds import EXPECTATION_KINDS
+
+    guide_text = guide_generator.render_exam_guide(collect_markdown_conventions())
+    for kind in EXPECTATION_KINDS:
+        assert f"| {kind.symbol} | {kind.label}" in guide_text
+        assert f"| `{kind.abbreviation}` | {kind.description} |" in guide_text
+
+
 def test_render_worksheet_presentation_guide_changes_when_catalog_changes(monkeypatch):
     catalog = collect_markdown_conventions()
     baseline = guide_generator.render_worksheet_presentation_guide(catalog)
