@@ -48,3 +48,11 @@ def test_ranking_methods_resolve_from_completion_ranking_module():
     for method_name in ("_rank_block_type_suggestions", "_rank_option_value_suggestions"):
         resolved = getattr(BlattwerkApp, method_name)
         assert resolved.__module__ == "app.ui.blatt_ui_editor_completion_ranking"
+
+
+def test_expectation_kind_context_resolves_from_completion_points_module():
+    from app.ui.blatt_ui_editor_completion_points import BlattwerkAppEditorCompletionPointsMixin
+
+    assert issubclass(BlattwerkApp, BlattwerkAppEditorCompletionPointsMixin)
+    resolved = getattr(BlattwerkApp, "_collect_expectation_kind_completion_context")
+    assert resolved.__module__ == "app.ui.blatt_ui_editor_completion_points"

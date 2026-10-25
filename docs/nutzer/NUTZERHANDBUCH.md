@@ -209,6 +209,7 @@ Die Leiste „Vorschau-Optionen“ über der Vorschau startet eingeklappt; mit �
 	- Frontmatter-Feldnamen
 - Bei Eingaben mit gedrückter `Shift`-Taste bleibt die geöffnete Vorschlagsliste stabil (kein sofortiges Schließen beim Loslassen von `Shift`).
 - Nach `key=` in Blockoptionen erscheinen Vorschläge auch automatisch (nicht nur per `Strg+Leertaste`).
+- In Klausuren (`.kbw`): In der Kopfzeile eines Lösungspunkts (`1. …`) innerhalb von `:::solution` erscheinen nach der Punktzahl und einem Leerzeichen, z. B. `(0,5P `, automatisch die Erwartungstypen mit Symbol, Kürzel und Erklärung. Weitertippen filtert (auch über das Kürzel, z. B. `Bg`); übernommen wird immer der volle Name (`Begründung`).
 - Wert-Vorschläge nach `key=` nutzen dieselbe lokale Gewichtungsmechanik wie Blocktyp-Vorschläge.
 - In Blockkopfzeilen wird nur ergänzend eingefügt (z. B. Key nach `:::grid `), kein zusätzlicher Block-Wrapper.
 - Auf einer reinen `:::`-Zeile im bereits offenen Block (typischer Blockabschluss) öffnet kein Auto-Popup.

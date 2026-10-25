@@ -149,7 +149,9 @@ PROSE_SECTIONS: dict[str, str] = {
         "Ein Wort nach dem P eines Lösungspunkts benennt, was für eine Leistung erwartet wird, z. B. "
         "`1. Ableitung gebildet (0,5P Anwendung)` oder kurz `(0,5P Aw)`; Groß-/Kleinschreibung ist egal. "
         "Der Erwartungshorizont zeigt das Symbol vor dem Text und erklärt am Ende die verwendeten Typen "
-        "mit genau den Sätzen aus dieser Tabelle; in der Lösung wird der Typ nicht angezeigt."
+        "mit genau den Sätzen aus dieser Tabelle; in der Lösung wird der Typ nicht angezeigt. Im Editor "
+        "erscheinen die Typen als Vorschläge, sobald nach dem P ein Leerzeichen steht; übernommen wird der "
+        "volle Name."
     ),
     "exam:expectation_horizon": (
         "Im Exportdialog einer Klausur gibt es unter „Inhalt“ den Punkt „Erwartungshorizont“ (PDF oder "

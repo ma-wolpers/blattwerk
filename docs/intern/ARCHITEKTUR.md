@@ -110,6 +110,7 @@ UI-Zuschnitt im Hauptfenster:
 - Der Schreibbereich nutzt die dokumenttypabhaengige Diagnostik-API aus `app/core` direkt fuer debounced Live-Diagnostik; die UI mappt nur auf Zeilenmarkierung und Navigationsliste.
 - Syntax-Highlighting und Completion im Schreibbereich liegen als UI-Feature in `app/ui`; fachliche Kandidatenquellen (z. B. bekannte Block-/Antworttypen) kommen aus `app/core` ohne Regelduplikation.
 - Completion-Kataloge werden zentral aus `app/core/completion_catalogs.py` abgefragt; `app/ui` darf diese Kataloge nicht als statische Listen duplizieren.
+- Erwartungstyp-Completion (`blatt_ui_editor_completion_points.py`, eigenes Mixin, vom Popup vor dem allgemeinen Kontext abgefragt): die Typ-Stelle erkennt ausschliesslich `points_suffix.find_kind_slot` (gleicher Grammatik-Kopf `_POINTS_HEAD` wie `parse_points_suffix`), die Kopfzeile `solution_structure.ITEM_HEAD_RE`, Typen und Detailtexte kommen aus `completion_catalogs` (`ExpectationKind.description` = Legendensatz = Anleitungstabelle).
 - Ein Folding-Äquivalent wird in `app/ui` als Outline-Navigation umgesetzt (Struktur lesen, Einträge anspringen), ohne den Parser im Kern zu duplizieren.
 - Die Vorschau bleibt weiterhin explizit manuell aktualisiert und bezieht ihren Inhalt wie bisher ausschließlich aus dem aktuellen Dateisystemstand.
 - `app/core` rendert dokumenttyp- und dokumentmodusabhaengig: Arbeitsblatt-/Loesungsseiten im Worksheet-Pfad, folienbasiertes Rendering im Praesentationspfad (`mode: presentation`) und Kurzentwurf ueber die eingebettete DSL-Runtime.

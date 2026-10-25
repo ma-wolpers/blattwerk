@@ -94,7 +94,10 @@ class BlattwerkAppEditorCompletionPopupMixin:
         if self.editor_widget is None:
             return
 
-        context = self._collect_editor_completion_context(auto=auto)
+        # Erwartungstypen zuerst: eigener, enger Kontext (blatt_ui_editor_completion_points.py).
+        context = self._collect_expectation_kind_completion_context(auto=auto) or self._collect_editor_completion_context(
+            auto=auto
+        )
         if context is None:
             self._close_editor_completion()
             return
