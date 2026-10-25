@@ -7,7 +7,7 @@ from pathlib import Path
 from .dialog_services import messagebox
 from .export_dialog import PresentationExportDialog, WorksheetExportDialog
 from ..core.exam_expectation_horizon import build_expectation_horizon
-from ..core.document_type_registry import spec_for_type
+from ..core.document_type_registry import coerce_preview_variant, spec_for_type
 from .export_defaults import (
     _ALLOWED_EXPORT_MODES,
     _ALLOWED_BLACK_SCREEN_MODES,
@@ -55,7 +55,8 @@ class BlattwerkAppExportDialogsMixin:
         )
         document_type = self._detect_document_type(input_path)
         allow_mode_selection = self._solutions_renderable_for_type(document_type)
-        default_mode = preview_mode if allow_mode_selection else "worksheet"
+        # Die Vorschau-Ansicht ist Vorauswahl (gleiche Tokens, inkl. Erwartungshorizont bei Klausuren).
+        default_mode = coerce_preview_variant(document_type, preview_mode) if allow_mode_selection else "worksheet"
         default_format = _resolve_export_default_format(preferences, "worksheet")
         default_page_format = _resolve_export_default_page_format(preferences, "worksheet")
 

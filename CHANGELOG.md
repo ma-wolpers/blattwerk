@@ -7,6 +7,7 @@ The format is based on Keep a Changelog.
 ## [Unreleased]
 
 ### Added
+- **Vorschau des Erwartungshorizonts:** Klausuren haben in der Vorschau neben „Aufgabe“ und „Lösung“ die Ansicht „Erwartungshorizont“ – genau die PDF, die auch der Export erzeugt. `Tab` schaltet reihum durch alle Ansichten; Seitenformat und Gestaltung sind in dieser Ansicht ausgeblendet, weil der Erwartungshorizont ein eigenes Layout hat. Der Exportdialog übernimmt die gewählte Ansicht als Vorauswahl.
 - **Vorschläge für Erwartungstypen in Klausuren:** In einer Lösungspunkt-Zeile öffnet sich nach `(0,5P ` automatisch eine Liste aller Erwartungstypen mit Symbol, Kürzel und Erklärung; Weitertippen filtert (auch per Kürzel), übernommen wird der volle Name, z. B. `(0,5P Begründung)`.
 - **Klausur-Anleitung erklärt die Erwartungstypen:** neuer Abschnitt „Erwartungstypen“ in `ANLEITUNG_KLAUSUR.md` mit Symbol, Name, Kürzel und Bedeutung jedes Typs – mit denselben Sätzen wie die Legende im Erwartungshorizont.
 - **Bonuspunkte:** `bonus=true` an einer Aufgabe oder Teilaufgabe (z. B. `:::subtask points=2 bonus=true`). Am Kopf steht „+2 Bonuspunkte“; die Punkte zählen nicht zur Gesamtpunktzahl, nicht zur AFB-Verteilung und erscheinen nicht in der Bewertungstabelle. Im Erwartungshorizont stehen sie getrennt („Aufgabe 3 (2 P + 2 Bonuspunkte)“, „Summe Teil A: 17 P + 2 Bonuspunkte“).

@@ -219,6 +219,7 @@ class BlattwerkAppBase(
         self._last_diagnostics_signature = None
         self.preview_mode_btn_worksheet = None
         self.preview_mode_btn_solution = None
+        self.preview_mode_btn_expectation = None
         self.preview_mode_static_label = None
         self.preview_phase_separator_btn_dot = None
         self.preview_phase_separator_btn_arrow = None

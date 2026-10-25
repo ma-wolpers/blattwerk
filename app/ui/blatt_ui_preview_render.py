@@ -13,6 +13,9 @@ from ..core.kurzentwurf_settings import (
 )
 from ..core.document_type_registry import (
     DOCUMENT_TYPE_KURZENTWURF,
+    PREVIEW_VARIANT_SOLUTION,
+    PREVIEW_VARIANT_WORKSHEET,
+    coerce_preview_variant,
     has_slide_layout,
 )
 from ..styles.blatt_styles import invalidate_stylesheet_template_cache
@@ -30,8 +33,18 @@ class BlattwerkAppPreviewRenderMixin:
             contrast_profile: str,
             *,
             document_type: str = "worksheet",
+            preview_variant: str | None = None,
     ):
-            """Builds a deterministic cache key for rendered preview pages."""
+            """Builds a deterministic cache key for rendered preview pages.
+
+            The view (`preview_variant`, see `document_type_registry.preview_variants`)
+            is part of the key, so Lösung and Erwartungshorizont never share a
+            cached page set even though both render with ``include_solutions``
+            off/on independently. Without an explicit view it is derived from
+            ``include_solutions`` (callers that only know the old flag).
+            """
+            if preview_variant is None:
+                preview_variant = PREVIEW_VARIANT_SOLUTION if include_solutions else PREVIEW_VARIANT_WORKSHEET
 
             stats = input_path.stat()
             kurzentwurf_runtime_key = None
@@ -44,7 +57,7 @@ class BlattwerkAppPreviewRenderMixin:
                 str(input_path),
                 int(getattr(stats, "st_mtime_ns", int(stats.st_mtime * 1_000_000_000))),
                 int(stats.st_size),
-                bool(include_solutions),
+                str(preview_variant),
                 str(self.preview_black_screen_var.get()),
                 self._normalize_presentation_section_separator(self.preview_section_separator_var.get()),
                 self._parse_bool_setting(self.preview_hide_future_sections_var.get()),
@@ -124,8 +137,19 @@ class BlattwerkAppPreviewRenderMixin:
             self.refresh_preview(force_rebuild=auto_refresh)
 
 
-    def _render_pdf_pages(self, input_path: Path, include_solutions: bool, page_format: str, contrast_profile: str):
-            """Erzeugt Vorschauseiten als PIL-Bilder aus temporärer PDF-Datei."""
+    def _render_pdf_pages(
+            self,
+            input_path: Path,
+            include_solutions: bool,
+            page_format: str,
+            contrast_profile: str,
+            preview_variant: str = PREVIEW_VARIANT_WORKSHEET,
+    ):
+            """Erzeugt Vorschauseiten als PIL-Bilder aus temporärer PDF-Datei.
+
+            `preview_variant` wählt die Ansicht (`document_type_registry.preview_variants`);
+            bei `expectation` rastert der Core den Erwartungshorizont statt des Dokuments.
+            """
 
             invalidate_stylesheet_template_cache()
 
@@ -165,6 +189,7 @@ class BlattwerkAppPreviewRenderMixin:
                 presentation_hide_future_sections=hide_future_sections,
                 kurzentwurf_options=kurzentwurf_options,
                 computation_cache=self._resolve_computation_cache(input_path),
+                preview_variant=preview_variant,
             )
 
 
@@ -180,7 +205,6 @@ class BlattwerkAppPreviewRenderMixin:
                 if not input_path:
                     return
 
-                include_solutions = self.preview_mode_var.get() == "solution"
                 page_format = self.preview_page_format_var.get()
                 contrast_profile = self.preview_contrast_var.get()
                 document_type = self._read_document_type(input_path)
@@ -188,18 +212,18 @@ class BlattwerkAppPreviewRenderMixin:
                     self.status_var.set(f"Unbekannte Dateiendung: {input_path.name}")
                     return
                 self._current_preview_document_type = document_type
-                self._apply_preview_mode_controls(document_type)
+                # Nur Ansichten, die der Typ hat (Registry); daraus folgt auch die Lösungsfassung.
+                preview_variant = coerce_preview_variant(document_type, self.preview_mode_var.get())
+                if self.preview_mode_var.get() != preview_variant:
+                    self.preview_mode_var.set(preview_variant)
+                include_solutions = preview_variant == PREVIEW_VARIANT_SOLUTION
+                self._apply_preview_mode_controls(document_type, preview_variant)
                 if hasattr(self, "_sync_font_profile_combo"):
                     # Schriftmenue zeigt den `font_profile` des aktiven Dokuments.
                     self._sync_font_profile_combo()
-                self._apply_preview_page_format_controls(document_type)
+                self._apply_preview_page_format_controls(document_type, preview_variant)
                 if hasattr(self, "_refresh_migration_bar"):
                     self._refresh_migration_bar()
-
-                if not self._solutions_renderable_for_type(document_type):
-                    include_solutions = False
-                    if self.preview_mode_var.get() != "worksheet":
-                        self.preview_mode_var.set("worksheet")
 
                 resolved_page_format = self._resolve_preview_page_format_for_document_type(
                     page_format,
@@ -220,6 +244,7 @@ class BlattwerkAppPreviewRenderMixin:
                             page_format,
                             contrast_profile,
                             document_type=document_type,
+                            preview_variant=preview_variant,
                         )
                     except Exception:
                         cache_key = None
@@ -287,6 +312,7 @@ class BlattwerkAppPreviewRenderMixin:
                         include_solutions,
                         page_format,
                         contrast_profile,
+                        preview_variant,
                     )
                     self._show_compile_overflow_warnings(compile_diagnostics, "Vorschau")
                     self._last_preview_input_path = input_path

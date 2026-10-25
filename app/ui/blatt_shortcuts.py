@@ -65,7 +65,7 @@ def build_preview_keybinding_registry(app) -> KeybindingRegistry:
             KeyBindingDefinition("preview.layout_stack", _k("U"), UiIntent.PREVIEW_LAYOUT_STACK, (UI_MODE_PREVIEW,), handler=lambda: app.set_preview_layout_mode(VIEW_LAYOUT_STACK)),
             KeyBindingDefinition("preview.zoom_out", _k("-"), UiIntent.PREVIEW_ZOOM_OUT, (UI_MODE_PREVIEW,), "- / +   Zoom raus / rein", handler=lambda: app.change_zoom(-10)),
             KeyBindingDefinition("preview.zoom_in", _k("+"), UiIntent.PREVIEW_ZOOM_IN, (UI_MODE_PREVIEW,), handler=lambda: app.change_zoom(10)),
-            KeyBindingDefinition("preview.toggle_mode", _k("Tab (tolerate: Shift)"), UiIntent.PREVIEW_TOGGLE_MODE, (UI_MODE_PREVIEW,), "Tab   Aufgabe / Lösung", handler=app._toggle_preview_mode),
+            KeyBindingDefinition("preview.toggle_mode", _k("Tab (tolerate: Shift)"), UiIntent.PREVIEW_TOGGLE_MODE, (UI_MODE_PREVIEW,), "Tab   Aufgabe / Lösung / Erwartungshorizont", handler=app._toggle_preview_mode),
             KeyBindingDefinition("preview.refresh", _k("Space (tolerate: Shift)"), UiIntent.PREVIEW_REFRESH, (UI_MODE_PREVIEW,), "Leertaste   Vorschau aktualisieren", handler=app._compile_now),
             KeyBindingDefinition("global.export", _k("Ctrl+E"), UiIntent.GLOBAL_EXPORT, (UI_MODE_GLOBAL, UI_MODE_DIALOG), "Strg+E   Exportieren", allow_when_text_input=True, handler=app.open_export_dialog),
             KeyBindingDefinition("global.help_preview", _k("Ctrl+Shift+H"), UiIntent.GLOBAL_HELP_PREVIEW, (UI_MODE_GLOBAL, UI_MODE_DIALOG), "Strg+Shift+H   Lernhilfenansicht", allow_when_text_input=True, handler=app.open_help_preview_window),

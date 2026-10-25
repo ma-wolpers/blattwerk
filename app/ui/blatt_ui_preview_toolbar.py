@@ -1,5 +1,5 @@
 """Vorschau-Toolbar: Capabilities je Dokumenttyp und Sichtbarkeit/Zustand der Optionsgruppen
-(Seitenformat, Aufgabe/Loesung, Black-Screen, Phasen, Gestaltung).
+(Seitenformat, Ansicht Aufgabe/Loesung/Erwartungshorizont, Black-Screen, Phasen, Gestaltung).
 """
 
 from __future__ import annotations
@@ -12,7 +12,12 @@ from ..styles.blatt_styles import (
 )
 from ..core.document_type_registry import (
     PIPELINE_WORKSHEET,
+    PREVIEW_VARIANT_EXPECTATION,
+    PREVIEW_VARIANT_SOLUTION,
+    PREVIEW_VARIANT_WORKSHEET,
+    coerce_preview_variant,
     has_slide_layout,
+    preview_variants,
     spec_for_type,
 )
 
@@ -67,7 +72,7 @@ class BlattwerkAppPreviewToolbarMixin:
 
 
     @staticmethod
-    def _preview_toolbar_capabilities(document_type: str | None) -> dict[str, bool]:
+    def _preview_toolbar_capabilities(document_type: str | None, preview_variant: str | None = None) -> dict[str, bool]:
             """Decides which preview-toolbar controls are meaningful for the active tab.
 
             Centralizes the document-type gating in one place: the toolbar shows
@@ -76,25 +81,34 @@ class BlattwerkAppPreviewToolbarMixin:
             * Page format and design controls: worksheet pipeline only
               (Arbeitsblatt/Praesentation/Klausur); Kurzentwurf, Schild and plain
               Markdown render through their own pipelines (see
-              `app/core/document_preview_build.py`).
+              `app/core/document_preview_build.py`). Also hidden while the
+              expectation-horizon view is shown: it has its own fixed layout.
             * Phasen (section footer) and Black-Screen: slide layout only
               (Praesentation). On Arbeitsblatt/Klausur they are hidden, not just
               disabled, because they have no effect there.
-            * Aufgabe/Loesung toggle: only where a solution version exists.
+            * View choice (Aufgabe/Loesung/Erwartungshorizont, key
+              ``show_solution_toggle``): only where the type has more than one
+              view (`document_type_registry.preview_variants`).
 
-            Folien-Layout and the availability of a solution version come from the
-            registry capabilities, never from a frontmatter `mode`. Shortcut
-            handlers use the same answer via `_preview_capability_active`.
+            Folien-Layout and the available views come from the registry, never
+            from a frontmatter `mode`. Shortcut handlers use the same answer via
+            `_preview_capability_active`.
+
+            Args:
+                document_type: Canonical type of the active tab, or ``None``.
+                preview_variant: The requested view; coerced to one the type
+                    has (``None`` counts as `worksheet`).
             """
             spec = spec_for_type(document_type) if document_type else None
             worksheet_pipeline = spec is not None and spec.pipeline == PIPELINE_WORKSHEET
             is_presentation = worksheet_pipeline and spec.slide_layout
+            own_layout = coerce_preview_variant(document_type, preview_variant) == PREVIEW_VARIANT_EXPECTATION
             return {
-                "show_solution_toggle": worksheet_pipeline and spec.solutions_renderable,
-                "show_page_format": worksheet_pipeline,
+                "show_solution_toggle": len(preview_variants(document_type)) > 1,
+                "show_page_format": worksheet_pipeline and not own_layout,
                 "show_phase_controls": is_presentation,
                 "show_black_screen": is_presentation,
-                "show_design_controls": worksheet_pipeline,
+                "show_design_controls": worksheet_pipeline and not own_layout,
             }
 
     def _preview_capability_active(self, capability: str) -> bool:
@@ -112,7 +126,9 @@ class BlattwerkAppPreviewToolbarMixin:
             document_type = getattr(self, "_current_preview_document_type", None)
             if not document_type:
                 return False
-            return bool(self._preview_toolbar_capabilities(document_type).get(capability, False))
+            preview_mode_var = getattr(self, "preview_mode_var", None)
+            variant = preview_mode_var.get() if preview_mode_var is not None else None
+            return bool(self._preview_toolbar_capabilities(document_type, variant).get(capability, False))
 
 
     def _toggle_preview_page_format_button(self, button, visible: bool, *, padx=(10, 0)):
@@ -129,9 +145,9 @@ class BlattwerkAppPreviewToolbarMixin:
                 button.pack_forget()
 
 
-    def _apply_preview_page_format_controls(self, document_type: str | None):
-            """Shows only valid page-format options for the active document type."""
-            capabilities = self._preview_toolbar_capabilities(document_type)
+    def _apply_preview_page_format_controls(self, document_type: str | None, preview_variant: str | None = None):
+            """Shows only valid page-format options for the active document type and view."""
+            capabilities = self._preview_toolbar_capabilities(document_type, preview_variant)
             buttons = getattr(self, "preview_page_format_buttons", {}) or {}
             if not capabilities["show_page_format"]:
                 visible_formats = ()
@@ -151,44 +167,28 @@ class BlattwerkAppPreviewToolbarMixin:
                     first_visible = False
 
 
-    def _apply_preview_mode_controls(self, document_type: str | None):
-            """Adapts the Aufgabe/Lösung toggle, Phasen, Black-Screen and Gestaltung controls to the active tab."""
-            capabilities = self._preview_toolbar_capabilities(document_type)
-            worksheet_btn = getattr(self, "preview_mode_btn_worksheet", None)
-            solution_btn = getattr(self, "preview_mode_btn_solution", None)
+    def _apply_preview_mode_controls(self, document_type: str | None, preview_variant: str | None = None):
+            """Adapts the view radios, Phasen, Black-Screen and Gestaltung controls to the active tab."""
+            capabilities = self._preview_toolbar_capabilities(document_type, preview_variant)
             static_label = getattr(self, "preview_mode_static_label", None)
             phase_controls = [
                 getattr(self, "preview_phase_separator_btn_dot", None),
                 getattr(self, "preview_phase_separator_btn_arrow", None),
                 getattr(self, "preview_phase_hide_future_check", None),
             ]
-            solution_controls = [worksheet_btn, solution_btn]
             black_screen_buttons = getattr(self, "preview_black_screen_buttons", [])
 
             static_text = spec_for_type(document_type).label if document_type else "Unbekannter Typ"
-
-            if not capabilities["show_solution_toggle"]:
-                for control in solution_controls:
-                    if control is None:
-                        continue
-                    control.configure(state="disabled")
-                    if control.winfo_manager():
-                        control.pack_forget()
-                if static_label is not None:
-                    static_label.configure(text=static_text)
-                    if not static_label.winfo_manager():
-                        static_label.pack(side="left")
-            else:
+            if capabilities["show_solution_toggle"]:
                 if static_label is not None and static_label.winfo_manager():
                     static_label.pack_forget()
-                if worksheet_btn is not None and not worksheet_btn.winfo_manager():
-                    worksheet_btn.pack(side="left")
-                if solution_btn is not None and not solution_btn.winfo_manager():
-                    solution_btn.pack(side="left", padx=(10, 0))
-                for control in solution_controls:
-                    if control is None:
-                        continue
-                    control.configure(state="normal")
+            elif static_label is not None:
+                static_label.configure(text=static_text)
+                if not static_label.winfo_manager():
+                    static_label.pack(side="left")
+            self._apply_preview_variant_buttons(
+                preview_variants(document_type) if capabilities["show_solution_toggle"] else ()
+            )
 
             format_group_phase = getattr(self, "format_group_phase", None)
             if format_group_phase is not None:
@@ -205,6 +205,37 @@ class BlattwerkAppPreviewToolbarMixin:
                 button.configure(state="normal")
 
             self._apply_design_section_visibility(capabilities["show_design_controls"])
+
+
+    def _apply_preview_variant_buttons(self, visible_variants: tuple[str, ...]) -> None:
+            """Packs exactly the view radios in `visible_variants`, in registry order.
+
+            All radios are unpacked first and re-packed in order, so Aufgabe |
+            Lösung | Erwartungshorizont never ends up shuffled after switching
+            between an Arbeitsblatt and a Klausur tab. Hidden radios are also
+            disabled, so no keyboard focus lands on them.
+
+            Args:
+                visible_variants: Views to show (from `preview_variants`), or an
+                    empty tuple when the type has only one view.
+            """
+            buttons = {
+                PREVIEW_VARIANT_WORKSHEET: getattr(self, "preview_mode_btn_worksheet", None),
+                PREVIEW_VARIANT_SOLUTION: getattr(self, "preview_mode_btn_solution", None),
+                PREVIEW_VARIANT_EXPECTATION: getattr(self, "preview_mode_btn_expectation", None),
+            }
+            for button in buttons.values():
+                if button is not None and button.winfo_manager():
+                    button.pack_forget()
+            first = True
+            for variant, button in buttons.items():
+                if button is None:
+                    continue
+                visible = variant in visible_variants
+                button.configure(state="normal" if visible else "disabled")
+                if visible:
+                    button.pack(side="left", padx=(0, 0) if first else (10, 0))
+                    first = False
 
 
     def _apply_design_section_visibility(self, visible: bool) -> None:

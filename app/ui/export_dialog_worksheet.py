@@ -44,7 +44,9 @@ class WorksheetExportDialog(_BaseExportDialog):
         self.window.title("Arbeitsblatt exportieren")
         self._build_ui()
         self._bind_shortcuts()
-        self._refresh_output_suggestion(force=True)
+        # Wie ein Moduswechsel: bei Vorauswahl „Erwartungshorizont“ (aus der Vorschau)
+        # sofort auf PDF/HTML beschränken, dann den Ausgabenamen vorschlagen.
+        self._on_mode_changed()
         self._show_window()
 
     def _build_ui(self):

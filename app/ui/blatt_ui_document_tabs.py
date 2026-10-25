@@ -12,6 +12,7 @@ from bw_gui.runtime import ui
 from pathlib import Path
 
 from .ui_constants import EDITOR_DOCUMENT_LOADED
+from ..core.document_type_registry import coerce_preview_variant, next_preview_variant
 from ..storage.user_preferences_adapter import normalize_user_preferences
 from ..styles.worksheet_design import CONTRAST_PROFILE_ORDER
 
@@ -34,14 +35,17 @@ class BlattwerkDocumentTabsMixin:
         self.refresh_preview()
 
     def _toggle_preview_mode(self):
-        """Toggle preview mode."""
-        input_text = self._clean_path_text(self.input_var.get())
-        if input_text:
-            spec = self._document_spec_for_path(Path(input_text))
-            if spec is not None and not spec.solutions_renderable:
-                return
+        """Switch to the next preview view of the active document type (Tab key).
 
-        new_mode = "solution" if self.preview_mode_var.get() == "worksheet" else "worksheet"
+        Cycles through `document_type_registry.preview_variants`: Arbeitsblatt
+        Aufgabe/Lösung, Klausur Aufgabe/Lösung/Erwartungshorizont. Types with a
+        single view (Präsentation, Kurzentwurf, ...) or no document do nothing.
+        """
+        input_text = self._clean_path_text(self.input_var.get())
+        document_type = self._read_document_type(Path(input_text)) if input_text else None
+        new_mode = next_preview_variant(document_type, self.preview_mode_var.get())
+        if new_mode == self.preview_mode_var.get():
+            return
         self.preview_mode_var.set(new_mode)
         self.refresh_preview()
 
@@ -80,9 +84,7 @@ class BlattwerkDocumentTabsMixin:
         normalized_path = self._normalize_document_path(input_path)
         document_type = self._read_document_type(input_path)
 
-        preview_mode = self.preview_mode_var.get()
-        if not self._solutions_renderable_for_type(document_type):
-            preview_mode = "worksheet"
+        preview_mode = coerce_preview_variant(document_type, self.preview_mode_var.get())
 
         tab_state = {
             "path": normalized_path,
@@ -201,9 +203,7 @@ class BlattwerkDocumentTabsMixin:
 
             self.input_var.set(str(input_path))
             preview_mode = str(tab_state.get("preview_mode", self.preview_mode_var.get()) or self.preview_mode_var.get())
-            if not self._solutions_renderable_for_type(tab_state.get("document_type")):
-                preview_mode = "worksheet"
-            self.preview_mode_var.set(preview_mode)
+            self.preview_mode_var.set(coerce_preview_variant(tab_state.get("document_type"), preview_mode))
             self.preview_page_format_var.set(tab_state.get("page_format", self.preview_page_format_var.get()))
             self.preview_section_separator_var.set(separator_value)
             self.preview_hide_future_sections_var.set(bool(hide_future_value))

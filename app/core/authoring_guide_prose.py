@@ -155,7 +155,7 @@ PROSE_SECTIONS: dict[str, str] = {
     ),
     "exam:expectation_horizon": (
         "Im Exportdialog einer Klausur gibt es unter „Inhalt“ den Punkt „Erwartungshorizont“ (PDF oder "
-        "HTML). Er listet je (Teil-)Aufgabe nur die nummerierten Lösungspunkte mit ihren Teilpunkten, "
+        "HTML); in der Vorschau ist er die dritte Ansicht neben Aufgabe und Lösung (`Tab` schaltet reihum). Er listet je (Teil-)Aufgabe nur die nummerierten Lösungspunkte mit ihren Teilpunkten, "
         "ohne Aufgabentext, mit einer leeren Spalte „erreicht“, dazu Teilsummen je Hilfsmittel-Teil "
         "(Bonuspunkte getrennt, z. B. „17 P + 2 Bonuspunkte“). Die AFB-Verteilung ist eine interne "
         "Statistik und steht nur in der Klausur-Übersicht des Editors. Alternative Wege stehen mit „Weg A:“ "

@@ -74,12 +74,13 @@ Die Leiste „Vorschau-Optionen“ über der Vorschau startet eingeklappt; mit �
 | Option | Arbeitsblatt `.abw` | Klausur `.kbw` | Präsentation `.pbw` | Kurzentwurf, Schild, Markdown |
 |---|---|---|---|---|
 | Aufgabe / Lösung | ja | ja | – | – |
-| Seitenformat | ja | ja | ja (Folienformate) | – |
+| Erwartungshorizont | – | ja | – | – |
+| Seitenformat | ja | ja (nicht beim Erwartungshorizont) | ja (Folienformate) | – |
 | Black-Screen, Phasen | – | – | ja | – |
-| Gestaltung (Druckprofil, Farbe, Schrift, Größe) | ja | ja | ja | – |
+| Gestaltung (Druckprofil, Farbe, Schrift, Größe) | ja | ja (nicht beim Erwartungshorizont) | ja | – |
 
 - **Seitenformat** (`DIN A4` / `A4 quer` / `DIN A5` bzw. `16:9` / `16:10` / `4:3`) steuert die Seitengröße. Der Export übernimmt das Format, das in der Vorschau des Dokuments gewählt ist; die Einstellung *Export Seitenformat* gilt nur als Startwert. Bei `A4 quer` werden Antwortfelder wie Zahlenstrahl und Raster entsprechend breiter.
-- **Modus** (`Aufgabe` / `Lösung`) steuert bei Arbeitsblättern und Klausuren, welche Inhalte in der Vorschau gerendert werden.
+- **Modus** (`Aufgabe` / `Lösung`) steuert bei Arbeitsblättern und Klausuren, welche Inhalte in der Vorschau gerendert werden. Klausuren haben zusätzlich `Erwartungshorizont`: Die Vorschau zeigt dann genau die PDF, die auch der Export „Erwartungshorizont“ erzeugt (eigenes Layout, daher ohne Seitenformat und Gestaltung). Der Exportdialog übernimmt die gewählte Ansicht als Vorauswahl.
 - Präsentationen werden immer als Folien gerendert (kein Aufgaben/Lösung-Umschalter).
 - **Black-Screen** (`Aus` / `Vorher` / `Nachher` / `Beides`) fügt bei Präsentationen schwarze Folien vor und/oder nach dem Deck ein. Standard ist `Beides`; den Startwert stellst du unter *Einstellungen → Export → Black-Screen (Praesentation)* ein. Der Präsentations-Export übernimmt die Auswahl aus der Vorschau.
 - **Phasen** steuert bei Präsentationen den Abschnitts-Footer der Folien (Trenner `·` oder `→`, künftige Abschnitte ausblenden).
@@ -102,7 +103,7 @@ Die Leiste „Vorschau-Optionen“ über der Vorschau startet eingeklappt; mit �
 - `0 / 1`: Seitenbreite / ganze Seite
 - `E / N / U`: Einzel / nebeneinander / untereinander
 - `- / +`: Zoom
-- `Tab`: Aufgabe/Lösung (nur in `worksheet`/`solution`; nicht in `presentation`)
+- `Tab`: nächste Ansicht – bei Arbeitsblättern Aufgabe/Lösung, bei Klausuren Aufgabe/Lösung/Erwartungshorizont (reihum); ohne Wirkung bei Präsentation, Kurzentwurf, Schild und Markdown
 - `Leertaste`: Vorschau aktualisieren
 - `Strg+E`: Exportdialog öffnen
 - `O`: Markdown öffnen

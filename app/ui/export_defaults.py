@@ -23,7 +23,7 @@ from ..core.document_type_registry import (
 _ALLOWED_WORKSHEET_EXPORT_FORMATS = set(spec_for_type(DOCUMENT_TYPE_WORKSHEET).export_formats)
 _ALLOWED_PRESENTATION_EXPORT_FORMATS = set(spec_for_type(DOCUMENT_TYPE_PRESENTATION).export_formats)
 _ALLOWED_LERNHILFEN_EXPORT_FORMATS = {"pdf", "png", "pngzip"}
-_ALLOWED_EXPORT_MODES = {"worksheet", "solution", "both"}
+_ALLOWED_EXPORT_MODES = {"worksheet", "solution", "both", "expectation"}
 _ALLOWED_BLACK_SCREEN_MODES = {"none", "before", "after", "both"}
 _ALLOWED_SECTION_SEPARATOR_MODES = {"dot", "arrow"}
 # Aus dem Formatkatalog abgeleitet: Ein Format, das die Vorschau anbietet, darf der

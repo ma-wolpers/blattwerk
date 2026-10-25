@@ -80,6 +80,14 @@ class BlattwerkPreviewBuildMixin:
             command=self.refresh_preview,
         )
         self.preview_mode_btn_solution.pack(side="left", padx=(10, 0))
+        # Nur bei Klausuren sichtbar; `_apply_preview_mode_controls` packt es je Dokumenttyp.
+        self.preview_mode_btn_expectation = widgets.Radiobutton(
+            format_group_main,
+            text="Erwartungshorizont",
+            value="expectation",
+            variable=self.preview_mode_var,
+            command=self.refresh_preview,
+        )
         self.preview_mode_static_label = widgets.Label(
             format_group_main,
             text="Präsentation",

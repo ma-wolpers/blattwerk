@@ -34,7 +34,7 @@ So vermeiden wir Klebercode und Verwirrung.
   - HSM-Vertragslogik (Intent-Katalog, Escape-Prioritaet, Transition-Regeln) liegt zentral in `bw_libs/ui_contract/hsm.py` und `app/ui/ui_intents.py`.
   - Geoeffnete Markdown-Dateien laufen als Tabs in einer Dokumentleiste; jedes Blatt bleibt als eigener UI-Zustand erhalten.
   - Bereichsauswahl und Tabs sitzen in einer gemeinsamen modernen Steuerleiste; Segment- und Tab-Stile kommen zentral aus `app/ui/ui_theme.py`.
-  - Beim Tab-Wechsel stellt die UI dokumentbezogene Vorschau-Einstellungen wieder her (z. B. Aufgabe/Loesung, DIN A4/A5, Kontrast und Gestaltung).
+  - Beim Tab-Wechsel stellt die UI dokumentbezogene Vorschau-Einstellungen wieder her (z. B. Ansicht Aufgabe/Loesung/Erwartungshorizont, DIN A4/A5, Kontrast und Gestaltung).
   - Dazu gehoeren auch Praesentationsoptionen wie Folienformat und Black-Screen-Modus.
   - Beim Tab-Wechsel werden auch Zoom, aktive Seite und Scrollposition des jeweiligen Blatts wiederhergestellt.
   - Vorschauseiten werden pro Tab zwischengespeichert und bei unveraenderten Dateien/Optionen ohne erneutes Kompilieren wiederverwendet.
