@@ -41,13 +41,11 @@ class BlattwerkAppHelpPreviewMixin(BlattwerkAppHelpPreviewRenderMixin):
                     )
                 return
 
-        page_format = self.preview_page_format_var.get()
         contrast_profile = self.preview_contrast_var.get()
         self._ensure_help_preview_window()
         self._refresh_help_preview(
             input_path,
             include_solutions,
-            page_format,
             contrast_profile,
         )
 

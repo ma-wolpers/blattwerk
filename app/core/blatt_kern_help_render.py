@@ -27,6 +27,32 @@ DIN-A4-Breite nebeneinander) dieselbe physische Kartenbreite verwenden.
 Karten im Zweispalten-Layout werden ausschließlich über den Spalten-Container
 gesteuert (siehe `.help-cards-columns`), nicht über Card-Margin."""
 
+HELP_CARD_LAYOUT_SHEET = "sheet"
+"""Kartenlayout „Sammelseite“: Karten fließen in A6-Breite (bei mindestens zwei
+Karten zweispaltig) über die Seiten des gewählten Formats."""
+
+HELP_CARD_LAYOUT_SINGLE = "single"
+"""Kartenlayout „Einzelseiten“: jede Karte beginnt auf einer neuen Seite und
+füllt randlos die volle Seitenbreite; am Kartenanfang steht ein unsichtbarer
+Marker (`help_card_marker`), über den `help_card_pages` die Seitenspanne
+jeder Karte im gedruckten PDF wiederfindet."""
+
+HELP_CARD_LAYOUTS = (HELP_CARD_LAYOUT_SHEET, HELP_CARD_LAYOUT_SINGLE)
+
+HELP_CARD_MARKER_PREFIX = "BWHC-"
+"""Präfix des unsichtbaren Seitenmarkers im Einzelseiten-Layout; vier Ziffern
+Kartennummer folgen (`BWHC-0001`). Wird nach dem Druck aus dem PDF entfernt."""
+
+
+def help_card_marker(index):
+    """Markertext der Karte mit der 1-basierten Dokumentnummer `index`.
+
+    Beispiel: ``help_card_marker(3) == "BWHC-0003"``. Einzige Stelle, die das
+    Markerformat festlegt -- Renderer und PDF-Auswertung nutzen beide diese
+    Funktion.
+    """
+    return f"{HELP_CARD_MARKER_PREFIX}{int(index):04d}"
+
 
 def collect_help_blocks(blocks, include_solutions=False, document_type="worksheet"):
     """Extrahiert sichtbare Hilfeblöcke inkl. Metadaten in Dokumentreihenfolge."""
@@ -103,95 +129,88 @@ def _annotate_help_block_labels(help_blocks, help_tag):
     return annotated_blocks
 
 
-def _wrap_cards_for_layout(cards_html, page_format):
-    """Wraps rendered cards in a CSS-Multicol-Container for the two-column A4 print layout.
+def _wrap_cards_for_layout(cards_html, page_format, layout=HELP_CARD_LAYOUT_SHEET):
+    """Wraps rendered cards in the container that carries the layout's CSS rules.
 
-    Nur aktiv bei mindestens zwei Karten und einem physischen Seitenformat,
-    das breiter ist als eine einzelne DIN-A6-Karte (`page_format` ungleich
-    `"a6_portrait"`) -- der Einzelkarten-Renderpfad (Feature C4) bleibt
-    unberührt. `column-width: {HELP_CARD_WIDTH_CM}cm` sorgt dafür, dass der
-    Browser die linke Spalte zuerst vollständig füllt, bevor die rechte
-    beginnt (Standard-CSS-Fragmentierungsverhalten für paginierte Medien),
-    ohne dass serverseitig Karten vorab auf Spalten verteilt werden müssten
-    (Kartenhöhen sind variabel und erst durch den Renderer bekannt).
+    Sammelseite: Multicol-Container für das Zweispalten-Layout, nur bei
+    mindestens zwei Karten und einem physischen Seitenformat, das breiter ist
+    als eine einzelne DIN-A6-Karte (`page_format` ungleich `"a6_portrait"`).
+    `column-width: {HELP_CARD_WIDTH_CM}cm` sorgt dafür, dass der Browser die
+    linke Spalte zuerst vollständig füllt, bevor die rechte beginnt
+    (Standard-CSS-Fragmentierungsverhalten für paginierte Medien), ohne dass
+    serverseitig Karten vorab auf Spalten verteilt werden müssten (Kartenhöhen
+    sind variabel und erst durch den Renderer bekannt).
+
+    Einzelseiten: immer der Container `.help-cards-single`, an dem die
+    Seitenumbruch- und Vollbreite-Regeln aus `_help_cards_css` hängen.
     """
     joined = "".join(cards_html)
+    if layout == HELP_CARD_LAYOUT_SINGLE:
+        return f'<div class="help-cards-single">{joined}</div>'
     if len(cards_html) <= 1 or page_format == "a6_portrait":
         return joined
     return f'<div class="help-cards-columns">{joined}</div>'
 
 
-def render_help_cards_html(
-    meta,
-    blocks,
-    include_solutions=False,
-    page_format="a4_portrait",
-    print_profile="standard",
-    color_profile="indigo",
-    font_profile="segoe",
-    font_size_profile="normal",
-):
-    """Rendert ausschließlich Hilfeblöcke als kartenseitige HTML-Ausgabe.
+def _render_help_card_section(index, block, layout):
+    """Rendert eine einzelne Lernhilfenkarte als `<section class="help-card">`.
 
-    `font_profile` ist der App-Standard; ein gültiges `font_profile` im Frontmatter
-    hat Vorrang (`resolve_document_font_profile`).
+    Args:
+        index: 1-basierte Kartennummer in Dokumentreihenfolge (über *alle*
+            sichtbaren Karten, auch wenn nur eine Teilmenge gerendert wird);
+            landet in `data-help-index` und im Einzelseiten-Marker.
+        block: gelabelter Hilfeblock aus `collect_labeled_help_blocks`.
+        layout: `HELP_CARD_LAYOUT_SHEET` oder `HELP_CARD_LAYOUT_SINGLE`; nur das
+            Einzelseiten-Layout setzt den unsichtbaren Seitenmarker.
     """
-    font_profile, _ = resolve_document_font_profile(meta, font_profile)
+    block_content = block["content"]
+    level = block["level"]
 
-    help_blocks = collect_labeled_help_blocks(
-        meta,
-        blocks,
-        include_solutions=include_solutions,
-        document_type="worksheet",
-    )
-    if not help_blocks:
-        return ""
-
-    stylesheet = build_stylesheet(
-        page_format,
-        print_profile,
-        hole_punch_enabled=is_hole_punch_layout_enabled(meta),
-        color_profile=color_profile,
-        font_profile=font_profile,
-        font_size_profile=font_size_profile,
+    markdown_converter = _new_markdown_converter()
+    body_html = (
+        convert_markdown_with_math(markdown_converter, block_content)
+        if block_content
+        else ""
     )
 
-    cards_html = []
-    for index, block in enumerate(help_blocks, start=1):
-        block_options = block["options"]
-        block_content = block["content"]
-        level = block["level"]
+    title_text = (block["options"].get("title") or "Hilfe").strip() or "Hilfe"
+    label_text = (block.get("label") or "").strip()
+    header_title = f"{label_text} - {title_text}" if label_text else title_text
+    level_badge = (
+        f"<span class='help-card-level'>Stufe {level}</span>"
+        if level is not None
+        else ""
+    )
+    marker_html = (
+        f'<span class="help-card-marker">{help_card_marker(index)}</span>'
+        if layout == HELP_CARD_LAYOUT_SINGLE
+        else ""
+    )
 
-        markdown_converter = _new_markdown_converter()
-        body_html = (
-            convert_markdown_with_math(markdown_converter, block_content)
-            if block_content
-            else ""
-        )
-
-        title_text = (block_options.get("title") or "Hilfe").strip() or "Hilfe"
-        label_text = (block.get("label") or "").strip()
-        header_title = f"{label_text} - {title_text}" if label_text else title_text
-        level_badge = (
-            f"<span class='help-card-level'>Stufe {level}</span>"
-            if level is not None
-            else ""
-        )
-
-        cards_html.append(
-            f"""
+    return f"""
 <section class="help-card" data-help-index="{index}">
-<header class="help-card-header">
+{marker_html}<header class="help-card-header">
 <h2>{escape(header_title)}</h2>
 {level_badge}
 </header>
 <div class="help-card-body">{body_html}</div>
 </section>
 """.strip()
-        )
 
-    title_value = escape((meta or {}).get("Titel", "Hilfekarten"))
-    help_cards_css = f"""
+
+def _help_cards_css():
+    """Karten-CSS für beide Layouts (Sammelseite und Einzelseiten).
+
+    Das Einzelseiten-Layout (`.help-cards-single`) setzt die Karte randlos auf
+    volle Seitenbreite -- auf DIN A6 ist das genau `HELP_CARD_WIDTH_CM`, auf
+    A5/A4 entsprechend breiter -- und erzwingt vor jeder weiteren Karte einen
+    Seitenumbruch. `break-inside: auto` ist dort Absicht: eine zu lange Karte
+    soll sichtbar über die Seite laufen, damit `help_card_pages` sie erkennt
+    und ins nächstgrößere Format verschiebt. Der Marker sitzt absolut im
+    oberen Kartenpolster, damit er beim späteren Entfernen keinen Nachbartext
+    berührt.
+    """
+    return f"""
 body {{
     margin: 0;
 }}
@@ -220,6 +239,28 @@ body {{
 """ + """
 .help-card:last-child {
     margin-bottom: 0;
+}
+
+.help-cards-single .help-card {
+    position: relative;
+    width: 100%;
+    margin: 0;
+    break-before: page;
+    break-inside: auto;
+    page-break-inside: auto;
+}
+
+.help-cards-single .help-card:first-child {
+    break-before: auto;
+}
+
+.help-card-marker {
+    position: absolute;
+    top: 1px;
+    left: 1px;
+    font-size: 2px;
+    line-height: 2px;
+    color: #fff;
 }
 
 .help-card-header {
@@ -253,6 +294,66 @@ body {{
 }
 """.strip()
 
+
+def render_help_cards_html(
+    meta,
+    blocks,
+    include_solutions=False,
+    page_format="a4_portrait",
+    print_profile="standard",
+    color_profile="indigo",
+    font_profile="segoe",
+    font_size_profile="normal",
+    layout=HELP_CARD_LAYOUT_SHEET,
+    card_indices=None,
+):
+    """Rendert ausschließlich Hilfeblöcke als kartenseitige HTML-Ausgabe.
+
+    `font_profile` ist der App-Standard; ein gültiges `font_profile` im Frontmatter
+    hat Vorrang (`resolve_document_font_profile`).
+
+    Args:
+        layout: `HELP_CARD_LAYOUT_SHEET` (Standard, fließende Sammelseite) oder
+            `HELP_CARD_LAYOUT_SINGLE` (je Karte eine Seite, siehe `_help_cards_css`).
+        card_indices: optional die 1-basierten Kartennummern, die gerendert
+            werden sollen (`None` = alle). Labels und Nummern werden trotzdem
+            über *alle* sichtbaren Karten vergeben, damit eine Teilmenge (z. B.
+            die Karten, die erst auf DIN A5 passen) dieselben Labels trägt wie
+            im vollständigen Satz.
+
+    Returns:
+        Vollständiges HTML-Dokument oder `""`, wenn keine (ausgewählte) Karte
+        sichtbar ist.
+    """
+    if layout not in HELP_CARD_LAYOUTS:
+        raise ValueError(f"Unbekanntes Lernhilfen-Layout: {layout!r}")
+    font_profile, _ = resolve_document_font_profile(meta, font_profile)
+
+    help_blocks = collect_labeled_help_blocks(
+        meta,
+        blocks,
+        include_solutions=include_solutions,
+        document_type="worksheet",
+    )
+    selected = [
+        (index, block)
+        for index, block in enumerate(help_blocks, start=1)
+        if card_indices is None or index in card_indices
+    ]
+    if not selected:
+        return ""
+
+    stylesheet = build_stylesheet(
+        page_format,
+        print_profile,
+        hole_punch_enabled=is_hole_punch_layout_enabled(meta),
+        color_profile=color_profile,
+        font_profile=font_profile,
+        font_size_profile=font_size_profile,
+    )
+    cards_html = [_render_help_card_section(index, block, layout) for index, block in selected]
+
+    title_value = escape((meta or {}).get("Titel", "Hilfekarten"))
     return f"""<!DOCTYPE html>
 <html lang="de">
 <head>
@@ -274,11 +375,11 @@ window.MathJax = {{
 <style>
 {stylesheet}
 
-{help_cards_css}
+{_help_cards_css()}
 </style>
 </head>
 <body>
-{_wrap_cards_for_layout(cards_html, page_format)}
+{_wrap_cards_for_layout(cards_html, page_format, layout)}
 </body>
 </html>
 """

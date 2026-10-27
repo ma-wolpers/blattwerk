@@ -290,7 +290,6 @@ class BlattwerkAppPreviewRenderMixin:
                         self._refresh_help_preview(
                             input_path,
                             include_solutions,
-                            page_format,
                             contrast_profile,
                         )
                     self._refresh_zoom_label()
@@ -357,7 +356,6 @@ class BlattwerkAppPreviewRenderMixin:
                         self._refresh_help_preview(
                             input_path,
                             include_solutions,
-                            page_format,
                             contrast_profile,
                         )
 

@@ -248,6 +248,18 @@ PAGE_LAYOUTS = {
         "document_header_size": "0.85em",
         "solution_badge_size": "0.9em",
     },
+    "a5_portrait": {
+        # Nur für Lernhilfen-Einzelseiten (help_card_pages), kein Arbeitsblattformat.
+        "page_size_css": "14.8cm 21cm",
+        "page_margin_top_css": "0.5cm",
+        "page_margin_right_css": "0.4cm",
+        "page_margin_bottom_css": "0.4cm",
+        "page_margin_left_css": "0.4cm",
+        "page_margin_right_hole_punch_css": "0.4cm",
+        "page_margin_left_hole_punch_css": "0.4cm",
+        "document_header_size": "0.85em",
+        "solution_badge_size": "0.9em",
+    },
     "a6_portrait": {
         "page_size_css": "10.5cm 14.8cm",
         "page_margin_top_css": "0.5cm",

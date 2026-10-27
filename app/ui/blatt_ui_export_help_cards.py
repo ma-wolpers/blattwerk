@@ -6,24 +6,11 @@ from __future__ import annotations
 from pathlib import Path
 import tempfile
 import zipfile
-import fitz
-from PIL import Image
 from .dialog_services import messagebox
 from .export_dialog import LernhilfenExportDialog
+from .help_card_images import render_help_card_images
 from ..core.build_requests import build_help_cards_from_request
-from ..core.blatt_kern_help_render import (
-    collect_labeled_help_blocks,
-    render_help_cards_html,
-)
-from ..core.blatt_validator import inspect_markdown_text
-from ..core.blatt_kern_shared import split_front_matter
-from ..core.blatt_kern_io_html import (
-    absolutize_local_image_sources,
-    apply_image_size_options,
-)
-from ..core.blatt_kern_io_pdf import write_pdf_from_html
 from ..core.export_path_guardrails import validate_export_output_path
-from .help_card_image_trim import trim_lernhilfe_image
 from .export_defaults import (
     _ALLOWED_LERNHILFEN_EXPORT_FORMATS,
     _ALLOWED_WORKSHEET_PAGE_FORMATS,
@@ -49,27 +36,23 @@ class BlattwerkAppExportHelpCardsMixin:
         )
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            tmp_dir_path = Path(tmp_dir)
-            card_images = self._render_lernhilfe_card_images(
-                input_path=input_path,
-                page_format=page_format,
-                contrast_profile=contrast_profile,
-                tmp_dir_path=tmp_dir_path,
-            )
+        card_images = self._render_lernhilfe_card_images(
+            input_path=input_path,
+            contrast_profile=contrast_profile,
+        )
 
-            created_files = []
-            card_count = len(card_images)
-            for index, image in enumerate(card_images, start=1):
-                if card_count == 1:
-                    target_file = output_path
-                else:
-                    target_file = output_path.with_name(
-                        f"{output_path.stem}_{index:02d}{output_path.suffix}"
-                    )
+        created_files = []
+        card_count = len(card_images)
+        for index, image in enumerate(card_images, start=1):
+            if card_count == 1:
+                target_file = output_path
+            else:
+                target_file = output_path.with_name(
+                    f"{output_path.stem}_{index:02d}{output_path.suffix}"
+                )
 
-                image.save(target_file)
-                created_files.append(target_file)
+            image.save(target_file)
+            created_files.append(target_file)
 
         return created_files
 
@@ -120,9 +103,7 @@ class BlattwerkAppExportHelpCardsMixin:
             tmp_dir_path = Path(tmp_dir)
             card_images = self._render_lernhilfe_card_images(
                 input_path=input_path,
-                page_format=page_format,
                 contrast_profile=contrast_profile,
-                tmp_dir_path=tmp_dir_path,
             )
 
             with zipfile.ZipFile(
@@ -136,75 +117,24 @@ class BlattwerkAppExportHelpCardsMixin:
 
         return [output_zip_path]
 
-    def _render_lernhilfe_card_images(
-        self,
-        *,
-        input_path: Path,
-        page_format: str,
-        contrast_profile: str,
-        tmp_dir_path: Path,
-    ):
-        """Render each visible lernhilfe card as its own trimmed PNG-ready image.
+    def _render_lernhilfe_card_images(self, *, input_path: Path, contrast_profile: str):
+        """Rendert jede sichtbare Lernhilfe als eigenes, beschnittenes Bild (200 dpi).
 
-        `page_format` (Aufrufer-Präferenz, i. d. R. a4/a5) wird hier bewusst
-        ignoriert: Einzelkarten werden immer in DIN-A6-Breite gerendert
-        (steuert u. a. `document_header_size`/`solution_badge_size` über
-        `PAGE_LAYOUTS["a6_portrait"]`), unabhängig vom allgemeinen
-        Seitenformat-Preference des Nutzers. Der kombinierte Mehrkarten-PDF-
-        Export (`_export_help_cards_pdf`) behält dagegen das gewählte Format
-        für die physische Seite bei.
+        Das Seitenformat wählt `help_card_images.render_help_card_images` je
+        Karte selbst (kleinstes passendes aus A6/A5/A4), unabhängig vom
+        Seitenformat des Arbeitsblatts -- lange Karten werden so nicht mehr
+        nach der ersten A6-Seite abgeschnitten. Der kombinierte
+        Mehrkarten-PDF-Export (`_export_help_cards_pdf`) behält dagegen das
+        gewählte Format für die physische Seite bei.
         """
-        page_format = "a6_portrait"
-
-        text = input_path.read_text(encoding="utf-8")
-        meta, _content = split_front_matter(text)
-        inspected = inspect_markdown_text(text)
-        help_cards = collect_labeled_help_blocks(
-            meta,
-            inspected.blocks,
+        return render_help_card_images(
+            input_path,
             include_solutions=False,
-            document_type="worksheet",
+            contrast_profile=contrast_profile,
+            design=self._worksheet_design_options(),
+            dpi=200,
+            block_on_critical=True,
         )
-        if not help_cards:
-            return []
-
-        worksheet_design = self._worksheet_design_options()
-        color_profile = worksheet_design.color_profile
-        font_profile = worksheet_design.font_profile
-        font_size_profile = worksheet_design.font_size_profile
-
-        images = []
-        for index, card in enumerate(help_cards, start=1):
-            options = dict(card.get("options") or {})
-            label = str(card.get("label") or "").strip()
-            if label:
-                options["tag"] = label
-
-            block_type = str(card.get("block_type") or "help").strip() or "help"
-            block_content = str(card.get("content") or "")
-            html = render_help_cards_html(
-                meta,
-                [(block_type, options, block_content)],
-                include_solutions=False,
-                page_format=page_format,
-                print_profile=contrast_profile,
-                color_profile=color_profile,
-                font_profile=font_profile,
-                font_size_profile=font_size_profile,
-            )
-            html = absolutize_local_image_sources(html, input_path.parent)
-            html = apply_image_size_options(html)
-
-            temp_pdf = tmp_dir_path / f"help_card_{index:03d}.pdf"
-            write_pdf_from_html(html, temp_pdf)
-
-            with fitz.open(temp_pdf) as doc:
-                page = doc.load_page(0)
-                pix = page.get_pixmap(dpi=200, alpha=False)
-                image = Image.frombytes("RGB", (pix.width, pix.height), pix.samples)
-                images.append(trim_lernhilfe_image(image))
-
-        return images
 
     def open_lernhilfen_export_dialog(self):
         """Öffnet den dedizierten Lernhilfen-Exportdialog."""

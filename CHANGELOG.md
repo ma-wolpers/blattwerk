@@ -88,6 +88,8 @@ The format is based on Keep a Changelog.
 - Einstellung „Arbeits-Emoji standardmäßig sichtbar“: entfällt. Dokumente ohne Sozialform-Symbole legst du als Klausur (`.kbw`) an.
 
 ### Fixed
+- **Lernhilfen als PNG wurden bei langen Karten abgeschnitten.** Jede Karte wurde fest auf DIN A6 gedruckt und nur die erste Seite übernommen. Jetzt bekommt jede Karte das kleinste Format, auf das sie vollständig passt (A6, A5 oder A4); dasselbe gilt für PNG-ZIP.
+- **Lernhilfen-Fenster zählte Seiten statt Karten.** Bei mehreren Karten pro Seite stimmte „Lernhilfe i/N“ nicht; das Fenster zeigt jetzt genau ein Bild pro Lernhilfe.
 - **Tabellen: Zeilenkopf-Spalte wurde bei `widths=` zusammengequetscht.** Mit `row_headers` bekommt die Kopfspalte jetzt das mittlere Gewicht der Datenspalten; alternativ gibst du einen Wert mehr an, der erste gilt dann für die Kopfspalte (z. B. `widths="1.5 3 1"` bei zwei Datenspalten). Eine unpassende Anzahl Werte meldet die neue Warnung `AN020` (bisher wurden überzählige Werte still ignoriert).
 - **Tabellenzellen mit „2. …" oder „2025. …" am Anfang** wurden zu einer neu ab 1 nummerierten Liste („1. …") – die Zahl im Inhalt änderte sich. Zellinhalt bleibt jetzt wörtlich stehen.
 - **Export mit geöffneter Ziel-PDF lieferte still die alte Datei:** War die PDF beim Export noch in einem Viewer geöffnet, blieb sie unverändert liegen – Präsentationen, Schilder, Markdown, Erwartungshorizont und Kurzentwurf meldeten trotzdem „Export erfolgreich". Jetzt wird jede PDF zuerst privat erstellt und erst am Ende in einem Schritt an den Zielort gelegt; im Exportordner bleiben keine `tmp…`-Zwischendateien mehr zurück.
