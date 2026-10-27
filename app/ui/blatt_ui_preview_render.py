@@ -66,6 +66,7 @@ class BlattwerkAppPreviewRenderMixin:
                 str(self.design_color_profile_var.get()),
                 str(self.design_font_profile_var.get()),
                 str(self.design_font_size_profile_var.get()),
+                self._effective_help_appendix(),
                 kurzentwurf_runtime_key,
             )
 
@@ -190,6 +191,7 @@ class BlattwerkAppPreviewRenderMixin:
                 kurzentwurf_options=kurzentwurf_options,
                 computation_cache=self._resolve_computation_cache(input_path),
                 preview_variant=preview_variant,
+                help_appendix=self._effective_help_appendix(),
             )
 
 

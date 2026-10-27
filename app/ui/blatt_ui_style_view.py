@@ -26,10 +26,19 @@ class BlattwerkAppStyleViewMixin:
             self.zoom_info_var.set(f"Zoom: {display_zoom_percent}%")
 
     def _get_fit_scales(self, image: Image.Image):
-            """Berechnet Skalierung für Seitenbreite und ganze Seite."""
+            """Berechnet Skalierung für Seitenbreite und ganze Seite -- bezogen auf die Referenzseite.
 
+            Referenz ist die erste Vorschauseite (Arbeitsblattformat), nicht
+            `image` selbst: Alle Seiten werden mit derselben Auflösung gerastert,
+            ein gemeinsamer Faktor hält deshalb die echten Größenverhältnisse --
+            eine angehängte A6-Lernhilfe erscheint kleiner als die A4-Seite
+            (maßstabsgetreu). Bei gleich großen Seiten ist das Ergebnis dasselbe
+            wie zuvor. Ohne Vorschauseiten gilt `image`.
+            """
+
+            reference = self.preview_images[0] if getattr(self, "preview_images", None) else image
             frame_width, frame_height = self._get_preview_frame_size()
-            source_w, source_h = image.size
+            source_w, source_h = reference.size
             return get_fit_scales(frame_width, frame_height, source_w, source_h)
 
     def _get_display_zoom_percent(self):

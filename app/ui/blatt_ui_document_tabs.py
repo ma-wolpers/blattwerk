@@ -12,6 +12,7 @@ from bw_gui.runtime import ui
 from pathlib import Path
 
 from .ui_constants import EDITOR_DOCUMENT_LOADED
+from ..core.help_cards_appendix import coerce_help_appendix
 from ..core.document_type_registry import coerce_preview_variant, next_preview_variant
 from ..storage.user_preferences_adapter import normalize_user_preferences
 from ..styles.worksheet_design import CONTRAST_PROFILE_ORDER
@@ -94,6 +95,7 @@ class BlattwerkDocumentTabsMixin:
             "section_separator": self.preview_section_separator_var.get(),
             "hide_future_sections": bool(self.preview_hide_future_sections_var.get()),
             "contrast": self.preview_contrast_var.get(),
+            "help_appendix": self.preview_help_appendix_var.get(),
             "color_profile": self.design_color_profile_var.get(),
             "font_profile": self.design_font_profile_var.get(),
             "fit_mode": self.preview_fit_mode_var.get(),
@@ -145,6 +147,7 @@ class BlattwerkDocumentTabsMixin:
         tab_state["section_separator"] = self.preview_section_separator_var.get()
         tab_state["hide_future_sections"] = bool(self.preview_hide_future_sections_var.get())
         tab_state["contrast"] = self.preview_contrast_var.get()
+        tab_state["help_appendix"] = self.preview_help_appendix_var.get()
         tab_state["color_profile"] = self.design_color_profile_var.get()
         tab_state["font_profile"] = self.design_font_profile_var.get()
         if self._font_size_profile_is_per_tab():
@@ -208,6 +211,7 @@ class BlattwerkDocumentTabsMixin:
             self.preview_section_separator_var.set(separator_value)
             self.preview_hide_future_sections_var.set(bool(hide_future_value))
             self.preview_contrast_var.set(tab_state.get("contrast", self.preview_contrast_var.get()))
+            self.preview_help_appendix_var.set(coerce_help_appendix(tab_state.get("help_appendix")))
             self.design_color_profile_var.set(tab_state.get("color_profile", self.design_color_profile_var.get()))
             self.design_font_profile_var.set(tab_state.get("font_profile", self.design_font_profile_var.get()))
             if self._font_size_profile_is_per_tab():

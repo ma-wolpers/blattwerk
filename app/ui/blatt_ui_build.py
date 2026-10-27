@@ -14,9 +14,10 @@ from .ui_constants import (
     EDITOR_VIEW_PREVIEW_ONLY,
 )
 from .blatt_ui_build_preview import BlattwerkPreviewBuildMixin
+from .blatt_ui_build_preview_help import BlattwerkPreviewHelpAppendixMixin
 
 
-class BlattwerkAppBuildMixin(BlattwerkPreviewBuildMixin):
+class BlattwerkAppBuildMixin(BlattwerkPreviewBuildMixin, BlattwerkPreviewHelpAppendixMixin):
     """Baut die Hauptoberfläche und verdrahtet Preview-Canvas/Controls."""
     def _refresh_editor_mode_segmented_buttons(self):
         """Updates segmented area buttons so the active view mode is visually highlighted."""

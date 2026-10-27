@@ -84,6 +84,8 @@ class BlattwerkAppBase(
         self.preview_controls_collapsed_var = ui.BooleanVar(value=True)
         self.preview_page_format_var = ui.StringVar(value="a4_portrait")
         self.preview_contrast_var = ui.StringVar(value="standard")
+        # Lernhilfen-Anhang der Vorschau (`help_cards_appendix.HELP_APPENDIX_*`), tab-lokal.
+        self.preview_help_appendix_var = ui.StringVar(value="none")
         self.preview_fit_mode_var = ui.StringVar(value=VIEW_FIT_WIDTH)
         self.preview_layout_mode_var = ui.StringVar(value=VIEW_LAYOUT_SINGLE)
         self.editor_view_mode_var = ui.StringVar(value=EDITOR_VIEW_PREVIEW_ONLY)

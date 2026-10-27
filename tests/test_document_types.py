@@ -199,6 +199,7 @@ def test_preview_cache_key_changes_for_kurzentwurf_runtime_options(tmp_path):
                 BlattwerkAppPreviewMixin._normalize_presentation_section_separator
             ),
             "_parse_bool_setting": staticmethod(BlattwerkAppPreviewMixin._parse_bool_setting),
+            "_effective_help_appendix": lambda self: "none",
             "user_preferences": {"kurzentwurf_column_widths_text": "10 20 60 10"},
         },
     )()
@@ -264,6 +265,7 @@ def test_build_document_tab_state_forces_worksheet_preview_for_kurzentwurf(tmp_p
             "preview_section_separator_var": _DummyVar("dot"),
             "preview_hide_future_sections_var": _DummyVar(False),
             "preview_contrast_var": _DummyVar("standard"),
+            "preview_help_appendix_var": _DummyVar("none"),
             "design_color_profile_var": _DummyVar("indigo"),
             "design_font_profile_var": _DummyVar("segoe"),
             "design_font_size_profile_var": _DummyVar("normal"),
@@ -281,15 +283,15 @@ def test_build_document_tab_state_forces_worksheet_preview_for_kurzentwurf(tmp_p
     assert state["preview_mode"] == "worksheet"
 
 
-# Sichtbarkeit je Dokumenttyp: (Loesung, Seitenformat, Phasen, Black-Screen, Gestaltung)
+# Sichtbarkeit je Dokumenttyp: (Loesung, Seitenformat, Phasen, Black-Screen, Gestaltung, Lernhilfen-Anhang)
 _TOOLBAR_VISIBILITY = {
-    DOCUMENT_TYPE_WORKSHEET: (True, True, False, False, True),
-    DOCUMENT_TYPE_PRESENTATION: (False, True, True, True, True),
-    DOCUMENT_TYPE_EXAM: (True, True, False, False, True),
-    DOCUMENT_TYPE_KURZENTWURF: (False, False, False, False, False),
-    DOCUMENT_TYPE_SCHILD: (False, False, False, False, False),
-    DOCUMENT_TYPE_MARKDOWN: (False, False, False, False, False),
-    None: (False, False, False, False, False),
+    DOCUMENT_TYPE_WORKSHEET: (True, True, False, False, True, True),
+    DOCUMENT_TYPE_PRESENTATION: (False, True, True, True, True, False),
+    DOCUMENT_TYPE_EXAM: (True, True, False, False, True, True),
+    DOCUMENT_TYPE_KURZENTWURF: (False, False, False, False, False, False),
+    DOCUMENT_TYPE_SCHILD: (False, False, False, False, False, False),
+    DOCUMENT_TYPE_MARKDOWN: (False, False, False, False, False, False),
+    None: (False, False, False, False, False, False),
 }
 _TOOLBAR_KEYS = (
     "show_solution_toggle",
@@ -297,6 +299,7 @@ _TOOLBAR_KEYS = (
     "show_phase_controls",
     "show_black_screen",
     "show_design_controls",
+    "show_help_appendix",
 )
 
 

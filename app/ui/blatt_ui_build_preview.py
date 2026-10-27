@@ -165,7 +165,12 @@ class BlattwerkPreviewBuildMixin:
         self._register_responsive_section(
             container=format_section,
             main_group=format_group_main,
-            optional_groups=[format_group_dina, format_group_black, format_group_phase],
+            optional_groups=[
+                format_group_dina,
+                format_group_black,
+                format_group_phase,
+                self._build_preview_help_appendix_group(format_section),
+            ],
             indent_px=16,
             gap_px=12,
         )

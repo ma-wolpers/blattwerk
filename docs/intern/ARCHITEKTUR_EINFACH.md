@@ -38,6 +38,7 @@ So vermeiden wir Klebercode und Verwirrung.
   - Dazu gehoeren auch Praesentationsoptionen wie Folienformat und Black-Screen-Modus.
   - Beim Tab-Wechsel werden auch Zoom, aktive Seite und Scrollposition des jeweiligen Blatts wiederhergestellt.
   - Vorschauseiten werden pro Tab zwischengespeichert und bei unveraenderten Dateien/Optionen ohne erneutes Kompilieren wiederverwendet.
+  - Die Lernhilfen lassen sich in der Vorschau hinter das Blatt haengen (eine Sammelseite oder jede Karte einzeln in A6/A5/A4); der Export uebernimmt diese Wahl als Vorauswahl. Alle Seiten erscheinen im selben Massstab.
   - Tabs werden ueber den festen `×`-Button rechts der Tab-Leiste geschlossen (aktiver Tab); bei vielen Tabs scrollt die Leiste horizontal, der Button bleibt sichtbar.
   - Das Hauptfenster startet maximiert; eine gemerkte Fenstergroesse hat Vorrang.
   - Dateien aus dem Explorer ("Oeffnen mit") oder von der Kommandozeile landen als Tab im bereits laufenden Fenster; ein zweites Fenster entsteht nicht.
