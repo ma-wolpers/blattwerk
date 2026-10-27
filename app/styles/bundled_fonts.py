@@ -149,6 +149,31 @@ def bundled_font_presets() -> dict[str, dict[str, str]]:
     }
 
 
+def bundled_font_file(key: str, weight: int = 400, style: str = "normal") -> Path:
+    """Absoluter Pfad der Schriftdatei eines mitgelieferten Schnitts.
+
+    Fuer Stellen, die eine Schrift ausserhalb von CSS brauchen (z. B. das Stempeln der
+    PDF-Laufelemente per PyMuPDF), damit der Dateiname nur in diesem Katalog steht.
+
+    Args:
+        key: Familienschluessel aus `BUNDLED_FONTS`, z. B. ``"andika"``.
+        weight: Gewicht des statischen Schnitts.
+        style: ``"normal"`` oder ``"italic"``.
+
+    Raises:
+        KeyError: Familie oder Schnitt ist nicht im Katalog.
+
+    Example:
+        >>> bundled_font_file("andika").name
+        'Andika-Regular.ttf'
+    """
+    font = BUNDLED_FONTS_BY_KEY[key]
+    for face in font.faces:
+        if face.weight == weight and face.style == style:
+            return FONTS_DIR / face.path
+    raise KeyError(f"Schnitt {weight}/{style} fehlt fuer Schrift {key!r}")
+
+
 @lru_cache(maxsize=None)
 def _data_uri(relative_path: str) -> str:
     """Liest eine Schriftdatei einmal und liefert sie als `data:`-URI (gecacht)."""

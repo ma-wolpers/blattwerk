@@ -17,7 +17,6 @@ from urllib.request import url2pathname
 from .pdf_running_elements import (  # noqa: F401 -- re-exportiert (wiring.py, blatt_kern_io_build.py)
     annotate_pdf_running_elements,
     annotate_pdf_running_elements_with_retry,
-    verify_pdf_running_elements,
     wait_for_file_stable,
 )
 

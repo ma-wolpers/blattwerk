@@ -23,6 +23,7 @@ The format is based on Keep a Changelog.
 - **Klausuren: Kopfzeile je Teil.** Mit `show_student_header: ja` steht die Schülerkopfzeile (Name, Lerngruppe, Datum) jetzt auch oben auf Teil B – und mit Deckblatt auf Teil A –, damit getrennt eingesammelte Teile beschriftet sind.
 
 ### Changed
+- **Kopf- und Fußzeilen einheitlich in Andika:** Copyright, Seitenzahl, wiederholter Titel, Schuljahr und das Badge „Lösungsversion" stehen in derselben mitgelieferten Schrift (bisher Helvetica). Griechische und andere Sonderzeichen im Titel erscheinen dadurch korrekt; Emoji im Titel entfallen in der Kopfzeile, zu lange Titel und Copyright-Texte werden mit „…" auf eine Zeile gekürzt, statt zu fehlen oder die rechte Angabe zu überdecken.
 - **Hervorhebung von Steuermarkern:** Der Schreibbereich hebt Steuermarker wie `--hm`, `--!`, `-+`, `--# Abschnitt` und `--` jetzt farbig hervor. In VS Code werden zusätzlich `--` sowie bisher fehlende Optionen (z. B. `afb=`, `parts=`, `target=`, `signature=`) hervorgehoben.
 - **Schlanke Scrollbars:** Alle Scrollbars sind jetzt die schlanke native Scrollbar statt der mit Pfeilknöpfen; unter Windows werden sie im dunklen Theme dunkel. Das Mausrad über der Scrollbar eines scrollbaren Bereichs (z. B. im Einstellungsdialog) scrollt jetzt genau dreimal so weit wie über dem Inhalt (bisher unbeabsichtigt fünfmal).
 - **Erwartungshorizont ohne Anforderungsbereiche:** Die AFB-Tabelle entfällt (interne Statistik); sie steht weiter in der Klausur-Übersicht des Editors. Die Gesamtpunktzahl steht jetzt als eigene Zeile „Gesamt: … P“ unter den Teilsummen (bei Wahlteilen die erreichbaren Punkte).
@@ -86,6 +87,7 @@ The format is based on Keep a Changelog.
 - Einstellung „Arbeits-Emoji standardmäßig sichtbar“: entfällt. Dokumente ohne Sozialform-Symbole legst du als Klausur (`.kbw`) an.
 
 ### Fixed
+- **PDF-Export brach mit „PDF-Annotation konnte nicht verifiziert werden" ab**, wenn der Titel ein Emoji (z. B. ☀️), griechische Buchstaben oder sehr viel Text enthielt. Ist die Ziel-PDF noch in einem anderen Programm geöffnet, meldet der Export das jetzt im Klartext statt mit dieser Meldung.
 - Beim Überfahren eines Farbprofil-Felds mit der Maus waren alle Tastenkürzel gesperrt, solange der kleine Hinweis zum Farbprofil sichtbar war. Kürzel funktionieren jetzt auch dann.
 - Im Exportdialog lösen D, P, A, L, B, K und ? beim Tippen in einem Eingabefeld nicht mehr aus.
 - Strg+Umschalt+H (Lernhilfenansicht), Strg+Umschalt+S (Speichern unter), Strg+Umschalt+F (Schriftprofil) sowie Strg+Umschalt+D/O funktionieren jetzt ohne eingeschaltete Feststelltaste; umgekehrt bremst die Feststelltaste die Einbuchstaben-Kürzel (S, F, K, O, Z …) nicht mehr aus.

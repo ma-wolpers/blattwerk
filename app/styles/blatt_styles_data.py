@@ -309,6 +309,48 @@ PRESENTATION_PAGE_FORMATS = ("presentation_16_9", "presentation_16_10", "present
 DEFAULT_PRESENTATION_PAGE_FORMAT = "presentation_16_9"
 
 
+# Laufelemente (Kopf-/Fusszeile, Seitenzahl, Loesungs-Badge), die nach dem Druck per
+# PyMuPDF in die PDF gestempelt werden. Alle Laengen in pt; `*_from_bottom` zaehlt ab
+# Seitenunterkante. "large" gilt ab `RUNNING_LARGE_MIN_LONG_SIDE_PT` laengerer
+# Seitenkante (A4 hoch/quer), sonst "compact" (A5 quer: 595 pt).
+RUNNING_LARGE_MIN_LONG_SIDE_PT = 700
+RUNNING_ELEMENT_FONT_KEY = "andika"  # Schluessel in `bundled_fonts.BUNDLED_FONTS`
+RUNNING_ELEMENT_LAYOUTS = {
+    "large": {
+        "side_inset": 32,
+        "footer_top_from_bottom": 34,
+        "footer_bottom_from_bottom": 16,
+        "header_top": 16,
+        "header_bottom": 36,
+        "header_font_size": 11,
+        "footer_font_size": 8,
+        "page_number_font_size": 15,
+        "page_number_baseline_lift": 21,
+    },
+    "compact": {
+        "side_inset": 22,
+        "footer_top_from_bottom": 24,
+        "footer_bottom_from_bottom": 10,
+        "header_top": 10,
+        "header_bottom": 30,
+        "header_font_size": 9,
+        "footer_font_size": 8,
+        "page_number_font_size": 12,
+        "page_number_baseline_lift": 4,
+    },
+}
+RUNNING_ELEMENT_GAP_PT = 12  # Mindestabstand Titel <-> rechtes Label, Copyright <-> Seitenzahl
+RUNNING_BADGE_STYLE = {
+    "text": "Lösungsversion",
+    "horizontal_pad": 6,
+    "vertical_pad": 2,
+    "min_height": 12,
+    "stroke": (0.16, 0.38, 0.27),
+    "fill": (0.92, 0.97, 0.93),
+    "stroke_width": 0.9,
+}
+
+
 _PAGE_DIMENSIONS_CM = {
     "a4": (21.0, 29.7),
     "a5": (14.8, 21.0),

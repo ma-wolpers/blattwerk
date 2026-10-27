@@ -19,7 +19,6 @@ from .blatt_kern_io_pdf import (
     annotate_pdf_running_elements,
     annotate_pdf_running_elements_with_retry,
     find_chromium_executable,
-    verify_pdf_running_elements,
     wait_for_file_stable,
     write_pdf_from_html,
 )
@@ -45,7 +44,6 @@ __all__ = [
     "render_help_cards_html",
     "render_html",
     "split_front_matter",
-    "verify_pdf_running_elements",
     "wait_for_file_stable",
     "write_pdf_from_html",
 ]
