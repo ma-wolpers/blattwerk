@@ -23,9 +23,8 @@ from __future__ import annotations
 from html import escape
 from pathlib import Path
 
-import markdown
-
 from .blatt_kern_io_pdf import write_pdf_from_html
+from .markdown_factory import new_markdown
 from .export_staging import write_document_output
 from .blatt_kern_shared import parse_blocks, split_front_matter
 from .blatt_validator import has_blocking_diagnostics, inspect_markdown_text, summarize_blocking_diagnostics
@@ -58,7 +57,7 @@ td.pts, th.pts { width: 4.5em; text-align: center; } .target-row td { background
 
 def _inline(text: str) -> str:
     """Erwartungstext als Inline-HTML (Markdown + Mathe-Schutz, ein einzelner Absatz ausgepackt)."""
-    html = convert_markdown_with_math(markdown.Markdown(), text, lambda value: value).strip()
+    html = convert_markdown_with_math(new_markdown(inline_markup=False), text, lambda value: value).strip()
     if html.startswith("<p>") and html.endswith("</p>") and html.count("<p>") == 1:
         html = html[3:-4]
     return html

@@ -6,7 +6,7 @@ import random
 import re
 from html import escape
 
-from .answer_line_markers import render_answer_content_html_for_mode
+from .answer_line_markers import _render_inline_markdown_fragment, render_answer_content_html_for_mode
 from .blatt_kern_shared import (
     _new_markdown_converter,
     _normalize_keyword,
@@ -105,20 +105,9 @@ def _estimate_mc_inline_weights(question_text, choice_items):
     options_weight = max(1.0, min(options_weight, 5.2))
     return question_weight, options_weight
 
-def _render_inline_markdown_fragment(text):
-    """Rendert kurzen Markdown-Text ohne umschließendes `<p>`-Tag."""
-    raw = (text or "").strip()
-    if not raw:
-        return ""
-
-    md = _new_markdown_converter()
-    html = convert_markdown_with_math(md, raw).strip()
-
-    paragraph_match = re.fullmatch(r"<p>(.*)</p>", html, flags=re.DOTALL)
-    if paragraph_match:
-        return paragraph_match.group(1).strip()
-
-    return html
+def _render_choice_fragment(text):
+    """MC-Label/-Frage ohne `<p>` ueber den einen Fragment-Renderer (Rand-Leerraum weg)."""
+    return _render_inline_markdown_fragment((text or "").strip()).strip()
 
 def _render_multiple_choice_answer(options, content, include_solutions):
     """Rendert Multiple-Choice mit horizontalen Ankreuzfeldern."""
@@ -185,14 +174,14 @@ def _render_multiple_choice_answer(options, content, include_solutions):
                 option_classes.append("is-correct")
 
             box_symbol = "☑" if checked else "☐"
-            label_html = _render_inline_markdown_fragment(label)
+            label_html = _render_choice_fragment(label)
             choice_html.append(
                 f"<div class='{' '.join(option_classes)}'><span class='mc-box'>{box_symbol}</span><span class='mc-label'>{label_html}</span></div>"
             )
 
         question_html = ""
         if question_text:
-            question_html = f"<div class='mc-question'>{_render_inline_markdown_fragment(question_text)}</div>"
+            question_html = f"<div class='mc-question'>{_render_choice_fragment(question_text)}</div>"
 
         has_question = bool((question_text or "").strip())
         group_classes = ["mc-group"]

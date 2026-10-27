@@ -148,19 +148,17 @@ def _line_visible_in_mode(show_mode, include_solutions):
     return show_mode == "both" or show_mode == mode
 
 
-_LIST_BLOCK_PROCESSORS = ("olist", "ulist")
-"""python-markdown-Blockprozessoren fuer Listen; in `inline_only`-Fragmenten abgemeldet."""
-
-
 def _render_inline_markdown_fragment(text, inline_only=False):
     """Render a short markdown fragment without wrapping `<p>` tags.
+
+    The one fragment renderer for answer lines, table cells, Struktogramm cells and
+    multiple-choice labels/questions (block converter with ``nl2br``).
 
     Args:
         text: Fragment source (one answer line or segment).
         inline_only: Keep list markers literal (``1. Was``, ``2025. Jahr``, ``- x``)
-            instead of turning them into ``<ol>``/``<ul>``. Used for table cells:
-            python-markdown renumbers every ordered list from 1, so "2. Frage" became
-            "1. Frage", and multi-line cells produced one broken list per line.
+            instead of turning them into ``<ol>``/``<ul>``. Used for table cells, where
+            multi-line content otherwise produced one broken list per line.
     """
     raw = "" if text is None else str(text)
     if raw == "":
@@ -173,10 +171,7 @@ def _render_inline_markdown_fragment(text, inline_only=False):
     if core == "":
         return " "
 
-    md = _new_markdown_converter()
-    if inline_only:
-        for processor_name in _LIST_BLOCK_PROCESSORS:
-            md.parser.blockprocessors.deregister(processor_name, strict=False)
+    md = _new_markdown_converter(lists=not inline_only)
     html = convert_markdown_with_math(md, core).strip()
     paragraph_match = re.fullmatch(r"<p>(.*)</p>", html, flags=re.DOTALL)
     rendered = html

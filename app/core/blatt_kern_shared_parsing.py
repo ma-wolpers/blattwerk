@@ -15,11 +15,9 @@ from __future__ import annotations
 import re
 import shlex
 
-import markdown
-
 from .blatt_kern_shared_data import CONTROL_MARKERS, MARKDOWN_EXTENSIONS
 from .frontmatter import parse_frontmatter
-from .inline_markup.markdown_bridge import register_inline_markup_bridge
+from .markdown_factory import new_markdown
 from .math_span_protection import convert_markdown_with_math as _convert_markdown_with_math
 
 _BLOCK_START_PATTERN = re.compile(r"^:::(\w+)(.*)$")
@@ -64,8 +62,11 @@ def _parse_inline_control_marker(stripped_line):
     return None
 
 
-def _new_markdown_converter():
+def _new_markdown_converter(lists=True):
     """Erzeugt eine frische Markdown-Instanz für einen Render-Schritt.
+
+    Args:
+        lists: ``False`` = Listenmarker bleiben wörtlich (Tabellenzellen).
 
     Registriert den zentralen `inline_markup`-Preprocessor (siehe
     `inline_markup/markdown_bridge.py`) -- dieselbe Funktion, die auch
@@ -74,10 +75,10 @@ def _new_markdown_converter():
     Tiefstellung, Code, Spoiler, Kommentare); python-markdown selbst bleibt
     nur noch für Blockstruktur (Tabellen/Listen/Absätze) sowie
     Links/Entities/`nl2br` zuständig, die der Preprocessor nie berührt.
+    Aufbau und Listenverhalten (Startnummer geordneter Listen) kommen aus
+    `markdown_factory.new_markdown`.
     """
-    md = markdown.Markdown(extensions=MARKDOWN_EXTENSIONS)
-    register_inline_markup_bridge(md)
-    return md
+    return new_markdown(MARKDOWN_EXTENSIONS, lists=lists)
 
 
 def convert_markdown_with_math(md, text):

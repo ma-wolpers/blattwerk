@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import markdown
-
 from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 
 ensure_bw_gui_on_path()
@@ -13,6 +11,7 @@ from bw_gui.runtime import listbox_selection, on_listbox_select, ui, widgets
 from bw_gui.theming._theme_manager import mix_hex
 from bw_gui.widgets import configure_doc_text_tags, html_to_events, render_events_into_text
 
+from ..core.markdown_factory import new_markdown
 from .ui_theme import apply_window_theme, configure_ttk_theme, get_theme
 
 HELP_DOCS_DIR = Path(__file__).resolve().parents[2] / "docs" / "nutzer"
@@ -141,7 +140,7 @@ class BlattwerkAppHelpDocsMixin:
             self._render_help_docs_message(f"Datei konnte nicht gelesen werden: {error}")
             return
 
-        html = markdown.Markdown(extensions=HELP_DOCS_MARKDOWN_EXTENSIONS).convert(raw_text)
+        html = new_markdown(HELP_DOCS_MARKDOWN_EXTENSIONS, inline_markup=False).convert(raw_text)
         events = html_to_events(html)
 
         text = self.help_docs_text

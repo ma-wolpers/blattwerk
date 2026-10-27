@@ -24,7 +24,6 @@ from __future__ import annotations
 from html import escape
 from pathlib import Path
 
-import markdown
 import yaml
 
 from .blatt_kern_io_html import absolutize_local_image_sources
@@ -32,6 +31,7 @@ from .blatt_kern_io_pdf import write_pdf_from_html
 from .export_staging import write_document_output
 from .export_path_guardrails import validate_export_output_path
 from .frontmatter import frontmatter_bounds, load_frontmatter_yaml
+from .markdown_factory import new_markdown
 from .math_span_protection import convert_markdown_with_math
 
 PLAIN_MARKDOWN_EXTENSIONS = ("tables", "fenced_code", "sane_lists")
@@ -78,7 +78,7 @@ def render_plain_markdown_html(text: str) -> str:
     """Rendert schlichtes Markdown zu einem vollständigen HTML-Dokument."""
     meta, body = split_plain_markdown(text)
     title = meta.get("Titel") if isinstance(meta.get("Titel"), str) else ""
-    converter = markdown.Markdown(extensions=list(PLAIN_MARKDOWN_EXTENSIONS))
+    converter = new_markdown(PLAIN_MARKDOWN_EXTENSIONS, inline_markup=False)
     body_html = convert_markdown_with_math(converter, body, lambda value: value)
     heading = f"<h1>{escape(title)}</h1>\n" if title else ""
     return (
