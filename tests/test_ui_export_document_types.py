@@ -27,6 +27,9 @@ class _DummyExportApp(BlattwerkDocumentTypeMixin, BlattwerkAppExportMixin):
     def _detect_document_type(self, _input_path: Path) -> str:
         return self._document_type
 
+    def _effective_help_appendix(self) -> str:
+        return "none"
+
 
 def test_show_export_diagnostics_skips_kurzentwurf(monkeypatch, tmp_path):
     app = _DummyExportApp(DOCUMENT_TYPE_KURZENTWURF)

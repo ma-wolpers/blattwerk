@@ -123,9 +123,11 @@ Die Leiste „Vorschau-Optionen“ über der Vorschau startet eingeklappt; mit �
 
 - Es gibt zwei Dialoge: Arbeitsblatt-Export und Praesentations-Export (automatisch je nach Dokumentmodus).
 - **Zieldatei noch geöffnet** (z. B. die PDF im Viewer): Blattwerk prüft das *vor* dem Erstellen und bricht sofort mit einem Hinweis ab, statt erst nach dem Build zu scheitern. Unter *Einstellungen → Export → Gesperrte Zieldatei* kannst du stattdessen `alternate_name` wählen: Dann wird als „Name (neu).pdf" gespeichert (ist auch die geöffnet, „Name (neu 2).pdf" usw.), und die Erfolgsmeldung nennt die tatsächliche Datei. Bei „Aufgabe + Lösung" prüft jeder Teil seine eigene Datei; ist nur die Lösungs-PDF geöffnet, kann die Aufgaben-PDF also schon geschrieben sein.
+- **Lernhilfen mit exportieren** (Arbeitsblatt und Klausur, nur wenn das Dokument Lernhilfen hat): hängt die Lernhilfen in ihrer Reihenfolge hinter die Arbeitsblattseiten – „Alle Lernhilfen auf einer Seite“ oder „Jede Lernhilfe auf eigener Seite“ (kleinstes passendes Format DIN A6/A5/A4). Vorausgewählt ist immer die Variante, die gerade in der Vorschau zu sehen ist. Bei „Beides“ bekommen Aufgaben- und Lösungsdatei je ihren Anhang. Der separate Lernhilfen-Export aus dem Lernhilfen-Fenster bleibt unverändert. **GRENZE:** Nicht für HTML und nicht beim Erwartungshorizont; eine PDF mit A4- und A6-Seiten druckt dein Drucker je nach Druckdialog verkleinert auf A4 oder auf passendem Papier.
 - `Strg+E`: Exportieren
 - `Esc`: Abbrechen
 - `A / L / B`: Aufgaben / Lösung / Beides (nur im Arbeitsblatt-Dialog)
+- `G`: Lernhilfen-Anhang umschalten – aus → alle auf einer Seite → jede auf eigener Seite (nur im Arbeitsblatt-Dialog, wenn das Dokument Lernhilfen hat)
 - `K`: Black-Screen im Exportdialog schnell auf `Beides` setzen (nur im Praesentations-Dialog)
 - `P`: Format wechseln (Arbeitsblatt: PDF/PNG/PNG-ZIP/HTML, Praesentation: zusaetzlich PPTX)
 - `D`: Durchsuchen öffnen

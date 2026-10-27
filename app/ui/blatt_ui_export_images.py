@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from ..core.help_cards_appendix import HELP_APPENDIX_NONE
 from ..core.document_export_build import (
     export_document_png,
     export_document_png_zip,
@@ -28,8 +29,14 @@ class BlattwerkAppExportImagesMixin:
         black_screen_mode: str = "none",
         presentation_ignore_framebreaks: bool = False,
         compile_diagnostics=None,
+        help_appendix: str = HELP_APPENDIX_NONE,
     ):
-        """Export png."""
+        """Exportiert ein Dokument (bzw. Aufgaben- und Lösungsfassung) als PNG-Seiten.
+
+        `help_appendix` hängt die Lernhilfen als weitere Seiten an
+        (`help_cards_appendix`); die übrigen Optionen gelten für jede Fassung
+        gleich und stehen deshalb einmal in `common`.
+        """
         worksheet_design = self._worksheet_design_options()
         document_type = self._detect_document_type(input_path)
         preferences = getattr(self, "user_preferences", {})
@@ -38,58 +45,7 @@ class BlattwerkAppExportImagesMixin:
         copyright_override = self._copyright_text_from_preferences() or None
         section_separator, hide_future_sections = self._current_presentation_footer_export_options()
         target_policy = self._export_target_policy()
-
-        if mode == "both":
-            worksheet_path = self._without_solution_suffix(output_path)
-            solution_path = self._with_solution_suffix(worksheet_path)
-            computation_cache = self._computation_cache_for(input_path)
-            out_worksheet = export_document_png(
-                input_path=input_path,
-                output_path=worksheet_path,
-                document_type=document_type,
-                include_solutions=False,
-                page_format=page_format,
-                contrast_profile=contrast_profile,
-                worksheet_design=worksheet_design,
-                metadata_defaults=metadata_defaults,
-                copyright_override=copyright_override,
-                black_screen_mode=black_screen_mode,
-                presentation_section_separator=section_separator,
-                presentation_hide_future_sections=hide_future_sections,
-                presentation_ignore_framebreaks=presentation_ignore_framebreaks,
-                diagnostics_out=compile_diagnostics,
-                kurzentwurf_options=kurzentwurf_options,
-                target_policy=target_policy,
-                computation_cache=computation_cache,
-            )
-            out_solution = export_document_png(
-                input_path=input_path,
-                output_path=solution_path,
-                document_type=document_type,
-                include_solutions=True,
-                page_format=page_format,
-                contrast_profile=contrast_profile,
-                worksheet_design=worksheet_design,
-                metadata_defaults=metadata_defaults,
-                copyright_override=copyright_override,
-                black_screen_mode=black_screen_mode,
-                presentation_section_separator=section_separator,
-                presentation_hide_future_sections=hide_future_sections,
-                presentation_ignore_framebreaks=presentation_ignore_framebreaks,
-                diagnostics_out=compile_diagnostics,
-                kurzentwurf_options=kurzentwurf_options,
-                target_policy=target_policy,
-                computation_cache=computation_cache,
-            )
-            return [*out_worksheet, *out_solution]
-
-        include_solutions = mode == "solution"
-        target = self._with_solution_suffix(output_path) if include_solutions else output_path
-        return export_document_png(
-            input_path=input_path,
-            output_path=target,
-            document_type=document_type,
-            include_solutions=include_solutions,
+        common = dict(
             page_format=page_format,
             contrast_profile=contrast_profile,
             worksheet_design=worksheet_design,
@@ -102,6 +58,39 @@ class BlattwerkAppExportImagesMixin:
             diagnostics_out=compile_diagnostics,
             kurzentwurf_options=kurzentwurf_options,
             target_policy=target_policy,
+            help_appendix=help_appendix,
+        )
+
+        if mode == "both":
+            worksheet_path = self._without_solution_suffix(output_path)
+            solution_path = self._with_solution_suffix(worksheet_path)
+            computation_cache = self._computation_cache_for(input_path)
+            out_worksheet = export_document_png(
+                input_path=input_path,
+                output_path=worksheet_path,
+                document_type=document_type,
+                include_solutions=False,
+                **common,
+                computation_cache=computation_cache,
+            )
+            out_solution = export_document_png(
+                input_path=input_path,
+                output_path=solution_path,
+                document_type=document_type,
+                include_solutions=True,
+                **common,
+                computation_cache=computation_cache,
+            )
+            return [*out_worksheet, *out_solution]
+
+        include_solutions = mode == "solution"
+        target = self._with_solution_suffix(output_path) if include_solutions else output_path
+        return export_document_png(
+            input_path=input_path,
+            output_path=target,
+            document_type=document_type,
+            include_solutions=include_solutions,
+            **common,
             computation_cache=self._computation_cache_for(input_path),
         )
 
@@ -115,8 +104,12 @@ class BlattwerkAppExportImagesMixin:
         black_screen_mode: str = "none",
         presentation_ignore_framebreaks: bool = False,
         compile_diagnostics=None,
+        help_appendix: str = HELP_APPENDIX_NONE,
     ):
-        """Export png zip."""
+        """Exportiert ein Dokument (bzw. Aufgaben- und Lösungsfassung) als ZIP mit PNG-Seiten.
+
+        `help_appendix` wie bei `_export_png`; gemeinsame Optionen in `common`.
+        """
         worksheet_design = self._worksheet_design_options()
         document_type = self._detect_document_type(input_path)
         preferences = getattr(self, "user_preferences", {})
@@ -125,6 +118,21 @@ class BlattwerkAppExportImagesMixin:
         copyright_override = self._copyright_text_from_preferences() or None
         section_separator, hide_future_sections = self._current_presentation_footer_export_options()
         target_policy = self._export_target_policy()
+        common = dict(
+            page_format=page_format,
+            contrast_profile=contrast_profile,
+            worksheet_design=worksheet_design,
+            metadata_defaults=metadata_defaults,
+            copyright_override=copyright_override,
+            black_screen_mode=black_screen_mode,
+            presentation_section_separator=section_separator,
+            presentation_hide_future_sections=hide_future_sections,
+            presentation_ignore_framebreaks=presentation_ignore_framebreaks,
+            diagnostics_out=compile_diagnostics,
+            kurzentwurf_options=kurzentwurf_options,
+            target_policy=target_policy,
+            help_appendix=help_appendix,
+        )
         if mode == "both":
             worksheet_path = self._without_solution_suffix(output_path)
             solution_path = self._with_solution_suffix(worksheet_path)
@@ -135,18 +143,7 @@ class BlattwerkAppExportImagesMixin:
                 output_path=worksheet_path,
                 document_type=document_type,
                 include_solutions=False,
-                page_format=page_format,
-                contrast_profile=contrast_profile,
-                worksheet_design=worksheet_design,
-                metadata_defaults=metadata_defaults,
-                copyright_override=copyright_override,
-                black_screen_mode=black_screen_mode,
-                presentation_section_separator=section_separator,
-                presentation_hide_future_sections=hide_future_sections,
-                presentation_ignore_framebreaks=presentation_ignore_framebreaks,
-                diagnostics_out=compile_diagnostics,
-                kurzentwurf_options=kurzentwurf_options,
-                target_policy=target_policy,
+                **common,
                 computation_cache=computation_cache,
             )
             out_solution = export_document_png_zip(
@@ -154,18 +151,7 @@ class BlattwerkAppExportImagesMixin:
                 output_path=solution_path,
                 document_type=document_type,
                 include_solutions=True,
-                page_format=page_format,
-                contrast_profile=contrast_profile,
-                worksheet_design=worksheet_design,
-                metadata_defaults=metadata_defaults,
-                copyright_override=copyright_override,
-                black_screen_mode=black_screen_mode,
-                presentation_section_separator=section_separator,
-                presentation_hide_future_sections=hide_future_sections,
-                presentation_ignore_framebreaks=presentation_ignore_framebreaks,
-                diagnostics_out=compile_diagnostics,
-                kurzentwurf_options=kurzentwurf_options,
-                target_policy=target_policy,
+                **common,
                 computation_cache=computation_cache,
             )
             return [out_worksheet, out_solution]
@@ -180,18 +166,7 @@ class BlattwerkAppExportImagesMixin:
             output_path=target,
             document_type=document_type,
             include_solutions=include_solutions,
-            page_format=page_format,
-            contrast_profile=contrast_profile,
-            worksheet_design=worksheet_design,
-            metadata_defaults=metadata_defaults,
-            copyright_override=copyright_override,
-            black_screen_mode=black_screen_mode,
-            presentation_section_separator=section_separator,
-            presentation_hide_future_sections=hide_future_sections,
-            presentation_ignore_framebreaks=presentation_ignore_framebreaks,
-            diagnostics_out=compile_diagnostics,
-            kurzentwurf_options=kurzentwurf_options,
-            target_policy=target_policy,
+            **common,
             computation_cache=self._computation_cache_for(input_path),
         )
         return [out_file]

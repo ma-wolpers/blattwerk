@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from ..core.help_cards_appendix import HELP_APPENDIX_NONE
 from ..core.document_export_build import export_document_html, export_document_pdf
 from ..core.kurzentwurf_settings import (
     kurzentwurf_runtime_options_from_preferences,
@@ -23,9 +24,23 @@ class BlattwerkAppExportDocumentsMixin:
         black_screen_mode: str = "none",
         presentation_ignore_framebreaks: bool = False,
         compile_diagnostics=None,
+        help_appendix: str = HELP_APPENDIX_NONE,
     ):
-        """Export pdf."""
+        """Exportiert ein Dokument (bzw. Aufgaben- und Lösungsfassung) als PDF.
+
+        `help_appendix` hängt die Lernhilfen hinter die Seiten jeder Fassung
+        (`help_cards_appendix`); die für alle Fassungen gleichen
+        Request-Optionen stehen einmal in `request_options`.
+        """
         document_type = self._detect_document_type(input_path)
+        request_options = dict(
+            page_format=page_format,
+            contrast_profile=contrast_profile,
+            black_screen_mode=black_screen_mode,
+            presentation_ignore_framebreaks=presentation_ignore_framebreaks,
+            diagnostics_out=compile_diagnostics,
+            help_appendix=help_appendix,
+        )
         preferences = getattr(self, "user_preferences", {})
         kurzentwurf_options = kurzentwurf_runtime_options_from_preferences(preferences)
         if mode == "both":
@@ -42,11 +57,7 @@ class BlattwerkAppExportDocumentsMixin:
                     input_path=input_path,
                     output_path=worksheet_path,
                     include_solutions=False,
-                    page_format=page_format,
-                    contrast_profile=contrast_profile,
-                    black_screen_mode=black_screen_mode,
-                    presentation_ignore_framebreaks=presentation_ignore_framebreaks,
-                    diagnostics_out=compile_diagnostics,
+                    **request_options,
                 ),
             )
             out_solution = export_document_pdf(
@@ -59,11 +70,7 @@ class BlattwerkAppExportDocumentsMixin:
                     input_path=input_path,
                     output_path=solution_path,
                     include_solutions=True,
-                    page_format=page_format,
-                    contrast_profile=contrast_profile,
-                    black_screen_mode=black_screen_mode,
-                    presentation_ignore_framebreaks=presentation_ignore_framebreaks,
-                    diagnostics_out=compile_diagnostics,
+                    **request_options,
                 ),
             )
             return [out_worksheet, out_solution]
@@ -83,11 +90,7 @@ class BlattwerkAppExportDocumentsMixin:
                 input_path=input_path,
                 output_path=target,
                 include_solutions=include_solutions,
-                page_format=page_format,
-                contrast_profile=contrast_profile,
-                black_screen_mode=black_screen_mode,
-                presentation_ignore_framebreaks=presentation_ignore_framebreaks,
-                diagnostics_out=compile_diagnostics,
+                **request_options,
             ),
         )
         return [out_file]

@@ -6,6 +6,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from .dialog_services import messagebox
+from ..core.help_cards_appendix import HELP_APPENDIX_NONE
 from ..core.build_requests import HelpCardsBuildRequest, WorksheetBuildRequest
 from ..core.blatt_kern_help_render import collect_help_blocks
 from ..core.blatt_validator import inspect_markdown_text
@@ -241,7 +242,14 @@ class BlattwerkAppExportSupportMixin:
         presentation_hide_future_sections: bool | None = None,
         presentation_ignore_framebreaks: bool = False,
         diagnostics_out=None,
+        help_appendix: str = HELP_APPENDIX_NONE,
     ):
+        """Baut den `WorksheetBuildRequest` aus den Vorschau-/Einstellungswerten.
+
+        `help_appendix` (`help_cards_appendix.HELP_APPENDIX_*`) kommt aus dem
+        Exportdialog; Design, Metadaten, Copyright, Rechen-Cache und
+        Ziel-Policy liest die Methode selbst.
+        """
         default_separator, default_hide_future = (
             self._current_presentation_footer_export_options()
         )
@@ -269,6 +277,7 @@ class BlattwerkAppExportSupportMixin:
             diagnostics_out=diagnostics_out,
             computation_cache=self._computation_cache_for(input_path),
             target_policy=self._export_target_policy(),
+            help_appendix=help_appendix,
         )
 
     def _help_cards_build_request(

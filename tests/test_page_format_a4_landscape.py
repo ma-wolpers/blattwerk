@@ -103,7 +103,8 @@ def test_worksheet_export_uses_the_landscape_preview_format(monkeypatch, tmp_pat
     monkeypatch.setattr(dialogs_module.messagebox, "showerror", lambda *_a, **_k: None)
 
     class _Host(BlattwerkAppExportMixin):
-        pass
+        def _effective_help_appendix(self):
+            return "none"
 
     host = _Host()
     host.user_preferences = {}
