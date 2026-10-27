@@ -154,7 +154,12 @@ class BlattwerkAppExportDialogsMixin:
             self.status_var.set("Export läuft…")
             self.root.update_idletasks()
             compile_diagnostics = []
-            out_file = build_expectation_horizon(input_path, output_path, diagnostics_out=compile_diagnostics)
+            out_file = build_expectation_horizon(
+                input_path,
+                output_path,
+                diagnostics_out=compile_diagnostics,
+                target_policy=self._export_target_policy(),
+            )
             self._show_compile_overflow_warnings(compile_diagnostics, "Erwartungshorizont")
             self.status_var.set("Export abgeschlossen")
             messagebox.showinfo("Export erfolgreich", f"Erstellt:\n{out_file}")

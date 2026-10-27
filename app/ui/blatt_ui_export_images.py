@@ -37,6 +37,7 @@ class BlattwerkAppExportImagesMixin:
         metadata_defaults = self._metadata_defaults_from_preferences()
         copyright_override = self._copyright_text_from_preferences() or None
         section_separator, hide_future_sections = self._current_presentation_footer_export_options()
+        target_policy = self._export_target_policy()
 
         if mode == "both":
             worksheet_path = self._without_solution_suffix(output_path)
@@ -58,6 +59,7 @@ class BlattwerkAppExportImagesMixin:
                 presentation_ignore_framebreaks=presentation_ignore_framebreaks,
                 diagnostics_out=compile_diagnostics,
                 kurzentwurf_options=kurzentwurf_options,
+                target_policy=target_policy,
                 computation_cache=computation_cache,
             )
             out_solution = export_document_png(
@@ -76,6 +78,7 @@ class BlattwerkAppExportImagesMixin:
                 presentation_ignore_framebreaks=presentation_ignore_framebreaks,
                 diagnostics_out=compile_diagnostics,
                 kurzentwurf_options=kurzentwurf_options,
+                target_policy=target_policy,
                 computation_cache=computation_cache,
             )
             return [*out_worksheet, *out_solution]
@@ -98,6 +101,7 @@ class BlattwerkAppExportImagesMixin:
             presentation_ignore_framebreaks=presentation_ignore_framebreaks,
             diagnostics_out=compile_diagnostics,
             kurzentwurf_options=kurzentwurf_options,
+            target_policy=target_policy,
             computation_cache=self._computation_cache_for(input_path),
         )
 
@@ -120,12 +124,13 @@ class BlattwerkAppExportImagesMixin:
         metadata_defaults = self._metadata_defaults_from_preferences()
         copyright_override = self._copyright_text_from_preferences() or None
         section_separator, hide_future_sections = self._current_presentation_footer_export_options()
+        target_policy = self._export_target_policy()
         if mode == "both":
             worksheet_path = self._without_solution_suffix(output_path)
             solution_path = self._with_solution_suffix(worksheet_path)
 
             computation_cache = self._computation_cache_for(input_path)
-            export_document_png_zip(
+            out_worksheet = export_document_png_zip(
                 input_path=input_path,
                 output_path=worksheet_path,
                 document_type=document_type,
@@ -141,9 +146,10 @@ class BlattwerkAppExportImagesMixin:
                 presentation_ignore_framebreaks=presentation_ignore_framebreaks,
                 diagnostics_out=compile_diagnostics,
                 kurzentwurf_options=kurzentwurf_options,
+                target_policy=target_policy,
                 computation_cache=computation_cache,
             )
-            export_document_png_zip(
+            out_solution = export_document_png_zip(
                 input_path=input_path,
                 output_path=solution_path,
                 document_type=document_type,
@@ -159,9 +165,10 @@ class BlattwerkAppExportImagesMixin:
                 presentation_ignore_framebreaks=presentation_ignore_framebreaks,
                 diagnostics_out=compile_diagnostics,
                 kurzentwurf_options=kurzentwurf_options,
+                target_policy=target_policy,
                 computation_cache=computation_cache,
             )
-            return [worksheet_path, solution_path]
+            return [out_worksheet, out_solution]
 
         include_solutions = mode == "solution"
         target = output_path
@@ -184,6 +191,7 @@ class BlattwerkAppExportImagesMixin:
             presentation_ignore_framebreaks=presentation_ignore_framebreaks,
             diagnostics_out=compile_diagnostics,
             kurzentwurf_options=kurzentwurf_options,
+            target_policy=target_policy,
             computation_cache=self._computation_cache_for(input_path),
         )
         return [out_file]
@@ -216,13 +224,18 @@ class BlattwerkAppExportImagesMixin:
         if hasattr(self, "_copyright_text_from_preferences"):
             copyright_override = self._copyright_text_from_preferences() or None
 
+        target_policy = self._export_target_policy()
         if mode == "both":
             worksheet_path = self._without_solution_suffix(output_path)
             solution_path = self._with_solution_suffix(worksheet_path)
+            written = []
             for target, include_sol in [(worksheet_path, False), (solution_path, True)]:
                 if target.suffix.lower() != ".pptx":
                     target = target.with_suffix(".pptx")
-                validate_export_output_path(target, allowed_suffixes={".pptx"})
+                target = validate_export_output_path(
+                    target, allowed_suffixes={".pptx"}, target_policy=target_policy
+                )
+                written.append(target)
                 build_presentation_pptx(
                     input_path=input_path,
                     output_path=target,
@@ -239,7 +252,7 @@ class BlattwerkAppExportImagesMixin:
                     diagnostics_out=compile_diagnostics,
                     editable=editable_pptx,
                 )
-            return [worksheet_path, solution_path]
+            return written
 
         include_solutions = mode == "solution"
         target = output_path
@@ -247,7 +260,9 @@ class BlattwerkAppExportImagesMixin:
             target = self._with_solution_suffix(target)
         if target.suffix.lower() != ".pptx":
             target = target.with_suffix(".pptx")
-        validate_export_output_path(target, allowed_suffixes={".pptx"})
+        target = validate_export_output_path(
+            target, allowed_suffixes={".pptx"}, target_policy=target_policy
+        )
         build_presentation_pptx(
             input_path=input_path,
             output_path=target,

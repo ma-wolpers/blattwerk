@@ -9,8 +9,10 @@ import fitz
 
 from .export_path_guardrails import validate_export_output_path
 from .blatt_kern_io_html import absolutize_local_image_sources, apply_image_size_options
-from .blatt_kern_io_pdf import annotate_pdf_running_elements_with_retry, write_pdf_from_html
+from .blatt_kern_io_pdf import write_pdf_from_html
+from .export_staging import staged_export
 from .operator_legend_placement import write_pdf_with_bottom_legends
+from .pdf_running_elements import annotate_pdf_running_elements
 from .blatt_kern_help_render import collect_help_blocks, render_help_cards_html
 from .blatt_kern_layout_render import render_html
 from .blatt_kern_shared import get_copyright_text, is_hole_punch_layout_enabled
@@ -115,8 +117,13 @@ def build_worksheet(
     presentation_ignore_framebreaks=False,
     computation_cache=None,
     document_type="worksheet",
+    target_policy=None,
 ):
     """Erstellt aus einer Markdown-Datei eine HTML- oder PDF-Ausgabe.
+
+    `target_policy` (`ExportTargetPolicy`): Das Ziel wird *vor* Validierung und
+    Rendering geprüft - eine gesperrte Ziel-PDF scheitert sofort bzw. weicht auf
+    ``(neu)`` aus, statt erst nach dem teuren Build.
 
     `document_type` ist der aus der Dateiendung bestimmte Typ (Invariante I1,
     `document_semantics.type_for_path`). Typbedingtes Verhalten (Folien-Layout,
@@ -131,6 +138,11 @@ def build_worksheet(
     teuren, deterministischen Blockberechnungen (z. B. ein Kreuzworträtsel-Layout)
     wiederverwenden können, statt sie unabhängig voneinander doppelt zu berechnen.
     """
+    out_file = validate_export_output_path(
+        out_path,
+        allowed_suffixes={".pdf", ".html"},
+        target_policy=target_policy,
+    )
     md_file = Path(md_path)
     text = md_file.read_text(encoding="utf-8")
     inspected = inspect_markdown_text(text, cache=computation_cache, document_type=document_type)
@@ -162,11 +174,6 @@ def build_worksheet(
     )
     html = absolutize_local_image_sources(html, md_file.parent)
     html = apply_image_size_options(html)
-
-    out_file = validate_export_output_path(
-        out_path,
-        allowed_suffixes={".pdf", ".html"},
-    )
     suffix = out_file.suffix.lower()
 
     if suffix == ".html":
@@ -175,35 +182,37 @@ def build_worksheet(
         return out_file
 
     if suffix == ".pdf":
-        if has_slide_layout(document_type):
-            pdf_file = write_pdf_from_html(html, out_file)
-        else:
-            # Operatorenliste ans Seitenende (best-effort, vor Kopf-/Fußzeile; ohne Liste ein Druck).
-            pdf_file = write_pdf_with_bottom_legends(
-                html, out_file, page_format=page_format, hole_punch_enabled=is_hole_punch_layout_enabled(meta)
-            )
-        if not has_slide_layout(document_type):
-            annotate_pdf_running_elements_with_retry(
-                pdf_file,
-                meta.get("Titel", "").strip(),
-                str(copyright_text_override or get_copyright_text(meta)),
-                print_profile=print_profile,
-                include_solutions=include_solutions,
-            )
-            append_word_note_placement_warnings(
-                diagnostics_out=diagnostics_out,
-                pdf_path=pdf_file,
-                word_notes=word_notes,
-                page_format=page_format,
-                hole_punch_enabled=is_hole_punch_layout_enabled(meta),
-            )
-        else:
-            _append_presentation_overflow_warning(
-                diagnostics_out=diagnostics_out,
-                html=html,
-                pdf_path=pdf_file,
-            )
-        return pdf_file
+        # Druck und Nachbearbeitung nur auf der privaten Arbeitsdatei; erst der Publish
+        # beim Verlassen des Blocks beruehrt das Ziel (siehe `export_staging`).
+        with staged_export(out_file, target_policy) as staged:
+            pdf_file = staged.work_path
+            if has_slide_layout(document_type):
+                write_pdf_from_html(html, pdf_file)
+                _append_presentation_overflow_warning(
+                    diagnostics_out=diagnostics_out,
+                    html=html,
+                    pdf_path=pdf_file,
+                )
+            else:
+                # Operatorenliste ans Seitenende (best-effort, vor Kopf-/Fußzeile; ohne Liste ein Druck).
+                write_pdf_with_bottom_legends(
+                    html, pdf_file, page_format=page_format, hole_punch_enabled=is_hole_punch_layout_enabled(meta)
+                )
+                annotate_pdf_running_elements(
+                    pdf_file,
+                    meta.get("Titel", "").strip(),
+                    str(copyright_text_override or get_copyright_text(meta)),
+                    print_profile=print_profile,
+                    include_solutions=include_solutions,
+                )
+                append_word_note_placement_warnings(
+                    diagnostics_out=diagnostics_out,
+                    pdf_path=pdf_file,
+                    word_notes=word_notes,
+                    page_format=page_format,
+                    hole_punch_enabled=is_hole_punch_layout_enabled(meta),
+                )
+        return staged.published_path
 
     raise ValueError("Ausgabedatei muss auf .pdf oder .html enden.")
 
@@ -223,6 +232,7 @@ def build_help_cards(
     metadata_defaults=None,
     copyright_text_override=None,
     computation_cache=None,
+    target_policy=None,
 ):
     """Erstellt aus Hilfeblöcken einer Markdown-Datei eine HTML- oder PDF-Ausgabe.
 
@@ -230,8 +240,16 @@ def build_help_cards(
     weitergereicht -- `render_help_cards_html` konsumiert aktuell keinen Cache,
     da Hilfekarten bisher keine Blocktypen mit teurer, cachbarer Berechnung
     (z. B. `crossword`) einbetten (siehe `app/core/block_computation_cache.py`).
+
+    `target_policy` (`ExportTargetPolicy`): Das Ziel wird *vor* dem Rendern geprüft,
+    damit eine gesperrte Ziel-PDF sofort scheitert bzw. auf ``(neu)`` ausweicht.
     """
 
+    out_file = validate_export_output_path(
+        out_path,
+        allowed_suffixes={".pdf", ".html"},
+        target_policy=target_policy,
+    )
     md_file = Path(md_path)
     text = md_file.read_text(encoding="utf-8")
     inspected = inspect_markdown_text(text, cache=computation_cache)
@@ -258,11 +276,6 @@ def build_help_cards(
     )
     html = absolutize_local_image_sources(html, md_file.parent)
     html = apply_image_size_options(html)
-
-    out_file = validate_export_output_path(
-        out_path,
-        allowed_suffixes={".pdf", ".html"},
-    )
     suffix = out_file.suffix.lower()
 
     if suffix == ".html":
@@ -271,15 +284,16 @@ def build_help_cards(
         return out_file
 
     if suffix == ".pdf":
-        pdf_file = write_pdf_from_html(html, out_file)
-        if add_running_elements:
-            annotate_pdf_running_elements_with_retry(
-                pdf_file,
-                meta.get("Titel", "").strip(),
-                str(copyright_text_override or get_copyright_text(meta)),
-                print_profile=print_profile,
-                include_solutions=include_solutions,
-            )
-        return pdf_file
+        with staged_export(out_file, target_policy) as staged:
+            write_pdf_from_html(html, staged.work_path)
+            if add_running_elements:
+                annotate_pdf_running_elements(
+                    staged.work_path,
+                    meta.get("Titel", "").strip(),
+                    str(copyright_text_override or get_copyright_text(meta)),
+                    print_profile=print_profile,
+                    include_solutions=include_solutions,
+                )
+        return staged.published_path
 
     raise ValueError("Ausgabedatei muss auf .pdf oder .html enden.")

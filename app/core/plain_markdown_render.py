@@ -29,6 +29,7 @@ import yaml
 
 from .blatt_kern_io_html import absolutize_local_image_sources
 from .blatt_kern_io_pdf import write_pdf_from_html
+from .export_staging import write_document_output
 from .export_path_guardrails import validate_export_output_path
 from .frontmatter import frontmatter_bounds, load_frontmatter_yaml
 from .math_span_protection import convert_markdown_with_math
@@ -87,14 +88,15 @@ def render_plain_markdown_html(text: str) -> str:
     )
 
 
-def build_plain_markdown(input_path: str | Path, output_path: str | Path) -> Path:
-    """Schreibt eine `.md`-Datei als HTML oder PDF (Endung von `output_path`)."""
+def build_plain_markdown(input_path: str | Path, output_path: str | Path, *, target_policy=None) -> Path:
+    """Schreibt eine `.md`-Datei als HTML oder PDF (Endung von `output_path`).
+
+    `target_policy` (`ExportTargetPolicy`): Das Ziel wird vor dem Rendern geprüft.
+    """
+    target = validate_export_output_path(
+        output_path, allowed_suffixes={".pdf", ".html"}, target_policy=target_policy
+    )
     source_path = Path(input_path)
     html = render_plain_markdown_html(source_path.read_text(encoding="utf-8"))
     html = absolutize_local_image_sources(html, source_path.parent)
-    target = validate_export_output_path(output_path, allowed_suffixes={".pdf", ".html"})
-    target.parent.mkdir(parents=True, exist_ok=True)
-    if target.suffix.lower() == ".html":
-        target.write_text(html, encoding="utf-8")
-        return target
-    return Path(write_pdf_from_html(html, target))
+    return write_document_output(html, target, target_policy, render_pdf=write_pdf_from_html)

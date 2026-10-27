@@ -10,7 +10,9 @@ from ..core.build_requests import HelpCardsBuildRequest, WorksheetBuildRequest
 from ..core.blatt_kern_help_render import collect_help_blocks
 from ..core.blatt_validator import inspect_markdown_text
 from ..core.diagnostic_warnings import build_warning_payload
+from ..core.export_path_guardrails import LOCK_POLICIES, LOCK_POLICY_ERROR, ExportTargetPolicy
 from ..storage import acknowledged_warnings_store
+from ..storage.file_lock_probe_adapter import default_lock_probe
 from .export_defaults import _ALLOWED_SECTION_SEPARATOR_MODES, _normalize_choice
 
 
@@ -198,6 +200,20 @@ class BlattwerkAppExportSupportMixin:
         resolver = getattr(self, "_resolve_computation_cache", None)
         return resolver(input_path) if resolver is not None else None
 
+    def _export_target_policy(self) -> ExportTargetPolicy:
+        """Policy fuer gesperrte Zieldateien: Einstellung plus OS-Probe (UI injiziert Adapter).
+
+        `app/core` importiert `app/storage` nie; deshalb erzeugt die UI hier die Probe
+        und gibt sie ueber die Build-Requests (bzw. direkt) an jeden Exporteur weiter.
+        """
+        preferences = getattr(self, "user_preferences", {}) or {}
+        lock_policy = _normalize_choice(
+            str(preferences.get("export_locked_target_policy", LOCK_POLICY_ERROR)),
+            set(LOCK_POLICIES),
+            LOCK_POLICY_ERROR,
+        )
+        return ExportTargetPolicy(lock_policy=lock_policy, probe=default_lock_probe())
+
     def _worksheet_build_request(
         self,
         *,
@@ -238,6 +254,7 @@ class BlattwerkAppExportSupportMixin:
             presentation_ignore_framebreaks=bool(presentation_ignore_framebreaks),
             diagnostics_out=diagnostics_out,
             computation_cache=self._computation_cache_for(input_path),
+            target_policy=self._export_target_policy(),
         )
 
     def _help_cards_build_request(
@@ -261,4 +278,5 @@ class BlattwerkAppExportSupportMixin:
             metadata_defaults=self._metadata_defaults_from_preferences(),
             copyright_text_override=self._copyright_text_from_preferences() or None,
             computation_cache=self._computation_cache_for(input_path),
+            target_policy=self._export_target_policy(),
         )

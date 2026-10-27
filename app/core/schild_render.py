@@ -37,6 +37,7 @@ from pathlib import Path
 import yaml
 
 from .blatt_kern_io_pdf import write_pdf_from_html
+from .export_staging import write_document_output
 from .export_path_guardrails import validate_export_output_path
 from .frontmatter import frontmatter_bounds, load_frontmatter_yaml
 
@@ -279,21 +280,20 @@ def render_schild_html(text: str) -> str:
     )
 
 
-def build_schild(input_path: str | Path, output_path: str | Path) -> Path:
+def build_schild(input_path: str | Path, output_path: str | Path, *, target_policy=None) -> Path:
     """Schreibt eine `.sbw`-Datei als HTML oder PDF (Endung von `output_path`).
 
     Args:
         input_path: Quelldatei (UTF-8).
         output_path: Ziel mit Endung `.html` oder `.pdf`.
+        target_policy: `ExportTargetPolicy`; das Ziel wird vor dem Rendern geprüft.
 
     Returns:
-        Den tatsächlich geschriebenen Pfad.
+        Den tatsächlich geschriebenen Pfad (unter Ausweich-Policy ggf. ``… (neu).pdf``).
     """
+    target = validate_export_output_path(
+        output_path, allowed_suffixes={".pdf", ".html"}, target_policy=target_policy
+    )
     source_path = Path(input_path)
     html = render_schild_html(source_path.read_text(encoding="utf-8"))
-    target = validate_export_output_path(output_path, allowed_suffixes={".pdf", ".html"})
-    target.parent.mkdir(parents=True, exist_ok=True)
-    if target.suffix.lower() == ".html":
-        target.write_text(html, encoding="utf-8")
-        return target
-    return Path(write_pdf_from_html(html, target))
+    return write_document_output(html, target, target_policy, render_pdf=write_pdf_from_html)

@@ -12,7 +12,6 @@ trotzdem nicht passt, wirft `StampError` - es fehlt nie still.
 
 from __future__ import annotations
 
-import time
 from pathlib import Path
 
 from ..styles.blatt_styles import (
@@ -89,25 +88,6 @@ def normalize_running_title(title) -> str:
         'A - B'
     """
     return (title or "").replace("–", "-").replace("—", "-").strip()
-
-
-def wait_for_file_stable(path, checks=8, delay_seconds=0.15):
-    """Wartet, bis sich Dateigröße/mtime über zwei Messungen nicht mehr ändern."""
-
-    path = Path(path)
-    last_signature = None
-
-    for _ in range(checks):
-        if not path.exists():
-            time.sleep(delay_seconds)
-            continue
-
-        stat = path.stat()
-        signature = (stat.st_size, stat.st_mtime_ns)
-        if signature == last_signature:
-            return
-        last_signature = signature
-        time.sleep(delay_seconds)
 
 
 def annotate_pdf_running_elements(
@@ -216,66 +196,3 @@ def _stamp_solution_badge(page, layout, font_file) -> float:
         font_file=font_file, size=size, color=style["stroke"], align=ALIGN_CENTER,
     )
     return width
-
-
-def annotate_pdf_running_elements_with_retry(
-    pdf_path,
-    title,
-    copyright_text,
-    print_profile="standard",
-    include_solutions=False,
-    attempts=6,
-    delay_seconds=0.2,
-):
-    """Annotiert PDF-Laufelemente mit begrenztem Retry nur bei transienten I/O-Fehlern.
-
-    Bleibt die Datei gesperrt (z. B. im Viewer offen), kommt eine Klartext-Meldung statt
-    eines Folgefehlers. Frueher fiel dieser Fall durch bis zu einer nachgelagerten
-    Pruefung und meldete irrefuehrend "nicht verifiziert".
-    """
-    last_error = None
-    for attempt in range(1, max(1, attempts) + 1):
-        try:
-            annotate_pdf_running_elements(
-                pdf_path,
-                title,
-                copyright_text,
-                print_profile=print_profile,
-                include_solutions=include_solutions,
-            )
-            return
-        except Exception as error:
-            if not _is_transient_annotation_error(error):
-                raise RuntimeError(
-                    f"PDF-Annotation fehlgeschlagen (nicht transient): {error}"
-                ) from error
-            last_error = error
-            if attempt < max(1, attempts):
-                wait_for_file_stable(pdf_path, checks=2, delay_seconds=delay_seconds)
-
-    raise RuntimeError(
-        "PDF konnte nicht überschrieben werden – ist sie noch in einem anderen "
-        f"Programm geöffnet? ({last_error})"
-    ) from last_error
-
-
-def _is_transient_annotation_error(error):
-    """Erkennt typische temporäre Dateizugriffsfehler beim Schreiben/Ersetzen."""
-
-    if isinstance(error, PermissionError):
-        return True
-
-    if isinstance(error, OSError):
-        winerror = getattr(error, "winerror", None)
-        if winerror in {5, 32, 33}:
-            return True
-
-    message = str(error).lower()
-    transient_markers = (
-        "access is denied",
-        "permission denied",
-        "being used by another process",
-        "resource busy",
-        "device or resource busy",
-    )
-    return any(marker in message for marker in transient_markers)

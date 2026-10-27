@@ -28,6 +28,7 @@ from ..styles.worksheet_design import (
     DEFAULT_COLOR_PROFILE,
     COLOR_PROFILE_ORDER,
 )
+from ..core.export_path_guardrails import LOCK_POLICIES, LOCK_POLICY_ERROR
 from ..core.kurzentwurf_runtime.column_widths import DEFAULT_COLUMN_WEIGHTS_TEXT
 from ..core.kurzentwurf_runtime.render_html import (
     DEFAULT_ANT_MARKER_LABEL,
@@ -360,6 +361,15 @@ PREFERENCE_SPECS = {
         "label": "Export-Ordner merken",
         "type": "bool",
         "default": True,
+    },
+    "export_locked_target_policy": {
+        "tab": "export",
+        "label": "Gesperrte Zieldatei",
+        "hint": "Zieldatei noch in einem anderen Programm geöffnet: error = sofort abbrechen, "
+        "alternate_name = als „Name (neu)“ speichern",
+        "type": "enum",
+        "default": LOCK_POLICY_ERROR,
+        "values": list(LOCK_POLICIES),
     },
     # Shortcuts
     "shortcuts_preview_group_enabled": {

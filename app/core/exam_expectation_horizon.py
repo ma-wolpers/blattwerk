@@ -26,6 +26,7 @@ from pathlib import Path
 import markdown
 
 from .blatt_kern_io_pdf import write_pdf_from_html
+from .export_staging import write_document_output
 from .blatt_kern_shared import parse_blocks, split_front_matter
 from .blatt_validator import has_blocking_diagnostics, inspect_markdown_text, summarize_blocking_diagnostics
 from .blatt_validator_types import BuildDiagnostic
@@ -247,12 +248,20 @@ def _part_sum(part) -> str:
     return f"<p class='sum'>{escape(label)}: {format_points(part.points)} P{bonus}</p>"
 
 
-def build_expectation_horizon(input_path, output_path, *, diagnostics_out: list | None = None) -> Path:
+def build_expectation_horizon(
+    input_path, output_path, *, diagnostics_out: list | None = None, target_policy=None
+) -> Path:
     """Exportiert den Erwartungshorizont als `.html` oder `.pdf` (Endung von `output_path`).
+
+    `target_policy` (`ExportTargetPolicy`): Das Ziel wird vor dem Rendern geprüft.
 
     Raises:
         ValueError: bei blockierenden Diagnosen (z. B. Punktfehlern).
+        LockedExportTargetError: Ziel gesperrt und Policy "Fehler".
     """
+    target = validate_export_output_path(
+        output_path, allowed_suffixes={".pdf", ".html"}, target_policy=target_policy
+    )
     text = Path(input_path).read_text(encoding="utf-8")
     inspected = inspect_markdown_text(text, document_type="exam")
     if has_blocking_diagnostics(inspected.diagnostics):
@@ -260,9 +269,4 @@ def build_expectation_horizon(input_path, output_path, *, diagnostics_out: list 
     html, diagnostics = build_expectation_horizon_html(text)
     if diagnostics_out is not None:
         diagnostics_out.extend(diagnostics)
-    target = validate_export_output_path(output_path, allowed_suffixes={".pdf", ".html"})
-    target.parent.mkdir(parents=True, exist_ok=True)
-    if target.suffix.lower() == ".html":
-        target.write_text(html, encoding="utf-8")
-        return target
-    return Path(write_pdf_from_html(html, target))
+    return write_document_output(html, target, target_policy, render_pdf=write_pdf_from_html)

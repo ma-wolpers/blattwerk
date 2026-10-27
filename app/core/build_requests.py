@@ -7,6 +7,7 @@ from pathlib import Path
 
 from .blatt_kern_io_build import build_help_cards, build_worksheet
 from .block_computation_cache import BlockComputationCache
+from .export_path_guardrails import ExportTargetPolicy
 
 
 @dataclass(frozen=True)
@@ -48,6 +49,8 @@ class WorksheetBuildRequest:
     diagnostics_out: list | None = None
     computation_cache: BlockComputationCache | None = None
     document_type: str = "worksheet"
+    target_policy: ExportTargetPolicy | None = None
+    """Umgang mit gesperrter Zieldatei; gilt fuer alle Pipelines in `document_export_build`."""
 
 
 @dataclass(frozen=True)
@@ -69,6 +72,7 @@ class HelpCardsBuildRequest:
     metadata_defaults: dict[str, str] | None = None
     copyright_text_override: str | None = None
     computation_cache: BlockComputationCache | None = None
+    target_policy: ExportTargetPolicy | None = None
 
 
 def build_worksheet_from_request(request: WorksheetBuildRequest):
@@ -89,6 +93,7 @@ def build_worksheet_from_request(request: WorksheetBuildRequest):
         diagnostics_out=request.diagnostics_out,
         computation_cache=request.computation_cache,
         document_type=request.document_type,
+        target_policy=request.target_policy,
         **request.design.as_kwargs(),
     )
 
@@ -107,5 +112,6 @@ def build_help_cards_from_request(request: HelpCardsBuildRequest):
         metadata_defaults=request.metadata_defaults,
         copyright_text_override=request.copyright_text_override,
         computation_cache=request.computation_cache,
+        target_policy=request.target_policy,
         **request.design.as_kwargs(),
     )

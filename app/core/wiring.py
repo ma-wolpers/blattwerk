@@ -17,9 +17,7 @@ from .blatt_kern_io_build import (
 from .blatt_kern_io_html import absolutize_local_image_sources, apply_image_size_options
 from .blatt_kern_io_pdf import (
     annotate_pdf_running_elements,
-    annotate_pdf_running_elements_with_retry,
     find_chromium_executable,
-    wait_for_file_stable,
     write_pdf_from_html,
 )
 from .blatt_kern_help_render import collect_help_blocks, render_help_cards_html
@@ -31,7 +29,6 @@ __all__ = [
     "InspectedDocument",
     "absolutize_local_image_sources",
     "annotate_pdf_running_elements",
-    "annotate_pdf_running_elements_with_retry",
     "apply_image_size_options",
     "build_help_cards",
     "build_worksheet",
@@ -44,6 +41,5 @@ __all__ = [
     "render_help_cards_html",
     "render_html",
     "split_front_matter",
-    "wait_for_file_stable",
     "write_pdf_from_html",
 ]

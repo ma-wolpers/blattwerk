@@ -20,7 +20,8 @@ from .kurzentwurf_settings import resolve_kurzentwurf_runtime_options
 from .document_type_registry import PIPELINE_KURZENTWURF, PIPELINE_MARKDOWN, PIPELINE_SCHILD, spec_for_type
 from .plain_markdown_render import build_plain_markdown
 from .schild_render import build_schild
-from .export_path_guardrails import validate_export_output_path
+from .export_path_guardrails import ExportTargetPolicy, validate_export_output_path
+from .export_staging import staged_export
 
 
 def export_document_pdf(
@@ -32,13 +33,17 @@ def export_document_pdf(
     worksheet_request: WorksheetBuildRequest,
     kurzentwurf_options: Mapping[str, object] | None = None,
 ) -> Path:
-    """Export one document variant as PDF (Pipeline nach Dokumenttyp)."""
+    """Export one document variant as PDF (Pipeline nach Dokumenttyp).
+
+    `worksheet_request.target_policy` gilt fuer jede Pipeline (gesperrte Zieldatei).
+    """
 
     pipeline = spec_for_type(document_type).pipeline
+    policy = worksheet_request.target_policy
     if pipeline == PIPELINE_MARKDOWN:
-        return build_plain_markdown(input_path, output_path.with_suffix(".pdf"))
+        return build_plain_markdown(input_path, output_path.with_suffix(".pdf"), target_policy=policy)
     if pipeline == PIPELINE_SCHILD:
-        return build_schild(input_path, output_path.with_suffix(".pdf"))
+        return build_schild(input_path, output_path.with_suffix(".pdf"), target_policy=policy)
     if pipeline == PIPELINE_KURZENTWURF:
         _ensure_supported_kurzentwurf_mode(include_solutions)
         return _export_kurzentwurf_pdf(
@@ -46,6 +51,7 @@ def export_document_pdf(
             output_path=output_path,
             diagnostics_out=worksheet_request.diagnostics_out,
             kurzentwurf_options=kurzentwurf_options,
+            target_policy=policy,
         )
 
     return Path(build_worksheet_from_request(replace(worksheet_request, document_type=document_type)))
@@ -63,10 +69,11 @@ def export_document_html(
     """Export one document variant as HTML (Pipeline nach Dokumenttyp)."""
 
     pipeline = spec_for_type(document_type).pipeline
+    policy = worksheet_request.target_policy
     if pipeline == PIPELINE_MARKDOWN:
-        return build_plain_markdown(input_path, output_path.with_suffix(".html"))
+        return build_plain_markdown(input_path, output_path.with_suffix(".html"), target_policy=policy)
     if pipeline == PIPELINE_SCHILD:
-        return build_schild(input_path, output_path.with_suffix(".html"))
+        return build_schild(input_path, output_path.with_suffix(".html"), target_policy=policy)
     if pipeline == PIPELINE_KURZENTWURF:
         _ensure_supported_kurzentwurf_mode(include_solutions)
         return _export_kurzentwurf_html(
@@ -74,6 +81,7 @@ def export_document_html(
             output_path=output_path,
             diagnostics_out=worksheet_request.diagnostics_out,
             kurzentwurf_options=kurzentwurf_options,
+            target_policy=policy,
         )
 
     return Path(build_worksheet_from_request(replace(worksheet_request, document_type=document_type)))
@@ -97,9 +105,16 @@ def export_document_png(
     diagnostics_out: list[BuildDiagnostic] | None = None,
     kurzentwurf_options: Mapping[str, object] | None = None,
     computation_cache: BlockComputationCache | None = None,
+    target_policy: ExportTargetPolicy | None = None,
 ) -> list[Path]:
-    """Export one document variant as one or more PNG files."""
+    """Export one document variant as one or more PNG files.
 
+    Das Ziel wird vor dem Rendern der Seitenbilder geprueft (`target_policy`).
+    """
+
+    target_path = validate_export_output_path(
+        output_path.with_suffix(".png"), allowed_suffixes={".png"}, target_policy=target_policy
+    )
     if spec_for_type(document_type).pipeline == PIPELINE_KURZENTWURF:
         _ensure_supported_kurzentwurf_mode(include_solutions)
 
@@ -120,7 +135,7 @@ def export_document_png(
         computation_cache=computation_cache,
     )
     _extend_diagnostics(diagnostics_out, diagnostics)
-    return _save_png_pages(output_path=output_path, pages=pages)
+    return _save_png_pages(target_path=target_path, pages=pages)
 
 
 def export_document_png_zip(
@@ -141,9 +156,16 @@ def export_document_png_zip(
     diagnostics_out: list[BuildDiagnostic] | None = None,
     kurzentwurf_options: Mapping[str, object] | None = None,
     computation_cache: BlockComputationCache | None = None,
+    target_policy: ExportTargetPolicy | None = None,
 ) -> Path:
-    """Export one document variant as a ZIP archive with page PNGs."""
+    """Export one document variant as a ZIP archive with page PNGs.
 
+    Das Ziel wird vor dem Rendern der Seitenbilder geprueft (`target_policy`).
+    """
+
+    target_path = validate_export_output_path(
+        output_path.with_suffix(".zip"), allowed_suffixes={".zip"}, target_policy=target_policy
+    )
     if spec_for_type(document_type).pipeline == PIPELINE_KURZENTWURF:
         _ensure_supported_kurzentwurf_mode(include_solutions)
 
@@ -164,7 +186,7 @@ def export_document_png_zip(
         computation_cache=computation_cache,
     )
     _extend_diagnostics(diagnostics_out, diagnostics)
-    return _save_png_zip(output_path=output_path, pages=pages)
+    return _save_png_zip(target_path=target_path, pages=pages)
 
 
 def _export_kurzentwurf_pdf(
@@ -173,17 +195,22 @@ def _export_kurzentwurf_pdf(
     output_path: Path,
     diagnostics_out: list[BuildDiagnostic] | None,
     kurzentwurf_options: Mapping[str, object] | None,
+    target_policy: ExportTargetPolicy | None = None,
 ) -> Path:
-    target_path = validate_export_output_path(output_path.with_suffix(".pdf"), allowed_suffixes={".pdf"})
-    target_path.parent.mkdir(parents=True, exist_ok=True)
+    """Kurzentwurf als PDF; Ziel wird vor dem Rendern geprueft."""
+    target_path = validate_export_output_path(
+        output_path.with_suffix(".pdf"), allowed_suffixes={".pdf"}, target_policy=target_policy
+    )
     source = input_path.read_text(encoding="utf-8")
     runtime_options = resolve_kurzentwurf_runtime_options(kurzentwurf_options)
-    success, inspection = export_pdf_from_source(source, target_path, **runtime_options)
-    diagnostics = [_to_build_diagnostic(diag) for diag in inspection.diagnostics]
-    _extend_diagnostics(diagnostics_out, diagnostics)
-    if not success:
-        raise ValueError(_format_kurzentwurf_export_error(diagnostics, "PDF"))
-    return target_path
+    # Ein Fehler (ValueError) im Block verhindert den Publish; das Ziel bleibt unberuehrt.
+    with staged_export(target_path, target_policy) as staged:
+        success, inspection = export_pdf_from_source(source, staged.work_path, **runtime_options)
+        diagnostics = [_to_build_diagnostic(diag) for diag in inspection.diagnostics]
+        _extend_diagnostics(diagnostics_out, diagnostics)
+        if not success:
+            raise ValueError(_format_kurzentwurf_export_error(diagnostics, "PDF"))
+    return staged.published_path
 
 
 def _export_kurzentwurf_html(
@@ -192,8 +219,12 @@ def _export_kurzentwurf_html(
     output_path: Path,
     diagnostics_out: list[BuildDiagnostic] | None,
     kurzentwurf_options: Mapping[str, object] | None,
+    target_policy: ExportTargetPolicy | None = None,
 ) -> Path:
-    target_path = validate_export_output_path(output_path.with_suffix(".html"), allowed_suffixes={".html"})
+    """Kurzentwurf als HTML; Ziel wird vor dem Rendern geprueft."""
+    target_path = validate_export_output_path(
+        output_path.with_suffix(".html"), allowed_suffixes={".html"}, target_policy=target_policy
+    )
     target_path.parent.mkdir(parents=True, exist_ok=True)
     source = input_path.read_text(encoding="utf-8")
     runtime_options = resolve_kurzentwurf_runtime_options(kurzentwurf_options)
@@ -206,8 +237,8 @@ def _export_kurzentwurf_html(
     return target_path
 
 
-def _save_png_pages(*, output_path: Path, pages: list[Image.Image]) -> list[Path]:
-    target_path = validate_export_output_path(output_path.with_suffix(".png"), allowed_suffixes={".png"})
+def _save_png_pages(*, target_path: Path, pages: list[Image.Image]) -> list[Path]:
+    """Speichert die Seitenbilder unter dem bereits validierten ``target_path``."""
     target_path.parent.mkdir(parents=True, exist_ok=True)
     if not pages:
         raise ValueError("Export erzeugte keine Seiten.")
@@ -221,8 +252,8 @@ def _save_png_pages(*, output_path: Path, pages: list[Image.Image]) -> list[Path
     return created_files
 
 
-def _save_png_zip(*, output_path: Path, pages: list[Image.Image]) -> Path:
-    target_path = validate_export_output_path(output_path.with_suffix(".zip"), allowed_suffixes={".zip"})
+def _save_png_zip(*, target_path: Path, pages: list[Image.Image]) -> Path:
+    """Schreibt das ZIP der Seitenbilder unter dem bereits validierten ``target_path``."""
     target_path.parent.mkdir(parents=True, exist_ok=True)
     if not pages:
         raise ValueError("Export erzeugte keine Seiten.")

@@ -80,6 +80,14 @@ class BlattwerkAppExportMultiMixin:
         if not buildable_paths:
             raise ValueError("Keines der offenen Dokumente enthält Lernhilfen.")
 
+        # Ziel vor den Builds pruefen: ein gesperrtes ZIP soll nicht erst nach allen
+        # Dokumenten scheitern.
+        output_zip_path = validate_export_output_path(
+            Path(output_zip_path).with_suffix(".zip"),
+            allowed_suffixes={".zip"},
+            target_policy=self._export_target_policy(),
+        )
+
         with tempfile.TemporaryDirectory() as tmp_dir:
             tmp_dir_path = Path(tmp_dir)
 
@@ -111,10 +119,6 @@ class BlattwerkAppExportMultiMixin:
                     used_arcnames.add(arcname)
                     archive.write(built_file, arcname=arcname)
 
-            output_zip_path = validate_export_output_path(
-                Path(output_zip_path).with_suffix(".zip"),
-                allowed_suffixes={".zip"},
-            )
             output_zip_path.parent.mkdir(parents=True, exist_ok=True)
             shutil.move(str(tmp_zip_path), str(output_zip_path))
 

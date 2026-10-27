@@ -45,6 +45,7 @@ class BlattwerkAppExportHelpCardsMixin:
         output_path = validate_export_output_path(
             output_path.with_suffix(".png"),
             allowed_suffixes={".png"},
+            target_policy=self._export_target_policy(),
         )
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -84,6 +85,7 @@ class BlattwerkAppExportHelpCardsMixin:
         output_path = validate_export_output_path(
             output_path.with_suffix(".pdf"),
             allowed_suffixes={".pdf"},
+            target_policy=self._export_target_policy(),
         )
         output_path.parent.mkdir(parents=True, exist_ok=True)
         out_file = build_help_cards_from_request(
@@ -110,6 +112,7 @@ class BlattwerkAppExportHelpCardsMixin:
         output_zip_path = validate_export_output_path(
             output_zip_path.with_suffix(".zip"),
             allowed_suffixes={".zip"},
+            target_policy=self._export_target_policy(),
         )
         output_zip_path.parent.mkdir(parents=True, exist_ok=True)
 

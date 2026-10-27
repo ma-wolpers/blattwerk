@@ -14,10 +14,8 @@ from pathlib import Path
 from urllib.parse import unquote, urlparse
 from urllib.request import url2pathname
 
-from .pdf_running_elements import (  # noqa: F401 -- re-exportiert (wiring.py, blatt_kern_io_build.py)
+from .pdf_running_elements import (  # noqa: F401 -- re-exportiert (wiring.py)
     annotate_pdf_running_elements,
-    annotate_pdf_running_elements_with_retry,
-    wait_for_file_stable,
 )
 
 
@@ -175,10 +173,11 @@ def write_pdf_from_html(html, out_pdf_path):
             details = (result.stderr or result.stdout or "Unbekannter Fehler").strip()
             raise RuntimeError(f"PDF-Erstellung fehlgeschlagen: {details}")
 
+        # Chromium ist beendet; die Datei ist vollstaendig. Ein vorhandenes Ziel kann aber
+        # eine *alte* Datei sein, falls Chromium nicht schreiben durfte - deshalb drucken
+        # Exporte immer auf eine frische Arbeitsdatei (`export_staging`).
         if not out_pdf_path.exists():
             raise RuntimeError("PDF-Datei wurde nicht erstellt.")
-
-        wait_for_file_stable(out_pdf_path)
 
         return out_pdf_path
 

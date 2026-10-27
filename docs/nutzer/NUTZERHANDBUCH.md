@@ -120,6 +120,7 @@ Die Leiste „Vorschau-Optionen“ über der Vorschau startet eingeklappt; mit �
 ## 5) Exportdialog-Shortcuts
 
 - Es gibt zwei Dialoge: Arbeitsblatt-Export und Praesentations-Export (automatisch je nach Dokumentmodus).
+- **Zieldatei noch geöffnet** (z. B. die PDF im Viewer): Blattwerk prüft das *vor* dem Erstellen und bricht sofort mit einem Hinweis ab, statt erst nach dem Build zu scheitern. Unter *Einstellungen → Export → Gesperrte Zieldatei* kannst du stattdessen `alternate_name` wählen: Dann wird als „Name (neu).pdf" gespeichert (ist auch die geöffnet, „Name (neu 2).pdf" usw.), und die Erfolgsmeldung nennt die tatsächliche Datei. Bei „Aufgabe + Lösung" prüft jeder Teil seine eigene Datei; ist nur die Lösungs-PDF geöffnet, kann die Aufgaben-PDF also schon geschrieben sein.
 - `Strg+E`: Exportieren
 - `Esc`: Abbrechen
 - `A / L / B`: Aufgaben / Lösung / Beides (nur im Arbeitsblatt-Dialog)

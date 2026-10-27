@@ -7,6 +7,7 @@ The format is based on Keep a Changelog.
 ## [Unreleased]
 
 ### Added
+- **Geöffnete Zieldatei wird vor dem Export erkannt:** Ist die Ziel-PDF (oder PNG/ZIP/PPTX/HTML) noch in einem anderen Programm geöffnet, bricht der Export sofort mit einem Hinweis ab, statt erst nach dem Erstellen zu scheitern. Neue Einstellung *Export → Gesperrte Zieldatei*: `error` (Standard, abbrechen) oder `alternate_name` (als „Name (neu).pdf" speichern). Gilt für Arbeitsblatt, Klausur, Präsentation, Lernhilfen, Erwartungshorizont, Schild, Markdown und Kurzentwurf; die Erfolgsmeldung nennt die tatsächlich geschriebene Datei.
 - **Vorschau des Erwartungshorizonts:** Klausuren haben in der Vorschau neben „Aufgabe“ und „Lösung“ die Ansicht „Erwartungshorizont“ – genau die PDF, die auch der Export erzeugt. `Tab` schaltet reihum durch alle Ansichten; Seitenformat und Gestaltung sind in dieser Ansicht ausgeblendet, weil der Erwartungshorizont ein eigenes Layout hat. Der Exportdialog übernimmt die gewählte Ansicht als Vorauswahl.
 - **Vorschläge für Erwartungstypen in Klausuren:** In einer Lösungspunkt-Zeile öffnet sich nach `(0,5P ` automatisch eine Liste aller Erwartungstypen mit Symbol, Kürzel und Erklärung; Weitertippen filtert (auch per Kürzel), übernommen wird der volle Name, z. B. `(0,5P Begründung)`.
 - **Klausur-Anleitung erklärt die Erwartungstypen:** neuer Abschnitt „Erwartungstypen“ in `ANLEITUNG_KLAUSUR.md` mit Symbol, Name, Kürzel und Bedeutung jedes Typs – mit denselben Sätzen wie die Legende im Erwartungshorizont.
@@ -87,6 +88,7 @@ The format is based on Keep a Changelog.
 - Einstellung „Arbeits-Emoji standardmäßig sichtbar“: entfällt. Dokumente ohne Sozialform-Symbole legst du als Klausur (`.kbw`) an.
 
 ### Fixed
+- **Export mit geöffneter Ziel-PDF lieferte still die alte Datei:** War die PDF beim Export noch in einem Viewer geöffnet, blieb sie unverändert liegen – Präsentationen, Schilder, Markdown, Erwartungshorizont und Kurzentwurf meldeten trotzdem „Export erfolgreich". Jetzt wird jede PDF zuerst privat erstellt und erst am Ende in einem Schritt an den Zielort gelegt; im Exportordner bleiben keine `tmp…`-Zwischendateien mehr zurück.
 - **PDF-Export brach mit „PDF-Annotation konnte nicht verifiziert werden" ab**, wenn der Titel ein Emoji (z. B. ☀️), griechische Buchstaben oder sehr viel Text enthielt. Ist die Ziel-PDF noch in einem anderen Programm geöffnet, meldet der Export das jetzt im Klartext statt mit dieser Meldung.
 - Beim Überfahren eines Farbprofil-Felds mit der Maus waren alle Tastenkürzel gesperrt, solange der kleine Hinweis zum Farbprofil sichtbar war. Kürzel funktionieren jetzt auch dann.
 - Im Exportdialog lösen D, P, A, L, B, K und ? beim Tippen in einem Eingabefeld nicht mehr aus.
