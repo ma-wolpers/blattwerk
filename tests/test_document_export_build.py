@@ -40,6 +40,7 @@ def test_export_document_pdf_uses_kurzentwurf_builder(monkeypatch, tmp_path):
     def _fake_export_pdf_from_source(source, output_path, **kwargs):
         seen["path"] = output_path
         seen["kwargs"] = kwargs
+        Path(output_path).write_bytes(b"%PDF-kurzentwurf")
         return True, _Inspection()
 
     monkeypatch.setattr(
@@ -59,8 +60,10 @@ def test_export_document_pdf_uses_kurzentwurf_builder(monkeypatch, tmp_path):
         },
     )
 
-    assert out_path.suffix == ".pdf"
-    assert Path(seen["path"]) == out_path
+    # Der Builder schreibt in die private Staging-Datei; veroeffentlicht wird genau deren Inhalt.
+    assert out_path == (tmp_path / "kurzentwurf.pdf").resolve()
+    assert Path(seen["path"]) != out_path
+    assert out_path.read_bytes() == b"%PDF-kurzentwurf"
     assert seen["kwargs"].get("column_widths_text") == "1 2 3 2"
     assert seen["kwargs"].get("page_orientation_mode") == "horizontal"
     assert request.diagnostics_out[0].code == "KZF001"
