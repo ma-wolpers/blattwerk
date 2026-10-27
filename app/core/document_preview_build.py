@@ -13,6 +13,7 @@ from .kurzentwurf_runtime.build import build_preview_images as build_kurzentwerf
 
 from .blatt_validator import BuildDiagnostic
 from .block_computation_cache import BlockComputationCache
+from .help_cards_appendix import HELP_APPENDIX_NONE
 from .build_requests import WorksheetBuildRequest, WorksheetDesignOptions, build_worksheet_from_request
 from .kurzentwurf_settings import resolve_kurzentwurf_runtime_options
 from .document_type_registry import (
@@ -45,8 +46,14 @@ def build_preview_images_for_document(
     kurzentwurf_options: Mapping[str, object] | None = None,
     computation_cache: BlockComputationCache | None = None,
     preview_variant: str = PREVIEW_VARIANT_WORKSHEET,
+    help_appendix: str = HELP_APPENDIX_NONE,
 ) -> tuple[list[Image.Image], list[BuildDiagnostic]]:
     """Build preview images for the active document family.
+
+    `help_appendix` (`help_cards_appendix.HELP_APPENDIX_*`) appends the
+    visible Lernhilfen after the worksheet pages, exactly as the PDF export
+    does (same build). All pages are rasterized at the same dpi, so their
+    pixel sizes keep the physical proportions (A6 card smaller than A4 page).
 
     `computation_cache` is only meaningful for the worksheet/presentation
     family (threaded through to `build_worksheet_from_request`); the
@@ -89,6 +96,7 @@ def build_preview_images_for_document(
         presentation_hide_future_sections=presentation_hide_future_sections,
         presentation_ignore_framebreaks=presentation_ignore_framebreaks,
         computation_cache=computation_cache,
+        help_appendix=help_appendix,
     )
 
 
@@ -107,6 +115,7 @@ def _build_worksheet_preview_images(
     presentation_hide_future_sections: bool,
     presentation_ignore_framebreaks: bool = False,
     computation_cache: BlockComputationCache | None = None,
+    help_appendix: str = HELP_APPENDIX_NONE,
 ) -> tuple[list[Image.Image], list[BuildDiagnostic]]:
     with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
         temp_pdf_path = Path(tmp.name)
@@ -130,6 +139,7 @@ def _build_worksheet_preview_images(
                 diagnostics_out=compile_diagnostics,
                 computation_cache=computation_cache,
                 document_type=document_type,
+                help_appendix=help_appendix,
             )
         )
 

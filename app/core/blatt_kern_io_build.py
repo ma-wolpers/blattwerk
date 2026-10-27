@@ -15,6 +15,7 @@ from .operator_legend_placement import write_pdf_with_bottom_legends
 from .pdf_running_elements import annotate_pdf_running_elements
 from .blatt_kern_help_render import collect_help_blocks
 from .help_card_pages import render_help_cards_print_html
+from .help_cards_appendix import HELP_APPENDIX_NONE, append_help_cards_appendix, ensure_help_appendix_request
 from .blatt_kern_layout_render import render_html
 from .blatt_kern_shared import get_copyright_text, is_hole_punch_layout_enabled
 from .document_type_registry import has_slide_layout, solutions_renderable
@@ -119,8 +120,15 @@ def build_worksheet(
     computation_cache=None,
     document_type="worksheet",
     target_policy=None,
+    help_appendix=HELP_APPENDIX_NONE,
 ):
     """Erstellt aus einer Markdown-Datei eine HTML- oder PDF-Ausgabe.
+
+    `help_appendix` (`help_cards_appendix.HELP_APPENDIX_*`): hängt die
+    sichtbaren Lernhilfen hinter die Arbeitsblattseiten -- auf der
+    Staging-Arbeitsdatei, nach Kopf-/Fußzeile, mit dem schon geparsten
+    Dokument. Nur PDF und nur Typen mit `help_appendix_supported`; sonst
+    `ValueError` vor jedem Rendering.
 
     `target_policy` (`ExportTargetPolicy`): Das Ziel wird *vor* Validierung und
     Rendering geprüft - eine gesperrte Ziel-PDF scheitert sofort bzw. weicht auf
@@ -144,6 +152,7 @@ def build_worksheet(
         allowed_suffixes={".pdf", ".html"},
         target_policy=target_policy,
     )
+    ensure_help_appendix_request(help_appendix, document_type=document_type, output_suffix=out_file.suffix)
     md_file = Path(md_path)
     text = md_file.read_text(encoding="utf-8")
     inspected = inspect_markdown_text(text, cache=computation_cache, document_type=document_type)
@@ -212,6 +221,19 @@ def build_worksheet(
                     word_notes=word_notes,
                     page_format=page_format,
                     hole_punch_enabled=is_hole_punch_layout_enabled(meta),
+                )
+                append_help_cards_appendix(
+                    pdf_file,
+                    mode=help_appendix,
+                    md_dir=md_file.parent,
+                    meta=meta,
+                    blocks=blocks,
+                    include_solutions=include_solutions,
+                    page_format=page_format,
+                    print_profile=print_profile,
+                    color_profile=color_profile,
+                    font_profile=font_profile,
+                    font_size_profile=font_size_profile,
                 )
         return staged.published_path
 

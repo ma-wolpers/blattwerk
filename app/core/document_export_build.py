@@ -14,6 +14,7 @@ from .kurzentwurf_runtime.build import export_pdf_from_source, render_html_from_
 
 from .blatt_validator import BuildDiagnostic
 from .block_computation_cache import BlockComputationCache
+from .help_cards_appendix import HELP_APPENDIX_NONE
 from .build_requests import WorksheetBuildRequest, build_worksheet_from_request
 from .document_preview_build import build_preview_images_for_document
 from .kurzentwurf_settings import resolve_kurzentwurf_runtime_options
@@ -106,10 +107,13 @@ def export_document_png(
     kurzentwurf_options: Mapping[str, object] | None = None,
     computation_cache: BlockComputationCache | None = None,
     target_policy: ExportTargetPolicy | None = None,
+    help_appendix: str = HELP_APPENDIX_NONE,
 ) -> list[Path]:
     """Export one document variant as one or more PNG files.
 
     Das Ziel wird vor dem Rendern der Seitenbilder geprueft (`target_policy`).
+    `help_appendix` haengt die Lernhilfen als weitere Seitenbilder an
+    (gleicher Build wie Vorschau und PDF, siehe `help_cards_appendix`).
     """
 
     target_path = validate_export_output_path(
@@ -133,6 +137,7 @@ def export_document_png(
         presentation_ignore_framebreaks=presentation_ignore_framebreaks,
         kurzentwurf_options=kurzentwurf_options,
         computation_cache=computation_cache,
+        help_appendix=help_appendix,
     )
     _extend_diagnostics(diagnostics_out, diagnostics)
     return _save_png_pages(target_path=target_path, pages=pages)
@@ -157,10 +162,13 @@ def export_document_png_zip(
     kurzentwurf_options: Mapping[str, object] | None = None,
     computation_cache: BlockComputationCache | None = None,
     target_policy: ExportTargetPolicy | None = None,
+    help_appendix: str = HELP_APPENDIX_NONE,
 ) -> Path:
     """Export one document variant as a ZIP archive with page PNGs.
 
     Das Ziel wird vor dem Rendern der Seitenbilder geprueft (`target_policy`).
+    `help_appendix` haengt die Lernhilfen als weitere Seitenbilder an
+    (gleicher Build wie Vorschau und PDF, siehe `help_cards_appendix`).
     """
 
     target_path = validate_export_output_path(
@@ -184,6 +192,7 @@ def export_document_png_zip(
         presentation_ignore_framebreaks=presentation_ignore_framebreaks,
         kurzentwurf_options=kurzentwurf_options,
         computation_cache=computation_cache,
+        help_appendix=help_appendix,
     )
     _extend_diagnostics(diagnostics_out, diagnostics)
     return _save_png_zip(target_path=target_path, pages=pages)

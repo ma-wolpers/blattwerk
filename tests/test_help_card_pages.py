@@ -8,9 +8,6 @@ ein Browser vorhanden ist.
 
 from __future__ import annotations
 
-import re
-
-import fitz
 import pytest
 
 from app.core.blatt_kern_help_render import (
@@ -19,37 +16,13 @@ from app.core.blatt_kern_help_render import (
     render_help_cards_html,
 )
 from app.core.help_card_pages import HELP_CARD_SINGLE_PAGE_FORMATS, build_help_card_single_pages
-from app.styles.blatt_styles import PAGE_LAYOUTS
+from help_card_fakes import fake_help_card_render
 
 META = {"Titel": "T", "Fach": "M", "Thema": "X"}
-_SIZE_TO_FORMAT = {PAGE_LAYOUTS[fmt]["page_size_css"]: fmt for fmt in HELP_CARD_SINGLE_PAGE_FORMATS}
 
 
 def _blocks(count):
     return [("help", {"title": f"Karte {index}"}, f"Inhalt {index}") for index in range(1, count + 1)]
-
-
-def _fake_render(pages_needed, calls):
-    """Fake für `write_pdf_from_html`: Karte i braucht `pages_needed[i][format]` Seiten."""
-
-    def render(html, out_path):
-        # Wie im Browser gewinnt die letzte `@page`-Größe (Format-Override nach dem Basis-CSS).
-        size_css = re.findall(r"@page\s*\{[^}]*?\bsize:\s*([^;]+);", html)[-1].strip()
-        page_format = _SIZE_TO_FORMAT[size_css]
-        calls.append(page_format)
-        indices = [int(value) for value in re.findall(r'data-help-index="(\d+)"', html)]
-        doc = fitz.open()
-        for index in indices:
-            for page_number in range(pages_needed[index][page_format]):
-                page = doc.new_page(width=200, height=300)
-                if page_number == 0:
-                    page.insert_text((2, 4), help_card_marker(index), fontsize=2)
-                page.insert_text((20, 40), f"Kartentext {index}", fontsize=8)
-        doc.save(out_path)
-        doc.close()
-        return out_path
-
-    return render
 
 
 def test_single_layout_html_has_container_and_marker_per_card():
@@ -87,7 +60,7 @@ def test_each_card_gets_smallest_fitting_format_in_document_order(tmp_path):
     }
     calls = []
 
-    result = build_help_card_single_pages(tmp_path, META, _blocks(3), render=_fake_render(pages_needed, calls))
+    result = build_help_card_single_pages(tmp_path, META, _blocks(3), render=fake_help_card_render(pages_needed, calls))
 
     try:
         assert [p.page_format for p in result.placements] == ["a6_portrait", "a5_portrait", "a4_portrait"]
@@ -105,7 +78,7 @@ def test_stops_after_first_format_when_everything_fits(tmp_path):
     pages_needed = {index: {fmt: 1 for fmt in HELP_CARD_SINGLE_PAGE_FORMATS} for index in (1, 2)}
     calls = []
 
-    result = build_help_card_single_pages(tmp_path, META, _blocks(2), render=_fake_render(pages_needed, calls))
+    result = build_help_card_single_pages(tmp_path, META, _blocks(2), render=fake_help_card_render(pages_needed, calls))
 
     result.document.close()
     assert calls == ["a6_portrait"]
@@ -114,7 +87,7 @@ def test_stops_after_first_format_when_everything_fits(tmp_path):
 def test_card_too_long_even_for_a4_keeps_all_pages(tmp_path):
     pages_needed = {1: {"a6_portrait": 5, "a5_portrait": 4, "a4_portrait": 2}}
 
-    result = build_help_card_single_pages(tmp_path, META, _blocks(1), render=_fake_render(pages_needed, []))
+    result = build_help_card_single_pages(tmp_path, META, _blocks(1), render=fake_help_card_render(pages_needed, []))
 
     try:
         (placement,) = result.placements

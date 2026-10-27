@@ -140,7 +140,7 @@ def build_help_card_single_pages(
                 layout=HELP_CARD_LAYOUT_SINGLE,
                 card_indices=set(pending),
             )
-            document = _print_to_document(html, render)
+            document = print_html_to_document(html, render)
             printed.append(document)
             spans = _card_page_spans(document, pending)
             _remove_markers(document)
@@ -160,8 +160,16 @@ def build_help_card_single_pages(
             document.close()
 
 
-def _print_to_document(html, render):
-    """Druckt `html` in eine Temp-PDF und lädt sie als In-Memory-`fitz.Document`."""
+def print_html_to_document(html, render=write_pdf_from_html):
+    """Druckt `html` in eine Temp-PDF und lädt sie als In-Memory-`fitz.Document`.
+
+    Der Aufrufer besitzt das Ergebnis und schließt es. Die Temp-Datei ist
+    danach schon gelöscht -- das Dokument lebt nur im Speicher.
+
+    Args:
+        html: vollständiges HTML-Dokument.
+        render: HTML→PDF-Funktion ``(html, out_path) -> Path`` (Standard: Chromium).
+    """
     with tempfile.TemporaryDirectory(prefix="blattwerk-help-") as tmp_dir:
         pdf_path = Path(tmp_dir) / "help-cards.pdf"
         render(html, pdf_path)
@@ -231,5 +239,6 @@ __all__ = [
     "HelpCardPages",
     "HelpCardPlacement",
     "build_help_card_single_pages",
+    "print_html_to_document",
     "render_help_cards_print_html",
 ]

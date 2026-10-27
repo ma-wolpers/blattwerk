@@ -8,6 +8,7 @@ from pathlib import Path
 from .blatt_kern_io_build import build_help_cards, build_worksheet
 from .block_computation_cache import BlockComputationCache
 from .export_path_guardrails import ExportTargetPolicy
+from .help_cards_appendix import HELP_APPENDIX_NONE
 
 
 @dataclass(frozen=True)
@@ -51,6 +52,8 @@ class WorksheetBuildRequest:
     document_type: str = "worksheet"
     target_policy: ExportTargetPolicy | None = None
     """Umgang mit gesperrter Zieldatei; gilt fuer alle Pipelines in `document_export_build`."""
+    help_appendix: str = HELP_APPENDIX_NONE
+    """Lernhilfen-Anhang (`help_cards_appendix.HELP_APPENDIX_*`), nur bei PDF; siehe `build_worksheet`."""
 
 
 @dataclass(frozen=True)
@@ -94,6 +97,7 @@ def build_worksheet_from_request(request: WorksheetBuildRequest):
         computation_cache=request.computation_cache,
         document_type=request.document_type,
         target_policy=request.target_policy,
+        help_appendix=request.help_appendix,
         **request.design.as_kwargs(),
     )
 
