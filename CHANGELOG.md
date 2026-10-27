@@ -88,6 +88,8 @@ The format is based on Keep a Changelog.
 - Einstellung „Arbeits-Emoji standardmäßig sichtbar“: entfällt. Dokumente ohne Sozialform-Symbole legst du als Klausur (`.kbw`) an.
 
 ### Fixed
+- **Tabellen: Zeilenkopf-Spalte wurde bei `widths=` zusammengequetscht.** Mit `row_headers` bekommt die Kopfspalte jetzt das mittlere Gewicht der Datenspalten; alternativ gibst du einen Wert mehr an, der erste gilt dann für die Kopfspalte (z. B. `widths="1.5 3 1"` bei zwei Datenspalten). Eine unpassende Anzahl Werte meldet die neue Warnung `AN020` (bisher wurden überzählige Werte still ignoriert).
+- **Tabellenzellen mit „2. …" oder „2025. …" am Anfang** wurden zu einer neu ab 1 nummerierten Liste („1. …") – die Zahl im Inhalt änderte sich. Zellinhalt bleibt jetzt wörtlich stehen.
 - **Export mit geöffneter Ziel-PDF lieferte still die alte Datei:** War die PDF beim Export noch in einem Viewer geöffnet, blieb sie unverändert liegen – Präsentationen, Schilder, Markdown, Erwartungshorizont und Kurzentwurf meldeten trotzdem „Export erfolgreich". Jetzt wird jede PDF zuerst privat erstellt und erst am Ende in einem Schritt an den Zielort gelegt; im Exportordner bleiben keine `tmp…`-Zwischendateien mehr zurück.
 - **PDF-Export brach mit „PDF-Annotation konnte nicht verifiziert werden" ab**, wenn der Titel ein Emoji (z. B. ☀️), griechische Buchstaben oder sehr viel Text enthielt. Ist die Ziel-PDF noch in einem anderen Programm geöffnet, meldet der Export das jetzt im Klartext statt mit dieser Meldung.
 - Beim Überfahren eines Farbprofil-Felds mit der Maus waren alle Tastenkürzel gesperrt, solange der kleine Hinweis zum Farbprofil sichtbar war. Kürzel funktionieren jetzt auch dann.

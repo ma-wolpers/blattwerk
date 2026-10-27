@@ -148,8 +148,20 @@ def _line_visible_in_mode(show_mode, include_solutions):
     return show_mode == "both" or show_mode == mode
 
 
-def _render_inline_markdown_fragment(text):
-    """Render a short markdown fragment without wrapping `<p>` tags."""
+_LIST_BLOCK_PROCESSORS = ("olist", "ulist")
+"""python-markdown-Blockprozessoren fuer Listen; in `inline_only`-Fragmenten abgemeldet."""
+
+
+def _render_inline_markdown_fragment(text, inline_only=False):
+    """Render a short markdown fragment without wrapping `<p>` tags.
+
+    Args:
+        text: Fragment source (one answer line or segment).
+        inline_only: Keep list markers literal (``1. Was``, ``2025. Jahr``, ``- x``)
+            instead of turning them into ``<ol>``/``<ul>``. Used for table cells:
+            python-markdown renumbers every ordered list from 1, so "2. Frage" became
+            "1. Frage", and multi-line cells produced one broken list per line.
+    """
     raw = "" if text is None else str(text)
     if raw == "":
         return ""
@@ -162,6 +174,9 @@ def _render_inline_markdown_fragment(text):
         return " "
 
     md = _new_markdown_converter()
+    if inline_only:
+        for processor_name in _LIST_BLOCK_PROCESSORS:
+            md.parser.blockprocessors.deregister(processor_name, strict=False)
     html = convert_markdown_with_math(md, core).strip()
     paragraph_match = re.fullmatch(r"<p>(.*)</p>", html, flags=re.DOTALL)
     rendered = html
@@ -206,13 +221,15 @@ def _render_visible_segments_for_line(
     segments,
     include_solutions,
     highlight_solution_segments,
+    inline_only=False,
 ):
+    """Render the visible segments of one line (``inline_only``: see fragment renderer)."""
     rendered = []
     for segment in segments:
         if not _line_visible_in_mode(segment["show"], include_solutions):
             continue
 
-        fragment_html = _render_inline_markdown_fragment(segment["text"])
+        fragment_html = _render_inline_markdown_fragment(segment["text"], inline_only=inline_only)
         if not fragment_html:
             continue
 
@@ -256,8 +273,12 @@ def render_answer_content_html_for_mode(
     include_solutions,
     default_show="both",
     highlight_solution_segments=True,
+    inline_only=False,
 ):
-    """Render visible answer content as HTML with line breaks preserved."""
+    """Render visible answer content as HTML with line breaks preserved.
+
+    ``inline_only=True`` keeps list markers literal (table cells).
+    """
     if not (content or ""):
         return ""
 
@@ -266,6 +287,7 @@ def render_answer_content_html_for_mode(
         include_solutions=include_solutions,
         default_show=default_show,
         highlight_solution_segments=highlight_solution_segments,
+        inline_only=inline_only,
     )
     return "<br>".join(html_lines).strip()
 
@@ -275,6 +297,7 @@ def render_answer_line_html_fragments_for_mode(
     include_solutions,
     default_show="both",
     highlight_solution_segments=True,
+    inline_only=False,
 ):
     """Render visible answer lines as per-line HTML fragments."""
     if not (content or ""):
@@ -295,6 +318,7 @@ def render_answer_line_html_fragments_for_mode(
             visible_segments,
             include_solutions,
             highlight_solution_segments,
+            inline_only=inline_only,
         )
         html_lines.append(rendered_line)
 

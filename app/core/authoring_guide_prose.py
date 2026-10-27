@@ -490,9 +490,14 @@ PROSE_SECTIONS: dict[str, str] = {
         "Zeilen in einer eigenen, zusätzlichen ersten Spalte (zählt nicht zu `cols`, überschreibt "
         "nie `cells:`-Inhalte); sind beide gesetzt, bleibt die Eck-Zelle oben links automatisch leer. "
         "Beide unterstützen `|`-getrennt gezielt leere Zellen (z. B. `column_headers=\"A||C\"` lässt "
-        "die zweite Kopfzelle leer). `widths=...` steuert die Breite der Datenspalten, "
+        "die zweite Kopfzelle leer). `widths=...` steuert die Breite der Datenspalten (so viele "
+        "Werte wie Datenspalten); mit `row_headers` bekommt die Kopfspalte bei relativen Gewichten "
+        "das mittlere Gewicht, oder du gibst einen Wert mehr an -- der erste gilt dann für die "
+        "Kopfspalte (z. B. `widths=\"1.5 3 1\"` bei zwei Datenspalten). Eine andere Anzahl ergibt "
+        "die Warnung `AN020`. "
         "`alignment=left|center|right|justify` (auch Kurzformen `l`/`r`/`c`/`j`, auch pro Spalte) "
-        "deren Ausrichtung, `row_height=<css-länge>` die Zeilenhöhe."
+        "deren Ausrichtung, `row_height=<css-länge>` die Zeilenhöhe. Zellinhalt ist Fließtext: "
+        "`1. Frage` oder `2025. Jahr` am Zellanfang bleibt wörtlich stehen (keine Liste)."
     ),
     "block:numberline": (
         "Zahlenstrahl-Antwortfeld mit YAML-Payload (`labels`/`answers`/`arcs`/... je Element mit "

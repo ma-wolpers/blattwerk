@@ -9,18 +9,9 @@ import re
 from html import escape
 
 from .blatt_kern_shared import _safe_int
-from .answer_table_content import parse_table_content_payload, render_solution_marked_cell_text
+from .answer_table_content import render_solution_marked_cell_text
+from .answer_table_layout import resolve_table_column_widths, resolve_table_layout
 from .blatt_kern_answer_choice import _render_answer_solution_text
-
-def _parse_positional_option_list(raw_value):
-    """Parst Listenwerte aus `a|b|c` oder `a,b,c` positionsgetreu -- leere
-    Einträge (z. B. durch `||`) bleiben als eigene Position erhalten, damit
-    Header-Optionen gezielt einzelne Zellen leer lassen können."""
-    if not raw_value:
-        return []
-
-    normalized = str(raw_value).replace(",", "|")
-    return [item.strip() for item in normalized.split("|")]
 
 def _parse_css_size(value, default_value):
     """Liest sichere CSS-Längenangaben (z. B. `2.4cm`)."""
@@ -31,62 +22,6 @@ def _parse_css_size(value, default_value):
     if re.fullmatch(r"\d+(?:\.\d+)?(px|%|cm|mm|in|pt|em|rem|vh|vw)", text, flags=re.IGNORECASE):
         return text
     return default_value
-
-def _parse_table_widths(widths_raw, expected_cols):
-    """Parst Spaltengewichte für answer-Tabellen."""
-    if expected_cols < 1:
-        return []
-
-    if not widths_raw:
-        return []
-
-    normalized = str(widths_raw).replace(":", " ").replace(",", " ")
-    parts = [part.strip().lower() for part in normalized.split() if part.strip()]
-    if len(parts) < expected_cols:
-        return []
-
-    parts = parts[:expected_cols]
-
-    ratio_values = []
-    explicit_values = []
-
-    for part in parts:
-        number_match = re.fullmatch(r"\d+(?:\.\d+)?", part)
-        fr_match = re.fullmatch(r"(\d+(?:\.\d+)?)fr", part)
-        explicit_match = re.fullmatch(r"\d+(?:\.\d+)?(%|px|cm|mm|in|pt|em|rem|vh|vw)", part)
-
-        if number_match:
-            value = float(number_match.group(0))
-            if value <= 0:
-                return []
-            ratio_values.append(value)
-            continue
-
-        if fr_match:
-            value = float(fr_match.group(1))
-            if value <= 0:
-                return []
-            ratio_values.append(value)
-            continue
-
-        if explicit_match:
-            explicit_values.append(part)
-            continue
-
-        return []
-
-    if ratio_values and explicit_values:
-        return []
-
-    if explicit_values:
-        return explicit_values
-
-    ratio_total = sum(ratio_values)
-    if ratio_total <= 0:
-        return []
-
-    return [f"{(value / ratio_total) * 100:.4f}%" for value in ratio_values]
-
 
 def _normalize_table_alignment_token(value):
     """Normalisiert Alias- und Kurzschreibweisen auf CSS-Ausrichtungswerte."""
@@ -138,39 +73,28 @@ def _parse_table_alignment(raw_value, expected_cols):
 def _render_table_answer(options, content, include_solutions):
     """Rendert eine ausfüllbare Tabelle mit optionalen Spalten-/Zeilenüberschriften."""
 
-    cols = max(1, _safe_int(options.get("cols", 2), 2))
-    rows = max(1, _safe_int(options.get("rows", 4), 4))
+    layout = resolve_table_layout(options, content)
+    rows, cols = layout.rows, layout.cols
+    column_headers, row_headers = layout.column_headers, layout.row_headers
+    cells_matrix, extra_solution_text = layout.cells, layout.extra_solution_text
+    has_row_header_column = layout.has_row_header_column
     row_height = _parse_css_size(options.get("row_height"), "1.9cm")
-
-    column_headers = _parse_positional_option_list(options.get("column_headers"))
-    if column_headers:
-        cols = max(cols, len(column_headers))
-
-    row_headers = _parse_positional_option_list(options.get("row_headers"))
-    if row_headers:
-        rows = max(rows, len(row_headers))
-
-    cells_matrix, extra_solution_text = parse_table_content_payload(content)
-    if cells_matrix:
-        rows = max(rows, len(cells_matrix))
-        max_payload_cols = max((len(row) for row in cells_matrix), default=0)
-        cols = max(cols, max_payload_cols)
-
-    has_row_header_column = bool(row_headers)
 
     table_alignment, column_alignments = _parse_table_alignment(
         options.get("alignment"), cols
     )
 
-    widths = _parse_table_widths(options.get("widths"), cols)
+    # Breitenregel (inkl. Kopfspalte bei `row_headers`) siehe `answer_table_layout`.
+    header_width, widths = resolve_table_column_widths(
+        options.get("widths"), cols, has_row_header_column
+    )
 
     colgroup = ""
     if widths:
         col_tags = "".join(f"<col style='width:{escape(part)}'>" for part in widths)
         if has_row_header_column:
-            # Ungewichtete Extra-Spalte für die Row-Header-Spalte, damit `widths=`
-            # weiterhin auf die Datenspalten trifft und nicht um eine Spalte verrutscht.
-            col_tags = "<col>" + col_tags
+            header_style = f" style='width:{escape(header_width)}'" if header_width else ""
+            col_tags = f"<col{header_style}>" + col_tags
         colgroup = f"<colgroup>{col_tags}</colgroup>"
 
     thead = ""

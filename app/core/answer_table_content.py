@@ -77,12 +77,17 @@ def parse_table_content_payload(content):
 
 
 def render_solution_marked_cell_text(raw_text, include_solutions):
-    """Render table cell text with inline visibility tokens (`§{}`, `%{}`, `&{}`)."""
+    """Render table cell text with inline visibility tokens (`§{}`, `%{}`, `&{}`).
+
+    Zellen sind Inline-Inhalt: ``1. Frage`` oder ``2025. Jahr`` bleiben woertlich stehen
+    (``inline_only``), statt zu einer ab 1 neu nummerierten Liste zu werden.
+    """
     text = "" if raw_text is None else str(raw_text)
     rendered = render_answer_content_html_for_mode(
         text,
         include_solutions=include_solutions,
         default_show="both",
         highlight_solution_segments=True,
+        inline_only=True,
     )
     return rendered if rendered.strip() else ""
