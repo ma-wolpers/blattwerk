@@ -35,6 +35,14 @@ from .style_spans import protect_style_markers
 
 COMMENT_PATTERN = re.compile(r"(?<!\\)%%(.*?)(?<!\\)%%", re.DOTALL)
 _UNMATCHED_COMMENT_START_PATTERN = re.compile(r"(?<!\\)%%")
+_COMMENT_ONLY_LINE_PATTERN = re.compile(
+    r"^[ \t]*(?:(?<!\\)%%(?:(?!(?<!\\)%%)[\s\S])*(?<!\\)%%[ \t]*)+(?:\r?\n|\Z)",
+    re.MULTILINE,
+)
+"""Eine ganze Zeile (bzw. mehrere bei einem mehrzeiligen Kommentar), die nur aus
+Kommentaren und Leerraum besteht, samt Zeilenumbruch. Der Kommentarinhalt ist
+„bis zum nächsten unmaskierten `%%`“ -- wie bei `COMMENT_PATTERN` --, damit
+`%%a%% Text %%b%%` *keine* reine Kommentarzeile ist."""
 
 FENCE_PATTERN = re.compile(r"^```[^\n]*\n(.*?)\n^```[ \t]*$", re.DOTALL | re.MULTILINE)
 """`COMMENT_PATTERN`/`FENCE_PATTERN` sind öffentlich, weil `solution_items.classify_solution`
@@ -60,8 +68,29 @@ class CodeSpan:
     is_block: bool
 
 
+def drop_comment_only_lines(text: str) -> str:
+    """Entfernt Zeilen, die nur aus `%%…%%`-Kommentaren (und Leerraum) bestehen, samt Umbruch.
+
+    Eine auskommentierte Zeile soll weder als Leerzeile (Absatzgrenze) noch
+    als leere Zeile (`<br>`, leerer Eintrag) zählen, sondern gar nicht.
+    Kommentare mitten in einer Zeile bleiben hier unberührt; die entfernt
+    `strip_comments` danach wie bisher.
+
+    Beispiel: ``"eins\n%%notiz%%\nzwei"`` -> ``"eins\nzwei"``.
+
+    Genutzt von `strip_comments` (Arbeitsblatt, alle Inline-Pfade) und vom
+    Kurzentwurf, bevor er Zellen zeilenweise labelt und rendert.
+    """
+    if not text or "%%" not in text:
+        return text
+    return _COMMENT_ONLY_LINE_PATTERN.sub("", text)
+
+
 def strip_comments(text: str) -> tuple[str, list[ParseDiagnostic]]:
     """Entfernt jeden `%%...%%`-Kommentar vollständig aus `text`.
+
+    Reine Kommentarzeilen verschwinden samt Zeilenumbruch
+    (`drop_comment_only_lines`), damit sie keinen Absatz trennen.
 
     Escape-bewusst (`(?<!\\\\)%%`): ein `\\%\\%` in einer Formel (z. B.
     `$a\\%\\%b$`) wird nicht als Kommentar-Trenner gelesen. Ein `%%` ohne
@@ -72,7 +101,7 @@ def strip_comments(text: str) -> tuple[str, list[ParseDiagnostic]]:
     if not text:
         return text, []
 
-    without_paired = COMMENT_PATTERN.sub("", text)
+    without_paired = COMMENT_PATTERN.sub("", drop_comment_only_lines(text))
 
     diagnostics: list[ParseDiagnostic] = []
     unmatched = _UNMATCHED_COMMENT_START_PATTERN.search(without_paired)

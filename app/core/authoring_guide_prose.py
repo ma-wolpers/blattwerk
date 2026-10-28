@@ -1156,7 +1156,9 @@ PROSE_SECTIONS: dict[str, str] = {
     "inline_mark:comment": (
         "`%%Text%%` markiert einen Autor:innen-Kommentar: der eingeschlossene Text erscheint in "
         "**keiner** Ausgabe (weder Vorschau noch PDF) und darf beliebiges Markup oder Formeln "
-        "enthalten, ohne dass diese ausgewertet werden. Ein `%%` ohne passendes schließendes `%%` "
+        "enthalten, ohne dass diese ausgewertet werden. Steht in einer Zeile nur ein Kommentar (auch "
+        "ein mehrzeiliger), zählt diese Zeile gar nicht: Sie trennt keinen Absatz und hinterlässt keine "
+        "Leerzeile -- auch nicht im Kurzentwurf. Ein `%%` ohne passendes schließendes `%%` "
         "wird als normaler Text behandelt (keine Formatierung, aber auch kein Verschlucken "
         "nachfolgenden Inhalts) und als Diagnose-Hinweis gemeldet. Aktuell ohne eigene Editor-Taste "
         "-- von Hand eingetippt."
