@@ -1,11 +1,11 @@
-"""Klausur-Diagnosen: Teil-Trenner `--hm`/`--w`, AFB und Lernhilfe-Abzug (KL001–KL013).
+"""Klausur-Diagnosen: Teil-Trenner `--hm`/`--w` und AFB (KL001–KL012).
 
 Die Struktur der Teile (und jedes Strukturproblem) kommt allein aus
 `exam_parts.resolve_exam_parts`, die Blatt-Logik der AFB aus
 `exam_analysis.iter_scored_leaves` -- dieselben Funktionen nutzen Renderer und
 Auswertung, damit Validator und Darstellung nie auseinanderlaufen. Dieses
 Modul übersetzt nur Codes in Meldungen und Schweregrade. KL013 (Lernhilfe
-ohne Lernhilfe-Abzug) liegt in `blatt_validator_exam_help`.
+ohne Lernhilfe-Abzug) liegt bei den Lernhilfen-Diagnosen in `blatt_validator_help`.
 """
 
 from __future__ import annotations
@@ -15,7 +15,6 @@ from decimal import Decimal
 from .blatt_validator_region import compute_block_region_id
 from .blatt_validator_types import BuildDiagnostic
 from .exam_analysis import iter_scored_leaves, parse_afb
-from .blatt_validator_exam_help import help_deduction_diagnostics
 from .exam_parts import PART_SPLIT_BLOCKS, resolve_exam_parts
 from .points_model import STATUS_OK, build_points_model, format_points
 
@@ -47,7 +46,7 @@ def _diag(code, message, blocks, index, severity="warning") -> BuildDiagnostic:
 
 
 def validate_exam(blocks, document_type: str = "worksheet") -> list[BuildDiagnostic]:
-    """Prüft die Teil-Trenner (alle Typen), AFB und Lernhilfe-Abzüge (nur Klausur)."""
+    """Prüft die Teil-Trenner (alle Typen) und AFB (nur Klausur)."""
     diagnostics: list[BuildDiagnostic] = []
     resolution = resolve_exam_parts(blocks, document_type)
     for problem in resolution.problems:
@@ -71,7 +70,6 @@ def validate_exam(blocks, document_type: str = "worksheet") -> list[BuildDiagnos
                     "KL006", f"Aufgabe {unit.number}{sub.letter or ''}: `afb` wirkt nicht, weil die Teilaufgaben keine eigenen Punkte haben.",
                     blocks, sub.block_index,
                 ))
-    diagnostics.extend(help_deduction_diagnostics(blocks))
     return diagnostics
 
 

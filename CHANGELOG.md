@@ -27,6 +27,7 @@ The format is based on Keep a Changelog.
 - **Klausuren: Kopfzeile je Teil.** Mit `show_student_header: ja` steht die Schülerkopfzeile (Name, Lerngruppe, Datum) jetzt auch oben auf Teil B – und mit Deckblatt auf Teil A –, damit getrennt eingesammelte Teile beschriftet sind.
 
 ### Changed
+- **Lernhilfen in Präsentationen sind veraltet:** `:::help`/`:::hilfe` in einer `.pbw` ergibt jetzt die Warnung `BL012`. Die Karten werden vorerst weiter dargestellt; Lernhilfen gibt es künftig nur in Arbeitsblättern und Klausuren.
 - **Kopf- und Fußzeilen einheitlich in Andika:** Copyright, Seitenzahl, wiederholter Titel, Schuljahr und das Badge „Lösungsversion" stehen in derselben mitgelieferten Schrift (bisher Helvetica). Griechische und andere Sonderzeichen im Titel erscheinen dadurch korrekt; Emoji im Titel entfallen in der Kopfzeile, zu lange Titel und Copyright-Texte werden mit „…" auf eine Zeile gekürzt, statt zu fehlen oder die rechte Angabe zu überdecken.
 - **Hervorhebung von Steuermarkern:** Der Schreibbereich hebt Steuermarker wie `--hm`, `--!`, `-+`, `--# Abschnitt` und `--` jetzt farbig hervor. In VS Code werden zusätzlich `--` sowie bisher fehlende Optionen (z. B. `afb=`, `parts=`, `target=`, `signature=`) hervorgehoben.
 - **Schlanke Scrollbars:** Alle Scrollbars sind jetzt die schlanke native Scrollbar statt der mit Pfeilknöpfen; unter Windows werden sie im dunklen Theme dunkel. Das Mausrad über der Scrollbar eines scrollbaren Bereichs (z. B. im Einstellungsdialog) scrollt jetzt genau dreimal so weit wie über dem Inhalt (bisher unbeabsichtigt fünfmal).

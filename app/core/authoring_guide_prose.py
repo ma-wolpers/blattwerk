@@ -642,7 +642,9 @@ PROSE_SECTIONS: dict[str, str] = {
         "Arbeitsblattseiten (alle auf einer Seite oder jede auf einer eigenen Seite in DIN A6/A5/A4). "
         "`level` (1-99) gruppiert Hilfen nach Schwierigkeitsstufe, `tag` beeinflusst die automatische "
         "Beschriftung (z. B. `1A`, `1B`), `title` überschreibt den Standardtitel \"Hilfe\". In Klausuren "
-        "braucht die zugehörige Lösung einen Lernhilfe-Abzug `(−1P Lh)` (`KL013`). Kanonischer Blockname; "
+        "braucht die zugehörige Lösung einen Lernhilfe-Abzug `(−1P Lh)` (`KL013`). In Präsentationen "
+        "sind Lernhilfen veraltet (Warnung `BL012`) -- sie werden noch dargestellt, sollten aber als "
+        "normaler Folieninhalt umgesetzt werden. Kanonischer Blockname; "
         "`hilfe` ist ein dokumentierter Alias mit identischen Optionen."
     ),
     "block:hilfe": (

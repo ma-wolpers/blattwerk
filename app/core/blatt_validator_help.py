@@ -1,6 +1,12 @@
-"""Klausur-Diagnose KL013: Aufgabe mit Lernhilfe braucht einen Lernhilfe-Abzug in der Lösung.
+"""Lernhilfen-Diagnosen: KL013 (Klausur) und BL012 (Präsentation).
 
-In Klausuren sind Lernhilfen erlaubt, ihre Nutzung soll aber Punkte kosten.
+`validate_help_blocks` ist der eine Einstieg aus dem Validator-Orchestrator.
+
+**BL012 (Warnung):** Lernhilfen gibt es nur in Arbeitsblättern und Klausuren.
+In Präsentationen (Typen mit `slide_layout`) sind `:::help`/`:::hilfe`
+veraltet; sie werden vorerst weiter dargestellt, aber gemeldet.
+
+**KL013 (Warnung):** In Klausuren sind Lernhilfen erlaubt, ihre Nutzung soll aber Punkte kosten.
 Deshalb muss jede (Teil-)Aufgabe, an der eine für Schüler:innen sichtbare
 Lernhilfe hängt, in ihrer Lösung -- oder in der Lösung der übergeordneten
 Aufgabe bzw. einer ihrer Teilaufgaben -- mindestens einen Abzug mit dem
@@ -15,11 +21,39 @@ Aufgabeneinheiten aus `points_model` -- keine eigene Zählung.
 from __future__ import annotations
 
 from .blatt_kern_shared_blocks import assign_help_blocks
+from .blatt_kern_shared_data import HELP_BLOCK_TYPES
+from .document_type_registry import DOCUMENT_TYPE_EXAM, has_slide_layout
 from .blatt_validator_region import compute_block_region_id
 from .blatt_validator_types import BuildDiagnostic
 from .expectation_kinds import LERNHILFE_KIND_KEY
 from .points_model import build_points_model
 from .solution_items import collect_solution_targets
+
+
+def validate_help_blocks(blocks, document_type: str = "worksheet") -> list[BuildDiagnostic]:
+    """Alle Lernhilfen-Diagnosen eines Dokuments.
+
+    Args:
+        blocks: geparste Blockliste.
+        document_type: Typ aus der Dateiendung; Präsentationen bekommen BL012,
+            Klausuren KL013, andere Typen nichts.
+    """
+    if has_slide_layout(document_type or ""):
+        return [
+            _diag(
+                index,
+                blocks,
+                "BL012",
+                f"`:::{block_type}` ist in Praesentationen veraltet -- Lernhilfen gibt es nur in "
+                "Arbeitsblaettern und Klausuren. Der Block wird noch dargestellt; bitte als normalen "
+                "Folieninhalt umsetzen oder entfernen.",
+            )
+            for index, (block_type, _options, _content) in enumerate(blocks)
+            if block_type in HELP_BLOCK_TYPES
+        ]
+    if document_type == DOCUMENT_TYPE_EXAM:
+        return help_deduction_diagnostics(blocks)
+    return []
 
 
 def help_deduction_diagnostics(blocks) -> list[BuildDiagnostic]:
@@ -53,7 +87,15 @@ def help_deduction_diagnostics(blocks) -> list[BuildDiagnostic]:
         unit = units[unit_index]
         letter = unit.subtasks[subtask_position].letter if subtask_position is not None else None
         label = f"Aufgabe {unit.number}{letter or ''}"
-        diagnostics.append(_diag(owner_index, label, blocks))
+        diagnostics.append(
+            _diag(
+                owner_index,
+                blocks,
+                "KL013",
+                f"{label} hat eine Lernhilfe, aber ihre Loesung enthaelt keinen Lernhilfe-Abzug -- "
+                "z. B. `1. Lernhilfe genutzt (−1P Lh)`, damit die Nutzung in der Wertung zaehlt.",
+            )
+        )
     return diagnostics
 
 
@@ -84,18 +126,15 @@ def _has_help_deduction(targets, unit_index, subtask_position) -> bool:
     return False
 
 
-def _diag(index, label, blocks) -> BuildDiagnostic:
-    """KL013 am Block `index` mit Region und Anker wie alle Block-Diagnosen."""
+def _diag(index, blocks, code, message) -> BuildDiagnostic:
+    """Warnung `code` am Block `index` mit Region und Anker wie alle Block-Diagnosen."""
     block_type, options, _content = blocks[index]
     return BuildDiagnostic(
-        code="KL013",
-        message=(
-            f"{label} hat eine Lernhilfe, aber ihre Loesung enthaelt keinen Lernhilfe-Abzug -- "
-            "z. B. `1. Lernhilfe genutzt (−1P Lh)`, damit die Nutzung in der Wertung zaehlt."
-        ),
+        code=code,
+        message=message,
         severity="warning",
         block_index=index,
         block_type=block_type,
         region_id=compute_block_region_id(block_type, options),
-        anchor="KL013",
+        anchor=code,
     )

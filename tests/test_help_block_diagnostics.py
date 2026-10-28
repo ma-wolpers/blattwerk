@@ -1,4 +1,4 @@
-"""Klausuren: Lernhilfe-Abzug `(−xP Lh)` -- Typ, KL013, SL023, Erwartungshorizont."""
+"""Lernhilfen-Diagnosen: Klausur-Abzug `(−xP Lh)` (Typ, KL013, SL023, Erwartungshorizont) und BL012 (Präsentation)."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ HELP = ":::help title=\"Tipp\"\nDenk an die Formel.\n:::\n"
 
 def _codes(body, document_type="exam"):
     diagnostics = inspect_markdown_text(HEAD + body, document_type=document_type).diagnostics
-    return [d.code for d in diagnostics if d.code in {"KL013", "SL023"}]
+    return [d.code for d in diagnostics if d.code in {"KL013", "SL023", "BL012"}]
 
 
 def _task(solution_lines, extra=""):
@@ -71,3 +71,16 @@ def test_expectation_horizon_labels_the_help_deduction():
     assert "Abzug je Fehler:</span>" in html
     legend = re.search(r"<h2>Erwartungstypen</h2>.*?</table>", html, re.S).group(0)
     assert "Lernhilfe" in legend
+
+
+def test_help_in_presentation_is_deprecated_but_still_allowed():
+    body = ":::task\nA\n:::\n" + HELP + ":::hilfe\nNoch eine.\n:::\n"
+    diagnostics = inspect_markdown_text(HEAD + body, document_type="presentation").diagnostics
+
+    bl012 = [d for d in diagnostics if d.code == "BL012"]
+    assert len(bl012) == 2
+    assert all(d.severity == "warning" for d in bl012)
+
+
+def test_no_deprecation_outside_presentations():
+    assert "BL012" not in _codes(_task(["1. Ergebnis (2P)"], HELP), document_type="worksheet")
