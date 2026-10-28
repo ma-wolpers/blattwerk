@@ -5,67 +5,42 @@ Aus ``blatt_ui_help_preview.py`` ausgelagert (300-Zeilen-Regel), Methoden unver�
 from __future__ import annotations
 
 from pathlib import Path
-import tempfile
-import fitz
 from PIL import Image, ImageTk
 
 from .dialog_services import messagebox
 from .ui_constants import PREVIEW_CANVAS_PADDING_PX, PREVIEW_MIN_FRAME_PX, PREVIEW_SCALE_MAX, PREVIEW_SCALE_MIN
 from .preview_geometry import get_fit_scales, get_preview_frame_size, get_zoom_target_size
-from .help_card_image_trim import trim_lernhilfe_image
-from ..core.build_requests import HelpCardsBuildRequest, build_help_cards_from_request
+from .help_card_images import render_help_card_images
 
 
 class BlattwerkAppHelpPreviewRenderMixin:
     """Lernhilfenvorschau: Seiten rendern, einpassen, anzeigen und neu aufbauen (BlattwerkApp-Mixin)."""
 
-    def _render_help_pdf_pages(
+    def _render_help_card_preview_images(
         self,
         input_path: Path,
         include_solutions: bool,
-        page_format: str,
         contrast_profile: str,
     ):
-        """Renders lernhilfen pages as trimmed PIL images."""
-        worksheet_design = self._worksheet_design_options()
+        """Rendert die Lernhilfen fürs Vorschaufenster: genau ein Bild pro Karte (150 dpi).
+
+        Früher wurden PDF-Seiten des Sammeldokuments angezeigt (mehrere Karten
+        pro Bild), die Navigation zählte aber „Lernhilfe i/N“. Über
+        `render_help_card_images` stimmt die Zählung jetzt mit den Karten
+        überein; blockierende Diagnosen halten die Vorschau nicht an.
+        """
         metadata_defaults = {}
         if hasattr(self, "_metadata_defaults_from_preferences"):
             metadata_defaults = self._metadata_defaults_from_preferences()
-        copyright_override = None
-        if hasattr(self, "_copyright_text_from_preferences"):
-            copyright_override = self._copyright_text_from_preferences() or None
-        with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
-            temp_pdf_path = Path(tmp.name)
-
-        try:
-            build_help_cards_from_request(
-                HelpCardsBuildRequest(
-                    input_path=input_path,
-                    output_path=temp_pdf_path,
-                    include_solutions=include_solutions,
-                    page_format=page_format,
-                    print_profile=contrast_profile,
-                    design=worksheet_design,
-                    add_running_elements=False,
-                    block_on_critical=False,
-                    metadata_defaults=metadata_defaults,
-                    copyright_text_override=copyright_override,
-                )
-            )
-
-            pages = []
-            with fitz.open(temp_pdf_path) as doc:
-                for page_index in range(len(doc)):
-                    page = doc.load_page(page_index)
-                    pix = page.get_pixmap(dpi=150, alpha=False)
-                    image = Image.frombytes("RGB", (pix.width, pix.height), pix.samples)
-                    pages.append(trim_lernhilfe_image(image))
-            return pages
-        finally:
-            try:
-                temp_pdf_path.unlink(missing_ok=True)
-            except Exception:
-                pass
+        return render_help_card_images(
+            input_path,
+            include_solutions=include_solutions,
+            contrast_profile=contrast_profile,
+            design=self._worksheet_design_options(),
+            dpi=150,
+            metadata_defaults=metadata_defaults,
+            block_on_critical=False,
+        )
 
     def _help_get_fit_scale(self, image: Image.Image):
         """Calculates width-based fit scale for lernhilfen preview."""
@@ -201,7 +176,6 @@ class BlattwerkAppHelpPreviewRenderMixin:
         self,
         input_path: Path,
         include_solutions: bool,
-        page_format: str,
         contrast_profile: str,
     ):
         """Refreshes lernhilfen preview content."""
@@ -216,8 +190,8 @@ class BlattwerkAppHelpPreviewRenderMixin:
                 expected_count = None
 
         try:
-            pages = self._render_help_pdf_pages(
-                input_path, include_solutions, page_format, contrast_profile
+            pages = self._render_help_card_preview_images(
+                input_path, include_solutions, contrast_profile
             )
         except ValueError as error:
             if expected_count == 0:

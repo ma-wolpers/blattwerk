@@ -94,37 +94,29 @@ class _DummyDesignOptions:
     font_size_profile = "normal"
 
 
-class _StopAfterRenderHelpCards(Exception):
-    """Bricht `_render_lernhilfe_card_images` gezielt vor der PDF-/Bild-Pipeline ab."""
-
-
-def test_render_lernhilfe_card_images_always_uses_a6_page_format(monkeypatch, tmp_path):
+def test_render_lernhilfe_card_images_uses_per_card_page_fitting(monkeypatch, tmp_path):
+    """PNG-Einzelkarten laufen über die gemeinsame Formatwahl (A6/A5/A4), nicht fest A6 + nur Seite 1."""
     input_path = tmp_path / "doc.md"
     input_path.write_text(
         "---\nTitel: T\nFach: M\nThema: X\n---\n:::help title='Hilfe'\nInhalt\n:::\n",
         encoding="utf-8",
     )
+    seen = {}
 
-    recorded_page_formats = []
+    def _fake_render_help_card_images(path, **kwargs):
+        seen["path"] = path
+        seen.update(kwargs)
+        return ["bild"]
 
-    def _fake_render_help_cards_html(meta, blocks, include_solutions=False, page_format="a4_portrait", **kwargs):
-        recorded_page_formats.append(page_format)
-        raise _StopAfterRenderHelpCards()
-
-    monkeypatch.setattr("app.ui.blatt_ui_export_help_cards.render_help_cards_html", _fake_render_help_cards_html)
+    monkeypatch.setattr("app.ui.blatt_ui_export_help_cards.render_help_card_images", _fake_render_help_card_images)
 
     app = _DummyExportApp(DOCUMENT_TYPE_WORKSHEET)
     app._worksheet_design_options = lambda: _DummyDesignOptions()
 
-    for requested_page_format in ("a4_portrait", "a5_landscape"):
-        try:
-            app._render_lernhilfe_card_images(
-                input_path=input_path,
-                page_format=requested_page_format,
-                contrast_profile="standard",
-                tmp_dir_path=tmp_path,
-            )
-        except _StopAfterRenderHelpCards:
-            pass
+    images = app._render_lernhilfe_card_images(input_path=input_path, contrast_profile="standard")
 
-    assert recorded_page_formats == ["a6_portrait", "a6_portrait"]
+    assert images == ["bild"]
+    assert seen["path"] == input_path
+    assert seen["dpi"] == 200
+    assert seen["include_solutions"] is False
+    assert seen["contrast_profile"] == "standard"

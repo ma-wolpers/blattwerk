@@ -13,7 +13,9 @@ from .blatt_kern_io_pdf import write_pdf_from_html
 from .export_staging import staged_export
 from .operator_legend_placement import write_pdf_with_bottom_legends
 from .pdf_running_elements import annotate_pdf_running_elements
-from .blatt_kern_help_render import collect_help_blocks, render_help_cards_html
+from .blatt_kern_help_render import collect_help_blocks
+from .help_card_pages import render_help_cards_print_html
+from .help_cards_appendix import HELP_APPENDIX_NONE, append_help_cards_appendix, ensure_help_appendix_request
 from .blatt_kern_layout_render import render_html
 from .blatt_kern_shared import get_copyright_text, is_hole_punch_layout_enabled
 from .document_type_registry import has_slide_layout, solutions_renderable
@@ -118,8 +120,15 @@ def build_worksheet(
     computation_cache=None,
     document_type="worksheet",
     target_policy=None,
+    help_appendix=HELP_APPENDIX_NONE,
 ):
     """Erstellt aus einer Markdown-Datei eine HTML- oder PDF-Ausgabe.
+
+    `help_appendix` (`help_cards_appendix.HELP_APPENDIX_*`): hängt die
+    sichtbaren Lernhilfen hinter die Arbeitsblattseiten -- auf der
+    Staging-Arbeitsdatei, nach Kopf-/Fußzeile, mit dem schon geparsten
+    Dokument. Nur PDF und nur Typen mit `help_appendix_supported`; sonst
+    `ValueError` vor jedem Rendering.
 
     `target_policy` (`ExportTargetPolicy`): Das Ziel wird *vor* Validierung und
     Rendering geprüft - eine gesperrte Ziel-PDF scheitert sofort bzw. weicht auf
@@ -143,6 +152,7 @@ def build_worksheet(
         allowed_suffixes={".pdf", ".html"},
         target_policy=target_policy,
     )
+    ensure_help_appendix_request(help_appendix, document_type=document_type, output_suffix=out_file.suffix)
     md_file = Path(md_path)
     text = md_file.read_text(encoding="utf-8")
     inspected = inspect_markdown_text(text, cache=computation_cache, document_type=document_type)
@@ -212,9 +222,57 @@ def build_worksheet(
                     page_format=page_format,
                     hole_punch_enabled=is_hole_punch_layout_enabled(meta),
                 )
+                append_help_cards_appendix(
+                    pdf_file,
+                    mode=help_appendix,
+                    md_dir=md_file.parent,
+                    meta=meta,
+                    blocks=blocks,
+                    include_solutions=include_solutions,
+                    page_format=page_format,
+                    print_profile=print_profile,
+                    color_profile=color_profile,
+                    font_profile=font_profile,
+                    font_size_profile=font_size_profile,
+                )
         return staged.published_path
 
     raise ValueError("Ausgabedatei muss auf .pdf oder .html enden.")
+
+
+def load_help_card_source(
+    md_path,
+    *,
+    metadata_defaults=None,
+    computation_cache=None,
+    block_on_critical=True,
+    diagnostics_out=None,
+):
+    """Liest und validiert eine Quelldatei für die Lernhilfen-Ausgabe.
+
+    Gemeinsamer Einstieg für `build_help_cards` und die UI-Pfade, die Karten
+    einzeln rendern (PNG-Export, Lernhilfen-Fenster): gleiche Validierung,
+    gleiche Metadaten-Defaults.
+
+    Args:
+        md_path: Pfad der Quelldatei.
+        metadata_defaults: App-Vorgaben für fehlende Frontmatter-Felder.
+        computation_cache: optionaler `BlockComputationCache` für die Validierung.
+        block_on_critical: blockierende Diagnosen werfen `ValueError`.
+        diagnostics_out: optionale Liste, die alle Diagnosen erhält.
+
+    Returns:
+        ``(md_file, meta, blocks)``.
+    """
+    md_file = Path(md_path)
+    text = md_file.read_text(encoding="utf-8")
+    inspected = inspect_markdown_text(text, cache=computation_cache)
+    meta = _merge_metadata_defaults(inspected.meta, metadata_defaults)
+    if block_on_critical:
+        _raise_on_blocking_diagnostics(inspected.diagnostics)
+    if diagnostics_out is not None:
+        diagnostics_out.extend(inspected.diagnostics)
+    return md_file, meta, inspected.blocks
 
 
 def build_help_cards(
@@ -250,21 +308,20 @@ def build_help_cards(
         allowed_suffixes={".pdf", ".html"},
         target_policy=target_policy,
     )
-    md_file = Path(md_path)
-    text = md_file.read_text(encoding="utf-8")
-    inspected = inspect_markdown_text(text, cache=computation_cache)
-    meta = _merge_metadata_defaults(inspected.meta, metadata_defaults)
-    blocks = inspected.blocks
-    if block_on_critical:
-        _raise_on_blocking_diagnostics(inspected.diagnostics)
-    if diagnostics_out is not None:
-        diagnostics_out.extend(inspected.diagnostics)
+    md_file, meta, blocks = load_help_card_source(
+        md_path,
+        metadata_defaults=metadata_defaults,
+        computation_cache=computation_cache,
+        block_on_critical=block_on_critical,
+        diagnostics_out=diagnostics_out,
+    )
 
     help_blocks = collect_help_blocks(blocks, include_solutions=include_solutions)
     if not help_blocks:
         raise ValueError("Keine Hilfeblöcke gefunden.")
 
-    html = render_help_cards_html(
+    html = render_help_cards_print_html(
+        md_file.parent,
         meta,
         blocks,
         include_solutions=include_solutions,
@@ -274,8 +331,6 @@ def build_help_cards(
         font_profile=font_profile,
         font_size_profile=font_size_profile,
     )
-    html = absolutize_local_image_sources(html, md_file.parent)
-    html = apply_image_size_options(html)
     suffix = out_file.suffix.lower()
 
     if suffix == ".html":
