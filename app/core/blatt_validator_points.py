@@ -1,4 +1,4 @@
-"""Punkt- und Lösungsdiagnosen (PK001–PK006, SL001/SL004/SL006/SL008, SL015–SL022).
+"""Punkt- und Lösungsdiagnosen (PK001–PK006, SL001/SL004/SL006/SL008, SL015–SL023).
 
 Liest Punkte nur über `points_model`, Lösungs-Items und ihre Summe nur über
 `solution_items` und die Suffix-Grammatik nur über `points_suffix`
@@ -6,10 +6,12 @@ Liest Punkte nur über `points_model`, Lösungs-Items und ihre Summe nur über
 
 Fehler (blockieren den Export wie alle Blattwerk-Fehler): PK001, PK002,
 PK004, PK005, SL008, SL018, SL019, SL020, SL021. Warnungen: PK003, PK006, SL001, SL004,
-SL006, SL015, SL016, SL017, SL022.
+SL006, SL015, SL016, SL017, SL022, SL023.
 
 Erwartungstypen (`(0,5P An)`) sind optional; ein unbekannter Typ ist nur eine
-Warnung (SL017), Wert und Weg des Punkts zählen trotzdem.
+Warnung (SL017), Wert und Weg des Punkts zählen trotzdem. Ein Typ, der nur
+als Abzug Sinn ergibt (`Lh`, `is_deduction_only_kind`), ohne Minuszeichen ist
+die Warnung SL023.
 
 Abzüge je Fehler (`(−0,5P)`) zählen in keine Summe; ein Weg-Buchstabe daran
 ist wirkungslos (SL016).
@@ -38,7 +40,7 @@ from .points_model import (
     format_points,
     subtask_effective,
 )
-from .expectation_kinds import valid_kinds_hint
+from .expectation_kinds import is_deduction_only_kind, valid_kinds_hint
 from .points_suffix import SUFFIX_GRAMMAR_HINT, SUFFIX_INVALID, path_label
 from .solution_items import collect_solution_targets, solution_points_total
 
@@ -116,6 +118,13 @@ def _target_diagnostics(target, unit: TaskUnit, blocks) -> list[BuildDiagnostic]
                 "SL017",
                 f"Loesung zu {label}: unbekannter Erwartungstyp `{item.kind_token}` in `{item.suffix_text}`. "
                 f"Gueltig (Name oder Kuerzel): {valid_kinds_hint()}.",
+                blocks, anchor_index,
+            ))
+        if is_deduction_only_kind(item.kind) and not item.is_deduction:
+            result.append(_diag(
+                "SL023",
+                f"Loesung zu {label}: Erwartungstyp `{item.kind_token}` gilt nur als Abzug -- "
+                f"Minuszeichen ergaenzen, z. B. `(−1P {item.kind_token})`.",
                 blocks, anchor_index,
             ))
         if item.is_deduction and item.path:

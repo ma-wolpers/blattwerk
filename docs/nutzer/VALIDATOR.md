@@ -95,6 +95,7 @@ Subprozess siehe `tests/test_blatt_diagnostics_cli.py` (Validator) sowie
 - `KL010`: Ungueltiges k in `--w[k]` (keine ganze Zahl oder nicht 1 <= k < Anzahl der Wahlteile). Fehler.
 - `KL011`: Die Wahlteile eines Bereichs haben unterschiedlich viele Punkte (geprueft, wenn alle Punkte gueltig sind). Fehler.
 - `KL012`: `--w` ausserhalb einer Klausur (`.kbw`). Fehler.
+- `KL013`: Eine (Teil-)Aufgabe hat eine Lernhilfe, aber weder ihre Loesung noch die der zugehoerigen Aufgabe enthaelt einen Lernhilfe-Abzug, z. B. `1. Lernhilfe genutzt (−1P Lh)`. Nur in Klausuren. Warnung.
 - `PK001`: Aufgabe hat `points`, die nicht der Summe ihrer (vollstaendig bepunkteten) Teilaufgaben entsprechen. Fehler (blockiert den Export).
 - `PK002`: Summe der Teilpunkte `(xP)` in den Loesungen einer (Teil-)Aufgabe weicht von deren Punktzahl ab (nur wenn alle Loesungspunkte annotiert sind). Bei alternativen Wegen (`(0,5aP)`/`(1bP)`) zaehlt gemeinsam (ohne Buchstabe) + bester Weg, bei summativen Optionen (`(1/2P)`) zusaetzlich deren Summe bis zum Hoechstwert; Abzuege je Fehler (`(−0,5P)`) zaehlen nie mit; der Vergleich ist exakt. Fehler.
 - `PK003`: Punktangabe ist keine Zahl (erlaubt: `2`, `2,5`, `2.5`). Warnung; der Text wird trotzdem angezeigt.
@@ -116,6 +117,7 @@ Subprozess siehe `tests/test_blatt_diagnostics_cli.py` (Validator) sowie
 - `SL020`: Eine einzelne Option `(x/kP)` bringt mehr als den Hoechstwert (x > k). Fehler.
 - `SL021`: Die Optionen einer (Teil-)Aufgabe ergeben zusammen weniger als den Hoechstwert k -- er ist nicht erreichbar. Fehler.
 - `SL022`: Die Optionen ergeben genau den Hoechstwert -- jede wird gebraucht, `(xP)` genuegt statt `(x/kP)`. Warnung.
+- `SL023`: Ein Erwartungstyp, der nur als Abzug gilt (Lernhilfe `Lh`), steht ohne Minuszeichen, z. B. `(1P Lh)` statt `(−1P Lh)`. Warnung.
 - `BL001`: Unbekannter Blocktyp.
 - `BL002`: Leerzeichen direkt nach `:::` im Marker (`::: block`) ist ungueltig.
 - `BL003`: Schliessender Marker `:::` ohne passenden offenen Block.

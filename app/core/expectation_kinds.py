@@ -29,6 +29,10 @@ class ExpectationKind:
         abbreviation: Kürzel für das Suffix.
         description: kurzer Erklärsatz für die Legende im Erwartungshorizont.
         aliases: weitere erlaubte Schreibweisen (zusätzlich zu Name und Kürzel).
+        deduction_label: Beschriftung eines Abzugs dieses Typs im
+            Erwartungshorizont, wenn er nicht „je Fehler“ gilt (`None` =
+            „Abzug je Fehler“). Ein Typ mit `deduction_label` ist nur als
+            Abzug sinnvoll (Warnung `SL023` sonst).
     """
 
     key: str
@@ -37,6 +41,7 @@ class ExpectationKind:
     abbreviation: str
     description: str
     aliases: tuple[str, ...] = ()
+    deduction_label: str | None = None
 
     def tokens(self) -> tuple[str, ...]:
         """Alle erlaubten Schreibweisen (Name, Kürzel, Aliasse), kleingeschrieben."""
@@ -55,8 +60,20 @@ EXPECTATION_KINDS: tuple[ExpectationKind, ...] = (
     ExpectationKind("einheit", "Einheit/Größe", "📏", "Ei", "Die passende Einheit bzw. Größe ist angegeben.", ("Einheit", "Größe", "Groesse")),
     ExpectationKind("darstellung", "Darstellung", "📐", "Da", "Graph, Skizze oder Tabelle ist richtig und sauber dargestellt."),
     ExpectationKind("formales", "Formales", "📝", "Fo", "Eine formale Anforderung ist erfüllt, z. B. eine verlangte Schreibweise.", ("Formal", "Form")),
+    ExpectationKind(
+        "lernhilfe",  # = LERNHILFE_KIND_KEY
+        "Lernhilfe",
+        "🛟",
+        "Lh",
+        "Abzug, wenn die Lernhilfe zu dieser Aufgabe genutzt wurde.",
+        deduction_label="Abzug bei Nutzung der Lernhilfe",
+    ),
 )
-"""Katalog in Legendenreihenfolge (Wunschliste Blattwerk → Klausur, 2026-10-16; „Formales“ 2026-10-21)."""
+"""Katalog in Legendenreihenfolge (Wunschliste Blattwerk → Klausur, 2026-10-16; „Formales“ 2026-10-21;
+„Lernhilfe“ 2026-10-27: Klausur-Aufgaben mit Lernhilfe brauchen einen solchen Abzug, sonst `KL013`)."""
+
+LERNHILFE_KIND_KEY = "lernhilfe"
+"""Schlüssel des Typs, dessen Abzug in Klausuren die Lernhilfe-Nutzung wertet (`KL013`)."""
 
 _BY_TOKEN = {token: kind for kind in EXPECTATION_KINDS for token in kind.tokens()}
 _BY_KEY = {kind.key: kind for kind in EXPECTATION_KINDS}
@@ -72,6 +89,20 @@ def resolve_expectation_kind(token: str | None) -> ExpectationKind | None:
 def kind_by_key(key: str) -> ExpectationKind:
     """Typ zu einem internen Schlüssel (für Anzeige aus `SolutionItem.kind`)."""
     return _BY_KEY[key]
+
+
+def is_deduction_only_kind(key: str | None) -> bool:
+    """Ob ein Typ nur als Abzug Sinn ergibt (hat eine eigene `deduction_label`)."""
+    return bool(key) and kind_by_key(key).deduction_label is not None
+
+
+def deduction_label_for(key: str | None) -> str:
+    """Beschriftung einer Abzugszeile im Erwartungshorizont: eigene des Typs oder „Abzug je Fehler“."""
+    if key:
+        label = kind_by_key(key).deduction_label
+        if label:
+            return label
+    return "Abzug je Fehler"
 
 
 def valid_kinds_hint() -> str:
