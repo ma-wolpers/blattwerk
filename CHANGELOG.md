@@ -90,6 +90,7 @@ The format is based on Keep a Changelog.
 - Einstellung „Arbeits-Emoji standardmäßig sichtbar“: entfällt. Dokumente ohne Sozialform-Symbole legst du als Klausur (`.kbw`) an.
 
 ### Fixed
+- **Lernhilfen-Verweise passten nicht zu den Karten,** wenn eine Lernhilfe vor der ersten Aufgabe stand: Die Aufgabe zeigte „→ Lernhilfe A“, die Karte hieß aber „B“. Verweise und Karten zählen jetzt dieselben Lernhilfen.
 - **Lernhilfen als PNG wurden bei langen Karten abgeschnitten.** Jede Karte wurde fest auf DIN A6 gedruckt und nur die erste Seite übernommen. Jetzt bekommt jede Karte das kleinste Format, auf das sie vollständig passt (A6, A5 oder A4); dasselbe gilt für PNG-ZIP.
 - **Lernhilfen-Fenster zählte Seiten statt Karten.** Bei mehreren Karten pro Seite stimmte „Lernhilfe i/N“ nicht; das Fenster zeigt jetzt genau ein Bild pro Lernhilfe.
 - **Tabellen: Zeilenkopf-Spalte wurde bei `widths=` zusammengequetscht.** Mit `row_headers` bekommt die Kopfspalte jetzt das mittlere Gewicht der Datenspalten; alternativ gibst du einen Wert mehr an, der erste gilt dann für die Kopfspalte (z. B. `widths="1.5 3 1"` bei zwei Datenspalten). Eine unpassende Anzahl Werte meldet die neue Warnung `AN020` (bisher wurden überzählige Werte still ignoriert).

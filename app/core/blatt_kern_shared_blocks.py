@@ -3,11 +3,14 @@
 Arbeitet auf dem Ergebnis von `blatt_kern_shared_parsing.parse_blocks()`
 (Liste aus `(block_type, options, content)`-Tupeln) und reichert sie mit
 Render-Metadaten an (interne `_`-Präfix-Optionen), bevor sie an den
-Renderer gehen. Enthält auch die kleinen Hilfe-Label-Helfer, die
-ausschließlich von `annotate_task_help_references` genutzt werden.
+Renderer gehen. Enthält auch die Hilfe-Label-Regel (`help_block_labels`)
+und die Zuordnung Lernhilfe -> Aufgabe (`assign_help_blocks`), die Karten,
+Aufgabenverweise und der Klausur-Validator gemeinsam nutzen.
 """
 
 from __future__ import annotations
+
+from dataclasses import dataclass
 
 from .blatt_kern_shared_data import HELP_BLOCK_TYPES
 from .document_type_registry import has_slide_layout
@@ -173,69 +176,106 @@ def annotate_standalone_subtasks(blocks):
     return annotated_blocks
 
 
+def help_block_labels(local_tags, help_tag):
+    """Sichtbare Labels für eine Folge von Hilfeblöcken -- die eine Label-Regel.
+
+    Ein Block mit eigenem `tag=` behält ihn; alle übrigen werden über
+    `_help_labels_for_tag` durchnummeriert (Frontmatter-`tag` als Präfix),
+    in ihrer Reihenfolge. Karten (`collect_labeled_help_blocks`) und die
+    Verweise an den Aufgaben (`annotate_task_help_references`) rufen beide
+    diese Funktion über *dieselbe* Menge sichtbarer Hilfeblöcke auf, damit
+    „→ Lernhilfe B“ immer die Karte „B“ meint.
+
+    Args:
+        local_tags: je Hilfeblock dessen normalisierter `tag` oder ``None``.
+        help_tag: Frontmatter-`tag` (Präfix der automatischen Labels).
+
+    Returns:
+        Label je Hilfeblock (``None`` bei einer einzelnen Karte ohne Tag).
+    """
+    auto_labels = _help_labels_for_tag(sum(1 for tag in local_tags if not tag), _normalize_help_tag(help_tag))
+    labels = []
+    auto_label_index = 0
+    for local_tag in local_tags:
+        if local_tag:
+            labels.append(local_tag)
+            continue
+        labels.append(auto_labels[auto_label_index] if auto_label_index < len(auto_labels) else None)
+        auto_label_index += 1
+    return labels
+
+
+@dataclass(frozen=True)
+class HelpBlockAssignment:
+    """Ein sichtbarer Hilfeblock mit Label und zugehöriger (Teil-)Aufgabe.
+
+    Attributes:
+        block_index: Index des Hilfeblocks in der Blockliste.
+        label: sichtbares Label (siehe `help_block_labels`).
+        target_index: Index der nächsten vorangehenden sichtbaren
+            `task`/`subtask`, oder ``None`` (Hilfe vor der ersten Aufgabe).
+    """
+
+    block_index: int
+    label: str | None
+    target_index: int | None
+
+
+def assign_help_blocks(blocks, include_solutions=False, help_tag=None, document_type="worksheet"):
+    """Ordnet jeden sichtbaren Hilfeblock seinem Label und seiner (Teil-)Aufgabe zu.
+
+    Einzige Quelle für „welche Lernhilfe gehört zu welcher Aufgabe“: genutzt
+    von `annotate_task_help_references` (Verweistext an der Aufgabe) und vom
+    Klausur-Validator (`KL013`, Lernhilfe-Abzug in der Lösung). Die Labels
+    werden über *alle* sichtbaren Hilfeblöcke vergeben, auch über solche vor
+    der ersten Aufgabe -- genau wie bei den Karten.
+
+    Returns:
+        `HelpBlockAssignment`-Liste in Dokumentreihenfolge.
+    """
+    visible = [
+        (index, options)
+        for index, (block_type, options, _content) in enumerate(blocks)
+        if block_type in HELP_BLOCK_TYPES
+        and should_render_block(block_type, options, include_solutions, document_type=document_type)
+    ]
+    labels = help_block_labels([_normalize_help_tag((options or {}).get("tag")) for _, options in visible], help_tag)
+    return [
+        HelpBlockAssignment(
+            block_index=index,
+            label=label,
+            target_index=_preceding_visible_task_index(blocks, index, include_solutions, document_type),
+        )
+        for (index, _options), label in zip(visible, labels)
+    ]
+
+
+def _preceding_visible_task_index(blocks, index, include_solutions, document_type):
+    """Index der nächsten sichtbaren `task`/`subtask` vor `index`, sonst ``None``."""
+    for previous_index in range(index - 1, -1, -1):
+        previous_type, previous_options, _previous_content = blocks[previous_index]
+        if previous_type in {"task", "subtask"} and should_render_block(
+            previous_type, previous_options, include_solutions, document_type=document_type
+        ):
+            return previous_index
+    return None
+
+
 def annotate_task_help_references(
     blocks,
     include_solutions=False,
     help_tag=None,
     document_type="worksheet",
 ):
-    """Annotate task/subtask blocks with rendered help-reference hint text."""
+    """Annotate task/subtask blocks with rendered help-reference hint text.
+
+    Labels und Zuordnung kommen aus `assign_help_blocks`; Hilfeblöcke ohne
+    vorangehende Aufgabe bekommen keinen Verweis, zählen aber beim Labeln mit.
+    """
     references_by_block_index = {}
-    visible_help_entries = []
-
-    for current_index, (block_type, options, _content) in enumerate(blocks):
-        if block_type not in HELP_BLOCK_TYPES:
-            continue
-        if not should_render_block(
-            block_type,
-            options,
-            include_solutions,
-            document_type=document_type,
-        ):
-            continue
-
-        target_index = None
-        for previous_index in range(current_index - 1, -1, -1):
-            previous_type, previous_options, _previous_content = blocks[previous_index]
-            if previous_type not in {"task", "subtask"}:
-                continue
-            if not should_render_block(
-                previous_type,
-                previous_options,
-                include_solutions,
-                document_type=document_type,
-            ):
-                continue
-            target_index = previous_index
-            break
-
-        if target_index is None:
-            continue
-
-        local_tag = _normalize_help_tag((options or {}).get("tag"))
-        visible_help_entries.append(
-            {
-                "target_index": target_index,
-                "local_tag": local_tag,
-            }
-        )
-
-    auto_tag_entries = [entry for entry in visible_help_entries if not entry["local_tag"]]
-    auto_labels = _help_labels_for_tag(len(auto_tag_entries), help_tag)
-    auto_label_index = 0
-
-    for entry in visible_help_entries:
-        target_index = entry["target_index"]
-        if entry["local_tag"]:
-            help_label = entry["local_tag"]
-        else:
-            help_label = (
-                auto_labels[auto_label_index]
-                if auto_label_index < len(auto_labels)
-                else None
-            )
-            auto_label_index += 1
-        references_by_block_index.setdefault(target_index, []).append(help_label)
+    for assignment in assign_help_blocks(blocks, include_solutions, help_tag, document_type):
+        if assignment.target_index is not None:
+            references_by_block_index.setdefault(assignment.target_index, []).append(assignment.label)
 
     if not references_by_block_index:
         return list(blocks)
