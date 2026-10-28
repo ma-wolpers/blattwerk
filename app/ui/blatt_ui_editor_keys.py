@@ -12,7 +12,7 @@ from bw_gui.contracts.events import EventResult
 from bw_gui.contracts.key_spec import KeySpec
 from bw_gui.runtime import WidgetShortcutBinder
 
-from .editor_marker_shortcuts import apply_backtick_marker, apply_caret_marker, apply_dollar_marker, apply_highlight_marker, apply_pipe_marker, apply_star_marker, apply_tilde_marker, apply_underscore_marker, selection_crosses_math_boundary
+from .editor_marker_shortcuts import apply_backtick_marker, apply_caret_marker, apply_dollar_marker, apply_highlight_marker, apply_percent_marker, apply_pipe_marker, apply_star_marker, apply_tilde_marker, apply_underscore_marker, selection_crosses_math_boundary
 from .ui_constants import EDITOR_DOCUMENT_LOADED
 
 
@@ -46,6 +46,7 @@ class BlattwerkAppEditorKeysMixin:
             (_k("Ctrl+F"), "find", self._toggle_editor_find_bar),
             (_k("Ctrl+H"), "replace", self._toggle_editor_replace_bar),
             (KeySpec.char("`"), "marker.backtick", self._on_editor_backtick_key),
+            (KeySpec.char("%"), "marker.percent", self._on_editor_percent_key),
         ]
         rows += [
             (KeySpec.char(marker), f"marker.{name}", lambda event, m=marker: self._on_editor_marker_key(event, m))
@@ -251,6 +252,44 @@ class BlattwerkAppEditorKeysMixin:
         edit = apply_backtick_marker(before, selected, after, is_multiline=is_multiline)
         self._apply_editor_marker_edit(sel_first, sel_last, edit)
         return EventResult.HANDLED
+
+    def _on_editor_percent_key(self, _event=None):
+        """`%` bei Auswahl: auskommentieren/entkommentieren (`apply_percent_marker`); ohne Auswahl normales Tippen.
+
+        Mehrzeilig wird die Auswahl vorher auf ganze Zeilen erweitert
+        (`_editor_full_line_selection`), damit jede berührte Zeile vollständig
+        umgeschaltet wird. Eine Auswahl, die eine Formelgrenze schneidet, wird
+        wie bei den anderen Marker-Tasten abgelehnt.
+        """
+        context = self._editor_marker_context()
+        if context is None:
+            return None
+
+        before, selected, after, sel_first, sel_last = context
+        is_multiline = str(sel_first).split(".")[0] != str(sel_last).split(".")[0]
+        if is_multiline:
+            sel_first, sel_last = self._editor_full_line_selection(sel_first, sel_last)
+            selected = self.editor_widget.get(sel_first, sel_last)
+        if self._editor_selection_crosses_math(sel_first, sel_last):
+            self.status_var.set("Markierung überschneidet eine Formel ($...$) -- Aktion abgebrochen.")
+            return EventResult.HANDLED
+
+        edit = apply_percent_marker(before, selected, after, is_multiline=is_multiline)
+        self._apply_editor_marker_edit(sel_first, sel_last, edit)
+        return EventResult.HANDLED
+
+    def _editor_full_line_selection(self, sel_first, sel_last):
+        """Erweitert eine mehrzeilige Auswahl auf ganze Zeilen (Zeilenanfang bis Zeilenende).
+
+        Endet die Auswahl ganz am Anfang einer Zeile (Spalte 0, typisch beim
+        zeilenweisen Markieren mit Shift+↓), gehört diese Zeile nicht dazu.
+        Liefert konkrete ``"zeile.spalte"``-Indizes.
+        """
+        start = self.editor_widget.index(f"{sel_first} linestart")
+        end_index = self.editor_widget.index(sel_last)
+        if end_index.endswith(".0"):
+            end_index = self.editor_widget.index(f"{end_index} -1c")
+        return start, self.editor_widget.index(f"{end_index} lineend")
 
     def _on_editor_escape(self, _event=None):
         """Closes completion popup when escape is pressed in editor."""

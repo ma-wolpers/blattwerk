@@ -1160,8 +1160,10 @@ PROSE_SECTIONS: dict[str, str] = {
         "ein mehrzeiliger), zählt diese Zeile gar nicht: Sie trennt keinen Absatz und hinterlässt keine "
         "Leerzeile -- auch nicht im Kurzentwurf. Ein `%%` ohne passendes schließendes `%%` "
         "wird als normaler Text behandelt (keine Formatierung, aber auch kein Verschlucken "
-        "nachfolgenden Inhalts) und als Diagnose-Hinweis gemeldet. Aktuell ohne eigene Editor-Taste "
-        "-- von Hand eingetippt."
+        "nachfolgenden Inhalts) und als Diagnose-Hinweis gemeldet. Im Editor kommentiert ein "
+        "Tastendruck auf `%` die Auswahl direkt mit `%%...%%` aus; erneutes Drücken entfernt den "
+        "Kommentar wieder. Sind mehrere Zeilen markiert, wird jede Zeile einzeln aus- bzw. -- wenn sie "
+        "schon auskommentiert war -- wieder einkommentiert; ohne Auswahl tippt `%` ein normales Zeichen."
     ),
     "inline_mark:operator": (
         "`!!Text!!` markiert einen Aufgaben-Operator (z. B. `!!Bestimme!! die Nullstellen.`) -- "
