@@ -67,8 +67,7 @@ class MarkerSpec:
     `False` bedeutet nicht "kein Editor-Zugriff", sondern "wird über die
     Eskalationsstufe eines anderen Eintrags ausgelöst" (z. B. `strike` über
     die zweite Stufe der `~`-Taste, `fenced_code` über mehrzeilige Auswahl
-    bei der `` ` ``-Taste) oder "kein Editor-Shortcut in dieser Iteration"
-    (`comment`).
+    bei der `` ` ``-Taste).
     """
 
     applies_to: frozenset[str]
@@ -156,7 +155,7 @@ MARKER_SPECS: tuple[MarkerSpec, ...] = (
         name="comment",
         key="%%",
         levels=(EscalationLevel("%%", "%%Kommentar%%", (), "Kommentar (kein sichtbarer Output)"),),
-        editor_shortcut=False,
+        editor_shortcut=True,
         applies_to=ALL_DOCUMENT_TYPES,
     ),
     MarkerSpec(

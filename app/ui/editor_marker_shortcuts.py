@@ -1,4 +1,4 @@
-"""Reine Editor-Logik für die Marker-Tasten (`*`/`_`/`=`/`~`/`^`/`` ` ``/`|`/`$`).
+"""Reine Editor-Logik für die Marker-Tasten (`*`/`_`/`=`/`~`/`^`/`` ` ``/`|`/`$`/`%`).
 
 Kein Tkinter-Import -- testbar ohne GUI. Beantwortet ausschließlich "welche
 Operation soll dieser Tastendruck auf diese Selektion anwenden": die
@@ -32,6 +32,7 @@ _STRIKE_DELIMITER = marker_spec_by_name("strike").levels[0].delimiter
 _SUPERSCRIPT_CHAR = marker_spec_by_name("superscript").key
 _CODE_DELIMITER = marker_spec_by_name("code").levels[0].delimiter
 _FENCED_CODE_DELIMITER = marker_spec_by_name("fenced_code").levels[0].delimiter
+_COMMENT_DELIMITER = marker_spec_by_name("comment").levels[0].delimiter
 _MATH_DELIMITER = "$"
 """Delimiter-Zeichen/Stufenzahlen kommen ausschließlich aus `syntax.py`s
 `MARKER_SPECS` -- dieses Modul definiert keine eigene Kopie der
@@ -168,6 +169,47 @@ def apply_pipe_marker(before: str, selected: str, after: str) -> MarkerEdit:
 def apply_dollar_marker(before: str, selected: str, after: str) -> MarkerEdit:
     """`$` -> `$Formel$` direkt beim ersten Druck; zweiter Druck entfernt wieder."""
     return _toggle_pair(before, selected, after, _MATH_DELIMITER)
+
+
+def apply_percent_marker(before: str, selected: str, after: str, is_multiline: bool) -> MarkerEdit:
+    """`%`-Taste: Auswahl aus- bzw. wieder einkommentieren (`%%…%%`).
+
+    Einzeilig genau wie `=`: erster Druck umschließt die Auswahl mit `%%`,
+    zweiter Druck entfernt die umschließenden `%%` wieder.
+
+    Mehrzeilig wird *jede* Zeile einzeln umgeschaltet: eine Zeile, die schon
+    ganz ein Kommentar ist (`%%…%%` nach der Einrückung), wird entkommentiert,
+    jede andere auskommentiert; Leerzeilen bleiben unverändert, die Einrückung
+    bleibt außerhalb des Kommentars. Der Aufrufer übergibt dafür ganze Zeilen
+    (`blatt_ui_editor_keys._on_editor_percent_key` erweitert die Auswahl);
+    danach sind alle Zeilen markiert.
+
+    Beispiel (mehrzeilig): ``"  a\n%%b%%\n\nc"`` -> ``"  %%a%%\nb\n\n%%c%%"``.
+    """
+    if not is_multiline:
+        return _toggle_pair(before, selected, after, _COMMENT_DELIMITER)
+    replacement = "\n".join(_toggle_comment_line(line) for line in selected.split("\n"))
+    return MarkerEdit(strip_left=0, strip_right=0, replacement=replacement, select_start=0, select_end=len(replacement))
+
+
+def _toggle_comment_line(line: str) -> str:
+    """Schaltet eine ganze Zeile zwischen `%%Inhalt%%` und `Inhalt` um (Einrückung/Leerraum bleiben außen)."""
+    body = line.strip()
+    if not body:
+        return line
+    indent = line[: len(line) - len(line.lstrip())]
+    trailing = line[len(line.rstrip()):]
+    length = len(_COMMENT_DELIMITER)
+    inner = body[length:-length]
+    is_whole_line_comment = (
+        len(body) >= 2 * length
+        and body.startswith(_COMMENT_DELIMITER)
+        and body.endswith(_COMMENT_DELIMITER)
+        and _COMMENT_DELIMITER not in inner
+    )
+    if is_whole_line_comment:
+        return f"{indent}{inner}{trailing}"
+    return f"{indent}{_COMMENT_DELIMITER}{body}{_COMMENT_DELIMITER}{trailing}"
 
 
 def _prefix_wrapped(before: str, selected: str, after: str, char: str) -> tuple[bool, int, int]:

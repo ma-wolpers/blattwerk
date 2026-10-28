@@ -10,6 +10,7 @@ from ..styles.blatt_styles import (
     PRESENTATION_PAGE_FORMATS,
     WORKSHEET_PAGE_FORMATS,
 )
+from ..core.help_cards_appendix import HELP_APPENDIX_NONE, coerce_help_appendix, help_appendix_supported
 from ..core.document_type_registry import (
     PIPELINE_WORKSHEET,
     PREVIEW_VARIANT_EXPECTATION,
@@ -89,6 +90,9 @@ class BlattwerkAppPreviewToolbarMixin:
             * View choice (Aufgabe/Loesung/Erwartungshorizont, key
               ``show_solution_toggle``): only where the type has more than one
               view (`document_type_registry.preview_variants`).
+            * Lernhilfen-Anhang (``show_help_appendix``): types with
+              `help_appendix_supported` (Arbeitsblatt/Klausur), not in the
+              expectation-horizon view.
 
             Folien-Layout and the available views come from the registry, never
             from a frontmatter `mode`. Shortcut handlers use the same answer via
@@ -109,6 +113,7 @@ class BlattwerkAppPreviewToolbarMixin:
                 "show_phase_controls": is_presentation,
                 "show_black_screen": is_presentation,
                 "show_design_controls": worksheet_pipeline and not own_layout,
+                "show_help_appendix": help_appendix_supported(document_type) and not own_layout,
             }
 
     def _preview_capability_active(self, capability: str) -> bool:
@@ -129,6 +134,20 @@ class BlattwerkAppPreviewToolbarMixin:
             preview_mode_var = getattr(self, "preview_mode_var", None)
             variant = preview_mode_var.get() if preview_mode_var is not None else None
             return bool(self._preview_toolbar_capabilities(document_type, variant).get(capability, False))
+
+
+    def _effective_help_appendix(self) -> str:
+            """Die Anhang-Variante, die Vorschau und Export tatsächlich verwenden.
+
+            Einzige Quelle für beide: der Wert der Vorschau-Radios, aber
+            `HELP_APPENDIX_NONE`, solange die Gruppe für den aktiven Typ bzw. die
+            Ansicht nicht gilt. Ob Lernhilfen vorhanden sind, spielt hier bewusst
+            keine Rolle -- ohne sichtbare Karte hängt der Core nichts an, und so
+            bleibt die gewählte Variante beim Hinzufügen der ersten Karte erhalten.
+            """
+            if not self._preview_capability_active("show_help_appendix"):
+                return HELP_APPENDIX_NONE
+            return coerce_help_appendix(self.preview_help_appendix_var.get())
 
 
     def _toggle_preview_page_format_button(self, button, visible: bool, *, padx=(10, 0)):
@@ -205,6 +224,7 @@ class BlattwerkAppPreviewToolbarMixin:
                 button.configure(state="normal")
 
             self._apply_design_section_visibility(capabilities["show_design_controls"])
+            self._apply_preview_help_appendix_controls(capabilities["show_help_appendix"])
 
 
     def _apply_preview_variant_buttons(self, visible_variants: tuple[str, ...]) -> None:

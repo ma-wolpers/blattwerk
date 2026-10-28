@@ -4,7 +4,8 @@ Die Struktur der Teile (und jedes Strukturproblem) kommt allein aus
 `exam_parts.resolve_exam_parts`, die Blatt-Logik der AFB aus
 `exam_analysis.iter_scored_leaves` -- dieselben Funktionen nutzen Renderer und
 Auswertung, damit Validator und Darstellung nie auseinanderlaufen. Dieses
-Modul übersetzt nur Codes in Meldungen und Schweregrade.
+Modul übersetzt nur Codes in Meldungen und Schweregrade. KL013 (Lernhilfe
+ohne Lernhilfe-Abzug) liegt bei den Lernhilfen-Diagnosen in `blatt_validator_help`.
 """
 
 from __future__ import annotations

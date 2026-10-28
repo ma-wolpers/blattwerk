@@ -6,6 +6,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from .dialog_services import messagebox
+from ..core.help_cards_appendix import HELP_APPENDIX_NONE
 from ..core.build_requests import HelpCardsBuildRequest, WorksheetBuildRequest
 from ..core.blatt_kern_help_render import collect_help_blocks
 from ..core.blatt_validator import inspect_markdown_text
@@ -67,7 +68,12 @@ class BlattwerkAppExportSupportMixin:
         )
 
     def _update_lernhilfen_action_state(self, input_path: Path | None = None, include_solutions: bool | None = None):
-        """Updates the main preview-row lernhilfen action button state."""
+        """Updates the lernhilfen controls of the preview row for the active document.
+
+        Sets `_active_lernhilfen_available` and, from that one value, the
+        "Lernhilfen" button and the Lernhilfen-Anhang radios
+        (`_set_lernhilfen_available`).
+        """
 
         button = getattr(self, "lernhilfen_action_btn", None)
         if button is None:
@@ -75,8 +81,7 @@ class BlattwerkAppExportSupportMixin:
 
         active_input_path = input_path if input_path is not None else self._validate_input()
         if not active_input_path:
-            button.config(state="disabled")
-            self._active_lernhilfen_available = False
+            self._set_lernhilfen_available(button, False)
             return
 
         spec = self._document_spec_for_path(active_input_path)
@@ -84,16 +89,26 @@ class BlattwerkAppExportSupportMixin:
             # Intentional gate, not just the incidental "0 :::-blocks found" side
             # effect below -- Kurzentwurf and plain Markdown have no `:::` block
             # semantics and therefore no Lernhilfen concept at all.
-            button.config(state="disabled")
-            self._active_lernhilfen_available = False
+            self._set_lernhilfen_available(button, False)
             return
 
         if include_solutions is None:
             include_solutions = self.preview_mode_var.get() == "solution"
 
         has_lernhilfen = self._count_visible_lernhilfen(active_input_path, include_solutions=include_solutions) > 0
-        self._active_lernhilfen_available = has_lernhilfen
-        button.config(state="normal" if has_lernhilfen else "disabled")
+        self._set_lernhilfen_available(button, has_lernhilfen)
+
+    def _set_lernhilfen_available(self, button, available: bool) -> None:
+        """Single place that applies "this document has visible Lernhilfen" to the UI.
+
+        Args:
+            button: the preview-row "Lernhilfen" button.
+            available: whether visible Lernhilfen exist in the current view.
+        """
+        self._active_lernhilfen_available = available
+        button.config(state="normal" if available else "disabled")
+        if hasattr(self, "_set_preview_help_appendix_enabled"):
+            self._set_preview_help_appendix_enabled(available)
 
     def _current_preview_has_lernhilfen(self, input_path: Path | None = None) -> bool:
         """Returns whether current document has visible lernhilfen in active preview mode."""
@@ -227,7 +242,14 @@ class BlattwerkAppExportSupportMixin:
         presentation_hide_future_sections: bool | None = None,
         presentation_ignore_framebreaks: bool = False,
         diagnostics_out=None,
+        help_appendix: str = HELP_APPENDIX_NONE,
     ):
+        """Baut den `WorksheetBuildRequest` aus den Vorschau-/Einstellungswerten.
+
+        `help_appendix` (`help_cards_appendix.HELP_APPENDIX_*`) kommt aus dem
+        Exportdialog; Design, Metadaten, Copyright, Rechen-Cache und
+        Ziel-Policy liest die Methode selbst.
+        """
         default_separator, default_hide_future = (
             self._current_presentation_footer_export_options()
         )
@@ -255,6 +277,7 @@ class BlattwerkAppExportSupportMixin:
             diagnostics_out=diagnostics_out,
             computation_cache=self._computation_cache_for(input_path),
             target_policy=self._export_target_policy(),
+            help_appendix=help_appendix,
         )
 
     def _help_cards_build_request(

@@ -151,7 +151,11 @@ PROSE_SECTIONS: dict[str, str] = {
         "Der Erwartungshorizont zeigt das Symbol vor dem Text und erklärt am Ende die verwendeten Typen "
         "mit genau den Sätzen aus dieser Tabelle; in der Lösung wird der Typ nicht angezeigt. Im Editor "
         "erscheinen die Typen als Vorschläge, sobald nach dem P ein Leerzeichen steht; übernommen wird der "
-        "volle Name."
+        "volle Name. Lernhilfen sind in Klausuren erlaubt, ihre Nutzung soll aber Punkte kosten: Jede "
+        "(Teil-)Aufgabe mit Lernhilfe braucht in ihrer Lösung (oder der Lösung der zugehörigen Aufgabe) "
+        "einen Abzug vom Typ Lernhilfe, z. B. `3. Lernhilfe genutzt (−1P Lh)`, sonst warnt `KL013`. Der "
+        "Erwartungshorizont beschriftet ihn als „Abzug bei Nutzung der Lernhilfe“; ohne Minuszeichen ist "
+        "der Typ die Warnung `SL023`."
     ),
     "exam:expectation_horizon": (
         "Im Exportdialog einer Klausur gibt es unter „Inhalt“ den Punkt „Erwartungshorizont“ (PDF oder "
@@ -159,7 +163,8 @@ PROSE_SECTIONS: dict[str, str] = {
         "ohne Aufgabentext, mit einer leeren Spalte „erreicht“, dazu Teilsummen je Hilfsmittel-Teil "
         "(Bonuspunkte getrennt, z. B. „17 P + 2 Bonuspunkte“). Die AFB-Verteilung ist eine interne "
         "Statistik und steht nur in der Klausur-Übersicht des Editors. Alternative Wege stehen mit „Weg A:“ "
-        "vor dem Text, Optionen mit „Option:“ (dazu eine Zeile mit ihrem Höchstwert), Abzüge je Fehler am "
+        "vor dem Text, Optionen mit „Option:“ (dazu eine Zeile mit ihrem Höchstwert), Abzüge je Fehler "
+        "und Abzüge bei Nutzung der Lernhilfe am "
         "Tabellenende, Erwartungstypen als Symbol vor dem Text; am Ende erklärt eine Legende die "
         "verwendeten Typen mit je einem kurzen Satz. "
         "Widersprüchliche Punkte verhindern den Export; fehlende Teilpunkte "
@@ -617,7 +622,8 @@ PROSE_SECTIONS: dict[str, str] = {
         "Erwartungshorizont als „Abzug je Fehler“ am Ende der Tabelle. Optional benennt ein Wort nach dem P, "
         "was für eine Leistung erwartet wird (Erwartungstyp, Name oder Kürzel): Ansatz (An), Anwendung (Aw), "
         "Antwortsatz (Sa), Fachsprache (Fs), Entscheidung (En), Ergebnis (Er), Beobachtung (Be), Begründung "
-        "(Bg), Einheit/Größe (Ei), Darstellung (Da), Formales (Fo) -- z. B. `(0,5P An)`, `(1aP Anwendung)`, `(−1P Bg)`. "
+        "(Bg), Einheit/Größe (Ei), Darstellung (Da), Formales (Fo), Lernhilfe (Lh, nur als Abzug: "
+        "„Abzug bei Nutzung der Lernhilfe“, sonst `SL023`) -- z. B. `(0,5P An)`, `(1aP Anwendung)`, `(−1P Bg)`. "
         "Der Erwartungshorizont zeigt dafür ein Symbol vor dem Text und eine Legende der verwendeten Typen, "
         "die Lösung blendet den Typ aus. Ein unbekannter Typ ist eine Warnung (`SL017`). Was jeder Typ "
         "bedeutet, erklärt die Klausur-Anleitung im Abschnitt „Erwartungstypen“."
@@ -630,9 +636,15 @@ PROSE_SECTIONS: dict[str, str] = {
     "block:nextcol": ("Spaltenwechsel innerhalb eines `:::columns`-Blocks. Keine eigenen Optionen."),
     "block:endcolumns": ("Schließt einen `:::columns`-Block ab. Keine eigenen Optionen."),
     "block:help": (
-        "Separate Hilfekarte (eigene Ausgabe, nicht Teil des normalen Arbeitsblatts). `level` (1-99) "
-        "gruppiert Hilfen nach Schwierigkeitsstufe, `tag` beeinflusst die automatische Beschriftung "
-        "(z. B. `1A`, `1B`), `title` überschreibt den Standardtitel \"Hilfe\". Kanonischer Blockname; "
+        "Separate Hilfekarte: Im Arbeitsblatt steht an der vorangehenden (Teil-)Aufgabe nur der Verweis "
+        "„→ Lernhilfe A“; die Karte selbst erscheint im Lernhilfen-Fenster bzw. dessen Export oder -- über "
+        "„Lernhilfen“ in der Vorschau bzw. „Lernhilfen mit exportieren“ im Exportdialog -- hinter den "
+        "Arbeitsblattseiten (alle auf einer Seite oder jede auf einer eigenen Seite in DIN A6/A5/A4). "
+        "`level` (1-99) gruppiert Hilfen nach Schwierigkeitsstufe, `tag` beeinflusst die automatische "
+        "Beschriftung (z. B. `1A`, `1B`), `title` überschreibt den Standardtitel \"Hilfe\". In Klausuren "
+        "braucht die zugehörige Lösung einen Lernhilfe-Abzug `(−1P Lh)` (`KL013`). In Präsentationen "
+        "sind Lernhilfen veraltet (Warnung `BL012`) -- sie werden noch dargestellt, sollten aber als "
+        "normaler Folieninhalt umgesetzt werden. Kanonischer Blockname; "
         "`hilfe` ist ein dokumentierter Alias mit identischen Optionen."
     ),
     "block:hilfe": (
@@ -1144,10 +1156,14 @@ PROSE_SECTIONS: dict[str, str] = {
     "inline_mark:comment": (
         "`%%Text%%` markiert einen Autor:innen-Kommentar: der eingeschlossene Text erscheint in "
         "**keiner** Ausgabe (weder Vorschau noch PDF) und darf beliebiges Markup oder Formeln "
-        "enthalten, ohne dass diese ausgewertet werden. Ein `%%` ohne passendes schließendes `%%` "
+        "enthalten, ohne dass diese ausgewertet werden. Steht in einer Zeile nur ein Kommentar (auch "
+        "ein mehrzeiliger), zählt diese Zeile gar nicht: Sie trennt keinen Absatz und hinterlässt keine "
+        "Leerzeile -- auch nicht im Kurzentwurf. Ein `%%` ohne passendes schließendes `%%` "
         "wird als normaler Text behandelt (keine Formatierung, aber auch kein Verschlucken "
-        "nachfolgenden Inhalts) und als Diagnose-Hinweis gemeldet. Aktuell ohne eigene Editor-Taste "
-        "-- von Hand eingetippt."
+        "nachfolgenden Inhalts) und als Diagnose-Hinweis gemeldet. Im Editor kommentiert ein "
+        "Tastendruck auf `%` die Auswahl direkt mit `%%...%%` aus; erneutes Drücken entfernt den "
+        "Kommentar wieder. Sind mehrere Zeilen markiert, wird jede Zeile einzeln aus- bzw. -- wenn sie "
+        "schon auskommentiert war -- wieder einkommentiert; ohne Auswahl tippt `%` ein normales Zeichen."
     ),
     "inline_mark:operator": (
         "`!!Text!!` markiert einen Aufgaben-Operator (z. B. `!!Bestimme!! die Nullstellen.`) -- "

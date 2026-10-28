@@ -8,6 +8,7 @@ from .dialog_services import messagebox
 from .export_dialog import PresentationExportDialog, WorksheetExportDialog
 from ..core.exam_expectation_horizon import build_expectation_horizon
 from ..core.document_type_registry import coerce_preview_variant, spec_for_type
+from ..core.help_cards_appendix import HELP_APPENDIX_NONE, help_appendix_supported
 from .export_defaults import (
     _ALLOWED_EXPORT_MODES,
     _ALLOWED_BLACK_SCREEN_MODES,
@@ -72,9 +73,14 @@ class BlattwerkAppExportDialogsMixin:
             solution_suffix=str(preferences.get("solution_suffix", "_loesung") or "_loesung"),
             allow_mode_selection=allow_mode_selection,
             allow_expectation_horizon=bool(document_type) and spec_for_type(document_type).expectation_horizon,
+            # Vorauswahl bei jedem Öffnen = die gerade in der Vorschau sichtbare Variante.
+            default_help_appendix=self._effective_help_appendix(),
+            allow_help_appendix=help_appendix_supported(document_type)
+            and self._count_visible_lernhilfen(input_path, include_solutions=True) > 0,
         )
         if not dialog.result:
             return
+        help_appendix = dialog.result.get("help_appendix", HELP_APPENDIX_NONE)
 
         fmt = dialog.result["format"]
         mode = dialog.result["mode"]
@@ -104,6 +110,7 @@ class BlattwerkAppExportDialogsMixin:
                     contrast_profile,
                     black_screen_mode=black_screen_mode,
                     compile_diagnostics=compile_diagnostics,
+                    help_appendix=help_appendix,
                 )
             elif fmt == "html":
                 out_files = self._export_html(
@@ -124,6 +131,7 @@ class BlattwerkAppExportDialogsMixin:
                     contrast_profile,
                     black_screen_mode=black_screen_mode,
                     compile_diagnostics=compile_diagnostics,
+                    help_appendix=help_appendix,
                 )
             else:
                 out_files = self._export_png_zip(
@@ -134,6 +142,7 @@ class BlattwerkAppExportDialogsMixin:
                     contrast_profile,
                     black_screen_mode=black_screen_mode,
                     compile_diagnostics=compile_diagnostics,
+                    help_appendix=help_appendix,
                 )
 
             self._show_compile_overflow_warnings(compile_diagnostics, "Export")

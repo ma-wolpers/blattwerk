@@ -78,10 +78,12 @@ Die Leiste „Vorschau-Optionen“ über der Vorschau startet eingeklappt; mit �
 | Seitenformat | ja | ja (nicht beim Erwartungshorizont) | ja (Folienformate) | – |
 | Black-Screen, Phasen | – | – | ja | – |
 | Gestaltung (Druckprofil, Farbe, Schrift, Größe) | ja | ja (nicht beim Erwartungshorizont) | ja | – |
+| Lernhilfen (Aus / Eine Seite / Einzeln) | ja | ja (nicht beim Erwartungshorizont) | – | – |
 
 - **Seitenformat** (`DIN A4` / `A4 quer` / `DIN A5` bzw. `16:9` / `16:10` / `4:3`) steuert die Seitengröße. Der Export übernimmt das Format, das in der Vorschau des Dokuments gewählt ist; die Einstellung *Export Seitenformat* gilt nur als Startwert. Bei `A4 quer` werden Antwortfelder wie Zahlenstrahl und Raster entsprechend breiter.
 - **Modus** (`Aufgabe` / `Lösung`) steuert bei Arbeitsblättern und Klausuren, welche Inhalte in der Vorschau gerendert werden. Klausuren haben zusätzlich `Erwartungshorizont`: Die Vorschau zeigt dann genau die PDF, die auch der Export „Erwartungshorizont“ erzeugt (eigenes Layout, daher ohne Seitenformat und Gestaltung). Der Exportdialog übernimmt die gewählte Ansicht als Vorauswahl.
 - Präsentationen werden immer als Folien gerendert (kein Aufgaben/Lösung-Umschalter).
+- **Lernhilfen** (`Aus` / `Eine Seite` / `Einzeln`) hängt die Lernhilfen des Dokuments in ihrer Reihenfolge hinter die Arbeitsblattseiten – so, wie sie auch exportiert werden. `Eine Seite`: alle Karten gemeinsam auf einer Zusatzseite im Format des Arbeitsblatts (bei vielen oder langen Karten geht es auf weiteren Seiten weiter). `Einzeln`: jede Karte auf einer eigenen Seite im kleinsten Format, auf das sie vollständig passt (DIN A6, A5 oder A4); passt eine Karte selbst auf A4 nicht, läuft sie über mehrere A4-Seiten. Die Vorschau zeigt alle Seiten maßstabsgetreu, eine A6-Karte erscheint also kleiner als die A4-Seite. Ohne Lernhilfen im Dokument sind die Knöpfe ausgegraut. **GRENZE:** Die angehängten Seiten haben keine Kopf- und Fußzeile; „Seite X von Y“ zählt nur die Arbeitsblattseiten.
 - **Black-Screen** (`Aus` / `Vorher` / `Nachher` / `Beides`) fügt bei Präsentationen schwarze Folien vor und/oder nach dem Deck ein. Standard ist `Beides`; den Startwert stellst du unter *Einstellungen → Export → Black-Screen (Praesentation)* ein. Der Präsentations-Export übernimmt die Auswahl aus der Vorschau.
 - **Phasen** steuert bei Präsentationen den Abschnitts-Footer der Folien (Trenner `·` oder `→`, künftige Abschnitte ausblenden).
 - Die Tastenkürzel wirken nur, wenn die Option für die Dokumentart angezeigt wird (z. B. `K` nur bei Präsentationen, `4`/`5` nur bei Arbeitsblatt und Klausur).
@@ -121,9 +123,11 @@ Die Leiste „Vorschau-Optionen“ über der Vorschau startet eingeklappt; mit �
 
 - Es gibt zwei Dialoge: Arbeitsblatt-Export und Praesentations-Export (automatisch je nach Dokumentmodus).
 - **Zieldatei noch geöffnet** (z. B. die PDF im Viewer): Blattwerk prüft das *vor* dem Erstellen und bricht sofort mit einem Hinweis ab, statt erst nach dem Build zu scheitern. Unter *Einstellungen → Export → Gesperrte Zieldatei* kannst du stattdessen `alternate_name` wählen: Dann wird als „Name (neu).pdf" gespeichert (ist auch die geöffnet, „Name (neu 2).pdf" usw.), und die Erfolgsmeldung nennt die tatsächliche Datei. Bei „Aufgabe + Lösung" prüft jeder Teil seine eigene Datei; ist nur die Lösungs-PDF geöffnet, kann die Aufgaben-PDF also schon geschrieben sein.
+- **Lernhilfen mit exportieren** (Arbeitsblatt und Klausur, nur wenn das Dokument Lernhilfen hat): hängt die Lernhilfen in ihrer Reihenfolge hinter die Arbeitsblattseiten – „Alle Lernhilfen auf einer Seite“ oder „Jede Lernhilfe auf eigener Seite“ (kleinstes passendes Format DIN A6/A5/A4). Vorausgewählt ist immer die Variante, die gerade in der Vorschau zu sehen ist. Bei „Beides“ bekommen Aufgaben- und Lösungsdatei je ihren Anhang. Der separate Lernhilfen-Export aus dem Lernhilfen-Fenster bleibt unverändert. **GRENZE:** Nicht für HTML und nicht beim Erwartungshorizont; eine PDF mit A4- und A6-Seiten druckt dein Drucker je nach Druckdialog verkleinert auf A4 oder auf passendem Papier.
 - `Strg+E`: Exportieren
 - `Esc`: Abbrechen
 - `A / L / B`: Aufgaben / Lösung / Beides (nur im Arbeitsblatt-Dialog)
+- `G`: Lernhilfen-Anhang umschalten – aus → alle auf einer Seite → jede auf eigener Seite (nur im Arbeitsblatt-Dialog, wenn das Dokument Lernhilfen hat)
 - `K`: Black-Screen im Exportdialog schnell auf `Beides` setzen (nur im Praesentations-Dialog)
 - `P`: Format wechseln (Arbeitsblatt: PDF/PNG/PNG-ZIP/HTML, Praesentation: zusaetzlich PPTX)
 - `D`: Durchsuchen öffnen

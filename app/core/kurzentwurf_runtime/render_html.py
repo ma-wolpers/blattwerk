@@ -5,6 +5,7 @@ from html import escape
 
 from ..inline_markup import render_inline_markup
 from .cell_text import label_block, label_entries, strip_hard_break
+from ..inline_markup.spans import drop_comment_only_lines
 from .math_support import MATHJAX_INLINE_HEAD_HTML
 from .model import KurzentwurfDocument, KurzentwurfPhaseBlock, KurzentwurfSegment
 
@@ -487,8 +488,9 @@ def _activity_cell_text(
     s_marker_label: str,
     ant_marker_label: str,
 ) -> str:
-    base = label_entries(str(segment.aktivitaeten or "").strip(), s_marker_label)
-    antizipiert = str(segment.antizipiert or "").strip()
+    # Kommentarzeilen vor dem zeilenweisen Labeln entfernen, sonst wird daraus ein leerer Eintrag.
+    base = label_entries(drop_comment_only_lines(str(segment.aktivitaeten or "")).strip(), s_marker_label)
+    antizipiert = drop_comment_only_lines(str(segment.antizipiert or "")).strip()
     if not antizipiert:
         return base
     antizipiert_line = label_block(antizipiert, ant_marker_label)
@@ -584,7 +586,8 @@ def _render_legacy_row(row) -> str:
 
 
 def _render_text(text: str) -> str:
-    normalized = str(text or "").replace("\r\n", "\n").replace("\r", "\n")
+    # Reine Kommentarzeilen zählen gar nicht (kein `<br>`, keine Absatzgrenze), auch mehrzeilige.
+    normalized = drop_comment_only_lines(str(text or "").replace("\r\n", "\n").replace("\r", "\n"))
     lines = normalized.split("\n")
 
     blocks: list[str] = []

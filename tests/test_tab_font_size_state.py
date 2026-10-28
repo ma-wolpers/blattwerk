@@ -31,6 +31,7 @@ class _DummyBase(BlattwerkDocumentTypeMixin):
         self.preview_section_separator_var = _Var("dot")
         self.preview_hide_future_sections_var = _Var(False)
         self.preview_contrast_var = _Var("standard")
+        self.preview_help_appendix_var = _Var("none")
         self.design_color_profile_var = _Var("indigo")
         self.design_font_profile_var = _Var("segoe")
         self.design_font_size_profile_var = _Var("normal")

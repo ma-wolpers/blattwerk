@@ -9,7 +9,7 @@ from ..styles.blatt_styles import build_stylesheet
 from .blatt_kern_shared import (
     HELP_BLOCK_TYPES,
     _new_markdown_converter,
-    _help_labels_for_tag,
+    help_block_labels,
     _normalize_help_tag,
     _resolve_help_level,
     convert_markdown_with_math,
@@ -101,32 +101,10 @@ def collect_labeled_help_blocks(
 
 
 def _annotate_help_block_labels(help_blocks, help_tag):
-    """Assigns deterministic visible labels to help cards based on global/local tags."""
+    """Hängt jedem Hilfeblock sein Label an (Regel: `help_block_labels`)."""
 
-    normalized_help_tag = _normalize_help_tag(help_tag)
-    auto_tag_entries = [block for block in help_blocks if not _normalize_help_tag(block["options"].get("tag"))]
-    auto_labels = _help_labels_for_tag(len(auto_tag_entries), normalized_help_tag)
-    auto_label_index = 0
-
-    annotated_blocks = []
-    for block in help_blocks:
-        block_options = block["options"]
-        local_tag = _normalize_help_tag(block_options.get("tag"))
-        if local_tag:
-            help_label = local_tag
-        else:
-            help_label = (
-                auto_labels[auto_label_index]
-                if auto_label_index < len(auto_labels)
-                else None
-            )
-            auto_label_index += 1
-
-        annotated_block = dict(block)
-        annotated_block["label"] = help_label
-        annotated_blocks.append(annotated_block)
-
-    return annotated_blocks
+    labels = help_block_labels([_normalize_help_tag(block["options"].get("tag")) for block in help_blocks], help_tag)
+    return [{**block, "label": label} for block, label in zip(help_blocks, labels)]
 
 
 def _wrap_cards_for_layout(cards_html, page_format, layout=HELP_CARD_LAYOUT_SHEET):

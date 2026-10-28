@@ -20,7 +20,9 @@ from .blatt_kern_shared_blocks import (
     _normalize_help_tag,
     annotate_standalone_subtasks,
     annotate_task_help_references,
+    assign_help_blocks,
     assign_task_numbers,
+    help_block_labels,
     should_render_block,
 )
 from .blatt_kern_shared_data import (
@@ -81,6 +83,8 @@ __all__ = [
     "assign_task_numbers",
     "annotate_standalone_subtasks",
     "annotate_task_help_references",
+    "assign_help_blocks",
+    "help_block_labels",
     "should_render_block",
     "is_hole_punch_layout_enabled",
     "format_meta_line",

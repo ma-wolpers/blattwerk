@@ -36,7 +36,7 @@ from .frontmatter import content_after_frontmatter
 from .math_span_protection import convert_markdown_with_math
 from .points_model import build_points_model, format_points, format_signed_points, subtask_effective
 from .solution_items import collect_solution_targets
-from .expectation_kinds import EXPECTATION_KINDS, kind_by_key
+from .expectation_kinds import EXPECTATION_KINDS, deduction_label_for, kind_by_key
 from .points_suffix import path_label
 from .student_header import HEADER_DATE_KIND, InvalidHeaderValue, resolve_header_value
 
@@ -170,7 +170,7 @@ def _target_rows(unit, key, target, diagnostics) -> list[str]:
     for item in target.items:
         if item.is_deduction:
             rows.append(
-                f"<tr class='deduction'><td class='num'></td><td><span class='deduction-label'>Abzug je Fehler:</span> "
+                f"<tr class='deduction'><td class='num'></td><td><span class='deduction-label'>{escape(deduction_label_for(item.kind))}:</span> "
                 f"{_kind_symbol(item)}{_inline(item.text)}</td><td class='pts'>{_item_points_text(item)}</td><td class='pts'></td></tr>"
             )
     return rows

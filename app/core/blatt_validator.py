@@ -49,6 +49,7 @@ from .blatt_validator_value_helpers import (
 )
 from .blatt_validator_evaluation import validate_evaluation
 from .blatt_validator_exam import validate_exam
+from .blatt_validator_help import validate_help_blocks
 from .blatt_validator_geometry_labels import validate_geometry_labels
 from .blatt_validator_tables import validate_tables
 from .struktogramm_validation import validate_struktogramm_blocks
@@ -150,6 +151,7 @@ def _collect_document_diagnostics(meta, blocks, content_text, content_base_line=
     diagnostics.extend(_validate_columns_structure(blocks))
     diagnostics.extend(validate_points(blocks, document_type))
     diagnostics.extend(validate_exam(blocks, document_type))
+    diagnostics.extend(validate_help_blocks(blocks, document_type))
     diagnostics.extend(validate_evaluation(blocks, document_type))
     _, operator_diagnostics = collect_used_operators(blocks, meta)
     diagnostics.extend(operator_diagnostics)
