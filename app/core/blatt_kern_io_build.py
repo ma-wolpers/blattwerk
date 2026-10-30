@@ -13,6 +13,8 @@ from .blatt_kern_io_pdf import write_pdf_from_html
 from .export_staging import staged_export
 from .operator_legend_placement import write_pdf_with_bottom_legends
 from .pdf_running_elements import annotate_pdf_running_elements
+from .render_job import stage
+from .render_stages import STAGE_APPENDIX, STAGE_HTML, STAGE_STAMP, STAGE_VALIDATE, STAGE_WORD_NOTES
 from .blatt_kern_help_render import collect_help_blocks
 from .help_card_pages import render_help_cards_print_html
 from .help_cards_appendix import HELP_APPENDIX_NONE, append_help_cards_appendix, ensure_help_appendix_request
@@ -155,7 +157,8 @@ def build_worksheet(
     ensure_help_appendix_request(help_appendix, document_type=document_type, output_suffix=out_file.suffix)
     md_file = Path(md_path)
     text = md_file.read_text(encoding="utf-8")
-    inspected = inspect_markdown_text(text, cache=computation_cache, document_type=document_type)
+    with stage(STAGE_VALIDATE):
+        inspected = inspect_markdown_text(text, cache=computation_cache, document_type=document_type)
     meta = _merge_metadata_defaults(inspected.meta, metadata_defaults)
     if not solutions_renderable(document_type):
         include_solutions = False
@@ -165,25 +168,26 @@ def build_worksheet(
     if diagnostics_out is not None:
         diagnostics_out.extend(inspected.diagnostics)
     word_notes = []
-    html = render_html(
-        meta,
-        blocks,
-        include_solutions=include_solutions,
-        page_format=page_format,
-        print_profile=print_profile,
-        color_profile=color_profile,
-        font_profile=font_profile,
-        font_size_profile=font_size_profile,
-        black_screen_mode=black_screen_mode,
-        presentation_section_separator=presentation_section_separator,
-        presentation_hide_future_sections=presentation_hide_future_sections,
-        presentation_ignore_framebreaks=presentation_ignore_framebreaks,
-        cache=computation_cache,
-        word_notes_out=word_notes,
-        document_type=document_type,
-    )
-    html = absolutize_local_image_sources(html, md_file.parent)
-    html = apply_image_size_options(html)
+    with stage(STAGE_HTML):
+        html = render_html(
+            meta,
+            blocks,
+            include_solutions=include_solutions,
+            page_format=page_format,
+            print_profile=print_profile,
+            color_profile=color_profile,
+            font_profile=font_profile,
+            font_size_profile=font_size_profile,
+            black_screen_mode=black_screen_mode,
+            presentation_section_separator=presentation_section_separator,
+            presentation_hide_future_sections=presentation_hide_future_sections,
+            presentation_ignore_framebreaks=presentation_ignore_framebreaks,
+            cache=computation_cache,
+            word_notes_out=word_notes,
+            document_type=document_type,
+        )
+        html = absolutize_local_image_sources(html, md_file.parent)
+        html = apply_image_size_options(html)
     suffix = out_file.suffix.lower()
 
     if suffix == ".html":
@@ -208,33 +212,36 @@ def build_worksheet(
                 write_pdf_with_bottom_legends(
                     html, pdf_file, page_format=page_format, hole_punch_enabled=is_hole_punch_layout_enabled(meta)
                 )
-                annotate_pdf_running_elements(
-                    pdf_file,
-                    meta.get("Titel", "").strip(),
-                    str(copyright_text_override or get_copyright_text(meta)),
-                    print_profile=print_profile,
-                    include_solutions=include_solutions,
-                )
-                append_word_note_placement_warnings(
-                    diagnostics_out=diagnostics_out,
-                    pdf_path=pdf_file,
-                    word_notes=word_notes,
-                    page_format=page_format,
-                    hole_punch_enabled=is_hole_punch_layout_enabled(meta),
-                )
-                append_help_cards_appendix(
-                    pdf_file,
-                    mode=help_appendix,
-                    md_dir=md_file.parent,
-                    meta=meta,
-                    blocks=blocks,
-                    include_solutions=include_solutions,
-                    page_format=page_format,
-                    print_profile=print_profile,
-                    color_profile=color_profile,
-                    font_profile=font_profile,
-                    font_size_profile=font_size_profile,
-                )
+                with stage(STAGE_STAMP):
+                    annotate_pdf_running_elements(
+                        pdf_file,
+                        meta.get("Titel", "").strip(),
+                        str(copyright_text_override or get_copyright_text(meta)),
+                        print_profile=print_profile,
+                        include_solutions=include_solutions,
+                    )
+                with stage(STAGE_WORD_NOTES):
+                    append_word_note_placement_warnings(
+                        diagnostics_out=diagnostics_out,
+                        pdf_path=pdf_file,
+                        word_notes=word_notes,
+                        page_format=page_format,
+                        hole_punch_enabled=is_hole_punch_layout_enabled(meta),
+                    )
+                with stage(STAGE_APPENDIX):
+                    append_help_cards_appendix(
+                        pdf_file,
+                        mode=help_appendix,
+                        md_dir=md_file.parent,
+                        meta=meta,
+                        blocks=blocks,
+                        include_solutions=include_solutions,
+                        page_format=page_format,
+                        print_profile=print_profile,
+                        color_profile=color_profile,
+                        font_profile=font_profile,
+                        font_size_profile=font_size_profile,
+                    )
         return staged.published_path
 
     raise ValueError("Ausgabedatei muss auf .pdf oder .html enden.")

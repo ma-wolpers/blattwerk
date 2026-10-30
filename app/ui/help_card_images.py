@@ -15,6 +15,7 @@ from PIL import Image
 
 from ..core.blatt_kern_io_build import load_help_card_source
 from ..core.help_card_pages import build_help_card_single_pages
+from ..core.pdf_raster import page_to_image
 from .help_card_image_trim import trim_lernhilfe_image
 
 
@@ -66,19 +67,13 @@ def render_help_card_images(
         images = []
         for placement in pages.placements:
             card_pages = [
-                _page_to_image(pages.document[number], dpi)
+                page_to_image(pages.document[number], dpi)
                 for number in range(placement.first_page, placement.first_page + placement.page_count)
             ]
             images.append(trim_lernhilfe_image(_stack_vertically(card_pages)))
         return images
     finally:
         pages.document.close()
-
-
-def _page_to_image(page, dpi: int) -> Image.Image:
-    """Rastert eine PDF-Seite (`fitz.Page`) zu einem RGB-Bild."""
-    pix = page.get_pixmap(dpi=dpi, alpha=False)
-    return Image.frombytes("RGB", (pix.width, pix.height), pix.samples)
 
 
 def _stack_vertically(images: list[Image.Image]) -> Image.Image:

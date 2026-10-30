@@ -11,6 +11,7 @@ from .dialog_services import messagebox
 from .ui_constants import PREVIEW_CANVAS_PADDING_PX, PREVIEW_MIN_FRAME_PX, PREVIEW_SCALE_MAX, PREVIEW_SCALE_MIN
 from .preview_geometry import get_fit_scales, get_preview_frame_size, get_zoom_target_size
 from .help_card_images import render_help_card_images
+from ..core.pdf_raster import PREVIEW_DPI
 
 
 class BlattwerkAppHelpPreviewRenderMixin:
@@ -37,7 +38,7 @@ class BlattwerkAppHelpPreviewRenderMixin:
             include_solutions=include_solutions,
             contrast_profile=contrast_profile,
             design=self._worksheet_design_options(),
-            dpi=150,
+            dpi=PREVIEW_DPI,
             metadata_defaults=metadata_defaults,
             block_on_critical=False,
         )

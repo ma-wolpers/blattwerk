@@ -17,6 +17,8 @@ from urllib.request import url2pathname
 from .pdf_running_elements import (  # noqa: F401 -- re-exportiert (wiring.py)
     annotate_pdf_running_elements,
 )
+from .render_job import stage
+from .render_stages import STAGE_PRINT
 
 
 CHROMIUM_COMMAND_CANDIDATES = ["msedge", "chrome", "chromium", "brave"]
@@ -130,8 +132,37 @@ def find_chromium_executable():
     return None
 
 
+def _chromium_command(browser, html_uri, out_pdf_path):
+    """Baut den Headless-Druckaufruf; erzeugt reproduzierbare PDFs ohne GUI-Interaktion.
+
+    Eigene Funktion, damit das Messskript (`tools/measure_render.py`) Abwandlungen wie
+    Zeitbudget oder Profil an einer Stelle anbringen kann.
+
+    Args:
+        browser: Pfad oder Name der Chromium-Programmdatei.
+        html_uri: ``file://``-URI der zu druckenden Seite.
+        out_pdf_path: Absoluter Zielpfad der PDF.
+    """
+    return [
+        browser,
+        "--headless=new",
+        "--disable-gpu",
+        "--allow-file-access-from-files",
+        "--virtual-time-budget=5000",
+        "--no-pdf-header-footer",
+        "--print-to-pdf-no-header",
+        f"--print-to-pdf={out_pdf_path}",
+        html_uri,
+    ]
+
+
 def write_pdf_from_html(html, out_pdf_path):
-    """Schreibt HTML über einen Headless-Browser als PDF-Datei."""
+    """Schreibt HTML über einen Headless-Browser als PDF-Datei.
+
+    Meldet die Render-Stufe ``print``. Das ist die einzige Stelle mit einem
+    Chromium-Druck, deshalb zählt sie alle Pipelines und auch den zweiten Durchgang der
+    Operatorenliste.
+    """
     browser = find_chromium_executable()
     if not browser:
         raise RuntimeError(
@@ -141,25 +172,13 @@ def write_pdf_from_html(html, out_pdf_path):
     out_pdf_path = Path(out_pdf_path)
     out_pdf_path.parent.mkdir(parents=True, exist_ok=True)
 
-    with tempfile.TemporaryDirectory() as temp_dir_name:
+    with stage(STAGE_PRINT), tempfile.TemporaryDirectory() as temp_dir_name:
         temp_dir = Path(temp_dir_name)
         html_with_fallbacks = _rewrite_heic_sources_for_browser_pdf(html, temp_dir)
         temp_html_path = temp_dir / "blattwerk-render.html"
         temp_html_path.write_text(html_with_fallbacks, encoding="utf-8")
 
-        # Headless-Druck via Chromium/Edge; erzeugt reproduzierbare PDFs ohne GUI-Interaktion.
-        html_uri = temp_html_path.resolve().as_uri()
-        command = [
-            browser,
-            "--headless=new",
-            "--disable-gpu",
-            "--allow-file-access-from-files",
-            "--virtual-time-budget=5000",
-            "--no-pdf-header-footer",
-            "--print-to-pdf-no-header",
-            f"--print-to-pdf={str(out_pdf_path.resolve())}",
-            html_uri,
-        ]
+        command = _chromium_command(browser, temp_html_path.resolve().as_uri(), str(out_pdf_path.resolve()))
 
         result = subprocess.run(
             command,

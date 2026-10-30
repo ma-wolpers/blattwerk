@@ -39,6 +39,7 @@ from .blatt_validator_types import BuildDiagnostic
 from .pptx_font_hint import bundled_font_hint
 from .build_requests import WorksheetBuildRequest, build_worksheet_from_request
 from .document_type_registry import DOCUMENT_TYPE_PRESENTATION
+from .pdf_raster import rasterize_pdf, temp_pdf_path
 
 
 # Slide dimensions in cm for each page format
@@ -374,9 +375,6 @@ def _build_presentation_pptx_raster(
     (the default) always runs, and what `editable=True` falls back to.
     """
 
-    import fitz  # PyMuPDF
-    from PIL import Image
-
     try:
         from pptx import Presentation
         from pptx.util import Emu
@@ -387,14 +385,11 @@ def _build_presentation_pptx_raster(
         ) from exc
 
     # 1. Render to a temporary PDF via the normal pipeline
-    with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
-        temp_pdf_path = Path(tmp.name)
-
-    try:
+    with temp_pdf_path() as pdf_path:
         build_worksheet_from_request(
             WorksheetBuildRequest(
                 input_path=input_path,
-                output_path=temp_pdf_path,
+                output_path=pdf_path,
                 include_solutions=include_solutions,
                 page_format=page_format,
                 print_profile=print_profile,
@@ -411,19 +406,7 @@ def _build_presentation_pptx_raster(
         )
 
         # 2. Convert each PDF page to a PIL image
-        slide_images: list[Image.Image] = []
-        with fitz.open(temp_pdf_path) as doc:
-            for page_index in range(len(doc)):
-                page = doc.load_page(page_index)
-                pix = page.get_pixmap(dpi=render_dpi, alpha=False)
-                img = Image.frombytes("RGB", (pix.width, pix.height), pix.samples)
-                slide_images.append(img)
-
-    finally:
-        try:
-            temp_pdf_path.unlink(missing_ok=True)
-        except Exception:
-            pass
+        slide_images = rasterize_pdf(pdf_path, render_dpi)
 
     if not slide_images:
         raise ValueError("Das Dokument hat keine Seiten – PPTX kann nicht erstellt werden.")

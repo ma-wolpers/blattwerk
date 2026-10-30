@@ -11,6 +11,7 @@ from .export_dialog import LernhilfenExportDialog
 from .help_card_images import render_help_card_images
 from ..core.build_requests import build_help_cards_from_request
 from ..core.export_path_guardrails import validate_export_output_path
+from ..core.pdf_raster import HELP_CARD_EXPORT_DPI
 from .export_defaults import (
     _ALLOWED_LERNHILFEN_EXPORT_FORMATS,
     _ALLOWED_WORKSHEET_PAGE_FORMATS,
@@ -132,7 +133,7 @@ class BlattwerkAppExportHelpCardsMixin:
             include_solutions=False,
             contrast_profile=contrast_profile,
             design=self._worksheet_design_options(),
-            dpi=200,
+            dpi=HELP_CARD_EXPORT_DPI,
             block_on_critical=True,
         )
 

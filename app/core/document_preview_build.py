@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
-import tempfile
 from pathlib import Path
 from typing import Mapping
 
-import fitz
 from PIL import Image
 
 from .kurzentwurf_runtime.build import build_preview_images as build_kurzentwerfer_preview_images
+from .pdf_raster import rasterize_pdf, temp_pdf_path
 
 from .blatt_validator import BuildDiagnostic
 from .block_computation_cache import BlockComputationCache
@@ -78,7 +77,7 @@ def build_preview_images_for_document(
     if pipeline == PIPELINE_KURZENTWURF:
         return _build_kurzentwurf_preview_images(input_path, kurzentwurf_options=kurzentwurf_options)
     if pipeline == PIPELINE_MARKDOWN:
-        return _build_markdown_preview_images(input_path)
+        return _build_html_pipeline_preview_images(input_path, build_plain_markdown)
     if pipeline == PIPELINE_SCHILD:
         return _build_html_pipeline_preview_images(input_path, build_schild)
 
@@ -117,15 +116,12 @@ def _build_worksheet_preview_images(
     computation_cache: BlockComputationCache | None = None,
     help_appendix: str = HELP_APPENDIX_NONE,
 ) -> tuple[list[Image.Image], list[BuildDiagnostic]]:
-    with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
-        temp_pdf_path = Path(tmp.name)
-
-    try:
+    with temp_pdf_path() as pdf_path:
         compile_diagnostics: list[BuildDiagnostic] = []
         build_worksheet_from_request(
             WorksheetBuildRequest(
                 input_path=input_path,
-                output_path=temp_pdf_path,
+                output_path=pdf_path,
                 include_solutions=include_solutions,
                 page_format=page_format,
                 print_profile=contrast_profile,
@@ -143,32 +139,14 @@ def _build_worksheet_preview_images(
             )
         )
 
-        return _render_pdf_pages(temp_pdf_path), compile_diagnostics
-    finally:
-        try:
-            temp_pdf_path.unlink(missing_ok=True)
-        except Exception:
-            pass
-
-
-def _build_markdown_preview_images(input_path: Path) -> tuple[list[Image.Image], list[BuildDiagnostic]]:
-    """Vorschau für schlichtes Markdown: dieselbe HTML-Pipeline wie der Export."""
-    with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
-        temp_pdf_path = Path(tmp.name)
-    try:
-        build_plain_markdown(input_path, temp_pdf_path)
-        return _render_pdf_pages(temp_pdf_path), []
-    finally:
-        try:
-            temp_pdf_path.unlink(missing_ok=True)
-        except Exception:
-            pass
+        return rasterize_pdf(pdf_path), compile_diagnostics
 
 
 def _build_html_pipeline_preview_images(input_path: Path, build) -> tuple[list[Image.Image], list[BuildDiagnostic]]:
     """Vorschau für Pipelines mit eigener `build(input, output.pdf)`-Funktion.
 
-    Genutzt von den Schildern (`build_schild`) und vom Erwartungshorizont
+    Genutzt von schlichtem Markdown (`build_plain_markdown`), den Schildern
+    (`build_schild`) und dem Erwartungshorizont
     (`_build_expectation_horizon_preview_images`): Die Vorschau ist die gerasterte
     Export-PDF, damit Vorschau und PDF garantiert identisch sind.
 
@@ -176,16 +154,9 @@ def _build_html_pipeline_preview_images(input_path: Path, build) -> tuple[list[I
         input_path: Quelldatei.
         build: Callable ``(input_path, pdf_path) -> Path``, das die PDF schreibt.
     """
-    with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
-        temp_pdf_path = Path(tmp.name)
-    try:
-        build(input_path, temp_pdf_path)
-        return _render_pdf_pages(temp_pdf_path), []
-    finally:
-        try:
-            temp_pdf_path.unlink(missing_ok=True)
-        except Exception:
-            pass
+    with temp_pdf_path() as pdf_path:
+        build(input_path, pdf_path)
+        return rasterize_pdf(pdf_path), []
 
 
 def _build_expectation_horizon_preview_images(input_path: Path) -> tuple[list[Image.Image], list[BuildDiagnostic]]:
@@ -202,17 +173,6 @@ def _build_expectation_horizon_preview_images(input_path: Path) -> tuple[list[Im
         lambda source, pdf_path: build_expectation_horizon(source, pdf_path, diagnostics_out=diagnostics),
     )
     return pages, diagnostics
-
-
-def _render_pdf_pages(pdf_path: Path) -> list[Image.Image]:
-    """Rastert alle Seiten einer PDF-Datei mit 150 dpi."""
-    pages: list[Image.Image] = []
-    with fitz.open(pdf_path) as doc:
-        for page_index in range(len(doc)):
-            page = doc.load_page(page_index)
-            pix = page.get_pixmap(dpi=150, alpha=False)
-            pages.append(Image.frombytes("RGB", (pix.width, pix.height), pix.samples))
-    return pages
 
 
 def _build_kurzentwurf_preview_images(

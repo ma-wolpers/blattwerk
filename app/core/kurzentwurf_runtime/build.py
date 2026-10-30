@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import tempfile
 from pathlib import Path
 
 from PIL import Image
@@ -10,6 +9,7 @@ try:
 except Exception:  # pragma: no cover - environment-dependent optional import
     fitz = None
 
+from ..pdf_raster import KURZENTWURF_PREVIEW_DPI, rasterize_pdf, temp_pdf_path
 from .model import Diagnostic, InspectionResult
 from .column_widths import resolve_column_width_percentages
 from .pdf_export import write_pdf_from_html
@@ -127,7 +127,7 @@ def build_preview_images(
     phase_row_spacing_px: int = DEFAULT_PHASE_ROW_SPACING_PX,
     s_marker_label: str = DEFAULT_S_MARKER_LABEL,
     ant_marker_label: str = DEFAULT_ANT_MARKER_LABEL,
-    dpi: int = 145,
+    dpi: int = KURZENTWURF_PREVIEW_DPI,
 ) -> tuple[list[Image.Image], InspectionResult]:
     """Build preview pages as PIL images from source text."""
 
@@ -157,21 +157,6 @@ def build_preview_images(
         )
         return [], InspectionResult(document=inspection.document, diagnostics=tuple(diagnostics))
 
-    with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp_pdf:
-        temp_pdf_path = Path(tmp_pdf.name)
-
-    try:
-        write_pdf_from_html(html, temp_pdf_path)
-        pages: list[Image.Image] = []
-        with fitz.open(temp_pdf_path) as pdf_doc:
-            for page_index in range(pdf_doc.page_count):
-                page = pdf_doc.load_page(page_index)
-                pixmap = page.get_pixmap(dpi=dpi, alpha=False)
-                image = Image.frombytes("RGB", (pixmap.width, pixmap.height), pixmap.samples)
-                pages.append(image)
-        return pages, inspection
-    finally:
-        try:
-            temp_pdf_path.unlink(missing_ok=True)
-        except Exception:
-            pass
+    with temp_pdf_path() as pdf_path:
+        write_pdf_from_html(html, pdf_path)
+        return rasterize_pdf(pdf_path, dpi), inspection
