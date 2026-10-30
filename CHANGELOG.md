@@ -6,6 +6,10 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Changed
+- **Vorschau und PDF-Export sind viel schneller:** Ein Arbeitsblatt mit fünf Seiten braucht rund 1 Sekunde statt 6, mit Operatorenliste oder Lernhilfen-Anhang rund 1,7 Sekunden statt 10 bis 12. Bisher wurde bei jedem Druck die Formel-Darstellung aus dem Internet geladen, auch ohne Formel im Dokument.
+- **Formeln brauchen für Vorschau und PDF kein Internet mehr:** Blattwerk bringt die Formel-Darstellung (MathJax) jetzt mit. Bisher blieben Formeln ohne Internet roher Text. Eine exportierte HTML-Datei lädt sie weiterhin beim Öffnen aus dem Internet.
+
 ### Added
 - **Auskommentieren mit `%`:** Ist im Schreibbereich Text markiert, kommentiert ein Druck auf `%` ihn als `%%…%%` aus, ein zweiter Druck wieder ein – wie `=` für Hervorhebungen. Bei mehreren markierten Zeilen wird jede Zeile einzeln umgeschaltet: bereits auskommentierte Zeilen werden wieder einkommentiert, die übrigen auskommentiert; Einrückung und Leerzeilen bleiben erhalten.
 - **Lernhilfen in Klausuren kosten Punkte:** Neuer Erwartungstyp „Lernhilfe“ (`Lh`) 🛟 für einen Abzug wie `3. Lernhilfe genutzt (−1P Lh)`; der Erwartungshorizont beschriftet ihn als „Abzug bei Nutzung der Lernhilfe“ statt „Abzug je Fehler“. Hat eine (Teil-)Aufgabe einer Klausur eine Lernhilfe, aber keinen solchen Abzug in ihrer Lösung, warnt `KL013`; `Lh` ohne Minuszeichen ergibt die Warnung `SL023`.

@@ -13,6 +13,7 @@ from html import escape
 from ..styles.blatt_styles import build_inline_font_css, build_stylesheet, resolve_printable_width_cm
 from .inline_markup.style_spans import collect_inline_style_fonts
 from .blatt_kern_layout_columns import render_body_with_columns
+from .mathjax_support import PROFILE_DOCUMENT, mathjax_head
 from .blatt_kern_shared import (
     annotate_standalone_subtasks,
     annotate_task_help_references,
@@ -294,23 +295,7 @@ def _render_presentation_html(
 <head>
 <meta charset=\"utf-8\">
 <title>{title_text}</title>
-<script>
-window.MathJax = {{
-    loader: {{
-        load: ['[tex]/boldsymbol']
-    }},
-    tex: {{
-        inlineMath: [['$', '$']],
-        displayMath: [['$$', '$$']],
-        processEscapes: true,
-        packages: {{'[+]': ['boldsymbol']}},
-    }},
-    svg: {{
-        fontCache: 'none'
-    }}
-}};
-</script>
-<script defer src=\"https://cdn.jsdelivr.net/npm/mathjax@4/tex-svg.js\" onerror=\"document.body.classList.add('mathjax-load-failed')\"></script>
+{mathjax_head(PROFILE_DOCUMENT)}
 <style>
 {stylesheet}
 </style>

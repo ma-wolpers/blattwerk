@@ -37,6 +37,7 @@ from .math_span_protection import convert_markdown_with_math
 from .points_model import build_points_model, format_points, format_signed_points, subtask_effective
 from .solution_items import collect_solution_targets
 from .expectation_kinds import EXPECTATION_KINDS, deduction_label_for, kind_by_key
+from .mathjax_support import PROFILE_PLAIN, mathjax_head
 from .points_suffix import path_label
 from .student_header import HEADER_DATE_KIND, InvalidHeaderValue, resolve_header_value
 
@@ -106,8 +107,7 @@ def build_expectation_horizon_html(text: str) -> tuple[str, list[BuildDiagnostic
     html = (
         "<!DOCTYPE html>\n<html lang=\"de\">\n<head>\n<meta charset=\"utf-8\">\n"
         f"<title>Erwartungshorizont – {title}</title>\n"
-        "<script>window.MathJax={tex:{inlineMath:[['$','$']],displayMath:[['$$','$$']]},svg:{fontCache:'none'}};</script>\n"
-        "<script defer src=\"https://cdn.jsdelivr.net/npm/mathjax@4/tex-svg.js\"></script>\n"
+        f"{mathjax_head(PROFILE_PLAIN)}\n"
         f"<style>{_STYLE}</style>\n</head>\n<body>\n" + "\n".join(body) + "\n</body>\n</html>\n"
     )
     return html, diagnostics

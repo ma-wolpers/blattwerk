@@ -18,22 +18,11 @@ from __future__ import annotations
 
 import re
 
+from ..mathjax_support import PROFILE_KURZENTWURF, mathjax_head
 from .model import Diagnostic
 from .region import KURZENTWURF_DOCUMENT_REGION_ID
 
-MATHJAX_INLINE_HEAD_HTML = """<script>
-    window.MathJax = {
-        loader: { load: ['[tex]/boldsymbol'] },
-        tex: {
-            inlineMath: [['$$', '$$'], ['$', '$']],
-            displayMath: [],
-            processEscapes: true,
-            packages: {'[+]': ['boldsymbol']},
-        },
-        svg: { fontCache: 'none' }
-    };
-    </script>
-    <script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-svg.js" onerror="document.body.classList.add('mathjax-load-failed')"></script>"""
+MATHJAX_INLINE_HEAD_HTML = mathjax_head(PROFILE_KURZENTWURF)
 """HTML-Schnipsel für den `<head>` des Kurzentwurfs (MathJax, `$$...$$` und `$...$` inline)."""
 
 _DOUBLE_DOLLAR_MATH_RE = re.compile(r"\$\$(.+?)\$\$")
@@ -55,9 +44,9 @@ def collect_math_diagnostics(source: str) -> list[Diagnostic]:
 
     - `KZF160` (warning, höchstens einmal pro Dokument, an der ersten
       Fundstelle): der Kurzentwurf enthält Formeln (`$...$` oder
-      `$$...$$`); MathJax wird von einem CDN geladen, bei Vorschau/Export
-      ist daher eine Internetverbindung nötig -- analog `MJ001` bei
-      Arbeitsblättern.
+      `$$...$$`); eine exportierte HTML-Datei lädt MathJax beim Öffnen von
+      einem CDN (Vorschau und PDF nutzen das mitgelieferte Paket) -- analog
+      `MJ001` bei Arbeitsblättern.
     - `KZF161` (warning, pro `$$...$$`-Formel): rein informativ -- die
       Formel wird korrekt gesetzt, aber im Fließtext statt (wie im
       Arbeitsblatt gewohnt) als eigene, zentrierte Formelzeile. Ankert am
@@ -93,9 +82,9 @@ def collect_math_diagnostics(source: str) -> list[Diagnostic]:
                 code="KZF160",
                 severity="warning",
                 message=(
-                    "Enthaelt Formel-Syntax ($...$). Die Darstellung laedt MathJax von einem CDN "
-                    "und benoetigt daher beim PDF-Export/der Vorschau eine Internetverbindung; "
-                    "ohne Internet bleibt die rohe Formel-Quelle als Text sichtbar."
+                    "Enthaelt Formel-Syntax ($...$). Vorschau und PDF setzen Formeln auch ohne "
+                    "Internet. Eine exportierte HTML-Datei laedt MathJax beim Oeffnen von einem CDN; "
+                    "ohne Internet zeigt sie die rohe Formel-Quelle als Text."
                 ),
                 line=first_math_line,
                 region_id=KURZENTWURF_DOCUMENT_REGION_ID,

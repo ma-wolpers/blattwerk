@@ -6,6 +6,7 @@ from .document_font import resolve_document_font_profile
 from html import escape
 
 from ..styles.blatt_styles import build_stylesheet
+from .mathjax_support import PROFILE_DOCUMENT, mathjax_head
 from .blatt_kern_shared import (
     HELP_BLOCK_TYPES,
     _new_markdown_converter,
@@ -337,19 +338,7 @@ def render_help_cards_html(
 <head>
 <meta charset="utf-8">
 <title>{title_value} – Hilfekarten</title>
-<script>
-window.MathJax = {{
-    tex: {{
-        inlineMath: [['$', '$']],
-        displayMath: [['$$', '$$']],
-        processEscapes: true,
-    }},
-    svg: {{
-        fontCache: 'none'
-    }}
-}};
-</script>
-<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" onerror="document.body.classList.add('mathjax-load-failed')"></script>
+{mathjax_head(PROFILE_DOCUMENT)}
 <style>
 {stylesheet}
 

@@ -266,11 +266,10 @@ def _validate_block_type_specifics(
             BuildDiagnostic(
                 code="MJ001",
                 message=(
-                    "Enthaelt Formel-Syntax ($...$/$$...$$). Die Darstellung "
-                    "laedt MathJax von einem CDN und benoetigt daher beim "
-                    "PDF-/HTML-Export eine Internetverbindung; ohne Internet "
-                    "bleibt die rohe Formel-Quelle als lesbarer Text sichtbar, "
-                    "wird aber nicht als Formel gerendert."
+                    "Enthaelt Formel-Syntax ($...$/$$...$$). Vorschau und PDF "
+                    "setzen Formeln auch ohne Internet. Eine exportierte HTML-Datei "
+                    "laedt MathJax beim Oeffnen von einem CDN; ohne Internet zeigt "
+                    "sie die rohe Formel-Quelle als lesbaren Text."
                 ),
                 block_index=index,
                 block_type=block_type,

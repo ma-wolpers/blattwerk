@@ -33,6 +33,7 @@ from .export_path_guardrails import validate_export_output_path
 from .frontmatter import frontmatter_bounds, load_frontmatter_yaml
 from .markdown_factory import new_markdown
 from .math_span_protection import convert_markdown_with_math
+from .mathjax_support import PROFILE_PLAIN, mathjax_head
 
 PLAIN_MARKDOWN_EXTENSIONS = ("tables", "fenced_code", "sane_lists")
 
@@ -46,15 +47,6 @@ pre { background: #f4f4f4; padding: 0.6em; overflow-x: auto; }
 code { font-family: Consolas, "Courier New", monospace; }
 img { max-width: 100%; }
 """
-
-_MATHJAX_HEAD = """<script>
-window.MathJax = {
-    tex: { inlineMath: [['$', '$']], displayMath: [['$$', '$$']], processEscapes: true },
-    svg: { fontCache: 'none' }
-};
-</script>
-<script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-svg.js"></script>"""
-
 
 def split_plain_markdown(text: str) -> tuple[dict, str]:
     """Trennt Frontmatter (nicht gerendert) und Markdown-Rumpf.
@@ -83,7 +75,7 @@ def render_plain_markdown_html(text: str) -> str:
     heading = f"<h1>{escape(title)}</h1>\n" if title else ""
     return (
         "<!DOCTYPE html>\n<html lang=\"de\">\n<head>\n<meta charset=\"utf-8\">\n"
-        f"<title>{escape(title or 'Dokument')}</title>\n{_MATHJAX_HEAD}\n"
+        f"<title>{escape(title or 'Dokument')}</title>\n{mathjax_head(PROFILE_PLAIN)}\n"
         f"<style>{_STYLESHEET}</style>\n</head>\n<body>\n{heading}{body_html}\n</body>\n</html>\n"
     )
 

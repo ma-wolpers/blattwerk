@@ -54,6 +54,7 @@ from .evaluation_table import annotate_evaluation_blocks
 from .student_header import render_student_header
 from .exam_part_render import annotate_exam_parts, attach_part_headers, document_header_owner, tag_student_header
 from .document_type_registry import has_slide_layout
+from .mathjax_support import PROFILE_DOCUMENT, mathjax_head
 
 
 def render_html(
@@ -207,23 +208,7 @@ def render_html(
 <head>
 <meta charset="utf-8">
 <title>{meta.get("Titel", "Arbeitsblatt")}</title>
-<script>
-window.MathJax = {{
-    loader: {{
-        load: ['[tex]/boldsymbol']
-    }},
-    tex: {{
-        inlineMath: [['$', '$']],
-        displayMath: [['$$', '$$']],
-        processEscapes: true,
-        packages: {{'[+]': ['boldsymbol']}},
-    }},
-    svg: {{
-        fontCache: 'none'
-    }}
-}};
-</script>
-<script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-svg.js" onerror="document.body.classList.add('mathjax-load-failed')"></script>
+{mathjax_head(PROFILE_DOCUMENT)}
 <style>
 {stylesheet}
 </style>

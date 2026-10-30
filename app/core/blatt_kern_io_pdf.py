@@ -17,6 +17,7 @@ from urllib.request import url2pathname
 from .pdf_running_elements import (  # noqa: F401 -- re-exportiert (wiring.py)
     annotate_pdf_running_elements,
 )
+from .mathjax_support import prepare_html_for_print
 from .render_job import stage
 from .render_stages import STAGE_PRINT
 
@@ -174,7 +175,7 @@ def write_pdf_from_html(html, out_pdf_path):
 
     with stage(STAGE_PRINT), tempfile.TemporaryDirectory() as temp_dir_name:
         temp_dir = Path(temp_dir_name)
-        html_with_fallbacks = _rewrite_heic_sources_for_browser_pdf(html, temp_dir)
+        html_with_fallbacks = _rewrite_heic_sources_for_browser_pdf(prepare_html_for_print(html), temp_dir)
         temp_html_path = temp_dir / "blattwerk-render.html"
         temp_html_path.write_text(html_with_fallbacks, encoding="utf-8")
 

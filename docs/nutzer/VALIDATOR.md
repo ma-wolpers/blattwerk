@@ -170,7 +170,7 @@ Subprozess siehe `tests/test_blatt_diagnostics_cli.py` (Validator) sowie
 - `PPTX003`: Die editierbare PPTX nutzt mitgelieferte Schriften, die PowerPoint nur anzeigt, wenn sie installiert sind; die Meldung nennt die Ersatzschrift (Warnung).
 - `IM003`: Worterklaerung steht im gerenderten PDF nicht (vollstaendig) in der rechten Randspalte -- entweder weil sie in einer Tabellenzelle oder in einer nicht-letzten Spalte steht, oder weil sie nicht mehr auf die Seite ihres Absatzes passt und im Rand der Folgeseite weiterlaeuft (Warnung, nur nach dem PDF-Export messbar; Best-Effort-Pruefung).
 - `MA001`: `matching`-Block mit nur einem Element auf einer Seite (1↔N) -- didaktisch nicht sinnvoll (Warnung).
-- `MJ001`: Block-Inhalt enthaelt `$...$`/`$$...$$`-Formel-Syntax -- die Darstellung laedt MathJax von einem CDN und benoetigt daher beim Export eine Internetverbindung; ohne Internet bleibt die rohe Formel-Quelle als Text sichtbar, wird aber nicht gerendert (Warnung, blocktyp-unabhaengig).
+- `MJ001`: Block-Inhalt enthaelt `$...$`/`$$...$$`-Formel-Syntax -- Vorschau und PDF setzen Formeln auch ohne Internet; eine exportierte HTML-Datei laedt MathJax beim Oeffnen von einem CDN und zeigt ohne Internet die rohe Formel-Quelle als Text (Warnung, blocktyp-unabhaengig).
 - `PT001`: Absolute lokale Bildpfade in Markdown/HTML-Bildquellen gefunden (Portabilitätswarnung).
 - `PT002`: Gerenderte PDF-Seitenzahl groesser als erwartete Folienzahl -- Hinweis auf vertikalen Folien-Overflow (Warnung).
 - `QR001`: `qrcode`-Block ohne Pflichtoption `url`.
@@ -213,7 +213,7 @@ in `app/core/kurzentwurf_runtime/validator.py`. Ein Dokument mit mindestens eine
 - `KZF152` (warning): `s<` ohne ein folgendes `ant<` -- Antizipation fehlt.
 - `KZF153` (error): `ant>` ist kein gueltiger Marker (kein Alias von `ant<`) -- `ant<` verwenden.
 - `KZF154` (warning): `ant<` steht ausserhalb eines `A>`-Blocks -- vor dem ersten `s<` des Segments oder hinter `S>`-/`U>`-Inhalt bzw. einem `|`-Spaltenwechsel. Antizipationen gehoeren direkt hinter das zugehoerige `s<`; ein erneutes `A>` macht die Lernaktivitaeten wieder zur aktiven Spalte. Gerendert wird die Antizipation trotzdem (unter den Lernaktivitaeten).
-- `KZF160` (warning): Dokument enthaelt `$...$`/`$$...$$`-Formel-Syntax -- die Darstellung laedt MathJax von einem CDN und benoetigt daher bei Vorschau/PDF-Export eine Internetverbindung; ohne Internet bleibt die rohe Formel-Quelle als Text sichtbar (einmal pro Dokument, an der ersten Fundstelle; Gegenstueck zu `MJ001`).
+- `KZF160` (warning): Dokument enthaelt `$...$`/`$$...$$`-Formel-Syntax -- Vorschau und PDF setzen Formeln auch ohne Internet; eine exportierte HTML-Datei laedt MathJax beim Oeffnen von einem CDN und zeigt ohne Internet die rohe Formel-Quelle als Text (einmal pro Dokument, an der ersten Fundstelle; Gegenstueck zu `MJ001`).
 - `KZF161` (warning): Hinweis pro `$$...$$`-Formel -- sie wird korrekt gesetzt, im Kurzentwurf aber im Fliesstext (wie `$...$`) statt als eigene, zentrierte Formelzeile.
 - `KZF200` (error): PyMuPDF ist nicht verfuegbar -- PDF-Vorschau kann nicht gerendert werden.
 - `KZF220` (error): Dokument enthaelt keine renderbaren Phasen/Zeilen.

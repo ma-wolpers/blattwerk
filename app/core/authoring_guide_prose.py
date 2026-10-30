@@ -221,9 +221,9 @@ PROSE_SECTIONS: dict[str, str] = {
     "markdown:math_formulas": (
         "Überall, wo `**fett**`/`*kursiv*` funktioniert, funktioniert auch `$formel$` (Inline) und "
         "`$$formel$$` (freistehend) für mathematische Formeln (LaTeX-Syntax, z. B. `$\\frac{a}{b}$`, "
-        "`$x_i$`). Die Darstellung laedt MathJax von einem CDN nach; ohne Internetverbindung beim "
-        "PDF-/HTML-Export bleibt die rohe Formel-Quelle als lesbarer Text sichtbar, wird aber nicht "
-        "als Formel gerendert -- der Editor warnt in diesem Fall nicht-blockierend (`MJ001`). Ein "
+        "`$x_i$`). Vorschau und PDF setzen Formeln auch ohne Internet. Eine exportierte HTML-Datei "
+        "laedt MathJax beim Oeffnen von einem CDN nach; ohne Internet zeigt sie die rohe Formel-Quelle "
+        "als lesbaren Text -- der Editor weist nicht-blockierend darauf hin (`MJ001`). Ein "
         "einzelnes, nicht als Formel gemeintes `$`-Zeichen (z. B. `$5`) wird nicht faelschlich als "
         "Formelbeginn erkannt, solange kein passendes zweites `$` unmittelbar danach folgt. "
         "`**$formel$**`/`**$$formel$$**` setzt die Formel selbst fett (nicht nur Text drumherum) -- "
@@ -351,9 +351,9 @@ PROSE_SECTIONS: dict[str, str] = {
         "`$\\frac{a}{b}$`, `$x^2$`) wie im Arbeitsblatt. `$$formel$$` ist ebenfalls erlaubt, wird im "
         "Kurzentwurf aber genauso **im Fließtext** gesetzt wie `$formel$` (keine eigene, zentrierte "
         "Formelzeile -- dafür sind die Tabellenzellen zu schmal; der Editor weist mit dem abhakbaren "
-        "Hinweis `KZF161` darauf hin). Die Darstellung lädt MathJax von "
-        "einem CDN nach; ohne Internetverbindung bei Vorschau/PDF-Export bleibt die rohe "
-        "Formel-Quelle als Text sichtbar -- der Editor weist einmal pro Dokument darauf hin "
+        "Hinweis `KZF161` darauf hin). Vorschau und PDF setzen Formeln auch ohne Internet. Eine "
+        "exportierte HTML-Datei lädt MathJax beim Öffnen von einem CDN nach; ohne Internet zeigt "
+        "sie die rohe Formel-Quelle als Text -- der Editor weist einmal pro Dokument darauf hin "
         "(`KZF160`). Ein einzelnes `$` wie in `$5` wird nicht als Formelbeginn erkannt."
     ),
     "kurzentwurf:marker:ant>": (

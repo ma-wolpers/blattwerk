@@ -69,7 +69,7 @@ def test_ant_block_keeps_blank_line_as_paragraph_boundary():
 
 def test_inline_math_loads_mathjax_without_display_math():
     html, inspection = render_html_from_source(_document("S> $x^2$\nA>\ns< a\nant< b\nU> u"))
-    assert "mathjax@4/tex-svg.js" in html
+    assert "/tex-svg.js" in html
     assert "displayMath: []" in html
     assert "$x^2$" in _cell(html, "schritte-cell")
     assert [d.code for d in inspection.diagnostics] == ["KZF160"]
