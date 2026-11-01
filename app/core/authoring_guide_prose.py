@@ -194,7 +194,8 @@ PROSE_SECTIONS: dict[str, str] = {
         "je Teil. Aufgaben vor dem ersten Bereich (ohne `--hm`) bilden den Pflichtteil (ohne Überschrift). "
         "Fehler blockieren den Export: `--w` ohne offenen Bereich (`KL008`), `--w[k]` in einem offenen "
         "Bereich (`KL009`), ungültiges k (`KL010`), ungleiche Punkte (`KL011`), `--w` außerhalb von "
-        "Klausuren (`KL012`); jeder Wahlteil braucht eine Aufgabe (`KL004`)."
+        "Klausuren (`KL012`); jeder Wahlteil braucht eine Aufgabe (`KL004`). Ein Wahlteil ohne Titel "
+        "ergibt nur eine Warnung (`KL014`)."
     ),
     "marker:sectionmark": (
         "`--# Abschnittsname` setzt den aktuellen Abschnittsnamen für die Footer-Navigation in "

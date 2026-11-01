@@ -128,6 +128,14 @@ def test_structural_errors_block_the_build(body, code):
     assert has_blocking_diagnostics(diagnostics)
 
 
+def test_missing_title_warns_without_blocking():
+    body = _task(1) + "--w[1]\n" + _task(1) + "--w Y\n" + _task(1)
+    diagnostics = _diagnostics(body)
+    assert [(d.code, d.severity) for d in diagnostics if d.code == "KL014"] == [("KL014", "warning")]
+    assert "Wahlteil 1 " in next(d.message for d in diagnostics if d.code == "KL014")
+    assert not any(d.severity == "error" for d in diagnostics)
+
+
 def test_choice_marker_outside_exam_is_an_error():
     body = _task(1) + "--w[1] X\n" + _task(1) + "--w Y\n" + _task(1)
     diagnostics = _diagnostics(body, "worksheet")

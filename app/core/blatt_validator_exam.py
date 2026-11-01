@@ -1,4 +1,4 @@
-"""Klausur-Diagnosen: Teil-Trenner `--hm`/`--w` und AFB (KL001–KL012).
+"""Klausur-Diagnosen: Teil-Trenner `--hm`/`--w` und AFB (KL001–KL012, KL014).
 
 Die Struktur der Teile (und jedes Strukturproblem) kommt allein aus
 `exam_parts.resolve_exam_parts`, die Blatt-Logik der AFB aus
@@ -15,7 +15,7 @@ from decimal import Decimal
 from .blatt_validator_region import compute_block_region_id
 from .blatt_validator_types import BuildDiagnostic
 from .exam_analysis import iter_scored_leaves, parse_afb
-from .exam_parts import PART_SPLIT_BLOCKS, resolve_exam_parts
+from .exam_parts import PART_KIND_CHOICE, PART_SPLIT_BLOCKS, resolve_exam_parts
 from .points_model import STATUS_OK, build_points_model, format_points
 
 _PART_PROBLEMS = {
@@ -58,6 +58,7 @@ def validate_exam(blocks, document_type: str = "worksheet") -> list[BuildDiagnos
     units = build_points_model(blocks)
     if resolution.layout is not None:
         diagnostics.extend(_unequal_choice_points(resolution.layout, units, blocks))
+        diagnostics.extend(_untitled_choice_parts(resolution.layout, blocks))
     for _unit, leaf, _reason in iter_scored_leaves(units):
         if leaf is not None and leaf.afb is None:
             diagnostics.append(_diag("KL003", f"{leaf.label}: Anforderungsbereich fehlt (`afb=1|2|3`).", blocks, leaf.block_index))
@@ -71,6 +72,15 @@ def validate_exam(blocks, document_type: str = "worksheet") -> list[BuildDiagnos
                     blocks, sub.block_index,
                 ))
     return diagnostics
+
+
+def _untitled_choice_parts(layout, blocks) -> list[BuildDiagnostic]:
+    """`KL014`: Jeder Wahlteil soll einen Titel tragen (Warnung, der Export läuft trotzdem)."""
+    return [
+        _diag("KL014", f"{part.label} hat keinen Titel (`--w Titel`); die Überschrift zeigt dann nur die Nummer.", blocks, part.marker_block)
+        for part in layout.parts
+        if part.kind == PART_KIND_CHOICE and not str(blocks[part.marker_block][1].get("title") or "").strip()
+    ]
 
 
 def _unequal_choice_points(layout, units, blocks) -> list[BuildDiagnostic]:
