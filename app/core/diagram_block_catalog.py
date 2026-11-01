@@ -45,6 +45,24 @@ DIAGRAM_BLOCKS: tuple[DiagramBlockSpec, ...] = (
         keywords=_STRUCTOGRAM_KEYWORDS,
         options=(BlockOptionSpec("signature", "text", None, False, MISSING),),
     ),
+    DiagramBlockSpec(
+        name="classdiagram",
+        title="Klassendiagramm",
+        module="diagram_class",
+        snippet=(
+            ":::classdiagram\n"
+            "klasse Person\n"
+            "    - name: Zeichenkette\n"
+            "    c Person()\n"
+            "    + getName(): Zeichenkette\n"
+            "klasse Schueler\n"
+            "    - jahrgang: Ganzzahl\n"
+            "Schueler -|> Person\x01\n"
+            ":::\n"
+        ),
+        empty_code="CD001",
+        keywords=("klasse", "objekt"),
+    ),
 )
 
 DIAGRAM_BLOCKS_BY_NAME = {spec.name: spec for spec in DIAGRAM_BLOCKS}

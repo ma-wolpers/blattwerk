@@ -4,6 +4,17 @@
 from __future__ import annotations
 
 DIAGRAM_PROSE_SECTIONS: dict[str, str] = {
+    "block:classdiagram": (
+        "Klassendiagramm und Objektkarten in der Gestalt der zentralen Prüfungsaufgaben (Ergänzende "
+        "Hinweise zur GO Informatik, S. 7). `klasse Name` beginnt eine Klasse, die eingerückten Zeilen "
+        "darunter sind ihre Attribute und Operationen: `- id: Ganzzahl`, `+ getName(): Zeichenkette`, "
+        "`c Person()` für Konstruktoren, `...` für nicht aufgeführte Mitglieder. Zeilen mit Klammern oder "
+        "`c` zählen als Operationen. Beziehungen stehen in kurzen Zeilen: `Schueler -|> Person` für "
+        "Vererbung (der Pfeil zeigt zur Oberklasse), `Person - Adresse` für eine Assoziation, auch "
+        "`Person - Person`. `objekt p42 : Person` beginnt eine Objektkarte mit eingerückten Belegungen "
+        "wie `id = 123`. Die Anordnung entsteht automatisch. Lücken: `%` nach der Einrückung blendet eine "
+        "Zeile im Arbeitsblatt aus, der Platz bleibt erhalten; `%{…}` wirkt auf Teiltexte."
+    ),
     "block:structogram": (
         "Struktogramm in der Gestalt der zentralen Prüfungsaufgaben (Ergänzende Hinweise zur GO "
         "Informatik, S. 5-6). Eine Zeile ist ein Element, die Einrückung (4 Leerzeichen oder Tab) "

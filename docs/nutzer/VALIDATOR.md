@@ -183,6 +183,8 @@ Subprozess siehe `tests/test_blatt_diagnostics_cli.py` (Validator) sowie
 - `SG021`: `rückgabe` im Struktogramm, aber die Signatur hat keinen Rueckgabetyp (Fehler).
 - `SG022`: Signatur mit Rueckgabetyp, aber nicht jeder Ablauf endet mit `rückgabe` (Warnung). Verzweigung zaehlt nur mit Rueckgabe in beiden Zweigen, Auswahl nur mit `sonst`, kopfgesteuerte Schleifen nie (koennen 0-mal laufen), fussgesteuerte ueber ihren Rumpf. Steht `gib … zurück` woertlich als Anweisung da, nennt die Meldung `rückgabe …` als Schreibweise.
 - `SG023`: Ein Parameter der Signatur kommt im Struktogramm nicht als Wort vor (Warnung).
+- `CD001`-`CD007` (`classdiagram`): `CD001` leerer Block (Warnung); `CD002` Zeile passt nicht zur Syntax, `CD003` eingerückte Zeile ohne Klasse, `CD004` doppelter Name (Fehler); `CD005` Klasse nur in einer Beziehung, `CD006` fehlende Sichtbarkeit, `CD007` beschriftete Assoziation (Warnungen, GO S. 7).
+<!-- diagramm-codes -->
 - `SC001`: `selfcheck`-Block: `steps=` liegt ausserhalb des gueltigen Bereichs (2-7) oder ausserhalb der fuer die gewaehlte `scale=` kuratierten Werte (z. B. `smiley` nur bei `steps=3`/`5`) -- wird begrenzt bzw. faellt auf nummerierte Kreise zurueck, reiner Hinweis (Warnung).
 
 ## Kurzentwurf-DSL (KZF)

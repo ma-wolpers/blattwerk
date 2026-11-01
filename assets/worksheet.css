@@ -2008,6 +2008,90 @@ h1 {
     margin-bottom: 0;
 }
 
+/* Diagrammblöcke (diagram_svg.py): Linien und Text in Textfarbe, keine Bedeutungsfarben,
+   damit das Schwarz-Weiß-Profil ohne Sonderfall gilt. */
+
+.diagram {
+    --diagram-paper: var(--diagram-background, white);
+    box-sizing: border-box;
+    max-width: 100%;
+    margin-bottom: 0.45em;
+    break-inside: avoid-page;
+    /* `align=center` zentriert nur den Block, nicht den Text darin. */
+    text-align: left;
+}
+
+.diagram-svg {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    overflow: visible;
+}
+
+.diagram-svg foreignObject {
+    overflow: visible;
+}
+
+.diagram-line {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1;
+}
+
+.diagram-dashed {
+    stroke-dasharray: 5 4;
+}
+
+.diagram-shape {
+    fill: var(--diagram-paper);
+    stroke: currentColor;
+    stroke-width: 1;
+}
+
+.diagram-solid {
+    fill: currentColor;
+    stroke: currentColor;
+    stroke-width: 1;
+}
+
+.diagram-label {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    font-size: 13px;
+    line-height: 17px;
+    white-space: nowrap;
+}
+
+.diagram-center {
+    justify-content: center;
+    text-align: center;
+}
+
+.diagram-left {
+    justify-content: flex-start;
+    text-align: left;
+}
+
+.diagram-right {
+    justify-content: flex-end;
+    text-align: right;
+}
+
+.diagram-wrap {
+    white-space: normal;
+}
+
+.diagram-bold {
+    font-weight: bold;
+}
+
+/* Lücke auf einer Kante oder an einem Knoten: Die Stelle bleibt erkennbar, der Text
+   hält unsichtbar den Platz. */
+.diagram-gap > span {
+    border-bottom: 1px dashed currentColor;
+}
+
 /* Struktogramm (:::structogram) -- Gestalt nach GO
    Informatik S. 5-6: dünne Linien in Textfarbe, keine Füllung. Struktur
    und Rationale siehe answer_special_struktogramm.py. */

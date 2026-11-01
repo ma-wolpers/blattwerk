@@ -145,6 +145,31 @@ Wahlteil-Trenner einer Klausur -- siehe Control-Marker `--w[k] Titel`.
 | `k` | Text | -- | nein | -- | Anzahl der zu bearbeitenden Wahlteile, als `[k]` direkt hinter `--w` am ersten Wahlteil eines Bereichs (z. B. `--w[1] Analysis`). |
 | `title` | Text | -- | nein | -- | Überschreibt die automatisch erzeugte Standardbeschriftung des Blocks mit einem eigenen Text. |
 
+### `classdiagram`
+
+Klassendiagramm und Objektkarten in der Gestalt der zentralen Prüfungsaufgaben (Ergänzende Hinweise zur GO Informatik, S. 7). `klasse Name` beginnt eine Klasse, die eingerückten Zeilen darunter sind ihre Attribute und Operationen: `- id: Ganzzahl`, `+ getName(): Zeichenkette`, `c Person()` für Konstruktoren, `...` für nicht aufgeführte Mitglieder. Zeilen mit Klammern oder `c` zählen als Operationen. Beziehungen stehen in kurzen Zeilen: `Schueler -|> Person` für Vererbung (der Pfeil zeigt zur Oberklasse), `Person - Adresse` für eine Assoziation, auch `Person - Person`. `objekt p42 : Person` beginnt eine Objektkarte mit eingerückten Belegungen wie `id = 123`. Die Anordnung entsteht automatisch. Lücken: `%` nach der Einrückung blendet eine Zeile im Arbeitsblatt aus, der Platz bleibt erhalten; `%{…}` wirkt auf Teiltexte.
+
+| Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
+|---|---|---|---|---|---|
+| `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
+| `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
+| `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
+| `width` | CSS-Länge | -- | nein | `100%` | Breite des Blocks als CSS-Länge (`70%`, `12cm`, ...); Standard ist die volle Zeilenbreite. |
+
+**Beispiel** (identisch mit dem Menü "Einfügen" (Alt+I) im Editor):
+
+```markdown
+:::classdiagram
+klasse Person
+    - name: Zeichenkette
+    c Person()
+    + getName(): Zeichenkette
+klasse Schueler
+    - jahrgang: Ganzzahl
+Schueler -|> Person
+:::
+```
+
 ### `cloze`
 
 Lückentext-Antwortfeld. `gap`/`gap_length` steuert den Lückenmodus/-länge, `words`/`words_multi` die Wortbank-Optionen, `layout` das Layout der Wortbank-Position.
