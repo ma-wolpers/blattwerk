@@ -109,3 +109,20 @@ def curve_points(start, end, bend: float) -> tuple[tuple[float, float], tuple[fl
     control = (mid_x + normal_x * bend * 2, mid_y + normal_y * bend * 2)
     apex = (mid_x + normal_x * bend, mid_y + normal_y * bend)
     return control, apex
+
+
+def edge_label_center(start, end, middle, width: float, height: float) -> tuple[float, float]:
+    """Mittelpunkt einer Beschriftung neben einer Kante, oberhalb oder rechts davon.
+
+    Args:
+        start: Anfang der Kante.
+        end: Ende der Kante.
+        middle: Punkt auf der Kante, an dem die Beschriftung sitzt.
+        width: Breite der Beschriftung.
+        height: Höhe der Beschriftung.
+    """
+    length = math.hypot(end[0] - start[0], end[1] - start[1]) or 1.0
+    normal_x, normal_y = -(end[1] - start[1]) / length, (end[0] - start[0]) / length
+    if normal_y > 0 or (not normal_y and normal_x < 0):
+        normal_x, normal_y = -normal_x, -normal_y
+    return middle[0] + normal_x * (width / 2 + 3), middle[1] + normal_y * (height / 2 + 3)

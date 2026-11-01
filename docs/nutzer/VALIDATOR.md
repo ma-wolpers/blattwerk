@@ -186,6 +186,8 @@ Subprozess siehe `tests/test_blatt_diagnostics_cli.py` (Validator) sowie
 - `CD001`-`CD007` (`classdiagram`): `CD001` leerer Block (Warnung); `CD002` Zeile passt nicht zur Syntax, `CD003` eingerückte Zeile ohne Klasse, `CD004` doppelter Name (Fehler); `CD005` Klasse nur in einer Beziehung, `CD006` fehlende Sichtbarkeit, `CD007` beschriftete Assoziation (Warnungen, GO S. 7).
 - `ER001`-`ER007` (`erdiagram`): `ER001` leerer Block (Warnung); `ER002` Zeile passt nicht zur Syntax, `ER003` Attribut ohne Knoten, `ER004` doppelter Name (Fehler); `ER005` Entität nur in einer Beziehung, `ER006` kein Schlüsselattribut, `ER007` fehlende Kardinalität (Warnungen, GO S. 8).
 - `ST001`-`ST007` (`statediagram`): `ST001` leerer Block (Warnung); `ST002` Zeile passt nicht zur Syntax, `ST003` zweiter Startzustand (Fehler); `ST004` kein Startzustand, `ST005` DEA nicht deterministisch, `ST006` DEA unvollständig, `ST007` Beschriftung passt nicht zu `kind` (Warnungen, GO S. 12).
+- `GR001`-`GR006` (`graph`): `GR001` leerer Block (Warnung); `GR002` Einrückung, `GR003` Zeile passt nicht zur Syntax (Fehler); `GR004` mehr als zwei Kinder, `GR005` kein Binärbaum, `GR006` `layout=tree` ohne Baum (Warnungen).
+- `NW001`-`NW003` (`networkdiagram`): `NW001` leerer Block (Warnung); `NW002` Zeile passt nicht zur Syntax, `NW003` unbekanntes Symbol (Fehler).
 <!-- diagramm-codes -->
 - `SC001`: `selfcheck`-Block: `steps=` liegt ausserhalb des gueltigen Bereichs (2-7) oder ausserhalb der fuer die gewaehlte `scale=` kuratierten Werte (z. B. `smiley` nur bei `steps=3`/`5`) -- wird begrenzt bzw. faellt auf nummerierte Kreise zurueck, reiner Hinweis (Warnung).
 

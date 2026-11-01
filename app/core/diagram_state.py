@@ -22,7 +22,7 @@ from html import escape
 
 from .diagram_edges import parse_edge_line
 from .diagram_layout import layered_layout
-from .diagram_route import curve_points, ellipse_exit
+from .diagram_route import curve_points, edge_label_center, ellipse_exit
 from .diagram_svg import LINE_HEIGHT, Canvas, text_width
 from .diagram_text import Cell, ParseIssue, iter_source_lines, make_cell
 
@@ -198,18 +198,16 @@ def _draw_transition(canvas: Canvas, transition: Transition, centers, radii, ben
     if not transition.labels:
         return
     width, height = _stack_size(transition.labels)
-    length = math.hypot(end[0] - start[0], end[1] - start[1]) or 1.0
-    normal_x, normal_y = -(end[1] - start[1]) / length, (end[0] - start[0]) / length
     if bend:
-        normal_x, normal_y = (normal_x, normal_y) if bend > 0 else (-normal_x, -normal_y)
-    elif normal_y > 0 or (not normal_y and normal_x < 0):
-        normal_x, normal_y = -normal_x, -normal_y
-    _draw_stack(
-        canvas,
-        transition.labels,
-        middle[0] + normal_x * (width / 2 + 3),
-        middle[1] + normal_y * (height / 2 + 3),
-    )
+        length = math.hypot(end[0] - start[0], end[1] - start[1]) or 1.0
+        side = 1 if bend > 0 else -1
+        center = (
+            middle[0] - side * (end[1] - start[1]) / length * (width / 2 + 3),
+            middle[1] + side * (end[0] - start[0]) / length * (height / 2 + 3),
+        )
+    else:
+        center = edge_label_center(start, end, middle, width, height)
+    _draw_stack(canvas, transition.labels, *center)
 
 
 def _detour_bend(transition: Transition, centers, radii) -> float:

@@ -113,7 +113,7 @@ function shouldValidateDocument(document: vscode.TextDocument): boolean {
 
   const text = document.getText();
   const hasFrontmatter = text.startsWith("---\n") || text.startsWith("---\r\n");
-  const hasDirective = /(^|\n)\s*:::(material|info|task|subtask|lines|grid|geometry|dots|space|table|numberline|mc|cloze|matching|wordsearch|crossword|ordering|checkgrid|mindmap|structogram|selfcheck|writebox|solution|columns|nextcol|endcolumns|help|qrcode|pagebreak|framebreak|slidechromeoff|sectionmark|vspacer|aidsplit|choicesplit|evaluation|operators|classdiagram|erdiagram|statediagram)\b/m.test(text);
+  const hasDirective = /(^|\n)\s*:::(material|info|task|subtask|lines|grid|geometry|dots|space|table|numberline|mc|cloze|matching|wordsearch|crossword|ordering|checkgrid|mindmap|structogram|selfcheck|writebox|solution|columns|nextcol|endcolumns|help|qrcode|pagebreak|framebreak|slidechromeoff|sectionmark|vspacer|aidsplit|choicesplit|evaluation|operators|classdiagram|erdiagram|statediagram|graph|networkdiagram)\b/m.test(text);
   return hasFrontmatter || hasDirective;
 }
 

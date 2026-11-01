@@ -22,6 +22,8 @@ The format is based on Keep a Changelog.
 - **Keine veraltete Vorschau mehr:** Änderungen an eingebundenen Bildern (auch neu aufgetauchte), am Copyright-Text, an Metadaten-Vorgaben, an der CSS-Vorlage und an Operatorendaten werden jetzt erkannt.
 
 ### Added
+- **Neuer Blocktyp `:::networkdiagram`:** Netzwerkpläne mit einfachen Symbolen aus kurzen Zeilen wie `PC1 - Switch - Router`. Das Symbol ergibt sich aus dem Namen, `Tablet1: rechner` setzt es ausdrücklich.
+- **Neuer Blocktyp `:::graph`:** Graphen und Binärbäume aus kurzen Zeilen wie `A - B: 5` oder `A -> B`, mit automatischer Anordnung. Gewichte lassen sich mit `%{5}` zur Lücke machen. `layout=tree` oder `circle` legt die Anordnung fest, `binary=true` hält links und rechts im Binärbaum auseinander.
 - **Neuer Blocktyp `:::statediagram`:** Automaten in der Gestalt der GO Informatik (S. 12) aus einer kurzen Zeile pro Übergang, zum Beispiel `S0 -> S1: c`. Mit Startpfeil, Doppelkreis für Endzustände, Schleifen, Alphabetzeilen und Lücken. `kind=dfa`, `mealy` oder `pda` prüft die Notation.
 - **Neuer Blocktyp `:::erdiagram`:** ER-Diagramme in der Gestalt der GO Informatik (S. 8), mit automatischer Anordnung. Beziehungen stehen in kurzen Zeilen wie `Klasse 1 - gehoertZu - n Schueler`, Schlüsselattribute werden mit `__Name__` unterstrichen, auch rekursive Beziehungen und Attribute an Beziehungen gehen. Attribute und Kardinalitäten lassen sich zu Lücken machen.
 - **Neuer Blocktyp `:::classdiagram`:** Klassendiagramme und Objektkarten in der Gestalt der GO Informatik (S. 7), mit automatischer Anordnung. Eingerückte Zeilen sind Attribute und Operationen, Beziehungen stehen in kurzen Zeilen wie `Schueler -|> Person` und `Person - Adresse`. Einzelne Zeilen lassen sich mit `%` zur Lücke machen.

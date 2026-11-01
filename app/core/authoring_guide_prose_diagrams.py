@@ -4,6 +4,21 @@
 from __future__ import annotations
 
 DIAGRAM_PROSE_SECTIONS: dict[str, str] = {
+    "block:graph": (
+        "Graph oder Baum aus kurzen Zeilen, zum Beispiel für Graphalgorithmen: `A - B: 5` ist eine "
+        "ungerichtete Kante mit Gewicht, `A -> B: 5` eine gerichtete, `A` allein ein einzelner Knoten. Die "
+        "Anordnung entsteht automatisch, ein Baum wird als Baum gezeichnet. Lücken: `%{5}` beim Gewicht."
+    ),
+    "block:graph.layout": ("Anordnung: `auto` (Baum als Baum, sonst frei), `tree` oder `circle`."),
+    "block:graph.binary": (
+        "Liest die Kanten als Binärbaum: Die Kinder gelten in Zeilenreihenfolge als links und rechts, ein "
+        "einzelnes Kind ist das linke, `8 - _` lässt das linke Kind frei."
+    ),
+    "block:networkdiagram": (
+        "Netzwerkplan mit einfachen Symbolen aus kurzen Verbindungszeilen: `PC1 - Switch - Router`. Das "
+        "Symbol ergibt sich aus dem Namensanfang (`PC`, `Laptop`, `Switch`, `Router`, `Server`, `Internet`, "
+        "`Drucker`); `Tablet1: rechner` setzt es ausdrücklich."
+    ),
     "block:erdiagram": (
         "ER-Diagramm in der Gestalt der zentralen Prüfungsaufgaben (GO Informatik, S. 8). `entität Name` "
         "beginnt eine Entität, die eingerückten Zeilen sind ihre Attribute; `__Name__` unterstreicht ein "

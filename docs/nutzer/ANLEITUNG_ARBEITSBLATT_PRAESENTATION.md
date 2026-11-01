@@ -352,6 +352,29 @@ points:
 :::
 ```
 
+### `graph`
+
+Graph oder Baum aus kurzen Zeilen, zum Beispiel für Graphalgorithmen: `A - B: 5` ist eine ungerichtete Kante mit Gewicht, `A -> B: 5` eine gerichtete, `A` allein ein einzelner Knoten. Die Anordnung entsteht automatisch, ein Baum wird als Baum gezeichnet. Lücken: `%{5}` beim Gewicht.
+
+| Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
+|---|---|---|---|---|---|
+| `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
+| `binary` | Bool | -- | nein | `False` | Liest die Kanten als Binärbaum: Die Kinder gelten in Zeilenreihenfolge als links und rechts, ein einzelnes Kind ist das linke, `8 - _` lässt das linke Kind frei. |
+| `layout` | Enum | `auto`, `circle`, `tree` | nein | `auto` | Anordnung: `auto` (Baum als Baum, sonst frei), `tree` oder `circle`. |
+| `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
+| `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
+| `width` | CSS-Länge | -- | nein | `100%` | Breite des Blocks als CSS-Länge (`70%`, `12cm`, ...); Standard ist die volle Zeilenbreite. |
+
+**Beispiel** (identisch mit dem Menü "Einfügen" (Alt+I) im Editor):
+
+```markdown
+:::graph
+A - B: 5
+B - C: 2
+A - C: %{7}
+:::
+```
+
 ### `grid`
 
 Kästchen-/Schreibfeld mit einem Textraster. `rows`/`cols` setzen die Rastergröße (ohne `cols` wird die Spaltenzahl automatisch aus verfügbarer Breite und `scale` berechnet), `scale=<css-länge>` die Zellgröße (Standard `0.5cm`). `line=solid|dashed` steuert den Linienstil des Rasters. Marker-/Inline-Text wird wie bei `lines` nach Arbeitsblatt/Lösung gefiltert.
@@ -536,6 +559,26 @@ Offene Cluster-/Ideensammlung ohne feste Lösung: der Blockinhalt ist das zentra
 ```markdown
 :::mindmap branches=6 shape=oval
 Thema
+:::
+```
+
+### `networkdiagram`
+
+Netzwerkplan mit einfachen Symbolen aus kurzen Verbindungszeilen: `PC1 - Switch - Router`. Das Symbol ergibt sich aus dem Namensanfang (`PC`, `Laptop`, `Switch`, `Router`, `Server`, `Internet`, `Drucker`); `Tablet1: rechner` setzt es ausdrücklich.
+
+| Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
+|---|---|---|---|---|---|
+| `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
+| `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
+| `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
+| `width` | CSS-Länge | -- | nein | `100%` | Breite des Blocks als CSS-Länge (`70%`, `12cm`, ...); Standard ist die volle Zeilenbreite. |
+
+**Beispiel** (identisch mit dem Menü "Einfügen" (Alt+I) im Editor):
+
+```markdown
+:::networkdiagram
+PC1 - Switch - Router - Internet
+PC2 - Switch
 :::
 ```
 

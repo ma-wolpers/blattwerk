@@ -101,6 +101,35 @@ DIAGRAM_BLOCKS: tuple[DiagramBlockSpec, ...] = (
             BlockOptionSpec("stack", "text", None, False, MISSING),
         ),
     ),
+    DiagramBlockSpec(
+        name="graph",
+        title="Graph/Baum",
+        module="diagram_graph",
+        snippet=(
+            ":::graph\n"
+            "A - B: 5\n"
+            "B - C: 2\n"
+            "A - C: %{7}\x01\n"
+            ":::\n"
+        ),
+        empty_code="GR001",
+        options=(
+            BlockOptionSpec("layout", "enum", frozenset({"auto", "tree", "circle"}), False, "auto"),
+            BlockOptionSpec("binary", "boolean", None, False, False),
+        ),
+    ),
+    DiagramBlockSpec(
+        name="networkdiagram",
+        title="Netzwerkplan",
+        module="diagram_network",
+        snippet=(
+            ":::networkdiagram\n"
+            "PC1 - Switch - Router - Internet\n"
+            "PC2 - Switch\x01\n"
+            ":::\n"
+        ),
+        empty_code="NW001",
+    ),
 )
 
 DIAGRAM_BLOCKS_BY_NAME = {spec.name: spec for spec in DIAGRAM_BLOCKS}

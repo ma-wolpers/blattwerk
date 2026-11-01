@@ -8,6 +8,8 @@ Regel:
 
 ## [Unreleased]
 
+- Netzwerkplan: Symbole in `diagram_network.py`, Layout wie beim Graphen.
+- **`:::graph` und `:::networkdiagram` (Diagramm-Plan Welle A, 2026-11-02).** Module `diagram_graph.py`, `diagram_network.py`, gemeinsames Modell `diagram_graph_model.py`; `edge_label_center` in `diagram_route.py` ersetzt die Rechnung aus `diagram_state.py`.
 - **`:::statediagram` (Diagramm-Plan Welle A, 2026-11-02).** Modul `diagram_state.py`. Kanten, die sonst hinter einem Zustand laufen würden, bekommen einen Bogen nach unten (`_detour_bend`). Referenz: GO-Beispiele DEA, Mealy und Keller.
 - **`:::erdiagram` (Diagramm-Plan Welle A, 2026-11-02).** Modul `diagram_er.py`, freies Layout aus `diagram_layout_tree.py` statt Ebenen, weil das GO-Beispiel flächig ist; Attribute weichen Kanten und Formen aus.
 - **`:::classdiagram` (Diagramm-Plan Welle A, 2026-11-02).** Neue Bausteine: `diagram_svg.py` (Zeichenfläche, Beschriftung per `foreignObject`), `diagram_edges.py` (Beziehungszeilen), `diagram_layout.py` (Ebenen-Layout), `diagram_route.py` (Kantenführung). Referenz: `tests/diagram_go_examples.py`.
