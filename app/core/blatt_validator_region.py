@@ -8,7 +8,7 @@ notion of "region" without touching this module.
 
 from __future__ import annotations
 
-import hashlib
+from .content_hash import short_identity_hash
 
 
 def compute_block_region_id(block_type: str, options: dict) -> str:
@@ -24,5 +24,4 @@ def compute_block_region_id(block_type: str, options: dict) -> str:
 
     canonical_options = ",".join(f"{key}={options[key]}" for key in sorted(options))
     payload = f"{block_type}|{canonical_options}"
-    digest = hashlib.sha1(payload.encode("utf-8"))
-    return f"worksheet:block:{digest.hexdigest()[:16]}"
+    return f"worksheet:block:{short_identity_hash(payload)}"

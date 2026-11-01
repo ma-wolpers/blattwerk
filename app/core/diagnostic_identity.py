@@ -9,10 +9,10 @@ contract this module implements.
 
 from __future__ import annotations
 
-import hashlib
 import json
 
 from .blatt_validator_types import BuildDiagnostic
+from .content_hash import short_identity_hash
 
 IDENTITY_VERSION = "v1"
 
@@ -48,5 +48,4 @@ def compute_diagnostic_identity(diagnostic: BuildDiagnostic) -> str:
             "Diagnosequelle muss eine Occurrence definieren, bevor sie ackbar gemacht wird."
         )
 
-    digest = hashlib.sha1(canonicalize_identity_payload(diagnostic).encode("utf-8"))
-    return digest.hexdigest()[:16]
+    return short_identity_hash(canonicalize_identity_payload(diagnostic))

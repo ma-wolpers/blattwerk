@@ -14,7 +14,6 @@
 
 from __future__ import annotations
 
-import hashlib
 from pathlib import Path
 
 from bw_libs.shared_gui_core import ensure_bw_gui_on_path
@@ -23,6 +22,7 @@ ensure_bw_gui_on_path()
 from bw_gui.runtime import widgets
 
 from ..bootstrap.process_locks import acquire_migration_lock, current_app_lock, default_lock_dir
+from ..core.content_hash import sha256_hex
 from ..core.document_type_registry import spec_for_type
 from ..core.migration.classify import STATUS_CONFLICT, STATUS_INVALID_MARKER, STATUS_SAFE, STATUS_UNCLEAR, classify
 from ..core.migration.plan import plan_single_file
@@ -149,7 +149,7 @@ class BlattwerkMigrationBarMixin:
             return
         target = Path(plan.root) / plan.entries[0].target
         self._replace_tab_path(path, target)
-        if hashlib.sha256(target.read_bytes()).hexdigest() != plan.entries[0].rewrite_sha256:
+        if sha256_hex(target.read_bytes()) != plan.entries[0].rewrite_sha256:
             messagebox.showwarning("Migration", f"Die neue Datei weicht vom erwarteten Stand ab: {target.name}")
         self._migration_last_run = (run_dir, target, path)
         self._refresh_migration_bar()

@@ -28,6 +28,7 @@ from .context import (
     ItemContext,
     SkipItem,
 )
+from ..content_hash import sha256_hex as _sha
 from .fs_ops import (
     ChangedDuringRead,
     FileIdentity,
@@ -36,7 +37,6 @@ from .fs_ops import (
     read_with_identity,
     rename_no_replace,
     set_creation_time,
-    sha256_hex as _sha,
     set_readonly,
     set_times,
     set_windows_attributes,

@@ -8,7 +8,7 @@ acknowledgment infrastructure never guesses one.
 
 from __future__ import annotations
 
-import hashlib
+from ..content_hash import short_identity_hash
 
 KURZENTWURF_DOCUMENT_REGION_ID = "kurzentwurf:document"
 """Region for diagnostics that concern the whole document, not one phase
@@ -24,5 +24,4 @@ def compute_phase_region_id(phase, duration_minutes, start_time) -> str:
     """
 
     payload = f"{phase}|{duration_minutes}|{start_time}"
-    digest = hashlib.sha1(payload.encode("utf-8"))
-    return f"kurzentwurf:phase:{digest.hexdigest()[:16]}"
+    return f"kurzentwurf:phase:{short_identity_hash(payload)}"

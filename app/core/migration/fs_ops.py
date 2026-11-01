@@ -17,12 +17,13 @@ Sicherheitsregeln (Plan, Abschnitt 2.4):
 from __future__ import annotations
 
 import ctypes
-import hashlib
 import os
 import stat
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+
+from ..content_hash import sha256_hex
 
 IS_WINDOWS = sys.platform == "win32"
 
@@ -58,11 +59,6 @@ class FileIdentity:
     @classmethod
     def from_dict(cls, data: dict) -> "FileIdentity":
         return cls(int(data["size"]), int(data["mtime_ns"]), str(data["sha256"]), int(data["dev"]), int(data["ino"]))
-
-
-def sha256_hex(data: bytes) -> str:
-    """SHA-256 als Hex-String."""
-    return hashlib.sha256(data).hexdigest()
 
 
 def read_with_identity(path: Path) -> tuple[bytes, FileIdentity]:

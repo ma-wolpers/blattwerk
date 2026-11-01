@@ -9,13 +9,14 @@ single build, or across multiple builds within one editing session. See
 
 from __future__ import annotations
 
-import hashlib
 import json
 import os
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, TypeVar
+
+from .content_hash import sha256_hex
 
 T = TypeVar("T")
 
@@ -42,9 +43,7 @@ class ComputationKey:
 
     def as_cache_key_string(self) -> str:
         """Builds a stable string key: `block_type:vN:<sha256 of the sorted payload>`."""
-        digest = hashlib.sha256(
-            json.dumps(self.payload, sort_keys=True, ensure_ascii=True).encode("utf-8")
-        ).hexdigest()
+        digest = sha256_hex(json.dumps(self.payload, sort_keys=True, ensure_ascii=True).encode("utf-8"))
         return f"{self.block_type}:v{self.version}:{digest}"
 
 

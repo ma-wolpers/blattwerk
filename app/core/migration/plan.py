@@ -28,8 +28,8 @@ from .fs_ops import (
     file_attributes,
     is_hidden,
     is_link_or_reparse,
-    sha256_hex,
 )
+from ..content_hash import sha256_hex
 from .rewrite import REWRITE_VERSION, EditUnsafe, decode_utf8, encode_utf8, rewrite_for_target
 
 PLAN_SCHEMA_VERSION = 1
