@@ -1,4 +1,4 @@
-"""Renderer für `:::struktogramm` (Alias `:::structogram`) -- HTML/CSS, kein SVG-Gesamtbild.
+"""Renderer für `:::structogram` -- HTML/CSS, kein SVG-Gesamtbild.
 
 Gestalt nach den Ergänzenden Hinweisen zur GO Informatik (S. 5–6):
 Methodenkopf fett über dem Diagramm, dünne Linien in Textfarbe, keine

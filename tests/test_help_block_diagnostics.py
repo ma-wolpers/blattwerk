@@ -74,7 +74,7 @@ def test_expectation_horizon_labels_the_help_deduction():
 
 
 def test_help_in_presentation_is_deprecated_but_still_allowed():
-    body = ":::task\nA\n:::\n" + HELP + ":::hilfe\nNoch eine.\n:::\n"
+    body = ":::task\nA\n:::\n" + HELP + ":::help\nNoch eine.\n:::\n"
     diagnostics = inspect_markdown_text(HEAD + body, document_type="presentation").diagnostics
 
     bl012 = [d for d in diagnostics if d.code == "BL012"]

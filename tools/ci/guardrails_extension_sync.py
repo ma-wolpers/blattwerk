@@ -117,7 +117,7 @@ def _extract_option_keys_from_tm_language(rel_path: str, errors: list[str]) -> s
     """Extract option-key highlighting catalog from the general block pattern (`meta.block.blattwerk`).
 
     Nur dieses Muster gilt fuer alle Blocktypen; spezielle Blockmuster (z. B.
-    `meta.block.struktogramm.blattwerk`) haben eigene, kleinere Optionslisten
+    `meta.block.structogram.blattwerk`) haben eigene, kleinere Optionslisten
     und duerfen nicht als Katalog gelesen werden.
     """
     try:

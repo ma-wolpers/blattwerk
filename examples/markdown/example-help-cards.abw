@@ -30,7 +30,7 @@ So kannst du prüfen, ob `n` prim ist:
 3. Wenn kein Teiler gefunden wird: prim.
 :::
 
-:::hilfe title="Hilfe 3: Beispielrechnung" level=3
+:::help title="Hilfe 3: Beispielrechnung" level=3
 Prüfe `n = 29`:
 
 - $\sqrt{29} \approx 5{,}38$

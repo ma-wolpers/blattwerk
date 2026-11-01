@@ -91,7 +91,7 @@ In Präsentationen (`.pbw`) gibt es **keinen Lösungs-Umschalter**: Blöcke mit 
 - **`presentation_layout`** (optional): Wählt das Seitenverhältnis der Folien einer Präsentation (`.pbw`; `presentation_16_9`, `presentation_16_10` oder `presentation_4_3`). In anderen Dokumenttypen ohne Wirkung.
 - **`presentation_show_mini_header`** (optional): Blendet in Präsentationen den kleinen Kopfbereich pro Folie (Phasenübersicht) ein/aus. Standard: an.
 - **`presentation_show_section_footer`** (optional): Blendet in Präsentationen den Abschnittsfooter (Folienzähler) pro Folie ein/aus. Standard: an.
-- **`tag`** (optional): Freier Kurzbezeichner, der z. B. als Präfix für automatisch generierte Lernhilfe-Label verwendet werden kann (siehe `help`/`hilfe`-Block-Option `tag`). Muss ein einfacher, nicht-leerer Textwert sein -- kein YAML-Mapping oder -Liste.
+- **`tag`** (optional): Freier Kurzbezeichner, der z. B. als Präfix für automatisch generierte Lernhilfe-Label verwendet werden kann (siehe `help`-Block-Option `tag`). Muss ein einfacher, nicht-leerer Textwert sein -- kein YAML-Mapping oder -Liste.
 - **`show_student_header`** (optional): Blendet die Schülerkopfzeile (Name/Lerngruppe/Datum-Felder) am Dokumentanfang ein/aus. Standard: aus. Erwartet einen booleschen Wert im Format `ja`/`nein` (auch `true`/`false`, `1`/`0`, `j`/`n` werden akzeptiert). Stehen `Lerngruppe` bzw. `Datum` im Frontmatter, sind die Felder vorausgefüllt. In Klausuren mit `--hm` steht dieselbe Kopfzeile zusätzlich oben auf jedem Teil, der auf einer neuen Seite beginnt (Teil B, mit Deckblatt auch Teil A).
 - **`show_document_header`** (optional): Blendet den Dokumentkopf (Titel, Fach/Thema-Metazeile) ein/aus. Standard: an. Erwartet denselben booleschen Werttyp wie `show_student_header`.
 - **`document_type`** (optional): Konsistenzmarker für den Dokumenttyp: muss zur Dateiendung passen (`.abw` → `worksheet`, `.pbw` → `presentation`, `.kbw` → `exam`, `.ebw` → `kurzentwurf`, `.sbw` → `schild`, `.md` → `markdown`). Der Typ selbst kommt immer aus der Endung; ein abweichender Wert erzeugt eine Warnung (`FM008`), ein ungültiger `FM010`, ein fehlender in Blattwerk-Dateien `FM009`. Blattwerk setzt ihn beim Anlegen und bei Speichern-unter in einen anderen Blattwerk-Typ automatisch.
@@ -328,7 +328,7 @@ Kästchen-/Schreibfeld mit einem Textraster. `rows`/`cols` setzen die Rastergrö
 
 ### `help`
 
-Separate Hilfekarte: Im Arbeitsblatt steht an der vorangehenden (Teil-)Aufgabe nur der Verweis „→ Lernhilfe A“; die Karte selbst erscheint im Lernhilfen-Fenster bzw. dessen Export oder -- über „Lernhilfen“ in der Vorschau bzw. „Lernhilfen mit exportieren“ im Exportdialog -- hinter den Arbeitsblattseiten (alle auf einer Seite oder jede auf einer eigenen Seite in DIN A6/A5/A4). `level` (1-99) gruppiert Hilfen nach Schwierigkeitsstufe, `tag` beeinflusst die automatische Beschriftung (z. B. `1A`, `1B`), `title` überschreibt den Standardtitel "Hilfe". In Klausuren braucht die zugehörige Lösung einen Lernhilfe-Abzug `(−1P Lh)` (`KL013`). In Präsentationen sind Lernhilfen veraltet (Warnung `BL012`) -- sie werden noch dargestellt, sollten aber als normaler Folieninhalt umgesetzt werden. Kanonischer Blockname; `hilfe` ist ein dokumentierter Alias mit identischen Optionen.
+Separate Hilfekarte: Im Arbeitsblatt steht an der vorangehenden (Teil-)Aufgabe nur der Verweis „→ Lernhilfe A“; die Karte selbst erscheint im Lernhilfen-Fenster bzw. dessen Export oder -- über „Lernhilfen“ in der Vorschau bzw. „Lernhilfen mit exportieren“ im Exportdialog -- hinter den Arbeitsblattseiten (alle auf einer Seite oder jede auf einer eigenen Seite in DIN A6/A5/A4). `level` (1-99) gruppiert Hilfen nach Schwierigkeitsstufe, `tag` beeinflusst die automatische Beschriftung (z. B. `1A`, `1B`), `title` überschreibt den Standardtitel "Hilfe". In Klausuren braucht die zugehörige Lösung einen Lernhilfe-Abzug `(−1P Lh)` (`KL013`). In Präsentationen sind Lernhilfen veraltet (Warnung `BL012`) -- sie werden noch dargestellt, sollten aber als normaler Folieninhalt umgesetzt werden. Kanonischer Blockname;
 
 | Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
 |---|---|---|---|---|---|
@@ -345,18 +345,6 @@ Separate Hilfekarte: Im Arbeitsblatt steht an der vorangehenden (Teil-)Aufgabe n
 Hilfetext hier…
 :::
 ```
-
-### `hilfe`
-
-Dokumentierter Alias für `help` -- identische Optionen und Bedeutung, nur andere Schreibweise.
-
-| Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
-|---|---|---|---|---|---|
-| `level` | Ganzzahl | -- | nein | -- | Schwierigkeitsstufe der Hilfekarte (1-99) -- rein organisatorisch, ohne Einfluss auf Sichtbarkeit oder Reihenfolge. |
-| `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
-| `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
-| `tag` | Text | -- | nein | -- | Beeinflusst die automatische Beschriftung mehrerer Hilfekarten zum selben Bezugspunkt (z. B. `tag=1` erzeugt `1A`, `1B`, ...; ein einzelner Buchstabe erzeugt `1<tag>`, `2<tag>`, ...). |
-| `title` | Text | -- | nein | -- | Überschreibt die automatisch erzeugte Standardbeschriftung des Blocks mit einem eigenen Text. |
 
 ### `info`
 
@@ -693,18 +681,6 @@ Freier Leerraum ohne Linien/Raster, z. B. für Zeichnungen.
 
 ### `structogram`
 
-Dokumentierter Alias für `struktogramm` -- identische Optionen und Bedeutung.
-
-| Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
-|---|---|---|---|---|---|
-| `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
-| `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
-| `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
-| `signature` | Text | -- | nein | -- | Methodenkopf in GO-Notation `Bezeichnung(Parameter: Typ, ...): Rückgabetyp`, fett über dem Diagramm, z. B. `signature="minimum(a, b: Fließkommazahl): Fließkommazahl"`. Parameter ohne eigenen Typ gehören zur nächsten getypten Gruppe; ohne Rückgabewert entfällt `: Rückgabetyp`. Wird streng geprüft; fehlt die Option, gibt es eine Warnung. |
-| `width` | CSS-Länge | -- | nein | `100%` | Breite des Blocks als CSS-Länge (`70%`, `12cm`, ...); Standard ist die volle Zeilenbreite. |
-
-### `struktogramm`
-
 Struktogramm in der Gestalt der zentralen Prüfungsaufgaben (Ergänzende Hinweise zur GO Informatik, S. 5-6). Eine Zeile ist ein Element, die Einrückung (4 Leerzeichen oder Tab) die Schachtelung. Schlüsselwörter am Zeilenanfang: `wenn B` (+ optional `sonst`) für die Verzweigung, `auswahl A` mit `fall W`-Zeilen (+ optional `sonst`) für die Mehrfachauswahl, `solange …`/`für …`/`wiederhole 100-mal` für kopfgesteuerte Schleifen, `wiederhole` allein + Rumpf + `bis B` für die fußgesteuerte Schleife, `rückgabe X` (angezeigt als „gib X zurück“) und `eingabe x` (angezeigt als „lies x ein“). Jede andere Zeile ist eine Anweisung; `<-` wird als `←` gesetzt, `//`-Kommentare bleiben Text, `\` am Zeilenanfang hebt ein Schlüsselwort auf. Lücken-Struktogramm: `%` nach der Einrückung blendet den Text eines Elements im Arbeitsblatt aus (Struktur bleibt, Zelle bleibt mindestens so hoch wie in der Lösung), `%{…}` einen Teiltext. Der Validator prüft Struktur, Signatur und ob Rückgaben, Rückgabetyp und Parameter zueinander passen.
 
 | Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
@@ -718,7 +694,7 @@ Struktogramm in der Gestalt der zentralen Prüfungsaufgaben (Ergänzende Hinweis
 **Beispiel** (identisch mit dem Menü "Einfügen" (Alt+I) im Editor):
 
 ```markdown
-:::struktogramm signature="istEnthalten(d: dyn. Reihung vom Inhaltstyp Ganzzahl, v: Ganzzahl): Wahrheitswert"
+:::structogram signature="istEnthalten(d: dyn. Reihung vom Inhaltstyp Ganzzahl, v: Ganzzahl): Wahrheitswert"
 für alle Elemente e aus d
     wenn e = v
         rückgabe wahr

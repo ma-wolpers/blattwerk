@@ -77,7 +77,7 @@ BLOCK_INSERT_FAMILIES: list[tuple[str, list[tuple[str, str]]]] = [
             ("Ankreuztabelle (checkgrid)", "checkgrid"),
             ("Kreuzworträtsel (crossword)", "crossword"),
             ("Zuordnung (matching)", "matching"),
-            ("Struktogramm (struktogramm)", "struktogramm"),
+            ("Struktogramm (structogram)", "structogram"),
         ],
     ),
     (

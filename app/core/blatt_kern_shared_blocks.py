@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .blatt_kern_shared_data import HELP_BLOCK_TYPES
+from .blatt_kern_shared_data import HELP_BLOCK_TYPE
 from .document_type_registry import has_slide_layout
 
 
@@ -236,7 +236,7 @@ def assign_help_blocks(blocks, include_solutions=False, help_tag=None, document_
     visible = [
         (index, options)
         for index, (block_type, options, _content) in enumerate(blocks)
-        if block_type in HELP_BLOCK_TYPES
+        if block_type == HELP_BLOCK_TYPE
         and should_render_block(block_type, options, include_solutions, document_type=document_type)
     ]
     labels = help_block_labels([_normalize_help_tag((options or {}).get("tag")) for _, options in visible], help_tag)

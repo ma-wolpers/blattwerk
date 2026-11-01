@@ -84,13 +84,10 @@ def test_width_option_is_sanitized():
     assert "style=" not in _render("rückgabe x", width="70%;color:red").split("<div class='stg-sig'>")[0]
 
 
-def test_alias_renders_identically_through_dispatcher():
-    """`structogram` und `struktogramm` liefern im Block-Dispatcher dasselbe HTML."""
-    options = {"signature": GO_EXAMPLE_1[0]}
-    main = render_block("struktogramm", dict(options), GO_EXAMPLE_1[1], include_solutions=False)
-    alias = render_block("structogram", dict(options), GO_EXAMPLE_1[1], include_solutions=False)
-    assert main.replace("struktogramm", "X") == alias.replace("structogram", "X")
-    assert "stg-block" in main
+def test_renders_through_dispatcher():
+    """`structogram` kommt über den Block-Dispatcher beim Renderer an."""
+    html = render_block("structogram", {"signature": GO_EXAMPLE_1[0]}, GO_EXAMPLE_1[1], include_solutions=False)
+    assert "stg-block" in html
 
 
 def test_weight_grows_with_lines():

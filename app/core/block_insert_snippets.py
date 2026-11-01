@@ -17,7 +17,7 @@ Doku-Generator (`tools/docs/generate_authoring_guides.py`, als belegtes
 importieren kann.
 
 Nicht jeder Blocktyp aus `KNOWN_BLOCK_TYPES` hat hier einen Eintrag (z. B.
-`nextcol`/`endcolumns`/`hilfe`/die Control-Marker-Pseudoblöcke) -- fehlende
+`nextcol`/`endcolumns`/die Control-Marker-Pseudoblöcke) -- fehlende
 Einträge sind kein Fehler, `markdown_conventions.py` re-verpackt sie als
 `None`.
 """
@@ -173,8 +173,8 @@ BLOCK_INSERT_SNIPPETS: dict[str, str] = {
         "\x01Thema\n"
         ":::\n"
     ),
-    "struktogramm": (
-        ':::struktogramm signature="istEnthalten(d: dyn. Reihung vom Inhaltstyp Ganzzahl, v: Ganzzahl): Wahrheitswert"\n'
+    "structogram": (
+        ':::structogram signature="istEnthalten(d: dyn. Reihung vom Inhaltstyp Ganzzahl, v: Ganzzahl): Wahrheitswert"\n'
         "\x01für alle Elemente e aus d\n"
         "    wenn e = v\n"
         "        rückgabe wahr\n"

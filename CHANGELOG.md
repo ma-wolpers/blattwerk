@@ -7,6 +7,7 @@ The format is based on Keep a Changelog.
 ## [Unreleased]
 
 ### Changed
+- **Blocknamen sind einheitlich englisch:** `:::hilfe` heißt nur noch `:::help`, `:::struktogramm` nur noch `:::structogram`. Alte Namen meldet Blattwerk als Fehler (`BL013`) mit dem neuen Namen. Ganze Ordner stellt `python tools/migrate_block_names.py <ordner>` um: Ohne `--write` zeigt es nur an, was es ändern würde.
 - **Vorschau und PDF-Export sind viel schneller:** Ein Arbeitsblatt mit fünf Seiten braucht rund 1 Sekunde statt 6, mit Operatorenliste oder Lernhilfen-Anhang rund 1,7 Sekunden statt 10 bis 12. Bisher wurde bei jedem Druck die Formel-Darstellung aus dem Internet geladen, auch ohne Formel im Dokument.
 - **Formeln brauchen für Vorschau und PDF kein Internet mehr:** Blattwerk bringt die Formel-Darstellung (MathJax) jetzt mit. Bisher blieben Formeln ohne Internet roher Text. Eine exportierte HTML-Datei lädt sie weiterhin beim Öffnen aus dem Internet. Der Hinweis dazu (`MJ001`/`KZF160`) erscheint deshalb nur noch beim HTML-Export.
 - **Ansichten wechseln ohne Wartezeit:** Die Vorschau merkt sich jetzt mehrere Stände je Dokument. Der Wechsel zwischen Aufgabe und Lösung, A4 und A5 oder zurück zu einem geöffneten Tab kommt sofort aus dem Speicher. Auch Speichern ohne inhaltliche Änderung löst keinen neuen Druck aus.

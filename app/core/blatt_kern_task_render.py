@@ -10,7 +10,7 @@ import re
 from html import escape
 
 from .blatt_kern_shared import (
-    HELP_BLOCK_TYPES,
+    HELP_BLOCK_TYPE,
     _new_markdown_converter,
     _option_is_enabled,
     convert_markdown_with_math,
@@ -21,7 +21,7 @@ from .blatt_kern_shared import (
 )
 from .answer_special_mindmap import render_mindmap_block
 from .answer_special_struktogramm import render_struktogramm_block
-from .blatt_kern_shared_data import STRUKTOGRAMM_BLOCK_TYPES
+from .blatt_kern_shared_data import STRUCTOGRAM_BLOCK_TYPE
 from .answer_special_selfcheck import render_selfcheck_block
 from .answer_special_writebox import render_writebox_block
 from .blatt_kern_answer_dispatch import _render_answer_block
@@ -264,7 +264,7 @@ def _render_block_body(
             render_mindmap_block(options, normalized_content), object_alignment
         )
 
-    if block_type in STRUKTOGRAMM_BLOCK_TYPES:
+    if block_type == STRUCTOGRAM_BLOCK_TYPE:
         # Roher `content`: `normalize_markdown` würde die Einrückung (= Schachtelung) verfälschen.
         return _wrap_with_object_alignment(
             render_struktogramm_block(options, content, include_solutions), object_alignment
@@ -291,7 +291,7 @@ def _render_block_body(
             object_alignment,
         )
 
-    if block_type in HELP_BLOCK_TYPES:
+    if block_type == HELP_BLOCK_TYPE:
         return ""
 
     return ""

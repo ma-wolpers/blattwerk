@@ -30,6 +30,7 @@ from .blatt_validator_constants import (
     CRITICAL_DIAGNOSTIC_CODES,
     KNOWN_ANSWER_TYPES,
     KNOWN_BLOCK_TYPES,
+    REMOVED_BLOCK_NAMES,
     OPTION_VALUE_STYLE_CATALOGS,
     OPTIONAL_FRONTMATTER_FIELDS,
 )
@@ -121,6 +122,24 @@ def _collect_document_diagnostics(meta, blocks, content_text, content_base_line=
                     anchor="",
                 )
             )
+
+        if block_type in REMOVED_BLOCK_NAMES:
+            replacement = REMOVED_BLOCK_NAMES[block_type]
+            diagnostics.append(
+                BuildDiagnostic(
+                    code="BL013",
+                    severity="error",
+                    message=(
+                        f"Den Blocknamen `{block_type}` gibt es nicht mehr, der Block heißt jetzt `{replacement}`. "
+                        "Ganze Ordner stellt `tools/migrate_block_names.py` um."
+                    ),
+                    block_index=index,
+                    block_type=block_type,
+                    region_id=compute_block_region_id(block_type, options),
+                    anchor="",
+                )
+            )
+            continue
 
         if block_type not in KNOWN_BLOCK_TYPES:
             diagnostics.append(

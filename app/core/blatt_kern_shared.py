@@ -27,7 +27,7 @@ from .blatt_kern_shared_blocks import (
 )
 from .blatt_kern_shared_data import (
     CONTROL_MARKERS,
-    HELP_BLOCK_TYPES,
+    HELP_BLOCK_TYPE,
     JA_NEIN_BOOLEAN_TOKENS,
     MARKDOWN_EXTENSIONS,
     PRESENTATION_SECTION_MARK_PATTERN,
@@ -68,7 +68,7 @@ __all__ = [
     "WORK_MODE_MAP",
     "TASK_ACTION_MAP",
     "TASK_HINT_MAP",
-    "HELP_BLOCK_TYPES",
+    "HELP_BLOCK_TYPE",
     "PRESENTATION_SECTION_MARK_PATTERN",
     "PRESENTATION_SPACER_MARK_PATTERN",
     "ControlMarkerSpec",

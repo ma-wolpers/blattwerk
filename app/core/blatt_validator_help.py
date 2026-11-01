@@ -3,7 +3,7 @@
 `validate_help_blocks` ist der eine Einstieg aus dem Validator-Orchestrator.
 
 **BL012 (Warnung):** Lernhilfen gibt es nur in Arbeitsblättern und Klausuren.
-In Präsentationen (Typen mit `slide_layout`) sind `:::help`/`:::hilfe`
+In Präsentationen (Typen mit `slide_layout`) sind `:::help`
 veraltet; sie werden vorerst weiter dargestellt, aber gemeldet.
 
 **KL013 (Warnung):** In Klausuren sind Lernhilfen erlaubt, ihre Nutzung soll aber Punkte kosten.
@@ -21,7 +21,7 @@ Aufgabeneinheiten aus `points_model` -- keine eigene Zählung.
 from __future__ import annotations
 
 from .blatt_kern_shared_blocks import assign_help_blocks
-from .blatt_kern_shared_data import HELP_BLOCK_TYPES
+from .blatt_kern_shared_data import HELP_BLOCK_TYPE
 from .document_type_registry import DOCUMENT_TYPE_EXAM, has_slide_layout
 from .blatt_validator_region import compute_block_region_id
 from .blatt_validator_types import BuildDiagnostic
@@ -49,7 +49,7 @@ def validate_help_blocks(blocks, document_type: str = "worksheet") -> list[Build
                 "Folieninhalt umsetzen oder entfernen.",
             )
             for index, (block_type, _options, _content) in enumerate(blocks)
-            if block_type in HELP_BLOCK_TYPES
+            if block_type == HELP_BLOCK_TYPE
         ]
     if document_type == DOCUMENT_TYPE_EXAM:
         return help_deduction_diagnostics(blocks)

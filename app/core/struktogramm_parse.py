@@ -1,4 +1,4 @@
-"""Parser für den Inhalt von `:::struktogramm`: Text → Elementbaum.
+"""Parser für den Inhalt von `:::structogram`: Text → Elementbaum.
 
 Syntax (Gestalt nach GO Informatik, Ergänzende Hinweise S. 5–6): eine Zeile
 ist ein Element, die Einrückung (Tab = 4 Leerzeichen; die Einheit setzt die
@@ -48,8 +48,8 @@ INDENTED_LINE_MARKER_RE = re.compile(r"^\s*([§%&])(?=\s|$)")
 """Zeilenmarker *nach* der Einrückung -- gilt nur im Inhalt von Struktogramm-Blöcken.
 Gemeinsame Quelle für Editor-Highlighting (`blatt_ui_editor_highlight.py`); die
 VSCode-Grammatik spiegelt dieselbe Regel (Guardrail 5, Marker-Konsistenz)."""
-STRUKTOGRAMM_HEADER_RE = re.compile(r"^\s*:::(?:struktogramm|structogram)(?=\s|$)")
-"""Erkennt die Kopfzeile eines Struktogramm-Blocks (Hauptname oder Alias)."""
+STRUKTOGRAMM_HEADER_RE = re.compile(r"^\s*:::structogram(?=\s|$)")
+"""Erkennt die Kopfzeile eines Struktogramm-Blocks."""
 
 
 @dataclass(frozen=True)

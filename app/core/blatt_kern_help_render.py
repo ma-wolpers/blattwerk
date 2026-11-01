@@ -8,7 +8,7 @@ from html import escape
 from ..styles.blatt_styles import build_stylesheet
 from .mathjax_support import PROFILE_DOCUMENT, mathjax_head
 from .blatt_kern_shared import (
-    HELP_BLOCK_TYPES,
+    HELP_BLOCK_TYPE,
     _new_markdown_converter,
     help_block_labels,
     _normalize_help_tag,
@@ -60,7 +60,7 @@ def collect_help_blocks(blocks, include_solutions=False, document_type="workshee
 
     collected = []
     for block_type, options, content in blocks:
-        if block_type not in HELP_BLOCK_TYPES:
+        if block_type != HELP_BLOCK_TYPE:
             continue
         if not should_render_block(
             block_type,

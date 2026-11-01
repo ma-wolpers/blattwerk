@@ -1,4 +1,4 @@
-"""Tests für Parser und Validator von `:::struktogramm`.
+"""Tests für Parser und Validator von `:::structogram`.
 
 Normative Vorlage sind die vier GO-Beispiele (`struktogramm_go_examples.py`):
 sie müssen ohne jede Diagnose durchlaufen. Fehlerfälle prüfen je einen `SG`-Code.
@@ -15,7 +15,7 @@ from struktogramm_go_examples import GO_EXAMPLE_3, GO_EXAMPLE_4, GO_EXAMPLES
 def _codes(content, signature="f(x: Zahl): Zahl"):
     """Diagnosecodes eines Blocks mit gegebener Signatur (`None` = ohne Option)."""
     options = {} if signature is None else {"signature": signature}
-    return [d.code for d in validate_struktogramm_block(0, "struktogramm", options, content)]
+    return [d.code for d in validate_struktogramm_block(0, "structogram", options, content)]
 
 
 @pytest.mark.parametrize(("signature", "content"), GO_EXAMPLES)
@@ -87,7 +87,7 @@ def test_markers_after_indentation():
 )
 def test_structure_errors(content, code):
     """Jeder Strukturfehler liefert seinen Code (als Fehler)."""
-    diagnostics = validate_struktogramm_block(0, "struktogramm", {"signature": "f(x: Zahl): Zahl"}, content)
+    diagnostics = validate_struktogramm_block(0, "structogram", {"signature": "f(x: Zahl): Zahl"}, content)
     matching = [d for d in diagnostics if d.code == code]
     assert matching and matching[0].severity == "error"
 
@@ -100,7 +100,7 @@ def test_empty_block_and_missing_signature_warn():
 
 def test_invalid_signature_is_an_error():
     """Eine Signatur außerhalb der GO-Form ist ein Fehler mit ihrem Code."""
-    diagnostics = validate_struktogramm_block(0, "struktogramm", {"signature": "f(a, b)"}, "rückgabe a")
+    diagnostics = validate_struktogramm_block(0, "structogram", {"signature": "f(a, b)"}, "rückgabe a")
     assert [(d.code, d.severity) for d in diagnostics] == [("SG012", "error")]
 
 
@@ -116,7 +116,7 @@ def test_missing_return_on_some_path_warns():
 
 def test_literal_gib_zurueck_gets_a_hint():
     """Wer `gib … zurück` als Anweisung schreibt, bekommt den Hinweis auf `rückgabe`."""
-    diagnostics = validate_struktogramm_block(0, "struktogramm", {"signature": "f(x: Zahl): Zahl"}, "gib x zurück")
+    diagnostics = validate_struktogramm_block(0, "structogram", {"signature": "f(x: Zahl): Zahl"}, "gib x zurück")
     assert "`rückgabe …`" in diagnostics[0].message
 
 

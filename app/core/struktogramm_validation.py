@@ -1,4 +1,4 @@
-"""Validierung von `:::struktogramm`-Blöcken (Diagnosecodes `SG001`–`SG023`).
+"""Validierung von `:::structogram`-Blöcken (Diagnosecodes `SG001`–`SG023`).
 
 Drei Ebenen, alle aus derselben Quelle wie der Renderer
 (`struktogramm_parse.parse_struktogramm`, `struktogramm_signature`):
@@ -21,7 +21,7 @@ from __future__ import annotations
 
 import re
 
-from .blatt_kern_shared_data import STRUKTOGRAMM_BLOCK_TYPES
+from .blatt_kern_shared_data import STRUCTOGRAM_BLOCK_TYPE
 from .blatt_validator_region import compute_block_region_id
 from .blatt_validator_types import BuildDiagnostic
 from .struktogramm_parse import Branch, Loop, Statement, Switch, iter_cells, parse_struktogramm
@@ -140,13 +140,13 @@ def validate_struktogramm_blocks(blocks) -> list[BuildDiagnostic]:
     """
     diagnostics: list[BuildDiagnostic] = []
     for index, (block_type, options, content) in enumerate(blocks):
-        if block_type in STRUKTOGRAMM_BLOCK_TYPES:
+        if block_type == STRUCTOGRAM_BLOCK_TYPE:
             diagnostics.extend(validate_struktogramm_block(index, block_type, options, content))
     return diagnostics
 
 
 def validate_struktogramm_block(index, block_type, options, content) -> list[BuildDiagnostic]:
-    """Prüft einen `:::struktogramm`/`:::structogram`-Block vollständig.
+    """Prüft einen `:::structogram`-Block vollständig.
 
     Args:
         index: Blockindex im Dokument (für Region/Abhaken).

@@ -56,7 +56,6 @@ KNOWN_BLOCK_TYPES = {
     "ordering",
     "checkgrid",
     "mindmap",
-    "struktogramm",
     "structogram",
     "selfcheck",
     "writebox",
@@ -65,7 +64,6 @@ KNOWN_BLOCK_TYPES = {
     "nextcol",
     "endcolumns",
     "help",
-    "hilfe",
     "qrcode",
     "pagebreak",
     "framebreak",
@@ -77,6 +75,9 @@ KNOWN_BLOCK_TYPES = {
     "evaluation",
     "operators",
 }
+REMOVED_BLOCK_NAMES = {"hilfe": "help", "struktogramm": "structogram"}
+"""Frühere deutsche Blocknamen und ihr Ersatz (Fehler `BL013`, Umstellung per
+`tools/migrate_block_names.py`). Blocknamen sind einheitlich englisch, ohne Aliase."""
 KNOWN_SHOW_VALUES = {"worksheet", "solution", "both"}
 KNOWN_BLOCK_MODE_VALUES = {"worksheet", "solution"}
 KNOWN_PRESENTATION_LAYOUTS = {
@@ -334,7 +335,6 @@ _STRUKTOGRAMM_OPTIONS = (
     _OPT_MODE,
     _OPT_ALIGN,
 )
-"""Geteilt von `struktogramm` und dem Alias `structogram`."""
 
 DEPRECATED_IGNORED_OPTIONS = {"solution": frozenset({"mode", "show"})}
 """Optionen, die veraltet sind und **ignoriert** werden (Warnung `OP004`); sie stehen
@@ -553,8 +553,7 @@ BLOCK_OPTION_SPECS: dict[str, tuple[BlockOptionSpec, ...]] = {
         BlockOptionSpec("subbranches", "integer", None, False, 0),
         _OPT_ALIGN,
     ),
-    "struktogramm": _STRUKTOGRAMM_OPTIONS,
-    "structogram": _STRUKTOGRAMM_OPTIONS,  # Alias, identische Optionen (wie help/hilfe)
+    "structogram": _STRUKTOGRAMM_OPTIONS,
     "selfcheck": (
         _OPT_SHOW,
         _OPT_MODE,
@@ -587,13 +586,6 @@ BLOCK_OPTION_SPECS: dict[str, tuple[BlockOptionSpec, ...]] = {
     "nextcol": (),
     "endcolumns": (),
     "help": (
-        _OPT_TITLE,
-        BlockOptionSpec("level", "integer", None, False, MISSING),
-        _OPT_SHOW,
-        _OPT_MODE,
-        BlockOptionSpec("tag", "text", None, False, MISSING),
-    ),
-    "hilfe": (
         _OPT_TITLE,
         BlockOptionSpec("level", "integer", None, False, MISSING),
         _OPT_SHOW,

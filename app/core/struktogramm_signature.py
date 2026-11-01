@@ -15,7 +15,7 @@ Beispiele daraus, die dieses Modul alle akzeptiert:
 - ``erzeugePixel(): dynamische Reihung vom Inhaltstyp Pixel`` -- ohne
   Parameter.
 
-Bewusst ein reines Modul ohne Blattwerk-Abhängigkeiten: `:::struktogramm`
+Bewusst ein reines Modul ohne Blattwerk-Abhängigkeiten: `:::structogram`
 nutzt es für `signature=`, ein späterer Klassendiagramm-Block (GO S. 7, dort
 gleiche Operationsnotation) kann es unverändert wiederverwenden.
 """

@@ -49,7 +49,7 @@ PROSE_SECTIONS: dict[str, str] = {
     ),
     "frontmatter:tag": (
         "Freier Kurzbezeichner, der z. B. als Präfix für automatisch generierte Lernhilfe-Label "
-        "verwendet werden kann (siehe `help`/`hilfe`-Block-Option `tag`). Muss ein einfacher, "
+        "verwendet werden kann (siehe `help`-Block-Option `tag`). Muss ein einfacher, "
         "nicht-leerer Textwert sein -- kein YAML-Mapping oder -Liste."
     ),
     "frontmatter:show_student_header": (
@@ -566,7 +566,7 @@ PROSE_SECTIONS: dict[str, str] = {
         "eine eigene kleine Fächer aus Unterzweig-Feldern für ein zweistufiges Mindmap. Kein "
         "Arbeitsblatt-/Lösungs-Unterschied -- der Block sieht in beiden Modi gleich aus."
     ),
-    "block:struktogramm": (
+    "block:structogram": (
         "Struktogramm in der Gestalt der zentralen Prüfungsaufgaben (Ergänzende Hinweise zur GO "
         "Informatik, S. 5-6). Eine Zeile ist ein Element, die Einrückung (4 Leerzeichen oder Tab) "
         "die Schachtelung. Schlüsselwörter am Zeilenanfang: `wenn B` (+ optional `sonst`) für die "
@@ -579,9 +579,6 @@ PROSE_SECTIONS: dict[str, str] = {
         "eines Elements im Arbeitsblatt aus (Struktur bleibt, Zelle bleibt mindestens so hoch wie in "
         "der Lösung), `%{…}` einen Teiltext. Der Validator prüft Struktur, Signatur und ob "
         "Rückgaben, Rückgabetyp und Parameter zueinander passen."
-    ),
-    "block:structogram": (
-        "Dokumentierter Alias für `struktogramm` -- identische Optionen und Bedeutung."
     ),
     "block:selfcheck": (
         "Offene Selbsteinschätzung ohne feste Lösung: der Blockinhalt ist eine Liste von Aussagen "
@@ -645,11 +642,7 @@ PROSE_SECTIONS: dict[str, str] = {
         "Beschriftung (z. B. `1A`, `1B`), `title` überschreibt den Standardtitel \"Hilfe\". In Klausuren "
         "braucht die zugehörige Lösung einen Lernhilfe-Abzug `(−1P Lh)` (`KL013`). In Präsentationen "
         "sind Lernhilfen veraltet (Warnung `BL012`) -- sie werden noch dargestellt, sollten aber als "
-        "normaler Folieninhalt umgesetzt werden. Kanonischer Blockname; "
-        "`hilfe` ist ein dokumentierter Alias mit identischen Optionen."
-    ),
-    "block:hilfe": (
-        "Dokumentierter Alias für `help` -- identische Optionen und Bedeutung, nur andere Schreibweise."
+        "normaler Folieninhalt umgesetzt werden. Kanonischer Blockname;"
     ),
     "block:qrcode": (
         "Klickbarer QR-Code-Link. `url` ist Pflicht (http/https-Link oder relativer Pfad ohne "
@@ -728,7 +721,7 @@ PROSE_SECTIONS: dict[str, str] = {
         "`center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische "
         "Schreibweisen gleichwertig)."
     ),
-    "option:signature": (
+    "block:structogram.signature": (
         "Methodenkopf in GO-Notation `Bezeichnung(Parameter: Typ, ...): Rückgabetyp`, fett über "
         "dem Diagramm, z. B. `signature=\"minimum(a, b: Fließkommazahl): Fließkommazahl\"`. "
         "Parameter ohne eigenen Typ gehören zur nächsten getypten Gruppe; ohne Rückgabewert "
@@ -811,11 +804,11 @@ PROSE_SECTIONS: dict[str, str] = {
         "Geschätzte Bearbeitungszeit, wird als `X min` ausgegeben. Freier Textwert -- üblich, aber "
         "nicht erzwungen, ist eine reine Zahl (Minuten)."
     ),
-    "option:tag": (
+    "block:help.tag": (
         "Beeinflusst die automatische Beschriftung mehrerer Hilfekarten zum selben Bezugspunkt (z. B. "
         "`tag=1` erzeugt `1A`, `1B`, ...; ein einzelner Buchstabe erzeugt `1<tag>`, `2<tag>`, ...)."
     ),
-    "option:level": (
+    "block:help.level": (
         "Schwierigkeitsstufe der Hilfekarte (1-99) -- rein organisatorisch, ohne Einfluss auf "
         "Sichtbarkeit oder Reihenfolge."
     ),

@@ -1,6 +1,6 @@
 """Die vier Struktogramm-Beispiele der GO Informatik (Ergänzende Hinweise, S. 5–6) als Testdaten.
 
-Jeder Eintrag: `(signature, content)` in `:::struktogramm`-Syntax. Gemeinsame
+Jeder Eintrag: `(signature, content)` in `:::structogram`-Syntax. Gemeinsame
 Quelle für Parser-, Validator- und Rendering-Tests -- alle vier müssen ohne
 jede Diagnose durchlaufen, weil sie die normative Vorlage des Blocks sind.
 """

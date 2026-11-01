@@ -130,7 +130,8 @@ Subprozess siehe `tests/test_blatt_diagnostics_cli.py` (Validator) sowie
 - `BL009`: `columns`-Block wird bis Dokument- bzw. Folienende nicht mit `endcolumns` geschlossen.
 - `BL010`: Verschachtelter `columns`-Block (ein neuer `columns` startet, bevor der vorherige mit `endcolumns` geschlossen wurde).
 - `BL011`: Anzahl `nextcol`-Marker zwischen `columns` und `endcolumns` weicht von `cols - 1` ab (Warnung).
-- `BL012`: `:::help`/`:::hilfe` in einer Praesentation (`.pbw`) -- Lernhilfen sind dort veraltet und gibt es nur noch in Arbeitsblaettern und Klausuren. Der Block wird noch dargestellt. Warnung.
+- `BL012`: `:::help` in einer Praesentation (`.pbw`) -- Lernhilfen sind dort veraltet und gibt es nur noch in Arbeitsblaettern und Klausuren. Der Block wird noch dargestellt. Warnung.
+- `BL013`: Früherer Blockname `hilfe` oder `struktogramm` -- die Blöcke heißen jetzt `help` und `structogram`. `tools/migrate_block_names.py` stellt ganze Ordner um. Fehler.
 - `OPR001`: Ein `!!...!!`-Operator-Marker passt zu keinem bekannten Operator des Fachs. Warnung.
 - `OPR002`: **entfallen** (frueher Laufzeitpruefung der Operatoren-Daten; jetzt Test der Daten-Dateien).
 - `OPR003`: Operator-Marker verwendet, aber keine Operatoren-Datei fuer `Fach` in `data/operatoren/`. Warnung.
@@ -176,9 +177,9 @@ Subprozess siehe `tests/test_blatt_diagnostics_cli.py` (Validator) sowie
 - `PT002`: Gerenderte PDF-Seitenzahl groesser als erwartete Folienzahl -- Hinweis auf vertikalen Folien-Overflow (Warnung).
 - `QR001`: `qrcode`-Block ohne Pflichtoption `url`.
 - `QR002`: `qrcode`-Block mit ungueltiger `url` (erlaubt: http/https oder relativer Pfad ohne Leerzeichen).
-- `SG001`-`SG008` (`struktogramm`-Block, Fehler; Meldung nennt die Zeile im Block): `SG001` Einrueckung passt nicht zur Einheit der ersten eingerueckten Zeile, `SG002` eingerueckte Zeile ohne Kopf (z. B. unter einer Anweisung), `SG003` `sonst`/`fall`/`bis` ohne passenden Kopf, `SG004` `wiederhole` ohne abschliessendes `bis …`, `SG005` Schleife ohne Rumpf bzw. `auswahl` ohne `fall`, `SG006` Schluesselwort ohne Text dahinter (z. B. `wenn` ohne Bedingung, `rückgabe` ohne Ausdruck), `SG008` in `auswahl` steht etwas anderes als `fall …`/ein abschliessendes `sonst`. `SG007`: Block ist leer (Warnung).
-- `SG010`-`SG013` (`struktogramm`, Fehler): `signature=` folgt nicht der GO-Form `Bezeichnung(Parameter: Typ, ...): Rückgabetyp` -- `SG010` Klammerung/Rest nach `)`, `SG011` ungueltiger oder leerer Bezeichner, `SG012` Parameter ohne Typ, `SG013` leerer oder ungueltiger (Rueckgabe-)Typ.
-- `SG020`: `struktogramm` ohne `signature=` (Warnung; GO-Struktogramme haben immer einen Methodenkopf).
+- `SG001`-`SG008` (`structogram`-Block, Fehler; Meldung nennt die Zeile im Block): `SG001` Einrueckung passt nicht zur Einheit der ersten eingerueckten Zeile, `SG002` eingerueckte Zeile ohne Kopf (z. B. unter einer Anweisung), `SG003` `sonst`/`fall`/`bis` ohne passenden Kopf, `SG004` `wiederhole` ohne abschliessendes `bis …`, `SG005` Schleife ohne Rumpf bzw. `auswahl` ohne `fall`, `SG006` Schluesselwort ohne Text dahinter (z. B. `wenn` ohne Bedingung, `rückgabe` ohne Ausdruck), `SG008` in `auswahl` steht etwas anderes als `fall …`/ein abschliessendes `sonst`. `SG007`: Block ist leer (Warnung).
+- `SG010`-`SG013` (`structogram`, Fehler): `signature=` folgt nicht der GO-Form `Bezeichnung(Parameter: Typ, ...): Rückgabetyp` -- `SG010` Klammerung/Rest nach `)`, `SG011` ungueltiger oder leerer Bezeichner, `SG012` Parameter ohne Typ, `SG013` leerer oder ungueltiger (Rueckgabe-)Typ.
+- `SG020`: `structogram` ohne `signature=` (Warnung; GO-Struktogramme haben immer einen Methodenkopf).
 - `SG021`: `rückgabe` im Struktogramm, aber die Signatur hat keinen Rueckgabetyp (Fehler).
 - `SG022`: Signatur mit Rueckgabetyp, aber nicht jeder Ablauf endet mit `rückgabe` (Warnung). Verzweigung zaehlt nur mit Rueckgabe in beiden Zweigen, Auswahl nur mit `sonst`, kopfgesteuerte Schleifen nie (koennen 0-mal laufen), fussgesteuerte ueber ihren Rumpf. Steht `gib … zurück` woertlich als Anweisung da, nennt die Meldung `rückgabe …` als Schreibweise.
 - `SG023`: Ein Parameter der Signatur kommt im Struktogramm nicht als Wort vor (Warnung).

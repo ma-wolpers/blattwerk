@@ -107,10 +107,8 @@ TASK_HINT_MAP = {
 """`expertenaufgabe` ist entfernt (siehe `KNOWN_HINT_VALUES`), ersetzt durch
 `experte` -- das Anzeige-Label "Expertenaufgabe" bleibt unverändert."""
 
-HELP_BLOCK_TYPES = {"help", "hilfe"}
-STRUKTOGRAMM_BLOCK_TYPES = frozenset({"struktogramm", "structogram"})
-"""`struktogramm` ist der Hauptname (Begriff aus der GO Informatik),
-`structogram` ein dokumentierter Alias -- gleiches Muster wie `help`/`hilfe`."""
+HELP_BLOCK_TYPE = "help"
+STRUCTOGRAM_BLOCK_TYPE = "structogram"
 PRESENTATION_SECTION_MARK_PATTERN = re.compile(r"^--#\s+(.+)$")
 EXAM_CHOICE_MARK_PATTERN = re.compile(r"^--w(\[[^\]\n]*\])?(?:\s+(.+?))?\s*$")
 """Wahlteil-Trenner `--w[k] Titel` (eröffnet einen Wahlbereich) bzw. `--w Titel`.
