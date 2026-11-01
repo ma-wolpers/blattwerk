@@ -239,6 +239,16 @@ Die Leiste „Vorschau-Optionen“ über der Vorschau startet eingeklappt; mit �
 - Bei leerer Suchanfrage werden keine Treffer markiert und `Ersetzen`/`Alle ersetzen` haben keine Wirkung.
 - `Ersetzen` ersetzt nur den aktuellen Treffer und springt danach zum nächsten; `Alle ersetzen` ersetzt alle aktuellen Treffer auf einmal.
 
+## 11b) Mehrere Cursor im Schreibbereich
+
+- `Strg+Klick` setzt einen weiteren Cursor; `Strg+Ziehen` markiert eine weitere Stelle. `Strg+Klick` auf einen vorhandenen Cursor oder in eine vorhandene Markierung entfernt ihn wieder.
+- `Strg+Alt+↑ / ↓` setzt einen Cursor über den obersten bzw. unter den untersten.
+- Tippen, Rücktaste, Entf, Enter und Tab wirken an allen Cursorn gleichzeitig, ebenso Marker-Tasten wie `*` oder `_` auf Markierungen und `Strg+Rücktaste` / `Strg+Entf`.
+- `← / →`, `↑ / ↓`, `Pos1` und `Ende` bewegen alle Cursor, mit `Shift` erweitern sie jede Markierung. Ohne `Shift` geht die Markierung verloren, der Cursor läuft von ihrem aktiven Ende aus weiter.
+- `Strg+C` kopiert alle Markierungen zeilenweise. `Strg+V` fügt je Cursor eine Zeile ein, wenn Zeilen- und Cursorzahl übereinstimmen, sonst an jedem Cursor den ganzen Text.
+- `Strg+Z` macht einen Tastendruck an allen Cursorn in einem Schritt rückgängig und stellt die Cursor wieder her, auch nachdem du den Modus schon verlassen hast.
+- `Esc` oder ein normaler Klick beenden den Modus. Solange mehrere Cursor aktiv sind, öffnet sich keine Vorschlagsliste.
+
 ## 12) Struktur-Outline
 
 - Unter der Diagnostik gibt es eine Struktur-Liste mit Frontmatter und Blattwerk-Blockköpfen.

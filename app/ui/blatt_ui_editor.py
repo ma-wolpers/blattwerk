@@ -47,6 +47,7 @@ class BlattwerkAppEditorMixin(BlattwerkAppEditorViewMixin, BlattwerkAppEditorKey
         on_key(self.editor_widget, self._on_editor_key_after, phase="after")
         bind_click(self.editor_widget, self._on_editor_mouse_click)
         on_focus_change(self.editor_widget, on_gained=self._on_editor_focus_in)
+        self._attach_editor_multicursor()
 
         self._build_editor_search_bar(parent, editor_body)
 

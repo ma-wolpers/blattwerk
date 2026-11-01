@@ -107,8 +107,12 @@ class BlattwerkAppEditorSourceMixin:
 
         Das Ersetzen beim Laden landet sonst selbst im Undo-Stapel, und Strg+Z
         holt nach einem Dokumentwechsel den Text des vorigen Dokuments zurück.
+        Der Multi-Cursor verwirft dabei auch seine Cursor-Historie.
         """
-        self.editor_widget.edit_reset()
+        if self.editor_multicursor is not None:
+            self.editor_multicursor.reset_history()
+        else:
+            self.editor_widget.edit_reset()
 
     def _reset_editor_widget_to_empty(self):
         """Clears the editor and marks no document as loaded.
@@ -451,6 +455,9 @@ class BlattwerkAppEditorSourceMixin:
 
         if self._editor_loading_content:
             return
+
+        if self.editor_multicursor is not None:
+            self.editor_multicursor.sync()  # eine fremde Änderung beendet den Modus
 
         became_dirty = not self._editor_has_unsaved_changes
         self._editor_has_unsaved_changes = True

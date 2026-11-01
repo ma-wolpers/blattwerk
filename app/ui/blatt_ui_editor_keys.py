@@ -12,11 +12,12 @@ from bw_gui.contracts.events import EventResult
 from bw_gui.contracts.key_spec import KeySpec
 from bw_gui.runtime import WidgetShortcutBinder
 
+from .blatt_ui_editor_multicursor import MATH_CROSSING_MESSAGE, BlattwerkAppEditorMultiCursorMixin
 from .editor_marker_shortcuts import apply_backtick_marker, apply_caret_marker, apply_dollar_marker, apply_highlight_marker, apply_percent_marker, apply_pipe_marker, apply_star_marker, apply_tilde_marker, apply_underscore_marker, selection_crosses_math_boundary
 from .ui_constants import EDITOR_DOCUMENT_LOADED
 
 
-class BlattwerkAppEditorKeysMixin:
+class BlattwerkAppEditorKeysMixin(BlattwerkAppEditorMultiCursorMixin):
     """Schreibbereich: Tastenhandler, Completion-Abgleich beim Tippen, Marker-Tasten, Wortlöschen, Snippets (BlattwerkApp-Mixin)."""
 
     def _bind_editor_keys(self):
@@ -45,6 +46,8 @@ class BlattwerkAppEditorKeysMixin:
             (_k("Ctrl+Delete (tolerate: Shift)"), "delete_word_after", self._on_editor_delete_word_after),
             (_k("Ctrl+F"), "find", self._toggle_editor_find_bar),
             (_k("Ctrl+H"), "replace", self._toggle_editor_replace_bar),
+            (_k("Ctrl+Alt+Up"), "multicursor.add_above", self._on_editor_add_cursor_above),
+            (_k("Ctrl+Alt+Down"), "multicursor.add_below", self._on_editor_add_cursor_below),
             (KeySpec.char("`"), "marker.backtick", self._on_editor_backtick_key),
             (KeySpec.char("%"), "marker.percent", self._on_editor_percent_key),
         ]
@@ -55,8 +58,25 @@ class BlattwerkAppEditorKeysMixin:
         ]
         keys = WidgetShortcutBinder(self.editor_widget)
         for spec, binding_id, handler in rows:
-            keys.bind(spec, handler, binding_id=f"editor.{binding_id}", intent=f"editor.{binding_id}", allow_when_text_input=True)
+            keys.bind(
+                spec, handler, binding_id=f"editor.{binding_id}", intent=f"editor.{binding_id}",
+                allow_when_text_input=True, applies_when=self._editor_key_condition(binding_id),
+            )
         self._editor_keys = keys
+
+    _SINGLE_CURSOR_BINDINGS = frozenset({"completion.tab", "completion.up", "completion.down", "completion.enter", "completion.reject_newline"})
+
+    def _editor_key_condition(self, binding_id):
+        """Wann eine Editor-Taste zuständig ist; sonst geht sie an den Multi-Cursor-Controller.
+
+        Ein ausgeführter Widget-Shortcut unterdrückt `on_key` auch dann, wenn er `None`
+        liefert (bw-gui-Keyboard-Contract), deshalb reicht „nicht zuständig“ im Handler nicht.
+        """
+        if binding_id in self._SINGLE_CURSOR_BINDINGS:
+            return lambda _event: not self._editor_multicursor_active()
+        if binding_id.startswith("marker."):
+            return lambda _event: not self._editor_multicursor_active() or self._editor_multicursor_has_selection()
+        return None
 
     _EDITOR_ARROWS = frozenset({Key.UP, Key.DOWN, Key.LEFT, Key.RIGHT})
 
@@ -160,10 +180,14 @@ class BlattwerkAppEditorKeysMixin:
             return None
 
         sel_first, sel_last = selection[0], selection[1]
+        return (*self._editor_context_around(sel_first, sel_last), sel_first, sel_last)
+
+    def _editor_context_around(self, sel_first, sel_last):
+        """Liefert `(before, selected, after)` um einen Bereich (für die Randlauf-Erkennung)."""
         before = self.editor_widget.get(f"{sel_first} -{self._MARKER_CONTEXT_CHARS}c", sel_first)
         selected = self.editor_widget.get(sel_first, sel_last)
         after = self.editor_widget.get(sel_last, f"{sel_last} +{self._MARKER_CONTEXT_CHARS}c")
-        return before, selected, after, sel_first, sel_last
+        return before, selected, after
 
     def _editor_selection_crosses_math(self, sel_first, sel_last) -> bool:
         """Prüft die Selektion gegen das GESAMTE Dokument auf eine Formelgrenzen-Überschneidung."""
@@ -221,15 +245,20 @@ class BlattwerkAppEditorKeysMixin:
         Ablaufs unverändert normales Verhalten. Verweigert die Aktion
         (ohne Textänderung), wenn die Selektion eine `$...$`-Formelgrenze
         überschneidet -- die konkrete Umsetzung der geforderten Absicherung
-        gegen Formatierungsfehler durch falsche Auswertungsreihenfolge.
+        gegen Formatierungsfehler durch falsche Auswertungsreihenfolge. Bei
+        mehreren Cursorn gilt dasselbe je Region (`_apply_marker_to_regions`).
         """
+        if self._editor_multicursor_active():
+            handler = self._MARKER_KEY_HANDLERS[marker_char]
+            return self._apply_marker_to_regions(marker_char, lambda before, selected, after, _f, _l: handler(before, selected, after))
+
         context = self._editor_marker_context()
         if context is None:
             return None
 
         before, selected, after, sel_first, sel_last = context
         if self._editor_selection_crosses_math(sel_first, sel_last):
-            self.status_var.set("Markierung überschneidet eine Formel ($...$) -- Aktion abgebrochen.")
+            self.status_var.set(MATH_CROSSING_MESSAGE)
             return EventResult.HANDLED
 
         handler = self._MARKER_KEY_HANDLERS[marker_char]
@@ -239,13 +268,21 @@ class BlattwerkAppEditorKeysMixin:
 
     def _on_editor_backtick_key(self, _event=None):
         """Wie `_on_editor_marker_key`, aber für `` ` `` mit Einzeilig/Mehrzeilig-Verzweigung."""
+        if self._editor_multicursor_active():
+            return self._apply_marker_to_regions(
+                "`",
+                lambda before, selected, after, first, last: apply_backtick_marker(
+                    before, selected, after, is_multiline=str(first).split(".")[0] != str(last).split(".")[0]
+                ),
+            )
+
         context = self._editor_marker_context()
         if context is None:
             return None
 
         before, selected, after, sel_first, sel_last = context
         if self._editor_selection_crosses_math(sel_first, sel_last):
-            self.status_var.set("Markierung überschneidet eine Formel ($...$) -- Aktion abgebrochen.")
+            self.status_var.set(MATH_CROSSING_MESSAGE)
             return EventResult.HANDLED
 
         is_multiline = str(sel_first).split(".")[0] != str(sel_last).split(".")[0]
@@ -261,6 +298,9 @@ class BlattwerkAppEditorKeysMixin:
         umgeschaltet wird. Eine Auswahl, die eine Formelgrenze schneidet, wird
         wie bei den anderen Marker-Tasten abgelehnt.
         """
+        if self._editor_multicursor_active():
+            return self._apply_percent_to_regions()
+
         context = self._editor_marker_context()
         if context is None:
             return None
@@ -271,12 +311,24 @@ class BlattwerkAppEditorKeysMixin:
             sel_first, sel_last = self._editor_full_line_selection(sel_first, sel_last)
             selected = self.editor_widget.get(sel_first, sel_last)
         if self._editor_selection_crosses_math(sel_first, sel_last):
-            self.status_var.set("Markierung überschneidet eine Formel ($...$) -- Aktion abgebrochen.")
+            self.status_var.set(MATH_CROSSING_MESSAGE)
             return EventResult.HANDLED
 
         edit = apply_percent_marker(before, selected, after, is_multiline=is_multiline)
         self._apply_editor_marker_edit(sel_first, sel_last, edit)
         return EventResult.HANDLED
+
+    def _apply_percent_to_regions(self):
+        """`%` bei mehreren Cursorn: je Auswahl wie mit einem Cursor, mehrzeilig auf ganze Zeilen erweitert."""
+
+        def is_multiline(first, last):
+            return str(first).split(".")[0] != str(last).split(".")[0]
+
+        return self._apply_marker_to_regions(
+            "%",
+            lambda before, selected, after, first, last: apply_percent_marker(before, selected, after, is_multiline=is_multiline(first, last)),
+            resolve_range=lambda first, last: self._editor_full_line_selection(first, last) if is_multiline(first, last) else (first, last),
+        )
 
     def _editor_full_line_selection(self, sel_first, sel_last):
         """Erweitert eine mehrzeilige Auswahl auf ganze Zeilen (Zeilenanfang bis Zeilenende).
@@ -292,8 +344,10 @@ class BlattwerkAppEditorKeysMixin:
         return start, self.editor_widget.index(f"{end_index} lineend")
 
     def _on_editor_escape(self, _event=None):
-        """Closes completion popup when escape is pressed in editor."""
+        """Escape: first ends multi-cursor mode, then closes completion and leaves the editor."""
 
+        if self.editor_multicursor is not None and self.editor_multicursor.handle_escape():
+            return EventResult.HANDLED
         self._close_editor_completion()
         if self.root is not None and bool(self.root.winfo_exists()):
             self.root.focus_set()
@@ -309,13 +363,21 @@ class BlattwerkAppEditorKeysMixin:
     def _on_editor_delete_word_before(self, _event=None):
         """Deletes the word (or whitespace token) before the cursor (Ctrl+Backspace)."""
 
-        cursor_pos = self.editor_widget.index("insert")
+        if self._editor_multicursor_active():
+            return self._delete_word_at_regions(self._editor_word_length_before, forward=False)
+
+        chars_to_delete = self._editor_word_length_before(self.editor_widget.index("insert"))
+        if chars_to_delete > 0:
+            self.editor_widget.delete(f"insert -{chars_to_delete}c", "insert")
+        return EventResult.HANDLED
+
+    def _editor_word_length_before(self, cursor_pos):
+        """Characters Ctrl+Backspace removes at *cursor_pos* (the line break at a line start)."""
+
         line, col = map(int, cursor_pos.split("."))
 
         if col == 0:
-            if line > 1:
-                self.editor_widget.delete("insert -1c", "insert")
-            return EventResult.HANDLED
+            return 1 if line > 1 else 0
 
         text_before = self.editor_widget.get(f"{line}.0", cursor_pos)
         pos = len(text_before)
@@ -330,20 +392,26 @@ class BlattwerkAppEditorKeysMixin:
                 while pos > 0 and not text_before[pos - 1].isalnum() and text_before[pos - 1] not in " \t_":
                     pos -= 1
 
-        chars_to_delete = len(text_before) - pos
-        if chars_to_delete > 0:
-            self.editor_widget.delete(f"insert -{chars_to_delete}c", "insert")
-        return EventResult.HANDLED
+        return len(text_before) - pos
 
     def _on_editor_delete_word_after(self, _event=None):
         """Deletes the word (or whitespace token) after the cursor (Ctrl+Delete)."""
 
-        cursor_pos = self.editor_widget.index("insert")
-        line_end = self.editor_widget.index("insert lineend")
+        if self._editor_multicursor_active():
+            return self._delete_word_at_regions(self._editor_word_length_after, forward=True)
+
+        chars_to_delete = self._editor_word_length_after(self.editor_widget.index("insert"))
+        if chars_to_delete > 0:
+            self.editor_widget.delete("insert", f"insert +{chars_to_delete}c")
+        return EventResult.HANDLED
+
+    def _editor_word_length_after(self, cursor_pos):
+        """Characters Ctrl+Delete removes at *cursor_pos* (the line break at a line end)."""
+
+        line_end = self.editor_widget.index(f"{cursor_pos} lineend")
 
         if self.editor_widget.compare(cursor_pos, "==", line_end):
-            self.editor_widget.delete("insert", "insert +1c")
-            return EventResult.HANDLED
+            return 1
 
         text_after = self.editor_widget.get(cursor_pos, line_end)
         pos = 0
@@ -358,9 +426,7 @@ class BlattwerkAppEditorKeysMixin:
                 while pos < len(text_after) and not text_after[pos].isalnum() and text_after[pos] not in " \t_":
                     pos += 1
 
-        if pos > 0:
-            self.editor_widget.delete("insert", f"insert +{pos}c")
-        return EventResult.HANDLED
+        return pos
 
     def _insert_editor_snippet(self, template: str):
         """Inserts a block snippet at the cursor. \\x01 in template marks cursor landing position."""

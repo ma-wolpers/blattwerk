@@ -69,3 +69,32 @@ def test_editor_keys_run_on_the_editor_widget_binder(app):
     assert app._editor_search_visible is True
     assert press_key(app._editor_search_query_entry, "Escape") is True
     assert app._editor_search_visible is False
+
+
+def test_several_cursors_work_in_the_real_app(app, tmp_path):
+    """Durchlauf im echten Fenster: Cursor setzen, tippen, Undo mit Cursorn, Esc, Dokumentwechsel."""
+    doc = tmp_path / "doc.abw"
+    doc.write_text("Zeile eins\nZeile zwei\nZeile drei\n", encoding="utf-8")
+    app._load_editor_content(doc)
+    app.root.update()
+    text, controller = app.editor_widget, app.editor_multicursor
+    ctrl_alt = CONTROL | 0x20000
+
+    text.mark_set("insert", "1.0")
+    assert press_key(text, "Down", state=ctrl_alt) is True
+    assert press_key(text, "Down", state=ctrl_alt) is True
+    assert controller.is_active()
+    assert press_key(text, "x", char="x") is True
+    assert text.get("1.0", "end-1c") == "xZeile eins\nxZeile zwei\nxZeile drei\n"
+
+    assert press_key(text, "z", state=CONTROL) is True
+    assert text.get("1.0", "end-1c") == "Zeile eins\nZeile zwei\nZeile drei\n" and controller.is_active()
+
+    assert press_key(text, "Escape") is True
+    assert not controller.is_active()
+
+    other = tmp_path / "other.abw"
+    other.write_text("Anderer Text\n", encoding="utf-8")
+    app._load_editor_content(other)
+    press_key(text, "z", state=CONTROL)
+    assert text.get("1.0", "end-1c") == "Anderer Text\n"

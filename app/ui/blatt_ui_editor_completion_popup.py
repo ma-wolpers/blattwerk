@@ -91,7 +91,7 @@ class BlattwerkAppEditorCompletionPopupMixin:
     def _open_editor_completion(self, auto: bool):
         """Collects completion suggestions and renders popup near caret."""
 
-        if self.editor_widget is None:
+        if self.editor_widget is None or self._editor_multicursor_active():
             return
 
         # Erwartungstypen zuerst: eigener, enger Kontext (blatt_ui_editor_completion_points.py).
