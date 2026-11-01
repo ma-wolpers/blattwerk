@@ -16,6 +16,7 @@ The format is based on Keep a Changelog.
 - **Warnungen aus dem Rendern kommen seltener:** Dieselbe Warnung erscheint nur noch einmal pro Dokumentstand und nennt den richtigen Vorgang („Vorschau“ oder „Export“).
 
 ### Fixed
+- Strg+Z nach einem Dokumentwechsel holt nicht mehr den Text des vorigen Dokuments zurück.
 - Ein `:::geometry`-Polygon mit Label, dessen Eckpunkte alle auf einer Geraden liegen, bricht das Rendern nicht mehr ab.
 - **Keine veraltete Vorschau mehr:** Änderungen an eingebundenen Bildern (auch neu aufgetauchte), am Copyright-Text, an Metadaten-Vorgaben, an der CSS-Vorlage und an Operatorendaten werden jetzt erkannt.
 

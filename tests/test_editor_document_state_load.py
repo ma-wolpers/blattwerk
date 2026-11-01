@@ -9,6 +9,8 @@ root.focus_get()/focus_set() reflect real window-manager focus.
 
 from __future__ import annotations
 
+import tkinter as tk
+
 import pytest
 
 from app.ui.ui_constants import (
@@ -191,3 +193,26 @@ def test_same_document_phase_a_internal_failure_evicts_focus_and_clears(tmp_path
 
 
 # -- Phase A exception (generic) ---------------------------------------------
+
+
+# -- Undo darf nie den Inhalt des vorigen Dokuments zurueckholen -------------
+
+
+def test_undo_after_loading_another_document_keeps_its_text(tmp_path, tk_root):
+    app = _RealEditor(tk_root)
+    app._load_editor_content(_write(tmp_path, "a.md", "Text von A"))
+    app.editor_widget.insert("end", " bearbeitet")
+    app.editor_widget.edit_separator()
+    app._load_editor_content(_write(tmp_path, "b.md", "Text von B"))
+    with pytest.raises(tk.TclError):
+        app.editor_widget.edit_undo()
+    assert app.editor_widget.get("1.0", "end-1c") == "Text von B"
+
+
+def test_undo_after_reset_to_empty_keeps_it_empty(tmp_path, tk_root):
+    app = _RealEditor(tk_root)
+    app._load_editor_content(_write(tmp_path, "a.md", "Text von A"))
+    app._reset_editor_widget_to_empty()
+    with pytest.raises(tk.TclError):
+        app.editor_widget.edit_undo()
+    assert app.editor_widget.get("1.0", "end-1c") == ""

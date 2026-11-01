@@ -102,6 +102,14 @@ class BlattwerkAppEditorSourceMixin:
 
         return input_path, int(input_path.stat().st_mtime_ns)
 
+    def _reset_editor_undo_history(self):
+        """Ein neu geladener Inhalt ist die neue Undo-Grundlinie.
+
+        Das Ersetzen beim Laden landet sonst selbst im Undo-Stapel, und Strg+Z
+        holt nach einem Dokumentwechsel den Text des vorigen Dokuments zurück.
+        """
+        self.editor_widget.edit_reset()
+
     def _reset_editor_widget_to_empty(self):
         """Clears the editor and marks no document as loaded.
 
@@ -120,6 +128,7 @@ class BlattwerkAppEditorSourceMixin:
         with self._editor_widget_unlocked_for_mutation():
             self.editor_widget.delete("1.0", "end")
             reset_text_modified(self.editor_widget)
+            self._reset_editor_undo_history()
         self._editor_last_loaded_path = None
         self._editor_last_known_source_path = None
         self._editor_last_known_source_mtime_ns = None
@@ -190,6 +199,7 @@ class BlattwerkAppEditorSourceMixin:
                 self.editor_widget.delete("1.0", "end")
                 self.editor_widget.insert("1.0", content)
                 reset_text_modified(self.editor_widget)
+                self._reset_editor_undo_history()
 
             # Ab hier ist alles Vorbereitete UND die Widget-Mutation
             # erfolgreich abgeschlossen -- gemeinsamer, unterbrechungsfreier
