@@ -31,9 +31,6 @@ from app.bootstrap.wiring import AppDependencies, build_gui_dependencies
 from .window_identity import configure_windows_process_identity
 
 ensure_bw_gui_on_path()
-from bw_gui.dialogs import open_tabbed_settings_dialog as _open_tabbed_settings_dialog_contract_marker
-from bw_gui.shortcuts import compose_hover_text as _compose_hover_text_contract_marker
-from bw_gui.widgets import HoverTooltip as _SharedHoverTooltipContractMarker
 
 
 class BlattwerkApp(
