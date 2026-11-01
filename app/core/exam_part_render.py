@@ -10,8 +10,8 @@ steht Teil A am Dokumentanfang (synthetischer Block, kein Umbruch) und teilt
 sich die Kopfzeile des Dokuments; der Pflichtteil hat keine Überschrift und
 damit auch keinen synthetischen Block.
 
-Wahlteile: Der erste Wahlteil eines Bereichs trägt den Hinweis „Bearbeite k
-der n Wahlteile.“, jeder Wahlteil unter seiner Überschrift ein Ankreuzfeld.
+Wahlteile: Der erste Wahlteil eines Bereichs trägt den Hinweis „Wähle k
+der n Wahlteile; gewertet werden die angekreuzten.“, jeder Wahlteil unter seiner Überschrift ein Ankreuzfeld.
 
 Kopfzeile je Teil: Jeder Teil, der auf einer neuen Seite beginnt, bekommt
 dieselbe Schülerkopfzeile wie der Dokumentanfang (`student_header`), damit
@@ -39,7 +39,7 @@ PART_CHOICE_NOTE_KEY = "_exam_part_choice_note"
 """Block-Option: Hinweistext des Wahlbereichs (nur am ersten Wahlteil)."""
 PART_CHOICE_CHECK_KEY = "_exam_part_choice_check"
 """Block-Option: Wahlteil bekommt ein Ankreuzfeld."""
-CHOICE_CHECK_TEXT = "Diesen Wahlteil bearbeite ich."
+CHOICE_CHECK_TEXT = "Diesen Wahlteil wähle ich."
 PART_HEADER_HTML_KEY = "_exam_part_header_html"
 """Block-Option mit dem fertigen Kopfzeilen-HTML; gesetzt nur von `attach_part_headers`."""
 
@@ -67,7 +67,7 @@ def annotate_exam_parts(blocks, document_type: str | None):
             group = groups[part.group_id]
             marks[PART_CHOICE_CHECK_KEY] = True
             if group.part_ids[0] == part.part_id:
-                marks[PART_CHOICE_NOTE_KEY] = f"Bearbeite {group.k} der {len(group.part_ids)} Wahlteile."
+                marks[PART_CHOICE_NOTE_KEY] = f"Wähle {group.k} der {len(group.part_ids)} Wahlteile; gewertet werden die angekreuzten."
         if part.marker_block is None:
             if part.heading:
                 prefix.append((AID_SPLIT_BLOCK, marks, ""))

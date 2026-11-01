@@ -34,15 +34,19 @@ DAMPING = 0.5
 SPRING = 0.15
 MAX_STEP = 0.25
 _EPSILON = 1e-9
+_DEFAULT_DIRECTION = (1.0, -1.0)
 
 
-def _unit(dx: float, dy: float, fallback=(1.0, -1.0)) -> tuple[float, float]:
+def _unit(dx: float, dy: float, fallback=_DEFAULT_DIRECTION) -> tuple[float, float]:
+    """Einheitsvektor; ohne Länge gilt `fallback`, ohne dessen Länge `_DEFAULT_DIRECTION`.
+
+    Ein Flächenlabel steht standardmäßig auf seinem Anker und hat dann keine
+    eigene Ausweichrichtung (z. B. Polygon mit Eckpunkten auf einer Geraden).
+    """
     length = math.hypot(dx, dy)
-    if length < _EPSILON:
-        fx, fy = fallback
-        norm = math.hypot(fx, fy)
-        return fx / norm, fy / norm
-    return dx / length, dy / length
+    if length >= _EPSILON:
+        return dx / length, dy / length
+    return _unit(*fallback) if math.hypot(*fallback) >= _EPSILON else _unit(*_DEFAULT_DIRECTION)
 
 
 def _force(spec, position, home, context, other_boxes) -> tuple[float, float]:

@@ -232,7 +232,7 @@ def _part_heading(layout, part) -> list[str]:
     html = []
     group = next((group for group in layout.groups if group.part_ids[0] == part.part_id), None)
     if group is not None:
-        html.append(f"<p class='choice-note'>Wahlbereich: {group.k} aus {len(group.part_ids)} Wahlteilen werden bearbeitet und gewertet.</p>")
+        html.append(f"<p class='choice-note'>Wahlbereich: {group.k} aus {len(group.part_ids)} Wahlteilen werden gewertet (die angekreuzten).</p>")
     html.append(f"<h2>{escape(part.heading or part.label)}</h2>")
     return html
 

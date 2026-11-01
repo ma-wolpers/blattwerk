@@ -79,7 +79,7 @@ def test_render_each_choice_part_on_new_page_with_checkbox_and_note():
     starts = re.findall(r"ab-pagebreak' aria-hidden='true'></div><(?:p class='exam-choice-note'|h2 class='aid-part')", html)
     assert len(starts) == 7  # W1.1, W1.2, B, W2.1–W2.4 (Teil A steht am Anfang)
     assert html.count("class='exam-choice-check'") == 6
-    assert "Bearbeite 1 der 2 Wahlteile." in html and "Bearbeite 2 der 4 Wahlteile." in html
+    assert "Wähle 1 der 2 Wahlteile; gewertet werden die angekreuzten." in html and "Wähle 2 der 4 Wahlteile;" in html
 
 
 def test_student_header_on_first_page_of_every_choice_part():
@@ -160,4 +160,4 @@ def test_pdf_puts_each_choice_part_on_its_own_page(tmp_path):
         pages = [page.get_text() for page in doc]
     first_page = {title: next(i for i, text in enumerate(pages) if title in text) for title in ("Pflicht", "Wahlteil 1 – Analysis", "Wahlteil 2 – Stochastik")}
     assert sorted(first_page.values()) == list(range(3))
-    assert all("Diesen Wahlteil bearbeite ich." in pages[first_page[t]] for t in ("Wahlteil 1 – Analysis", "Wahlteil 2 – Stochastik"))
+    assert all("Diesen Wahlteil wähle ich." in pages[first_page[t]] for t in ("Wahlteil 1 – Analysis", "Wahlteil 2 – Stochastik"))

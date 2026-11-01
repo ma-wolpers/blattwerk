@@ -205,3 +205,13 @@ def test_circle_invalid_fill_is_not_emitted_into_style_attribute():
     )
     assert "red;}body{display:none" not in html
     assert "display:none" not in html
+
+
+def test_collinear_polygon_with_label_renders_instead_of_crashing():
+    # Regression: Label auf den eigenen Kanten, Standardposition = Anker -> keine Ausweichrichtung.
+    html = _render_answer_block(
+        {"type": "geometry", "width": "10", "height": "10"},
+        "polygons:\n  - {vertices: [{x: 1, y: 8}, {x: 2, y: 8}, {x: 3, y: 8}], label: N}\n",
+        False,
+    )
+    assert "<polygon" in html and ">N</text>" in html
