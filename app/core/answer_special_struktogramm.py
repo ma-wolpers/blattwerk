@@ -171,7 +171,7 @@ def _switch(switch: Switch, include_solutions: bool) -> str:
     return f"<div class='stg-switch'>{head}<div class='stg-cols' style='grid-template-columns:{template};'>{columns}</div></div>"
 
 
-def _signature_html(options) -> str:
+def signature_html(options) -> str:
     """Methodenkopf; eine ungültige Signatur erscheint roh (der Validator meldet sie)."""
     raw = str((options or {}).get("signature") or "").strip()
     if not raw:
@@ -199,7 +199,7 @@ def render_struktogramm_block(options, content, include_solutions=False) -> str:
     width = str((options or {}).get("width") or "").strip()
     style = f" style='width:{width};'" if _WIDTH_RE.match(width) else ""
     body = "".join(_element(element, include_solutions) for element in elements)
-    return f"<div class='stg-block'{style}>{_signature_html(options)}<div class='stg'><div class='stg-seq'>{body}</div></div></div>"
+    return f"<div class='stg-block'{style}>{signature_html(options)}<div class='stg'><div class='stg-seq'>{body}</div></div></div>"
 
 
 def estimate_struktogramm_weight(options, content) -> float:

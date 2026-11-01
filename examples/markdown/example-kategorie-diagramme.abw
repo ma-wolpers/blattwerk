@@ -1,0 +1,573 @@
+---
+document_type: worksheet
+Titel: Blockkatalog Diagramme
+Fach: Informatik
+Thema: Alle Diagrammblöcke in ihrer Bandbreite
+show_student_header: false
+---
+
+# Informatik: Modellierung
+
+## Klassendiagramm `:::classdiagram`
+
+Vollständig nach GO Informatik S. 7: Vererbung, Assoziation, Selbstassoziation, Konstruktoren, Auslassungen und Objektkarten.
+
+:::classdiagram
+klasse Person
+    - id: Ganzzahl
+    - name: Zeichenkette
+    - adresse: Adresse
+    - bekannte: stat. Reihung vom Inhaltstyp Person
+    ...
+    c Person()
+    c Person(name: Zeichenkette)
+    + getName(): Zeichenkette
+    + kennt(anderer: Person): Wahrheitswert
+    ...
+klasse Adresse
+    - strasse: Zeichenkette
+    - plz: Zeichenkette
+    - ort: Zeichenkette
+    c Adresse(a_str, a_plz, a_ort: Zeichenkette)
+    + alsText(): Zeichenkette
+klasse Schueler
+    - jahrgang: Ganzzahl
+    c Schueler()
+    + getJahrgang(): Ganzzahl
+klasse Lehrer
+    - faecher: dyn. Reihung vom Inhaltstyp Zeichenkette
+    ...
+    c Lehrer()
+    + addFach(fach: Zeichenkette)
+Schueler -|> Person
+Lehrer -|> Person
+Person - Adresse
+Person - Person
+objekt p42 : Person
+    id = 123456789
+    name = "Max Mustermann"
+    adresse = adr37
+    ...
+objekt adr37 : Adresse
+    strasse = "Turingstraße 42"
+    plz = "12345"
+    ort = "Bletchley"
+:::
+
+--
+
+Lücken, schmaler gesetzt: Im Arbeitsblatt fehlen eine Zeile und ein Teiltext, die Kästen behalten ihre Größe.
+
+:::classdiagram width=60% align=center
+klasse Konto
+    - saldo: Fließkommazahl
+    % - inhaber: Zeichenkette
+    c Konto(inhaber: Zeichenkette)
+    + einzahlen(betrag: %{Fließkommazahl})
+klasse Sparkonto
+    - zins: Fließkommazahl
+Sparkonto -|> Konto
+:::
+
+--
+
+## ER-Diagramm `:::erdiagram`
+
+Nach GO Informatik S. 8: Schlüssel, Kardinalitäten, Attribute an Beziehungen und eine rekursive Beziehung.
+
+:::erdiagram
+entität Klasse
+    __Bezeichnung__
+    Klassenraum
+entität Schueler
+    __Name__
+    __Vorname__
+    Wohnort
+entität Lehrer
+    __Kuerzel__
+    Nachname
+entität Fach
+    __Abkuerzung__
+    Fachname
+Klasse 1 - gehoertZu - n Schueler
+    seitSchuljahr
+Schueler 1 - istPateVon - 1 Schueler
+Lehrer n - unterrichtet - m Fach
+Klasse n - hat - m Lehrer
+:::
+
+--
+
+Lücken bei einem Attribut und bei den Kardinalitäten:
+
+:::erdiagram width=70%
+entität Autor
+    __ID__
+    % Name
+entität Buch
+    __ISBN__
+Autor %{n} - schreibt - %{m} Buch
+:::
+
+--
+
+## Zustandsdiagramm `:::statediagram`
+
+Deterministischer Automat. `kind=dfa` prüft, dass von jedem Zustand genau ein Pfeil je Eingabezeichen wegführt, und gleicht `input=` mit den Pfeilen ab.
+
+:::statediagram kind=dfa input="a, b, c"
+start -> S0
+ende: S1
+S0 -> S0: a, b
+S0 -> S1: c
+S1 -> S1: a, b
+S1 -> F: c
+F -> F: a, b, c
+:::
+
+--
+
+Mealy-Automat mit Ausgabe, auch mit leerer Ausgabe `eps`. Die Kante von `N` nach `F` läuft als Bogen um `X` herum.
+
+:::statediagram kind=mealy input="a, b, c" output="A, B"
+start -> N
+N -> N: c / eps
+N -> F: b / B
+N -> X: a / A
+X -> X: c / eps
+X -> F: b / AB
+X -> F: a / AA
+F -> F: a / eps
+F -> F: b / eps
+F -> F: c / eps
+:::
+
+--
+
+Kellerautomat nach GO mit gestapelten Übergängen. Die Alphabete müssen zu den Pfeilen passen.
+
+:::statediagram kind=pda input="a, b" stack="A, B, #"
+start -> q0
+ende: q3
+q0 -> q1: (#, a) : #
+q1 -> q1: (#, a) : A#
+q1 -> q1: (#, b) : B#
+q1 -> q1: (A, a) : AA
+q1 -> q1: (B, b) : BB
+q1 -> q1: (B, a) : AB
+q1 -> q1: (A, b) : BA
+q1 -> q2: (A, eps) : A
+q1 -> q2: (B, eps) : B
+q2 -> q2: (A, a) : eps
+q2 -> q2: (B, b) : eps
+q2 -> q3: (#, eps) : #
+:::
+
+--
+
+Ohne `kind`, mit Wörtern als Zuständen, Hin- und Rückweg und Lücken in den Beschriftungen:
+
+:::statediagram
+start -> Bereit
+ende: Fertig
+Bereit -> Läuft: %{Start}
+Läuft -> Bereit: Pause
+Läuft -> Fertig: %{Ende}
+:::
+
+--
+
+## Sequenzdiagramm `:::sequencediagram`
+
+Aufruf, Rückgabe, Nachricht an sich selbst, feste Reihenfolge der Teilnehmer und eine Lücke:
+
+:::sequencediagram
+teilnehmer Client
+teilnehmer Server
+teilnehmer Datenbank
+Client -> Server: anfrage(id)
+Server -> Datenbank: suche(id)
+Datenbank --> Server: zeile
+Server -> Server: pruefen()
+Server --> Client: %{antwort}
+:::
+
+--
+
+# Informatik: Abläufe
+
+## Flussdiagramm `:::flowchart` und Struktogramm `:::structogram`
+
+Derselbe Text ergibt beide Diagramme.
+
+:::columns cols=2 widths="1 1" :::
+
+:::flowchart signature="fakultaet(n: Ganzzahl): Ganzzahl"
+ergebnis <- 1
+solange n > 1
+    ergebnis <- ergebnis * n
+    n <- n - 1
+rückgabe ergebnis
+:::
+
+:::nextcol :::
+
+:::structogram signature="fakultaet(n: Ganzzahl): Ganzzahl"
+ergebnis <- 1
+solange n > 1
+    ergebnis <- ergebnis * n
+    n <- n - 1
+rückgabe ergebnis
+:::
+
+:::endcolumns :::
+
+--
+
+Verzweigung mit Lücke, Mehrfachauswahl und fußgesteuerte Schleife:
+
+:::flowchart
+eingabe note
+wenn note < 5
+    % ausgabe "bestanden"
+sonst
+    ausgabe "nicht bestanden"
+auswahl note
+    fall 1
+        ausgabe "sehr gut"
+    fall 2
+        ausgabe "gut"
+    sonst
+        ausgabe "weiter so"
+wiederhole
+    note <- note + 1
+bis note = 6
+:::
+
+--
+
+:::structogram width=80% signature="istEnthalten(d: dyn. Reihung vom Inhaltstyp Ganzzahl, v: Ganzzahl): Wahrheitswert"
+für alle x aus d
+    wenn x = v
+        rückgabe wahr
+% rückgabe falsch
+:::
+
+--
+
+## Syntaxdiagramm `:::syntaxdiagram`
+
+Alternativen, Optionales, Wiederholung, Gruppen, Terminale und Nichtterminale:
+
+:::syntaxdiagram
+Zahl = [ "-" ] Ziffer { Ziffer }
+Ziffer = "0" | "1" | "2" | "3"
+Ausdruck = Term { ( "+" | "-" ) Term }
+:::
+
+--
+
+## Logikgatter `:::logicgates`
+
+Rechteckige Symbole mit berechneter Wahrheitstabelle:
+
+:::logicgates truthtable=true
+Q = (A und B) oder nicht C
+:::
+
+--
+
+Geschwungene Symbole mit allen Gattern. Die Ergebnisspalte bleibt im Arbeitsblatt offen.
+
+:::logicgates norm=ansi truthtable=true gaps=true
+R = A xoder (B nor C)
+S = nicht (A nand B)
+:::
+
+--
+
+## Speicherbild `:::memorydiagram`
+
+Reihung, Variable, Referenzen, Stapel und Schlange, mit Lücken:
+
+:::memorydiagram
+reihung zahlen: 3, 5, 7, %{9}
+variable summe: %{24}
+referenz p -> zahlen
+referenz q -> null
+stapel s: 1, 2, 3
+schlange w: Ana, Ben, Cem
+:::
+
+--
+
+## Netzwerkplan `:::networkdiagram`
+
+Ein Baum steht mit dem meistverbundenen Gerät oben. Ein Ring wird frei angeordnet, `Tablet: rechner` setzt ein Symbol ausdrücklich.
+
+:::networkdiagram
+PC1 - Switch
+PC2 - Switch
+Laptop - Switch
+Server - Switch
+Drucker - Switch
+Switch - Router - Internet
+Tablet: rechner
+Tablet - Router
+:::
+
+--
+
+:::networkdiagram width=60%
+Router1 - Router2 - Router3 - Router1
+Router1 - Internet
+:::
+
+--
+
+# Graphen und Bäume `:::graph`
+
+Gewichteter Graph mit Lücke, frei angeordnet:
+
+:::graph
+A - B: 5
+B - C: 2
+A - C: 7
+C - D: 1
+D - B: %{4}
+:::
+
+--
+
+Gerichtet, mit Hin- und Rückweg, Selbstkante und einzelnem Knoten, auf einem Kreis:
+
+:::graph layout=circle
+A -> B: 3
+B -> A: 1
+B -> C
+C -> C: 2
+D
+:::
+
+--
+
+Baum und Binärbaum, das linke Kind von 10 bleibt frei:
+
+:::columns cols=2 widths="1 1" :::
+
+:::graph layout=tree
+Wurzel - Ast1
+Wurzel - Ast2
+Ast1 - Blatt1
+Ast1 - Blatt2
+:::
+
+:::nextcol :::
+
+:::graph binary=true
+8 - 3
+8 - 10
+3 - 1
+3 - 6
+10 - _
+10 - 14
+:::
+
+:::endcolumns :::
+
+--
+
+# Mathematik
+
+## Baumdiagramm `:::probabilitytree`
+
+Brüche, Dezimalzahlen und Prozent, Lücke bei einem Wert und bei einem ganzen Ast:
+
+:::probabilitytree
+Rot: 1/3
+    Rot: 1/4
+    Blau: 75%
+Blau: %{2/3}
+    Rot: 0,5
+    % Blau: 0,5
+:::
+
+--
+
+## Rechenbaum `:::termtree`
+
+Ohne Lücken, mit offenen Zwischenergebnissen und mit offenen Zahlen. Die Ergebnisse berechnet Blattwerk.
+
+:::termtree
+(3+4)*2
+1/3 + 2/3
+:::
+
+:::termtree gaps=results
+12 : (2 + 4) - 2^3
+:::
+
+:::termtree gaps=leaves width=50%
+3,5 · 2 + 1
+:::
+
+--
+
+## Pfeildiagramm `:::arrowdiagram`
+
+Funktion mit geprüfter Eindeutigkeit und einem Pfeil als Lücke:
+
+:::arrowdiagram left=x right=y kind=function
+1 -> 2
+2 -> 4
+% 3 -> 6
+:::
+
+--
+
+Relation mit einem Element ohne Pfeil auf jeder Seite:
+
+:::arrowdiagram left=Kinder right=Hobbys
+Ana -> Fußball
+Ana -> Lesen
+Ben -> Lesen
+Cem -> _
+_ -> Schach
+:::
+
+--
+
+## Bruchdarstellungen `:::fractions`
+
+Kreise, auch unecht und als Lücke. Dazu Balken und leere Formen zum Selbstausmalen.
+
+:::fractions
+3/4
+5/4
+% 2/3
+:::
+
+:::fractions shape=bar
+3/8
+:::
+
+:::fractions shape=bar filled=false
+1/5
+:::
+
+--
+
+## Venn-Diagramm `:::venn`
+
+Zwei Mengen mit einer Lücke:
+
+:::venn width=60%
+A: 2, 4
+A B: %{6}
+B: 3, 9
+:::
+
+--
+
+Drei Mengen und Grundmenge:
+
+:::venn
+A: 1
+B: 2
+C: 3
+A B: 4
+A C: 5
+B C: 6
+A B C: %{7}
+rest: 8, 9
+:::
+
+--
+
+`variant=compare` als Schreibrahmen. Die Schnittmenge ist im Arbeitsblatt frei.
+
+:::venn variant=compare
+Hund: bellt, wird ausgeführt
+% Hund Katze: Haustier, hat Fell
+Katze: miaut, geht allein raus
+:::
+
+--
+
+## Statistikdiagramme `:::chart`
+
+Balken, ein Wert fehlt im Arbeitsblatt:
+
+:::chart type=bar
+Äpfel: 12
+Birnen: 7
+% Kirschen: 3
+:::
+
+--
+
+Kreisdiagramm, die Anteile bleiben offen:
+
+:::chart type=pie gaps=values
+Bus: 45
+Rad: 30
+Zu Fuß: 15
+Auto: 10
+:::
+
+--
+
+Boxplots aus Rohdaten auf gemeinsamer Achse:
+
+:::chart type=box
+Klasse 8a: 3, 5, 7, 9, 12, 13, 15
+Klasse 8b: 1, 4, 4, 6, 8, 9
+:::
+
+--
+
+Histogramm mit lückenlosen Klassen:
+
+:::chart type=histogram
+0-10: 4
+10-20: 9
+20-30: 6
+30-40: 2
+:::
+
+--
+
+Streudiagramm, ein Punkt fehlt im Arbeitsblatt:
+
+:::chart type=scatter
+1; 2
+2; 2,5
+3; 4
+% 4; 4,5
+5; 6
+:::
+
+--
+
+# Geschichte und Fächerübergreifendes
+
+## Zeitstrahl `:::timeline`
+
+Gleichmäßig verteilt, mit Jahreszahlen und einer Lücke:
+
+:::timeline
+1789: Französische Revolution
+1848: Märzrevolution
+% 1871: Reichsgründung
+1918: Novemberrevolution
+:::
+
+--
+
+Maßstäblich, mit `v. Chr.` und genauem Datum:
+
+:::timeline scale=proportional
+44 v. Chr.: Ermordung Caesars
+800: Kaiserkrönung Karls des Großen
+14.07.1789: Sturm auf die Bastille
+:::

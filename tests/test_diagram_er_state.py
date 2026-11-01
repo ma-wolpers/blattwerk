@@ -94,16 +94,45 @@ def test_state_validator_checks_go_notation_by_kind():
     assert "ST002" in _codes("statediagram", "A B")
     assert "ST003" in _codes("statediagram", "start -> A\nstart -> B")
     assert "ST004" in _codes("statediagram", "A -> B: c")
-    assert "ST005" in _codes("statediagram", "start -> A\nA -> B: c\nA -> A: c", "kind=dfa")
+    assert "ST005" in _codes("statediagram", "start -> A\nA -> B: c\nA -> A: c\nB -> B: c", "kind=dfa")
     assert "ST006" in _codes("statediagram", "start -> A\nA -> A: a", 'kind=dfa input="a, b"')
     assert "ST007" in _codes("statediagram", "start -> A\nA -> A: a", "kind=mealy")
     assert "ST007" in _codes("statediagram", "start -> A\nA -> A: a", "kind=pda")
     assert not [c for c in _codes("statediagram", GO_DFA[1], 'kind=dfa input="a, b, c"') if c.startswith("ST")]
-    assert not [c for c in _codes("statediagram", GO_MEALY[2], "kind=mealy") if c.startswith("ST")]
-    assert not [c for c in _codes("statediagram", GO_PUSHDOWN[2], "kind=pda") if c.startswith("ST")]
+    assert not [c for c in _codes("statediagram", GO_MEALY[2], 'kind=mealy input="a, b, c" output="A, B"') if c.startswith("ST")]
+    assert not [c for c in _codes("statediagram", GO_PUSHDOWN[2], 'kind=pda input="a, b" stack="A, B, #"') if c.startswith("ST")]
 
 
 def test_state_edge_detours_around_state_in_between():
     """Regression: `N -> F` lief gerade hinter X und war unsichtbar; jetzt ist es ein Bogen."""
     html = render_diagram_block("statediagram", {}, "N -> X: a\nX -> F: b\nN -> F: c")
     assert html.count(" Q ") == 1
+
+
+def test_state_alphabet_is_compared_with_the_arrows():
+    """Zeichen außerhalb des Alphabets sind Fehler, ungenutzte eine Warnung, in allen Alphabeten."""
+    assert "ST008" in _codes("statediagram", "start -> A\nA -> A: b", 'input="a"')
+    assert "ST009" in _codes("statediagram", "start -> A\nA -> A: a", 'input="a, z"')
+    assert "ST008" in _codes("statediagram", "start -> A\nA -> A: a / X", 'kind=mealy output="A"')
+    assert "ST008" in _codes("statediagram", "start -> A\nA -> A: (Z, a) : Z", 'kind=pda stack="A"')
+    errors = [d for d in inspect_markdown_text(f"{HEAD}:::statediagram input=a\nstart -> A\nA -> A: b\n:::\n", document_type="worksheet").diagnostics if d.code == "ST008"]
+    assert errors[0].severity == "error"
+
+
+def test_state_dfa_needs_one_arrow_per_symbol_even_without_input_option():
+    """Ohne `input` ergibt sich das Alphabet aus den Pfeilen; Selbstpfeile zählen."""
+    assert "ST006" in _codes("statediagram", "start -> A\nA -> B: a\nB -> B: b\nA -> A: b", "kind=dfa")
+    assert "ST006" not in _codes("statediagram", "start -> A\nA -> B: a\nA -> A: b\nB -> B: a, b", "kind=dfa")
+    assert "ST010" in _codes("statediagram", "start -> A\nA -> A: eps", "kind=dfa")
+
+
+def test_state_mealy_is_checked_for_determinism_too():
+    """Mealy: je Zustand und Eingabe genau ein Pfeil."""
+    assert "ST005" in _codes("statediagram", "start -> A\nA -> A: a / X\nA -> B: a / Y\nB -> B: a / X", "kind=mealy")
+    assert "ST006" in _codes("statediagram", "start -> A\nA -> A: a / X\nA -> B: b / X\nB -> B: a / X", "kind=mealy")
+
+
+def test_state_detects_unreachable_states():
+    """Nicht erreichbare Zustände fallen auf."""
+    assert "ST011" in _codes("statediagram", "start -> A\nA -> A: a\nB -> B: a")
+    assert "ST011" in _codes("statediagram", "start -> A\nA -> A: a\nende: C")

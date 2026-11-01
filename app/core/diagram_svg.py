@@ -16,7 +16,7 @@ import re
 from html import escape
 
 from .answer_grid_label_model import estimate_text_width
-from .diagram_text import Cell, make_cell, render_cell
+from .diagram_text import Cell, plain_cell, render_cell
 
 FONT_PX = 13.0
 LINE_HEIGHT = 17.0
@@ -131,7 +131,7 @@ class Canvas:
             wrap: Text darf umbrechen (sonst bleibt er einzeilig und läuft über).
             weight: `bold` für Überschriften.
         """
-        cell = content if isinstance(content, Cell) else make_cell(str(content))
+        cell = content if isinstance(content, Cell) else plain_cell(str(content))
         html, has_gap = render_cell(cell, self.include_solutions)
         if not html:
             return
@@ -158,7 +158,8 @@ class Canvas:
             height: Höhe der Zeichenfläche.
             header: Fertiges HTML über dem Diagramm.
         """
-        size = f"width:{_attr(width)}px;" if not width_style(options) else width_style(options)
+        # Nie größer als die natürliche Breite, sonst wüchse die Schrift mit.
+        size = f"{width_style(options) or f'width:{_attr(width)}px;'}max-width:min(100%,{_attr(width)}px);"
         return (
             f"<div class='diagram diagram-{escape(name)}'>{header}"
             f"<svg class='diagram-svg' style='{size}' viewBox='0 0 {_attr(width)} {_attr(height)}' xmlns='http://www.w3.org/2000/svg'>"

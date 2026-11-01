@@ -32,6 +32,7 @@ from .diagram_text import Cell, ParseIssue, iter_source_lines, make_cell
 _OPERATORS = ("-|>", "-")
 _HEADER_RE = re.compile(r"^(klasse|objekt)\s+(.+)$", re.IGNORECASE)
 _MEMBER_PREFIX_RE = re.compile(r"^(?:[-+]\s|c\s|\.\.\.$)")
+_MEMBER_NAME_RE = re.compile(r"^[-+]\s*")
 _PADDING = 7.0
 _MIN_WIDTH = 70.0
 _ROW_GAP = 28.0
@@ -147,6 +148,67 @@ def check(collect, _options, model: ClassModel) -> None:
     for relation in model.relations:
         if relation.label is not None:
             collect.add("CD007", "Assoziationen sind laut GO unspezifiziert; die Beschriftung kann entfallen.", anchor=f"CD007:{relation.line}")
+    _check_objects(collect, model)
+    _check_inheritance(collect, model)
+
+
+def _inherited_attributes(model: ClassModel, name: str) -> tuple[set[str], bool]:
+    """Attributnamen einer Klasse samt Oberklassen; `True`, wenn eine davon `...` enthält."""
+    names: set[str] = set()
+    open_ended = False
+    pending = [name]
+    seen: set[str] = set()
+    while pending:
+        current = pending.pop()
+        if current in seen or current not in model.nodes:
+            continue
+        seen.add(current)
+        for cell in model.nodes[current].attributes:
+            if cell.text.strip() == "...":
+                open_ended = True
+            else:
+                names.add(_MEMBER_NAME_RE.sub("", cell.text).split(":")[0].strip())
+        pending.extend(r.target for r in model.relations if r.inherits and r.source == current)
+    return names, open_ended
+
+
+def _check_objects(collect, model: ClassModel) -> None:
+    """Objektkarten müssen zu ihrer Klasse passen (`CD008`, `CD009`)."""
+    for node in model.nodes.values():
+        if not node.is_object:
+            continue
+        class_name = node.title.text.partition(":")[2].strip()
+        if not class_name:
+            continue
+        if class_name not in model.nodes or model.nodes[class_name].is_object:
+            collect.add("CD008", f"Die Klasse `{class_name}` von `{node.name}` steht nicht im Diagramm.", anchor=f"CD008:{node.name}")
+            continue
+        known, open_ended = _inherited_attributes(model, class_name)
+        if open_ended:
+            continue
+        for cell in node.attributes:
+            field_name = cell.text.partition("=")[0].strip()
+            if field_name != "..." and field_name not in known:
+                collect.add("CD009", f"`{field_name}` in `{node.name}` ist kein Attribut von `{class_name}`.", anchor=f"CD009:{node.name}:{field_name}")
+
+
+def _check_inheritance(collect, model: ClassModel) -> None:
+    """Vererbung darf keinen Kreis bilden (`CD010`, Fehler)."""
+    parents: dict[str, list[str]] = {}
+    for relation in model.relations:
+        if relation.inherits:
+            parents.setdefault(relation.source, []).append(relation.target)
+    for start in parents:
+        pending = list(parents[start])
+        seen: set[str] = set()
+        while pending:
+            current = pending.pop()
+            if current == start:
+                collect.add("CD010", f"`{start}` erbt über einen Kreis von sich selbst.", severity="error", anchor=f"CD010:{start}")
+                break
+            if current not in seen:
+                seen.add(current)
+                pending.extend(parents.get(current, []))
 
 
 def _node_size(node: ClassNode) -> tuple[float, float]:

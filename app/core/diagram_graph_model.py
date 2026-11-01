@@ -41,15 +41,16 @@ class GraphModel:
             self.nodes[name] = make_cell(name, show)
 
 
-def auto_layout(sizes, edges, **tree_options) -> Layout:
+def auto_layout(sizes, edges, first_is_root: bool = False, **tree_options) -> Layout:
     """Baum als Baum, sonst freie Anordnung.
 
     Args:
         sizes: `{knoten: (breite, höhe)}`.
         edges: Kanten `(a, b)`.
+        first_is_root: Der erste Knoten ist die Wurzel (siehe `tree_children`).
         **tree_options: Weitergabe an `tree_layout` (z. B. `gap_major`).
     """
-    tree = tree_children(sizes, edges)
+    tree = tree_children(sizes, edges, first_is_root)
     if tree is not None and len(sizes) > 1:
         root, children = tree
         return tree_layout(sizes, children, root, **tree_options)

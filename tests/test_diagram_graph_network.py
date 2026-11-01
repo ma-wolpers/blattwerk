@@ -125,3 +125,16 @@ def test_network_renders_and_validates():
     assert "NW002" in _codes("networkdiagram", "nur text")
     assert "NW003" in _codes("networkdiagram", "A: quark")
     assert not [c for c in _codes("networkdiagram", content) if c.startswith("NW")]
+
+
+def test_graph_tree_starts_at_the_first_node_and_network_at_the_busiest():
+    """Im Graphen ist der erste Knoten die Wurzel, im Netzwerk das meistverbundene Gerät."""
+    root, _children = tree_children("WAB", [("W", "A"), ("A", "B")], first_is_root=True)
+    assert root == "W"
+    assert tree_children("WAB", [("W", "A"), ("A", "B")])[0] == "A"
+
+
+def test_width_option_never_enlarges_beyond_natural_size():
+    """`width=` darf verkleinern, die Schrift wächst aber nie mit."""
+    html = render_diagram_block("graph", {"width": "90%"}, "A - B")
+    assert "width:90%;max-width:min(100%," in html

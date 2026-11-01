@@ -114,6 +114,11 @@ def make_cell(text: str, show: str = "both", prefix: str = "", suffix: str = "")
     return Cell(tuple(segments))
 
 
+def plain_cell(text: str) -> Cell:
+    """Zelle aus festem Text: `&`, `%` und `§` bleiben Zeichen, keine Marker (Gatter `&`, Terminale)."""
+    return Cell(({"text": text, "show": "both"},))
+
+
 def _merged_segments(segments) -> list[tuple[str, str]]:
     """Fasst benachbarte Segmente gleicher Sichtbarkeit zu `(show, text)` zusammen.
 

@@ -130,6 +130,143 @@ DIAGRAM_BLOCKS: tuple[DiagramBlockSpec, ...] = (
         ),
         empty_code="NW001",
     ),
+    DiagramBlockSpec(
+        name="flowchart",
+        title="Flussdiagramm",
+        module="diagram_flow",
+        snippet=(
+            ":::flowchart\n"
+            "wenn x > 0\n"
+            "    rückgabe x\n"
+            "sonst\n"
+            "    % rückgabe 0\x01\n"
+            ":::\n"
+        ),
+        empty_code="FC001",
+        keywords=_STRUCTOGRAM_KEYWORDS,
+        options=(BlockOptionSpec("signature", "text", None, False, MISSING),),
+    ),
+    DiagramBlockSpec(
+        name="sequencediagram",
+        title="Sequenzdiagramm",
+        module="diagram_sequence",
+        snippet=(
+            ":::sequencediagram\n"
+            "Client -> Server: anfrage()\n"
+            "Server --> Client: %{antwort}\x01\n"
+            ":::\n"
+        ),
+        empty_code="SQ001",
+        keywords=("teilnehmer",),
+    ),
+    DiagramBlockSpec(
+        name="syntaxdiagram",
+        title="Syntaxdiagramm",
+        module="diagram_syntax",
+        snippet=(
+            ":::syntaxdiagram\n"
+            'Zahl = [ "-" ] Ziffer { Ziffer }\x01\n'
+            ":::\n"
+        ),
+        empty_code="SY001",
+    ),
+    DiagramBlockSpec(
+        name="logicgates",
+        title="Logikgatter",
+        module="diagram_logic",
+        snippet=(
+            ":::logicgates truthtable=true\n"
+            "Q = (A und B) oder nicht C\x01\n"
+            ":::\n"
+        ),
+        empty_code="LG001",
+        options=(
+            BlockOptionSpec("norm", "enum", frozenset({"iec", "ansi"}), False, "iec"),
+            BlockOptionSpec("truthtable", "boolean", None, False, False),
+            BlockOptionSpec("gaps", "boolean", None, False, False),
+        ),
+    ),
+    DiagramBlockSpec(
+        name="probabilitytree",
+        title="Baumdiagramm",
+        module="diagram_probability",
+        snippet=(
+            ":::probabilitytree\n"
+            "Rot: 1/3\n"
+            "    Rot: 1/4\n"
+            "    Blau: 3/4\n"
+            "Blau: %{2/3}\x01\n"
+            ":::\n"
+        ),
+        empty_code="PB001",
+    ),
+    DiagramBlockSpec(
+        name="termtree",
+        title="Rechenbaum",
+        module="diagram_term",
+        snippet=":::termtree gaps=results\n(3+4)*2\x01\n:::\n",
+        empty_code="TT001",
+        options=(BlockOptionSpec("gaps", "enum", frozenset({"none", "results", "leaves", "all"}), False, "none"),),
+    ),
+    DiagramBlockSpec(
+        name="timeline",
+        title="Zeitstrahl",
+        module="diagram_timeline",
+        snippet=":::timeline\n1789: Französische Revolution\n1848: Märzrevolution\x01\n:::\n",
+        empty_code="TL001",
+        options=(BlockOptionSpec("scale", "enum", frozenset({"even", "proportional"}), False, "even"),),
+    ),
+    DiagramBlockSpec(
+        name="chart",
+        title="Statistikdiagramm",
+        module="diagram_chart",
+        snippet=":::chart type=bar\nÄpfel: 12\nBirnen: 7\n% Kirschen: 3\x01\n:::\n",
+        empty_code="CH001",
+        options=(
+            BlockOptionSpec("type", "enum", frozenset({"bar", "pie", "box", "histogram", "scatter"}), False, "bar"),
+            BlockOptionSpec("gaps", "enum", frozenset({"none", "values"}), False, "none"),
+        ),
+    ),
+    DiagramBlockSpec(
+        name="venn",
+        title="Venn-Diagramm",
+        module="diagram_venn",
+        snippet=":::venn\nA: 2, 4\nA B: 6\nB: %{3, 9}\x01\n:::\n",
+        empty_code="VN001",
+        keywords=("rest",),
+        options=(BlockOptionSpec("variant", "enum", frozenset({"plain", "compare"}), False, "plain"),),
+    ),
+    DiagramBlockSpec(
+        name="arrowdiagram",
+        title="Pfeildiagramm",
+        module="diagram_arrow",
+        snippet=":::arrowdiagram left=x right=y\n1 -> 2\n2 -> 4\n% 3 -> 6\x01\n:::\n",
+        empty_code="AR001",
+        options=(
+            BlockOptionSpec("left", "text", None, False, MISSING),
+            BlockOptionSpec("right", "text", None, False, MISSING),
+            BlockOptionSpec("kind", "enum", frozenset({"relation", "function"}), False, "relation"),
+        ),
+    ),
+    DiagramBlockSpec(
+        name="fractions",
+        title="Bruchdarstellung",
+        module="diagram_fractions",
+        snippet=":::fractions shape=circle\n3/4\n% 2/3\x01\n:::\n",
+        empty_code="FR001",
+        options=(
+            BlockOptionSpec("shape", "enum", frozenset({"circle", "bar"}), False, "circle"),
+            BlockOptionSpec("filled", "boolean", None, False, True),
+        ),
+    ),
+    DiagramBlockSpec(
+        name="memorydiagram",
+        title="Speicherbild",
+        module="diagram_memory",
+        snippet=":::memorydiagram\nreihung r: 3, 5, 7\nvariable x: %{5}\nreferenz p -> r\x01\n:::\n",
+        empty_code="MM001",
+        keywords=("reihung", "variable", "referenz", "stapel", "schlange"),
+    ),
 )
 
 DIAGRAM_BLOCKS_BY_NAME = {spec.name: spec for spec in DIAGRAM_BLOCKS}

@@ -31,7 +31,7 @@ _START_NAME = "start"
 _INDEX_RE = re.compile(r"^([^\W\d_]+)(\d+)$")
 _EPS_RE = re.compile(r"\beps\b")
 _MEALY_RE = re.compile(r"^[^/]+/[^/]+$")
-_PUSHDOWN_RE = re.compile(r"^\([^,]+,[^)]+\)\s*:\s*\S+$")
+_PUSHDOWN_PARTS_RE = re.compile(r"^\(([^,]+),([^)]+)\)\s*:\s*(\S+)$")
 _ALPHABETS = (
     ("input", "Eingabealphabet Σ"),
     ("output", "Ausgabealphabet Ω"),
@@ -111,35 +111,133 @@ def _symbols(option) -> list[str]:
     return [symbol.strip() for symbol in str(option or "").split(",") if symbol.strip()]
 
 
-def _check_dfa(collect, options, model: StateModel) -> None:
-    """DEA: je Zustand und Zeichen genau ein Übergang; ein fehlender ist nur eine Warnung."""
-    used: dict[tuple[str, str], str] = {}
+def _is_empty_word(symbol: str) -> bool:
+    """ε (auch als `eps`) steht für „kein Zeichen“ und gehört zu keinem Alphabet."""
+    return symbol in ("ε", "eps")
+
+
+@dataclass(frozen=True)
+class Reading:
+    """Bedeutung einer Beschriftung je nach `kind`.
+
+    Attributes:
+        inputs: Gelesene Eingabezeichen.
+        outputs: Ausgabewort (Mealy) in Einzelzeichen.
+        stack: Kellerzeichen (oben und abgelegtes Wort).
+    """
+
+    inputs: tuple[str, ...] = ()
+    outputs: tuple[str, ...] = ()
+    stack: tuple[str, ...] = ()
+
+
+def read_label(text: str, kind: str) -> Reading | None:
+    """Zerlegt eine Beschriftung nach der Notation aus GO S. 12.
+
+    Ohne `kind` wird die Form erkannt: `/` heißt Mealy, `(…) :` Keller, sonst eine
+    Zeichenliste.
+
+    Returns:
+        `Reading`, oder `None`, wenn die Beschriftung nicht zu `kind` passt.
+    """
+    text = text.strip()
+    pushdown = _PUSHDOWN_PARTS_RE.match(text)
+    if kind == "pda" or (not kind and pushdown):
+        if not pushdown:
+            return None
+        top, symbol, word = pushdown.group(1).strip(), pushdown.group(2).strip(), pushdown.group(3).strip()
+        return Reading(inputs=(symbol,), stack=(top, *tuple(word)) if not _is_empty_word(word) else (top,))
+    if kind == "mealy" or (not kind and "/" in text):
+        if not _MEALY_RE.match(text):
+            return None
+        left, right = (part.strip() for part in text.split("/"))
+        return Reading(inputs=tuple(_symbols(left)), outputs=() if _is_empty_word(right) else tuple(right))
+    if "/" in text or pushdown:
+        return None
+    return Reading(inputs=tuple(_symbols(text)))
+
+
+def _check_alphabet(collect, title: str, declared: list[str], used: dict[str, int]) -> None:
+    """Gleicht eine Alphabet-Option mit den Pfeilen ab: nichts fehlt, nichts ist überflüssig."""
+    if not declared:
+        return
+    for symbol, line in used.items():
+        if symbol not in declared:
+            collect.add("ST008", f"`{symbol}` (Zeile {line} im Block) fehlt im {title}.", severity="error", anchor=f"ST008:{title}:{symbol}")
+    for symbol in declared:
+        if symbol not in used:
+            collect.add("ST009", f"`{symbol}` steht im {title}, kommt aber an keinem Pfeil vor.", anchor=f"ST009:{title}:{symbol}")
+
+
+def _check_deterministic(collect, model: StateModel, alphabet: list[str], reads: dict) -> None:
+    """DEA und Mealy: von jedem Zustand genau ein Pfeil je Eingabezeichen.
+
+    Mehrere sind ein Fehler. Ein fehlender ist nur eine Warnung, weil die GO den
+    Fehlerzustand mit einer Erläuterung weglassen lässt. `alphabet` kommt aus `input`,
+    sonst aus den Pfeilen selbst.
+    """
+    targets: dict[tuple[str, str], str] = {}
     for transition in model.transitions.values():
-        for cell in transition.labels:
-            for symbol in _symbols(cell.text):
-                if (transition.source, symbol) in used and used[(transition.source, symbol)] != transition.target:
-                    collect.add("ST005", f"`{transition.source}` hat für `{symbol}` mehrere Übergänge.", anchor=f"ST005:{transition.source}:{symbol}")
-                used[(transition.source, symbol)] = transition.target
-    for state in model.states:
-        for symbol in _symbols(options.get("input")):
-            if (state, symbol) not in used:
-                collect.add("ST006", f"`{state}` hat keinen Übergang für `{symbol}`. Das geht laut GO nur mit einer Erläuterung zum Fehlerzustand.", anchor=f"ST006:{state}:{symbol}")
+        for reading in reads[(transition.source, transition.target)]:
+            for symbol in reading.inputs:
+                if _is_empty_word(symbol):
+                    collect.add("ST010", f"ε-Übergang bei `{transition.source}` ist hier nicht erlaubt.", severity="error", anchor=f"ST010:{transition.source}")
+                    continue
+                key = (transition.source, symbol)
+                if key in targets:
+                    collect.add("ST005", f"`{transition.source}` hat für `{symbol}` mehrere Pfeile.", severity="error", anchor=f"ST005:{transition.source}:{symbol}")
+                targets[key] = transition.target
+    for state_name in model.states:
+        for symbol in alphabet:
+            if (state_name, symbol) not in targets:
+                collect.add("ST006", f"Von `{state_name}` führt kein Pfeil für `{symbol}` weg. Das geht laut GO nur mit einer Erläuterung zum Fehlerzustand.", anchor=f"ST006:{state_name}:{symbol}")
+
+
+def _check_reachable(collect, model: StateModel) -> None:
+    """Warnt vor Zuständen, die vom Start aus nicht erreichbar sind."""
+    if model.start is None:
+        return
+    reached = {model.start}
+    queue = [model.start]
+    while queue:
+        current = queue.pop()
+        for source, target in model.transitions:
+            if source == current and target not in reached:
+                reached.add(target)
+                queue.append(target)
+    for state_name in model.states:
+        if state_name not in reached:
+            collect.add("ST011", f"`{state_name}` ist vom Startzustand aus nicht erreichbar.", anchor=f"ST011:{state_name}")
 
 
 def check(collect, options, model: StateModel) -> None:
-    """Prüft Startzustand und, je nach `kind`, die Notation aus GO S. 12."""
+    """Prüft Start, Erreichbarkeit, Notation, Alphabete und Determinismus (GO S. 12)."""
     if model.start is None:
         collect.add("ST004", "Es fehlt der Startzustand (`start -> A`).")
+    _check_reachable(collect, model)
     kind = str(options.get("kind") or "").strip().lower()
-    if kind == "dfa":
-        _check_dfa(collect, options, model)
-    formats = {"mealy": (_MEALY_RE, "`Eingabe / Ausgabe`"), "pda": (_PUSHDOWN_RE, "`(oben, Eingabe) : Kellerwort`")}
-    if kind in formats:
-        pattern, shown = formats[kind]
-        for transition in model.transitions.values():
-            for cell in transition.labels:
-                if not pattern.match(cell.text.strip()):
-                    collect.add("ST007", f"`{cell.text}` hat nicht die Form {shown}.", anchor=f"ST007:{transition.line}:{cell.text}")
+    shown = {"mealy": "`Eingabe / Ausgabe`", "pda": "`(oben, Eingabe) : Kellerwort`", "dfa": "`a, b`"}
+    reads: dict[tuple[str, str], list[Reading]] = {}
+    used = {"input": {}, "output": {}, "stack": {}}
+    for key, transition in model.transitions.items():
+        reads[key] = []
+        for cell in transition.labels:
+            reading = read_label(cell.text, kind)
+            if reading is None:
+                collect.add("ST007", f"`{cell.text}` hat nicht die Form {shown.get(kind, 'einer Beschriftung')}.", severity="error", anchor=f"ST007:{transition.line}:{cell.text}")
+                continue
+            reads[key].append(reading)
+            for symbol in reading.inputs:
+                if not _is_empty_word(symbol):
+                    used["input"].setdefault(symbol, transition.line)
+            for symbol in reading.outputs:
+                used["output"].setdefault(symbol, transition.line)
+            for symbol in reading.stack:
+                used["stack"].setdefault(symbol, transition.line)
+    for key, title in (("input", "Eingabealphabet"), ("output", "Ausgabealphabet"), ("stack", "Kelleralphabet")):
+        _check_alphabet(collect, title, _symbols(options.get(key)), used[key])
+    if kind in ("dfa", "mealy"):
+        _check_deterministic(collect, model, _symbols(options.get("input")) or list(used["input"]), reads)
 
 
 def _display_name(name: str) -> str:

@@ -8,6 +8,18 @@ Regel:
 
 ## [Unreleased]
 
+- Speicherbild: `diagram_memory.py`.
+- Bruchdarstellung: `diagram_fractions.py`.
+- Pfeildiagramm: `diagram_arrow.py`.
+- Venn: `diagram_venn.py`.
+- Statistik: `diagram_chart.py`; Quartile nach Schulmethode in `five_numbers`.
+- Zeitstrahl: `diagram_timeline.py`.
+- Rechenbaum: Parser aus `diagram_expression.py`, gespiegeltes `tree_layout`.
+- **Wellen C und D (Diagramm-Plan, 2026-11-02).** `diagram_numbers.py` ist die einzige Quelle für Zahlschreibweisen (exakt mit `Fraction`), Achsen und Quartile. Module `diagram_probability`, `diagram_term`, `diagram_timeline`, `diagram_chart`, `diagram_venn`, `diagram_arrow`, `diagram_fractions`, `diagram_memory`. `examples/markdown/example-kategorie-*.abw` zeigen die Bandbreite je Kategorie.
+- Logikgatter: `diagram_logic.py`; GRENZE: Mehrfach genutzte Variablen erscheinen als eigene Eingänge.
+- Syntaxdiagramm: `diagram_syntax.py`.
+- Sequenzdiagramm: `diagram_sequence.py`; GRENZE(v1): keine `alt`-/`loop`-Rahmen.
+- **Welle B (Diagramm-Plan, 2026-11-02).** `diagram_flow.py` setzt Abschnitte (`_Part`) zusammen, kein Graph-Layout. `diagram_syntax.py` analog mit `_Rail`. `diagram_expression.py` ist der gemeinsame Ausdrucksparser für Logik und Terme. Konsistenzprüfungen: Automaten gegen Alphabete und Determinismus, Objektkarten gegen Klassen, Vererbungskreise, stille Sequenz-Teilnehmer.
 - Netzwerkplan: Symbole in `diagram_network.py`, Layout wie beim Graphen.
 - **`:::graph` und `:::networkdiagram` (Diagramm-Plan Welle A, 2026-11-02).** Module `diagram_graph.py`, `diagram_network.py`, gemeinsames Modell `diagram_graph_model.py`; `edge_label_center` in `diagram_route.py` ersetzt die Rechnung aus `diagram_state.py`.
 - **`:::statediagram` (Diagramm-Plan Welle A, 2026-11-02).** Modul `diagram_state.py`. Kanten, die sonst hinter einem Zustand laufen würden, bekommen einen Bogen nach unten (`_detour_bend`). Referenz: GO-Beispiele DEA, Mealy und Keller.

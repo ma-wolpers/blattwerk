@@ -91,7 +91,7 @@ def _layout(options, model: GraphModel, sizes):
         return free_layout(sizes, edges)
     if str((options or {}).get("layout") or "") == "circle":
         return circle_layout(sizes)
-    return auto_layout(sizes, edges)
+    return auto_layout(sizes, edges, first_is_root=True)
 
 
 def _draw_edge(canvas: Canvas, edge: GraphEdge, centers, radii, bend: float) -> None:

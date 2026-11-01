@@ -81,7 +81,7 @@ def tree_layout(sizes, children, root, *, direction="TB", gap_major=46.0, gap_mi
     return _bounded(positions, sizes, margin)
 
 
-def circle_layout(sizes, *, margin=12.0, gap=24.0) -> Layout:
+def circle_layout(sizes, *, margin=30.0, gap=64.0) -> Layout:
     """Ordnet Knoten im Uhrzeigersinn auf einem Kreis an, beginnend oben."""
     nodes = list(sizes)
     largest = max(max(size) for size in sizes.values())
@@ -172,11 +172,12 @@ def free_layout(sizes, edges, *, spacing=110.0, margin=12.0, gap=26.0) -> Layout
     return _bounded(positions, sizes, margin)
 
 
-def tree_children(nodes, edges) -> tuple[str, dict[str, list[str]]] | None:
+def tree_children(nodes, edges, first_is_root: bool = False) -> tuple[str, dict[str, list[str]]] | None:
     """Prüft, ob `edges` einen zusammenhängenden Baum über `nodes` bilden.
 
-    Die Wurzel ist der Knoten mit den meisten Kanten, bei Gleichstand der erste; gerichtete
-    Kanten sind hier egal. So landet in einem Netzwerk der Router oben.
+    Gerichtete Kanten sind hier egal. Die Wurzel ist der erste Knoten (`first_is_root`, im
+    Graphen schreibt man den Baum von oben nach unten), sonst der Knoten mit den meisten
+    Kanten, damit in einem Netzwerk das zentrale Gerät oben steht.
 
     Returns:
         `(wurzel, kinder)` oder `None`, wenn es kein Baum ist.
@@ -189,7 +190,7 @@ def tree_children(nodes, edges) -> tuple[str, dict[str, list[str]]] | None:
     for first, second in pairs:
         neighbours[first].append(second)
         neighbours[second].append(first)
-    root = max(nodes, key=lambda node: len(neighbours[node]))
+    root = nodes[0] if first_is_root else max(nodes, key=lambda node: len(neighbours[node]))
     children: dict[str, list[str]] = {}
     seen = {root}
     queue = [root]

@@ -2101,6 +2101,37 @@ h1 {
     border-bottom: 1px dashed currentColor;
 }
 
+.diagram-tables {
+    display: flex;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 1em;
+    margin-top: 0.5em;
+}
+
+.diagram-table {
+    border-collapse: collapse;
+}
+
+.diagram-table th,
+.diagram-table td {
+    border: 1px solid currentColor;
+    padding: 0.1em 0.6em;
+    text-align: center;
+}
+
+.diagram-bar {
+    fill: color-mix(in srgb, currentColor 14%, transparent);
+    stroke: currentColor;
+    stroke-width: 1;
+}
+
+.diagram-fill {
+    fill: color-mix(in srgb, currentColor 32%, transparent);
+    stroke: currentColor;
+    stroke-width: 1;
+}
+
 /* Struktogramm (:::structogram) -- Gestalt nach GO
    Informatik S. 5-6: dünne Linien in Textfarbe, keine Füllung. Struktur
    und Rationale siehe answer_special_struktogramm.py. */

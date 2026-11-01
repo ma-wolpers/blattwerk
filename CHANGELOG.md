@@ -22,6 +22,18 @@ The format is based on Keep a Changelog.
 - **Keine veraltete Vorschau mehr:** Änderungen an eingebundenen Bildern (auch neu aufgetauchte), am Copyright-Text, an Metadaten-Vorgaben, an der CSS-Vorlage und an Operatorendaten werden jetzt erkannt.
 
 ### Added
+- **Neuer Blocktyp `:::memorydiagram`:** Speicherbilder mit Reihungen, Variablen, Referenzen, Stapeln und Schlangen, um Code nachzuvollziehen, mit Lücken bei einzelnen Werten.
+- **Neuer Blocktyp `:::fractions`:** Brüche als Kreise oder Balken aus Zeilen wie `3/4`, auch unechte Brüche, als Lücke oder leer zum Selbstausmalen (`filled=false`).
+- **Neuer Blocktyp `:::arrowdiagram`:** Pfeildiagramme für Relationen, Zuordnungen und Funktionen aus Zeilen wie `1 -> 2`, mit Pfeilen als Lücken. `kind=function` prüft die Eindeutigkeit.
+- **Neuer Blocktyp `:::venn`:** Venn-Diagramme für 2 oder 3 Mengen, eine Zeile pro Bereich wie `A: 2, 4` und `A B: 6`, mit Lücken. `variant=compare` macht daraus einen Schreibrahmen.
+- **Neuer Blocktyp `:::chart`:** Balken-, Kreis- und Boxplot-Diagramme, Histogramme und Streudiagramme aus kurzen Datenzeilen (`type=`). Einzelne Werte oder alle Zahlen lassen sich im Arbeitsblatt offen lassen.
+- **Neuer Blocktyp `:::timeline`:** Zeitstrahlen mit einem Ereignis pro Zeile wie `1789: Französische Revolution`, auch `44 v. Chr.` und genaue Daten, gleichmäßig oder maßstäblich (`scale=proportional`).
+- **Neuer Blocktyp `:::termtree`:** Rechenbäume aus einem Term wie `(3+4)*2`. Die Ergebnisse berechnet Blattwerk exakt, `gaps=results`, `leaves` oder `all` lässt sie im Arbeitsblatt offen.
+- **Neuer Blocktyp `:::probabilitytree`:** Baumdiagramme für Wahrscheinlichkeiten aus eingerückten Zeilen wie `Rot: 1/3`. Blattwerk rechnet nach, ob die Äste zusammen 1 ergeben. Lücken für Werte und ganze Äste.
+- **Neuer Blocktyp `:::logicgates`:** Schaltungen aus einer Formel wie `Q = (A und B) oder nicht C`, mit rechteckigen (`norm=iec`) oder geschwungenen Symbolen (`norm=ansi`) und berechneter Wahrheitstabelle (`truthtable=true`).
+- **Neuer Blocktyp `:::syntaxdiagram`:** Syntaxdiagramme aus EBNF-ähnlichen Zeilen wie `Zahl = [ "-" ] Ziffer { Ziffer }`, Terminale rund, Nichtterminale eckig.
+- **Neuer Blocktyp `:::sequencediagram`:** Sequenzdiagramme aus kurzen Zeilen wie `A -> B: Nachricht` und `A --> B: Antwort`, mit Lebenslinien und Lücken.
+- **Neuer Blocktyp `:::flowchart`:** Flussdiagramme mit genau derselben Syntax wie `:::structogram`, sodass derselbe Text als beide Diagramme darstellbar ist. Mit Rauten, Rücklauf bei Schleifen, Start- und Endmarke und Lücken. `signature=` ist freiwillig und wird geprüft, wenn es da ist.
 - **Neuer Blocktyp `:::networkdiagram`:** Netzwerkpläne mit einfachen Symbolen aus kurzen Zeilen wie `PC1 - Switch - Router`. Das Symbol ergibt sich aus dem Namen, `Tablet1: rechner` setzt es ausdrücklich.
 - **Neuer Blocktyp `:::graph`:** Graphen und Binärbäume aus kurzen Zeilen wie `A - B: 5` oder `A -> B`, mit automatischer Anordnung. Gewichte lassen sich mit `%{5}` zur Lücke machen. `layout=tree` oder `circle` legt die Anordnung fest, `binary=true` hält links und rechts im Binärbaum auseinander.
 - **Neuer Blocktyp `:::statediagram`:** Automaten in der Gestalt der GO Informatik (S. 12) aus einer kurzen Zeile pro Übergang, zum Beispiel `S0 -> S1: c`. Mit Startpfeil, Doppelkreis für Endzustände, Schleifen, Alphabetzeilen und Lücken. `kind=dfa`, `mealy` oder `pda` prüft die Notation.

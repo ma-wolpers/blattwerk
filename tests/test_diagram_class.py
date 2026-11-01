@@ -86,3 +86,18 @@ def test_comment_lines_do_not_count_and_html_is_escaped():
     assert not issues
     assert len(model.nodes["A"].attributes) == 1
     assert "Liste&lt;Ganzzahl&gt;" in render_diagram_block("classdiagram", {}, "klasse A\n    - x: Liste<Ganzzahl>")
+
+
+def test_objects_must_match_their_class():
+    """Objektkarte gegen Klasse: Klasse vorhanden, Attribute bekannt, auch geerbte."""
+    assert "CD008" in _codes("objekt a : Fehlt\n    x = 1")
+    assert "CD009" in _codes("klasse K\n    - x: Ganzzahl\nobjekt a : K\n    y = 1")
+    inherited = "klasse O\n    - x: Ganzzahl\nklasse K\n    - y: Ganzzahl\nK -|> O\nobjekt a : K\n    x = 1\n    y = 2"
+    assert not {"CD008", "CD009"} & set(_codes(inherited))
+    assert "CD009" not in _codes("klasse K\n    - x: Ganzzahl\n    ...\nobjekt a : K\n    y = 1")
+
+
+def test_inheritance_cycle_is_an_error():
+    """Kreis in der Vererbung ist ein Fehler."""
+    assert "CD010" in _codes("klasse A\nklasse B\nA -|> B\nB -|> A")
+    assert "CD010" not in _codes("klasse A\nklasse B\nA -|> B")
