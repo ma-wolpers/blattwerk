@@ -110,6 +110,7 @@ def render(options, content, include_solutions=False) -> str:
             middle_x, middle_y = (parent_right + left) / 2, (py + y) / 2
             side = -1 if y <= py else 1
             canvas.label(branch.probability, middle_x, middle_y + side * (LINE_HEIGHT / 2 + 2), label_width)
+            canvas.rect(x, y, sizes[branch.key][0], _NODE_HEIGHT - 4, radius=6.0, css="diagram-tone-1" if branch.children else "diagram-tone-3")
             canvas.label(branch.outcome, x, y, sizes[branch.key][0])
             draw_branches(branch.key, branch.children)
 

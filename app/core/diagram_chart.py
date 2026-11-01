@@ -10,7 +10,7 @@
 
 `%` am Zeilenanfang macht einen Wert zur Lücke: Der Balken oder Punkt fehlt im
 Arbeitsblatt, die Beschriftung bleibt. `gaps=values` blendet nur die Zahlen aus.
-Unterscheidung ohne Farbe, deshalb gilt das Schwarz-Weiß-Profil ohne Sonderfall.
+Die Töne kommen aus dem Farbprofil; im Schwarz-Weiß-Profil sind sie grau.
 """
 
 from __future__ import annotations
@@ -21,7 +21,7 @@ from dataclasses import dataclass
 from fractions import Fraction
 
 from .diagram_numbers import five_numbers, format_number, nice_ticks, parse_number, split_numbers
-from .diagram_svg import LINE_HEIGHT, Canvas, text_width
+from .diagram_svg import LINE_HEIGHT, TONES, Canvas, text_width
 from .diagram_text import Cell, ParseIssue, iter_source_lines, make_cell, plain_cell
 
 _INTERVAL_RE = re.compile(r"^(-?\d+(?:[.,]\d+)?)\s*-\s*(-?\d+(?:[.,]\d+)?)$")
@@ -147,7 +147,7 @@ def _render_bars(canvas: Canvas, rows: list[Row], options, adjacent: bool) -> tu
         cx = x0 + slot * (index + 0.5)
         height = float(row.values[0]) / ticks[-1] * _PLOT_H
         if not (row.gap and not canvas.include_solutions):
-            canvas.rect(cx, y0 - height / 2, bar, height, css="diagram-bar")
+            canvas.rect(cx, y0 - height / 2, bar, height, css=f"diagram-bar {TONES[0 if adjacent else index % len(TONES)]}")
         canvas.label(_value_cell(row.values[0], row, hide), cx, y0 - height - LINE_HEIGHT / 2 - 1, slot)
         if not adjacent:
             canvas.label(row.label, cx, y0 + LINE_HEIGHT / 2 + 3, slot, LINE_HEIGHT * 2, wrap=True)
@@ -169,14 +169,17 @@ def _render_pie(canvas: Canvas, rows: list[Row], options) -> tuple[float, float]
     hide = str(options.get("gaps") or "") == "values"
     reach = max(text_width(row.label) for row in rows) + 44
     cx, cy = _MARGIN + reach + _PIE_R, _MARGIN + 30 + _PIE_R
-    canvas.ellipse(cx, cy, _PIE_R, _PIE_R)
     angle = -math.pi / 2
-    for row in rows:
+    for index, row in enumerate(rows):
         share = row.values[0] / total
         sweep = float(share) * 2 * math.pi
         hidden = row.gap and not canvas.include_solutions
-        if not hidden:
-            canvas.line(cx, cy, cx + _PIE_R * math.cos(angle), cy + _PIE_R * math.sin(angle))
+        if len(rows) == 1 and not hidden:
+            canvas.ellipse(cx, cy, _PIE_R, _PIE_R, TONES[0])
+        elif sweep and not hidden:
+            canvas.sector(cx, cy, _PIE_R, angle, angle + sweep, TONES[index % len(TONES)])
+        elif sweep:
+            canvas.sector(cx, cy, _PIE_R, angle, angle + sweep, "diagram-shape")
         middle = angle + sweep / 2
         percent = format_number(share * 100) + " %"
         text = f"%{{{percent}}}" if hide or row.gap else percent
@@ -201,7 +204,7 @@ def _render_box(canvas: Canvas, rows: list[Row]) -> tuple[float, float]:
         return x0 + (float(value) - low) / ((high - low) or 1) * _PLOT_W
 
     y = _MARGIN + _BOX_ROW / 2
-    for row in rows:
+    for index, row in enumerate(rows):
         canvas.label(row.label, _MARGIN + label_column / 2, y, label_column, align="left")
         if not (row.gap and not canvas.include_solutions):
             minimum, q1, mid, q3, maximum = five_numbers(list(row.values))
@@ -209,7 +212,7 @@ def _render_box(canvas: Canvas, rows: list[Row]) -> tuple[float, float]:
             canvas.line(x_of(q3), y, x_of(maximum), y)
             for value in (minimum, maximum):
                 canvas.line(x_of(value), y - 8, x_of(value), y + 8)
-            canvas.rect((x_of(q1) + x_of(q3)) / 2, y, x_of(q3) - x_of(q1), 26.0, css="diagram-shape")
+            canvas.rect((x_of(q1) + x_of(q3)) / 2, y, x_of(q3) - x_of(q1), 26.0, css=TONES[index % len(TONES)])
             canvas.line(x_of(mid), y - 13, x_of(mid), y + 13)
         y += _BOX_ROW
     axis_y = y - _BOX_ROW / 2 + 8
@@ -243,8 +246,8 @@ def _render_scatter(canvas: Canvas, rows: list[Row]) -> tuple[float, float]:
         if row.gap and not canvas.include_solutions:
             continue
         x, y = place(row)
-        canvas.line(x - _POINT, y - _POINT, x + _POINT, y + _POINT)
-        canvas.line(x - _POINT, y + _POINT, x + _POINT, y - _POINT)
+        canvas.line(x - _POINT, y - _POINT, x + _POINT, y + _POINT, css="diagram-accent")
+        canvas.line(x - _POINT, y + _POINT, x + _POINT, y - _POINT, css="diagram-accent")
     return x0 + _PLOT_W + _MARGIN + 14, y0 + _BOTTOM + _MARGIN
 
 

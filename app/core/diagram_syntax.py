@@ -157,7 +157,7 @@ def _box(node: Node) -> _Rail:
 
     def draw(canvas: Canvas, x: float, y: float) -> None:
         radius = _BOX_HEIGHT / 2 if node.kind == "terminal" else 0.0
-        canvas.rect(x + width / 2, y + _BOX_HEIGHT / 2, width, _BOX_HEIGHT, radius=radius, css="diagram-shape")
+        canvas.rect(x + width / 2, y + _BOX_HEIGHT / 2, width, _BOX_HEIGHT, radius=radius, css="diagram-tone-4" if node.kind == "terminal" else "diagram-tone-1")
         canvas.label(plain_cell(node.text), x + width / 2, y + _BOX_HEIGHT / 2, width)
 
     return _Rail(width, _BOX_HEIGHT, _BOX_HEIGHT / 2, draw)

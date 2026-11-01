@@ -65,3 +65,30 @@ def test_render_cell_keeps_list_markers_and_escapes_html():
     """`- id` wird keine Liste, `a<b` kein HTML-Tag."""
     assert "<ul" not in render_cell(make_cell("- id: Ganzzahl"), False)[0]
     assert "a&lt;b" in render_cell(make_cell("a<b"), False)[0]
+
+
+def test_diagram_colors_come_only_from_the_color_profile():
+    """Keine festen Farben im Diagramm-CSS; das Schwarz-Weiß-Profil liefert nur Grau."""
+    import re
+    from pathlib import Path
+
+    from app.styles.worksheet_design import build_design_css
+
+    css = Path(__file__).resolve().parents[1].joinpath("assets", "worksheet.css").read_text(encoding="utf-8")
+    start = css.index("/* Diagrammblöcke")
+    section = css[start: css.index("/* Struktogramm (:::structogram)")]
+    fallbacks = {"#777", "#999", "#333"}
+    assert set(re.findall(r"#[0-9a-fA-F]{3,6}", section)) <= fallbacks
+
+    bw = build_design_css("bw")
+    for name in ("--theme-accent-main", "--theme-accent-secondary", "--theme-accent-strong"):
+        value = re.search(rf"{name}: (#[0-9a-fA-F]{{6}})", bw).group(1)
+        assert value[1:3] == value[3:5] == value[5:7], (name, value)
+
+
+def test_text_width_counts_what_a_formula_shows():
+    """LaTeX-Befehle zählen nicht mit, sichtbare Zeichen schon."""
+    from app.core.diagram_svg import text_width
+
+    assert text_width("$\\frac{1}{2}$") == text_width("12")
+    assert text_width("abc") > text_width("a")

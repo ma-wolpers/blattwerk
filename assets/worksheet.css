@@ -2013,6 +2013,17 @@ h1 {
 
 .diagram {
     --diagram-paper: var(--diagram-background, white);
+    /* Alle Töne kommen aus den Akzentfarben des Farbprofils; im Schwarz-Weiß-Profil sind
+       diese grau, ein Sonderfall ist nicht nötig. */
+    --diagram-main: var(--theme-accent-main, #777);
+    --diagram-second: var(--theme-accent-secondary, #999);
+    --diagram-ink: color-mix(in srgb, var(--theme-accent-strong, #333) 60%, black);
+    --diagram-tone-1: color-mix(in srgb, var(--diagram-main) 16%, white);
+    --diagram-tone-2: color-mix(in srgb, var(--diagram-second) 18%, white);
+    --diagram-tone-3: color-mix(in srgb, var(--diagram-main) 38%, white);
+    --diagram-tone-4: color-mix(in srgb, var(--diagram-second) 42%, white);
+    --diagram-tone-5: color-mix(in srgb, var(--diagram-main) 62%, white);
+    --diagram-tone-6: color-mix(in srgb, var(--diagram-second) 66%, white);
     box-sizing: border-box;
     max-width: 100%;
     margin-bottom: 0.45em;
@@ -2034,7 +2045,7 @@ h1 {
 
 .diagram-line {
     fill: none;
-    stroke: currentColor;
+    stroke: var(--diagram-ink);
     stroke-width: 1;
 }
 
@@ -2044,13 +2055,13 @@ h1 {
 
 .diagram-shape {
     fill: var(--diagram-paper);
-    stroke: currentColor;
+    stroke: var(--diagram-ink);
     stroke-width: 1;
 }
 
 .diagram-solid {
-    fill: currentColor;
-    stroke: currentColor;
+    fill: var(--diagram-ink);
+    stroke: var(--diagram-ink);
     stroke-width: 1;
 }
 
@@ -2098,7 +2109,7 @@ h1 {
 /* Lücke auf einer Kante oder an einem Knoten: Die Stelle bleibt erkennbar, der Text
    hält unsichtbar den Platz. */
 .diagram-gap > span {
-    border-bottom: 1px dashed currentColor;
+    border-bottom: 1px dashed var(--diagram-ink);
 }
 
 .diagram-tables {
@@ -2113,6 +2124,10 @@ h1 {
     border-collapse: collapse;
 }
 
+.diagram-table th {
+    background: var(--diagram-tone-1);
+}
+
 .diagram-table th,
 .diagram-table td {
     border: 1px solid currentColor;
@@ -2121,15 +2136,72 @@ h1 {
 }
 
 .diagram-bar {
-    fill: color-mix(in srgb, currentColor 14%, transparent);
-    stroke: currentColor;
+    fill: var(--diagram-tone-3);
+    stroke: var(--diagram-ink);
     stroke-width: 1;
 }
 
 .diagram-fill {
-    fill: color-mix(in srgb, currentColor 32%, transparent);
-    stroke: currentColor;
+    fill: var(--diagram-tone-5);
+    stroke: var(--diagram-ink);
     stroke-width: 1;
+}
+
+.diagram-svg .diagram-tone-1 {
+    fill: var(--diagram-tone-1);
+    stroke: var(--diagram-ink);
+    stroke-width: 1;
+}
+
+.diagram-svg .diagram-tone-2 {
+    fill: var(--diagram-tone-2);
+    stroke: var(--diagram-ink);
+    stroke-width: 1;
+}
+
+.diagram-svg .diagram-tone-3 {
+    fill: var(--diagram-tone-3);
+    stroke: var(--diagram-ink);
+    stroke-width: 1;
+}
+
+.diagram-svg .diagram-tone-4 {
+    fill: var(--diagram-tone-4);
+    stroke: var(--diagram-ink);
+    stroke-width: 1;
+}
+
+.diagram-svg .diagram-tone-5 {
+    fill: var(--diagram-tone-5);
+    stroke: var(--diagram-ink);
+    stroke-width: 1;
+}
+
+.diagram-svg .diagram-tone-6 {
+    fill: var(--diagram-tone-6);
+    stroke: var(--diagram-ink);
+    stroke-width: 1;
+}
+
+.diagram-accent {
+    fill: none;
+    stroke: var(--diagram-main);
+    stroke-width: 1.6;
+}
+
+.diagram-set-1 {
+    fill: color-mix(in srgb, var(--diagram-main) 26%, transparent);
+    stroke: var(--diagram-ink);
+}
+
+.diagram-set-2 {
+    fill: color-mix(in srgb, var(--diagram-second) 28%, transparent);
+    stroke: var(--diagram-ink);
+}
+
+.diagram-set-3 {
+    fill: color-mix(in srgb, var(--diagram-main) 50%, transparent);
+    stroke: var(--diagram-ink);
 }
 
 /* Struktogramm (:::structogram) -- Gestalt nach GO
@@ -2184,6 +2256,12 @@ h1 {
     padding: 0.15em 0.4em 0.15em 1.4em;
     text-indent: -1em;
     overflow-wrap: anywhere;
+}
+
+/* Kopf von Verzweigung, Auswahl und Schleife dezent aus dem Farbprofil; die GO-Form bleibt. */
+.stg-head,
+.stg-loop-text {
+    background: color-mix(in srgb, var(--theme-accent-main, #777) 14%, white);
 }
 
 .stg-gap {

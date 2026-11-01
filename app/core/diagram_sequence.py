@@ -157,7 +157,7 @@ def render(options, content, include_solutions=False) -> str:
     widest_right = 0.0
     for name, x in centers.items():
         head_width = text_width(name) + 18
-        canvas.rect(x, _MARGIN + _HEAD_HEIGHT / 2, head_width, _HEAD_HEIGHT, css="diagram-shape")
+        canvas.rect(x, _MARGIN + _HEAD_HEIGHT / 2, head_width, _HEAD_HEIGHT, css="diagram-tone-3")
         canvas.label(name, x, _MARGIN + _HEAD_HEIGHT / 2, head_width)
         widest_right = max(widest_right, x + head_width / 2)
     for message in model.messages:

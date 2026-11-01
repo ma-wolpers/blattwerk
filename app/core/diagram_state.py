@@ -388,9 +388,9 @@ def render(options, content, include_solutions=False) -> str:
         _draw_transition(canvas, transition, centers, radii, detour or (_BEND if (target, source) in model.transitions else 0.0))
     for name in model.states:
         cx, cy = centers[name]
-        canvas.ellipse(cx, cy, radii[name], radii[name])
+        canvas.ellipse(cx, cy, radii[name], radii[name], "diagram-tone-3" if name in model.ends else "diagram-tone-1")
         if name in model.ends:
-            canvas.ellipse(cx, cy, radii[name] - _END_RING, radii[name] - _END_RING)
+            canvas.ellipse(cx, cy, radii[name] - _END_RING, radii[name] - _END_RING, "diagram-tone-1")
         canvas.label(make_cell(_display_name(name)), cx, cy, 2 * radii[name])
     if model.start:
         cx, cy = centers[model.start]

@@ -22,6 +22,7 @@ The format is based on Keep a Changelog.
 - **Keine veraltete Vorschau mehr:** Änderungen an eingebundenen Bildern (auch neu aufgetauchte), am Copyright-Text, an Metadaten-Vorgaben, an der CSS-Vorlage und an Operatorendaten werden jetzt erkannt.
 
 ### Added
+- **Diagramme in den Farben des Farbprofils:** Alle Diagrammblöcke und die Köpfe im Struktogramm nutzen Schattierungen aus dem gewählten Farbprofil, im Schwarz-Weiß-Profil nur Grau.
 - **Mehr Prüfungen auf Widersprüche in allen Blöcken:** Blattwerk meldet jetzt zum Beispiel eine Zuordnung auf einen fehlenden Eintrag, `correct` außerhalb der Spalten, Tabellen mit falscher Spaltenzahl, Werte außerhalb der Zahlengerade, Punkte außerhalb des Koordinatensystems, nicht auswertbare Funktionsterme, Lückentexte ohne Lücke und unlesbare Werte wie `height=abc`. Automaten werden gegen ihre Alphabete und auf genau einen Pfeil je Eingabe geprüft, Objektkarten gegen ihre Klasse. Alles steht in `VALIDATOR.md`.
 - **Beispieldateien je Kategorie:** `examples/markdown/example-kategorie-*.abw` zeigen jeden Block in seiner Bandbreite.
 - **Neuer Blocktyp `:::memorydiagram`:** Speicherbilder mit Reihungen, Variablen, Referenzen, Stapeln und Schlangen, um Code nachzuvollziehen, mit Lücken bei einzelnen Werten.
@@ -168,6 +169,7 @@ The format is based on Keep a Changelog.
 - `:::solution label=false`-Boxen hatten über dem Inhalt mehr Abstand als darunter, weil der Standard-Absatzabstand des ersten Kindelements (anders als beim letzten) nicht entfernt wurde -- bei `label=true` fiel das nicht auf, da dort die Beschriftung das erste Kindelement war. Der Innenabstand ist jetzt oben und unten symmetrisch (`worksheet.css`, `.solution > *:first-child`).
 
 ### Added
+- **Diagramme in den Farben des Farbprofils:** Alle Diagrammblöcke und die Köpfe im Struktogramm nutzen Schattierungen aus dem gewählten Farbprofil, im Schwarz-Weiß-Profil nur Grau.
 - **Mehr Prüfungen auf Widersprüche in allen Blöcken:** Blattwerk meldet jetzt zum Beispiel eine Zuordnung auf einen fehlenden Eintrag, `correct` außerhalb der Spalten, Tabellen mit falscher Spaltenzahl, Werte außerhalb der Zahlengerade, Punkte außerhalb des Koordinatensystems, nicht auswertbare Funktionsterme, Lückentexte ohne Lücke und unlesbare Werte wie `height=abc`. Automaten werden gegen ihre Alphabete und auf genau einen Pfeil je Eingabe geprüft, Objektkarten gegen ihre Klasse. Alles steht in `VALIDATOR.md`.
 - **Beispieldateien je Kategorie:** `examples/markdown/example-kategorie-*.abw` zeigen jeden Block in seiner Bandbreite.
 
@@ -221,6 +223,7 @@ The format is based on Keep a Changelog.
 - `:::table`s `headers=`/`row_labels=` heißen jetzt `column_headers=`/`row_headers=`, `header_columns=`/`header_cols=` entfallen komplett -- ohne Rückwärtskompatibilitäts-Alias, bestehende Dokumente mit den alten Namen müssen manuell angepasst werden. Grund: `row_labels=` landete bisher in der ersten Datenspalte und wurde dort von echten `cells:`-Inhalten lautlos verdrängt (das Label erschien einfach nie, wenn Spalte 1 selbst Daten enthielt). `row_headers=` rendert jetzt stattdessen in einer eigenen, zusätzlichen ersten Spalte, die nie mit `cells:`-Daten kollidieren kann; sind `column_headers=` und `row_headers=` gemeinsam gesetzt, bleibt die Eck-Zelle oben links automatisch leer. Beide Optionen unterstützen außerdem jetzt gezielt leere Positionen (z. B. `column_headers="A||C"` lässt die zweite Kopfzelle bewusst leer) statt sie wie bisher stillschweigend zu entfernen.
 
 ### Added
+- **Diagramme in den Farben des Farbprofils:** Alle Diagrammblöcke und die Köpfe im Struktogramm nutzen Schattierungen aus dem gewählten Farbprofil, im Schwarz-Weiß-Profil nur Grau.
 - **Mehr Prüfungen auf Widersprüche in allen Blöcken:** Blattwerk meldet jetzt zum Beispiel eine Zuordnung auf einen fehlenden Eintrag, `correct` außerhalb der Spalten, Tabellen mit falscher Spaltenzahl, Werte außerhalb der Zahlengerade, Punkte außerhalb des Koordinatensystems, nicht auswertbare Funktionsterme, Lückentexte ohne Lücke und unlesbare Werte wie `height=abc`. Automaten werden gegen ihre Alphabete und auf genau einen Pfeil je Eingabe geprüft, Objektkarten gegen ihre Klasse. Alles steht in `VALIDATOR.md`.
 - **Beispieldateien je Kategorie:** `examples/markdown/example-kategorie-*.abw` zeigen jeden Block in seiner Bandbreite.
 
@@ -250,6 +253,7 @@ The format is based on Keep a Changelog.
 - **Echte Syntaxänderung:** `work=einzelarbeit`/`work=partnerarbeit`/`work=gruppenarbeit` sowie `hint=expertenaufgabe` sind keine gültigen Werte mehr (lösen `OP002` aus). Ersatz: `work=einzel`/`work=partner`/`work=gruppe` bzw. `hint=experte` — die Anzeige (Symbol + Label "Einzelarbeit"/"Partnerarbeit"/"Gruppenarbeit"/"Expertenaufgabe") bleibt unverändert.
 
 ### Added
+- **Diagramme in den Farben des Farbprofils:** Alle Diagrammblöcke und die Köpfe im Struktogramm nutzen Schattierungen aus dem gewählten Farbprofil, im Schwarz-Weiß-Profil nur Grau.
 - **Mehr Prüfungen auf Widersprüche in allen Blöcken:** Blattwerk meldet jetzt zum Beispiel eine Zuordnung auf einen fehlenden Eintrag, `correct` außerhalb der Spalten, Tabellen mit falscher Spaltenzahl, Werte außerhalb der Zahlengerade, Punkte außerhalb des Koordinatensystems, nicht auswertbare Funktionsterme, Lückentexte ohne Lücke und unlesbare Werte wie `height=abc`. Automaten werden gegen ihre Alphabete und auf genau einen Pfeil je Eingabe geprüft, Objektkarten gegen ihre Klasse. Alles steht in `VALIDATOR.md`.
 - **Beispieldateien je Kategorie:** `examples/markdown/example-kategorie-*.abw` zeigen jeden Block in seiner Bandbreite.
 
@@ -281,6 +285,7 @@ The format is based on Keep a Changelog.
 - `show_student_header`/`show_document_header` im Frontmatter wurden als roher Wahrheitswert gelesen: ein nicht-leerer String wie `show_student_header: nein` galt technisch als "wahr" und aktivierte die Schülerkopfzeile entgegen der erkennbaren Absicht. Beide Felder werden jetzt korrekt als `ja`/`nein`-Wert interpretiert (wie bereits bei `lochen`).
 
 ### Added
+- **Diagramme in den Farben des Farbprofils:** Alle Diagrammblöcke und die Köpfe im Struktogramm nutzen Schattierungen aus dem gewählten Farbprofil, im Schwarz-Weiß-Profil nur Grau.
 - **Mehr Prüfungen auf Widersprüche in allen Blöcken:** Blattwerk meldet jetzt zum Beispiel eine Zuordnung auf einen fehlenden Eintrag, `correct` außerhalb der Spalten, Tabellen mit falscher Spaltenzahl, Werte außerhalb der Zahlengerade, Punkte außerhalb des Koordinatensystems, nicht auswertbare Funktionsterme, Lückentexte ohne Lücke und unlesbare Werte wie `height=abc`. Automaten werden gegen ihre Alphabete und auf genau einen Pfeil je Eingabe geprüft, Objektkarten gegen ihre Klasse. Alles steht in `VALIDATOR.md`.
 - **Beispieldateien je Kategorie:** `examples/markdown/example-kategorie-*.abw` zeigen jeden Block in seiner Bandbreite.
 
@@ -429,6 +434,7 @@ The format is based on Keep a Changelog.
 - Shortcut runtime debug is now opened as a dedicated popup window and no longer embedded in the preview area.
 
 ### Added
+- **Diagramme in den Farben des Farbprofils:** Alle Diagrammblöcke und die Köpfe im Struktogramm nutzen Schattierungen aus dem gewählten Farbprofil, im Schwarz-Weiß-Profil nur Grau.
 - **Mehr Prüfungen auf Widersprüche in allen Blöcken:** Blattwerk meldet jetzt zum Beispiel eine Zuordnung auf einen fehlenden Eintrag, `correct` außerhalb der Spalten, Tabellen mit falscher Spaltenzahl, Werte außerhalb der Zahlengerade, Punkte außerhalb des Koordinatensystems, nicht auswertbare Funktionsterme, Lückentexte ohne Lücke und unlesbare Werte wie `height=abc`. Automaten werden gegen ihre Alphabete und auf genau einen Pfeil je Eingabe geprüft, Objektkarten gegen ihre Klasse. Alles steht in `VALIDATOR.md`.
 - **Beispieldateien je Kategorie:** `examples/markdown/example-kategorie-*.abw` zeigen jeden Block in seiner Bandbreite.
 
@@ -590,6 +596,7 @@ The format is based on Keep a Changelog.
 - Beenden and Exportieren are now placed in the global markdown-path row.
 
 ### Added
+- **Diagramme in den Farben des Farbprofils:** Alle Diagrammblöcke und die Köpfe im Struktogramm nutzen Schattierungen aus dem gewählten Farbprofil, im Schwarz-Weiß-Profil nur Grau.
 - **Mehr Prüfungen auf Widersprüche in allen Blöcken:** Blattwerk meldet jetzt zum Beispiel eine Zuordnung auf einen fehlenden Eintrag, `correct` außerhalb der Spalten, Tabellen mit falscher Spaltenzahl, Werte außerhalb der Zahlengerade, Punkte außerhalb des Koordinatensystems, nicht auswertbare Funktionsterme, Lückentexte ohne Lücke und unlesbare Werte wie `height=abc`. Automaten werden gegen ihre Alphabete und auf genau einen Pfeil je Eingabe geprüft, Objektkarten gegen ihre Klasse. Alles steht in `VALIDATOR.md`.
 - **Beispieldateien je Kategorie:** `examples/markdown/example-kategorie-*.abw` zeigen jeden Block in seiner Bandbreite.
 - Public-facing changelog workflow and PR checklist for clearer release communication.

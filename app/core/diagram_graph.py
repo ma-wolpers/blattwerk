@@ -157,6 +157,6 @@ def render(options, content, include_solutions=False) -> str:
         _draw_edge(canvas, edge, layout.centers, radii, _BEND if reverse else 0.0)
     for name, cell in model.nodes.items():
         cx, cy = layout.centers[name]
-        canvas.ellipse(cx, cy, radii[name], radii[name])
+        canvas.ellipse(cx, cy, radii[name], radii[name], "diagram-tone-3")
         canvas.label(cell, cx, cy, 2 * radii[name])
     return canvas.finish("graph", options, layout.width, layout.height)

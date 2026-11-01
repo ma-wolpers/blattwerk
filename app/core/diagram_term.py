@@ -153,9 +153,10 @@ class _TreeDrawer:
                     cx, cy = place[child]
                     self.canvas.line(cx, cy + self.sizes[child][1] / 2, x, op_y)
                 self.canvas.line(x, op_y, x, box_y)
-                self.canvas.ellipse(x, op_y, _OP_RADIUS, _OP_RADIUS)
+                self.canvas.ellipse(x, op_y, _OP_RADIUS, _OP_RADIUS, "diagram-tone-4")
                 self.canvas.label(_OPERATOR_SIGN.get(expression.value, expression.value), x, op_y, 2 * _OP_RADIUS)
-            self.canvas.rect(x, box_y, width, _BOX_HEIGHT, css="diagram-shape")
+            tone = "diagram-tone-1" if expression.is_leaf else "diagram-tone-5" if key == "r" else "diagram-tone-3"
+            self.canvas.rect(x, box_y, width, _BOX_HEIGHT, css=tone)
             self.canvas.label(_result_cell(expression, hidden), x, box_y, width)
         return layout.width + 2 * _MARGIN, layout.height
 

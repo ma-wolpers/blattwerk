@@ -93,8 +93,8 @@ def render(options, content, include_solutions=False) -> str:
     lx = _MARGIN + left_w / 2
     rx = lx + left_w / 2 + _COLUMN_GAP + right_w / 2
     canvas = Canvas(include_solutions)
-    canvas.ellipse(lx, middle_y, left_w / 2, inner / 2, "diagram-line")
-    canvas.ellipse(rx, middle_y, right_w / 2, inner / 2, "diagram-line")
+    canvas.ellipse(lx, middle_y, left_w / 2, inner / 2, "diagram-tone-1")
+    canvas.ellipse(rx, middle_y, right_w / 2, inner / 2, "diagram-tone-2")
     for key, x in (("left", lx), ("right", rx)):
         if options.get(key):
             canvas.label(plain_cell(str(options[key])), x, _MARGIN + LINE_HEIGHT / 2, text_width(str(options[key])) + 10, weight="bold")

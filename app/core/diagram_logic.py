@@ -129,22 +129,22 @@ def _gate_shape(canvas: Canvas, operator: str, x: float, y: float, norm: str) ->
     half = _GATE_H / 2
     negated = operator in _NEGATED
     if norm == "iec":
-        canvas.rect(x + _GATE_W / 2, y, _GATE_W, _GATE_H, css="diagram-shape")
+        canvas.rect(x + _GATE_W / 2, y, _GATE_W, _GATE_H, css="diagram-tone-1")
         canvas.label(_IEC_SYMBOL[operator], x + _GATE_W / 2, y, _GATE_W)
         right = x + _GATE_W
     elif operator == "nicht":
-        canvas.polygon([(x, y - half * 0.7), (x + _GATE_W * 0.8, y), (x, y + half * 0.7)])
+        canvas.polygon([(x, y - half * 0.7), (x + _GATE_W * 0.8, y), (x, y + half * 0.7)], "diagram-tone-1")
         right = x + _GATE_W * 0.8
     elif operator in ("und", "nand"):
-        canvas.path(f"M {x:.1f} {y - half:.1f} L {x + 18:.1f} {y - half:.1f} A {half:.1f} {half:.1f} 0 0 1 {x + 18:.1f} {y + half:.1f} L {x:.1f} {y + half:.1f} Z")
+        canvas.path(f"M {x:.1f} {y - half:.1f} L {x + 18:.1f} {y - half:.1f} A {half:.1f} {half:.1f} 0 0 1 {x + 18:.1f} {y + half:.1f} L {x:.1f} {y + half:.1f} Z", css="diagram-tone-1")
         right = x + 18 + half
     else:
-        canvas.path(f"M {x:.1f} {y - half:.1f} Q {x + 24:.1f} {y - half:.1f} {x + _GATE_W:.1f} {y:.1f} Q {x + 24:.1f} {y + half:.1f} {x:.1f} {y + half:.1f} Q {x + 12:.1f} {y:.1f} {x:.1f} {y - half:.1f} Z")
+        canvas.path(f"M {x:.1f} {y - half:.1f} Q {x + 24:.1f} {y - half:.1f} {x + _GATE_W:.1f} {y:.1f} Q {x + 24:.1f} {y + half:.1f} {x:.1f} {y + half:.1f} Q {x + 12:.1f} {y:.1f} {x:.1f} {y - half:.1f} Z", css="diagram-tone-1")
         if operator == "xoder":
             canvas.path(f"M {x - 6:.1f} {y - half:.1f} Q {x + 6:.1f} {y:.1f} {x - 6:.1f} {y + half:.1f}")
         right = x + _GATE_W
     if negated:
-        canvas.ellipse(right + _BUBBLE, y, _BUBBLE, _BUBBLE)
+        canvas.ellipse(right + _BUBBLE, y, _BUBBLE, _BUBBLE, "diagram-tone-4")
         right += 2 * _BUBBLE
     return right
 

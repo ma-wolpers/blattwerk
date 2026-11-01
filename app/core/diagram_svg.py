@@ -4,9 +4,9 @@ Warum `foreignObject` für Beschriftungen: Text soll Inline-Markup, Formeln und
 Lücken beherrschen wie überall in Blattwerk (`diagram_text.render_cell`) und trotzdem
 mit dem Diagramm mitskalieren. Der Spike in Chromium-PDF hat das bestätigt.
 
-Alle Linien und Texte nutzen `currentColor`, Füllungen sind `none`. Damit gilt das
-Schwarz-Weiß-Profil ohne Sonderfall, und keine Farbe trägt Bedeutung. Der Hintergrund
-von Formen, die Linien überdecken, ist `--diagram-paper`.
+Farben kommen nur als Töne aus dem Farbprofil (`TONES`, `.diagram-tone-1` bis `-6` in
+`worksheet.css`). Im Schwarz-Weiß-Profil sind sie grau, und keine Farbe trägt allein
+Bedeutung. Der Hintergrund von Formen, die Linien überdecken, ist `--diagram-paper`.
 """
 
 from __future__ import annotations
@@ -21,15 +21,27 @@ from .diagram_text import Cell, plain_cell, render_cell
 FONT_PX = 13.0
 LINE_HEIGHT = 17.0
 """Zeilenhöhe in Einheiten der Zeichenfläche (`.diagram-label` setzt dieselbe Schrift)."""
+TONES = ("diagram-tone-3", "diagram-tone-4", "diagram-tone-5", "diagram-tone-6", "diagram-tone-1", "diagram-tone-2")
+"""Reihenfolge für Datenreihen: kräftige, gut unterscheidbare Töne zuerst."""
 ARROW_LENGTH = 10.0
 ARROW_HALF_WIDTH = 4.5
+_MATH_RE = re.compile(r"\$+([^$]*)\$+")
 WIDTH_RE = re.compile(r"^\d+(?:\.\d+)?(?:%|cm|mm|px|em|rem)$")
 """Erlaubte Werte der Option `width`; alles andere landet nie im `style`."""
 
 
+def _visible_math(match: re.Match) -> str:
+    """Formelquelltext ohne Befehle und Klammern, ungefähr das, was man davon sieht."""
+    return re.sub(r"\\[a-zA-Z]+|[{}^_]", "", match.group(1))
+
+
 def text_width(text: str) -> float:
-    """Geschätzte Breite von `text` auf der Zeichenfläche (eher zu groß als zu klein)."""
-    return estimate_text_width(str(text), FONT_PX)
+    """Geschätzte Breite von `text` auf der Zeichenfläche (eher zu groß als zu klein).
+
+    Formeln zählen ohne ihre LaTeX-Befehle, sonst säßen Beschriftungen wie `$\\frac{1}{2}$`
+    weit neben ihrer Kante.
+    """
+    return estimate_text_width(_MATH_RE.sub(_visible_math, str(text)), FONT_PX)
 
 
 def width_style(options) -> str:
@@ -65,9 +77,9 @@ class Canvas:
         """Hängt ein SVG-Element mit der Linienklasse `css` an."""
         self.parts.append(f"<{tag} class='{css}' {attributes} />")
 
-    def line(self, x1, y1, x2, y2, dashed: bool = False) -> None:
-        """Gerade Linie, optional gestrichelt."""
-        css = "diagram-line diagram-dashed" if dashed else "diagram-line"
+    def line(self, x1, y1, x2, y2, dashed: bool = False, css: str = "") -> None:
+        """Gerade Linie, optional gestrichelt oder mit eigener Klasse (`diagram-accent`)."""
+        css = css or ("diagram-line diagram-dashed" if dashed else "diagram-line")
         self._shape("line", f"x1='{_attr(x1)}' y1='{_attr(y1)}' x2='{_attr(x2)}' y2='{_attr(y2)}'", css)
 
     def polyline(self, points, dashed: bool = False) -> None:
@@ -75,9 +87,17 @@ class Canvas:
         css = "diagram-line diagram-dashed" if dashed else "diagram-line"
         self._shape("polyline", f"points='{_points(points)}'", css)
 
-    def path(self, data: str, dashed: bool = False) -> None:
-        """Beliebiger SVG-Pfad (z. B. Kurven für Schleifen)."""
-        css = "diagram-line diagram-dashed" if dashed else "diagram-line"
+    def sector(self, cx, cy, radius, start, end, css: str) -> None:
+        """Kreissektor von Winkel `start` bis `end` im Bogenmaß."""
+        x1, y1 = cx + radius * math.cos(start), cy + radius * math.sin(start)
+        x2, y2 = cx + radius * math.cos(end), cy + radius * math.sin(end)
+        large = 1 if end - start > math.pi else 0
+        data = f"M {_attr(cx)} {_attr(cy)} L {_attr(x1)} {_attr(y1)} A {_attr(radius)} {_attr(radius)} 0 {large} 1 {_attr(x2)} {_attr(y2)} Z"
+        self.path(data, css=css)
+
+    def path(self, data: str, dashed: bool = False, css: str = "") -> None:
+        """Beliebiger SVG-Pfad (z. B. Kurven für Schleifen), optional mit eigener Füllklasse."""
+        css = css or ("diagram-line diagram-dashed" if dashed else "diagram-line")
         self._shape("path", f"d='{data}'", css)
 
     def rect(self, cx, cy, width, height, radius: float = 0.0, css: str = "diagram-line") -> None:

@@ -94,27 +94,27 @@ def _draw_symbol(canvas: Canvas, symbol: str, cx: float, cy: float) -> None:
     """Zeichnet ein Symbol in `_ICON_WIDTH` × `_ICON_HEIGHT` um `(cx, cy)`."""
     w, h = _ICON_WIDTH, _ICON_HEIGHT
     if symbol == "rechner":
-        canvas.rect(cx, cy - 4, w * 0.8, h * 0.62, css="diagram-shape")
+        canvas.rect(cx, cy - 4, w * 0.8, h * 0.62, css="diagram-tone-3")
         canvas.line(cx, cy + h * 0.27 - 4, cx, cy + h * 0.45)
         canvas.line(cx - 10, cy + h * 0.45, cx + 10, cy + h * 0.45)
     elif symbol == "switch":
-        canvas.rect(cx, cy, w, h * 0.5, css="diagram-shape")
+        canvas.rect(cx, cy, w, h * 0.5, css="diagram-tone-3")
         for offset in (-13.0, -4.0, 5.0, 14.0):
             canvas.line(cx + offset, cy - 4, cx + offset, cy + 4)
     elif symbol == "router":
-        canvas.ellipse(cx, cy, w / 2 - 2, h / 2)
+        canvas.ellipse(cx, cy, w / 2 - 2, h / 2, "diagram-tone-4")
         canvas.line(cx - 12, cy, cx + 12, cy)
         canvas.line(cx, cy - 10, cx, cy + 10)
     elif symbol == "server":
-        canvas.rect(cx, cy, w * 0.55, h, css="diagram-shape")
+        canvas.rect(cx, cy, w * 0.55, h, css="diagram-tone-3")
         for offset in (-8.0, 0.0, 8.0):
             canvas.line(cx - w * 0.2, cy + offset, cx + w * 0.2, cy + offset)
     elif symbol == "drucker":
-        canvas.rect(cx, cy - 11, w * 0.45, h * 0.3, css="diagram-shape")
-        canvas.rect(cx, cy + 2, w * 0.8, h * 0.45, css="diagram-shape")
+        canvas.rect(cx, cy - 11, w * 0.45, h * 0.3, css="diagram-tone-3")
+        canvas.rect(cx, cy + 2, w * 0.8, h * 0.45, css="diagram-tone-3")
     else:
         for dx, dy, rx, ry in ((-11, 2, 12, 10), (10, 3, 13, 10), (0, -5, 13, 11)):
-            canvas.ellipse(cx + dx, cy + dy, rx, ry)
+            canvas.ellipse(cx + dx, cy + dy, rx, ry, "diagram-tone-2")
 
 
 def render(options, content, include_solutions=False) -> str:

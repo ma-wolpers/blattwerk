@@ -107,13 +107,14 @@ def render(options, content, include_solutions=False) -> str:
     rail = _MARGIN + text_height + LINE_HEIGHT + _RAIL_Y_GAP
     canvas = Canvas(include_solutions)
     end = places[-1] + _LABEL_WIDTH / 2
-    canvas.line(_MARGIN, rail, end, rail)
+    canvas.line(_MARGIN, rail, end, rail, css="diagram-accent")
     canvas.arrow((end, rail), (_MARGIN, rail), "solid")
     for index, (event, x) in enumerate(zip(ordered, places)):
         canvas.line(x, rail - _TICK, x, rail + _TICK)
         above = index % 2 == 0
         side = -1 if above else 1
         time_y = rail + side * (_TICK + LINE_HEIGHT / 2 + 1)
+        canvas.rect(x, time_y, text_width(event.time.text) * 1.1 + 10, LINE_HEIGHT, radius=5.0, css="diagram-tone-3" if above else "diagram-tone-4")
         canvas.label(event.time, x, time_y, text_width(event.time.text) + 8, weight="bold")
         lines = max(1, min(_LABEL_LINES, int(text_width(event.text.text) // (_LABEL_WIDTH - 4)) + 1))
         height = lines * LINE_HEIGHT

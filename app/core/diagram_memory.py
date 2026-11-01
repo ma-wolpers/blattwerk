@@ -115,13 +115,16 @@ def _height(item) -> float:
     return _CELL_H
 
 
+_ENTRY_TONES = {"reihung": "diagram-tone-1", "variable": "diagram-tone-3", "stapel": "diagram-tone-2", "schlange": "diagram-tone-4"}
+
+
 def _draw_entry(canvas: Canvas, entry: Entry, x: float, y: float) -> tuple[float, float]:
     """Zeichnet ein Objekt ab `(x, y)`; liefert rechte Kante und Höhe der Ankermitte."""
     if entry.kind == "stapel":
         cells = list(entry.cells)
         for index, cell in enumerate(reversed(cells)):
             cy = y + _CELL_H * (index + 0.5)
-            canvas.rect(x + _CELL_W / 2, cy, _CELL_W, _CELL_H)
+            canvas.rect(x + _CELL_W / 2, cy, _CELL_W, _CELL_H, css=_ENTRY_TONES[entry.kind])
             canvas.label(cell, x + _CELL_W / 2, cy, _CELL_W)
         return x + _CELL_W, y + _CELL_H / 2
     cy = y + _CELL_H / 2
@@ -132,7 +135,7 @@ def _draw_entry(canvas: Canvas, entry: Entry, x: float, y: float) -> tuple[float
         x += _QUEUE_STUB
     for index, cell in enumerate(entry.cells):
         cell_w = max(_CELL_W, text_width(cell.text) + 10)
-        canvas.rect(x + width + cell_w / 2, cy, cell_w, _CELL_H)
+        canvas.rect(x + width + cell_w / 2, cy, cell_w, _CELL_H, css=_ENTRY_TONES[entry.kind])
         canvas.label(cell, x + width + cell_w / 2, cy, cell_w)
         if entry.kind == "reihung":
             canvas.label(plain_cell(str(index)), x + width + cell_w / 2, y + _CELL_H + _INDEX_H / 2, cell_w)
@@ -161,7 +164,7 @@ def render(options, content, include_solutions=False) -> str:
         name_y = cursor + _CELL_H / 2 if isinstance(item, Reference) or item.kind != "stapel" else cursor + height / 2
         canvas.label(plain_cell(item.name), _MARGIN + column / 2, name_y, column, align="right")
         if isinstance(item, Reference):
-            canvas.rect(x + _CELL_W / 2, cursor + _CELL_H / 2, _CELL_W, _CELL_H)
+            canvas.rect(x + _CELL_W / 2, cursor + _CELL_H / 2, _CELL_W, _CELL_H, css="diagram-tone-5")
             canvas.ellipse(x + _CELL_W / 2, cursor + _CELL_H / 2, 3.0, 3.0, "diagram-solid")
             origins.append((item, cursor + _CELL_H / 2))
             anchors[item.name] = (x + _CELL_W, cursor + _CELL_H / 2)

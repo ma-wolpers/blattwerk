@@ -55,14 +55,6 @@ def parse(content) -> tuple[list[Item], list[ParseIssue]]:
     return items, issues
 
 
-def _sector(cx, cy, radius, start, end) -> str:
-    """SVG-Pfad eines Kreissektors."""
-    x1, y1 = cx + radius * math.cos(start), cy + radius * math.sin(start)
-    x2, y2 = cx + radius * math.cos(end), cy + radius * math.sin(end)
-    large = 1 if end - start > math.pi else 0
-    return f"M {cx:.1f} {cy:.1f} L {x1:.1f} {y1:.1f} A {radius:.1f} {radius:.1f} 0 {large} 1 {x2:.1f} {y2:.1f} Z"
-
-
 def _draw_circle(canvas: Canvas, cx: float, cy: float, parts: int, colored: int) -> None:
     """Kreis mit `parts` gleichen Teilen, davon `colored` gefärbt."""
     step = 2 * math.pi / parts
@@ -72,7 +64,7 @@ def _draw_circle(canvas: Canvas, cx: float, cy: float, parts: int, colored: int)
             if parts == 1:
                 canvas.ellipse(cx, cy, _RADIUS, _RADIUS, "diagram-fill")
             else:
-                canvas.parts.append(f"<path class='diagram-fill' d='{_sector(cx, cy, _RADIUS, start, start + step)}' />")
+                canvas.sector(cx, cy, _RADIUS, start, start + step, "diagram-fill")
     canvas.ellipse(cx, cy, _RADIUS, _RADIUS, "diagram-line")
     if parts > 1:
         for index in range(parts):

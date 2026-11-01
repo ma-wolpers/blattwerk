@@ -167,3 +167,9 @@ Diese Datei ist kein Aenderungsprotokoll.
 3. Wird eine Brute-Force-Regel verletzt?
 4. Wurden beide Architekturdateien zusammen aktualisiert?
 5. Wurde bei Feature- oder Architekturänderung [docs/intern/DEVELOPMENT_LOG.md](docs/intern/DEVELOPMENT_LOG.md) aktualisiert?
+
+## Diagramme
+
+- Jeder Diagrammblock steht genau einmal in `app/core/diagram_block_catalog.py`. Menü, Prüfungen, Hervorhebung und Export lesen von dort.
+- Der Text eines Blocks wird von seinem Modul gelesen. Dieselbe Lesung nutzen Vorschau und Prüfung.
+- Farben kommen nur aus dem Farbprofil. Im Schwarz-Weiß-Profil sind sie grau.

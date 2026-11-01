@@ -67,7 +67,7 @@ def _statement(cell: Cell, rounded: bool = True) -> _Part:
     width, height = text_w + 2 * _PADDING, text_h + 2 * _PADDING
 
     def draw(canvas: Canvas, x: float, y: float) -> None:
-        canvas.rect(x + width / 2, y + height / 2, width, height, radius=6.0 if rounded else 0.0, css="diagram-shape")
+        canvas.rect(x + width / 2, y + height / 2, width, height, radius=6.0 if rounded else 0.0, css="diagram-tone-1" if rounded else "diagram-tone-3")
         canvas.label(cell, x + width / 2, y + height / 2, text_w + 4, text_h, wrap=text_h > LINE_HEIGHT)
 
     return _Part(width, height, width / 2, draw)
@@ -83,7 +83,7 @@ def _draw_diamond(canvas: Canvas, cell: Cell, cx: float, cy: float) -> tuple[flo
     """Raute mit Text; liefert halbe Breite und Höhe."""
     width, height, text_w = _diamond_size(cell)
     half_w, half_h = width / 2, height / 2
-    canvas.polygon([(cx, cy - half_h), (cx + half_w, cy), (cx, cy + half_h), (cx - half_w, cy)])
+    canvas.polygon([(cx, cy - half_h), (cx + half_w, cy), (cx, cy + half_h), (cx - half_w, cy)], "diagram-tone-2")
     canvas.label(cell, cx, cy, text_w, height, wrap=_text_box(cell)[1] > LINE_HEIGHT)
     return half_w, half_h
 

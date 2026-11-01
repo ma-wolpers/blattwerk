@@ -124,8 +124,8 @@ def render(options, content, include_solutions=False) -> str:
     if rest is not None:
         height += _REST_ROW
         canvas.rect(width / 2, height / 2, width - 4, height - 4)
-    for name, (x, y) in zip(names, centers):
-        canvas.ellipse(left + x, top + y, radius, radius, "diagram-line")
+    for index, (name, (x, y)) in enumerate(zip(names, centers), start=1):
+        canvas.ellipse(left + x, top + y, radius, radius, f"diagram-set-{index}")
         title_y = top + y - radius - _TITLE / 2 + 2 if y == radius else top + y + radius + _TITLE / 2 - 2
         canvas.label(plain_cell(name), left + x, title_y, text_width(name) + 12, weight="bold")
     for region in regions:

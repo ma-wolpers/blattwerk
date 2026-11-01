@@ -38,7 +38,7 @@ def test_flowchart_draws_conditions_loops_and_gaps():
     content = "wenn x > 0\n    % rückgabe x\nsonst\n    solange y < 3\n        y <- y + 1\nwiederhole\n    a\nbis b"
     worksheet = render_diagram_block("flowchart", {}, content, include_solutions=False)
     solution = render_diagram_block("flowchart", {}, content, include_solutions=True)
-    assert worksheet.count("<polygon class='diagram-shape'") >= 3
+    assert worksheet.count("<polygon class='diagram-tone-2'") >= 3
     assert "wahr" in worksheet and "falsch" in worksheet
     assert "x &gt; 0" in worksheet and "y ←" in worksheet
     assert "diagram-hidden" in worksheet and "diagram-hidden" not in solution
