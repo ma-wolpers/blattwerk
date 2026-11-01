@@ -17,7 +17,7 @@ from .answer_grid_entries import _inside_grid
 
 
 def _sample_function_points(expr, x_min, x_max, coord_system, cols, rows):
-    """Samplet einen Funktionsgraphen und bildet die Punkte auf Grid-Koordinaten ab.
+    """Samplet einen Funktionsgraphen und bildet die Punkte auf Mathe-Rasterkoordinaten ab.
 
     Die Sample-Anzahl skaliert mit der Breite des Definitionsbereichs
     (min. 24, max. 360), damit sowohl kurze als auch weite Intervalle eine

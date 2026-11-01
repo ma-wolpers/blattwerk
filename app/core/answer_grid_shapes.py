@@ -17,6 +17,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from .answer_grid_coords import to_svg
 from .answer_grid_entries import _as_float, _is_visible, _normalize_show_mode
 from .answer_grid_label_model import TIER_LINE, LabelSpec, polyline_obstacles, stroke_pad
 from .answer_grid_svg_style import _svg_fill_style_attr, _svg_shape_style_attr
@@ -26,7 +27,7 @@ from .answer_special_shared import parse_svg_color, parse_svg_thickness
 
 @dataclass(frozen=True)
 class ParsedPolygon:
-    """Ein geparstes `polygons[]`-Objekt, bereits in Rasterkoordinaten.
+    """Ein geparstes `polygons[]`-Objekt, bereits in Mathe-Rasterkoordinaten.
 
     `@dataclass(frozen=True)`, nicht `NamedTuple` -- folgt derselben
     Konvention wie `BlockOptionSpec`/`GeometryEntrySpec` im übrigen
@@ -136,19 +137,20 @@ def _render_polygons_section(raw_entries, coord_system, cols, rows, include_solu
     entries = _parse_polygons(raw_entries, coord_system, include_solutions)
     shapes, labels, obstacles = [], [], []
     for polygon in entries:
-        points_attr = " ".join(f"{vx:.4f},{vy:.4f}" for vx, vy in polygon.vertices)
+        vertices = tuple(to_svg(vx, vy, rows) for vx, vy in polygon.vertices)
+        points_attr = " ".join(f"{vx:.4f},{vy:.4f}" for vx, vy in vertices)
         style = _svg_shape_style_attr(polygon.color, polygon.thickness, polygon.fill)
         shapes.append(
             f"<polygon class='grid-polygon grid-mode-{polygon.mode}'{style} points='{points_attr}' />"
         )
-        label_x, label_y = _polygon_centroid(polygon.vertices)
+        label_x, label_y = to_svg(*_polygon_centroid(polygon.vertices), rows)
         obstacles.extend(polyline_obstacles(
-            polygon.vertices, TIER_LINE, stroke_pad(polygon.thickness or 1.1), closed=True, owner=("area", (label_x, label_y))
+            vertices, TIER_LINE, stroke_pad(polygon.thickness or 1.1), closed=True, owner=("area", (label_x, label_y))
         ))
         if polygon.label:
             labels.append(LabelSpec(
                 text=polygon.label, css_class=f"grid-polygon-label grid-mode-{polygon.mode}", x=label_x, y=label_y,
                 kind="area", anchor=(label_x, label_y), style_attr=_svg_fill_style_attr(polygon.color),
-                area=polygon.vertices,
+                area=vertices,
             ))
     return shapes, labels, obstacles

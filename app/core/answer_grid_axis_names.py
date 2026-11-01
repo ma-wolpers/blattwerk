@@ -9,6 +9,7 @@ einem festen Radius um ihre Pfeilspitze bewegen (`kind="axis_name"`).
 
 from __future__ import annotations
 
+from .answer_grid_coords import to_svg
 from .answer_grid_label_model import TIER_LINE, LabelSpec, Obstacle, stroke_pad
 
 _AXIS_STROKE_PX = 0.9
@@ -18,7 +19,7 @@ def _render_axis_arrowheads_and_names(origin_x, origin_y, cols, rows, axis_label
     """Rendert Pfeilspitzen am positiven Achsenende und beschreibt die Achsennamen (z. B. `x`, `y`).
 
     Pfeilspitzen werden nur gezeichnet, wenn zwischen Ursprung und Rasterrand
-    genug Platz ist (`x_base < x_tip` / `y_tip < y_base`) — bei sehr kleinen
+    genug Platz ist (Basis der Spitze liegt vor der Spitze) — bei sehr kleinen
     Rastern oder einem Ursprung nahe am Rand würde eine erzwungene Pfeilspitze
     sonst invertiert oder verzerrt wirken.
 
@@ -27,32 +28,39 @@ def _render_axis_arrowheads_and_names(origin_x, origin_y, cols, rows, axis_label
     Geometry-Label und gehören in der Z-Order ganz nach oben, nicht in die
     Achsen-Bodenschicht -- nur die Pfeilspitzen selbst bleiben unten. Der
     Anker eines Namens ist die Spitze seiner Achse.
+
+    `origin_*` und die Pfeilgeometrie sind Mathe-Rasterkoordinaten; `to_svg`
+    rechnet sie direkt vor Ausgabe und Layout um. Die Versätze der Achsennamen
+    sind feste Bildschirmabstände und stehen deshalb im SVG-Raum.
     """
     shapes, labels, obstacles = [], [], []
     pad = stroke_pad(_AXIS_STROKE_PX)
 
     x_tip = float(cols) + 0.34
     x_base = max(origin_x + 0.24, x_tip - 0.44)
-    x_top = max(0.04, origin_y - 0.18)
-    x_bottom = min(float(rows) - 0.04, origin_y + 0.18)
+    _x, tip_y = to_svg(x_tip, origin_y, rows)
+    _x, x_top = to_svg(x_tip, min(float(rows) - 0.04, origin_y + 0.18), rows)
+    _x, x_bottom = to_svg(x_tip, max(0.04, origin_y - 0.18), rows)
     if x_base < x_tip:
         shapes.append(
             "<polygon class='grid-axis' points='"
-            f"{x_tip:.4f},{origin_y:.4f} {x_base:.4f},{x_top:.4f} {x_base:.4f},{x_bottom:.4f}' />"
+            f"{x_tip:.4f},{tip_y:.4f} {x_base:.4f},{x_top:.4f} {x_base:.4f},{x_bottom:.4f}' />"
         )
-        obstacles.append(Obstacle(TIER_LINE, "rect", (x_base, x_top, x_tip, x_bottom), pad, ("axis_name", (x_tip, origin_y))))
+        obstacles.append(Obstacle(TIER_LINE, "rect", (x_base, x_top, x_tip, x_bottom), pad, ("axis_name", (x_tip, tip_y))))
     if axis_label_x:
         labels.append(LabelSpec(
             text=axis_label_x, css_class="grid-axis-label grid-axis-name",
-            x=x_tip + 0.16, y=origin_y - 0.28, kind="axis_name", anchor=(x_tip, origin_y),
+            x=x_tip + 0.16, y=tip_y - 0.28, kind="axis_name", anchor=(x_tip, tip_y),
             extra_attrs=" text-anchor='start'",
         ))
 
-    y_tip = -0.34
-    y_base = min(origin_y - 0.24, y_tip + 0.44)
+    math_y_tip = float(rows) + 0.34
+    math_y_base = max(origin_y + 0.24, math_y_tip - 0.44)
+    _x, y_tip = to_svg(origin_x, math_y_tip, rows)
+    _x, y_base = to_svg(origin_x, math_y_base, rows)
     y_left = max(0.04, origin_x - 0.18)
     y_right = min(float(cols) - 0.04, origin_x + 0.18)
-    if y_tip < y_base:
+    if math_y_base < math_y_tip:
         shapes.append(
             "<polygon class='grid-axis' points='"
             f"{origin_x:.4f},{y_tip:.4f} {y_left:.4f},{y_base:.4f} {y_right:.4f},{y_base:.4f}' />"

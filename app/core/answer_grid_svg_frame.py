@@ -117,6 +117,9 @@ def _estimate_geometry_bleed_units(
     basiert auf approximierten Zeichenbreiten (`char_w`) statt exakter
     Font-Metrik, da zum Zeitpunkt des Renderns keine echte Textmessung zur
     Verfügung steht (reines SVG-String-Building, kein Layout-Engine-Zugriff).
+
+    `logical_origin` und alle Abstände sind Mathe-Rasterkoordinaten (y nach
+    oben): `axis_origin_y` ist der Abstand der x-Achse zur Unterkante.
     """
     base_top = 0.55
     base_right = 0.55
@@ -129,7 +132,7 @@ def _estimate_geometry_bleed_units(
     axis_origin_x, axis_origin_y = _clamp_axis_origin(logical_origin[0], logical_origin[1], cols, rows)
 
     x_ticks = _iter_axis_tick_positions(logical_origin[0], cols, step_x)
-    y_ticks = _iter_axis_tick_positions(logical_origin[1], rows, step_y)
+    y_ticks = _iter_axis_tick_positions(logical_origin[1], rows, step_y, descending=True)
 
     x_stride = _choose_axis_label_stride(len(x_ticks))
     y_stride = _choose_axis_label_stride(len(y_ticks))
@@ -140,7 +143,7 @@ def _estimate_geometry_bleed_units(
         if _should_render_axis_label(logical_x, x_stride)
     ]
     y_labels = [
-        _format_axis_label(-logical_y)
+        _format_axis_label(logical_y)
         for _gy, logical_y in y_ticks
         if _should_render_axis_label(logical_y, y_stride)
     ]
@@ -154,11 +157,11 @@ def _estimate_geometry_bleed_units(
 
     y_tick_left_overhang = 0.28 + (char_w * max_y_chars) + 0.14
     y_name_left_overhang = 0.12 + (char_w * max(1, len(axis_label_y or ""))) + 0.12
-    x_label_bottom_overhang = max(0.0, (axis_origin_y + 0.58) - float(rows)) + text_h
+    x_label_bottom_overhang = max(0.0, 0.58 - axis_origin_y) + text_h
     x_name_right_overhang = max(0.0, (float(cols) + 0.34 + 0.16 + (char_w * max(1, len(axis_label_x or "")))) - float(cols)) + 0.12
     y_arrow_top_overhang = 0.34 + 0.08
     y_name_top_overhang = 0.42 + text_h
-    x_name_top_overhang = max(0.0, 0.28 - axis_origin_y) + text_h
+    x_name_top_overhang = max(0.0, 0.28 - (float(rows) - axis_origin_y)) + text_h
 
     safety = 0.18
     top = max(base_top, y_arrow_top_overhang, y_name_top_overhang, x_name_top_overhang) + safety

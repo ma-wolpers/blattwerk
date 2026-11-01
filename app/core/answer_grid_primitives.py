@@ -22,9 +22,9 @@ from .answer_grid_axis import (
     _render_axis_ticks_and_labels,
     _resolve_axis_name,
     _resolve_axis_state,
-    origin_to_canvas,
 )
 from .answer_grid_axis_names import _render_axis_arrowheads_and_names
+from .answer_grid_coords import to_svg
 from .answer_grid_entries import (
     _GeometryCoordinateSystem,
     _inside_grid,
@@ -75,9 +75,10 @@ def _render_points_section(raw_entries, coord_system, cols, rows, include_soluti
     """Section-Renderer für `points`: liefert `(shapes, label_specs, obstacles)` (siehe Z-Order-Regel)."""
     entries = _parse_points(raw_entries, coord_system, include_solutions)
     shapes, labels, obstacles = [], [], []
-    for px, py, label, color, thickness, mode in entries:
-        if not _inside_grid(px, py, cols, rows):
+    for math_x, math_y, label, color, thickness, mode in entries:
+        if not _inside_grid(math_x, math_y, cols, rows):
             continue
+        px, py = to_svg(math_x, math_y, rows)
         shapes.extend(_point_cross_svg(px, py, mode, _svg_stroke_style_attr(color, thickness)))
         obstacles.extend(point_cross_obstacles(px, py, thickness or 1.15))
         if label:
@@ -88,7 +89,7 @@ def _render_points_section(raw_entries, coord_system, cols, rows, include_soluti
 def _render_sequence_section(raw_entries, coord_system, cols, rows, include_solutions):
     """Section-Renderer für `sequence`: Verbindungs-Polylinie und Punkt-Kreuze sind beide "Shapes" dieser Sektion."""
     entries = _parse_sequence(raw_entries, coord_system, include_solutions)
-    visible = [entry for entry in entries if _inside_grid(entry[0], entry[1], cols, rows)]
+    visible = [(*to_svg(x, y, rows), *rest) for x, y, *rest in entries if _inside_grid(x, y, cols, rows)]
 
     shapes, labels, obstacles = [], [], []
     if len(visible) >= 2:
@@ -113,7 +114,9 @@ def _render_pairs_section(raw_entries, coord_system, cols, rows, include_solutio
     """Section-Renderer für `pairs` (Standard-Label: rechts oberhalb der Streckenmitte)."""
     entries = _parse_pairs(raw_entries, coord_system, include_solutions)
     shapes, labels, obstacles = [], [], []
-    for gx1, gy1, gx2, gy2, label, color, thickness, mode, line_style in entries:
+    for math_x1, math_y1, math_x2, math_y2, label, color, thickness, mode, line_style in entries:
+        gx1, gy1 = to_svg(math_x1, math_y1, rows)
+        gx2, gy2 = to_svg(math_x2, math_y2, rows)
         stroke_style = _svg_stroke_style_attr(color, thickness)
         shapes.append(
             f"<line class='grid-segment grid-segment-{line_style} grid-mode-{mode}'{stroke_style} x1='{gx1:.4f}' y1='{gy1:.4f}' x2='{gx2:.4f}' y2='{gy2:.4f}' />"
@@ -133,9 +136,10 @@ def _render_functions_section(raw_entries, coord_system, cols, rows, include_sol
     entries = _parse_functions(raw_entries, coord_system.axis_active, include_solutions)
     shapes, labels, obstacles = [], [], []
     for expr, x_min, x_max, label, color, thickness, mode in entries:
-        poly_points = _sample_function_points(expr, x_min, x_max, coord_system, cols, rows)
-        if len(poly_points) < 2:
+        samples = _sample_function_points(expr, x_min, x_max, coord_system, cols, rows)
+        if len(samples) < 2:
             continue
+        poly_points = [to_svg(x, y, rows) for x, y in samples]
         points_attr = " ".join(f"{x:.4f},{y:.4f}" for x, y in poly_points)
         stroke_style = _svg_stroke_style_attr(color, thickness)
         shapes.append(
@@ -193,13 +197,11 @@ def build_geometry_scene(options, payload, rows, cols, include_solutions):
     axis_state, origin = _resolve_axis_state(options)
     if axis_state == "broken":
         return None
-    # `origin` zählt die Zeile von unten (0,0 = links unten); ab hier SVG-Rasterkoordinate.
-    origin = origin_to_canvas(origin, rows)
 
     step_x = _parse_positive_float(options.get("step_x"), 1.0)
     step_y = _parse_positive_float(options.get("step_y"), 1.0)
     coord_system = _GeometryCoordinateSystem(
-        axis_active=(axis_state == "active"), origin=origin, step_x=step_x, step_y=step_y, canvas_height=float(rows),
+        axis_active=(axis_state == "active"), origin=origin, step_x=step_x, step_y=step_y,
     )
 
     scene = GeometryScene()
@@ -208,10 +210,11 @@ def build_geometry_scene(options, payload, rows, cols, include_solutions):
         logical_ox, logical_oy = origin
         axis_label_x = _resolve_axis_name(options, "axis_label_x", aliases=("x_label", "axis_x_label"), default="x")
         axis_label_y = _resolve_axis_name(options, "axis_label_y", aliases=("y_label", "axis_y_label"), default="y")
-        scene.bottom.append(f"<line class='grid-axis' x1='0' y1='{axis_oy:.4f}' x2='{cols:.4f}' y2='{axis_oy:.4f}' />")
+        _x, svg_axis_y = to_svg(axis_ox, axis_oy, rows)
+        scene.bottom.append(f"<line class='grid-axis' x1='0' y1='{svg_axis_y:.4f}' x2='{cols:.4f}' y2='{svg_axis_y:.4f}' />")
         scene.bottom.append(f"<line class='grid-axis' x1='{axis_ox:.4f}' y1='0' x2='{axis_ox:.4f}' y2='{rows:.4f}' />")
         axis_pad = stroke_pad(0.9)
-        scene.obstacles.append(Obstacle(TIER_AXIS, "segment", (0.0, axis_oy, float(cols), axis_oy), axis_pad))
+        scene.obstacles.append(Obstacle(TIER_AXIS, "segment", (0.0, svg_axis_y, float(cols), svg_axis_y), axis_pad))
         scene.obstacles.append(Obstacle(TIER_AXIS, "segment", (axis_ox, 0.0, axis_ox, float(rows)), axis_pad))
         for part in (
             _render_axis_arrowheads_and_names(axis_ox, axis_oy, cols, rows, axis_label_x, axis_label_y),

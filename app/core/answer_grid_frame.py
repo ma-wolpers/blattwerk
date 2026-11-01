@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .answer_grid_axis import _resolve_axis_name, _resolve_axis_state, origin_to_canvas
+from .answer_grid_axis import _resolve_axis_name, _resolve_axis_state
 from .answer_grid_entries import _parse_positive_float
 from .answer_grid_svg_frame import _estimate_geometry_bleed_units
 from .answer_special_shared import _safe_int
@@ -33,8 +33,7 @@ def resolve_geometry_frame(options) -> GeometryFrame:
     """Liest `width`/`height` (Rastereinheiten) und schätzt den Bleed-Rand für Achsenlabels/-namen.
 
     `width` fehlt oder ist leer → `DEFAULT_GEOMETRY_COLS`; `height` → 5. Der
-    Ursprung zählt die Zeile von unten (0,0 = links unten) und wird hier in
-    die SVG-Rasterkoordinate umgerechnet.
+    Ursprung zählt die Zeile von unten (0,0 = links unten).
     """
     height_units = max(1, _safe_int(options.get("height", 5), 5))
     width_option = options.get("width")
@@ -43,7 +42,6 @@ def resolve_geometry_frame(options) -> GeometryFrame:
         max(1, _safe_int(width_option, DEFAULT_GEOMETRY_COLS)) if has_explicit_width else DEFAULT_GEOMETRY_COLS
     )
     axis_state, logical_origin = _resolve_axis_state(options)
-    logical_origin = origin_to_canvas(logical_origin, height_units)
     bleed = _estimate_geometry_bleed_units(
         logical_origin,
         width_units,

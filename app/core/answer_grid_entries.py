@@ -118,7 +118,7 @@ def _is_visible(show_value, include_solutions):
 
 @dataclass(frozen=True)
 class _GeometryCoordinateSystem:
-    """Bündelt die Umrechnung Objekt-Koordinaten -> Rasterkoordinaten an EINER Stelle.
+    """Bündelt die Umrechnung Objekt-Koordinaten -> Mathe-Rasterkoordinaten an EINER Stelle.
 
     Ersetzt das frühere Muster, `axis_enabled`/`origin`/`step_x`/`step_y`
     als lose Parameter durch jede `_parse_*`-Funktion einzeln
@@ -134,23 +134,22 @@ class _GeometryCoordinateSystem:
 
     Eine einzige Konvention für alle Sektionen: `(0, 0)` ist die **linke
     untere** Ecke, `y` wächst nach oben -- ohne Achse direkt in Rastereinheiten,
-    mit Achse relativ zu `origin` (dessen Zeile ebenfalls von unten zählt, siehe
-    `answer_grid_axis.origin_to_canvas`). `origin` hier ist bereits die
-    SVG-Rasterkoordinate. (Bis 2026-10-06 zählten `points[].col`/`row` und die
-    `origin`-Zeile von oben; Bestandsdokumente wurden migriert.)
+    mit Achse relativ zu `origin` (dessen Zeile ebenfalls von unten zählt). Auch
+    das Ergebnis zählt von unten; die Umkehr fürs SVG macht allein
+    `answer_grid_coords.to_svg`. (Bis 2026-10-06 zählten `points[].col`/`row`
+    und die `origin`-Zeile von oben; Bestandsdokumente wurden migriert.)
     """
 
     axis_active: bool
     origin: tuple[float, float] | None
     step_x: float
     step_y: float
-    canvas_height: float
 
     def point(self, x, y):
-        """Bildet eine Objekt-Koordinate `(x, y)` auf eine Rasterkoordinate ab."""
+        """Bildet eine Objekt-Koordinate `(x, y)` auf eine Mathe-Rasterkoordinate ab."""
         if self.axis_active:
-            return self.origin[0] + (x / self.step_x), self.origin[1] - (y / self.step_y)
-        return x, self.canvas_height - y
+            return self.origin[0] + (x / self.step_x), self.origin[1] + (y / self.step_y)
+        return x, y
 
     def radius(self, r):
         """Bildet einen skalaren Radius `r` auf `(rx, ry)` in Rastereinheiten ab.
@@ -245,7 +244,7 @@ def _parse_pairs(raw_pairs, coord_system, include_solutions):
     Funktioniert in beiden Achsenzuständen: im Achsenmodus mathematische
     Koordinaten über `coord_system.point()`, sonst Rasterkoordinaten mit
     Ursprung unten links (`(0, 0)`, y nach oben) -- mathematisch identisch
-    zum Achsenmodus-Pfad mit `origin=(0, canvas_height)`, `step_x=step_y=1`,
+    zum Achsenmodus-Pfad mit `origin=(0, 0)`, `step_x=step_y=1`,
     nur ohne dass dafür ein Achsenkreuz gezeichnet wird (das bleibt
     ausschließlich an `axis_active` in `_render_grid_primitives_svg`
     gekoppelt). `line_style` fällt bei fehlendem oder ungültigem `line`-Wert

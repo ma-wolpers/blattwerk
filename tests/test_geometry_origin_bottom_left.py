@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import re
 
-from app.core.answer_grid_axis import origin_to_canvas
+from app.core.answer_grid_coords import to_svg
 from app.core.answer_grid_plot import render_geometry_answer
 
 
@@ -24,10 +24,9 @@ def _point_center(svg):
     return round((x1 + x2) / 2, 4), round((y1 + y2) / 2, 4)
 
 
-def test_origin_to_canvas_counts_rows_from_bottom():
-    assert origin_to_canvas((0.0, 0.0), 10) == (0.0, 10.0)
-    assert origin_to_canvas((3.0, 7.0), 10) == (3.0, 3.0)
-    assert origin_to_canvas(None, 10) is None
+def test_to_svg_counts_rows_from_bottom():
+    assert to_svg(0.0, 0.0, 10) == (0.0, 10.0)
+    assert to_svg(3.0, 7.0, 10) == (3.0, 3.0)
 
 
 def test_axis_origin_zero_zero_is_bottom_left_corner():

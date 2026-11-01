@@ -50,8 +50,8 @@ def test_polygon_fewer_than_three_valid_vertices_is_not_rendered():
 def test_polygon_concave_label_at_true_centroid_not_vertex_mean():
     # Grid-space (already flipped) vertices A(0,0) B(2,1) C(4,0) D(2,4).
     # Hand-computed shoelace centroid: (2.0, 1.6667). Vertex mean would be (2.0, 1.25).
-    # With height=10 (canvas_height), feed y = 10 - target_y so coord_system.point()
-    # (bottom-left, y-up) maps back to the exact grid-space example above.
+    # With height=10, feed y = 10 - target_y so to_svg() (bottom-left, y-up to SVG)
+    # maps back to the exact grid-space example above.
     html = _render_answer_block(
         {"type": "geometry", "width": "10", "height": "10"},
         "polygons:\n"
@@ -108,7 +108,7 @@ def test_polygon_axis_mode_uses_math_coordinates():
 
 
 # Circles/arcs -- setup shared by the worked examples below: cx=5, cy=5, r=2,
-# no axis, height=10 -> coord_system.point(5, 5) = (5, 10-5) = (5, 5), rx=ry=2.
+# no axis, height=10 -> to_svg(5, 5, 10) = (5, 10-5) = (5, 5), rx=ry=2.
 
 def _render_circle(payload_line, **extra_options):
     options = {"type": "geometry", "width": "10", "height": "10", **extra_options}

@@ -14,6 +14,7 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass, replace
 
+from .answer_grid_coords import to_svg
 from .answer_grid_entries import _as_float, _is_visible, _normalize_show_mode
 from .answer_grid_label_model import TIER_LINE, LabelSpec, polyline_obstacles, stroke_pad
 from .answer_grid_svg_style import _svg_fill_style_attr, _svg_shape_style_attr
@@ -27,7 +28,7 @@ from .answer_special_shared import parse_svg_color, parse_svg_thickness
 
 @dataclass(frozen=True)
 class ParsedCircle:
-    """Ein geparstes `circles[]`-Objekt (Vollkreis/Ellipse/Bogen), bereits in Rasterkoordinaten.
+    """Ein geparstes `circles[]`-Objekt (Vollkreis/Ellipse/Bogen), bereits in Mathe-Rasterkoordinaten.
 
     `start_angle`/`end_angle` sind entweder beide `None` (Vollkreis/Ellipse)
     oder beide gesetzt (Bogen) -- niemals nur eines (siehe
@@ -105,8 +106,8 @@ def _render_circles_section(raw_entries, coord_system, cols, rows, include_solut
 
     Winkelkonvention: Grad, `0°` = Osten (positive x-Achse-Richtung),
     wachsend entgegen dem Uhrzeigersinn (Schulmathematik-/Einheitskreis-
-    Konvention). Da SVG-`y` nach unten wächst: `gx = cx + rx·cos(θ)`,
-    `gy = cy − ry·sin(θ)`. Der Bogen läuft immer von `start_angle`
+    Konvention): `x = cx + rx·cos(θ)`, `y = cy + ry·sin(θ)` in Mathe-
+    Rasterkoordinaten, danach `to_svg`. Der Bogen läuft immer von `start_angle`
     AUFSTEIGEND zu `end_angle` (bei `end < start` über 360° hinweg, "der
     lange Weg"); `sweep-flag` ist deshalb IMMER `0` (eine mathematisch
     entgegen-dem-Uhrzeigersinn verlaufende Bewegung erscheint in SVG-
@@ -126,33 +127,32 @@ def _render_circles_section(raw_entries, coord_system, cols, rows, include_solut
     entries = _parse_circles(raw_entries, coord_system, include_solutions)
     shapes, labels, obstacles = [], [], []
     for circle in entries:
+        svg_cx, svg_cy = to_svg(circle.cx, circle.cy, rows)
         style = _svg_shape_style_attr(circle.color, circle.thickness, circle.fill)
         if circle.start_angle is None or circle.end_angle is None:
             if math.isclose(circle.rx, circle.ry, rel_tol=1e-9):
                 shapes.append(
                     f"<circle class='grid-circle grid-mode-{circle.mode}'{style} "
-                    f"cx='{circle.cx:.4f}' cy='{circle.cy:.4f}' r='{circle.rx:.4f}' />"
+                    f"cx='{svg_cx:.4f}' cy='{svg_cy:.4f}' r='{circle.rx:.4f}' />"
                 )
             else:
                 shapes.append(
                     f"<ellipse class='grid-circle grid-mode-{circle.mode}'{style} "
-                    f"cx='{circle.cx:.4f}' cy='{circle.cy:.4f}' rx='{circle.rx:.4f}' ry='{circle.ry:.4f}' />"
+                    f"cx='{svg_cx:.4f}' cy='{svg_cy:.4f}' rx='{circle.rx:.4f}' ry='{circle.ry:.4f}' />"
                 )
-            label_x, label_y = circle.cx, circle.cy
+            label_x, label_y = svg_cx, svg_cy
         else:
-            start_x = circle.cx + circle.rx * math.cos(math.radians(circle.start_angle))
-            start_y = circle.cy - circle.ry * math.sin(math.radians(circle.start_angle))
-            end_x = circle.cx + circle.rx * math.cos(math.radians(circle.end_angle))
-            end_y = circle.cy - circle.ry * math.sin(math.radians(circle.end_angle))
+            start_x, start_y = to_svg(*_circle_point(circle, circle.start_angle), rows)
+            end_x, end_y = to_svg(*_circle_point(circle, circle.end_angle), rows)
             large_arc_flag = 1 if (circle.end_angle - circle.start_angle) % 360.0 > 180.0 else 0
             shapes.append(
                 f"<path class='grid-arc grid-mode-{circle.mode}'{style} "
                 f"d='M {start_x:.4f} {start_y:.4f} A {circle.rx:.4f} {circle.ry:.4f} 0 {large_arc_flag} 0 "
                 f"{end_x:.4f} {end_y:.4f}' />"
             )
-            label_x, label_y = circle.cx, circle.cy
+            label_x, label_y = svg_cx, svg_cy
 
-        outline = _circle_outline(circle)
+        outline = _svg_outline(circle, rows)
         is_full = circle.start_angle is None or circle.end_angle is None
         obstacles.extend(polyline_obstacles(
             outline, TIER_LINE, stroke_pad(circle.thickness or 1.1), closed=is_full, owner=("area", (label_x, label_y))
@@ -161,12 +161,25 @@ def _render_circles_section(raw_entries, coord_system, cols, rows, include_solut
             labels.append(LabelSpec(
                 text=circle.label, css_class=f"grid-circle-label grid-mode-{circle.mode}", x=label_x, y=label_y,
                 kind="area", anchor=(label_x, label_y), style_attr=_svg_fill_style_attr(circle.color),
-                area=outline if is_full else _circle_outline(replace(circle, start_angle=None, end_angle=None)),
+                area=outline if is_full else _svg_outline(replace(circle, start_angle=None, end_angle=None), rows),
             ))
     return shapes, labels, obstacles
 
 
 _OUTLINE_STEPS = 72
+
+
+def _circle_point(circle, angle):
+    """Punkt der Kontur beim Winkel `angle` (Grad) in Mathe-Rasterkoordinaten."""
+    return (
+        circle.cx + circle.rx * math.cos(math.radians(angle)),
+        circle.cy + circle.ry * math.sin(math.radians(angle)),
+    )
+
+
+def _svg_outline(circle, rows):
+    """Kontur (`_circle_outline`) in SVG-Koordinaten fürs Label-Layout."""
+    return tuple(to_svg(x, y, rows) for x, y in _circle_outline(circle))
 
 
 def _circle_outline(circle):
@@ -180,10 +193,4 @@ def _circle_outline(circle):
     if span >= 360.0:
         steps = _OUTLINE_STEPS
     count = steps if span >= 360.0 else steps + 1
-    return tuple(
-        (
-            circle.cx + circle.rx * math.cos(math.radians(start + span * index / steps)),
-            circle.cy - circle.ry * math.sin(math.radians(start + span * index / steps)),
-        )
-        for index in range(count)
-    )
+    return tuple(_circle_point(circle, start + span * index / steps) for index in range(count))

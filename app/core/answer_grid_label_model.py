@@ -8,8 +8,8 @@ die bisherigen festen Versätze (`labels=fixed`), und `emit_label` erzeugt das
 SVG -- mit `labels=fixed` byte-identisch zur früheren Ausgabe.
 
 Koordinaten sind SVG-Rastereinheiten (1 Einheit = 1 Zelle, y nach unten); die
-Umrechnung aus Nutzerkoordinaten (y nach oben, Ursprung links unten) passiert
-vorher ausschließlich in `_GeometryCoordinateSystem.point()`.
+Umrechnung aus Mathe-Rasterkoordinaten (y nach oben, Ursprung links unten)
+passiert vorher ausschließlich in `answer_grid_coords.to_svg`.
 
 Hindernis-Stufen (`TIER_*`) sind zugleich die Priorität im Kostentupel des
 Layouts: Punktkreuze sind am stärksten geschützt, dann andere Labels, dann

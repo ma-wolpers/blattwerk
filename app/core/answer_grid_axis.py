@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import math
 
+from .answer_grid_coords import to_svg
 from .answer_grid_label_model import TIER_AXIS, LabelSpec, Obstacle, stroke_pad
 from .answer_special_shared import _option_is_enabled
 
@@ -19,9 +20,8 @@ def _parse_origin(raw_origin):
     """Parst den Ursprung im Format `spalte,zeile` ohne Clamping auf die Rastergrenzen.
 
     Konvention (wie in der Schulmathematik): `(0, 0)` ist die **linke untere**
-    Ecke, die Zeile zählt von unten nach oben. Die Umrechnung in die
-    SVG-Rasterkoordinate (Zeile von oben) macht ausschließlich
-    `origin_to_canvas`.
+    Ecke, die Zeile zählt von unten nach oben (Mathe-Rasterkoordinaten, siehe
+    `answer_grid_coords`).
 
     Kein `cols`/`rows`-Parameter: das Klemmen auf die *sichtbare*
     Achsenposition übernimmt separat `_clamp_axis_origin`, das reine Parsen
@@ -42,25 +42,6 @@ def _parse_origin(raw_origin):
         return None
 
     return col, row
-
-
-def origin_to_canvas(origin, rows):
-    """Rechnet einen Ursprung `(spalte, zeile_von_unten)` in die Rasterkoordinate des SVG um.
-
-    Einzige Stelle für diese Umrechnung (Renderer und Rand-Schätzung rufen sie
-    direkt nach `_resolve_axis_state` auf). Das SVG zählt Zeilen von oben, die
-    Geometry-DSL von unten: `(0, 0)` = linke untere Ecke.
-
-    Args:
-        origin: `(spalte, zeile)` aus `_parse_origin` oder `None`.
-        rows: Höhe des Rasters in Rastereinheiten.
-
-    Returns:
-        `(spalte, rows - zeile)` bzw. `None`.
-    """
-    if origin is None:
-        return None
-    return origin[0], float(rows) - origin[1]
 
 
 def _resolve_axis_state(options):
@@ -169,12 +150,14 @@ def _is_inside_axis_label_safe_area(position, limit):
     return 0.0 <= float(position) <= float(limit)
 
 
-def _iter_axis_tick_positions(origin, limit, step_value):
+def _iter_axis_tick_positions(origin, limit, step_value, descending=False):
     """Liefert sichtbare Tick-Koordinaten als `(grid_pos, logical_value)`-Tupel.
 
     `max_ticks` begrenzt die Anzahl hart, damit ein sehr kleiner `step_value`
     (z. B. `step_x=0.001`) nicht zu einer unbegrenzt langen Liste und
-    entsprechend langsamem Rendering führt.
+    entsprechend langsamem Rendering führt. `descending` läuft vom größten
+    Wert abwärts: Die y-Achse wird von oben nach unten ausgegeben (bestimmt
+    die Markup-Reihenfolge und, bei erreichter Obergrenze, welche Ticks bleiben).
     """
     ticks = []
     max_ticks = 240
@@ -182,7 +165,8 @@ def _iter_axis_tick_positions(origin, limit, step_value):
     start_index = int(math.floor((-origin) * step_value))
     end_index = int(math.ceil((limit - origin) * step_value))
 
-    for logical in range(start_index, end_index + 1):
+    logicals = range(end_index, start_index - 1, -1) if descending else range(start_index, end_index + 1)
+    for logical in logicals:
         grid_pos = origin + (logical / step_value)
         if 0.0 <= grid_pos <= float(limit):
             ticks.append((grid_pos, float(logical)))
@@ -220,7 +204,8 @@ def _render_axis_ticks_and_labels(
     außerhalb des Rasters liegen), `axis_origin_*` die geklemmte, sichtbar
     gezeichnete Achsenposition — beide werden gebraucht, weil Ticks anhand
     des logischen Ursprungs positioniert, aber am sichtbaren Achsenkreuz
-    angezeichnet werden.
+    angezeichnet werden. Alle Eingaben sind Mathe-Rasterkoordinaten; Tick-
+    Positionen werden hier mit `to_svg` in die Ausgabe umgerechnet.
 
     Liefert `(shapes, label_specs, obstacles)`: die Tick-Zahlenwerte sind
     Text-Labels wie jedes andere Geometry-Label und gehören in der Z-Order
@@ -233,33 +218,35 @@ def _render_axis_ticks_and_labels(
     shapes, labels, obstacles = [], [], []
     tick_pad = stroke_pad(0.7)
     x_positions = _iter_axis_tick_positions(logical_origin_x, cols, step_x)
-    y_positions = _iter_axis_tick_positions(logical_origin_y, rows, step_y)
+    y_positions = _iter_axis_tick_positions(logical_origin_y, rows, step_y, descending=True)
+    _x, svg_axis_y = to_svg(axis_origin_x, axis_origin_y, rows)
     x_label_stride = _choose_axis_label_stride(len(x_positions))
     y_label_stride = _choose_axis_label_stride(len(y_positions))
 
     for gx, logical_x in x_positions:
         shapes.append(
-            f"<line class='grid-axis-tick' x1='{gx:.4f}' y1='{axis_origin_y - 0.18:.4f}' x2='{gx:.4f}' y2='{axis_origin_y + 0.18:.4f}' />"
+            f"<line class='grid-axis-tick' x1='{gx:.4f}' y1='{svg_axis_y - 0.18:.4f}' x2='{gx:.4f}' y2='{svg_axis_y + 0.18:.4f}' />"
         )
-        obstacles.append(Obstacle(TIER_AXIS, "segment", (gx, axis_origin_y - 0.18, gx, axis_origin_y + 0.18), tick_pad))
+        obstacles.append(Obstacle(TIER_AXIS, "segment", (gx, svg_axis_y - 0.18, gx, svg_axis_y + 0.18), tick_pad))
         if _should_render_axis_label(logical_x, x_label_stride) and _is_inside_axis_label_safe_area(
             gx, cols
         ):
             labels.append(LabelSpec(
-                text=_format_axis_label(logical_x), css_class="grid-axis-label", x=gx, y=axis_origin_y + 0.1,
-                kind="tick", anchor=(gx, axis_origin_y), movable=False,
+                text=_format_axis_label(logical_x), css_class="grid-axis-label", x=gx, y=svg_axis_y + 0.1,
+                kind="tick", anchor=(gx, svg_axis_y), movable=False,
             ))
 
-    for gy, logical_y in y_positions:
+    for math_gy, logical_y in y_positions:
+        _x, gy = to_svg(axis_origin_x, math_gy, rows)
         shapes.append(
             f"<line class='grid-axis-tick' x1='{axis_origin_x - 0.18:.4f}' y1='{gy:.4f}' x2='{axis_origin_x + 0.18:.4f}' y2='{gy:.4f}' />"
         )
         obstacles.append(Obstacle(TIER_AXIS, "segment", (axis_origin_x - 0.18, gy, axis_origin_x + 0.18, gy), tick_pad))
         if _should_render_axis_label(logical_y, y_label_stride) and _is_inside_axis_label_safe_area(
-            gy, rows
+            math_gy, rows
         ):
             labels.append(LabelSpec(
-                text=_format_axis_label(-logical_y), css_class="grid-axis-label grid-axis-label-y",
+                text=_format_axis_label(logical_y), css_class="grid-axis-label grid-axis-label-y",
                 x=axis_origin_x - 0.28, y=gy + 0.04, kind="tick", anchor=(axis_origin_x, gy), movable=False,
             ))
 
