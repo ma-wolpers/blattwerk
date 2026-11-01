@@ -4,6 +4,27 @@
 from __future__ import annotations
 
 DIAGRAM_PROSE_SECTIONS: dict[str, str] = {
+    "block:erdiagram": (
+        "ER-Diagramm in der Gestalt der zentralen Prüfungsaufgaben (GO Informatik, S. 8). `entität Name` "
+        "beginnt eine Entität, die eingerückten Zeilen sind ihre Attribute; `__Name__` unterstreicht ein "
+        "Schlüsselattribut. Beziehungen stehen in kurzen Zeilen wie beim Klassendiagramm: "
+        "`Klasse 1 - gehoertZu - n Schueler`, eingerückte Zeilen darunter sind Attribute der Beziehung. "
+        "Rekursive Beziehungen schreibt man `Schueler 1 - istPateVon - 1 Schueler`. Die Anordnung entsteht "
+        "automatisch. Lücken: `%` nach der Einrückung bei Attributen, `%{1}` bei Kardinalitäten."
+    ),
+    "block:statediagram": (
+        "Automaten in der Gestalt der zentralen Prüfungsaufgaben (GO Informatik, S. 12): eine kurze Zeile "
+        "pro Übergang, `S0 -> S1: c`. `start -> S0` setzt den Startzustand, `ende: S1, S2` die Endzustände. "
+        "Mehrere Übergänge zwischen denselben Zuständen teilen sich eine Kante mit gestapelter Beschriftung. "
+        "`S0` erscheint als tiefgestellter Index, `eps` als ε. Lücken: `%{c}` in der Beschriftung."
+    ),
+    "block:statediagram.kind": (
+        "Prüft die Notation aus der GO: `dfa` (je Zustand und Zeichen genau ein Übergang), `mealy` "
+        "(`Eingabe / Ausgabe`), `pda` (`(oben, Eingabe) : Kellerwort`). Ohne Angabe keine Prüfung."
+    ),
+    "block:statediagram.input": ("Eingabealphabet, z. B. `input=\"a, b, c\"`, erscheint als Zeile über dem Graphen."),
+    "block:statediagram.output": ("Ausgabealphabet eines Mealy-Automaten, erscheint als Zeile über dem Graphen."),
+    "block:statediagram.stack": ("Kelleralphabet eines Kellerautomaten, erscheint als Zeile über dem Graphen."),
     "block:classdiagram": (
         "Klassendiagramm und Objektkarten in der Gestalt der zentralen Prüfungsaufgaben (Ergänzende "
         "Hinweise zur GO Informatik, S. 7). `klasse Name` beginnt eine Klasse, die eingerückten Zeilen "

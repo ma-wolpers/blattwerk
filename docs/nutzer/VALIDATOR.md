@@ -184,6 +184,8 @@ Subprozess siehe `tests/test_blatt_diagnostics_cli.py` (Validator) sowie
 - `SG022`: Signatur mit Rueckgabetyp, aber nicht jeder Ablauf endet mit `rückgabe` (Warnung). Verzweigung zaehlt nur mit Rueckgabe in beiden Zweigen, Auswahl nur mit `sonst`, kopfgesteuerte Schleifen nie (koennen 0-mal laufen), fussgesteuerte ueber ihren Rumpf. Steht `gib … zurück` woertlich als Anweisung da, nennt die Meldung `rückgabe …` als Schreibweise.
 - `SG023`: Ein Parameter der Signatur kommt im Struktogramm nicht als Wort vor (Warnung).
 - `CD001`-`CD007` (`classdiagram`): `CD001` leerer Block (Warnung); `CD002` Zeile passt nicht zur Syntax, `CD003` eingerückte Zeile ohne Klasse, `CD004` doppelter Name (Fehler); `CD005` Klasse nur in einer Beziehung, `CD006` fehlende Sichtbarkeit, `CD007` beschriftete Assoziation (Warnungen, GO S. 7).
+- `ER001`-`ER007` (`erdiagram`): `ER001` leerer Block (Warnung); `ER002` Zeile passt nicht zur Syntax, `ER003` Attribut ohne Knoten, `ER004` doppelter Name (Fehler); `ER005` Entität nur in einer Beziehung, `ER006` kein Schlüsselattribut, `ER007` fehlende Kardinalität (Warnungen, GO S. 8).
+- `ST001`-`ST007` (`statediagram`): `ST001` leerer Block (Warnung); `ST002` Zeile passt nicht zur Syntax, `ST003` zweiter Startzustand (Fehler); `ST004` kein Startzustand, `ST005` DEA nicht deterministisch, `ST006` DEA unvollständig, `ST007` Beschriftung passt nicht zu `kind` (Warnungen, GO S. 12).
 <!-- diagramm-codes -->
 - `SC001`: `selfcheck`-Block: `steps=` liegt ausserhalb des gueltigen Bereichs (2-7) oder ausserhalb der fuer die gewaehlte `scale=` kuratierten Werte (z. B. `smiley` nur bei `steps=3`/`5`) -- wird begrenzt bzw. faellt auf nummerierte Kreise zurueck, reiner Hinweis (Warnung).
 

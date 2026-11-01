@@ -63,6 +63,44 @@ DIAGRAM_BLOCKS: tuple[DiagramBlockSpec, ...] = (
         empty_code="CD001",
         keywords=("klasse", "objekt"),
     ),
+    DiagramBlockSpec(
+        name="erdiagram",
+        title="ER-Diagramm",
+        module="diagram_er",
+        snippet=(
+            ":::erdiagram\n"
+            "entität Klasse\n"
+            "    __Bezeichnung__\n"
+            "entität Schueler\n"
+            "    __Name__\n"
+            "Klasse 1 - gehoertZu - n Schueler\x01\n"
+            ":::\n"
+        ),
+        empty_code="ER001",
+        keywords=("entität",),
+    ),
+    DiagramBlockSpec(
+        name="statediagram",
+        title="Zustandsdiagramm",
+        module="diagram_state",
+        snippet=(
+            ':::statediagram kind=dfa input="a, b"\n'
+            "start -> S0\n"
+            "ende: S1\n"
+            "S0 -> S0: a\n"
+            "S0 -> S1: b\n"
+            "S1 -> S1: a, b\x01\n"
+            ":::\n"
+        ),
+        empty_code="ST001",
+        keywords=("start", "ende"),
+        options=(
+            BlockOptionSpec("kind", "enum", frozenset({"dfa", "mealy", "pda"}), False, MISSING),
+            BlockOptionSpec("input", "text", None, False, MISSING),
+            BlockOptionSpec("output", "text", None, False, MISSING),
+            BlockOptionSpec("stack", "text", None, False, MISSING),
+        ),
+    ),
 )
 
 DIAGRAM_BLOCKS_BY_NAME = {spec.name: spec for spec in DIAGRAM_BLOCKS}

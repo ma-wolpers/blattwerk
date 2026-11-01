@@ -275,6 +275,29 @@ Schließt einen `:::columns`-Block ab. Keine eigenen Optionen.
 
 Keine Optionen.
 
+### `erdiagram`
+
+ER-Diagramm in der Gestalt der zentralen Prüfungsaufgaben (GO Informatik, S. 8). `entität Name` beginnt eine Entität, die eingerückten Zeilen sind ihre Attribute; `__Name__` unterstreicht ein Schlüsselattribut. Beziehungen stehen in kurzen Zeilen wie beim Klassendiagramm: `Klasse 1 - gehoertZu - n Schueler`, eingerückte Zeilen darunter sind Attribute der Beziehung. Rekursive Beziehungen schreibt man `Schueler 1 - istPateVon - 1 Schueler`. Die Anordnung entsteht automatisch. Lücken: `%` nach der Einrückung bei Attributen, `%{1}` bei Kardinalitäten.
+
+| Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
+|---|---|---|---|---|---|
+| `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
+| `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
+| `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
+| `width` | CSS-Länge | -- | nein | `100%` | Breite des Blocks als CSS-Länge (`70%`, `12cm`, ...); Standard ist die volle Zeilenbreite. |
+
+**Beispiel** (identisch mit dem Menü "Einfügen" (Alt+I) im Editor):
+
+```markdown
+:::erdiagram
+entität Klasse
+    __Bezeichnung__
+entität Schueler
+    __Name__
+Klasse 1 - gehoertZu - n Schueler
+:::
+```
+
 ### `evaluation`
 
 Bewertungstabelle (selbstschließend: `:::evaluation:::`) mit den Zeilen Aufgaben, maximale Punkte und leeren Feldern für die erreichten Punkte, rechts die Summe. Nur in Arbeitsblättern und Klausuren. Aufgaben ohne Punkte erscheinen mit `–` (Warnung `EV001`), widersprüchliche mit `?`; die Summe wird nur ausgewiesen, wenn alle Punktzahlen bekannt sind.
@@ -701,6 +724,33 @@ Freier Leerraum ohne Linien/Raster, z. B. für Zeichnungen.
 ```markdown
 :::space height=3cm
 
+:::
+```
+
+### `statediagram`
+
+Automaten in der Gestalt der zentralen Prüfungsaufgaben (GO Informatik, S. 12): eine kurze Zeile pro Übergang, `S0 -> S1: c`. `start -> S0` setzt den Startzustand, `ende: S1, S2` die Endzustände. Mehrere Übergänge zwischen denselben Zuständen teilen sich eine Kante mit gestapelter Beschriftung. `S0` erscheint als tiefgestellter Index, `eps` als ε. Lücken: `%{c}` in der Beschriftung.
+
+| Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
+|---|---|---|---|---|---|
+| `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
+| `input` | Text | -- | nein | -- | Eingabealphabet, z. B. `input="a, b, c"`, erscheint als Zeile über dem Graphen. |
+| `kind` | Enum | `dfa`, `mealy`, `pda` | nein | -- | Prüft die Notation aus der GO: `dfa` (je Zustand und Zeichen genau ein Übergang), `mealy` (`Eingabe / Ausgabe`), `pda` (`(oben, Eingabe) : Kellerwort`). Ohne Angabe keine Prüfung. |
+| `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
+| `output` | Text | -- | nein | -- | Ausgabealphabet eines Mealy-Automaten, erscheint als Zeile über dem Graphen. |
+| `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
+| `stack` | Text | -- | nein | -- | Kelleralphabet eines Kellerautomaten, erscheint als Zeile über dem Graphen. |
+| `width` | CSS-Länge | -- | nein | `100%` | Breite des Blocks als CSS-Länge (`70%`, `12cm`, ...); Standard ist die volle Zeilenbreite. |
+
+**Beispiel** (identisch mit dem Menü "Einfügen" (Alt+I) im Editor):
+
+```markdown
+:::statediagram kind=dfa input="a, b"
+start -> S0
+ende: S1
+S0 -> S0: a
+S0 -> S1: b
+S1 -> S1: a, b
 :::
 ```
 

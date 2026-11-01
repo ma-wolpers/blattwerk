@@ -2086,6 +2086,15 @@ h1 {
     font-weight: bold;
 }
 
+.diagram-statediagram {
+    width: fit-content;
+}
+
+.diagram-caption {
+    margin-bottom: 0.3em;
+    text-align: center;
+}
+
 /* Lücke auf einer Kante oder an einem Knoten: Die Stelle bleibt erkennbar, der Text
    hält unsichtbar den Platz. */
 .diagram-gap > span {
