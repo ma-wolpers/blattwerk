@@ -18,8 +18,8 @@ from .answer_special import (
     estimate_wordsearch_weight,
 )
 from .answer_special_mindmap import estimate_mindmap_weight
-from .answer_special_struktogramm import estimate_struktogramm_weight
-from .blatt_kern_shared_data import STRUCTOGRAM_BLOCK_TYPE
+from .diagram_block_catalog import DIAGRAM_BLOCK_NAMES
+from .diagram_block_dispatch import estimate_diagram_weight
 from .answer_special_writebox import estimate_writebox_weight
 from .blatt_kern_shared import _safe_int, should_render_block
 
@@ -88,8 +88,8 @@ def estimate_block_weight(
     if block_type == "mindmap":
         return estimate_mindmap_weight(options, content)
 
-    if block_type == STRUCTOGRAM_BLOCK_TYPE:
-        return estimate_struktogramm_weight(options, content)
+    if block_type in DIAGRAM_BLOCK_NAMES:
+        return estimate_diagram_weight(block_type, options, content)
 
     if block_type == "writebox":
         return estimate_writebox_weight(options, content)

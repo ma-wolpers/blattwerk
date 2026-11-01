@@ -14,6 +14,7 @@ from __future__ import annotations
 
 from .blatt_kern_shared_data import JA_NEIN_BOOLEAN_TOKENS
 from .crossword_symbol_presets import SYMBOL_THEME_NAMES
+from .diagram_block_catalog import DIAGRAM_BLOCK_NAMES, DIAGRAM_BLOCKS
 from .document_type_registry import KNOWN_DOCUMENT_TYPES
 from ..styles.blatt_styles_data import FONT_PROFILE_ORDER
 from .blatt_validator_specs import MISSING, BlockOptionSpec, FrontmatterFieldSpec  # noqa: F401 -- re-exportiert
@@ -56,7 +57,6 @@ KNOWN_BLOCK_TYPES = {
     "ordering",
     "checkgrid",
     "mindmap",
-    "structogram",
     "selfcheck",
     "writebox",
     "solution",
@@ -78,6 +78,7 @@ KNOWN_BLOCK_TYPES = {
 REMOVED_BLOCK_NAMES = {"hilfe": "help", "struktogramm": "structogram"}
 """Frühere deutsche Blocknamen und ihr Ersatz (Fehler `BL013`, Umstellung per
 `tools/migrate_block_names.py`). Blocknamen sind einheitlich englisch, ohne Aliase."""
+KNOWN_BLOCK_TYPES |= DIAGRAM_BLOCK_NAMES
 KNOWN_SHOW_VALUES = {"worksheet", "solution", "both"}
 KNOWN_BLOCK_MODE_VALUES = {"worksheet", "solution"}
 KNOWN_PRESENTATION_LAYOUTS = {
@@ -328,13 +329,13 @@ _OPT_AFB = BlockOptionSpec("afb", "enum", frozenset({"1", "2", "3"}), True, MISS
 _OPT_BONUS = BlockOptionSpec("bonus", "boolean", None, False, False)
 _OPT_WIDTHS = BlockOptionSpec("widths", "text", None, False, MISSING)
 _OPT_SCALE = BlockOptionSpec("scale", "css_length", None, False, "0.5cm")
-_STRUKTOGRAMM_OPTIONS = (
-    BlockOptionSpec("signature", "text", None, False, MISSING),
+_DIAGRAM_COMMON_OPTIONS = (
     BlockOptionSpec("width", "css_length", None, False, "100%"),
     _OPT_SHOW,
     _OPT_MODE,
     _OPT_ALIGN,
 )
+"""Optionen jedes Diagrammblocks, hinter dessen eigenen aus `diagram_block_catalog`."""
 
 DEPRECATED_IGNORED_OPTIONS = {"solution": frozenset({"mode", "show"})}
 """Optionen, die veraltet sind und **ignoriert** werden (Warnung `OP004`); sie stehen
@@ -553,7 +554,6 @@ BLOCK_OPTION_SPECS: dict[str, tuple[BlockOptionSpec, ...]] = {
         BlockOptionSpec("subbranches", "integer", None, False, 0),
         _OPT_ALIGN,
     ),
-    "structogram": _STRUKTOGRAMM_OPTIONS,
     "selfcheck": (
         _OPT_SHOW,
         _OPT_MODE,
@@ -627,6 +627,7 @@ BLOCK_OPTION_SPECS: dict[str, tuple[BlockOptionSpec, ...]] = {
         BlockOptionSpec("height", "css_length", None, False, MISSING),
     ),  # als `:::vspacer height=...`-Blockoption unvalidiert; nur die `-=<länge>`-Kurzform (Control-Marker) wird per `BL006` geprüft
 }
+BLOCK_OPTION_SPECS |= {spec.name: spec.options + _DIAGRAM_COMMON_OPTIONS for spec in DIAGRAM_BLOCKS}
 """Vollständiger normativer Optionskatalog je Blocktyp (alle `KNOWN_BLOCK_TYPES`
 außer `"raw"`, inklusive optionsloser Blöcke als leere Tupel). `kind`/
 `validated`/`default` sind für die validierten Optionen (`show`, `mode`,

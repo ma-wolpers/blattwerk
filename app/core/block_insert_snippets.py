@@ -24,6 +24,8 @@ Einträge sind kein Fehler, `markdown_conventions.py` re-verpackt sie als
 
 from __future__ import annotations
 
+from .diagram_block_catalog import DIAGRAM_BLOCKS
+
 BLOCK_INSERT_SNIPPETS: dict[str, str] = {
     "mc": (
         ":::mc inline=true\n"
@@ -173,14 +175,6 @@ BLOCK_INSERT_SNIPPETS: dict[str, str] = {
         "\x01Thema\n"
         ":::\n"
     ),
-    "structogram": (
-        ':::structogram signature="istEnthalten(d: dyn. Reihung vom Inhaltstyp Ganzzahl, v: Ganzzahl): Wahrheitswert"\n'
-        "\x01für alle Elemente e aus d\n"
-        "    wenn e = v\n"
-        "        rückgabe wahr\n"
-        "rückgabe falsch\n"
-        ":::\n"
-    ),
     "selfcheck": (
         ":::selfcheck scale=smiley steps=3\n"
         "\x01- Ich kann das Thema erklären.\n"
@@ -206,3 +200,5 @@ BLOCK_INSERT_SNIPPETS: dict[str, str] = {
         ":::\n"
     ),
 }
+
+BLOCK_INSERT_SNIPPETS.update({spec.name: spec.snippet for spec in DIAGRAM_BLOCKS})

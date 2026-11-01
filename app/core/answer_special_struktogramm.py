@@ -14,7 +14,7 @@ Spitze des Dreiecks immer exakt die Spaltengrenze darunter, auch wenn ein
 leerer Zweig eine feste schmale Breite hat statt eines Anteils.
 
 Lücken-Struktogramm: Text, der nur in der Lösung sichtbar ist (`%`, `%{…}`),
-wird im Arbeitsblatt mit `visibility:hidden` mitgerendert und hält so die
+wird im Arbeitsblatt mit `visibility:hidden` (`diagram-hidden`) mitgerendert und hält so die
 Höhe der Lösung; die Zelle bekommt zusätzlich die Klasse `stg-gap` mit einer
 einheitlichen Mindesthöhe. Ergebnis: max(Mindesthöhe, Lösungshöhe).
 """
@@ -24,7 +24,7 @@ from __future__ import annotations
 import re
 from html import escape
 
-from .answer_line_markers import _render_inline_markdown_fragment, _wrap_solution_fragment
+from .diagram_text import render_cell
 from .struktogramm_parse import Branch, Loop, Statement, Switch, parse_struktogramm
 from .struktogramm_signature import SignatureError, format_signature_html, parse_signature
 
@@ -37,50 +37,9 @@ _SIDE_BIAS = 0.65
 _WIDTH_RE = re.compile(r"^\d+(?:\.\d+)?(?:%|cm|mm|px|em|rem)$")
 
 
-def _merged_segments(segments) -> list[tuple[str, str]]:
-    """Fasst benachbarte Segmente gleicher Sichtbarkeit zu `(show, text)` zusammen.
-
-    So wird `% rückgabe x` (Präfix, Ausdruck, Suffix) *eine* Lücke statt drei
-    einzelner Spans, und Markdown sieht zusammenhängenden Text.
-    """
-    merged: list[tuple[str, str]] = []
-    for segment in segments:
-        if merged and merged[-1][0] == segment["show"]:
-            merged[-1] = (segment["show"], merged[-1][1] + segment["text"])
-        else:
-            merged.append((segment["show"], segment["text"]))
-    return merged
-
-
-def _cell_html(cell, include_solutions: bool) -> tuple[str, bool]:
-    """Rendert eine Zelle; liefert `(html, ist_lücke)`.
-
-    Segmente nur fürs Arbeitsblatt (`§`) fehlen in der Lösung; Segmente nur
-    für die Lösung (`%`) sind in der Lösung farbig markiert (wie in anderen
-    Antwortblöcken) und im Arbeitsblatt unsichtbar, aber platzhaltend.
-    """
-    parts: list[str] = []
-    has_gap = False
-    for show, text in _merged_segments(cell.segments):
-        # Vor Markdown escapen: Bedingungen wie `a<b` dürfen nie als HTML-Tag gelesen werden.
-        fragment = _render_inline_markdown_fragment(escape(text, quote=False))
-        if not fragment:
-            continue
-        if include_solutions:
-            if show == "worksheet":
-                continue
-            parts.append(_wrap_solution_fragment(fragment) if show == "solution" else fragment)
-        elif show == "solution":
-            has_gap = True
-            parts.append(f"<span class='stg-hidden'>{fragment}</span>")
-        else:
-            parts.append(fragment)
-    return "".join(parts), has_gap
-
-
 def _cell_div(cell, include_solutions: bool, extra_class: str = "") -> str:
     """Zelle als `div.stg-cell` (mit `stg-gap`, falls Lückentext darin)."""
-    html, has_gap = _cell_html(cell, include_solutions)
+    html, has_gap = render_cell(cell, include_solutions)
     classes = " ".join(c for c in ("stg-cell", extra_class, "stg-gap" if has_gap else "") if c)
     return f"<div class='{classes}'>{html}</div>"
 
@@ -176,7 +135,7 @@ def _condition_place(yes: list, no: list) -> str:
 def _branch(branch: Branch, include_solutions: bool) -> str:
     """Verzweigung: Dreieckskopf über zwei Spalten, darunter wahr-/falsch-Zweig."""
     template = _grid_template([branch.yes, branch.no])
-    condition, has_gap = _cell_html(branch.condition, include_solutions)
+    condition, has_gap = render_cell(branch.condition, include_solutions)
     gap_class = " stg-gap" if has_gap else ""
     head = (
         f"<div class='stg-head{gap_class}' style='grid-template-columns:{template};'>"
@@ -195,13 +154,13 @@ def _switch(switch: Switch, include_solutions: bool) -> str:
     bodies = [case.body for case in switch.cases] + ([switch.default] if switch.default is not None else [])
     template = _grid_template(bodies or [[]])
     count = max(1, len(switch.cases))
-    expression, has_gap = _cell_html(switch.expression, include_solutions)
+    expression, has_gap = render_cell(switch.expression, include_solutions)
     parts = [_diagonal(f"1 / {count + 1}", rising=False)]
     if switch.default is not None:
         parts.append(_diagonal(str(count + 1), rising=True))
     parts.append(f"<div class='stg-head-text stg-cond' style='grid-row:1; grid-column:1 / {count + 1}; justify-self:end;'>{expression}</div>")
     for position, case in enumerate(switch.cases, start=1):
-        value, case_gap = _cell_html(case.value, include_solutions)
+        value, case_gap = render_cell(case.value, include_solutions)
         has_gap = has_gap or case_gap
         parts.append(f"<div class='stg-head-text stg-label' style='grid-row:2; grid-column:{position}; justify-self:center;'>{value}</div>")
     if switch.default is not None:

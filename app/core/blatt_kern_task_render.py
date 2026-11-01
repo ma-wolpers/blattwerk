@@ -20,8 +20,9 @@ from .blatt_kern_shared import (
     should_render_block,
 )
 from .answer_special_mindmap import render_mindmap_block
-from .answer_special_struktogramm import render_struktogramm_block
-from .blatt_kern_shared_data import STRUCTOGRAM_BLOCK_TYPE
+from .blatt_validator_constants import ANSWER_BLOCK_TYPES
+from .diagram_block_catalog import DIAGRAM_BLOCK_NAMES
+from .diagram_block_dispatch import render_diagram_block
 from .answer_special_selfcheck import render_selfcheck_block
 from .answer_special_writebox import render_writebox_block
 from .blatt_kern_answer_dispatch import _render_answer_block
@@ -31,24 +32,6 @@ from .exam_parts_position import PART_SPLIT_BLOCKS
 from .operator_legend_blocks import OPERATOR_LEGEND_HTML_KEY, OPERATORS_BLOCK_TYPE
 from .solution_display import render_solution_html
 from .qrcode_block import render_qrcode_block
-
-
-ANSWER_BLOCK_TYPES = {
-    "lines",
-    "grid",
-    "geometry",
-    "dots",
-    "space",
-    "table",
-    "numberline",
-    "mc",
-    "cloze",
-    "matching",
-    "wordsearch",
-    "crossword",
-    "ordering",
-    "checkgrid",
-}
 
 
 def _normalize_object_alignment(block_type, options):
@@ -264,10 +247,10 @@ def _render_block_body(
             render_mindmap_block(options, normalized_content), object_alignment
         )
 
-    if block_type == STRUCTOGRAM_BLOCK_TYPE:
+    if block_type in DIAGRAM_BLOCK_NAMES:
         # Roher `content`: `normalize_markdown` würde die Einrückung (= Schachtelung) verfälschen.
         return _wrap_with_object_alignment(
-            render_struktogramm_block(options, content, include_solutions), object_alignment
+            render_diagram_block(block_type, options, content, include_solutions), object_alignment
         )
 
     if block_type == "selfcheck":

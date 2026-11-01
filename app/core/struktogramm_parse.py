@@ -32,9 +32,8 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 
-from .answer_line_markers import MARKER_SHOW_MODE, _extract_leading_line_marker, parse_answer_line_visibility
+from .diagram_text import Cell, ParseIssue, iter_source_lines, make_cell
 
-TAB_WIDTH = 4
 RETURN_TEMPLATE = ("gib ", " zurück")
 """Präfix/Suffix der Rückgabe-Anzeige (GO-Formulierung „gib … zurück“)."""
 INPUT_TEMPLATE = ("lies ", " ein")
@@ -44,25 +43,6 @@ FOOT_LOOP_PREFIX = "wiederhole bis "
 _KEYWORDS = frozenset({"wenn", "sonst", "auswahl", "fall", "solange", "für", "wiederhole", "bis", "rückgabe", "eingabe"})
 _TEXT_REQUIRED = frozenset({"wenn", "auswahl", "fall", "solange", "für", "bis", "rückgabe", "eingabe"})
 _HEAD_RE = re.compile(r"^(\S+)(?:\s+(.*))?$")
-INDENTED_LINE_MARKER_RE = re.compile(r"^\s*([§%&])(?=\s|$)")
-"""Zeilenmarker *nach* der Einrückung -- gilt nur im Inhalt von Struktogramm-Blöcken.
-Gemeinsame Quelle für Editor-Highlighting (`blatt_ui_editor_highlight.py`); die
-VSCode-Grammatik spiegelt dieselbe Regel (Guardrail 5, Marker-Konsistenz)."""
-STRUKTOGRAMM_HEADER_RE = re.compile(r"^\s*:::structogram(?=\s|$)")
-"""Erkennt die Kopfzeile eines Struktogramm-Blocks."""
-
-
-@dataclass(frozen=True)
-class Cell:
-    """Angezeigter Text eines Elements als Marker-Segmente (`text`, `show`)."""
-
-    segments: tuple[dict, ...]
-
-    @property
-    def text(self) -> str:
-        """Gesamttext aller Segmente unabhängig von der Sichtbarkeit."""
-        return "".join(segment["text"] for segment in self.segments)
-
 
 @dataclass
 class Statement:
@@ -114,16 +94,6 @@ class Loop:
 
 
 @dataclass(frozen=True)
-class ParseIssue:
-    """Strukturfehler mit Validator-Code und 1-basierter Zeile im Blockinhalt."""
-
-    code: str
-    severity: str
-    line: int
-    message: str
-
-
-@dataclass(frozen=True)
 class _Line:
     """Vorverarbeitete, nicht leere Quellzeile."""
 
@@ -133,23 +103,6 @@ class _Line:
     rest: str
     body_text: str
     show: str
-
-
-def _cell(text: str, show: str, prefix: str = "", suffix: str = "") -> Cell:
-    """Baut eine Zelle; Inline-Tokens im Text werden per Marker-Logik zerlegt."""
-    parsed = parse_answer_line_visibility(text, default_show=show) if text else {"segments": []}
-    segments = [{"text": seg["text"].replace("<-", "←"), "show": seg["show"]} for seg in parsed["segments"]]
-    if prefix:
-        segments.insert(0, {"text": prefix, "show": show})
-    if suffix:
-        segments.append({"text": suffix, "show": show})
-    return Cell(tuple(segments))
-
-
-def _indent_width(raw_line: str) -> int:
-    """Breite des führenden Leerraums, Tab = `TAB_WIDTH` Leerzeichen."""
-    leading = raw_line[: len(raw_line) - len(raw_line.lstrip())]
-    return len(leading.expandtabs(TAB_WIDTH))
 
 
 def _split_keyword(text: str) -> tuple[str | None, str]:
@@ -167,19 +120,14 @@ def _preprocess(content: str, issues: list) -> list[_Line]:
     """Zerlegt den Blockinhalt in `_Line`s und prüft die Einrückung (`SG001`)."""
     lines: list[_Line] = []
     unit = 0
-    for number, raw in enumerate(str(content or "").splitlines(), start=1):
-        stripped = raw.strip()
-        if not stripped:
-            continue
-        width = _indent_width(raw)
-        if width and not unit:
-            unit = width
-        if unit and width % unit:
-            issues.append(ParseIssue("SG001", "error", number, f"Einrückung passt nicht zur Einheit von {unit} Leerzeichen."))
-        marker, after = _extract_leading_line_marker(stripped)
-        keyword, rest = _split_keyword(after)
-        level = width // unit if unit else 0
-        lines.append(_Line(number, level, keyword, rest, after, MARKER_SHOW_MODE.get(marker, "both")))
+    for source in iter_source_lines(content):
+        if source.width and not unit:
+            unit = source.width
+        if unit and source.width % unit:
+            issues.append(ParseIssue("SG001", "error", source.number, f"Einrückung passt nicht zur Einheit von {unit} Leerzeichen."))
+        keyword, rest = _split_keyword(source.text)
+        level = source.width // unit if unit else 0
+        lines.append(_Line(source.number, level, keyword, rest, source.text, source.show))
     return lines
 
 
@@ -241,18 +189,18 @@ class _Parser:
         if keyword == "auswahl":
             return self._switch(line, level)
         if keyword in {"solange", "für"} or (keyword == "wiederhole" and line.rest):
-            return self._loop(line, level, "head", _cell(line.body_text, line.show))
+            return self._loop(line, level, "head", make_cell(line.body_text, line.show))
         if keyword == "wiederhole":
             return self._foot_loop(line, level)
         if keyword == "rückgabe":
-            return Statement(line.number, _cell(line.rest, line.show, *RETURN_TEMPLATE), "return")
+            return Statement(line.number, make_cell(line.rest, line.show, *RETURN_TEMPLATE), "return")
         if keyword == "eingabe":
-            return Statement(line.number, _cell(line.rest, line.show, *INPUT_TEMPLATE), "input")
-        return Statement(line.number, _cell(line.body_text, line.show))
+            return Statement(line.number, make_cell(line.rest, line.show, *INPUT_TEMPLATE), "input")
+        return Statement(line.number, make_cell(line.body_text, line.show))
 
     def _branch(self, line: _Line, level: int) -> Branch:
         """`wenn` + Rumpf, optional `sonst` + Rumpf auf derselben Ebene."""
-        branch = Branch(line.number, _cell(line.rest, line.show), yes=self._body(level))
+        branch = Branch(line.number, make_cell(line.rest, line.show), yes=self._body(level))
         if self._next_is(level, "sonst"):
             self.pos += 1
             branch.has_else = True
@@ -261,7 +209,7 @@ class _Parser:
 
     def _switch(self, line: _Line, level: int) -> Switch:
         """`auswahl` mit `fall`-Zeilen (und optional `sonst`) eine Ebene tiefer."""
-        switch = Switch(line.number, _cell(line.rest, line.show))
+        switch = Switch(line.number, make_cell(line.rest, line.show))
         while (child := self._peek()) is not None and child.level > level:
             self.pos += 1
             if child.level != level + 1 or child.keyword not in {"fall", "sonst"} or switch.default is not None:
@@ -271,7 +219,7 @@ class _Parser:
             if child.keyword == "fall":
                 if not child.rest:
                     self._issue("SG006", child, "`fall` braucht einen Wert dahinter.")
-                switch.cases.append(Case(child.number, _cell(child.rest, child.show), self._body(level + 1)))
+                switch.cases.append(Case(child.number, make_cell(child.rest, child.show), self._body(level + 1)))
             else:
                 switch.default = self._body(level + 1)
         if not switch.cases:
@@ -287,7 +235,7 @@ class _Parser:
 
     def _foot_loop(self, line: _Line, level: int) -> Loop:
         """`wiederhole` allein: Rumpf, danach Pflichtzeile `bis …` (`SG004`)."""
-        loop = self._loop(line, level, "foot", _cell("", line.show, FOOT_LOOP_PREFIX))
+        loop = self._loop(line, level, "foot", make_cell("", line.show, FOOT_LOOP_PREFIX))
         if not self._next_is(level, "bis"):
             self._issue("SG004", line, "`wiederhole` ohne abschließendes `bis …` auf derselben Ebene.")
             return loop
@@ -295,7 +243,7 @@ class _Parser:
         self.pos += 1
         if not until.rest:
             self._issue("SG006", until, "`bis` braucht eine Bedingung dahinter.")
-        loop.text = _cell(until.rest, until.show, FOOT_LOOP_PREFIX)
+        loop.text = make_cell(until.rest, until.show, FOOT_LOOP_PREFIX)
         return loop
 
 

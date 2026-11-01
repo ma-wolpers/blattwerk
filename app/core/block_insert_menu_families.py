@@ -31,6 +31,8 @@ gegen `BLOCK_INSERT_SNIPPETS` geprüft zu werden.
 
 from __future__ import annotations
 
+from .diagram_block_catalog import DIAGRAM_BLOCKS
+
 BLOCK_INSERT_FAMILIES: list[tuple[str, list[tuple[str, str]]]] = [
     (
         "Boxen/Hinweise",
@@ -77,9 +79,9 @@ BLOCK_INSERT_FAMILIES: list[tuple[str, list[tuple[str, str]]]] = [
             ("Ankreuztabelle (checkgrid)", "checkgrid"),
             ("Kreuzworträtsel (crossword)", "crossword"),
             ("Zuordnung (matching)", "matching"),
-            ("Struktogramm (structogram)", "structogram"),
         ],
     ),
+    ("Diagramme", [(f"{spec.title} ({spec.name})", spec.name) for spec in DIAGRAM_BLOCKS]),
     (
         "Offen/Reflexion",
         [

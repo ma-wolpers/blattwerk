@@ -8,6 +8,8 @@ Reine Daten (JavaScript als Zeichenkette); die Auswertung lebt in
 # line-limit: data-only
 from __future__ import annotations
 
+from .diagram_block_catalog import DIAGRAM_BLOCK_NAMES
+
 
 
 
@@ -25,12 +27,11 @@ _IMAGE_ONLY_BLOCK_TYPES = frozenset(
         "crossword",
         "checkgrid",
         "mindmap",
-        "structogram",
         "selfcheck",
         "qrcode",
         "chrome",
     }
-)
+) | DIAGRAM_BLOCK_NAMES
 
 
 _CLASSIFY_JS = """

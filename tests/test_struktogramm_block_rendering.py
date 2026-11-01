@@ -49,20 +49,20 @@ def test_gap_in_worksheet_keeps_text_hidden_with_min_height():
     """Lücke: Arbeitsblatt enthält den Text unsichtbar (Höhe) + `stg-gap` (Mindesthöhe)."""
     worksheet = _render("wenn x > 0\n    % rückgabe x\nsonst\n    rückgabe 0")
     assert "stg-gap" in worksheet
-    assert "<span class='stg-hidden'>gib x zurück</span>" in worksheet
+    assert "<span class='diagram-hidden'>gib x zurück</span>" in worksheet
 
 
 def test_gap_in_solution_is_visible_and_marked():
     """Lösung: der Lückentext ist sichtbar und farbig markiert, keine Lücke."""
     solution = _render("wenn x > 0\n    % rückgabe x\nsonst\n    rückgabe 0", include_solutions=True)
-    assert "stg-hidden" not in solution and "stg-gap" not in solution
+    assert "diagram-hidden" not in solution and "stg-gap" not in solution
     assert "table-solution-marker'>gib x zurück" in solution
 
 
 def test_partial_gap_hides_only_the_token():
     """`rückgabe %{x}`: nur `x` ist Lücke, „gib … zurück“ bleibt sichtbar."""
     html = _render("rückgabe %{x}")
-    assert "gib <span class='stg-hidden'>x</span> zurück" in html
+    assert "gib <span class='diagram-hidden'>x</span> zurück" in html
 
 
 def test_condition_gap_marks_branch_head():

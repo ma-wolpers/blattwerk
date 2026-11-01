@@ -695,10 +695,10 @@ Struktogramm in der Gestalt der zentralen Prüfungsaufgaben (Ergänzende Hinweis
 
 ```markdown
 :::structogram signature="istEnthalten(d: dyn. Reihung vom Inhaltstyp Ganzzahl, v: Ganzzahl): Wahrheitswert"
-für alle Elemente e aus d
-    wenn e = v
+für alle x aus d
+    wenn x = v
         rückgabe wahr
-rückgabe falsch
+% rückgabe falsch
 :::
 ```
 

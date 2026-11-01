@@ -108,7 +108,6 @@ TASK_HINT_MAP = {
 `experte` -- das Anzeige-Label "Expertenaufgabe" bleibt unverändert."""
 
 HELP_BLOCK_TYPE = "help"
-STRUCTOGRAM_BLOCK_TYPE = "structogram"
 PRESENTATION_SECTION_MARK_PATTERN = re.compile(r"^--#\s+(.+)$")
 EXAM_CHOICE_MARK_PATTERN = re.compile(r"^--w(\[[^\]\n]*\])?(?:\s+(.+?))?\s*$")
 """Wahlteil-Trenner `--w[k] Titel` (eröffnet einen Wahlbereich) bzw. `--w Titel`.

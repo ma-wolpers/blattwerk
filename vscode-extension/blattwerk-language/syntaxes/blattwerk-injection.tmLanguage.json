@@ -15,8 +15,8 @@
       "name": "markup.other.inline-style.blattwerk"
     },
     {
-      "name": "meta.block.structogram.blattwerk",
-      "begin": "^(\\s*)(:::structogram)(?=\\s|$)",
+      "name": "meta.block.diagram.blattwerk",
+      "begin": "^(\\s*)(:::(?:structogram))(?=\\s|$)",
       "beginCaptures": {
         "2": {
           "name": "keyword.control.blattwerk"
@@ -30,25 +30,25 @@
       },
       "patterns": [
         {
-          "match": "\\b(signature|width|align|show|mode)\\b(?==)",
+          "match": "\\b([a-z_]+)\\b(?==)",
           "name": "variable.parameter.blattwerk"
         },
         {
-          "match": "(?i)^\\s*([§%&])(?:\\s+(wenn|sonst|auswahl|fall|solange|für|wiederhole|bis|rückgabe|eingabe)(?=\\s|$))?",
+          "match": "(?i)^\\s*([§%&])(?:\\s+(auswahl|bis|eingabe|fall|für|rückgabe|solange|sonst|wenn|wiederhole)(?=\\s|$))?",
           "captures": {
             "1": {
               "name": "keyword.control.blattwerk"
             },
             "2": {
-              "name": "keyword.other.structogram.blattwerk"
+              "name": "keyword.other.diagram.blattwerk"
             }
           }
         },
         {
-          "match": "(?i)^\\s*(wenn|sonst|auswahl|fall|solange|für|wiederhole|bis|rückgabe|eingabe)(?=\\s|$)",
+          "match": "(?i)^\\s*(auswahl|bis|eingabe|fall|für|rückgabe|solange|sonst|wenn|wiederhole)(?=\\s|$)",
           "captures": {
             "1": {
-              "name": "keyword.other.structogram.blattwerk"
+              "name": "keyword.other.diagram.blattwerk"
             }
           }
         },

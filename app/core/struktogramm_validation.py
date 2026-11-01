@@ -13,7 +13,7 @@ Drei Ebenen, alle aus derselben Quelle wie der Renderer
    Rückgabetyp muss jeder Ablaufpfad mit einer Rückgabe enden; jeder
    Parameter muss im Struktogramm vorkommen.
 
-Eingebunden über `validate_struktogramm_blocks(blocks)` im Orchestrator
+Eingebunden über `diagram_block_dispatch.validate_diagram_blocks` im Orchestrator
 `blatt_validator._collect_document_diagnostics` (wie `validate_geometry_labels`).
 """
 
@@ -21,9 +21,9 @@ from __future__ import annotations
 
 import re
 
-from .blatt_kern_shared_data import STRUCTOGRAM_BLOCK_TYPE
-from .blatt_validator_region import compute_block_region_id
 from .blatt_validator_types import BuildDiagnostic
+from .diagram_block_catalog import DIAGRAM_BLOCKS_BY_NAME
+from .diagram_validation import DiagnosticCollector, validate_block
 from .struktogramm_parse import Branch, Loop, Statement, Switch, iter_cells, parse_struktogramm
 from .struktogramm_signature import IDENTIFIER_PATTERN, SignatureError, parse_signature
 
@@ -76,32 +76,7 @@ def _iter_statements(elements):
             yield from _iter_statements(element.body)
 
 
-class _Collector:
-    """Baut `BuildDiagnostic`s mit gemeinsamem Block-Kontext."""
-
-    def __init__(self, index, block_type, options):
-        """Merkt sich Blockindex, Blocktyp und Region für alle Diagnosen."""
-        self.index = index
-        self.block_type = block_type
-        self.region_id = compute_block_region_id(block_type, options or {})
-        self.diagnostics: list[BuildDiagnostic] = []
-
-    def add(self, code: str, message: str, severity: str = "warning", anchor: str = "") -> None:
-        """Hängt eine Diagnose an; `anchor` unterscheidet Vorkommen fürs Abhaken."""
-        self.diagnostics.append(
-            BuildDiagnostic(
-                code=code,
-                message=f"Struktogramm: {message}",
-                severity=severity,
-                block_index=self.index,
-                block_type=self.block_type,
-                region_id=self.region_id,
-                anchor=anchor or code,
-            )
-        )
-
-
-def _check_returns(collect: _Collector, signature, elements: list) -> None:
+def _check_returns(collect: DiagnosticCollector, signature, elements: list) -> None:
     """`SG021` (Rückgabe ohne Rückgabetyp) und `SG022` (Pfad ohne Rückgabe)."""
     returns = [s for s in _iter_statements(elements) if s.kind == "return"]
     if signature.return_type is None:
@@ -122,7 +97,7 @@ def _check_returns(collect: _Collector, signature, elements: list) -> None:
     collect.add("SG022", message)
 
 
-def _check_parameters(collect: _Collector, signature, elements: list) -> None:
+def _check_parameters(collect: DiagnosticCollector, signature, elements: list) -> None:
     """`SG023`: jeder Parameter muss als ganzes Wort im Struktogramm vorkommen."""
     used = {word for cell in iter_cells(elements) for word in _IDENTIFIER_RE.findall(cell.text)}
     unused = [name for name in signature.parameter_names if name not in used]
@@ -131,50 +106,37 @@ def _check_parameters(collect: _Collector, signature, elements: list) -> None:
         collect.add("SG023", f"Parameter {names} wird nicht verwendet.", anchor=f"SG023:{','.join(unused)}")
 
 
-def validate_struktogramm_blocks(blocks) -> list[BuildDiagnostic]:
-    """Prüft alle Struktogramm-Blöcke eines Dokuments (Einstieg für den Orchestrator).
-
-    Aufgerufen aus `blatt_validator._collect_document_diagnostics` neben den
-    anderen dokumentweiten Prüfungen (z. B. `validate_geometry_labels`), damit
-    `blatt_validator_document.py` unter dem Zeilenlimit bleibt.
-    """
-    diagnostics: list[BuildDiagnostic] = []
-    for index, (block_type, options, content) in enumerate(blocks):
-        if block_type == STRUCTOGRAM_BLOCK_TYPE:
-            diagnostics.extend(validate_struktogramm_block(index, block_type, options, content))
-    return diagnostics
-
-
-def validate_struktogramm_block(index, block_type, options, content) -> list[BuildDiagnostic]:
-    """Prüft einen `:::structogram`-Block vollständig.
+def check_structogram(collect: DiagnosticCollector, options, elements: list) -> None:
+    """Fachliche Prüfungen: Signatur (`SG010`-`SG013`, `SG020`), Rückgaben, Parameter.
 
     Args:
-        index: Blockindex im Dokument (für Region/Abhaken).
-        block_type: tatsächlich verwendeter Name (Hauptname oder Alias).
+        collect: Sammler des Blocks.
         options: Blockoptionen; relevant ist `signature`.
-        content: Rohinhalt des Blocks (Einrückung erhalten).
-
-    Returns:
-        Liste der Diagnosen; Zeilenangaben in Meldungen sind 1-basiert
-        relativ zum Blockinhalt.
+        elements: Nicht leerer Elementbaum aus `parse_struktogramm`.
     """
-    collect = _Collector(index, block_type, options)
-    elements, issues = parse_struktogramm(content)
-    for issue in issues:
-        collect.add(issue.code, f"Zeile {issue.line} im Block: {issue.message}", issue.severity, f"{issue.code}:{issue.line}")
-    if not elements:
-        collect.add("SG007", "Der Block ist leer.")
-        return collect.diagnostics
-
-    raw_signature = str((options or {}).get("signature") or "").strip()
+    raw_signature = str(options.get("signature") or "").strip()
     if not raw_signature:
         collect.add("SG020", "Ohne `signature=` fehlt der Methodenkopf, den GO-Struktogramme immer haben.")
-        return collect.diagnostics
+        return
     try:
         signature = parse_signature(raw_signature)
     except SignatureError as error:
         collect.add(error.code, str(error), severity="error")
-        return collect.diagnostics
+        return
     _check_returns(collect, signature, elements)
     _check_parameters(collect, signature, elements)
-    return collect.diagnostics
+
+
+def validate_struktogramm_block(index, block_type, options, content) -> list[BuildDiagnostic]:
+    """Prüft einen `:::structogram`-Block vollständig (siehe `diagram_validation.validate_block`)."""
+    spec = DIAGRAM_BLOCKS_BY_NAME["structogram"]
+    return validate_block(
+        index,
+        block_type,
+        options,
+        content,
+        title=spec.title,
+        parse=parse_struktogramm,
+        check=check_structogram,
+        empty_code=spec.empty_code,
+    )

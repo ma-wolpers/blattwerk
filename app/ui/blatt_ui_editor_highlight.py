@@ -13,15 +13,16 @@ from bw_gui.runtime import ui
 
 from ..core.control_markers import control_marker_line_match
 from ..core.inline_markup.style_spans import STYLE_MARKER_REGEX
-from ..core.struktogramm_parse import INDENTED_LINE_MARKER_RE, STRUKTOGRAMM_HEADER_RE
+from ..core.diagram_block_catalog import DIAGRAM_HEADER_RE
+from ..core.diagram_text import INDENTED_LINE_MARKER_RE
 from .ui_theme import get_theme, is_dark_theme
 
 _INLINE_STYLE_MARKER_PATTERN = re.compile(STYLE_MARKER_REGEX)
 _LINE_MARKER_PATTERN = re.compile(r"^([§%&])(?=\s|$)")
 
 
-def _struktogramm_content_lines(text_lines, pairs):
-    """Zeilennummern (1-basiert) im Inhalt von Struktogramm-Blöcken.
+def _diagram_content_lines(text_lines, pairs):
+    """Zeilennummern (1-basiert) im Inhalt von Diagrammblöcken.
 
     Dort stehen Zeilenmarker nach der Einrückung (`INDENTED_LINE_MARKER_RE`),
     überall sonst nur am absoluten Zeilenanfang. `pairs` sind die
@@ -29,7 +30,7 @@ def _struktogramm_content_lines(text_lines, pairs):
     """
     lines = set()
     for open_line, close_line in pairs:
-        if 0 < open_line <= len(text_lines) and STRUKTOGRAMM_HEADER_RE.match(text_lines[open_line - 1]):
+        if 0 < open_line <= len(text_lines) and DIAGRAM_HEADER_RE.match(text_lines[open_line - 1]):
             lines.update(range(open_line + 1, close_line))
     return lines
 
@@ -186,7 +187,7 @@ class BlattwerkAppEditorHighlightMixin:
         # matches `widget.get(f"{n}.0", f"{n}.end")` line-for-line, including for
         # an empty buffer and a trailing newline).
         text_lines = full_text.split("\n")
-        struktogramm_lines = _struktogramm_content_lines(text_lines, structure["pairs"])
+        diagram_lines = _diagram_content_lines(text_lines, structure["pairs"])
         in_frontmatter = False
         frontmatter_delim_seen = 0
 
@@ -282,7 +283,7 @@ class BlattwerkAppEditorHighlightMixin:
                         f"{line_no}.{value_end}",
                     )
 
-            marker_pattern = INDENTED_LINE_MARKER_RE if line_no in struktogramm_lines else _LINE_MARKER_PATTERN
+            marker_pattern = INDENTED_LINE_MARKER_RE if line_no in diagram_lines else _LINE_MARKER_PATTERN
             for marker_match in marker_pattern.finditer(line_text):
                 marker_start = marker_match.start(1)
                 marker_end = marker_match.end(1)

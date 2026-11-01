@@ -2066,7 +2066,7 @@ h1 {
     min-height: var(--stg-gap-min-height);
 }
 
-.stg-hidden {
+.diagram-hidden {
     visibility: hidden;
 }
 

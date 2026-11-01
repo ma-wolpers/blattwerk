@@ -26,6 +26,7 @@ from guardrails_process import (
 )
 from guardrails_line_limits import _check_line_limits
 from guardrails_extension_sync import (
+    _check_diagram_grammar_sync,
     _check_extension_validator_sync,
     _check_inline_style_grammar_sync,
     _check_control_marker_grammar_sync,
@@ -60,6 +61,7 @@ def main() -> int:
     # in GUARDRAIL_RELEVANT_PATHS gelisteten Dateien gestaged ist (siehe
     # _check_authoring_guides_sync-Docstring).
     _check_extension_validator_sync(errors)
+    _check_diagram_grammar_sync(errors)
     _check_inline_style_grammar_sync(errors)
     _check_control_marker_grammar_sync(errors)
     _check_authoring_guides_sync(errors)

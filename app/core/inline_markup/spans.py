@@ -86,6 +86,17 @@ def drop_comment_only_lines(text: str) -> str:
     return _COMMENT_ONLY_LINE_PATTERN.sub("", text)
 
 
+def blank_comment_only_lines(text: str) -> str:
+    """Wie `drop_comment_only_lines`, lässt aber die Umbrüche stehen.
+
+    Für zeilenweise Parser, deren Meldungen die sichtbare Zeilennummer nennen:
+    Die Kommentarzeilen werden leer, die Nummern dahinter bleiben gleich.
+    """
+    if not text or "%%" not in text:
+        return text
+    return _COMMENT_ONLY_LINE_PATTERN.sub(lambda match: "\n" * match.group(0).count("\n"), text)
+
+
 def strip_comments(text: str) -> tuple[str, list[ParseDiagnostic]]:
     """Entfernt jeden `%%...%%`-Kommentar vollständig aus `text`.
 

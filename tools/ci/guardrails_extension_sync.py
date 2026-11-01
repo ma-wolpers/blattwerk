@@ -208,6 +208,30 @@ def _check_extension_validator_sync(errors: list[str]) -> None:
 
 
 
+def _check_diagram_grammar_sync(errors: list[str]) -> None:
+    """Das Diagrammmuster der Grammatik muss der Registrierung entsprechen.
+
+    Blocknamen und Schlüsselwörter stehen in `diagram_block_catalog.py`;
+    `tools/docs/sync_diagram_grammar.py` überträgt sie (AGENTS.md Regel 5).
+    """
+    from app.core.diagram_block_catalog import DIAGRAM_BLOCKS
+
+    tm_path = "vscode-extension/blattwerk-language/syntaxes/blattwerk-injection.tmLanguage.json"
+    grammar = json.loads(_read(tm_path))
+    found = [p for p in grammar.get("patterns", []) if p.get("name") == "meta.block.diagram.blattwerk"]
+    if len(found) != 1:
+        errors.append(f"{tm_path}: expected exactly one diagram block pattern, found {len(found)}")
+        return
+    names = _extract_alternatives(found[0]["begin"], ":::(?:")
+    expected = {spec.name for spec in DIAGRAM_BLOCKS}
+    if names != expected:
+        errors.append(f"{tm_path}: diagram block names differ from catalog; run tools/docs/sync_diagram_grammar.py")
+    keywords = {word for spec in DIAGRAM_BLOCKS for word in spec.keywords}
+    pattern_text = json.dumps(found[0], ensure_ascii=False)
+    missing = sorted(word for word in keywords if word not in pattern_text)
+    if missing:
+        errors.append(f"{tm_path}: diagram keywords missing -> {missing}; run tools/docs/sync_diagram_grammar.py")
+
 
 INLINE_STYLE_SCOPE = "markup.other.inline-style.blattwerk"
 
