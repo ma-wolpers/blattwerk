@@ -79,6 +79,17 @@ def check(collect, _options, model: SequenceModel) -> None:
     for name in model.participants:
         if name not in active:
             collect.add("SQ003", f"`{name}` sendet und empfängt keine Nachricht.", anchor=f"SQ003:{name}")
+    open_calls: dict[tuple[str, str], int] = {}
+    for message in model.messages:
+        if message.reply:
+            key = (message.target, message.source)
+            if open_calls.get(key, 0) <= 0:
+                collect.add("SQ004", f"`{message.source} --> {message.target}` antwortet auf keinen Aufruf davor.", anchor=f"SQ004:{message.source}:{message.target}")
+            else:
+                open_calls[key] -= 1
+        else:
+            key = (message.source, message.target)
+            open_calls[key] = open_calls.get(key, 0) + 1
 
 
 def _column_centers(model: SequenceModel) -> dict[str, float]:

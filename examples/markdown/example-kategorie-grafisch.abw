@@ -1,0 +1,232 @@
+---
+document_type: worksheet
+Titel: Blockkatalog Grafische Übungen
+Fach: Mathematik
+Thema: Tabelle, Koordinatensystem, Zahlengerade, Ankreuzen, Rätsel und Zuordnung
+show_student_header: false
+---
+
+# Tabelle `:::table`
+
+Wertetabelle in beide Richtungen, mit Lücken, Kopfzeilen und kompakter Größe:
+
+:::task
+**Ergänze** die Wertetabelle zu $y = 2x$.
+:::
+
+:::table rows=2 cols=4 width=9cm row_height=0.8cm row_headers="x|y"
+cells:
+  - ["1", "2", "%{3}", "%{5}"]
+  - ["2", "%{4}", "6", "10"]
+:::
+
+--
+
+Spaltenüberschriften, feste Breiten und leere Felder zum Ausfüllen:
+
+:::table rows=2 cols=3 column_headers="Figur|Umfang|Fläche" widths="2 1 1" row_height=0.9cm
+cells:
+  - ["Quadrat mit $a = 2$", "%{8}", "%{4}"]
+  - ["Rechteck, 2 mal 3", "", ""]
+:::
+
+--
+
+# Koordinatensystem `:::geometry`
+
+Echte Achsen mit Punkten, Funktionen und Beschriftung der Achsen:
+
+:::task
+**Lies** die Punkte **ab**.
+:::
+
+:::geometry scale=0.5cm width=17 height=13 axis=true origin="8,6" axis_label_x="Zeit" axis_label_y="Weg" background=lines
+points:
+  - {x: 2, y: 4, label: "A", show: "&"}
+  - {x: -3, y: 1, label: "B", show: "&"}
+  - {x: 4, y: -2, label: "C", show: "%"}
+functions:
+  - {expr: "0.5*x + 1", domain: "-8:8", label: "f", show: "&"}
+:::
+
+--
+
+Ohne Achsen, mit Strecken, Vieleck, Kreis, Polylinie und Punktraster:
+
+:::geometry scale=0.5cm width=20 height=10 background=dots
+pairs:
+  - {x1: 1, y1: 1, x2: 6, y2: 1, label: "5 cm", line: "solid", show: "&"}
+polygons:
+  - {vertices: [{x: 8, y: 1}, {x: 12, y: 1}, {x: 10, y: 5}], label: "Dreieck", show: "&"}
+circles:
+  - {cx: 16, cy: 5, r: 3, label: "Kreis", show: "&"}
+sequence:
+  - {x: 1, y: 3, show: "%"}
+  - {x: 3, y: 6, show: "%"}
+  - {x: 5, y: 4, show: "%"}
+:::
+
+--
+
+# Zahlengerade `:::numberline`
+
+Ganze Zahlen mit Lücken, dazu negative Zahlen und ein feinerer Maßstab:
+
+:::task
+**Trage** die fehlenden Zahlen **ein**.
+:::
+
+:::numberline min=0 max=10 tick_step=1 major_every=5 height=2cm
+labels:
+  - {value: 0, show: "&"}
+  - {value: 10, show: "&"}
+answers:
+  - {value: 5}
+:::
+
+--
+
+:::numberline min=-3 max=3 tick_step=0.5 major_every=2 height=2cm positive_sign=true
+labels:
+  - {value: 0, show: "&"}
+answers:
+  - {value: -1.5}
+  - {value: 2.5}
+:::
+
+--
+
+# Ankreuztabelle `:::checkgrid`
+
+Zwei und drei Spalten:
+
+:::task
+**Entscheide** für jede Aussage.
+:::
+
+:::checkgrid
+columns:
+  - "richtig"
+  - "falsch"
+rows:
+  - text: "Jedes Quadrat ist ein Rechteck."
+    correct: 1
+  - text: "Jedes Rechteck ist ein Quadrat."
+    correct: 2
+:::
+
+--
+
+:::checkgrid
+columns:
+  - "gerade"
+  - "ungerade"
+  - "weder noch"
+rows:
+  - text: "12"
+    correct: 1
+  - text: "7"
+    correct: 2
+  - text: "2,5"
+    correct: 3
+:::
+
+--
+
+# Kreuzworträtsel `:::crossword`
+
+Einfach, mit Codewort und mit Symbolen statt Nummern:
+
+:::task
+**Löse** das Rätsel.
+:::
+
+:::crossword maxw=15 maxh=15
+words:
+  - word: "SUMME"
+    clue: "Ergebnis einer Addition"
+  - word: "PRODUKT"
+    clue: "$3 \\cdot 4$ ist ein ..."
+  - word: "DIFFERENZ"
+    clue: "Ergebnis einer Subtraktion"
+:::
+
+--
+
+:::crossword maxw=16 maxh=16 code="TEIL" position=right
+words:
+  - word: "QUOTIENT"
+    clue: "Ergebnis einer Division"
+  - word: "FAKTOR"
+    clue: "Zahl in einem Produkt"
+  - word: "TEILER"
+    clue: "3 ist ein ... von 12"
+:::
+
+--
+
+:::crossword maxw=14 maxh=14 numbering=symbols symbol_set=animals position=below
+words:
+  - word: "WINKEL"
+    clue: "Wird in Grad gemessen"
+  - word: "KREIS"
+    clue: "Hat keine Ecken"
+:::
+
+--
+
+# Zuordnung `:::matching`
+
+Nebeneinander, gemischt, mit einem Beispiel im Arbeitsblatt, und untereinander:
+
+:::task
+**Ordne** zu.
+:::
+
+:::matching layout=horizontal height_mode=uniform lane_align=center show_guides=false
+left:
+  - "$y = 2x$"
+  - "$y = x^2$"
+  - "$y = 3$"
+right:
+  - "konstante Funktion"
+  - "lineare Funktion"
+  - "quadratische Funktion"
+matches:
+  - "1-2"
+  - "2-3"
+  - "3-1"
+:::
+
+--
+
+:::matching layout=horizontal height_mode=content show_guides=true
+left:
+  - "Dreieck"
+  - "Viereck"
+  - "Fünfeck"
+right:
+  - "5 Ecken"
+  - "3 Ecken"
+  - "4 Ecken"
+matches:
+  - "1-2"
+  - "2-3"
+  - "3-1"
+worksheet_matches:
+  - "1-2"
+:::
+
+--
+
+:::matching layout=vertical
+top:
+  - "Liter"
+  - "Meter"
+bottom:
+  - "Länge"
+  - "Volumen"
+matches:
+  - "1-2"
+  - "2-1"
+:::

@@ -1,0 +1,98 @@
+---
+document_type: worksheet
+Titel: Blockkatalog Freie Antwortfelder
+Fach: Deutsch
+Thema: Linien, Kästchen, Punkte und freier Platz
+show_student_header: false
+---
+
+# Linienfeld `:::lines`
+
+Leer, mit eigener Linienhöhe und mit Text, der nur in der Lösung erscheint:
+
+:::task
+**Schreibe** drei Sätze über deine Lieblingsjahreszeit.
+:::
+
+:::lines rows=3
+:::
+
+--
+
+:::task
+**Schreibe** in großer Schrift, zum Beispiel für den Schreibanfang.
+:::
+
+:::lines rows=2 height=1.2cm
+:::
+
+--
+
+:::task
+**Ergänze** den Satz.
+:::
+
+:::lines rows=2
+Im Herbst %{fallen die Blätter von den Bäumen}.
+% Auch der Wind wird stärker.
+:::
+
+--
+
+# Kästchenfeld `:::grid`
+
+Automatische Breite, feste Größe, gestrichelt und mit Lösungstext in den Kästchen:
+
+:::task
+**Schreibe** das Wort „Herbst“ in Kästchen.
+:::
+
+:::grid rows=2
+:::
+
+--
+
+:::grid rows=3 cols=20 scale=0.7cm line=dashed
+:::
+
+--
+
+:::grid rows=2 scale=0.5cm
+% Herbst
+:::
+
+--
+
+# Punktfeld `:::dots`
+
+Niedrig und hoch:
+
+:::task
+**Zeichne** ein Herbstblatt.
+:::
+
+:::dots height=3cm
+:::
+
+--
+
+:::dots height=6cm
+:::
+
+--
+
+# Freier Platz `:::space`
+
+Für Rechnungen oder Skizzen, auch nur im Arbeitsblatt:
+
+:::task
+**Skizziere** deinen Schulweg.
+:::
+
+:::space height=3cm
+:::
+
+--
+
+:::space height=2cm mode=worksheet
+:::

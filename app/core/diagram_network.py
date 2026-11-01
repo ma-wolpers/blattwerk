@@ -73,6 +73,23 @@ def parse(content) -> tuple[NetworkModel, list[ParseIssue]]:
     return model, issues
 
 
+def check(collect, _options, model: NetworkModel) -> None:
+    """Doppelte Kabel, Geräte an sich selbst und Geräte ohne Verbindung (`NW004`-`NW006`)."""
+    seen = set()
+    connected = set()
+    for edge in model.edges:
+        if edge.source == edge.target:
+            collect.add("NW005", f"`{edge.source}` ist mit sich selbst verbunden.", anchor=f"NW005:{edge.line}")
+        key = frozenset((edge.source, edge.target))
+        if key in seen:
+            collect.add("NW004", f"Die Verbindung `{edge.source} - {edge.target}` steht doppelt.", anchor=f"NW004:{edge.line}")
+        seen.add(key)
+        connected.update((edge.source, edge.target))
+    for name in model.nodes:
+        if name not in connected:
+            collect.add("NW006", f"`{name}` ist mit nichts verbunden.", anchor=f"NW006:{name}")
+
+
 def _draw_symbol(canvas: Canvas, symbol: str, cx: float, cy: float) -> None:
     """Zeichnet ein Symbol in `_ICON_WIDTH` × `_ICON_HEIGHT` um `(cx, cy)`."""
     w, h = _ICON_WIDTH, _ICON_HEIGHT

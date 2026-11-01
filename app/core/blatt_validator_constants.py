@@ -509,7 +509,7 @@ BLOCK_OPTION_SPECS: dict[str, tuple[BlockOptionSpec, ...]] = {
     "wordsearch": (
         _OPT_SHOW,
         _OPT_MODE,
-        BlockOptionSpec("min_size", "integer", None, False, MISSING),
+        BlockOptionSpec("min_size", "text", None, False, MISSING),
         BlockOptionSpec("min_rows", "integer", None, False, MISSING),
         BlockOptionSpec("min_cols", "integer", None, False, MISSING),
         BlockOptionSpec("diagonal", "boolean", None, False, False),

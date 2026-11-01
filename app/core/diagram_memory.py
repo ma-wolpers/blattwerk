@@ -97,6 +97,10 @@ def check(collect, _options, model: MemoryModel) -> None:
         names.add(item.name)
         if isinstance(item, Entry) and item.kind == "variable" and len(item.cells) != 1:
             collect.add("MM005", f"Die Variable `{item.name}` braucht genau einen Wert.", severity="error", anchor=f"MM005:{item.name}")
+        if isinstance(item, Entry) and not item.cells:
+            collect.add("MM006", f"`{item.name}` hat keine Werte.", anchor=f"MM006:{item.name}")
+        if isinstance(item, Reference) and item.target == item.name:
+            collect.add("MM007", f"Die Referenz `{item.name}` zeigt auf sich selbst.", anchor=f"MM007:{item.name}")
     for item in model.order:
         if isinstance(item, Reference) and item.target not in names and item.target != "null":
             collect.add("MM003", f"Das Ziel `{item.target}` von `{item.name}` steht nicht im Bild.", severity="error", anchor=f"MM003:{item.name}")

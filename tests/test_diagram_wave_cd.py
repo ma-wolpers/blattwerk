@@ -116,7 +116,7 @@ def test_timeline_reads_times_and_warns_about_order():
     [
         ("bar", "Äpfel: 12\nBirnen: 7\n% Kirschen: 3"),
         ("pie", "Äpfel: 1\nBirnen: 1\n% Kirschen: 2"),
-        ("box", "8a: 3, 5, 7, 9, 12\n% 8b: 1, 2, 3"),
+        ("box", "8a: 3, 5, 7, 9, 12\n% 8b: 1, 2, 3, 4, 5"),
         ("histogram", "0-10: 4\n10-20: 9\n% 20-30: 2"),
         ("scatter", "1,5; 3\n2; 4\n% 3; 1"),
     ],

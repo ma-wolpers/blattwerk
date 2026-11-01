@@ -18,6 +18,9 @@ eigene Sonderlogik -- echte Blockausnahmen, kein sauberer generischer Fall.
 
 from __future__ import annotations
 
+import re
+
+from .blatt_kern_shared_data import JA_NEIN_BOOLEAN_TOKENS
 from .answer_grid_axis import _resolve_axis_state
 from .blatt_validator_constants import (
     ANSWER_BLOCK_TYPES,
@@ -28,6 +31,7 @@ from .blatt_validator_constants import (
     QRCODE_SIZE_OPTION_KEYS,
 )
 from .blatt_validator_region import compute_block_region_id
+from .diagram_block_catalog import DIAGRAM_BLOCK_NAMES
 from .blatt_validator_types import BuildDiagnostic
 from .blatt_validator_value_helpers import (
     _append_invalid_option_value,
@@ -37,6 +41,12 @@ from .blatt_validator_value_helpers import (
     _normalize_value,
     _option_items,
 )
+
+_CSS_LENGTH_RE = re.compile(r"^(?:auto|\d+(?:\.\d+)?(?:%|px|cm|mm|in|pt|em|rem|vh|vw)?)$", re.IGNORECASE)
+_INTEGER_RE = re.compile(r"^-?\d+$")
+_BOOLEAN_VALUES = JA_NEIN_BOOLEAN_TOKENS | {"none"}
+_POSITIVE_INTEGER_OPTIONS = frozenset({"rows", "cols", "lines", "branches", "steps", "maxw", "maxh"})
+"""Zahlen, bei denen 0 oder weniger nichts zu zeichnen übrig ließe."""
 
 _GENERIC_VALIDATED_ENUM_OPTION_NAMES = {"mode", "work", "action", "hint", "line", "type", "background", "afb", "level", "scope", "labels"}
 
@@ -64,6 +74,40 @@ def _validate_generic_enum_option(diagnostics, index, block_type, option_key, op
     if normalized_value not in spec.allowed_values:
         _append_invalid_option_value(
             diagnostics, index, block_type, option_key, option_value, spec.allowed_values, options
+        )
+
+
+def _validate_option_value_form(diagnostics, index, block_type, option_key, option_value, options):
+    """Prüft CSS-Längen, Zahlen und Wahrheitswerte aller Blöcke (`OP006`-`OP008`).
+
+    Die Renderer fallen bei unlesbaren Werten still auf den Standard zurück. Wer `height=abc`
+    schreibt, sähe also nur eine falsche Größe, ohne Hinweis auf die Ursache.
+    """
+    spec = _lookup_option_spec(block_type, option_key)
+    if spec is None:
+        return
+    value = str(option_value).strip()
+    problem = None
+    if spec.kind == "css_length" and not _CSS_LENGTH_RE.match(value):
+        problem = ("OP006", f"`{option_key}={value}` ist keine CSS-Länge wie `70%` oder `3cm`.")
+    elif spec.kind == "integer":
+        number = _INTEGER_RE.match(value)
+        if not number:
+            problem = ("OP007", f"`{option_key}={value}` ist keine ganze Zahl.")
+        elif option_key in _POSITIVE_INTEGER_OPTIONS and int(value) <= 0:
+            problem = ("OP007", f"`{option_key}={value}` muss größer als 0 sein.")
+    elif spec.kind == "boolean" and value.lower() not in _BOOLEAN_VALUES:
+        problem = ("OP008", f"`{option_key}={value}` ist kein Wahrheitswert wie `true` oder `false`.")
+    if problem:
+        diagnostics.append(
+            BuildDiagnostic(
+                code=problem[0],
+                message=problem[1],
+                block_index=index,
+                block_type=block_type,
+                region_id=compute_block_region_id(block_type, options),
+                anchor=option_key,
+            )
         )
 
 
@@ -158,6 +202,7 @@ def _validate_block_options(diagnostics, index, block_type, options, allowed_opt
             continue
 
         normalized_value = _normalize_value(option_value)
+        _validate_option_value_form(diagnostics, index, block_type, option_key, option_value, options)
         if option_key == "show" and normalized_value not in KNOWN_SHOW_VALUES:
             _append_invalid_option_value(
                 diagnostics, index, block_type, option_key, option_value, KNOWN_SHOW_VALUES, options
@@ -176,7 +221,7 @@ def _validate_block_options(diagnostics, index, block_type, options, allowed_opt
                     anchor=option_key,
                 )
             )
-        elif option_key in _GENERIC_VALIDATED_ENUM_OPTION_NAMES:
+        elif option_key in _GENERIC_VALIDATED_ENUM_OPTION_NAMES or block_type in DIAGRAM_BLOCK_NAMES:
             _validate_generic_enum_option(
                 diagnostics, index, block_type, option_key, option_value, normalized_value, options
             )

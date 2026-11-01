@@ -260,9 +260,9 @@ für alle x aus d
 Alternativen, Optionales, Wiederholung, Gruppen, Terminale und Nichtterminale:
 
 :::syntaxdiagram
+Ausdruck = Zahl { ( "+" | "-" ) Zahl }
 Zahl = [ "-" ] Ziffer { Ziffer }
 Ziffer = "0" | "1" | "2" | "3"
-Ausdruck = Term { ( "+" | "-" ) Term }
 :::
 
 --
@@ -281,7 +281,7 @@ Geschwungene Symbole mit allen Gattern. Die Ergebnisspalte bleibt im Arbeitsblat
 
 :::logicgates norm=ansi truthtable=true gaps=true
 R = A xoder (B nor C)
-S = nicht (A nand B)
+S = not (A nand B)
 :::
 
 --

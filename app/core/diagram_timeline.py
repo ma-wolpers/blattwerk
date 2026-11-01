@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from datetime import date
 
 from .diagram_svg import LINE_HEIGHT, Canvas, text_width
 from .diagram_text import Cell, ParseIssue, iter_source_lines, make_cell
@@ -44,6 +45,18 @@ def time_value(key: str) -> float:
     return -value if _BC_RE.search(key) else value
 
 
+def _valid_date(key: str) -> bool:
+    """Prüft Tag und Monat eines Datums; Jahreszahlen sind immer gültig."""
+    if "." not in key or _BC_RE.search(key):
+        return True
+    day, month, year = (int(part) for part in key.split("."))
+    try:
+        date(year or 1, month, day)
+    except ValueError:
+        return False
+    return True
+
+
 def parse(content) -> tuple[list[Event], list[ParseIssue]]:
     """Parst die Ereignisse fehlertolerant (`TL002`)."""
     events: list[Event] = []
@@ -54,6 +67,9 @@ def parse(content) -> tuple[list[Event], list[ParseIssue]]:
             issues.append(ParseIssue("TL002", "error", source.number, "Erwartet `1789: Ereignis`, `44 v. Chr.: Ereignis` oder `14.07.1789: Ereignis`."))
             continue
         key = match.group(1).strip()
+        if not _valid_date(key):
+            issues.append(ParseIssue("TL004", "error", source.number, f"`{key}` ist kein gültiges Datum."))
+            continue
         events.append(Event(source.number, time_value(key), make_cell(key), make_cell(match.group(2).strip(), source.show)))
     return events, issues
 

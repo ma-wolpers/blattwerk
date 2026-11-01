@@ -1,0 +1,118 @@
+---
+document_type: worksheet
+Titel: Blockkatalog Boxen und Hinweise
+Fach: Biologie
+Thema: Material, Hinweise, Lösungen und Lernhilfen
+show_student_header: false
+---
+
+# Material `:::material`
+
+Ohne und mit Titel, auch mit Formel und Liste:
+
+:::material
+Pflanzen bauen aus Wasser und Kohlenstoffdioxid mithilfe von Licht Traubenzucker auf.
+:::
+
+:::material title="Fotosynthese"
+Die Summenformel lautet:
+
+$$6\,CO_2 + 6\,H_2O \rightarrow C_6H_{12}O_6 + 6\,O_2$$
+
+- Ort: Chloroplasten
+- Energiequelle: Licht
+:::
+
+:::material title="Nur in der Lösung" mode=solution align=center
+Dieser Kasten erscheint nur in der Lösungsfassung.
+:::
+
+--
+
+# Hinweis `:::info`
+
+Alle drei Arten, dazu ein Hinweis nur fürs Arbeitsblatt:
+
+:::info
+Standardhinweis: Die Bearbeitungszeit beträgt 15 Minuten.
+:::
+
+:::info type=note
+**Tipp:** Schau dir zuerst die Summenformel an.
+:::
+
+:::info type=warning
+Achtung: Salzsäure nur mit Schutzbrille verwenden.
+:::
+
+:::info type=note mode=worksheet
+Dieser Hinweis ist nur für die Bearbeitung wichtig und fehlt in der Lösung.
+:::
+
+--
+
+# Lösung `:::solution`
+
+Mit Bezeichnung, ohne Bezeichnung und gezielt einer Teilaufgabe zugeordnet:
+
+:::task
+**Nenne** die Ausgangsstoffe der Fotosynthese.
+:::
+
+:::solution
+Wasser und Kohlenstoffdioxid.
+:::
+
+--
+
+:::task
+**Nenne** den Ort der Fotosynthese.
+:::
+
+:::solution label=false
+In den Chloroplasten.
+:::
+
+--
+
+:::task title="Energie"
+**Bearbeite** die Teilaufgaben.
+:::
+
+:::subtask
+**Nenne** die Energiequelle.
+:::
+
+:::subtask
+**Nenne** das energiereiche Produkt.
+:::
+
+:::solution target=a
+Licht.
+:::
+
+:::solution target=b
+Traubenzucker.
+:::
+
+--
+
+# Lernhilfen `:::help`
+
+Gestufte Hilfekarten an einer Aufgabe, mit Titel, Stufe und eigener Beschriftung:
+
+:::task
+**Erkläre**, warum Pflanzen im Dunkeln keinen Sauerstoff abgeben.
+:::
+
+:::help
+Lies noch einmal die Summenformel.
+:::
+
+:::help title="Stufe 1" level=1 tag=1
+Welche Energiequelle braucht die Fotosynthese?
+:::
+
+:::help title="Stufe 2" level=2 tag=2
+Ohne Licht läuft die Reaktion nicht ab. Was fehlt dann auf der rechten Seite der Formel?
+:::

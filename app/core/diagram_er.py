@@ -138,6 +138,13 @@ def check(collect, _options, model: ErModel) -> None:
     for link in model.links:
         if link.cardinality is None:
             collect.add("ER007", f"An der Kante zu `{link.entity}` fehlt die Kardinalität (GO).", anchor=f"ER007:{link.relation}:{link.entity}")
+    linked = {link.entity for link in model.links}
+    for node in model.nodes.values():
+        if not node.diamond and node.name not in linked:
+            collect.add("ER008", f"`{node.name}` hat keine Beziehung.", anchor=f"ER008:{node.name}")
+        names = [cell.text.replace("__", "").strip() for cell in node.attributes]
+        for name in {n for n in names if names.count(n) > 1}:
+            collect.add("ER009", f"Das Attribut `{name}` steht bei `{node.title.text}` doppelt.", anchor=f"ER009:{node.name}:{name}")
 
 
 def _shape_size(node: ErNode) -> tuple[float, float]:

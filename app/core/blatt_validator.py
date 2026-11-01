@@ -53,6 +53,7 @@ from .blatt_validator_exam import validate_exam
 from .blatt_validator_help import validate_help_blocks
 from .blatt_validator_geometry_labels import validate_geometry_labels
 from .blatt_validator_tables import validate_tables
+from .blatt_validator_answers import validate_block_contents
 from .diagram_block_dispatch import validate_diagram_blocks
 from .blatt_validator_operator_legend import validate_operator_legend
 from .blatt_validator_points import validate_points
@@ -178,6 +179,7 @@ def _collect_document_diagnostics(meta, blocks, content_text, content_base_line=
     diagnostics.extend(validate_geometry_labels(blocks))
     diagnostics.extend(validate_tables(blocks))
     diagnostics.extend(validate_diagram_blocks(blocks))
+    diagnostics.extend(validate_block_contents(blocks))
     return _collapse_mj001_diagnostics(diagnostics)
 
 

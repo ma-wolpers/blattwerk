@@ -93,7 +93,15 @@ def evaluate(expression: Expr, assignment: dict[str, bool]) -> bool:
 
 
 def check(collect, options, circuits: list[Circuit]) -> None:
-    """Warnt, wenn die Wahrheitstabelle zu groß würde (`LG004`)."""
+    """Prüft Ausgänge, Rückkopplung, `gaps` und die Tabellengröße (`LG004`-`LG007`)."""
+    outputs = [circuit.output for circuit in circuits]
+    for name in {n for n in outputs if outputs.count(n) > 1}:
+        collect.add("LG005", f"Der Ausgang `{name}` steht doppelt.", severity="error", anchor=f"LG005:{name}")
+    for circuit in circuits:
+        if circuit.output in variables_of(circuit.expression):
+            collect.add("LG006", f"`{circuit.output}` hängt von sich selbst ab; die Tabelle und das Bild zeigen das nicht als Rückkopplung.", anchor=f"LG006:{circuit.output}")
+    if _enabled(options, "gaps") and not _enabled(options, "truthtable"):
+        collect.add("LG007", "`gaps=true` wirkt nur zusammen mit `truthtable=true`.")
     if not _enabled(options, "truthtable"):
         return
     for circuit in circuits:

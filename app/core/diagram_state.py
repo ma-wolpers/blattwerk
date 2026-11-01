@@ -210,6 +210,24 @@ def _check_reachable(collect, model: StateModel) -> None:
             collect.add("ST011", f"`{state_name}` ist vom Startzustand aus nicht erreichbar.", anchor=f"ST011:{state_name}")
 
 
+def _check_kind_fit(collect, options, model: StateModel, kind: str) -> None:
+    """Optionen und Endzustände passend zur Automatenart, Pfeile mit Beschriftung (`ST012`-`ST015`)."""
+    if kind and options.get("output") and kind != "mealy":
+        collect.add("ST012", "`output=` gibt es nur beim Mealy-Automaten (`kind=mealy`).", anchor="ST012:output")
+    if kind and options.get("stack") and kind != "pda":
+        collect.add("ST012", "`stack=` gibt es nur beim Kellerautomaten (`kind=pda`).", anchor="ST012:stack")
+    if kind == "mealy" and model.ends:
+        collect.add("ST013", "Ein Mealy-Automat hat keine Endzustände, seine Ausgabe ist das Ergebnis.")
+    if kind in ("dfa", "pda") and not model.ends:
+        collect.add("ST014", "Ohne Endzustand (`ende: A`) akzeptiert dieser Automat keine Eingabe.")
+    for transition in model.transitions.values():
+        if kind and not transition.labels:
+            collect.add("ST015", f"Der Pfeil `{transition.source} -> {transition.target}` hat keine Beschriftung.", anchor=f"ST015:{transition.line}")
+        texts = [cell.text for cell in transition.labels]
+        for text in {x for x in texts if texts.count(x) > 1}:
+            collect.add("ST015", f"`{text}` steht am Pfeil `{transition.source} -> {transition.target}` doppelt.", anchor=f"ST015:{transition.line}:{text}")
+
+
 def check(collect, options, model: StateModel) -> None:
     """Prüft Start, Erreichbarkeit, Notation, Alphabete und Determinismus (GO S. 12)."""
     if model.start is None:
@@ -236,6 +254,7 @@ def check(collect, options, model: StateModel) -> None:
                 used["stack"].setdefault(symbol, transition.line)
     for key, title in (("input", "Eingabealphabet"), ("output", "Ausgabealphabet"), ("stack", "Kelleralphabet")):
         _check_alphabet(collect, title, _symbols(options.get(key)), used[key])
+    _check_kind_fit(collect, options, model, kind)
     if kind in ("dfa", "mealy"):
         _check_deterministic(collect, model, _symbols(options.get("input")) or list(used["input"]), reads)
 

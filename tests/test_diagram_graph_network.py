@@ -101,7 +101,7 @@ def test_graph_validator_codes():
     assert "GR004" in _codes("graph", "A - B\nA - C\nA - D", "binary=true")
     assert "GR005" in _codes("graph", "A - B\nB - A", "binary=true")
     assert "GR006" in _codes("graph", "A - B\nB - C\nC - A", "layout=tree")
-    assert not [c for c in _codes("graph", "A - B: 5\nB -> C") if c.startswith("GR")]
+    assert not [c for c in _codes("graph", "A - B: 5\nB - C") if c.startswith("GR")]
 
 
 def test_network_symbols_come_from_names_and_can_be_overridden():

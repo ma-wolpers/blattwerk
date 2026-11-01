@@ -60,9 +60,25 @@ def _binary_children(model: GraphModel) -> dict[str, list[str]]:
     return children
 
 
+def _check_edges(collect, model: GraphModel) -> None:
+    """Doppelte Kanten und gemischte Kantenarten (`GR007`, `GR008`)."""
+    seen = set()
+    for edge in model.edges:
+        if edge.target == PLACEHOLDER:
+            continue
+        key = (edge.source, edge.target) if edge.directed else frozenset((edge.source, edge.target))
+        if key in seen:
+            collect.add("GR007", f"Die Kante `{edge.source}`–`{edge.target}` steht doppelt.", anchor=f"GR007:{edge.line}")
+        seen.add(key)
+    kinds = {edge.directed for edge in model.edges if edge.target != PLACEHOLDER}
+    if len(kinds) == 2:
+        collect.add("GR008", "Gerichtete und ungerichtete Kanten sind gemischt.")
+
+
 def check(collect, options, model: GraphModel) -> None:
     """Prüft Binärbaum (`GR004`, `GR005`) und erzwungenes Baumlayout (`GR006`)."""
     real_edges = [(edge.source, edge.target) for edge in model.edges if edge.target != PLACEHOLDER]
+    _check_edges(collect, model)
     if _enabled(options, "binary"):
         for parent, kids in _binary_children(model).items():
             if len(kids) > 2:

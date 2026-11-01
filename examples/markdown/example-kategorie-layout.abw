@@ -1,0 +1,97 @@
+---
+document_type: worksheet
+Titel: Blockkatalog Layout
+Fach: Informatik
+Thema: Spalten und QR-Codes
+show_student_header: false
+---
+
+# Spalten `:::columns`, `:::nextcol`, `:::endcolumns`
+
+Zwei gleich breite Spalten:
+
+:::columns cols=2 widths="1 1" :::
+
+:::info
+Linke Spalte.
+:::
+
+:::nextcol :::
+
+:::info type=note
+Rechte Spalte.
+:::
+
+:::endcolumns :::
+
+--
+
+Drei Spalten mit unterschiedlicher Breite und eigenem Abstand:
+
+:::columns cols=3 widths="2 1 1" gap=1cm :::
+
+:::material title="Breit"
+Diese Spalte ist doppelt so breit wie die anderen.
+:::
+
+:::nextcol :::
+
+:::info
+Schmal.
+:::
+
+:::nextcol :::
+
+:::info type=warning
+Schmal.
+:::
+
+:::endcolumns :::
+
+--
+
+Automatische Breiten nach Inhalt, mit Aufgabe und Lösung in derselben Spalte:
+
+:::columns cols=2 :::
+
+:::task
+**Berechne** $2^8$.
+:::
+
+:::solution
+$2^8 = 256$
+:::
+
+:::nextcol :::
+
+:::task
+**Berechne** $2^{10}$.
+:::
+
+:::solution
+$2^{10} = 1024$
+:::
+
+:::endcolumns :::
+
+--
+
+# QR-Code `:::qrcode`
+
+Klein, groß, ausgerichtet und in Spalten:
+
+:::qrcode url=https://example.org w=2cm h=2cm :::
+
+:::qrcode url=https://example.org/material w=4cm h=4cm align=center :::
+
+:::qrcode url=https://example.org/video width=3cm height=3cm max-width=45% align=right :::
+
+:::columns cols=2 ratio="1 1" :::
+
+:::qrcode url=https://example.org/a w=3cm h=3cm :::
+
+:::nextcol :::
+
+:::qrcode url=https://example.org/b w=3cm h=3cm :::
+
+:::endcolumns :::

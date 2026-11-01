@@ -16,6 +16,8 @@ from .diagram_text import ParseIssue, iter_source_lines, make_cell
 
 _FRACTION_RE = re.compile(r"^(\d+)\s*/\s*(\d+)$")
 _MAX_DENOMINATOR = 60
+_MAX_WHOLES = 12
+"""Mehr Ganze passen nicht sinnvoll auf eine Zeile."""
 _RADIUS = 38.0
 _BAR_W, _BAR_H = 160.0, 28.0
 _GAP = 12.0
@@ -45,6 +47,9 @@ def parse(content) -> tuple[list[Item], list[ParseIssue]]:
         numerator, denominator = int(match.group(1)), int(match.group(2))
         if not 0 < denominator <= _MAX_DENOMINATOR:
             issues.append(ParseIssue("FR003", "error", source.number, f"Der Nenner muss zwischen 1 und {_MAX_DENOMINATOR} liegen."))
+            continue
+        if numerator > denominator * _MAX_WHOLES:
+            issues.append(ParseIssue("FR004", "error", source.number, f"`{source.text}` ergibt mehr als {_MAX_WHOLES} Ganze."))
             continue
         items.append(Item(source.number, numerator, denominator, source.show == "solution"))
     return items, issues

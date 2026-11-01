@@ -32,6 +32,7 @@ _PIE_R = 92.0
 _BOX_ROW = 46.0
 _LABEL_COLUMN = 90.0
 _POINT = 3.5
+_BOX_MIN_VALUES = 5
 
 
 @dataclass(frozen=True)
@@ -42,6 +43,7 @@ class Row:
     label: str
     values: tuple[Fraction, ...]
     gap: bool
+    percent: bool = False
 
 
 def parse(content) -> tuple[list[Row], list[ParseIssue]]:
@@ -55,7 +57,7 @@ def parse(content) -> tuple[list[Row], list[ParseIssue]]:
         if not parts or any(value is None for value in values):
             issues.append(ParseIssue("CH002", "error", source.number, "Erwartet `Name: 12`, `Name: 3, 5, 7`, `0-10: 4` oder `1,5; 3`."))
             continue
-        rows.append(Row(source.number, label.strip() if colon else "", tuple(values), source.show == "solution"))
+        rows.append(Row(source.number, label.strip() if colon else "", tuple(values), source.show == "solution", any(part.endswith("%") for part in parts)))
     return rows, issues
 
 
@@ -81,6 +83,16 @@ def check(collect, options, rows: list[Row]) -> None:
         collect.add("CH004", "Im Kreisdiagramm ist die Summe 0.", severity="error")
     if kind == "histogram":
         _check_intervals(collect, rows)
+    if kind in ("bar", "pie", "box", "histogram"):
+        labels = [row.label for row in rows]
+        for label in {name for name in labels if name and labels.count(name) > 1}:
+            collect.add("CH007", f"`{label}` steht doppelt.", anchor=f"CH007:{label}")
+    if kind == "box":
+        for row in rows:
+            if len(row.values) < _BOX_MIN_VALUES:
+                collect.add("CH008", f"`{row.label}` hat {len(row.values)} Werte; ein Boxplot braucht mindestens {_BOX_MIN_VALUES}.", anchor=f"CH008:{row.line}")
+    if kind == "pie" and rows and all(row.percent for row in rows) and sum(row.values[0] for row in rows) != 1:
+        collect.add("CH009", f"Die Prozentangaben ergeben {format_number(sum(row.values[0] for row in rows) * 100)} %, nicht 100 %.")
 
 
 def _intervals(rows: list[Row]) -> list[tuple[float, float] | None]:
@@ -99,6 +111,8 @@ def _check_intervals(collect, rows: list[Row]) -> None:
         if interval is None or interval[0] >= interval[1]:
             collect.add("CH005", f"`{row.label}` ist keine Klasse der Form `0-10`.", severity="error", anchor=f"CH005:{row.line}")
     known = [i for i in intervals if i is not None]
+    if len({round(high - low, 9) for low, high in known}) > 1:
+        collect.add("CH010", "Die Klassen sind unterschiedlich breit, die Balken stehen aber gleich breit. Die Höhen sind dann nicht vergleichbar.")
     for earlier, later in zip(known, known[1:]):
         if earlier[1] != later[0]:
             collect.add("CH006", f"Die Klassen schließen nicht lückenlos an: {earlier[1]:g} und {later[0]:g}.", anchor=f"CH006:{later[0]}")

@@ -200,6 +200,20 @@ Subprozess siehe `tests/test_blatt_diagnostics_cli.py` (Validator) sowie
 - `AR001`-`AR004` (`arrowdiagram`): `AR001` leerer Block (Warnung); `AR002` Zeile passt nicht zur Syntax (Fehler); `AR003` Pfeil doppelt, `AR004` bei `kind=function` nicht genau ein Pfeil (Warnungen).
 - `FR001`-`FR003` (`fractions`): `FR001` leerer Block (Warnung); `FR002` kein Bruch, `FR003` Nenner außerhalb von 1 bis 60 (Fehler).
 - `MM001`-`MM005` (`memorydiagram`): `MM001` leerer Block (Warnung); `MM002` Zeile passt nicht zur Syntax, `MM003` unbekanntes Referenzziel, `MM004` doppelter Name, `MM005` Variable ohne genau einen Wert (Fehler).
+- `AN021`-`AN024` (`mc`): `AN021` keine richtige Antwort, `AN022` doppelte Antwort (Warnungen); `AN023` `tf=true` mit Checkboxen, `AN024` `correct=` außerhalb (Fehler).
+- `AN025`, `AN026` (`checkgrid`): `AN025` `correct` zeigt auf keine Spalte (Fehler); `AN026` Spalten oder Zeilen fehlen (Warnung).
+- `AN027`-`AN031` (`matching`): `AN027` Verbindung auf fehlenden Eintrag, `AN031` `worksheet_matches` nicht in `matches` (Fehler); `AN028` keine `matches`, `AN029` Eintrag ohne Verbindung, `AN030` Lösung allein über die Position (Warnungen).
+- `AN032`, `AN033`, `AN049` (`table`, Warnungen): `AN032` `cells:` größer als `rows`/`cols`, `AN049` Kopfzeilen passen nicht zur Spalten- oder Zeilenzahl, `AN033` Tabelle ohne `rows=` wird aufgefüllt.
+- `AN037`-`AN039` (`numberline`): `AN037` Wert außerhalb des Bereichs (Warnung); `AN038` `min` nicht kleiner als `max`, `AN039` `tick_step` nicht positiv (Fehler).
+- `AN040`, `AN041` (`geometry`): `AN040` Punkt außerhalb der Fläche (Warnung); `AN041` Term nicht auswertbar (Fehler).
+- `AN043`, `AN044` (`wordsearch`): `AN043` Wort doppelt (Warnung); `AN044` alle Richtungen aus (Fehler).
+- `AN045`, `AN046` (`cloze`): `AN045` keine Lücke (Warnung); `AN046` Lücke nicht geschlossen (Fehler).
+- `AN047`, `AN048` (`ordering`, Warnungen): weniger als zwei Elemente; Element doppelt.
+- `AN050`, `AN051` (`selfcheck`, Warnungen): keine Aussagen; `label1`/`label2` ohne `dual=true`.
+- `AN052`, `AN053` (`mindmap`, Warnungen): kein Thema; Zweigzahl außerhalb des Bereichs. `AN054` (`help`, Warnung): `level` außerhalb von 1 bis 99.
+- `BL014`: `widths` passt nicht zu `cols` bei `columns`. `BL015`: Teilaufgabe ohne Aufgabe davor. `BL016`: Nummer im Aufgabentitel (Warnungen).
+- `OP006`-`OP008` (alle Blöcke, Warnungen): `OP006` keine CSS-Länge, `OP007` keine oder keine positive ganze Zahl, `OP008` kein Wahrheitswert.
+- Diagramme, weitere Prüfungen: `CD011` Mitglied doppelt, `CD013` Typ ohne Beziehung (Warnungen), `CD012` falscher Konstruktorname, `CD014` Objektkarte erbt (Fehler); `ER008` Entität ohne Beziehung, `ER009` Attribut doppelt; `ST012` Option passt nicht zu `kind`, `ST013` Mealy mit Endzustand, `ST014` kein Endzustand, `ST015` Pfeil ohne oder mit doppelter Beschriftung; `GR007` Kante doppelt, `GR008` Kantenarten gemischt; `NW004` Verbindung doppelt, `NW005` Gerät an sich selbst, `NW006` Gerät ohne Verbindung; `SQ004` Antwort ohne Aufruf; `SY004` Regel doppelt (Fehler), `SY005` Name ohne Regel, `SY006` Regel unbenutzt; `LG005` Ausgang doppelt (Fehler), `LG006` Rückkopplung, `LG007` `gaps` ohne Tabelle; `PB006` Ergebnis doppelt; `TT005` Potenz nicht berechenbar (Fehler); `TL004` ungültiges Datum (Fehler); `CH007` Beschriftung doppelt, `CH008` Boxplot mit zu wenig Werten, `CH009` Prozente nicht 100, `CH010` Klassen ungleich breit; `FR004` zu viele Ganze (Fehler); `MM006` keine Werte, `MM007` Referenz auf sich selbst. Ohne Zusatz sind es Warnungen.
 <!-- diagramm-codes -->
 - `SC001`: `selfcheck`-Block: `steps=` liegt ausserhalb des gueltigen Bereichs (2-7) oder ausserhalb der fuer die gewaehlte `scale=` kuratierten Werte (z. B. `smiley` nur bei `steps=3`/`5`) -- wird begrenzt bzw. faellt auf nummerierte Kreise zurueck, reiner Hinweis (Warnung).
 

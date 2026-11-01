@@ -24,6 +24,8 @@ _GRAMMAR = Grammar(
     atom=r"\d+(?:[.,]\d+)?|[^\W\d_x]\w*",
 )
 _OPERATOR_SIGN = {"+": "+", "-": "−", "*": "·", "/": ":", "^": "^"}
+_MAX_EXPONENT = 64
+"""Größere Potenzen wären nicht mehr lesbar und könnten das Rendern blockieren (`9^9^9`)."""
 _BOX_HEIGHT = 24.0
 _OP_RADIUS = 10.0
 _MIN_BOX = 34.0
@@ -71,7 +73,9 @@ def evaluate(expression: Expr) -> Fraction | None:
         return first * second
     if expression.value == "/":
         return first / second if second else None
-    return first ** int(second) if second.denominator == 1 and (first or second >= 0) else None
+    if second.denominator != 1 or abs(second) > _MAX_EXPONENT or (not first and second < 0):
+        return None
+    return first ** int(second)
 
 
 def _contains_zero_division(expression: Expr) -> bool:
@@ -95,6 +99,8 @@ def check(collect, _options, terms: list[Term]) -> None:
     for term in terms:
         if _contains_zero_division(term.expression):
             collect.add("TT003", f"In `{term.text}` wird durch 0 geteilt.", severity="error", anchor=f"TT003:{term.line}")
+        elif evaluate(term.expression) is None and not _has_variable(term.expression):
+            collect.add("TT005", f"`{term.text}` lässt sich nicht berechnen: Potenzen brauchen ganze Exponenten bis {_MAX_EXPONENT}.", severity="error", anchor=f"TT005:{term.line}")
         elif _has_variable(term.expression):
             collect.add("TT004", f"`{term.text}` enthält Variablen, deshalb bleiben die Ergebnisse leer.", anchor=f"TT004:{term.line}")
 

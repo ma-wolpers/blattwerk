@@ -114,6 +114,33 @@ def parse(content) -> tuple[list[Rule], list[ParseIssue]]:
     return rules, issues
 
 
+def _names_in(node: Node):
+    """Alle Nichtterminale eines Ausdrucks."""
+    if node.kind == "name":
+        yield node.text
+    for child in node.children:
+        yield from _names_in(child)
+
+
+def check(collect, _options, rules: list[Rule]) -> None:
+    """Regeln untereinander: doppelt, nicht definiert, nie benutzt (`SY004`-`SY006`).
+
+    Eine einzelne Regel darf auf Außerhalb verweisen, zum Beispiel auf `Ziffer` aus dem
+    Unterricht. Sobald mehrere Regeln dastehen, gilt die Grammatik als vollständig.
+    """
+    names = [rule.name for rule in rules]
+    for name in {n for n in names if names.count(n) > 1}:
+        collect.add("SY004", f"Die Regel `{name}` steht doppelt.", severity="error", anchor=f"SY004:{name}")
+    if len(rules) < 2:
+        return
+    used = {name for rule in rules for name in _names_in(rule.expression)}
+    for name in sorted(used - set(names)):
+        collect.add("SY005", f"`{name}` wird benutzt, hat aber keine Regel.", anchor=f"SY005:{name}")
+    for name in names[1:]:
+        if name not in used:
+            collect.add("SY006", f"Die Regel `{name}` wird nirgends benutzt.", anchor=f"SY006:{name}")
+
+
 @dataclass
 class _Rail:
     """Zeichenbarer Ausdruck; `axis` ist die Höhe der Hauptschiene."""

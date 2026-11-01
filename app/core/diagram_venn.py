@@ -40,7 +40,7 @@ def parse(content) -> tuple[list[Region], list[ParseIssue]]:
     for source in iter_source_lines(content):
         names, colon, text = source.text.partition(":")
         sets = tuple(names.split())
-        if not colon or not sets:
+        if not colon or not sets or (_REST in sets and len(sets) > 1):
             issues.append(ParseIssue("VN002", "error", source.number, "Erwartet `A: 2, 4`, `A B: 6` oder `rest: 9`."))
             continue
         regions.append(Region(source.number, sets, make_cell(text.strip(), source.show)))

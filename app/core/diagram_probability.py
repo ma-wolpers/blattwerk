@@ -60,6 +60,9 @@ def parse(content) -> tuple[list[Branch], list[ParseIssue]]:
 def _check_group(collect, branches: list[Branch], where: str) -> None:
     """Prüft eine Verzweigung: lesbare Werte, Summe 1 (`PB004`, `PB005`)."""
     values = [parse_number(branch.probability.text) for branch in branches]
+    outcomes = [branch.outcome.text for branch in branches]
+    for name in {n for n in outcomes if outcomes.count(n) > 1}:
+        collect.add("PB006", f"`{name}` steht {where} doppelt.", anchor=f"PB006:{branches[0].line}:{name}")
     for branch, value in zip(branches, values):
         if value is None or not 0 <= value <= 1:
             collect.add("PB004", f"`{branch.probability.text}` ist keine Wahrscheinlichkeit zwischen 0 und 1.", severity="error", anchor=f"PB004:{branch.line}")

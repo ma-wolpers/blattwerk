@@ -1,0 +1,106 @@
+---
+document_type: worksheet
+Titel: Blockkatalog Offen und Reflexion
+Fach: Religion
+Thema: Mindmap, Selbsteinschätzung und Schreibrahmen
+show_student_header: false
+---
+
+# Mindmap `:::mindmap`
+
+Alle Formen, mit unterschiedlich vielen Zweigen und zweistufig:
+
+:::task
+**Sammle** deine Gedanken.
+:::
+
+:::mindmap branches=6 shape=oval
+Freundschaft
+:::
+
+--
+
+:::mindmap branches=4 shape=rect
+Vertrauen
+:::
+
+--
+
+:::mindmap branches=8 shape=cloud
+Gerechtigkeit
+:::
+
+--
+
+:::mindmap branches=5 subbranches=2 shape=oval
+Hoffnung
+:::
+
+--
+
+# Selbsteinschätzung `:::selfcheck`
+
+Smileys, Ampel, Sterne und Zahlen, dazu zwei Spalten mit eigener Beschriftung:
+
+:::selfcheck scale=smiley steps=3
+- Ich kann erklären, was Freundschaft für mich bedeutet.
+- Ich kann anderen zuhören.
+:::
+
+--
+
+:::selfcheck scale=ampel steps=3
+- Ich habe meine Aufgaben rechtzeitig fertig.
+:::
+
+--
+
+:::selfcheck scale=sterne steps=5
+- Ich habe mich an Gesprächen beteiligt.
+:::
+
+--
+
+:::selfcheck scale=zahlen steps=4
+- Ich habe andere ausreden lassen.
+:::
+
+--
+
+:::selfcheck scale=smiley steps=3 dual=true label1="Ich selbst" label2="Mein Gegenüber"
+- Ich gehe respektvoll mit anderen um.
+- Ich kann Kritik annehmen.
+:::
+
+--
+
+# Schreibrahmen `:::writebox`
+
+Alle Stile, mit und ohne Impuls:
+
+:::writebox style=frame lines=4
+Was bedeutet für dich Vertrauen?
+:::
+
+--
+
+:::writebox style=bubble lines=3
+Das sage ich dazu:
+:::
+
+--
+
+:::writebox style=cloud lines=3
+Das denke ich:
+:::
+
+--
+
+:::writebox style=letter lines=6
+Liebe Freundin, lieber Freund,
+:::
+
+--
+
+:::writebox style=frame lines=2
+:::

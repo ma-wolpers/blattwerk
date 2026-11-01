@@ -1,0 +1,85 @@
+---
+document_type: worksheet
+Titel: Blockkatalog Aufgaben
+Fach: Mathematik
+Thema: Aufgaben, Teilaufgaben, Bewertung und Operatoren
+show_student_header: false
+---
+
+:::operators scope=all title="Operatoren" :::
+
+# Aufgabe `:::task`
+
+Die Kennzeichnungen im Überblick: Arbeitsform, Tätigkeit, Lernhinweis, Punkte und Zeit.
+
+:::task points=2 work=single action=calculate
+!!Berechne!! $12 \cdot 7$.
+:::
+
+--
+
+:::task points=3 work=partner action=write time=5 title="Mit Titel"
+!!Beschreibe!! deinem Gegenüber einen Rechenweg für $12 \cdot 7$.
+:::
+
+--
+
+:::task points=2 work=group hint=tip
+!!Vergleiche!! in der Gruppe eure Rechenwege.
+:::
+
+--
+
+:::task points=2 afb=1 hint=definition
+!!Nenne!! die Definition eines Produkts.
+:::
+
+--
+
+:::task points=2 bonus=true hint=expert
+*für Schnelle:* !!Bestimme!! das kleinste gemeinsame Vielfache von 12 und 7.
+:::
+
+--
+
+# Teilaufgaben `:::subtask`
+
+Automatisch nummeriert, jede mit eigenen Kennzeichnungen und eigener Lösung. Der Haupt-`:::task` bleibt leer, weil die Teilaufgaben den Auftrag tragen.
+
+:::task work=single title="Rechteck" :::
+
+:::subtask points=1 afb=1 action=calculate
+!!Berechne!! den Umfang eines Rechtecks mit den Seiten 3 cm und 4 cm.
+:::
+
+:::solution
+$u = 2 \cdot (3 + 4)\,\text{cm} = 14\,\text{cm}$
+:::
+
+:::subtask points=1 afb=1 time=2
+!!Berechne!! seinen Flächeninhalt.
+:::
+
+:::solution
+$A = 3 \cdot 4\,\text{cm}^2 = 12\,\text{cm}^2$
+:::
+
+:::subtask points=2 afb=2 work=partner action=write
+!!Begründe!!, warum sich der Flächeninhalt vervierfacht, wenn beide Seiten doppelt so lang werden.
+:::
+
+:::solution
+$A' = (2 \cdot 3) \cdot (2 \cdot 4)\,\text{cm}^2 = 4 \cdot 12\,\text{cm}^2$
+:::
+
+--
+
+# Bewertung `:::evaluation`
+
+Je Aufgabe, je Teilaufgabe und mit Notenfeld:
+
+:::evaluation level=task title="Bewertung je Aufgabe" :::
+
+:::evaluation level=subtask title="Bewertung je Teilaufgabe" :::
+
+:::evaluation level=task grade=true title="Mit Notenfeld" :::

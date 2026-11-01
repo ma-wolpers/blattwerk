@@ -1,0 +1,138 @@
+---
+document_type: worksheet
+Titel: Blockkatalog Textbasierte Übungen
+Fach: Erdkunde
+Thema: Auswahl, Lückentext, Reihenfolge und Wortsuche
+show_student_header: false
+---
+
+# Auswahlaufgabe `:::mc`
+
+Untereinander, nebeneinander, mit festen Breiten und als Wahr-Falsch-Aufgabe:
+
+:::task
+**Kreuze** die Hauptstadt von Frankreich **an**.
+:::
+
+:::mc
+- [ ] Lyon
+- [x] Paris
+- [ ] Marseille
+:::
+
+--
+
+:::mc inline=true
+Welche Flüsse fließen durch Deutschland?
+- [x] Rhein
+- [x] Elbe
+- [ ] Loire
+:::
+
+--
+
+:::mc inline=true widths="3 1 1"
+Welches Land ist größer als Deutschland?
+- [x] Frankreich
+- [ ] Belgien
+- [ ] Dänemark
+:::
+
+--
+
+:::mc tf=true correct=true
+Der Rhein mündet in die Nordsee.
+Die Elbe fließt durch Hamburg.
+:::
+
+--
+
+# Lückentext `:::cloze`
+
+Ohne Wortbank, mit gleich langen Lücken, mit Wortbank darunter und mit mehrfach nutzbaren Wörtern:
+
+:::task
+**Ergänze** die Lücken.
+:::
+
+:::cloze
+Die Hauptstadt von Spanien ist {{Madrid}}, die von Italien ist {{Rom}}.
+:::
+
+--
+
+:::cloze gap=fixed gap_length=8
+Der längste Fluss Europas ist die {{Wolga}}, der höchste Berg der Alpen ist der {{Mont Blanc}}.
+:::
+
+--
+
+:::cloze gap=equal words=below
+Die {{Nordsee}} liegt westlich, die {{Ostsee}} östlich von Dänemark.
+:::
+
+--
+
+:::cloze words=below words_multi=true
+{{Hamburg}} und {{Bremen}} sind Stadtstaaten. Auch {{Berlin}} ist ein Stadtstaat.
+:::
+
+--
+
+# Reihenfolge `:::ordering`
+
+Mit Zahlen und mit Buchstaben:
+
+:::task
+**Bringe** die Flüsse in die Reihenfolge von Süden nach Norden.
+:::
+
+:::ordering
+- Donau
+- Main
+- Weser
+- Elbe bei Hamburg
+:::
+
+--
+
+:::ordering numbering=letters
+- Quelle
+- Oberlauf
+- Mittellauf
+- Unterlauf
+- Mündung
+:::
+
+--
+
+# Wortsuche `:::wordsearch`
+
+Waagerecht und senkrecht, diagonal und mit fester Mindestgröße:
+
+:::task
+**Finde** die Städte.
+:::
+
+:::wordsearch min_size=10x10 diagonal=false
+- PARIS
+- ROM
+- WIEN
+:::
+
+--
+
+:::wordsearch min_size=12x12 diagonal=true position=right
+- DONAU
+- RHEIN
+- ELBE
+- WESER
+:::
+
+--
+
+:::wordsearch min_rows=8 min_cols=14 vertical=false position=below
+- BERG
+- TAL
+- SEE
+:::

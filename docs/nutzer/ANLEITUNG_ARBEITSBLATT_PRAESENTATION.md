@@ -118,7 +118,7 @@ Pfeildiagramm für Relationen, Zuordnungen und Funktionen: `1 -> 2`. `3 -> _` ze
 | Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
 |---|---|---|---|---|---|
 | `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
-| `kind` | Enum | `function`, `relation` | nein | `relation` | `function` prüft, dass jedes Element links genau einen Pfeil hat. |
+| `kind` | Enum | `function`, `relation` | ja | `relation` | `function` prüft, dass jedes Element links genau einen Pfeil hat. |
 | `left` | Text | -- | nein | -- | Überschrift der linken Seite. |
 | `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
 | `right` | Text | -- | nein | -- | Überschrift der rechten Seite. |
@@ -142,10 +142,10 @@ Statistikdiagramme aus kurzen Datenzeilen. `%` am Zeilenanfang lässt einen Wert
 | Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
 |---|---|---|---|---|---|
 | `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
-| `gaps` | Enum | `none`, `values` | nein | `none` | `values` blendet nur die Zahlen aus, Balken und Sektoren bleiben stehen. |
+| `gaps` | Enum | `none`, `values` | ja | `none` | `values` blendet nur die Zahlen aus, Balken und Sektoren bleiben stehen. |
 | `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
-| `type` | Enum | `bar`, `box`, `histogram`, `pie`, `scatter` | nein | `bar` | `bar` (`Äpfel: 12`), `pie` (`Äpfel: 12`, Anteile werden berechnet), `box` (`8a: 3, 5, 7`, Rohdaten), `histogram` (`0-10: 4`) oder `scatter` (`1,5; 3`). |
+| `type` | Enum | `bar`, `box`, `histogram`, `pie`, `scatter` | ja | `bar` | `bar` (`Äpfel: 12`), `pie` (`Äpfel: 12`, Anteile werden berechnet), `box` (`8a: 3, 5, 7`, Rohdaten), `histogram` (`0-10: 4`) oder `scatter` (`1,5; 3`). |
 | `width` | CSS-Länge | -- | nein | `100%` | Breite des Blocks als CSS-Länge (`70%`, `12cm`, ...); Standard ist die volle Zeilenbreite. |
 
 **Beispiel** (identisch mit dem Menü "Einfügen" (Alt+I) im Editor):
@@ -394,7 +394,7 @@ Brüche als Kreise oder Balken mit gefärbten Teilen, eine Zeile pro Bruch: `3/4
 | `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
 | `filled` | Bool | -- | nein | `True` | `false` lässt alle Teile leer, zum Selbstausmalen. |
 | `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
-| `shape` | Enum | `bar`, `circle` | nein | `circle` | Form: `circle` oder `bar`. |
+| `shape` | Enum | `bar`, `circle` | ja | `circle` | Form: `circle` oder `bar`. |
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
 | `width` | CSS-Länge | -- | nein | `100%` | Breite des Blocks als CSS-Länge (`70%`, `12cm`, ...); Standard ist die volle Zeilenbreite. |
 
@@ -452,7 +452,7 @@ Graph oder Baum aus kurzen Zeilen, zum Beispiel für Graphalgorithmen: `A - B: 5
 |---|---|---|---|---|---|
 | `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
 | `binary` | Bool | -- | nein | `False` | Liest die Kanten als Binärbaum: Die Kinder gelten in Zeilenreihenfolge als links und rechts, ein einzelnes Kind ist das linke, `8 - _` lässt das linke Kind frei. |
-| `layout` | Enum | `auto`, `circle`, `tree` | nein | `auto` | Anordnung: `auto` (Baum als Baum, sonst frei), `tree` oder `circle`. |
+| `layout` | Enum | `auto`, `circle`, `tree` | ja | `auto` | Anordnung: `auto` (Baum als Baum, sonst frei), `tree` oder `circle`. |
 | `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
 | `width` | CSS-Länge | -- | nein | `100%` | Breite des Blocks als CSS-Länge (`70%`, `12cm`, ...); Standard ist die volle Zeilenbreite. |
@@ -557,7 +557,7 @@ Logikschaltung aus einer Formel wie `Q = (A und B) oder nicht C`, mit `und`, `od
 | `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
 | `gaps` | Bool | -- | nein | `False` | Lässt die Ergebnisspalte der Wahrheitstabelle im Arbeitsblatt offen. |
 | `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
-| `norm` | Enum | `ansi`, `iec` | nein | `iec` | Symbole: `iec` (rechteckig, Standard) oder `ansi` (geschwungen). |
+| `norm` | Enum | `ansi`, `iec` | ja | `iec` | Symbole: `iec` (rechteckig, Standard) oder `ansi` (geschwungen). |
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
 | `truthtable` | Bool | -- | nein | `False` | Ergänzt die aus der Formel berechnete Wahrheitstabelle. |
 | `width` | CSS-Länge | -- | nein | `100%` | Breite des Blocks als CSS-Länge (`70%`, `12cm`, ...); Standard ist die volle Zeilenbreite. |
@@ -955,7 +955,7 @@ Automaten in der Gestalt der zentralen Prüfungsaufgaben (GO Informatik, S. 12):
 |---|---|---|---|---|---|
 | `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
 | `input` | Text | -- | nein | -- | Eingabealphabet, z. B. `input="a, b, c"`, erscheint als Zeile über dem Graphen und wird mit den Pfeilen abgeglichen. |
-| `kind` | Enum | `dfa`, `mealy`, `pda` | nein | -- | Prüft die Notation aus der GO: `dfa` und `mealy` verlangen von jedem Zustand genau einen Pfeil je Eingabezeichen (Mealy schreibt `Eingabe / Ausgabe`), `pda` schreibt `(oben, Eingabe) : Kellerwort`. Ohne `input` ergibt sich das Alphabet aus den Pfeilen. |
+| `kind` | Enum | `dfa`, `mealy`, `pda` | ja | -- | Prüft die Notation aus der GO: `dfa` und `mealy` verlangen von jedem Zustand genau einen Pfeil je Eingabezeichen (Mealy schreibt `Eingabe / Ausgabe`), `pda` schreibt `(oben, Eingabe) : Kellerwort`. Ohne `input` ergibt sich das Alphabet aus den Pfeilen. |
 | `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
 | `output` | Text | -- | nein | -- | Ausgabealphabet eines Mealy-Automaten, erscheint als Zeile über dem Graphen und wird mit den Pfeilen abgeglichen. |
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
@@ -1037,6 +1037,7 @@ Syntaxdiagramme aus EBNF-ähnlichen Zeilen wie `Zahl = [ "-" ] Ziffer { Ziffer }
 ```markdown
 :::syntaxdiagram
 Zahl = [ "-" ] Ziffer { Ziffer }
+Ziffer = "0" | "1" | "2"
 :::
 ```
 
@@ -1101,7 +1102,7 @@ Rechenbaum aus einem getippten Term wie `(3+4)*2`, eine Zeile pro Term. Er zeigt
 | Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
 |---|---|---|---|---|---|
 | `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
-| `gaps` | Enum | `all`, `leaves`, `none`, `results` | nein | `none` | Was im Arbeitsblatt offen bleibt: `results` (Zwischenergebnisse), `leaves` (Zahlen), `all` oder `none`. |
+| `gaps` | Enum | `all`, `leaves`, `none`, `results` | ja | `none` | Was im Arbeitsblatt offen bleibt: `results` (Zwischenergebnisse), `leaves` (Zahlen), `all` oder `none`. |
 | `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
 | `width` | CSS-Länge | -- | nein | `100%` | Breite des Blocks als CSS-Länge (`70%`, `12cm`, ...); Standard ist die volle Zeilenbreite. |
@@ -1122,7 +1123,7 @@ Zeitstrahl mit einem Ereignis pro Zeile: `1789: Französische Revolution`, auch 
 |---|---|---|---|---|---|
 | `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
 | `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
-| `scale` | Enum | `even`, `proportional` | nein | `even` | `even` verteilt die Ereignisse gleichmäßig, `proportional` maßstäblich. |
+| `scale` | Enum | `even`, `proportional` | ja | `even` | `even` verteilt die Ereignisse gleichmäßig, `proportional` maßstäblich. |
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
 | `width` | CSS-Länge | -- | nein | `100%` | Breite des Blocks als CSS-Länge (`70%`, `12cm`, ...); Standard ist die volle Zeilenbreite. |
 
@@ -1144,7 +1145,7 @@ Venn-Diagramm für 2 oder 3 Mengen, eine Zeile pro Bereich: `A: 2, 4`, `A B: 6`,
 | `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
 | `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
-| `variant` | Enum | `compare`, `plain` | nein | `plain` | `compare` macht daraus einen Schreibrahmen mit größeren Feldern, zum Beispiel `Hund: bellt` und `Hund Katze: Haustier`. |
+| `variant` | Enum | `compare`, `plain` | ja | `plain` | `compare` macht daraus einen Schreibrahmen mit größeren Feldern, zum Beispiel `Hund: bellt` und `Hund Katze: Haustier`. |
 | `width` | CSS-Länge | -- | nein | `100%` | Breite des Blocks als CSS-Länge (`70%`, `12cm`, ...); Standard ist die volle Zeilenbreite. |
 
 **Beispiel** (identisch mit dem Menü "Einfügen" (Alt+I) im Editor):
@@ -1176,7 +1177,7 @@ Wortsuchrätsel-Antwortfeld. `words` listet die zu versteckenden Wörter, `diago
 | `horizontal` | Bool | -- | nein | `False` | Erlaubt horizontale Wortplatzierung (Standard: aus). Akzeptiert auch eine Richtungsliste. |
 | `min_cols` | Ganzzahl | -- | nein | -- | Mindestanzahl Spalten des Rätselrasters. |
 | `min_rows` | Ganzzahl | -- | nein | -- | Mindestanzahl Zeilen des Rätselrasters. |
-| `min_size` | Ganzzahl | -- | nein | -- | Mindestrastergröße (Zeilen und Spalten gemeinsam). |
+| `min_size` | Text | -- | nein | -- | Mindestrastergröße (Zeilen und Spalten gemeinsam). |
 | `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. |
 | `position` | Enum | `above`, `auto`, `below`, `left`, `right` | ja | `below` | Position einer Sekundärliste (Hinweisliste, Wortbank o. Ä.) relativ zum Hauptinhalt: `left`/`links`, `right`/`rechts`, `above`/`oben`, `below`/`unten` oder `auto` (positioniert rechts, wenn genug Platz neben dem Hauptinhalt bleibt, sonst darunter). *Besonderheit bei `wordsearch`:* Standard `below`, damit bestehende Dokumente ohne diese Option optisch unverändert bleiben. |
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |

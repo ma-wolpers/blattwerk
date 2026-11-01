@@ -150,6 +150,7 @@ def check(collect, _options, model: ClassModel) -> None:
             collect.add("CD007", "Assoziationen sind laut GO unspezifiziert; die Beschriftung kann entfallen.", anchor=f"CD007:{relation.line}")
     _check_objects(collect, model)
     _check_inheritance(collect, model)
+    _check_members(collect, model)
 
 
 def _inherited_attributes(model: ClassModel, name: str) -> tuple[set[str], bool]:
@@ -280,3 +281,36 @@ def render(options, content, include_solutions=False) -> str:
     for name, node in model.nodes.items():
         _draw_node(canvas, node, boxes[name])
     return canvas.finish("classdiagram", options, width, height)
+
+
+def _member_name(cell: Cell) -> str:
+    """Name eines Mitglieds ohne Sichtbarkeit und Konstruktor-Präfix."""
+    return re.split(r"[(:]", re.sub(r"^(?:[-+]\s*|c\s+)", "", cell.text), maxsplit=1)[0].strip()
+
+
+def _check_members(collect, model: ClassModel) -> None:
+    """Mitglieder gegen Klasse und Beziehungen (`CD011`-`CD014`).
+
+    Doppelte Attribute und falsche Konstruktornamen sind Versehen. Ein Attribut, dessen Typ
+    eine andere Klasse des Diagramms nennt, verlangt laut GO eine Beziehung dorthin.
+    """
+    linked = {frozenset((r.source, r.target)) for r in model.relations}
+    for node in model.nodes.values():
+        if node.is_object:
+            continue
+        names = [_member_name(cell) for cell in node.attributes if cell.text.strip() != "..."]
+        for name in {n for n in names if names.count(n) > 1}:
+            collect.add("CD011", f"`{name}` steht in `{node.name}` doppelt.", anchor=f"CD011:{node.name}:{name}")
+        for cell in node.operations:
+            if cell.text.startswith("c ") and _member_name(cell) != node.name:
+                collect.add("CD012", f"Der Konstruktor `{_member_name(cell)}` passt nicht zur Klasse `{node.name}`.", severity="error", anchor=f"CD012:{node.name}:{cell.text}")
+        for cell in node.attributes:
+            _name, _colon, kind = cell.text.partition(":")
+            for other in model.nodes.values():
+                if other.is_object or not re.search(rf"\b{re.escape(other.name)}\b", kind):
+                    continue
+                if frozenset((node.name, other.name)) not in linked:
+                    collect.add("CD013", f"`{node.name}` nutzt `{other.name}` als Typ, aber es gibt keine Beziehung `{node.name} - {other.name}`.", anchor=f"CD013:{node.name}:{other.name}")
+    for relation in model.relations:
+        if relation.inherits and (model.nodes[relation.source].is_object or model.nodes[relation.target].is_object):
+            collect.add("CD014", f"Objektkarten erben nicht: `{relation.source} -|> {relation.target}`.", severity="error", anchor=f"CD014:{relation.line}")

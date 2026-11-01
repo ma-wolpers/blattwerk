@@ -95,7 +95,7 @@ DIAGRAM_BLOCKS: tuple[DiagramBlockSpec, ...] = (
         empty_code="ST001",
         keywords=("start", "ende"),
         options=(
-            BlockOptionSpec("kind", "enum", frozenset({"dfa", "mealy", "pda"}), False, MISSING),
+            BlockOptionSpec("kind", "enum", frozenset({"dfa", "mealy", "pda"}), True, MISSING),
             BlockOptionSpec("input", "text", None, False, MISSING),
             BlockOptionSpec("output", "text", None, False, MISSING),
             BlockOptionSpec("stack", "text", None, False, MISSING),
@@ -114,7 +114,7 @@ DIAGRAM_BLOCKS: tuple[DiagramBlockSpec, ...] = (
         ),
         empty_code="GR001",
         options=(
-            BlockOptionSpec("layout", "enum", frozenset({"auto", "tree", "circle"}), False, "auto"),
+            BlockOptionSpec("layout", "enum", frozenset({"auto", "tree", "circle"}), True, "auto"),
             BlockOptionSpec("binary", "boolean", None, False, False),
         ),
     ),
@@ -165,7 +165,8 @@ DIAGRAM_BLOCKS: tuple[DiagramBlockSpec, ...] = (
         module="diagram_syntax",
         snippet=(
             ":::syntaxdiagram\n"
-            'Zahl = [ "-" ] Ziffer { Ziffer }\x01\n'
+            'Zahl = [ "-" ] Ziffer { Ziffer }\n'
+            'Ziffer = "0" | "1" | "2"\x01\n'
             ":::\n"
         ),
         empty_code="SY001",
@@ -181,7 +182,7 @@ DIAGRAM_BLOCKS: tuple[DiagramBlockSpec, ...] = (
         ),
         empty_code="LG001",
         options=(
-            BlockOptionSpec("norm", "enum", frozenset({"iec", "ansi"}), False, "iec"),
+            BlockOptionSpec("norm", "enum", frozenset({"iec", "ansi"}), True, "iec"),
             BlockOptionSpec("truthtable", "boolean", None, False, False),
             BlockOptionSpec("gaps", "boolean", None, False, False),
         ),
@@ -206,7 +207,7 @@ DIAGRAM_BLOCKS: tuple[DiagramBlockSpec, ...] = (
         module="diagram_term",
         snippet=":::termtree gaps=results\n(3+4)*2\x01\n:::\n",
         empty_code="TT001",
-        options=(BlockOptionSpec("gaps", "enum", frozenset({"none", "results", "leaves", "all"}), False, "none"),),
+        options=(BlockOptionSpec("gaps", "enum", frozenset({"none", "results", "leaves", "all"}), True, "none"),),
     ),
     DiagramBlockSpec(
         name="timeline",
@@ -214,7 +215,7 @@ DIAGRAM_BLOCKS: tuple[DiagramBlockSpec, ...] = (
         module="diagram_timeline",
         snippet=":::timeline\n1789: Französische Revolution\n1848: Märzrevolution\x01\n:::\n",
         empty_code="TL001",
-        options=(BlockOptionSpec("scale", "enum", frozenset({"even", "proportional"}), False, "even"),),
+        options=(BlockOptionSpec("scale", "enum", frozenset({"even", "proportional"}), True, "even"),),
     ),
     DiagramBlockSpec(
         name="chart",
@@ -223,8 +224,8 @@ DIAGRAM_BLOCKS: tuple[DiagramBlockSpec, ...] = (
         snippet=":::chart type=bar\nÄpfel: 12\nBirnen: 7\n% Kirschen: 3\x01\n:::\n",
         empty_code="CH001",
         options=(
-            BlockOptionSpec("type", "enum", frozenset({"bar", "pie", "box", "histogram", "scatter"}), False, "bar"),
-            BlockOptionSpec("gaps", "enum", frozenset({"none", "values"}), False, "none"),
+            BlockOptionSpec("type", "enum", frozenset({"bar", "pie", "box", "histogram", "scatter"}), True, "bar"),
+            BlockOptionSpec("gaps", "enum", frozenset({"none", "values"}), True, "none"),
         ),
     ),
     DiagramBlockSpec(
@@ -234,7 +235,7 @@ DIAGRAM_BLOCKS: tuple[DiagramBlockSpec, ...] = (
         snippet=":::venn\nA: 2, 4\nA B: 6\nB: %{3, 9}\x01\n:::\n",
         empty_code="VN001",
         keywords=("rest",),
-        options=(BlockOptionSpec("variant", "enum", frozenset({"plain", "compare"}), False, "plain"),),
+        options=(BlockOptionSpec("variant", "enum", frozenset({"plain", "compare"}), True, "plain"),),
     ),
     DiagramBlockSpec(
         name="arrowdiagram",
@@ -245,7 +246,7 @@ DIAGRAM_BLOCKS: tuple[DiagramBlockSpec, ...] = (
         options=(
             BlockOptionSpec("left", "text", None, False, MISSING),
             BlockOptionSpec("right", "text", None, False, MISSING),
-            BlockOptionSpec("kind", "enum", frozenset({"relation", "function"}), False, "relation"),
+            BlockOptionSpec("kind", "enum", frozenset({"relation", "function"}), True, "relation"),
         ),
     ),
     DiagramBlockSpec(
@@ -255,7 +256,7 @@ DIAGRAM_BLOCKS: tuple[DiagramBlockSpec, ...] = (
         snippet=":::fractions shape=circle\n3/4\n% 2/3\x01\n:::\n",
         empty_code="FR001",
         options=(
-            BlockOptionSpec("shape", "enum", frozenset({"circle", "bar"}), False, "circle"),
+            BlockOptionSpec("shape", "enum", frozenset({"circle", "bar"}), True, "circle"),
             BlockOptionSpec("filled", "boolean", None, False, True),
         ),
     ),
