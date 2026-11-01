@@ -22,7 +22,7 @@ from .blatt_ui_editor_panels import PANEL_DIAGNOSTICS, PANEL_PACK_OPTIONS
 from ..core.blatt_kern_shared import build_block_index_line_map
 from ..core.blatt_validator_types import BuildDiagnostic
 from ..core.diagnostic_identity import compute_diagnostic_identity
-from ..core.document_diagnostics import inspect_document_text
+from ..core.document_diagnostics import inspect_document_text, without_html_export_notices
 from ..core.document_type_registry import spec_for_type
 from ..storage import acknowledged_warnings_store
 from .ui_theme import get_theme
@@ -158,7 +158,7 @@ class BlattwerkAppEditorDiagnosticsMixin:
         structure = self._analyze_editor_block_structure(text)
         self._editor_block_pairs_cache = list(structure["pairs"])
 
-        source_diagnostics: list[BuildDiagnostic] = list(inspected.diagnostics)
+        source_diagnostics: list[BuildDiagnostic] = without_html_export_notices(inspected.diagnostics)
 
         if spec_for_type(inspected.document_type).blocks:
             for line_no, block_type in structure["close_suffix_lines"]:

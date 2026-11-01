@@ -4,21 +4,26 @@
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 from .dialog_services import messagebox
+from .preview_page_cache import CachedPreview, FileDependencyCollector
 from ..core.block_computation_cache import open_block_computation_cache
-from ..core.document_preview_build import build_preview_images_for_document
+from ..core.document_preview_build import build_preview_images_for_document, preview_environment_stamp
 from ..core.kurzentwurf_settings import (
     kurzentwurf_runtime_options_from_preferences,
 )
 from ..core.document_type_registry import (
-    DOCUMENT_TYPE_KURZENTWURF,
     PREVIEW_VARIANT_SOLUTION,
     PREVIEW_VARIANT_WORKSHEET,
     coerce_preview_variant,
     has_slide_layout,
 )
+from ..core.render_job import run_observed
+from ..storage.user_preferences_specs import PREFERENCE_SPECS
 from ..styles.blatt_styles import invalidate_stylesheet_template_cache
+
+_LOG = logging.getLogger(__name__)
 
 
 class BlattwerkAppPreviewRenderMixin:
@@ -46,29 +51,64 @@ class BlattwerkAppPreviewRenderMixin:
             if preview_variant is None:
                 preview_variant = PREVIEW_VARIANT_SOLUTION if include_solutions else PREVIEW_VARIANT_WORKSHEET
 
-            stats = input_path.stat()
-            kurzentwurf_runtime_key = None
-            if str(document_type or "").strip().lower() == DOCUMENT_TYPE_KURZENTWURF:
-                preferences = getattr(self, "user_preferences", {})
-                options = kurzentwurf_runtime_options_from_preferences(preferences)
-                kurzentwurf_runtime_key = tuple(sorted((str(k), repr(v)) for k, v in options.items()))
-
+            options = self._preview_build_options(
+                document_type, include_solutions, page_format, contrast_profile, preview_variant
+            )
             return (
                 str(input_path),
-                int(getattr(stats, "st_mtime_ns", int(stats.st_mtime * 1_000_000_000))),
-                int(stats.st_size),
-                str(preview_variant),
-                str(self.preview_black_screen_var.get()),
-                self._normalize_presentation_section_separator(self.preview_section_separator_var.get()),
-                self._parse_bool_setting(self.preview_hide_future_sections_var.get()),
-                str(page_format),
-                str(contrast_profile),
-                str(self.design_color_profile_var.get()),
-                str(self.design_font_profile_var.get()),
-                str(self.design_font_size_profile_var.get()),
-                self._effective_help_appendix(),
-                kurzentwurf_runtime_key,
+                input_path.read_bytes(),
+                repr(sorted(options.items())),
+                preview_environment_stamp(),
             )
+
+
+    def _preview_build_options(self, document_type, include_solutions, page_format, contrast_profile, preview_variant):
+            """Sammelt alle Render-Optionen der Vorschau an einer Stelle.
+
+            Einzige Quelle für den Render-Aufruf (`_render_pdf_pages`) und den Cache-Schlüssel
+            (`_build_preview_cache_key`). Liest beide getrennt, fehlt im Schlüssel leicht eine
+            Option, und nach einer Änderung erscheint ein veralteter Stand. Genau so fehlten
+            früher Copyright und Metadaten-Vorgaben.
+
+            Args:
+                document_type: Kanonischer Dokumenttyp.
+                include_solutions: Lösungsfassung rendern.
+                page_format: Seitenformat.
+                contrast_profile: Druck-/Kontrastprofil.
+                preview_variant: Ansicht (`document_type_registry.preview_variants`).
+
+            Returns:
+                Schlüsselwortargumente für `build_preview_images_for_document`, ohne den
+                Rechen-Cache, der das Ergebnis nicht verändert.
+            """
+            metadata_defaults = {}
+            if hasattr(self, "_metadata_defaults_from_preferences"):
+                metadata_defaults = self._metadata_defaults_from_preferences()
+            copyright_override = None
+            if hasattr(self, "_copyright_text_from_preferences"):
+                copyright_override = self._copyright_text_from_preferences() or None
+
+            return {
+                "document_type": document_type,
+                "include_solutions": include_solutions,
+                "page_format": page_format,
+                "contrast_profile": contrast_profile,
+                "worksheet_design": self._worksheet_design_options(),
+                "metadata_defaults": metadata_defaults,
+                "copyright_override": copyright_override,
+                "black_screen_mode": str(self.preview_black_screen_var.get() or "none").strip().lower(),
+                "presentation_section_separator": self._normalize_presentation_section_separator(
+                    self.preview_section_separator_var.get()
+                ),
+                "presentation_hide_future_sections": self._parse_bool_setting(
+                    self.preview_hide_future_sections_var.get()
+                ),
+                "kurzentwurf_options": kurzentwurf_runtime_options_from_preferences(
+                    getattr(self, "user_preferences", {})
+                ),
+                "preview_variant": preview_variant,
+                "help_appendix": self._effective_help_appendix(),
+            }
 
 
     def _active_document_tab_state(self):
@@ -126,16 +166,16 @@ class BlattwerkAppPreviewRenderMixin:
 
 
     def _refresh_preview_for_active_tab(self):
-            """Refreshes active tab preview while favoring cached pages when possible."""
+            """Refreshes active tab preview while favoring cached pages when possible.
+
+            Die Einstellung `preview_auto_refresh_on_tab_switch` erzwingt auf Wunsch den Neubau.
+            Nötig ist das selten: Der Cache-Schlüssel erkennt Änderungen an Inhalt und Optionen.
+            """
 
             preferences = getattr(self, "user_preferences", {})
-            raw_value = preferences.get("preview_auto_refresh_on_tab_switch", True)
-            if isinstance(raw_value, str):
-                auto_refresh = raw_value.strip().lower() in {"1", "true", "yes", "ja", "on"}
-            else:
-                auto_refresh = bool(raw_value)
-
-            self.refresh_preview(force_rebuild=auto_refresh)
+            setting = "preview_auto_refresh_on_tab_switch"
+            raw_value = preferences.get(setting, PREFERENCE_SPECS[setting]["default"])
+            self.refresh_preview(force_rebuild=self._parse_bool_setting(raw_value))
 
 
     def _render_pdf_pages(
@@ -154,45 +194,38 @@ class BlattwerkAppPreviewRenderMixin:
 
             invalidate_stylesheet_template_cache()
 
-            worksheet_design = self._worksheet_design_options()
-            black_screen_mode = str(self.preview_black_screen_var.get() or "none").strip().lower()
-            section_separator = self._normalize_presentation_section_separator(
-                self.preview_section_separator_var.get()
-            )
-            hide_future_sections = self._parse_bool_setting(
-                self.preview_hide_future_sections_var.get()
-            )
-            metadata_defaults = {}
-            if hasattr(self, "_metadata_defaults_from_preferences"):
-                metadata_defaults = self._metadata_defaults_from_preferences()
-            copyright_override = None
-            if hasattr(self, "_copyright_text_from_preferences"):
-                copyright_override = self._copyright_text_from_preferences() or None
-
             document_type = "worksheet"
             if hasattr(self, "_read_document_type"):
                 document_type = self._read_document_type(input_path)
 
-            preferences = getattr(self, "user_preferences", {})
-            kurzentwurf_options = kurzentwurf_runtime_options_from_preferences(preferences)
-
             return build_preview_images_for_document(
                 input_path,
-                document_type=document_type,
-                include_solutions=include_solutions,
-                page_format=page_format,
-                contrast_profile=contrast_profile,
-                worksheet_design=worksheet_design,
-                metadata_defaults=metadata_defaults,
-                copyright_override=copyright_override,
-                black_screen_mode=black_screen_mode,
-                presentation_section_separator=section_separator,
-                presentation_hide_future_sections=hide_future_sections,
-                kurzentwurf_options=kurzentwurf_options,
                 computation_cache=self._resolve_computation_cache(input_path),
-                preview_variant=preview_variant,
-                help_appendix=self._effective_help_appendix(),
+                **self._preview_build_options(
+                    document_type, include_solutions, page_format, contrast_profile, preview_variant
+                ),
             )
+
+
+    def _refresh_help_preview_if_changed(self, cache_key, force_rebuild, input_path, include_solutions, contrast_profile):
+            """Aktualisiert ein offenes Lernhilfen-Fenster, wenn sich der Stand geändert hat.
+
+            Das Fenster druckt sonst bei jeder Aktualisierung neu, auch wenn die Hauptvorschau
+            aus dem Cache kommt.
+
+            Args:
+                cache_key: Schlüssel des aktuellen Vorschau-Stands; None erzwingt das Neuzeichnen.
+                force_rebuild: Der Nutzer hat ausdrücklich einen Neubau verlangt.
+                input_path: Quelldatei.
+                include_solutions: Kartensichtbarkeit wie in der Lösungsfassung.
+                contrast_profile: Druck-/Kontrastprofil.
+            """
+            if self.help_preview_window is None or not self.help_preview_window.winfo_exists():
+                return
+            if not force_rebuild and cache_key is not None and cache_key == getattr(self, "_help_preview_cache_key", None):
+                return
+            self._refresh_help_preview(input_path, include_solutions, contrast_profile)
+            self._help_preview_cache_key = cache_key
 
 
     def refresh_preview(self, force_rebuild=False):
@@ -249,23 +282,15 @@ class BlattwerkAppPreviewRenderMixin:
                             preview_variant=preview_variant,
                         )
                     except Exception:
+                        _LOG.warning("Vorschau-Cache-Schlüssel nicht bestimmbar: %s", input_path, exc_info=True)
                         cache_key = None
 
-                cached_images = tab_state.get("preview_images") if isinstance(tab_state, dict) else None
+                cached = None
+                if not force_rebuild and tab_state is not None and cache_key is not None:
+                    cached = self._preview_page_cache.get(cache_key)
 
-                last_cached_page_format = tab_state.get("_preview_page_format") if tab_state else None
-                page_format_changed = page_format != last_cached_page_format
-
-                if (
-                    not force_rebuild
-                    and not page_format_changed
-                    and tab_state is not None
-                    and cache_key is not None
-                    and tab_state.get("preview_cache_key") == cache_key
-                    and isinstance(cached_images, list)
-                    and bool(cached_images)
-                ):
-                    self.preview_images = cached_images
+                if cached is not None and cached.images:
+                    self.preview_images = list(cached.images)
                     self._last_preview_input_path = input_path
                     self.current_page_index = max(
                         0,
@@ -285,15 +310,10 @@ class BlattwerkAppPreviewRenderMixin:
                             input_path=input_path,
                             include_solutions=include_solutions,
                         )
-                    if (
-                        self.help_preview_window is not None
-                        and self.help_preview_window.winfo_exists()
-                    ):
-                        self._refresh_help_preview(
-                            input_path,
-                            include_solutions,
-                            contrast_profile,
-                        )
+                    self._refresh_help_preview_if_changed(
+                        cache_key, force_rebuild, input_path, include_solutions, contrast_profile
+                    )
+                    self._show_compile_overflow_warnings(cached.diagnostics, "Vorschau")
                     self._refresh_zoom_label()
                     self.status_var.set("Vorschau aus Cache geladen")
                     self._update_nav_buttons()
@@ -308,20 +328,30 @@ class BlattwerkAppPreviewRenderMixin:
                     self.status_var.set("Erstelle Vorschau…")
                     self.root.update_idletasks()
                     self._show_document_diagnostics(input_path, "Vorschau")
-                    self.preview_images, compile_diagnostics = self._render_pdf_pages(
-                        input_path,
-                        include_solutions,
-                        page_format,
-                        contrast_profile,
-                        preview_variant,
+                    file_dependencies = FileDependencyCollector()
+                    self.preview_images, compile_diagnostics = run_observed(
+                        lambda: self._render_pdf_pages(
+                            input_path,
+                            include_solutions,
+                            page_format,
+                            contrast_profile,
+                            preview_variant,
+                        ),
+                        file_dependencies,
                     )
                     self._show_compile_overflow_warnings(compile_diagnostics, "Vorschau")
                     self._last_preview_input_path = input_path
 
                     if tab_state is not None and cache_key is not None:
-                        tab_state["preview_cache_key"] = cache_key
-                        tab_state["preview_images"] = list(self.preview_images)
-                        tab_state["_preview_page_format"] = page_format
+                        self._preview_page_cache.put(
+                            cache_key,
+                            CachedPreview(
+                                images=tuple(self.preview_images),
+                                diagnostics=tuple(compile_diagnostics),
+                                dependencies=file_dependencies.dependencies,
+                                path=str(input_path),
+                            ),
+                        )
 
                     if self.preview_images:
                         self.current_page_index = min(previous_page_index, len(self.preview_images) - 1) if preserve_position else 0
@@ -351,15 +381,9 @@ class BlattwerkAppPreviewRenderMixin:
                             include_solutions=include_solutions,
                         )
 
-                    if (
-                        self.help_preview_window is not None
-                        and self.help_preview_window.winfo_exists()
-                    ):
-                        self._refresh_help_preview(
-                            input_path,
-                            include_solutions,
-                            contrast_profile,
-                        )
+                    self._refresh_help_preview_if_changed(
+                        cache_key, force_rebuild, input_path, include_solutions, contrast_profile
+                    )
 
                     self.status_var.set("Vorschau aktualisiert")
                 except Exception as error:

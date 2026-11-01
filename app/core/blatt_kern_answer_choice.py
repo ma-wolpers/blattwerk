@@ -232,13 +232,18 @@ def _normalize_gap_mode(value):
     return "approx"
 
 def _shuffle_word_bank(words):
-    """Mischt Lösungswörter und vermeidet die Originalreihenfolge, falls möglich."""
+    """Mischt Lösungswörter und vermeidet die Originalreihenfolge, falls möglich.
+
+    Die Mischung ergibt sich fest aus den Wörtern, wie bei Kreuzworträtsel und Wortgitter:
+    Jede Aktualisierung zeigt dieselbe Reihenfolge, Vorschau und Export stimmen überein.
+    Andere Wörter ergeben eine andere Mischung.
+    """
     if len(words) <= 1:
         return list(words)
 
     original = list(words)
     shuffled = list(words)
-    rng = random.SystemRandom()
+    rng = random.Random(repr(original))
 
     for _ in range(8):
         rng.shuffle(shuffled)

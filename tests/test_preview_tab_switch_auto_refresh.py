@@ -10,12 +10,12 @@ class _DummyPreview(BlattwerkAppPreviewMixin):
         self.force_rebuild_calls.append(bool(force_rebuild))
 
 
-def test_tab_switch_preview_refresh_defaults_to_force_rebuild():
+def test_tab_switch_preview_refresh_defaults_to_the_cache():
     dummy = _DummyPreview()
 
     dummy._refresh_preview_for_active_tab()
 
-    assert dummy.force_rebuild_calls == [True]
+    assert dummy.force_rebuild_calls == [False]
 
 
 def test_tab_switch_preview_refresh_can_use_cache_when_disabled():

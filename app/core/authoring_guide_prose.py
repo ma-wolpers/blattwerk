@@ -223,7 +223,7 @@ PROSE_SECTIONS: dict[str, str] = {
         "`$$formel$$` (freistehend) für mathematische Formeln (LaTeX-Syntax, z. B. `$\\frac{a}{b}$`, "
         "`$x_i$`). Vorschau und PDF setzen Formeln auch ohne Internet. Eine exportierte HTML-Datei "
         "laedt MathJax beim Oeffnen von einem CDN nach; ohne Internet zeigt sie die rohe Formel-Quelle "
-        "als lesbaren Text -- der Editor weist nicht-blockierend darauf hin (`MJ001`). Ein "
+        "als lesbaren Text -- der HTML-Export weist nicht-blockierend darauf hin (`MJ001`). Ein "
         "einzelnes, nicht als Formel gemeintes `$`-Zeichen (z. B. `$5`) wird nicht faelschlich als "
         "Formelbeginn erkannt, solange kein passendes zweites `$` unmittelbar danach folgt. "
         "`**$formel$**`/`**$$formel$$**` setzt die Formel selbst fett (nicht nur Text drumherum) -- "
@@ -353,7 +353,7 @@ PROSE_SECTIONS: dict[str, str] = {
         "Formelzeile -- dafür sind die Tabellenzellen zu schmal; der Editor weist mit dem abhakbaren "
         "Hinweis `KZF161` darauf hin). Vorschau und PDF setzen Formeln auch ohne Internet. Eine "
         "exportierte HTML-Datei lädt MathJax beim Öffnen von einem CDN nach; ohne Internet zeigt "
-        "sie die rohe Formel-Quelle als Text -- der Editor weist einmal pro Dokument darauf hin "
+        "sie die rohe Formel-Quelle als Text -- der HTML-Export weist einmal pro Dokument darauf hin "
         "(`KZF160`). Ein einzelnes `$` wie in `$5` wird nicht als Formelbeginn erkannt."
     ),
     "kurzentwurf:marker:ant>": (

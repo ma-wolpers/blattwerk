@@ -2,12 +2,16 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from pathlib import Path
 from typing import Mapping
 
 from PIL import Image
 
+from ..styles.blatt_styles import STYLESHEET_TEMPLATE_PATH
+from .blatt_kern_shared import get_current_school_year_label
 from .kurzentwurf_runtime.build import build_preview_images as build_kurzentwerfer_preview_images
+from .operator_legend import OPERATOR_DATA_DIR
 from .pdf_raster import rasterize_pdf, temp_pdf_path
 
 from .blatt_validator import BuildDiagnostic
@@ -26,6 +30,25 @@ from .document_type_registry import (
 from .exam_expectation_horizon import build_expectation_horizon
 from .plain_markdown_render import build_plain_markdown
 from .schild_render import build_schild
+
+
+def preview_environment_stamp() -> tuple:
+    """Alles außerhalb von Dokument und Optionen, was das Ergebnis eines Laufs verändert.
+
+    Teil des Cache-Schlüssels der Vorschau: das Schuljahr in der Kopfzeile, das Jahr im
+    Copyright, die CSS-Vorlage und die Operatorendaten (beide dürfen sich in der laufenden
+    Sitzung ändern).
+
+    Returns:
+        Hashbares Tupel, das sich ändert, sobald sich eine dieser Quellen ändert.
+    """
+    operator_files = sorted(OPERATOR_DATA_DIR.glob("*.json")) if OPERATOR_DATA_DIR.exists() else []
+    return (
+        get_current_school_year_label(),
+        datetime.now().year,
+        STYLESHEET_TEMPLATE_PATH.stat().st_mtime_ns if STYLESHEET_TEMPLATE_PATH.exists() else None,
+        tuple((path.name, path.stat().st_mtime_ns) for path in operator_files),
+    )
 
 
 def build_preview_images_for_document(

@@ -20,6 +20,23 @@ from .kurzentwurf_runtime.validator import inspect_kurzentwerfer_text
 from .schild_validator import inspect_schild_text
 
 
+HTML_EXPORT_ONLY_CODES = frozenset({"MJ001", "KZF160"})
+"""Formel-Hinweise: Nur eine exportierte HTML-Datei braucht noch Internet für MathJax
+(`mathjax_support`), in Vorschau, Editor und PDF wären sie falscher Alarm."""
+
+
+def without_html_export_notices(diagnostics) -> list[BuildDiagnostic]:
+    """Entfernt die Hinweise, die nur beim HTML-Export gelten.
+
+    Args:
+        diagnostics: Diagnosen eines Dokuments.
+
+    Returns:
+        Die Diagnosen ohne `HTML_EXPORT_ONLY_CODES`.
+    """
+    return [diagnostic for diagnostic in diagnostics if diagnostic.code not in HTML_EXPORT_ONLY_CODES]
+
+
 @dataclass(frozen=True)
 class DocumentDiagnosticsResult:
     """Diagnosen samt dem Typ, für den sie ermittelt wurden."""

@@ -80,6 +80,7 @@ class BlattwerkAppPersistenceTabsMixin:
                 tab_path = tab_state.get("path")
                 if isinstance(tab_path, str):
                     self._document_tab_path_index.pop(tab_path, None)
+                    self._preview_page_cache.drop(tab_path)
             self._document_tab_order = [item for item in self._document_tab_order if item != tab_id]
 
             self._tab_switch_in_progress = True

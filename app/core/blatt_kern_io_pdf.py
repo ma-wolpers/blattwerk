@@ -18,7 +18,7 @@ from .pdf_running_elements import (  # noqa: F401 -- re-exportiert (wiring.py)
     annotate_pdf_running_elements,
 )
 from .mathjax_support import prepare_html_for_print
-from .render_job import stage
+from .render_job import note_file_dependency, stage
 from .render_stages import STAGE_PRINT
 
 
@@ -157,12 +157,20 @@ def _chromium_command(browser, html_uri, out_pdf_path):
     ]
 
 
+def _note_local_image_dependencies(html):
+    """Meldet alle lokal eingebundenen Bilder, auch fehlende, an den Render-Beobachter."""
+    for match in _IMG_SRC_PATTERN.finditer(html):
+        local_path = _file_uri_to_local_path(match.group(3))
+        if local_path is not None:
+            note_file_dependency(local_path)
+
+
 def write_pdf_from_html(html, out_pdf_path):
     """Schreibt HTML über einen Headless-Browser als PDF-Datei.
 
-    Meldet die Render-Stufe ``print``. Das ist die einzige Stelle mit einem
-    Chromium-Druck, deshalb zählt sie alle Pipelines und auch den zweiten Durchgang der
-    Operatorenliste.
+    Meldet die Render-Stufe ``print`` und die eingebundenen Bilder. Das ist die einzige
+    Stelle mit einem Chromium-Druck, deshalb erfasst sie alle Pipelines, den zweiten
+    Durchgang der Operatorenliste und den Lernhilfen-Anhang.
     """
     browser = find_chromium_executable()
     if not browser:
@@ -172,6 +180,8 @@ def write_pdf_from_html(html, out_pdf_path):
 
     out_pdf_path = Path(out_pdf_path)
     out_pdf_path.parent.mkdir(parents=True, exist_ok=True)
+
+    _note_local_image_dependencies(html)
 
     with stage(STAGE_PRINT), tempfile.TemporaryDirectory() as temp_dir_name:
         temp_dir = Path(temp_dir_name)

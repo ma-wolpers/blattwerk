@@ -141,6 +141,7 @@ def test_cache_key_separates_solution_and_expectation(tmp_path):
     host.design_color_profile_var = _Var("indigo")
     host.design_font_profile_var = _Var("segoe")
     host.design_font_size_profile_var = _Var("normal")
+    host._worksheet_design_options = lambda: "design"
 
     def key(include_solutions, variant):
         return host._build_preview_cache_key(

@@ -230,7 +230,7 @@ PREFERENCE_SPECS = {
         "tab": "view_layout",
         "label": "Vorschau bei Tabwechsel automatisch aktualisieren",
         "type": "bool",
-        "default": True,
+        "default": False,
     },
     "preview_auto_refresh_on_edit_idle_enabled": {
         "tab": "view_layout",

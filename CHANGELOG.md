@@ -8,7 +8,15 @@ The format is based on Keep a Changelog.
 
 ### Changed
 - **Vorschau und PDF-Export sind viel schneller:** Ein Arbeitsblatt mit fünf Seiten braucht rund 1 Sekunde statt 6, mit Operatorenliste oder Lernhilfen-Anhang rund 1,7 Sekunden statt 10 bis 12. Bisher wurde bei jedem Druck die Formel-Darstellung aus dem Internet geladen, auch ohne Formel im Dokument.
-- **Formeln brauchen für Vorschau und PDF kein Internet mehr:** Blattwerk bringt die Formel-Darstellung (MathJax) jetzt mit. Bisher blieben Formeln ohne Internet roher Text. Eine exportierte HTML-Datei lädt sie weiterhin beim Öffnen aus dem Internet.
+- **Formeln brauchen für Vorschau und PDF kein Internet mehr:** Blattwerk bringt die Formel-Darstellung (MathJax) jetzt mit. Bisher blieben Formeln ohne Internet roher Text. Eine exportierte HTML-Datei lädt sie weiterhin beim Öffnen aus dem Internet. Der Hinweis dazu (`MJ001`/`KZF160`) erscheint deshalb nur noch beim HTML-Export.
+- **Ansichten wechseln ohne Wartezeit:** Die Vorschau merkt sich jetzt mehrere Stände je Dokument. Der Wechsel zwischen Aufgabe und Lösung, A4 und A5 oder zurück zu einem geöffneten Tab kommt sofort aus dem Speicher. Auch Speichern ohne inhaltliche Änderung löst keinen neuen Druck aus.
+- **Leertaste und „Aktualisieren“ rendern immer neu:** Damit lässt sich die Vorschau jederzeit erzwingen, etwa nach einer Änderung an einem Bild aus dem Internet. Die automatische Aktualisierung nach einer Tipp-Pause nutzt dagegen den Speicher, wenn sich nichts geändert hat.
+- **Tab-Wechsel nutzt standardmäßig den Speicher:** Die Einstellung „Vorschau bei Tabwechsel automatisch aktualisieren“ bleibt, ist aber neu standardmäßig aus. Ein bereits gespeichertes „an“ bleibt erhalten.
+- **Wortbank bleibt stabil:** Die Reihenfolge ergibt sich fest aus den Wörtern und ändert sich nicht mehr bei jeder Aktualisierung. Vorschau und Export stimmen dadurch überein. Bestehende Blätter können beim nächsten Export einmalig eine andere Reihenfolge zeigen.
+- **Warnungen aus dem Rendern kommen seltener:** Dieselbe Warnung erscheint nur noch einmal pro Dokumentstand und nennt den richtigen Vorgang („Vorschau“ oder „Export“).
+
+### Fixed
+- **Keine veraltete Vorschau mehr:** Änderungen an eingebundenen Bildern (auch neu aufgetauchte), am Copyright-Text, an Metadaten-Vorgaben, an der CSS-Vorlage und an Operatorendaten werden jetzt erkannt.
 
 ### Added
 - **Auskommentieren mit `%`:** Ist im Schreibbereich Text markiert, kommentiert ein Druck auf `%` ihn als `%%…%%` aus, ein zweiter Druck wieder ein – wie `=` für Hervorhebungen. Bei mehreren markierten Zeilen wird jede Zeile einzeln umgeschaltet: bereits auskommentierte Zeilen werden wieder einkommentiert, die übrigen auskommentiert; Einrückung und Leerzeilen bleiben erhalten.

@@ -39,6 +39,9 @@ class _Host(BlattwerkAppPreviewMixin):
         self.design_font_profile_var = _Var("segoe")
         self.design_font_size_profile_var = _Var("normal")
 
+    def _worksheet_design_options(self):
+        return "design"
+
 
 def test_effective_value_follows_radios_only_where_the_appendix_exists():
     assert _Host(DOCUMENT_TYPE_WORKSHEET, HELP_APPENDIX_SINGLE)._effective_help_appendix() == HELP_APPENDIX_SINGLE

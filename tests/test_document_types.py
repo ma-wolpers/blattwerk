@@ -200,6 +200,8 @@ def test_preview_cache_key_changes_for_kurzentwurf_runtime_options(tmp_path):
             ),
             "_parse_bool_setting": staticmethod(BlattwerkAppPreviewMixin._parse_bool_setting),
             "_effective_help_appendix": lambda self: "none",
+            "_worksheet_design_options": lambda self: "design",
+            "_preview_build_options": BlattwerkAppPreviewMixin._preview_build_options,
             "user_preferences": {"kurzentwurf_column_widths_text": "10 20 60 10"},
         },
     )()

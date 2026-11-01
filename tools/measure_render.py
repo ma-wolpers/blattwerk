@@ -36,7 +36,7 @@ from app.core.build_requests import WorksheetDesignOptions  # noqa: E402
 from app.core.document_preview_build import build_preview_images_for_document  # noqa: E402
 from app.core.document_semantics import type_for_path  # noqa: E402
 from app.core.help_cards_appendix import HELP_APPENDIX_NONE, HELP_APPENDIX_SHEET  # noqa: E402
-from app.core.render_job import run_bound  # noqa: E402
+from app.core.render_job import RenderObserver, run_observed  # noqa: E402
 
 HEAD = "---\nTitel: Messung\nFach: Mathematik\nThema: Synthetisch\n---\n"
 HEARTBEAT_SECONDS = 0.005
@@ -124,8 +124,8 @@ class Variant:
 
 
 @dataclass
-class StageTimer:
-    """Stufen-Empfänger: sammelt exklusive Zeiten und die längste GIL-Sperre je Stufe."""
+class StageTimer(RenderObserver):
+    """Beobachter: sammelt exklusive Zeiten und die längste GIL-Sperre je Stufe."""
 
     times: dict[str, float] = field(default_factory=lambda: defaultdict(float))
     max_gap: dict[str, float] = field(default_factory=lambda: defaultdict(float))
@@ -143,9 +143,6 @@ class StageTimer:
         """Beginnt eine Stufe; die äußere pausiert."""
         self._account()
         self._stack.append(key)
-
-    def stage_progress(self, fraction: float) -> None:
-        """Fortschritt innerhalb einer Stufe ist für die Zeitmessung ohne Belang."""
 
     def stage_left(self, key: str) -> None:
         """Beendet die Stufe; die äußere läuft weiter."""
@@ -223,7 +220,7 @@ def _build_once(path: Path, scenario: Scenario) -> tuple[float, StageTimer, list
     timer.stage_entered(_PRE_STAGE)
     started = time.perf_counter()
     with Heartbeat(timer):
-        pages, _diagnostics = run_bound(None, work, sink=timer)
+        pages, _diagnostics = run_observed(work, timer)
     total = time.perf_counter() - started
     timer.stage_left(_PRE_STAGE)
     return total, timer, pages

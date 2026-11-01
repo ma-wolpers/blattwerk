@@ -148,7 +148,7 @@ def test_worksheet_export_keeps_black_screen_off(monkeypatch, tmp_path):
     host._set_last_dialog_dir = lambda *_args: None
     host._detect_document_type = lambda _path: "worksheet"
     host._solutions_renderable_for_type = lambda _type: True
-    host._show_export_diagnostics = lambda _path: None
+    host._show_export_diagnostics = lambda _path, **_kwargs: None
     host._export_pdf = fake_export_pdf
 
     host.open_worksheet_export_dialog(input_path=Path("blatt.abw"))

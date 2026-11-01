@@ -414,24 +414,24 @@ class BlattwerkAppEditorSourceMixin:
         if not self._flush_unsaved_editor_changes():
             return
 
-        self.refresh_preview(force_rebuild=True)
+        self.refresh_preview()
 
-    def _compile_now(self, force_rebuild=False):
+    def _compile_now(self):
         """Manual compile (button / spacebar): cancels the pending idle
         auto-refresh timer instead of letting it fire again redundantly
         right after this manual build. Flushes unsaved editor changes to
         disk first (`refresh_preview` reads the file, not the editor
         buffer) and aborts without rebuilding if that save fails.
-        `force_rebuild` defaults to `False` here, matching the previous
-        direct `refresh_preview` binding, to keep the cache-hit benefit for
-        manual compiles.
+        Always rebuilds: this is the one way to replace a cached result by
+        hand, e.g. after an image behind an `http(s)` link changed, which the
+        cache cannot notice.
         """
         self._cancel_editor_auto_preview_refresh()
 
         if not self._flush_unsaved_editor_changes():
             return
 
-        self.refresh_preview(force_rebuild=force_rebuild)
+        self.refresh_preview(force_rebuild=True)
 
     def _on_editor_modified(self, _event=None):
         """Schedules a debounced save after user edits (``on_text_modified``: flag check and reset are bw-gui's)."""

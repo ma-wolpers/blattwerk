@@ -157,14 +157,19 @@ class BlattwerkAppExportSupportMixin:
             return f"{base} · {footer_extra}"
         return base
 
-    def _show_export_diagnostics(self, input_path: Path):
-        """Zeigt nicht-blockierende Warnungen vor dem Export an."""
+    def _show_export_diagnostics(self, input_path: Path, *, html_export: bool = False):
+        """Zeigt nicht-blockierende Warnungen vor dem Export an.
+
+        Args:
+            input_path: Quelldatei.
+            html_export: Das Ziel ist eine HTML-Datei; nur dann gelten die Formel-Hinweise.
+        """
         preferences = getattr(self, "user_preferences", {})
         if not bool(preferences.get("pre_export_diagnostics_enabled", True)):
             return
 
         warning_payload = build_warning_payload(
-            input_path, "Export", acknowledged_repo=acknowledged_warnings_store
+            input_path, "Export", acknowledged_repo=acknowledged_warnings_store, html_export=html_export
         )
         if warning_payload is None or warning_payload["count"] <= 0:
             return
@@ -175,7 +180,16 @@ class BlattwerkAppExportSupportMixin:
         )
 
     def _show_compile_overflow_warnings(self, diagnostics, context_label: str = "Export"):
-        """Zeigt PT002-/PPTX001-/PPTX002-Warnungen aus dem Compile-/Render-Schritt."""
+        """Zeigt Warnungen aus dem Compile-/Render-Schritt einmal pro Dokumentzustand.
+
+        Einzige Stelle für Vorschau und Export, gefiltert über
+        `_SURFACED_COMPILE_WARNING_CODES`. Dieselben Meldungen im selben Kontext erscheinen
+        nicht erneut, sonst käme die Warnung bei jeder Aktualisierung der Vorschau wieder.
+
+        Args:
+            diagnostics: Diagnosen des Laufs.
+            context_label: Kontext für Titel und Text, etwa "Vorschau" oder "Export".
+        """
 
         overflow_warnings = [
             diag for diag in (diagnostics or [])
@@ -184,10 +198,15 @@ class BlattwerkAppExportSupportMixin:
         if not overflow_warnings:
             return
 
+        signature = (context_label, tuple((diag.code, str(diag.message)) for diag in overflow_warnings))
+        if signature == getattr(self, "_last_compile_warning_signature", None):
+            return
+        self._last_compile_warning_signature = signature
+
         lines = [f"- {diag.code}: {diag.message}" for diag in overflow_warnings]
         messagebox.showwarning(
             f"Blattwerk-Warnungen ({context_label})",
-            "Export lief weiter, aber es gibt Compile-Warnungen:\n\n" + "\n".join(lines),
+            f"{context_label} lief weiter, aber es gibt Compile-Warnungen:\n\n" + "\n".join(lines),
         )
 
     def _with_solution_suffix(self, path_obj: Path):

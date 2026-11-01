@@ -12,6 +12,7 @@ from bw_gui.runtime import AppShellConfig
 
 from app.app_info import APP_INFO
 from app.bootstrap.wiring import AppDependencies
+from .preview_page_cache import PreviewPageCache
 from .blatt_shortcuts import build_preview_keybinding_registry
 from .ui_constants import EDITOR_DOCUMENT_NOT_LOADED, EDITOR_VIEW_PREVIEW_ONLY, VIEW_FIT_WIDTH, VIEW_LAYOUT_SINGLE
 from bw_gui.contracts.hsm import build_ui_hsm_contract
@@ -229,6 +230,7 @@ class BlattwerkAppBase(
         self.preview_page_format_buttons = {}
         self._current_preview_document_type = None
         self._preview_refresh_in_progress = False
+        self._preview_page_cache = PreviewPageCache()
         self._last_preview_page_format_by_mode = {
             "worksheet": "a4_portrait",
             "presentation": "presentation_16_9",

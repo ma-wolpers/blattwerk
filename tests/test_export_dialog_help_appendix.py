@@ -97,7 +97,7 @@ def _host(tmp_path, effective, document_type="worksheet", cards=1):
     host._set_last_dialog_dir = lambda *_args: None
     host._detect_document_type = lambda _path: document_type
     host._solutions_renderable_for_type = lambda _type: True
-    host._show_export_diagnostics = lambda _path: None
+    host._show_export_diagnostics = lambda _path, **_kwargs: None
     return host
 
 

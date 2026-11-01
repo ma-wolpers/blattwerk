@@ -104,8 +104,6 @@ class BlattwerkDocumentTabsMixin:
             "current_page_index": int(self.current_page_index),
             "x_view_start": 0.0,
             "y_view_start": 0.0,
-            "preview_cache_key": None,
-            "preview_images": [],
         }
         if self._font_size_profile_is_per_tab():
             tab_state["font_size_profile"] = self.design_font_size_profile_var.get()

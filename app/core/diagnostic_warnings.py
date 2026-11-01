@@ -6,7 +6,7 @@ from pathlib import Path
 
 from .diagnostic_acknowledgment import AcknowledgedWarningsRepository, filter_unacknowledged
 from .diagnostic_identity import compute_diagnostic_identity
-from .document_diagnostics import document_warning_title, inspect_document_path
+from .document_diagnostics import document_warning_title, inspect_document_path, without_html_export_notices
 
 
 def build_warning_payload(
@@ -16,6 +16,7 @@ def build_warning_payload(
     acknowledged_repo: AcknowledgedWarningsRepository,
     max_items: int = 8,
     document_type: str | None = None,
+    html_export: bool = False,
 ):
     """Create warning title/message/signature for non-blocking diagnostics.
 
@@ -25,7 +26,9 @@ def build_warning_payload(
     port this must satisfy) -- `app/core` never imports the concrete
     `app/storage` implementation, the caller (UI layer) injects it.
     `document_type` overrides the type derived from the file extension
-    (needed for a tab temporarily interpreted as Markdown).
+    (needed for a tab temporarily interpreted as Markdown). `html_export` keeps
+    the notices that only concern an exported HTML file
+    (`document_diagnostics.HTML_EXPORT_ONLY_CODES`).
     """
 
     try:
@@ -38,6 +41,8 @@ def build_warning_payload(
         for diagnostic in inspected.diagnostics
         if str(getattr(diagnostic, "severity", "warning")).lower() != "error"
     ]
+    if not html_export:
+        diagnostics = without_html_export_notices(diagnostics)
 
     try:
         document_path = str(input_path)

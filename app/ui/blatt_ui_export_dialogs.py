@@ -98,7 +98,7 @@ class BlattwerkAppExportDialogsMixin:
         try:
             self.status_var.set("Export läuft…")
             self.root.update_idletasks()
-            self._show_export_diagnostics(input_path)
+            self._show_export_diagnostics(input_path, html_export=fmt == "html")
             compile_diagnostics = []
 
             if fmt == "pdf":
@@ -223,7 +223,7 @@ class BlattwerkAppExportDialogsMixin:
         try:
             self.status_var.set("Export läuft…")
             self.root.update_idletasks()
-            self._show_export_diagnostics(input_path)
+            self._show_export_diagnostics(input_path, html_export=fmt == "html")
             compile_diagnostics = []
 
             if fmt == "pdf":

@@ -181,36 +181,6 @@ class BlattwerkAppPreviewFilesMixin:
                 "Das Dokument wurde trotzdem verarbeitet.\n\n" + warning_payload["message"],
             )
 
-
-    def _show_compile_overflow_warnings(self, diagnostics, context_label: str):
-            """Zeigt PT002-/IM003-Warnungen aus dem Compile-/Render-Schritt einmalig pro Zustand."""
-
-            overflow_warnings = [
-                diag for diag in (diagnostics or [])
-                if str(getattr(diag, "code", "")) in {"PT002", "IM003"}
-            ]
-            if not overflow_warnings:
-                return
-
-            signature = (
-                context_label,
-                tuple(str(getattr(diag, "message", "")) for diag in overflow_warnings),
-            )
-            if signature == getattr(self, "_last_compile_overflow_warning_signature", None):
-                return
-            self._last_compile_overflow_warning_signature = signature
-
-            lines = [
-                f"- {diag.code}: {diag.message}"
-                for diag in overflow_warnings
-            ]
-            messagebox.showwarning(
-                f"Blattwerk-Warnungen ({context_label})",
-                "Rendern lief weiter, aber es gibt Compile-Warnungen:\n\n"
-                + "\n".join(lines),
-            )
-
-
     def pick_input(self):
             """Öffnet den Dateidialog für Blattwerk-, Markdown- und sonstige Dateien."""
             dialog_kwargs = {

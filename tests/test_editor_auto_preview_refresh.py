@@ -72,7 +72,7 @@ def test_run_editor_auto_preview_refresh_saves_and_rebuilds_preview():
 
     assert app.root.after_cancel_calls == ["save-1"]
     assert app.save_calls == [True]
-    assert app.refresh_calls == [True]
+    assert app.refresh_calls == [False]
 
 
 def test_run_editor_auto_preview_refresh_skips_preview_when_save_fails():
@@ -109,7 +109,7 @@ def test_compile_now_flushes_unsaved_changes_before_building():
     assert "save-1" in app.root.after_cancel_calls
     assert app._editor_save_after_id is None
     assert app.save_calls == [True]
-    assert app.refresh_calls == [False]
+    assert app.refresh_calls == [True]
 
 
 def test_compile_now_skips_build_when_save_fails():
@@ -123,18 +123,10 @@ def test_compile_now_skips_build_when_save_fails():
     assert app.refresh_calls == []
 
 
-def test_compile_now_defaults_to_cache_aware_rebuild():
+def test_compile_now_always_rebuilds():
     app = _DummyEditor()
 
     app._compile_now()
-
-    assert app.refresh_calls == [False]
-
-
-def test_compile_now_forwards_force_rebuild_flag():
-    app = _DummyEditor()
-
-    app._compile_now(force_rebuild=True)
 
     assert app.refresh_calls == [True]
 
@@ -145,4 +137,4 @@ def test_compile_now_without_pending_timer_still_builds():
 
     app._compile_now()
 
-    assert app.refresh_calls == [False]
+    assert app.refresh_calls == [True]
