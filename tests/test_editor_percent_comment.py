@@ -9,6 +9,7 @@ from __future__ import annotations
 import tkinter as tk
 
 import pytest
+from bw_gui.testing.tk_root import create_tk_root
 
 from app.ui.blatt_ui_editor_keys import BlattwerkAppEditorKeysMixin
 from app.ui.editor_marker_shortcuts import apply_percent_marker
@@ -53,10 +54,7 @@ def test_line_with_two_comments_is_not_a_whole_line_comment():
 @pytest.fixture(scope="module")
 def tk_root():
     """Ein unsichtbares Tk-Fenster für das ganze Modul."""
-    try:
-        root = tk.Tk()
-    except tk.TclError as error:
-        pytest.skip(f"no Tk display available: {error}")
+    root = create_tk_root()
     root.withdraw()
     yield root
     root.destroy()

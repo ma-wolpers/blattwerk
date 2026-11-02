@@ -10,6 +10,7 @@ from __future__ import annotations
 import tkinter as tk
 
 import pytest
+from bw_gui.testing.tk_root import create_tk_root
 
 from app.ui.blatt_ui_editor_diagnostics import BlattwerkAppEditorDiagnosticsMixin
 from app.ui.blatt_ui_editor_panels import (
@@ -27,10 +28,7 @@ EXAM_TEXT = "---\ndocument_type: exam\nTitel: T\nFach: M\nThema: X\n---\n:::task
 
 @pytest.fixture(scope="module")
 def tk_root():
-    try:
-        root = tk.Tk()
-    except tk.TclError as error:
-        pytest.skip(f"no Tk display available: {error}")
+    root = create_tk_root()
     root.geometry("+0+0")
     yield root
     root.destroy()

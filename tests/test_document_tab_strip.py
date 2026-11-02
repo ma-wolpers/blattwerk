@@ -14,6 +14,7 @@ from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 
 ensure_bw_gui_on_path()
 from bw_gui.runtime import ui, widgets
+from bw_gui.testing.tk_root import create_tk_root
 from bw_gui.theming import configure_ttk_theme
 
 from app.ui.blatt_ui_persistence import BlattwerkAppPersistenceMixin
@@ -59,10 +60,7 @@ def _module_tk_root():
     a Tcl runtime race unrelated to the code under test (same finding as bw-gui's
     ``tests/conftest.py``). Tests get a clean slate via ``harness`` teardown.
     """
-    try:
-        root = ui.Tk()
-    except ui.TclError as error:
-        pytest.skip(f"no Tk display available: {error}")
+    root = create_tk_root(ui.Tk)
     configure_ttk_theme(root, "charcoal")
     yield root
     root.destroy()

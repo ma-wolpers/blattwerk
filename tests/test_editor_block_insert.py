@@ -6,9 +6,8 @@ Anbindung an das Tk-Textfeld (`_insert_block_from_menu`). Nur synthetische Inhal
 
 from __future__ import annotations
 
-import tkinter as tk
-
 import pytest
+from bw_gui.testing.tk_root import create_tk_root
 
 from app.core.block_insert_snippets import BLOCK_INSERT_SNIPPETS
 from app.ui.blatt_ui_editor_multicursor import MATH_CROSSING_MESSAGE
@@ -19,10 +18,7 @@ from editor_state_support import _RealEditor, _write, no_real_dialogs  # noqa: F
 def tk_root():
     """Ein unsichtbarer Interpreter für die ganze Datei (viele `Tk()` hintereinander stolpern
     sporadisch über `init.tcl`; Fokus wird hier nicht geprüft)."""
-    try:
-        root = tk.Tk()
-    except tk.TclError as error:
-        pytest.skip(f"no Tk display available: {error}")
+    root = create_tk_root()
     root.withdraw()
     yield root
     root.destroy()

@@ -13,6 +13,7 @@ import tkinter as tk
 from pathlib import Path
 
 import pytest
+from bw_gui.testing.tk_root import create_tk_root
 
 from app.ui import dialog_services
 from app.ui.blatt_ui_editor import BlattwerkAppEditorMixin
@@ -32,10 +33,7 @@ def tk_root():
     regardless of focus_set() calls on child widgets, verified empirically).
     """
 
-    try:
-        root = tk.Tk()
-    except tk.TclError as error:
-        pytest.skip(f"no Tk display available: {error}")
+    root = create_tk_root()
     root.geometry("+0+0")
     # Only the first Tk toplevel a process creates gets real OS input focus
     # automatically (verified empirically); later ones stay unfocused unless

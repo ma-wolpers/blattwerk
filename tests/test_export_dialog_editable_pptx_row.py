@@ -19,19 +19,15 @@ window hierarchy being mapped to the display, which a deliberately
 withdrawn window never is, regardless of `pack()` state.
 """
 
-import tkinter as tk
-
 import pytest
+from bw_gui.testing.tk_root import create_tk_root
 
 from app.ui.export_dialog import PresentationExportDialog
 
 
 @pytest.fixture
 def tk_root():
-    try:
-        root = tk.Tk()
-    except tk.TclError as error:
-        pytest.skip(f"no Tk display available: {error}")
+    root = create_tk_root()
     root.withdraw()
     yield root
     root.destroy()

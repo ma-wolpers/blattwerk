@@ -10,6 +10,7 @@ from __future__ import annotations
 import tkinter as tk
 
 import pytest
+from bw_gui.testing.tk_root import create_tk_root
 
 from app.ui.blatt_ui_document_font import APP_DEFAULT_FONT_CHOICE, BlattwerkAppDocumentFontMixin
 from app.ui.ui_constants import EDITOR_DOCUMENT_LOADED, EDITOR_DOCUMENT_NOT_LOADED
@@ -21,10 +22,7 @@ DOC = "---\nTitel: T\nFach: M\nThema: X\n---\n:::task\nA\n:::\n"
 def tk_root():
     """Ein unsichtbares Tk-Fenster fuer das ganze Modul (wiederholtes `tk.Tk()` ist unter
     Windows gelegentlich instabil)."""
-    try:
-        root = tk.Tk()
-    except tk.TclError as error:
-        pytest.skip(f"no Tk display available: {error}")
+    root = create_tk_root()
     root.withdraw()
     yield root
     root.destroy()

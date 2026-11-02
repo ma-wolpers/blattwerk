@@ -11,8 +11,6 @@ win32-Werte.
 
 from __future__ import annotations
 
-import tkinter
-
 import pytest
 
 from app.ui.blatt_ui_shortcut_runtime import BlattwerkShortcutRuntimeMixin
@@ -22,6 +20,7 @@ from bw_gui.contracts.key_spec import KeySpec
 from bw_gui.contracts.keybinding import UI_MODE_DIALOG, UI_MODE_GLOBAL, KeyBindingDefinition, KeybindingRegistry
 from bw_gui.runtime import create_root, ui
 from bw_gui.testing.keys import press_key
+from bw_gui.testing.tk_root import create_tk_root
 
 SHIFT, CAPSLOCK, CONTROL, NUMLOCK, ALT_WIN32 = 0x0001, 0x0002, 0x0004, 0x0008, 0x20000
 
@@ -29,13 +28,7 @@ SHIFT, CAPSLOCK, CONTROL, NUMLOCK, ALT_WIN32 = 0x0001, 0x0002, 0x0004, 0x0008, 0
 @pytest.fixture(scope="module")
 def root():
     """Ein zurückgezogener Tk-Root mit bw-gui-Router (Retry bei der Tcl-Init-Race unter Windows)."""
-    for attempt in range(3):
-        try:
-            instance = create_root()
-            break
-        except tkinter.TclError as exc:
-            if "usable" not in str(exc) or attempt == 2:
-                raise
+    instance = create_tk_root(create_root)
     instance.withdraw()
     yield instance
     instance.destroy()

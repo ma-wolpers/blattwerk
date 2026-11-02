@@ -9,6 +9,7 @@ mittendrin (die Undo-Klammer liefert `replace_editor_text` über bw-guis
 import tkinter as tk
 
 import pytest
+from bw_gui.testing.tk_root import create_tk_root
 
 from app.ui.blatt_ui_editor import BlattwerkAppEditorMixin
 
@@ -17,10 +18,7 @@ _TABLE = "| A | B |\n| --- | --- |\n| 1 | 2 |\n"
 
 @pytest.fixture(scope="module")
 def tk_root():
-    try:
-        root = tk.Tk()
-    except tk.TclError as error:
-        pytest.skip(f"no Tk display available: {error}")
+    root = create_tk_root()
     root.withdraw()
     yield root
     root.destroy()

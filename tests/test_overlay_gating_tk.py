@@ -30,6 +30,7 @@ from bw_gui.menu.custom_menu_bar import CustomMenuBar  # noqa: E402
 from bw_gui.menu.menu_types import MenuItem  # noqa: E402
 from bw_gui.runtime import create_root, topmost_window, ui  # noqa: E402
 from bw_gui.runtime.overlay_stack import OverlayCategory, register_overlay, unregistered_visible_toplevels  # noqa: E402
+from bw_gui.testing.tk_root import create_tk_root  # noqa: E402
 
 from app.ui.blatt_ui_shortcut_runtime import BlattwerkShortcutRuntimeMixin  # noqa: E402
 
@@ -69,13 +70,7 @@ class _FormerRegistry:
 @pytest.fixture(scope="module")
 def root():
     """Sichtbarer Root (transiente Popups eines versteckten Masters blieben versteckt)."""
-    for attempt in range(3):
-        try:
-            instance = create_root()
-            break
-        except tkinter.TclError as exc:
-            if not any(m in str(exc) for m in ("usable", "tcl_findLibrary", "init.tcl")) or attempt == 2:
-                raise
+    instance = create_tk_root(create_root)
     instance.geometry("300x200+30+30")
     instance.update()
     yield instance

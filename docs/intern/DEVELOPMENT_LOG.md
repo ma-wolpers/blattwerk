@@ -8,6 +8,10 @@ Regel:
 
 ## [Unreleased]
 
+- **Tk-Tests in CI ohne Display (2026-11-02).** Quality Guardrails war seit mindestens 2026-11-01 rot: 13 Fehler `no display name and no $DISPLAY` in `test_app_startup_tk.py`, `test_overlay_gating_tk.py` und `test_window_shortcuts_modifiers.py`. Ihre Retry-Schleifen für die Tcl-Init-Race warfen jeden anderen `TclError` weiter, statt ohne Display zu überspringen.
+  - Alle elf Tk-Root-Fixtures nutzen jetzt `bw_gui.testing.tk_root.create_tk_root(factory)` (bw-gui 18bd571). Dort steht die eine Regel: Init-Race wiederholen, nur ohne Display oder bei anhaltender Race überspringen, jeder andere `TclError` bleibt ein Testfehler.
+  - Die acht einfachen Fixtures übersprangen bisher bei *jedem* `TclError`, also auch bei der Race (lokal sporadisch 7 Skips) und bei echten Widget-Fehlern. Jetzt läuft die volle Suite lokal ohne Skip.
+
 - **Umlaute in sichtbaren Meldungen (2026-11-02, GUI-Umlaut-Regel).** 142 Ersetzungen in 35 Dateien unter `app/core`, nur in Zeichenketten, die keine Docstrings und keine Log-Aufrufe sind, über eine feste Wortliste (kein pauschales `ue`->`ü`, weil neue/Quelle/muss richtig sind). Bewusst ASCII geblieben, weil es Schlüssel oder akzeptierte Eingaben sind:
   - der Kurzentwurf-Spaltenschlüssel `aktivitaeten` (DSL-Tags, CSS-Klasse),
   - der Alias `Groesse` der Erwartungstypen,

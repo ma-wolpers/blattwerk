@@ -14,12 +14,11 @@ Menü-Hinweistexte kommen aus der Registry.
 
 from __future__ import annotations
 
-import tkinter
-
 import pytest
 
 from bw_gui.runtime.key_router import router_for
 from bw_gui.testing.keys import press_key
+from bw_gui.testing.tk_root import create_tk_root
 
 SHIFT, CONTROL = 0x0001, 0x0004
 
@@ -36,14 +35,7 @@ def app(tmp_path_factory):
                  "ROOT_LEGACY_RECENT_FILES_PATH", "ROOT_LEGACY_UI_SETTINGS_PATH"):
         target = state_dir if name == "STORAGE_STATE_DIR" else state_dir / f"{name.lower()}.json"
         patcher.setattr(local_config_store, name, target)
-    for attempt in range(3):
-        try:
-            instance = BlattwerkApp()
-            break
-        except tkinter.TclError as exc:
-            # Bekannte Tcl-Init-Race beim wiederholten Erzeugen von Tk-Interpretern unter Windows.
-            if not any(m in str(exc) for m in ("usable", "tcl_findLibrary", "init.tcl")) or attempt == 2:
-                raise
+    instance = create_tk_root(BlattwerkApp)
     instance.root.update()
     yield instance
     instance.root.destroy()
