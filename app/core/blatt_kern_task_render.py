@@ -23,6 +23,7 @@ from .answer_special_mindmap import render_mindmap_block
 from .blatt_validator_constants import ANSWER_BLOCK_TYPES
 from .diagram_block_catalog import DIAGRAM_BLOCK_NAMES
 from .diagram_block_dispatch import render_diagram_block
+from .document_type_registry import content_heading_offset
 from .answer_special_selfcheck import render_selfcheck_block
 from .answer_special_writebox import render_writebox_block
 from .blatt_kern_answer_dispatch import _render_answer_block
@@ -133,7 +134,11 @@ def _render_block_body(
     include_solutions=False,
     document_type="worksheet",
 ):
-    """Rendert einen einzelnen Blocktyp nach HTML (ohne `data-block-type`-Tagging, siehe `render_block()`)."""
+    """Rendert einen einzelnen Blocktyp nach HTML (ohne `data-block-type`-Tagging, siehe `render_block()`).
+
+    Freier Text (`raw`) und alle Blockrümpfe teilen sich einen Konverter, dessen
+    Überschriften-Versatz `content_heading_offset(document_type)` festlegt.
+    """
     if not should_render_block(
         block_type,
         options,
@@ -143,7 +148,8 @@ def _render_block_body(
         return ""
 
     object_alignment = _normalize_object_alignment(block_type, options)
-    md = _new_markdown_converter()
+    heading_offset = content_heading_offset(document_type)
+    md = _new_markdown_converter(heading_offset=heading_offset)
     normalized_content = normalize_markdown(content)
 
     if block_type == "raw":
@@ -235,7 +241,7 @@ def _render_block_body(
         show_label = _option_is_enabled(options.get("label"), default=True)
         label_html = "<div class='solution-label'>Lösung</div>" if show_label else ""
         return _wrap_with_object_alignment(
-            f"<div class='solution'>{label_html}{render_solution_html(content)}</div>",
+            f"<div class='solution'>{label_html}{render_solution_html(content, heading_offset)}</div>",
             object_alignment,
         )
 

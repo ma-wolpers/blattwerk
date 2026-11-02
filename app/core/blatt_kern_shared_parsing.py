@@ -61,11 +61,13 @@ def _parse_inline_control_marker(stripped_line):
     return None
 
 
-def _new_markdown_converter(lists=True):
+def _new_markdown_converter(lists=True, heading_offset=0):
     """Erzeugt eine frische Markdown-Instanz für einen Render-Schritt.
 
     Args:
         lists: ``False`` = Listenmarker bleiben wörtlich (Tabellenzellen).
+        heading_offset: Überschriften so viele Ebenen tiefer setzen (Blockinhalte:
+            `document_type_registry.content_heading_offset`).
 
     Registriert den zentralen `inline_markup`-Preprocessor (siehe
     `inline_markup/markdown_bridge.py`) -- dieselbe Funktion, die auch
@@ -77,7 +79,7 @@ def _new_markdown_converter(lists=True):
     Aufbau und Listenverhalten (Startnummer geordneter Listen) kommen aus
     `markdown_factory.new_markdown`.
     """
-    return new_markdown(MARKDOWN_EXTENSIONS, lists=lists)
+    return new_markdown(MARKDOWN_EXTENSIONS, lists=lists, heading_offset=heading_offset)
 
 
 def convert_markdown_with_math(md, text):

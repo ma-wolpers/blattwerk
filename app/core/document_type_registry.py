@@ -235,6 +235,22 @@ def has_slide_layout(document_type: str) -> bool:
     return bool(spec and spec.slide_layout)
 
 
+BELOW_TITLE_HEADING_OFFSET = 1
+"""Versatz, mit dem `#` im Inhalt unter einem ``<h1>``-Dokumenttitel landet (``<h2>``)."""
+
+
+def content_heading_offset(document_type: str) -> int:
+    """Um wie viele Ebenen Markdown-Überschriften im Blockinhalt tiefer gesetzt werden.
+
+    Ohne Folien-Layout setzt `blatt_kern_layout_render.render_html` den `Titel` als
+    ``<h1>``; ein ``#`` im Inhalt wird dann ``<h2>`` usw., damit es nicht wie der
+    Dokumenttitel aussieht. Folien zeigen den Titel nur in der Kopfzeile, dort bleibt
+    ``#`` die oberste Folienüberschrift. Abgeleitet aus `has_slide_layout`, damit
+    Titel-Regel und Versatz nicht auseinanderlaufen.
+    """
+    return 0 if has_slide_layout(document_type) else BELOW_TITLE_HEADING_OFFSET
+
+
 def shows_work_hints(document_type: str) -> bool:
     """Ob Sozialform-Icons gerendert werden (unbekannte Typen: ja, wie Arbeitsblatt)."""
     spec = _SPECS_BY_ID.get(document_type)

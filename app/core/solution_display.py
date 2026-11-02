@@ -27,15 +27,21 @@ _LIST_INDENT = 4
 _LEADING_PARAGRAPH_RE = re.compile(r"^<p>(.*?)</p>", re.DOTALL)
 
 
-def render_solution_html(content: str) -> str:
-    """Rendert den Inhalt eines Lösungsblocks (ohne die `Lösung`-Beschriftung)."""
+def render_solution_html(content: str, heading_offset: int = 0) -> str:
+    """Rendert den Inhalt eines Lösungsblocks (ohne die `Lösung`-Beschriftung).
+
+    Args:
+        content: Rohinhalt des Blocks.
+        heading_offset: Überschriften so viele Ebenen tiefer setzen, wie bei allen
+            Blockinhalten (`document_type_registry.content_heading_offset`).
+    """
     parts = []
     for segment in classify_solution(content).segments:
         if segment.is_items:
-            items = "\n".join(f"<li>{_render_entry(entry, segment.loose)}</li>" for entry in segment.entries)
+            items = "\n".join(f"<li>{_render_entry(entry, segment.loose, heading_offset)}</li>" for entry in segment.entries)
             parts.append(f"<ol>\n{items}\n</ol>")
         elif "".join(segment.text).strip():
-            parts.append(_convert("\n".join(segment.text)))
+            parts.append(_convert("\n".join(segment.text), heading_offset))
     return "\n".join(parts)
 
 
@@ -51,11 +57,11 @@ def display_head(visible_head: str) -> str:
     return f"{visible_head[: suffix.span[0]]}{display_suffix(suffix)}{visible_head[suffix.span[1]:]}"
 
 
-def _render_entry(entry: SolutionEntry, loose: bool) -> str:
+def _render_entry(entry: SolutionEntry, loose: bool, heading_offset: int) -> str:
     """Inhalt eines Listenpunkts: Kopf plus Fortsetzung, um die Listeneinrückung ausgerückt."""
     head, *rest = entry.visible_lines()
     body = "\n".join([display_head(head), *(_outdent(line) for line in rest)]).rstrip()
-    html = _convert(body)
+    html = _convert(body, heading_offset)
     if not loose:
         html = _LEADING_PARAGRAPH_RE.sub(r"\1", html, count=1)
     return html
@@ -69,6 +75,6 @@ def _outdent(line: str) -> str:
     return line[min(stripped, _LIST_INDENT):]
 
 
-def _convert(text: str) -> str:
+def _convert(text: str, heading_offset: int) -> str:
     """Markdown-Pipeline wie bei allen anderen Blöcken, mit frischem Konverter je Stück."""
-    return convert_markdown_with_math(_new_markdown_converter(), normalize_markdown(text))
+    return convert_markdown_with_math(_new_markdown_converter(heading_offset=heading_offset), normalize_markdown(text))

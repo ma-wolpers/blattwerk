@@ -8,6 +8,8 @@ Regel:
 
 ## [Unreleased]
 
+- **Überschriften-Versatz unter dem Dokumenttitel (2026-11-03).** `#` im Inhalt war dasselbe `<h1>` wie der `Titel` (`worksheet.css`/`worksheet_design.py` stylen jedes `h1` zentriert mit Linie). Neu: `markdown_factory.new_markdown(heading_offset=…)` (Treeprocessor), `document_type_registry.content_heading_offset`/`BELOW_TITLE_HEADING_OFFSET`. Explizit durchgereicht in `_render_block_body` und `render_solution_html`, nicht als ContextVar (Regel in `render_job.py`: was das Ergebnis beeinflusst, bleibt sichtbarer Parameter). Tests: `tests/test_content_heading_offset.py`.
+
 - **Tk-Tests in CI ohne Display (2026-11-02).** Quality Guardrails war seit mindestens 2026-11-01 rot: 13 Fehler `no display name and no $DISPLAY` in `test_app_startup_tk.py`, `test_overlay_gating_tk.py` und `test_window_shortcuts_modifiers.py`. Ihre Retry-Schleifen für die Tcl-Init-Race warfen jeden anderen `TclError` weiter, statt ohne Display zu überspringen.
   - Alle elf Tk-Root-Fixtures nutzen jetzt `bw_gui.testing.tk_root.create_tk_root(factory)` (bw-gui 18bd571). Dort steht die eine Regel: Init-Race wiederholen, nur ohne Display oder bei anhaltender Race überspringen, jeder andere `TclError` bleibt ein Testfehler.
   - Die acht einfachen Fixtures übersprangen bisher bei *jedem* `TclError`, also auch bei der Race (lokal sporadisch 7 Skips) und bei echten Widget-Fehlern. Jetzt läuft die volle Suite lokal ohne Skip.

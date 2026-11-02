@@ -9,7 +9,8 @@ Semantik (festgelegt im Architektur-Doc, `.md`-Abschnitt):
 * **Mathe:** `$…$`/`$$…$$` über `math_span_protection` und MathJax, dieselbe
   Konfiguration wie im Arbeitsblatt.
 * **Frontmatter:** wird nach der einen Grenzregel (`frontmatter.py`) erkannt
-  und **nicht gerendert**; `Titel` (falls ein String) wird Dokumenttitel.
+  und **nicht gerendert**; `Titel` (falls ein String) wird Dokumenttitel
+  (``<h1>``), Überschriften im Text rücken dann eine Ebene tiefer.
   Alle anderen Keys -- auch `mode` -- werden ignoriert. Ein kaputtes YAML
   im Frontmatter verhindert das Rendern nicht (der Kopf bleibt trotzdem
   ausgeblendet).
@@ -28,6 +29,7 @@ import yaml
 
 from .blatt_kern_io_html import absolutize_local_image_sources
 from .blatt_kern_io_pdf import write_pdf_from_html
+from .document_type_registry import BELOW_TITLE_HEADING_OFFSET
 from .export_staging import write_document_output
 from .export_path_guardrails import validate_export_output_path
 from .frontmatter import frontmatter_bounds, load_frontmatter_yaml
@@ -70,7 +72,9 @@ def render_plain_markdown_html(text: str) -> str:
     """Rendert schlichtes Markdown zu einem vollständigen HTML-Dokument."""
     meta, body = split_plain_markdown(text)
     title = meta.get("Titel") if isinstance(meta.get("Titel"), str) else ""
-    converter = new_markdown(PLAIN_MARKDOWN_EXTENSIONS, inline_markup=False)
+    # Mit Titel ist der die einzige <h1>; `#` im Text rückt dann eine Ebene tiefer.
+    heading_offset = BELOW_TITLE_HEADING_OFFSET if title else 0
+    converter = new_markdown(PLAIN_MARKDOWN_EXTENSIONS, inline_markup=False, heading_offset=heading_offset)
     body_html = convert_markdown_with_math(converter, body, lambda value: value)
     heading = f"<h1>{escape(title)}</h1>\n" if title else ""
     return (

@@ -6,6 +6,9 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Changed
+- **Überschriften im Text sehen nicht mehr aus wie der Dokumenttitel.** Auf Arbeitsblättern und in Klausuren rückt jede Markdown-Überschrift eine Ebene tiefer: `#` erscheint so groß wie bisher `##`, `##` wie `###` usw. (`#####` und `######` sind beide die kleinste Stufe). Der `Titel` aus dem Kopf ist damit die einzige oberste Überschrift. Präsentationen bleiben unverändert, weil der Titel dort nur in der Kopfzeile steht. Schlichte `.md`-Dateien rücken nur, wenn sie einen `Titel` haben.
+
 ## [0.5.0] - 2026-11-02
 
 ### Changed
