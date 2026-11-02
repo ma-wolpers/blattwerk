@@ -181,7 +181,19 @@ Die Leiste „Vorschau-Optionen“ über der Vorschau startet eingeklappt; mit �
 - CSS-Anpassung: `docs/nutzer/CSS_ANLEITUNG.md`
 - Arbeitsblatt-Regeln (Praxis): `docs/intern/ARBEITSBLATT_NOTIZEN.md`
 
-## 9a) Markdown-Tabellen automatisch umwandeln
+## 9a) Blöcke einfügen (Alt+I)
+
+- `Alt+I` öffnet das Menü „Einfügen“. Ein Buchstabe fügt den Block sofort ein, auch wenn er in einem Untermenü steht. Alt darf dabei gedrückt bleiben. Der Buchstabe steht rechts neben jedem Eintrag.
+- Buchstaben: `T` Aufgabe, `S` Teilaufgabe, `R` Musterlösung, `F` Info, `M` Material, `H` Hilfe, `A` Auswahlaufgabe, `K` Lückentext, `O` Reihenfolge, `W` Wortsuchrätsel, `B` Tabelle, `E` Koordinatensystem, `N` Zahlengerade, `V` Ankreuztabelle, `X` Kreuzworträtsel, `Z` Zuordnung, `L` Linien, `G` Gitter, `D` Punkte, `P` freier Platz, `U` Mindmap, `Ü` Selbsteinschätzung, `Y` Schreibrahmen, `C` Spalten, `Q` QR-Code, `I` Bild. Bewertungs- und Operatorentabelle sowie die Diagramme haben keinen Buchstaben.
+- **Ohne Markierung** steht der Block auf eigenen Zeilen am Cursor. Mitten in einer Zeile wird die Zeile dort geteilt. Der Cursor steht danach im Inhalt.
+- **Mit Markierung** wird der markierte Text der Inhalt des Blocks.
+  - Steht in der Markierung ein Trenner (`--`, `--!`, `-+` und andere) oder eine einzeilige Blockzeile, entstehen mehrere Blöcke, und die Trenner bleiben dazwischen stehen.
+  - Ganz markierte Blöcke werden nicht verschachtelt, sondern bekommen nur den neuen Blocktyp. Optionen, die der neue Typ nicht kennt, fallen weg; die Statusleiste nennt sie.
+  - Bei `C` (Spalten) wird jeder durch `--` getrennte Teil eine eigene Spalte, höchstens 6. Ohne `--` kommt die Markierung in die erste von zwei Spalten.
+- Ein `Strg+Z` macht das Einfügen ganz rückgängig.
+- Nicht möglich, mit Hinweis in der Statusleiste: ein Block in einem anderen Block, Spalten in Spalten, eine Markierung, die einen Block nur teilweise erfasst oder eine Formel `$…$` schneidet, eine Markierung für Blöcke ohne Inhalt (z. B. Bewertungstabelle) und das Einfügen mit mehreren Cursorn.
+
+## 9b) Markdown-Tabellen automatisch umwandeln
 
 - Menü `Extras > Markdown-Tabellen in Blattwerk-Tabellen umwandeln` erkennt gewöhnliche GFM-Markdown-Tabellen (Kopfzeile, `---`-Trennzeile, Datenzeilen) im gerade geöffneten Tab und wandelt sie automatisch in native `:::table`-Blöcke um -- ungewöhnlich formatierte oder sehr exotische Tabellen werden dabei bewusst übersprungen statt riskant falsch umgewandelt (eine Meldung nennt dann den Grund).
 - **Ein einziges Ctrl+Z macht den gesamten Umwandlungsvorgang in einem Schritt rückgängig**, egal wie viele Tabellen dabei umgewandelt wurden.

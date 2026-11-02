@@ -48,12 +48,13 @@ element           = block | self_closing_block | section_break | raw_markdown ;
 
 frontmatter       = delim, newline, yaml_lines, delim, newline* ;
 delim             = "---" ;
-section_break     = ("---" | "--"), newline ;
+section_break     = "--", newline ;            (* "---" ist kein Trenner, sondern eine Trennlinie *)
 
 block             = block_open, block_content, block_close ;
-block_open        = ":::", ws?, block_name, (ws, options)?, newline ;
-block_close       = ":::", newline? ;
-self_closing_block= ":::", ws?, block_name, (ws, options)?, ws?, ":::", newline? ;
+block_open        = ":::", block_name, (ws, options)?, newline ;   (* kein Leerzeichen nach ":::" (BL002) *)
+block_content     = { content_line } ;          (* keine Kopf-, Schluss- oder Trennzeile (BL004, BL005) *)
+block_close       = ":::", newline? ;           (* allein auf der Zeile; offen am Ende: BL017 *)
+self_closing_block= ":::", block_name, (ws, options)?, ws?, ":::", newline? ;
 
 options           = option, (ws, option)* ;
 option            = key, "=", value ;
