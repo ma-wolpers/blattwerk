@@ -2125,6 +2125,7 @@ h1 {
 
 .diagram-table {
     border-collapse: collapse;
+    box-shadow: 3px 3px 0 color-mix(in srgb, var(--diagram-main) 42%, white);
 }
 
 .diagram-table th {
@@ -2213,6 +2214,51 @@ h1 {
     stroke-width: 1;
 }
 
+/* Flacher Versatz nach rechts unten: dieselbe Form in kräftigerer Farbe, ohne Linie. */
+.diagram-svg .diagram-offset {
+    stroke: none;
+}
+
+.diagram-offset-main {
+    fill: color-mix(in srgb, var(--diagram-main) 42%, white);
+}
+
+.diagram-offset-second {
+    fill: color-mix(in srgb, var(--diagram-second) 42%, white);
+}
+
+.diagram-offset-data-1 {
+    fill: color-mix(in srgb, var(--diagram-data-1, var(--diagram-main)) 62%, var(--diagram-ink));
+}
+
+.diagram-offset-data-2 {
+    fill: color-mix(in srgb, var(--diagram-data-2, var(--diagram-main)) 62%, var(--diagram-ink));
+}
+
+.diagram-offset-data-3 {
+    fill: color-mix(in srgb, var(--diagram-data-3, var(--diagram-main)) 62%, var(--diagram-ink));
+}
+
+.diagram-offset-data-4 {
+    fill: color-mix(in srgb, var(--diagram-data-4, var(--diagram-main)) 62%, var(--diagram-ink));
+}
+
+.diagram-offset-data-5 {
+    fill: color-mix(in srgb, var(--diagram-data-5, var(--diagram-main)) 62%, var(--diagram-ink));
+}
+
+.diagram-offset-data-6 {
+    fill: color-mix(in srgb, var(--diagram-data-6, var(--diagram-main)) 62%, var(--diagram-ink));
+}
+
+.diagram-offset-data-7 {
+    fill: color-mix(in srgb, var(--diagram-data-7, var(--diagram-main)) 62%, var(--diagram-ink));
+}
+
+.diagram-offset-data-8 {
+    fill: color-mix(in srgb, var(--diagram-data-8, var(--diagram-main)) 62%, var(--diagram-ink));
+}
+
 .diagram-fill {
     fill: color-mix(in srgb, var(--diagram-main) 50%, white);
     stroke: var(--diagram-ink);
@@ -2224,7 +2270,9 @@ h1 {
 }
 
 /* Leicht runde Ecken, wo keine Form sie verbietet: GO-Klassen, Balken und Bruchteile bleiben eckig. */
-.diagram:not(.diagram-classdiagram):not(.diagram-chart):not(.diagram-fractions) rect[class*="diagram-tone"] {
+.diagram:not(.diagram-classdiagram):not(.diagram-chart):not(.diagram-fractions) rect[class*="diagram-tone"],
+.diagram:not(.diagram-classdiagram):not(.diagram-chart):not(.diagram-fractions) rect.diagram-offset-main,
+.diagram:not(.diagram-classdiagram):not(.diagram-chart):not(.diagram-fractions) rect.diagram-offset-second {
     rx: 3px;
 }
 
@@ -2310,6 +2358,10 @@ h1 {
 .stg-head,
 .stg-loop-text {
     background: color-mix(in srgb, var(--theme-accent-main, #777) 10%, white);
+}
+
+.stg {
+    box-shadow: 3px 3px 0 color-mix(in srgb, var(--theme-accent-main, #777) 42%, white);
 }
 
 .stg-gap {

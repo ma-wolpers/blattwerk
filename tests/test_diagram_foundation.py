@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+
 from app.core._editable_convert_js import _IMAGE_ONLY_BLOCK_TYPES
 from app.core.authoring_guide_prose import PROSE_SECTIONS
 from app.core.blatt_validator_constants import BLOCK_ALLOWED_OPTIONS, KNOWN_BLOCK_TYPES
@@ -111,12 +113,12 @@ def test_text_and_gaps_always_stand_on_a_light_ground():
         assert colorsys.rgb_to_hls(*channels)[1] >= 0.6, color
 
 
-def test_diagrams_use_flat_shades_without_gradients_or_shadows():
-    """Keine Verläufe und keine Schatten, weder im Bild noch im CSS der Diagramme."""
+def test_diagrams_use_flat_shades_without_gradients_or_blur():
+    """Keine Verläufe und keine unscharfen Schatten; der Versatz ist eine flache Form."""
     from pathlib import Path
 
     html = render_diagram_block("graph", {}, "A - B")
-    assert "Gradient" not in html and "<defs" not in html
+    assert "Gradient" not in html
     css = Path(__file__).resolve().parents[1].joinpath("assets", "worksheet.css").read_text(encoding="utf-8")
     section = css[css.index("/* Diagrammblöcke"): css.index("/* Struktogramm (:::structogram)")]
     assert "gradient" not in section.replace("Verläufen", "") and "drop-shadow" not in section
@@ -133,3 +135,36 @@ def test_data_palette_is_colorful_except_in_black_and_white():
     assert all(c[1:3] == c[3:5] == c[5:7] for c in data_palette("#4C5ED9", True))
     for profile in COLOR_PROFILE_ORDER:
         assert "--diagram-data-8:" in build_design_css(profile)
+
+
+def test_offset_repeats_the_shape_with_the_same_measures():
+    """Der Versatz ist dieselbe Form, nur verschoben, also auch mit denselben Ecken."""
+    html = render_diagram_block("timeline", {}, "1789: a")
+    shape = re.search(r"<rect class='diagram-data-1' ([^>]*?) />", html).group(1)
+    assert f"<rect class='diagram-offset diagram-offset-data-1' {shape} transform='translate(3 3)' />" in html
+
+
+def test_parts_inside_a_shape_have_no_own_offset():
+    """Kopf einer Klasse und innerer Kreis eines Endzustands werfen keinen eigenen Versatz."""
+    classes = render_diagram_block("classdiagram", {}, "klasse A\n    - x: Ganzzahl")
+    assert classes.count("diagram-offset ") == 1
+    assert classes.count("diagram-flat") == 1
+    state = render_diagram_block("statediagram", {}, "start -> A\nende: A\nA -> A: x")
+    assert state.count("<ellipse class='diagram-offset ") == 1
+
+
+def test_bar_offset_stops_at_the_axis():
+    """Balken und Histogramm ragen nicht unter die x-Achse."""
+    for options, content in (({"type": "bar"}, "A: 4\nB: 2"), ({"type": "histogram"}, "0-10: 4\n10-20: 2")):
+        html = render_diagram_block("chart", options, content)
+        axis = max(float(y) for y in re.findall(r"<line class='diagram-line' x1='[\d.]+' y1='([\d.]+)' x2='[\d.]+' y2='\1'", html))
+        offsets = re.findall(r"<rect class='diagram-offset [^']*' x='[\d.]+' y='([\d.]+)' width='[\d.]+' height='([\d.]+)'", html)
+        assert len(offsets) == 2
+        for top, height in offsets:
+            assert float(top) + float(height) <= axis + 0.1
+
+
+def test_pie_has_one_offset_for_the_whole_circle():
+    """Der Kreis bekommt einen Versatz, die Sektoren keinen eigenen."""
+    html = render_diagram_block("chart", {"type": "pie"}, "A: 1\nB: 2\nC: 3")
+    assert html.count("diagram-offset ") == 1

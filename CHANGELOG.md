@@ -23,7 +23,7 @@ The format is based on Keep a Changelog.
 
 ### Added
 - **Netzwerkplan mit mehr Symbolen:** Laptop, Tablet, Handy und WLAN haben eigene Symbole, das Internet ist eine einzelne Wolke.
-- **Diagramme in den Farben des Farbprofils:** Alle Diagrammblöcke und die Köpfe im Struktogramm nutzen flache Abstufungen des gewählten Farbprofils. Wo Farben Dinge auseinanderhalten, etwa im Kreisdiagramm, gibt es mehrere passende Farben, im Schwarz-Weiß-Profil nur Grau. Text und Lücken stehen immer auf hellem Grund.
+- **Diagramme in den Farben des Farbprofils:** Alle Diagrammblöcke und die Köpfe im Struktogramm nutzen flache Abstufungen des gewählten Farbprofils, dazu einen farbigen Versatz nach rechts unten in Form des jeweiligen Objekts. Wo Farben Dinge auseinanderhalten, etwa im Kreisdiagramm, gibt es mehrere passende Farben, im Schwarz-Weiß-Profil nur Grau. Text und Lücken stehen immer auf hellem Grund.
 - **Mehr Prüfungen auf Widersprüche in allen Blöcken:** Blattwerk meldet jetzt zum Beispiel eine Zuordnung auf einen fehlenden Eintrag, `correct` außerhalb der Spalten, Tabellen mit falscher Spaltenzahl, Werte außerhalb der Zahlengerade, Punkte außerhalb des Koordinatensystems, nicht auswertbare Funktionsterme, Lückentexte ohne Lücke und unlesbare Werte wie `height=abc`. Automaten werden gegen ihre Alphabete und auf genau einen Pfeil je Eingabe geprüft, Objektkarten gegen ihre Klasse. Alles steht in `VALIDATOR.md`.
 - **Beispieldateien je Kategorie:** `examples/markdown/example-kategorie-*.abw` zeigen jeden Block in seiner Bandbreite.
 - **Neuer Blocktyp `:::memorydiagram`:** Speicherbilder mit Reihungen, Variablen, Referenzen, Stapeln und Schlangen, um Code nachzuvollziehen, mit Lücken bei einzelnen Werten.
@@ -171,7 +171,7 @@ The format is based on Keep a Changelog.
 
 ### Added
 - **Netzwerkplan mit mehr Symbolen:** Laptop, Tablet, Handy und WLAN haben eigene Symbole, das Internet ist eine einzelne Wolke.
-- **Diagramme in den Farben des Farbprofils:** Alle Diagrammblöcke und die Köpfe im Struktogramm nutzen flache Abstufungen des gewählten Farbprofils. Wo Farben Dinge auseinanderhalten, etwa im Kreisdiagramm, gibt es mehrere passende Farben, im Schwarz-Weiß-Profil nur Grau. Text und Lücken stehen immer auf hellem Grund.
+- **Diagramme in den Farben des Farbprofils:** Alle Diagrammblöcke und die Köpfe im Struktogramm nutzen flache Abstufungen des gewählten Farbprofils, dazu einen farbigen Versatz nach rechts unten in Form des jeweiligen Objekts. Wo Farben Dinge auseinanderhalten, etwa im Kreisdiagramm, gibt es mehrere passende Farben, im Schwarz-Weiß-Profil nur Grau. Text und Lücken stehen immer auf hellem Grund.
 - **Mehr Prüfungen auf Widersprüche in allen Blöcken:** Blattwerk meldet jetzt zum Beispiel eine Zuordnung auf einen fehlenden Eintrag, `correct` außerhalb der Spalten, Tabellen mit falscher Spaltenzahl, Werte außerhalb der Zahlengerade, Punkte außerhalb des Koordinatensystems, nicht auswertbare Funktionsterme, Lückentexte ohne Lücke und unlesbare Werte wie `height=abc`. Automaten werden gegen ihre Alphabete und auf genau einen Pfeil je Eingabe geprüft, Objektkarten gegen ihre Klasse. Alles steht in `VALIDATOR.md`.
 - **Beispieldateien je Kategorie:** `examples/markdown/example-kategorie-*.abw` zeigen jeden Block in seiner Bandbreite.
 
@@ -226,7 +226,7 @@ The format is based on Keep a Changelog.
 
 ### Added
 - **Netzwerkplan mit mehr Symbolen:** Laptop, Tablet, Handy und WLAN haben eigene Symbole, das Internet ist eine einzelne Wolke.
-- **Diagramme in den Farben des Farbprofils:** Alle Diagrammblöcke und die Köpfe im Struktogramm nutzen flache Abstufungen des gewählten Farbprofils. Wo Farben Dinge auseinanderhalten, etwa im Kreisdiagramm, gibt es mehrere passende Farben, im Schwarz-Weiß-Profil nur Grau. Text und Lücken stehen immer auf hellem Grund.
+- **Diagramme in den Farben des Farbprofils:** Alle Diagrammblöcke und die Köpfe im Struktogramm nutzen flache Abstufungen des gewählten Farbprofils, dazu einen farbigen Versatz nach rechts unten in Form des jeweiligen Objekts. Wo Farben Dinge auseinanderhalten, etwa im Kreisdiagramm, gibt es mehrere passende Farben, im Schwarz-Weiß-Profil nur Grau. Text und Lücken stehen immer auf hellem Grund.
 - **Mehr Prüfungen auf Widersprüche in allen Blöcken:** Blattwerk meldet jetzt zum Beispiel eine Zuordnung auf einen fehlenden Eintrag, `correct` außerhalb der Spalten, Tabellen mit falscher Spaltenzahl, Werte außerhalb der Zahlengerade, Punkte außerhalb des Koordinatensystems, nicht auswertbare Funktionsterme, Lückentexte ohne Lücke und unlesbare Werte wie `height=abc`. Automaten werden gegen ihre Alphabete und auf genau einen Pfeil je Eingabe geprüft, Objektkarten gegen ihre Klasse. Alles steht in `VALIDATOR.md`.
 - **Beispieldateien je Kategorie:** `examples/markdown/example-kategorie-*.abw` zeigen jeden Block in seiner Bandbreite.
 
@@ -257,7 +257,7 @@ The format is based on Keep a Changelog.
 
 ### Added
 - **Netzwerkplan mit mehr Symbolen:** Laptop, Tablet, Handy und WLAN haben eigene Symbole, das Internet ist eine einzelne Wolke.
-- **Diagramme in den Farben des Farbprofils:** Alle Diagrammblöcke und die Köpfe im Struktogramm nutzen flache Abstufungen des gewählten Farbprofils. Wo Farben Dinge auseinanderhalten, etwa im Kreisdiagramm, gibt es mehrere passende Farben, im Schwarz-Weiß-Profil nur Grau. Text und Lücken stehen immer auf hellem Grund.
+- **Diagramme in den Farben des Farbprofils:** Alle Diagrammblöcke und die Köpfe im Struktogramm nutzen flache Abstufungen des gewählten Farbprofils, dazu einen farbigen Versatz nach rechts unten in Form des jeweiligen Objekts. Wo Farben Dinge auseinanderhalten, etwa im Kreisdiagramm, gibt es mehrere passende Farben, im Schwarz-Weiß-Profil nur Grau. Text und Lücken stehen immer auf hellem Grund.
 - **Mehr Prüfungen auf Widersprüche in allen Blöcken:** Blattwerk meldet jetzt zum Beispiel eine Zuordnung auf einen fehlenden Eintrag, `correct` außerhalb der Spalten, Tabellen mit falscher Spaltenzahl, Werte außerhalb der Zahlengerade, Punkte außerhalb des Koordinatensystems, nicht auswertbare Funktionsterme, Lückentexte ohne Lücke und unlesbare Werte wie `height=abc`. Automaten werden gegen ihre Alphabete und auf genau einen Pfeil je Eingabe geprüft, Objektkarten gegen ihre Klasse. Alles steht in `VALIDATOR.md`.
 - **Beispieldateien je Kategorie:** `examples/markdown/example-kategorie-*.abw` zeigen jeden Block in seiner Bandbreite.
 
@@ -290,7 +290,7 @@ The format is based on Keep a Changelog.
 
 ### Added
 - **Netzwerkplan mit mehr Symbolen:** Laptop, Tablet, Handy und WLAN haben eigene Symbole, das Internet ist eine einzelne Wolke.
-- **Diagramme in den Farben des Farbprofils:** Alle Diagrammblöcke und die Köpfe im Struktogramm nutzen flache Abstufungen des gewählten Farbprofils. Wo Farben Dinge auseinanderhalten, etwa im Kreisdiagramm, gibt es mehrere passende Farben, im Schwarz-Weiß-Profil nur Grau. Text und Lücken stehen immer auf hellem Grund.
+- **Diagramme in den Farben des Farbprofils:** Alle Diagrammblöcke und die Köpfe im Struktogramm nutzen flache Abstufungen des gewählten Farbprofils, dazu einen farbigen Versatz nach rechts unten in Form des jeweiligen Objekts. Wo Farben Dinge auseinanderhalten, etwa im Kreisdiagramm, gibt es mehrere passende Farben, im Schwarz-Weiß-Profil nur Grau. Text und Lücken stehen immer auf hellem Grund.
 - **Mehr Prüfungen auf Widersprüche in allen Blöcken:** Blattwerk meldet jetzt zum Beispiel eine Zuordnung auf einen fehlenden Eintrag, `correct` außerhalb der Spalten, Tabellen mit falscher Spaltenzahl, Werte außerhalb der Zahlengerade, Punkte außerhalb des Koordinatensystems, nicht auswertbare Funktionsterme, Lückentexte ohne Lücke und unlesbare Werte wie `height=abc`. Automaten werden gegen ihre Alphabete und auf genau einen Pfeil je Eingabe geprüft, Objektkarten gegen ihre Klasse. Alles steht in `VALIDATOR.md`.
 - **Beispieldateien je Kategorie:** `examples/markdown/example-kategorie-*.abw` zeigen jeden Block in seiner Bandbreite.
 
@@ -440,7 +440,7 @@ The format is based on Keep a Changelog.
 
 ### Added
 - **Netzwerkplan mit mehr Symbolen:** Laptop, Tablet, Handy und WLAN haben eigene Symbole, das Internet ist eine einzelne Wolke.
-- **Diagramme in den Farben des Farbprofils:** Alle Diagrammblöcke und die Köpfe im Struktogramm nutzen flache Abstufungen des gewählten Farbprofils. Wo Farben Dinge auseinanderhalten, etwa im Kreisdiagramm, gibt es mehrere passende Farben, im Schwarz-Weiß-Profil nur Grau. Text und Lücken stehen immer auf hellem Grund.
+- **Diagramme in den Farben des Farbprofils:** Alle Diagrammblöcke und die Köpfe im Struktogramm nutzen flache Abstufungen des gewählten Farbprofils, dazu einen farbigen Versatz nach rechts unten in Form des jeweiligen Objekts. Wo Farben Dinge auseinanderhalten, etwa im Kreisdiagramm, gibt es mehrere passende Farben, im Schwarz-Weiß-Profil nur Grau. Text und Lücken stehen immer auf hellem Grund.
 - **Mehr Prüfungen auf Widersprüche in allen Blöcken:** Blattwerk meldet jetzt zum Beispiel eine Zuordnung auf einen fehlenden Eintrag, `correct` außerhalb der Spalten, Tabellen mit falscher Spaltenzahl, Werte außerhalb der Zahlengerade, Punkte außerhalb des Koordinatensystems, nicht auswertbare Funktionsterme, Lückentexte ohne Lücke und unlesbare Werte wie `height=abc`. Automaten werden gegen ihre Alphabete und auf genau einen Pfeil je Eingabe geprüft, Objektkarten gegen ihre Klasse. Alles steht in `VALIDATOR.md`.
 - **Beispieldateien je Kategorie:** `examples/markdown/example-kategorie-*.abw` zeigen jeden Block in seiner Bandbreite.
 
@@ -603,7 +603,7 @@ The format is based on Keep a Changelog.
 
 ### Added
 - **Netzwerkplan mit mehr Symbolen:** Laptop, Tablet, Handy und WLAN haben eigene Symbole, das Internet ist eine einzelne Wolke.
-- **Diagramme in den Farben des Farbprofils:** Alle Diagrammblöcke und die Köpfe im Struktogramm nutzen flache Abstufungen des gewählten Farbprofils. Wo Farben Dinge auseinanderhalten, etwa im Kreisdiagramm, gibt es mehrere passende Farben, im Schwarz-Weiß-Profil nur Grau. Text und Lücken stehen immer auf hellem Grund.
+- **Diagramme in den Farben des Farbprofils:** Alle Diagrammblöcke und die Köpfe im Struktogramm nutzen flache Abstufungen des gewählten Farbprofils, dazu einen farbigen Versatz nach rechts unten in Form des jeweiligen Objekts. Wo Farben Dinge auseinanderhalten, etwa im Kreisdiagramm, gibt es mehrere passende Farben, im Schwarz-Weiß-Profil nur Grau. Text und Lücken stehen immer auf hellem Grund.
 - **Mehr Prüfungen auf Widersprüche in allen Blöcken:** Blattwerk meldet jetzt zum Beispiel eine Zuordnung auf einen fehlenden Eintrag, `correct` außerhalb der Spalten, Tabellen mit falscher Spaltenzahl, Werte außerhalb der Zahlengerade, Punkte außerhalb des Koordinatensystems, nicht auswertbare Funktionsterme, Lückentexte ohne Lücke und unlesbare Werte wie `height=abc`. Automaten werden gegen ihre Alphabete und auf genau einen Pfeil je Eingabe geprüft, Objektkarten gegen ihre Klasse. Alles steht in `VALIDATOR.md`.
 - **Beispieldateien je Kategorie:** `examples/markdown/example-kategorie-*.abw` zeigen jeden Block in seiner Bandbreite.
 - Public-facing changelog workflow and PR checklist for clearer release communication.

@@ -390,7 +390,7 @@ def render(options, content, include_solutions=False) -> str:
         cx, cy = centers[name]
         canvas.ellipse(cx, cy, radii[name], radii[name], "diagram-tone-3" if name in model.ends else "diagram-tone-1")
         if name in model.ends:
-            canvas.ellipse(cx, cy, radii[name] - _END_RING, radii[name] - _END_RING, "diagram-tone-1")
+            canvas.ellipse(cx, cy, radii[name] - _END_RING, radii[name] - _END_RING, "diagram-tone-1 diagram-flat")
         canvas.label(make_cell(_display_name(name)), cx, cy, 2 * radii[name])
     if model.start:
         cx, cy = centers[model.start]

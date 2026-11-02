@@ -144,7 +144,7 @@ def _gate_shape(canvas: Canvas, operator: str, x: float, y: float, norm: str) ->
             canvas.path(f"M {x - 6:.1f} {y - half:.1f} Q {x + 6:.1f} {y:.1f} {x - 6:.1f} {y + half:.1f}")
         right = x + _GATE_W
     if negated:
-        canvas.ellipse(right + _BUBBLE, y, _BUBBLE, _BUBBLE, "diagram-tone-4")
+        canvas.ellipse(right + _BUBBLE, y, _BUBBLE, _BUBBLE, "diagram-tone-4 diagram-flat")
         right += 2 * _BUBBLE
     return right
 

@@ -78,7 +78,7 @@ def test_state_render_shows_go_elements():
     assert "Start" in html
     assert "S<sub>0</sub>" in html
     assert "Eingabealphabet Σ = {a, b, c}" in html
-    assert html.count("<ellipse") == 4
+    assert html.count("<ellipse class='diagram-tone") == 4
 
 
 def test_state_label_gap_hides_text_in_worksheet():

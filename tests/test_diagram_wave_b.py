@@ -94,7 +94,7 @@ def test_syntax_parses_all_constructs_and_reports_errors():
 def test_syntax_terminals_are_round_and_names_square():
     """Terminal rund, Nichtterminal eckig."""
     html = render_diagram_block("syntaxdiagram", {}, 'A = "x" y')
-    assert html.count(" rx=") == 1
+    assert html.count("class='diagram-tone-4' ") == 1 and html.count("class='diagram-tone-1' ") == 1
     assert ">x<" in html.replace("<span>", "").replace("</span>", "") and "y" in html
 
 

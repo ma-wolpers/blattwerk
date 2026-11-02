@@ -228,8 +228,8 @@ def _draw_node(canvas: Canvas, node: ClassNode, box: Box) -> None:
     if node.is_object:
         canvas.rect(box.cx, box.cy, box.width, box.height, radius=8.0, css="diagram-tone-2")
     else:
-        canvas.rect(box.cx, box.cy, box.width, box.height, css="diagram-shape")
-        canvas.rect(box.cx, box.top + _PADDING + LINE_HEIGHT / 2, box.width, LINE_HEIGHT + 2 * _PADDING, css="diagram-tone-3" if node.declared else "diagram-tone-1")
+        canvas.rect(box.cx, box.cy, box.width, box.height, css="diagram-shape diagram-lift")
+        canvas.rect(box.cx, box.top + _PADDING + LINE_HEIGHT / 2, box.width, LINE_HEIGHT + 2 * _PADDING, css=f"{'diagram-tone-3' if node.declared else 'diagram-tone-1'} diagram-flat")
     cursor = box.top + _PADDING + LINE_HEIGHT / 2
     canvas.label(node.title, box.cx, cursor, box.width, weight="" if node.is_object else "bold")
     cursor += LINE_HEIGHT / 2 + _PADDING

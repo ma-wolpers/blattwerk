@@ -147,7 +147,9 @@ def _render_bars(canvas: Canvas, rows: list[Row], options, adjacent: bool) -> tu
         cx = x0 + slot * (index + 0.5)
         height = float(row.values[0]) / ticks[-1] * _PLOT_H
         if not (row.gap and not canvas.include_solutions):
-            canvas.rect(cx, y0 - height / 2, bar, height, css=f"diagram-bar {DATA_TONES[0 if adjacent else index % len(DATA_TONES)]}")
+            tone = DATA_TONES[0 if adjacent else index % len(DATA_TONES)]
+            canvas.standing_offset(cx, y0 - height, bar, y0, tone)
+            canvas.rect(cx, y0 - height / 2, bar, height, css=f"diagram-bar {tone} diagram-flat")
         canvas.label(_value_cell(row.values[0], row, hide), cx, y0 - height - LINE_HEIGHT / 2 - 1, slot)
         if not adjacent:
             canvas.label(row.label, cx, y0 + LINE_HEIGHT / 2 + 3, slot, LINE_HEIGHT * 2, wrap=True)
@@ -169,13 +171,15 @@ def _render_pie(canvas: Canvas, rows: list[Row], options) -> tuple[float, float]
     hide = str(options.get("gaps") or "") == "values"
     reach = max(text_width(row.label) for row in rows) + 44
     cx, cy = _MARGIN + reach + _PIE_R, _MARGIN + 30 + _PIE_R
+    # Der Versatz gehört zum ganzen Kreis, nicht zu den einzelnen Sektoren.
+    canvas.ellipse(cx, cy, _PIE_R, _PIE_R, "diagram-tone-1")
     angle = -math.pi / 2
     for index, row in enumerate(rows):
         share = row.values[0] / total
         sweep = float(share) * 2 * math.pi
         hidden = row.gap and not canvas.include_solutions
         if len(rows) == 1 and not hidden:
-            canvas.ellipse(cx, cy, _PIE_R, _PIE_R, DATA_TONES[0])
+            canvas.ellipse(cx, cy, _PIE_R, _PIE_R, f"{DATA_TONES[0]} diagram-flat")
         elif sweep and not hidden:
             canvas.sector(cx, cy, _PIE_R, angle, angle + sweep, DATA_TONES[index % len(DATA_TONES)])
         elif sweep:

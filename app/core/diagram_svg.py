@@ -5,7 +5,8 @@ Lücken beherrschen wie überall in Blattwerk (`diagram_text.render_cell`) und t
 mit dem Diagramm mitskalieren. Der Spike in Chromium-PDF hat das bestätigt.
 
 Farben sind flache Abstufungen aus dem Farbprofil (`.diagram-tone-1` bis `-4` in
-`worksheet.css`), ohne Verläufe und Schatten. Wo Farben Dinge auseinanderhalten, gibt es
+`worksheet.css`), dazu ein flacher farbiger Versatz in Form des Objekts, ohne Verläufe und
+ohne Unschärfe. Wo Farben Dinge auseinanderhalten, gibt es
 mehrere (`DATA_TONES`). Text und Lücken stehen immer auf hellem Grund. Im Schwarz-Weiß-Profil
 ist alles grau, und keine Farbe trägt allein Bedeutung. Der Hintergrund von Formen, die Linien überdecken, ist `--diagram-paper`.
 """
@@ -24,6 +25,10 @@ LINE_HEIGHT = 17.0
 """Zeilenhöhe in Einheiten der Zeichenfläche (`.diagram-label` setzt dieselbe Schrift)."""
 DATA_TONES = tuple(f"diagram-data-{index}" for index in range(1, 9))
 """Mehrere Farben für Blöcke, in denen Farben Dinge auseinanderhalten (`diagram_palette`)."""
+OFFSET = 3.0
+"""Farbiger Versatz getönter Formen nach rechts unten."""
+_DATA_TONE_RE = re.compile(r"diagram-data-(\d)")
+_TONE_RE = re.compile(r"diagram-tone-(\d)")
 ARROW_LENGTH = 10.0
 ARROW_HALF_WIDTH = 4.5
 _MATH_RE = re.compile(r"\$+([^$]*)\$+")
@@ -61,6 +66,23 @@ def _points(points) -> str:
     return " ".join(f"{_attr(x)},{_attr(y)}" for x, y in points)
 
 
+def _offset_class(css: str) -> str:
+    """Klasse des farbigen Versatzes zu einer Form, leer ohne Versatz.
+
+    `diagram-flat` schließt Teile aus, die in einer anderen Form liegen. `diagram-lift` gibt auch
+    ungetönten Formen einen Versatz.
+    """
+    if "diagram-flat" in css:
+        return ""
+    data = _DATA_TONE_RE.search(css)
+    if data:
+        return f"diagram-offset diagram-offset-data-{data.group(1)}"
+    tone = _TONE_RE.search(css)
+    if tone:
+        return f"diagram-offset diagram-offset-{'second' if int(tone.group(1)) % 2 == 0 else 'main'}"
+    return "diagram-offset diagram-offset-main" if "diagram-lift" in css else ""
+
+
 class Canvas:
     """Sammelt Formen und Beschriftungen und erzeugt daraus den fertigen Block.
 
@@ -75,8 +97,26 @@ class Canvas:
         self.has_gap = False
 
     def _shape(self, tag: str, attributes: str, css: str = "diagram-line") -> None:
-        """Hängt ein SVG-Element mit der Linienklasse `css` an."""
+        """Hängt ein SVG-Element an, getönte Formen mit ihrem farbigen Versatz dahinter.
+
+        Der Versatz ist dieselbe Form mit denselben Maßen und Ecken, nur verschoben.
+        """
+        offset = _offset_class(css)
+        if offset:
+            self.parts.append(f"<{tag} class='{offset}' {attributes} transform='translate({_attr(OFFSET)} {_attr(OFFSET)})' />")
         self.parts.append(f"<{tag} class='{css}' {attributes} />")
+
+    def standing_offset(self, cx, top, width, bottom, data_tone: str) -> None:
+        """Versatz einer Form, die auf einer Grundlinie steht, etwa eines Balkens.
+
+        Er rückt nach rechts und unten, endet aber an `bottom` und ragt nie unter die Achse.
+        """
+        height = bottom - top - OFFSET
+        if height > 0:
+            self.parts.append(
+                f"<rect class='{_offset_class(data_tone)}' x='{_attr(cx - width / 2 + OFFSET)}' y='{_attr(top + OFFSET)}' "
+                f"width='{_attr(width)}' height='{_attr(height)}' />"
+            )
 
     def line(self, x1, y1, x2, y2, dashed: bool = False, css: str = "") -> None:
         """Gerade Linie, optional gestrichelt oder mit eigener Klasse (`diagram-accent`)."""
@@ -94,7 +134,7 @@ class Canvas:
         x2, y2 = cx + radius * math.cos(end), cy + radius * math.sin(end)
         large = 1 if end - start > math.pi else 0
         data = f"M {_attr(cx)} {_attr(cy)} L {_attr(x1)} {_attr(y1)} A {_attr(radius)} {_attr(radius)} 0 {large} 1 {_attr(x2)} {_attr(y2)} Z"
-        self.path(data, css=css)
+        self.path(data, css=f"{css} diagram-flat")
 
     def path(self, data: str, dashed: bool = False, css: str = "") -> None:
         """Beliebiger SVG-Pfad (z. B. Kurven für Schleifen), optional mit eigener Füllklasse."""
