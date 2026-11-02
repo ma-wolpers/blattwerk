@@ -6,6 +6,8 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-11-02
+
 ### Changed
 - **Ein Block ohne schließendes `:::` ist jetzt ein Fehler (`BL017`), auch in Vorschau und Export.** Bisher meldete das nur der Editor (`SY002`), und der Block erschien still als normaler Text.
 - **Text hinter `:::` meldet nur noch einen Fehler:** `BL002` gilt für jedes `:::` mit Leerzeichen oder Text dahinter. Die doppelte Editor-Meldung `SY001` entfällt.
