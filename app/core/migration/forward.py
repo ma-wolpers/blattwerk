@@ -77,7 +77,7 @@ def ensure_backed_up(ctx: ItemContext) -> None:
     write_new_file(ctx.backup, data)
     if identity_of(ctx.backup).sha256 != plan.sha256:
         ctx.backup.unlink()
-        raise SkipItem("changed_since_plan: Backup stimmt nicht mit dem Plan-Hash ueberein")
+        raise SkipItem("changed_since_plan: Backup stimmt nicht mit dem Plan-Hash überein")
     ctx.mark(BACKED_UP, backup_sha256=plan.sha256)
 
 
@@ -157,9 +157,9 @@ def ensure_target_attributes(ctx: ItemContext) -> None:
         try:
             action()
         except Exception as error:  # Nutzerentscheidung: Metadaten-Fehlschlag = Warnung
-            ctx.warnings.append(f"{ctx.label()}: {label} nicht uebertragen ({error})")
+            ctx.warnings.append(f"{ctx.label()}: {label} nicht übertragen ({error})")
     if entry.birthtime_ns is None:
-        ctx.warnings.append(f"{ctx.label()}: kein Erstellungsdatum verfuegbar, nicht uebertragen")
+        ctx.warnings.append(f"{ctx.label()}: kein Erstellungsdatum verfügbar, nicht übertragen")
     ctx.mark(TARGET_ATTRS_APPLIED)
 
 
@@ -171,7 +171,7 @@ def _require(ok: bool) -> None:
 def _check_target_before_destroying_source(ctx: ItemContext) -> None:
     """R6-2: Vor quellzerstörenden Schritten muss das Ziel unverändert existieren."""
     if not _target_ok(ctx, ctx.entry.rewrite_sha256):
-        raise ConflictError("target_changed", f"Ziel fehlt oder wurde veraendert: {ctx.dst}")
+        raise ConflictError("target_changed", f"Ziel fehlt oder wurde verändert: {ctx.dst}")
 
 
 def ensure_source_quarantined(ctx: ItemContext) -> None:
@@ -183,18 +183,18 @@ def ensure_source_quarantined(ctx: ItemContext) -> None:
     src_exists, quarantine_exists = ctx.src.exists(), ctx.quarantine.exists()
     if src_exists and quarantine_exists:
         if not (plan.has_inode() and _same_inode_ok(ctx.src, ctx.quarantine, plan.sha256)):
-            raise ConflictError("quarantine_conflict", f"Quelle und Quarantaene unterschiedlich: {ctx.src}")
+            raise ConflictError("quarantine_conflict", f"Quelle und Quarantäne unterschiedlich: {ctx.src}")
         os.unlink(ctx.src)  # POSIX-Zwischenzustand
     elif src_exists:
         if not _matches_plan(identity_of(ctx.src), plan):
-            raise SkipItem("changed_since_plan: Quelle vor der Quarantaene veraendert")
+            raise SkipItem("changed_since_plan: Quelle vor der Quarantäne verändert")
         ctx.intent("quarantine")
         rename_no_replace(ctx.src, ctx.quarantine)
         if not _matches_plan(identity_of(ctx.quarantine), plan):
             rename_no_replace(ctx.quarantine, ctx.src)
-            raise ConflictError("source_changed", f"Quelle wurde waehrend der Quarantaene veraendert: {ctx.src}")
+            raise ConflictError("source_changed", f"Quelle wurde während der Quarantäne verändert: {ctx.src}")
     elif not (quarantine_exists and _matches_plan(identity_of(ctx.quarantine), plan)):
-        raise ConflictError("source_missing", f"Quelle und Quarantaene fehlen oder sind fremd: {ctx.src}")
+        raise ConflictError("source_missing", f"Quelle und Quarantäne fehlen oder sind fremd: {ctx.src}")
     ctx.mark(SOURCE_QUARANTINED)
 
 
@@ -218,7 +218,7 @@ def ensure_source_removed(ctx: ItemContext) -> None:
     if ctx.quarantine.exists():
         _check_target_before_destroying_source(ctx)
         if not _matches_plan(identity_of(ctx.quarantine), ctx.plan_identity):
-            raise ConflictError("source_changed", f"Quarantaenedatei veraendert: {ctx.quarantine}")
+            raise ConflictError("source_changed", f"Quarantänedatei verändert: {ctx.quarantine}")
         ctx.intent("remove_source")
         os.unlink(ctx.quarantine)
     elif ctx.src.exists():

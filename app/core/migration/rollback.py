@@ -120,7 +120,7 @@ def _restore_source(ctx: ItemContext, *, parallel: bool) -> None:
         f"{ctx.src.stem}.restored-{time.strftime('%Y%m%d-%H%M%S')}.md"
     )
     if not ctx.backup.exists() or identity_of(ctx.backup).sha256 != ctx.plan_identity.sha256:
-        raise ConflictError("backup_missing", f"Backup fehlt oder ist beschaedigt: {ctx.backup}")
+        raise ConflictError("backup_missing", f"Backup fehlt oder ist beschädigt: {ctx.backup}")
     temp = destination.with_name(f".{destination.name}.bw-restore-{ctx.run_id}")
     if temp.exists():
         os.unlink(temp)

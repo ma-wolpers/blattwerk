@@ -93,7 +93,7 @@ def runtime_check(plan: MigrationPlan, entry) -> None:
     dst = (root / entry.target).resolve()
     for path in (src, dst):
         if root not in path.parents:
-            raise SkipItem("plan_invalid: Pfad ausserhalb des Plan-Roots")
+            raise SkipItem("plan_invalid: Pfad außerhalb des Plan-Roots")
     parent = src.parent
     while parent != root:
         if is_link_or_reparse(parent):

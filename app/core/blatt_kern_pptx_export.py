@@ -69,7 +69,7 @@ def _slide_size_emu(page_format: str) -> tuple[int, int]:
     try:
         width_cm, height_cm = _PAGE_SIZE_CM[page_format]
     except KeyError:
-        raise ValueError(f"Unbekanntes Seitenformat fuer PPTX: {page_format!r}") from None
+        raise ValueError(f"Unbekanntes Seitenformat für PPTX: {page_format!r}") from None
     return _cm_to_emu(width_cm), _cm_to_emu(height_cm)
 
 
@@ -124,8 +124,8 @@ def build_presentation_pptx(
                     BuildDiagnostic(
                         code="PPTX002",
                         message=(
-                            f"Editierbarer PPTX-Export nicht moeglich ({exc}) -- "
-                            "vollstaendiges Bild-PPTX wurde stattdessen erstellt."
+                            f"Editierbarer PPTX-Export nicht möglich ({exc}) -- "
+                            "vollständiges Bild-PPTX wurde stattdessen erstellt."
                         ),
                         severity="warning",
                     )

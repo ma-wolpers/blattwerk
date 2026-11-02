@@ -16,7 +16,7 @@ def parse_column_weights(raw_text: str | None) -> tuple[float, float, float, flo
     tokens = [part for part in re.split(r"[\s,;]+", text) if part]
     if len(tokens) != 4:
         raise ValueError(
-            "Spaltengewichte muessen aus genau vier Zahlen bestehen (z. B. 10 20 60 10)."
+            "Spaltengewichte müssen aus genau vier Zahlen bestehen (z. B. 10 20 60 10)."
         )
 
     values: list[float] = []
@@ -24,9 +24,9 @@ def parse_column_weights(raw_text: str | None) -> tuple[float, float, float, flo
         try:
             value = float(token)
         except Exception as exc:
-            raise ValueError(f"Ungueltige Zahl in Spaltengewichten: '{token}'.") from exc
+            raise ValueError(f"Ungültige Zahl in Spaltengewichten: '{token}'.") from exc
         if value <= 0:
-            raise ValueError("Spaltengewichte muessen groesser als 0 sein.")
+            raise ValueError("Spaltengewichte müssen größer als 0 sein.")
         values.append(value)
 
     return (values[0], values[1], values[2], values[3])

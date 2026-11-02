@@ -333,7 +333,7 @@ def render_document_html(
             </tr>
             <tr>
                 <th>Inhaltliche Lernschritte</th>
-                <th>Lernaktivitaeten<br><span class="header-subline">(Kompetenzfoerderung)</span></th>
+                <th>Lernaktivitäten<br><span class="header-subline">(Kompetenzförderung)</span></th>
             </tr>
         </thead>
         <tbody>

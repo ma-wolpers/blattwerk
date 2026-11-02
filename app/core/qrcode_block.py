@@ -86,11 +86,11 @@ def render_qrcode_block(options):
     """Render a clickable QR code block as HTML."""
     url = str((options or {}).get("url", "")).strip()
     if not _is_valid_qrcode_url(url):
-        return "<div class='qrcode qrcode-invalid'>Ungueltiger QR-Link.</div>"
+        return "<div class='qrcode qrcode-invalid'>Ungültiger QR-Link.</div>"
 
     image_src = _build_qrcode_data_uri(url)
     if not image_src:
-        return "<div class='qrcode qrcode-invalid'>QR-Bibliothek nicht verfuegbar.</div>"
+        return "<div class='qrcode qrcode-invalid'>QR-Bibliothek nicht verfügbar.</div>"
 
     href = escape(url, quote=True)
     title_options = _build_image_title_options(options)

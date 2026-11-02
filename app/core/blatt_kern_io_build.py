@@ -69,9 +69,9 @@ def _append_presentation_overflow_warning(
         BuildDiagnostic(
             code="PT002",
             message=(
-                "Praesentations-Overflow erkannt: Die gerenderte PDF hat "
+                "Präsentations-Overflow erkannt: Die gerenderte PDF hat "
                 f"{rendered_pages} Seite(n), erwartet waren {expected_pages} Folie(n). "
-                "Mindestens eine Folie ist vertikal ueberfuellt."
+                "Mindestens eine Folie ist vertikal überfüllt."
             ),
             severity="warning",
         )
@@ -82,7 +82,7 @@ def _raise_on_blocking_diagnostics(diagnostics):
     if not has_blocking_diagnostics(diagnostics):
         return
     summary = summarize_blocking_diagnostics(diagnostics)
-    raise ValueError(f"Dokument enthaelt kritische Fehler und kann nicht gebaut werden:\n{summary}")
+    raise ValueError(f"Dokument enthält kritische Fehler und kann nicht gebaut werden:\n{summary}")
 
 
 def _merge_metadata_defaults(meta: dict[str, object], metadata_defaults: dict[str, str] | None):

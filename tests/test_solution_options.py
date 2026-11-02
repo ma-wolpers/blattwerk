@@ -50,7 +50,7 @@ def test_options_combine_with_shared_points_and_paths():
     assert _codes(_task(4, "(1P)", "(1aP)", "(1bP)", "(1/2P)", "(1/2P)", "(1/2P)")) == []
     diagnostics = inspect_markdown_text(HEAD + _task(5, "(1P)", "(1aP)", "(1bP)", "(1/2P)", "(1/2P)", "(1/2P)"), document_type="exam").diagnostics
     pk002 = next(d.message for d in diagnostics if d.code == "PK002")
-    assert "gemeinsam 1 + bester Weg A 1 + Optionen 2 (hoechstens 2) = 4" in pk002
+    assert "gemeinsam 1 + bester Weg A 1 + Optionen 2 (höchstens 2) = 4" in pk002
 
 
 @pytest.mark.parametrize(

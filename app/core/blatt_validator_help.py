@@ -44,8 +44,8 @@ def validate_help_blocks(blocks, document_type: str = "worksheet") -> list[Build
                 index,
                 blocks,
                 "BL012",
-                f"`:::{block_type}` ist in Praesentationen veraltet -- Lernhilfen gibt es nur in "
-                "Arbeitsblaettern und Klausuren. Der Block wird noch dargestellt; bitte als normalen "
+                f"`:::{block_type}` ist in Präsentationen veraltet -- Lernhilfen gibt es nur in "
+                "Arbeitsblättern und Klausuren. Der Block wird noch dargestellt; bitte als normalen "
                 "Folieninhalt umsetzen oder entfernen.",
             )
             for index, (block_type, _options, _content) in enumerate(blocks)
@@ -92,8 +92,8 @@ def help_deduction_diagnostics(blocks) -> list[BuildDiagnostic]:
                 owner_index,
                 blocks,
                 "KL013",
-                f"{label} hat eine Lernhilfe, aber ihre Loesung enthaelt keinen Lernhilfe-Abzug -- "
-                "z. B. `1. Lernhilfe genutzt (−1P Lh)`, damit die Nutzung in der Wertung zaehlt.",
+                f"{label} hat eine Lernhilfe, aber ihre Lösung enthält keinen Lernhilfe-Abzug -- "
+                "z. B. `1. Lernhilfe genutzt (−1P Lh)`, damit die Nutzung in der Wertung zählt.",
             )
         )
     return diagnostics

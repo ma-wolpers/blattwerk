@@ -236,11 +236,11 @@ def _resolve_target(options, current_unit, last_target, units, index, issues):
     raw_target = options.get("target")
     if raw_target is None:
         if last_target is None:
-            issues.append(SolutionIssue("SL001", index, "Loesung ohne vorangehende Aufgabe wird keiner Aufgabe zugeordnet."))
+            issues.append(SolutionIssue("SL001", index, "Lösung ohne vorangehende Aufgabe wird keiner Aufgabe zugeordnet."))
         return last_target
     wanted = str(raw_target).strip().lower()
     if current_unit is None:
-        issues.append(SolutionIssue("SL008", index, f"`target={raw_target}`: keine Aufgabe in diesem Teil vor der Loesung."))
+        issues.append(SolutionIssue("SL008", index, f"`target={raw_target}`: keine Aufgabe in diesem Teil vor der Lösung."))
         return None
     if wanted == "task":
         return (current_unit, None)

@@ -31,7 +31,7 @@ def validate_evaluation(blocks, document_type: str = "worksheet") -> list[BuildD
     except KeyError:
         available = False
     if not available:
-        return [diag("EV002", "Die Bewertungstabelle gibt es nur in Arbeitsblaettern und Klausuren; sie wird hier nicht angezeigt.", index) for index in indices]
+        return [diag("EV002", "Die Bewertungstabelle gibt es nur in Arbeitsblättern und Klausuren; sie wird hier nicht angezeigt.", index) for index in indices]
     missing = [unit.number for unit in build_points_model(blocks) if unit.status == STATUS_MISSING]
     if not missing:
         return []

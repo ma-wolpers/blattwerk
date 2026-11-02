@@ -280,7 +280,7 @@ def _save_png_zip(*, target_path: Path, pages: list[Image.Image]) -> Path:
 
 def _ensure_supported_kurzentwurf_mode(include_solutions: bool):
     if include_solutions:
-        raise ValueError("Kurzentwurf unterstuetzt keinen Loesungs- oder Beides-Export.")
+        raise ValueError("Kurzentwurf unterstützt keinen Lösungs- oder Beides-Export.")
 
 
 def _extend_diagnostics(target: list[BuildDiagnostic] | None, diagnostics: list[BuildDiagnostic]):

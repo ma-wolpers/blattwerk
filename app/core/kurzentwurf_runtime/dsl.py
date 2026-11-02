@@ -138,8 +138,8 @@ def parse_kurzentwerfer_text(source: str) -> ParsedKurzentwurf:
                             code="KZF150",
                             severity="error",
                             message=(
-                                "Lernaktivitaeten muessen mit s< beginnen. "
-                                "A> markiert nur die Spalte Lernaktivitaeten."
+                                "Lernaktivitäten müssen mit s< beginnen. "
+                                "A> markiert nur die Spalte Lernaktivitäten."
                             ),
                             line=line_index + 1,
                         )
@@ -159,7 +159,7 @@ def parse_kurzentwerfer_text(source: str) -> ParsedKurzentwurf:
                     Diagnostic(
                         code="KZF153",
                         severity="error",
-                        message="Marker ant> ist ungueltig. Bitte ant< verwenden.",
+                        message="Marker ant> ist ungültig. Bitte ant< verwenden.",
                         line=line_index + 1,
                     )
                 )
@@ -191,7 +191,7 @@ def parse_kurzentwerfer_text(source: str) -> ParsedKurzentwurf:
                     code="KZF042",
                     severity="error",
                     message=(
-                        "Inline-Pipe-Syntax ist ungueltig. "
+                        "Inline-Pipe-Syntax ist ungültig. "
                         "Nur alleinstehende '|' in einer Zeile markieren Spaltenwechsel."
                     ),
                     line=line_index + 1,
@@ -207,7 +207,7 @@ def parse_kurzentwerfer_text(source: str) -> ParsedKurzentwurf:
                     Diagnostic(
                         code="KZF151",
                         severity="error",
-                        message="Lernaktivitaeten-Zeilen muessen mit s< beginnen.",
+                        message="Lernaktivitäten-Zeilen müssen mit s< beginnen.",
                         line=line_index + 1,
                     )
                 )

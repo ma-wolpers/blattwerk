@@ -99,8 +99,8 @@ def _build_presentation_template(preferences: Mapping[str, object]) -> str:
         + "Starte hier mit der ersten Folie.\n"
         + ":::\n\n"
         + "--!\n"
-        + ":::task title=\"Weiterfuehrung\"\n"
-        + "Fuehre hier den naechsten Gedanken aus.\n"
+        + ":::task title=\"Weiterführung\"\n"
+        + "Führe hier den nächsten Gedanken aus.\n"
         + ":::\n"
     )
 

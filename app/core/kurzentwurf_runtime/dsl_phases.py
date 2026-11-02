@@ -92,7 +92,7 @@ def _finalize_phase(
             Diagnostic(
                 code="KZF048",
                 severity="error",
-                message="#phase enthaelt keine Segmente.",
+                message="#phase enthält keine Segmente.",
                 line=phase_builder.line,
             )
         )

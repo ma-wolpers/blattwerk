@@ -131,9 +131,9 @@ def _validate_geometry_axis_origin_pair(diagnostics, index, block_type, options)
         BuildDiagnostic(
             code="OP005",
             message=(
-                "`axis=true` ohne gueltiges `origin` (Format \"col,row\"). Der gesamte "
+                "`axis=true` ohne gültiges `origin` (Format \"col,row\"). Der gesamte "
                 "Geometry-Payload dieses Blocks (alle Sektionen) wird dadurch nicht "
-                "gerendert -- kein stiller Ruecksfall auf Rasterkoordinaten."
+                "gerendert -- kein stiller Rückfall auf Rasterkoordinaten."
             ),
             severity="error",
             block_index=index,
@@ -160,7 +160,7 @@ def _validate_block_options(diagnostics, index, block_type, options, allowed_opt
                 BuildDiagnostic(
                     code="AN009",
                     message=(
-                        f"Option `type` ist in Block `{block_type}` unzulaessig. "
+                        f"Option `type` ist in Block `{block_type}` unzulässig. "
                         "Der Blocktyp selbst definiert bereits den Antworttyp."
                     ),
                     severity="error",
@@ -178,7 +178,7 @@ def _validate_block_options(diagnostics, index, block_type, options, allowed_opt
                     code="OP004",
                     message=(
                         f"Option `{option_key}` bei `:::{block_type}` ist veraltet und wird ignoriert -- "
-                        "Loesungen erscheinen nur in der Loesungsfassung."
+                        "Lösungen erscheinen nur in der Lösungsfassung."
                     ),
                     block_index=index,
                     block_type=block_type,
@@ -234,7 +234,7 @@ def _validate_block_options(diagnostics, index, block_type, options, allowed_opt
                 BuildDiagnostic(
                     code="OP002",
                     message=(
-                        "Ungueltiger Wert fuer "
+                        "Ungültiger Wert für "
                         f"`{option_key}` in Block `{block_type}`: `{option_value}`. "
                         f"Erlaubt ist `{OBJECT_ALIGN_VALUE_HINT}`."
                     ),
@@ -250,9 +250,9 @@ def _validate_block_options(diagnostics, index, block_type, options, allowed_opt
                     BuildDiagnostic(
                         code="OP002",
                         message=(
-                            "Ungueltiger Wert fuer "
+                            "Ungültiger Wert für "
                             f"`{option_key}` in Block `qrcode`: `{option_value}`. "
-                            "Erlaubt ist eine CSS-Groesse wie `3cm`, `120px`, `60%` oder `auto`."
+                            "Erlaubt ist eine CSS-Größe wie `3cm`, `120px`, `60%` oder `auto`."
                         ),
                         block_index=index,
                         block_type=block_type,
@@ -267,7 +267,7 @@ def _validate_block_options(diagnostics, index, block_type, options, allowed_opt
                     BuildDiagnostic(
                         code="QR002",
                         message=(
-                            "Ungueltiger QR-Link in Block `qrcode`. "
+                            "Ungültiger QR-Link in Block `qrcode`. "
                             "Erlaubt sind http/https-Links oder relative Pfade ohne Leerzeichen."
                         ),
                         severity="error",

@@ -8,6 +8,14 @@ Regel:
 
 ## [Unreleased]
 
+- **Umlaute in sichtbaren Meldungen (2026-11-02, GUI-Umlaut-Regel).** 142 Ersetzungen in 35 Dateien unter `app/core`, nur in Zeichenketten, die keine Docstrings und keine Log-Aufrufe sind, über eine feste Wortliste (kein pauschales `ue`->`ü`, weil neue/Quelle/muss richtig sind). Bewusst ASCII geblieben, weil es Schlüssel oder akzeptierte Eingaben sind:
+  - der Kurzentwurf-Spaltenschlüssel `aktivitaeten` (DSL-Tags, CSS-Klasse),
+  - der Alias `Groesse` der Erwartungstypen,
+  - die Farbnamen `#gruen`/`#weiss`/`#tuerkis`,
+  - der Frontmatter-Schlüssel `schriftgroesse`,
+  - Beispielbezeichner in Diagramm-Snippets (`Schueler`, `gehoertZu`).
+
+  Drei Tests mit wörtlichen Meldungen nachgezogen, Anleitung neu erzeugt.
 - **Block-Einfügen im Editor angebunden (2026-11-02).**
   - Neues Mixin `blatt_ui_editor_block_insert.py` (`_insert_block_from_menu`) ersetzt `_insert_editor_snippet` (aus `blatt_ui_editor_keys.py` entfernt). Es gibt nur noch einen Einfügeweg, den Menü und Kennbuchstaben nutzen.
   - Neu `blatt_ui_editor_edits.py` (`editor_surface`, `replace_editor_range`, `replace_editor_text` über bw-guis `TextSurface`). Darüber laufen jetzt auch Schriftwahl (`_replace_editor_text_as_one_undo_step` entfernt) und Tabellenumwandlung (setzte `autoseparators` fest auf `True` und ließ den Separator davor weg). `_editor_selection_crosses_math` rechnet Offsets ebenfalls darüber.

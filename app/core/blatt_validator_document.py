@@ -83,7 +83,7 @@ def _validate_optional_enum_field(field, raw_value):
     return BuildDiagnostic(
         code=rules["code"],
         message=(
-            f"Ungueltiger Frontmatter-Wert fuer `{field.name}`: `{raw_value}`. "
+            f"Ungültiger Frontmatter-Wert für `{field.name}`: `{raw_value}`. "
             f"Erlaubt: {', '.join(sorted(field.allowed_values))}."
         ),
         severity=rules["severity"],
@@ -103,7 +103,7 @@ def _validate_optional_boolean_field(field, raw_value):
     return BuildDiagnostic(
         code=_BOOLEAN_FIELD_DIAGNOSTIC_CODES[field.name],
         message=(
-            f"Ungueltiger Frontmatter-Wert fuer `{field.name}`. "
+            f"Ungültiger Frontmatter-Wert für `{field.name}`. "
             "Erlaubt sind boolesche Werte (z. B. true/false, ja/nein, 1/0)."
         ),
         severity="error",
@@ -118,7 +118,7 @@ def _validate_optional_scalar_nonempty_field(field, raw_value):
         return BuildDiagnostic(
             code=code,
             message=(
-                f"Ungueltiger Frontmatter-Wert fuer `{field.name}`: "
+                f"Ungültiger Frontmatter-Wert für `{field.name}`: "
                 "Erlaubt ist ein einfacher Textwert (z. B. `1`, `A`, `TAG`)."
             ),
             severity="error",
@@ -129,7 +129,7 @@ def _validate_optional_scalar_nonempty_field(field, raw_value):
         return BuildDiagnostic(
             code=code,
             message=(
-                f"Ungueltiger Frontmatter-Wert fuer `{field.name}`: leerer Wert ist nicht erlaubt."
+                f"Ungültiger Frontmatter-Wert für `{field.name}`: leerer Wert ist nicht erlaubt."
             ),
             severity="error",
             region_id=_FRONTMATTER_REGION_ID,
@@ -214,7 +214,7 @@ def _validate_selfcheck_options(index, block_type, options):
             BuildDiagnostic(
                 code="SC001",
                 message=(
-                    f"`scale={scale}` hat kuratierte Symbole nur fuer steps={supported}; "
+                    f"`scale={scale}` hat kuratierte Symbole nur für steps={supported}; "
                     f"bei steps={steps} erscheinen stattdessen nummerierte Kreise."
                 ),
                 block_index=index,
@@ -229,7 +229,7 @@ def _validate_selfcheck_options(index, block_type, options):
             BuildDiagnostic(
                 code="SC001",
                 message=(
-                    f"steps={steps} liegt ausserhalb des gueltigen Bereichs "
+                    f"steps={steps} liegt außerhalb des gültigen Bereichs "
                     f"({_MIN_STEPS}-{_MAX_STEPS}) und wird entsprechend begrenzt."
                 ),
                 block_index=index,
@@ -266,9 +266,9 @@ def _validate_block_type_specifics(
             BuildDiagnostic(
                 code="MJ001",
                 message=(
-                    "Enthaelt Formel-Syntax ($...$/$$...$$). Vorschau und PDF "
+                    "Enthält Formel-Syntax ($...$/$$...$$). Vorschau und PDF "
                     "setzen Formeln auch ohne Internet. Eine exportierte HTML-Datei "
-                    "laedt MathJax beim Oeffnen von einem CDN; ohne Internet zeigt "
+                    "lädt MathJax beim Öffnen von einem CDN; ohne Internet zeigt "
                     "sie die rohe Formel-Quelle als lesbaren Text."
                 ),
                 block_index=index,
@@ -282,7 +282,7 @@ def _validate_block_type_specifics(
         diagnostics.append(
             BuildDiagnostic(
                 code="QR001",
-                message="Block `qrcode` benoetigt die Pflichtoption `url=...`.",
+                message="Block `qrcode` benötigt die Pflichtoption `url=...`.",
                 severity="error",
                 block_index=index,
                 block_type=block_type,
@@ -299,9 +299,9 @@ def _validate_block_type_specifics(
                 code="AN010",
                 message=(
                     f"Block `{block_type}` nutzt `§`-Marker ohne sichtbares "
-                    "Loesungs-Gegenstueck. Pruefe, ob zu jedem nur im "
+                    "Lösungs-Gegenstück. Prüfe, ob zu jedem nur im "
                     "Arbeitsblatt sichtbaren Aufgabenteil auch eine explizite "
-                    "Loesung vorhanden ist (z. B. mit `%`-Marker)."
+                    "Lösung vorhanden ist (z. B. mit `%`-Marker)."
                 ),
                 block_index=index,
                 block_type=block_type,
@@ -319,7 +319,7 @@ def _validate_block_type_specifics(
                 code="AN005",
                 message=(
                     "Answer-Block ist leer. Best Practice: Antwortfelder mit "
-                    "Startimpulsen oder Strukturierung vorfuellen."
+                    "Startimpulsen oder Strukturierung vorfüllen."
                 ),
                 block_index=index,
                 block_type=block_type,
@@ -337,9 +337,9 @@ def _validate_block_type_specifics(
             BuildDiagnostic(
                 code="AN006",
                 message=(
-                    "Answer-Zeilen mit ungueltiger §/%/&-Token-Syntax gefunden "
+                    "Answer-Zeilen mit ungültiger §/%/&-Token-Syntax gefunden "
                     f"(Zeilen: {preview}{remainder_text}). "
-                    "Bitte Marker als §{...}, %{...} oder &{...} schliessen."
+                    "Bitte Marker als §{...}, %{...} oder &{...} schließen."
                 ),
                 block_index=index,
                 block_type=block_type,
@@ -354,9 +354,9 @@ def _validate_block_type_specifics(
                 code="AN010",
                 message=(
                     f"Block `{block_type}` nutzt `§`-Marker ohne sichtbares "
-                    "Loesungs-Gegenstueck. Pruefe, ob zu jedem nur im "
+                    "Lösungs-Gegenstück. Prüfe, ob zu jedem nur im "
                     "Arbeitsblatt sichtbaren Aufgabenteil auch eine explizite "
-                    "Loesung vorhanden ist (z. B. mit `%`-Marker)."
+                    "Lösung vorhanden ist (z. B. mit `%`-Marker)."
                 ),
                 block_index=index,
                 block_type=block_type,

@@ -154,8 +154,8 @@ def _misplaced_ant_diagnostic(phase_builder: _PhaseBuilder, anchor_text: str, *,
         code="KZF154",
         severity="warning",
         message=(
-            "ant< steht ausserhalb eines A>-Blocks. "
-            "Antizipationen gehoeren direkt hinter das zugehoerige s< (nach A>), "
+            "ant< steht außerhalb eines A>-Blocks. "
+            "Antizipationen gehören direkt hinter das zugehörige s< (nach A>), "
             "nicht in die Spalten S> oder U>."
         ),
         line=line,
@@ -181,7 +181,7 @@ def _finalize_segment(
                 severity="warning",
                 message=(
                     "Nach s< wurde kein ant< gefunden. "
-                    "Fuege ant< fuer Antizipation in dieser Segmentzeile hinzu."
+                    "Füge ant< für Antizipation in dieser Segmentzeile hinzu."
                 ),
                 line=segment_builder.line,
                 region_id=compute_phase_region_id(

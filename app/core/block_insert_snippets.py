@@ -163,7 +163,7 @@ BLOCK_INSERT_SNIPPETS: dict[str, str] = {
         ":::crossword maxw=15 maxh=15\n"
         "words:\n"
         '[[CURSOR]]  - word: "SONNE"\n'
-        '    clue: "Scheint tagsueber am Himmel"\n'
+        '    clue: "Scheint tagsüber am Himmel"\n'
         '  - word: "MOND"\n'
         '    clue: "Scheint nachts am Himmel"\n'
         '  - word: "STERN"\n'

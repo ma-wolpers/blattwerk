@@ -140,7 +140,7 @@ def marker_diagnostics(meta: object, document_type: str) -> list[BuildDiagnostic
         return [
             _diagnostic(
                 "FM010",
-                f"Ungueltiger Wert fuer `document_type`: {marker.raw!r}. Passend zur Endung {spec.extension} waere `{spec.id}`.",
+                f"Ungültiger Wert für `document_type`: {marker.raw!r}. Passend zur Endung {spec.extension} wäre `{spec.id}`.",
             )
         ]
     if marker.document_type != spec.id:
@@ -148,7 +148,7 @@ def marker_diagnostics(meta: object, document_type: str) -> list[BuildDiagnostic
             _diagnostic(
                 "FM008",
                 f"`document_type: {marker.document_type}` passt nicht zur Dateiendung {spec.extension}; "
-                f"es gilt die Endung ({spec.label}). Passend waere `document_type: {spec.id}`.",
+                f"es gilt die Endung ({spec.label}). Passend wäre `document_type: {spec.id}`.",
             )
         ]
     return []

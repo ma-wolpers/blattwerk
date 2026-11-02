@@ -193,4 +193,4 @@ def test_export_document_pdf_rejects_kurzentwurf_solution_export(tmp_path):
     else:
         raise AssertionError("Expected ValueError for kurzentwurf solution export")
 
-    assert "Loesungs" in message
+    assert "Lösungs" in message

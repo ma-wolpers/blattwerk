@@ -215,7 +215,7 @@ def _append_invalid_option_value(
         BuildDiagnostic(
             code="OP002",
             message=(
-                f"Ungueltiger Wert fuer `{option}` in Block `{block_type}`: `{value}`. "
+                f"Ungültiger Wert für `{option}` in Block `{block_type}`: `{value}`. "
                 f"Erlaubt: {', '.join(sorted(allowed))}."
             ),
             block_index=block_index,
@@ -240,7 +240,7 @@ def _append_invalid_yaml_show_diagnostic(
         BuildDiagnostic(
             code="AN007",
             message=(
-                "YAML nutzt ungueltigen Sichtbarkeitswert "
+                "YAML nutzt ungültigen Sichtbarkeitswert "
                 f"`{value}` in answer `{answer_type}` bei `{section}[{position}].show`. "
                 "Erlaubt sind nur `&`, `§` oder `%`."
             ),

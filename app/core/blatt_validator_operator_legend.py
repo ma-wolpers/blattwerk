@@ -54,7 +54,7 @@ def validate_operator_legend(blocks, meta, document_type: str = "worksheet") -> 
     table_indices = [index for index, (block_type, _o, _c) in enumerate(blocks) if block_type == OPERATORS_BLOCK_TYPE]
     if not shows_operator_legend(document_type):
         return [
-            _diag(blocks, "OPR007", "Die Operatorentabelle gibt es nur in Arbeitsblaettern und Klausuren; sie wird hier nicht angezeigt.", index)
+            _diag(blocks, "OPR007", "Die Operatorentabelle gibt es nur in Arbeitsblättern und Klausuren; sie wird hier nicht angezeigt.", index)
             for index in table_indices
         ]
     marker_indices = operator_marker_indices(blocks)
@@ -105,7 +105,7 @@ def _overlap_diagnostics(blocks, covering: dict[int, list[int]], meta) -> list[B
         diagnostics.append(_diag(
             blocks, "OPR008",
             f"Operatorentabelle: {_operator_names(blocks, shared[owner], meta)} stehen auch in einer anderen "
-            "Operatorentabelle (Bereiche ueberschneiden sich).",
+            "Operatorentabelle (Bereiche überschneiden sich).",
             owner,
         ))
     return diagnostics

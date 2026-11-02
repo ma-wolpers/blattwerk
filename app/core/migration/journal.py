@@ -66,7 +66,7 @@ def read_journal(path: Path) -> list[dict]:
         if record is None:
             if index == len(raw_lines) - 1:
                 break  # abgerissene letzte Zeile: gilt als nie geschrieben
-            raise JournalCorrupt(f"Journalzeile {index + 1} ist beschaedigt.")
+            raise JournalCorrupt(f"Journalzeile {index + 1} ist beschädigt.")
         records.append(record)
     return records
 

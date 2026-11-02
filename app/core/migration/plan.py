@@ -104,7 +104,7 @@ class MigrationPlan:
         except PlanInvalid:
             raise
         except (KeyError, TypeError, ValueError) as error:
-            raise PlanInvalid(f"plan.json ungueltig: {error}") from error
+            raise PlanInvalid(f"plan.json ungültig: {error}") from error
 
 
 class PlanInvalid(Exception):

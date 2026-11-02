@@ -65,7 +65,7 @@ def collect_math_diagnostics(source: str) -> list[Diagnostic]:
                     code="KZF161",
                     severity="warning",
                     message=(
-                        "$$...$$ wird im Kurzentwurf im Fliesstext gesetzt (wie $...$), "
+                        "$$...$$ wird im Kurzentwurf im Fließtext gesetzt (wie $...$), "
                         "nicht als eigene, zentrierte Formelzeile."
                     ),
                     line=line_number,
@@ -82,8 +82,8 @@ def collect_math_diagnostics(source: str) -> list[Diagnostic]:
                 code="KZF160",
                 severity="warning",
                 message=(
-                    "Enthaelt Formel-Syntax ($...$). Vorschau und PDF setzen Formeln auch ohne "
-                    "Internet. Eine exportierte HTML-Datei laedt MathJax beim Oeffnen von einem CDN; "
+                    "Enthält Formel-Syntax ($...$). Vorschau und PDF setzen Formeln auch ohne "
+                    "Internet. Eine exportierte HTML-Datei lädt MathJax beim Öffnen von einem CDN; "
                     "ohne Internet zeigt sie die rohe Formel-Quelle als Text."
                 ),
                 line=first_math_line,

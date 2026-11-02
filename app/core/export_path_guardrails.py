@@ -167,7 +167,7 @@ def validate_export_output_path(
     if suffix not in normalized_allowed:
         allowed_label = ", ".join(sorted(normalized_allowed))
         raise ValueError(
-            f"Export-Zieldatei hat ungueltige Endung `{suffix or '(leer)'}`. Erlaubt: {allowed_label}."
+            f"Export-Zieldatei hat ungültige Endung `{suffix or '(leer)'}`. Erlaubt: {allowed_label}."
         )
 
     blocked = _blocked_root_folder_name(target)

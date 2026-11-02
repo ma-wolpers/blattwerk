@@ -57,7 +57,7 @@ def render_html_from_source(
             Diagnostic(
                 code="KZF220",
                 severity="error",
-                message="Dokument enthaelt keine renderbaren Phasen/Zeilen.",
+                message="Dokument enthält keine renderbaren Phasen/Zeilen.",
             )
         )
         return None, InspectionResult(document=inspection.document, diagnostics=tuple(diagnostics))
@@ -152,7 +152,7 @@ def build_preview_images(
             Diagnostic(
                 code="KZF200",
                 severity="error",
-                message="PyMuPDF ist nicht verfuegbar. Vorschau kann nicht gerendert werden.",
+                message="PyMuPDF ist nicht verfügbar. Vorschau kann nicht gerendert werden.",
             )
         )
         return [], InspectionResult(document=inspection.document, diagnostics=tuple(diagnostics))

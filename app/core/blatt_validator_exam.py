@@ -19,14 +19,14 @@ from .exam_parts import PART_KIND_CHOICE, PART_SPLIT_BLOCKS, resolve_exam_parts
 from .points_model import STATUS_OK, build_points_model, format_points
 
 _PART_PROBLEMS = {
-    "KL001": ("error", "`--hm` darf in einer Klausur hoechstens zweimal vorkommen (Deckblatt | Teil A | Teil B)."),
+    "KL001": ("error", "`--hm` darf in einer Klausur höchstens zweimal vorkommen (Deckblatt | Teil A | Teil B)."),
     "KL002": ("warning", "`--hm` wirkt nur in Klausuren (.kbw) und wird hier ignoriert."),
     "KL004": ("error", "Ein Teil-Trenner muss auf oberster Ebene stehen (nicht in `:::columns`): `--hm` zwischen zwei Aufgaben, `--w` vor einem Wahlteil mit mindestens einer Aufgabe."),
-    "KL005": ("error", "Nach einem Teil-Trenner (`--hm`, `--w`) muss eine neue Aufgabe (`:::task`) folgen -- Teilaufgaben oder Loesungen duerfen nicht von ihrer Aufgabe getrennt werden."),
-    "KL007": ("error", "Vor dem ersten von zwei `--hm` (Deckblatt) duerfen keine Aufgaben, Teilaufgaben oder Loesungen stehen."),
+    "KL005": ("error", "Nach einem Teil-Trenner (`--hm`, `--w`) muss eine neue Aufgabe (`:::task`) folgen -- Teilaufgaben oder Lösungen dürfen nicht von ihrer Aufgabe getrennt werden."),
+    "KL007": ("error", "Vor dem ersten von zwei `--hm` (Deckblatt) dürfen keine Aufgaben, Teilaufgaben oder Lösungen stehen."),
     "KL008": ("error", "`--w` ohne offenen Wahlbereich: Der erste Wahlteil eines Bereichs braucht die Anzahl, z. B. `--w[1] Titel`."),
     "KL009": ("error", "`--w[k]` in einem offenen Wahlbereich: weitere Wahlteile desselben Bereichs ohne `[k]` schreiben (`--w Titel`); ein neuer Bereich beginnt erst nach `--hm`."),
-    "KL010": ("error", "Ungueltige Anzahl in `--w[k]`: k muss eine ganze Zahl von 1 bis (Anzahl der Wahlteile - 1) sein."),
+    "KL010": ("error", "Ungültige Anzahl in `--w[k]`: k muss eine ganze Zahl von 1 bis (Anzahl der Wahlteile - 1) sein."),
     "KL012": ("error", "`--w` (Wahlteil) gibt es nur in Klausuren (.kbw)."),
 }
 """Meldung und Schwere je Strukturproblem; Fehler blockieren den Export (nie still „kein Split“)."""
@@ -102,7 +102,7 @@ def _unequal_choice_points(layout, units, blocks) -> list[BuildDiagnostic]:
             if len(set(sums.values())) > 1:
                 listing = ", ".join(f"{parts[part_id].label}: {format_points(value)} P" for part_id, value in sums.items())
                 diagnostics.append(_diag(
-                    "KL011", f"Die Wahlteile eines Bereichs muessen gleich viele Punkte haben ({listing}).",
+                    "KL011", f"Die Wahlteile eines Bereichs müssen gleich viele Punkte haben ({listing}).",
                     blocks, parts[group.part_ids[0]].marker_block, "error",
                 ))
     return diagnostics

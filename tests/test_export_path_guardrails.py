@@ -19,7 +19,7 @@ def test_validate_export_output_path_rejects_directory_target(tmp_path):
 
 
 def test_validate_export_output_path_rejects_invalid_suffix(tmp_path):
-    with pytest.raises(ValueError, match="ungueltige Endung"):
+    with pytest.raises(ValueError, match="ungültige Endung"):
         validate_export_output_path(tmp_path / "blatt.txt", allowed_suffixes={".pdf"})
 
 

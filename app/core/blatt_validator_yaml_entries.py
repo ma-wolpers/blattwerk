@@ -131,7 +131,7 @@ def _validate_geometry_entry_fields(diagnostics, block_index, answer_type, parse
                         BuildDiagnostic(
                             code="AN012",
                             message=(
-                                f"Ungueltiger Wert fuer `line` in `pairs[{idx}]`: `{raw_line}`. "
+                                f"Ungültiger Wert für `line` in `pairs[{idx}]`: `{raw_line}`. "
                                 "Erlaubt: solid, dashed."
                             ),
                             severity="error",
@@ -149,7 +149,7 @@ def _validate_geometry_entry_fields(diagnostics, block_index, answer_type, parse
                         BuildDiagnostic(
                             code="AN013",
                             message=(
-                                f"Ungueltiger Farbwert fuer `{color_field}` in `{section}[{idx}]`: "
+                                f"Ungültiger Farbwert für `{color_field}` in `{section}[{idx}]`: "
                                 f"`{raw_color}`."
                             ),
                             block_index=block_index,
@@ -165,7 +165,7 @@ def _validate_geometry_entry_fields(diagnostics, block_index, answer_type, parse
                     BuildDiagnostic(
                         code="AN014",
                         message=(
-                            f"Ungueltiger Wert fuer `thickness` in `{section}[{idx}]`: `{raw_thickness}`. "
+                            f"Ungültiger Wert für `thickness` in `{section}[{idx}]`: `{raw_thickness}`. "
                             "Erwartet: positive Zahl."
                         ),
                         block_index=block_index,
@@ -202,8 +202,8 @@ def _validate_geometry_axis_dependent_sections(diagnostics, block_index, answer_
         BuildDiagnostic(
             code="AN015",
             message=(
-                "`functions` wird nur im Achsenmodus gerendert (`axis=true` mit gueltigem "
-                "`origin`). Ohne aktiven Achsenmodus bleiben alle Eintraege dieser Sektion "
+                "`functions` wird nur im Achsenmodus gerendert (`axis=true` mit gültigem "
+                "`origin`). Ohne aktiven Achsenmodus bleiben alle Einträge dieser Sektion "
                 "unsichtbar."
             ),
             block_index=block_index,
@@ -242,8 +242,8 @@ def _validate_geometry_shape_entries(diagnostics, block_index, answer_type, pars
                     BuildDiagnostic(
                         code="AN017",
                         message=(
-                            f"Ungueltiges Polygon in `polygons[{idx}]`: `vertices` braucht "
-                            "mindestens 3 Eintraege, jeweils mit numerischem `x`/`y`. Das "
+                            f"Ungültiges Polygon in `polygons[{idx}]`: `vertices` braucht "
+                            "mindestens 3 Einträge, jeweils mit numerischem `x`/`y`. Das "
                             "gesamte Polygon wird nicht gerendert (kein Teil-Repair einzelner "
                             "Eckpunkte)."
                         ),
@@ -264,8 +264,8 @@ def _validate_geometry_shape_entries(diagnostics, block_index, answer_type, pars
                     BuildDiagnostic(
                         code="AN018",
                         message=(
-                            f"Ungueltiger Kreis/Bogen in `circles[{idx}]`: `cx`/`cy`/`r` "
-                            "muessen numerisch gesetzt sein und `r` muss positiv sein. Der "
+                            f"Ungültiger Kreis/Bogen in `circles[{idx}]`: `cx`/`cy`/`r` "
+                            "müssen numerisch gesetzt sein und `r` muss positiv sein. Der "
                             "Eintrag wird nicht gerendert."
                         ),
                         block_index=block_index,
@@ -281,7 +281,7 @@ def _validate_geometry_shape_entries(diagnostics, block_index, answer_type, pars
                     BuildDiagnostic(
                         code="AN018",
                         message=(
-                            f"Ungueltiger Kreis/Bogen in `circles[{idx}]`: {angle_problem}. Der "
+                            f"Ungültiger Kreis/Bogen in `circles[{idx}]`: {angle_problem}. Der "
                             "Eintrag wird nicht gerendert."
                         ),
                         block_index=block_index,

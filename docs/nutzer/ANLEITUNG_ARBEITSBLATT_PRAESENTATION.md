@@ -14,7 +14,7 @@ Ein Blattwerk-Dokument besteht aus YAML-Frontmatter (Pflicht) gefolgt von einer 
 
 **Jeder Block braucht sein eigenes `:::`, bevor der nächste Block beginnt -- Verschachtelung ist nicht erlaubt.** Das gilt uneingeschränkt auch für `columns`/`nextcol`/`endcolumns`: das sind ganz normale Blocktypen wie jeder andere, kein syntaktischer Sonderfall. Bei fehlendem Inhalt kann die Kurzform `:::blockname ... :::` (öffnendes und schließendes `:::` auf derselben Zeile) verwendet werden, z. B. `:::nextcol :::`.
 
-Überall, wo `**fett**`/`*kursiv*` funktioniert, funktioniert auch `$formel$` (Inline) und `$$formel$$` (freistehend) für mathematische Formeln (LaTeX-Syntax, z. B. `$\frac{a}{b}$`, `$x_i$`). Vorschau und PDF setzen Formeln auch ohne Internet. Eine exportierte HTML-Datei laedt MathJax beim Oeffnen von einem CDN nach; ohne Internet zeigt sie die rohe Formel-Quelle als lesbaren Text -- der HTML-Export weist nicht-blockierend darauf hin (`MJ001`). Ein einzelnes, nicht als Formel gemeintes `$`-Zeichen (z. B. `$5`) wird nicht faelschlich als Formelbeginn erkannt, solange kein passendes zweites `$` unmittelbar danach folgt. `**$formel$**`/`**$$formel$$**` setzt die Formel selbst fett (nicht nur Text drumherum) -- praktisch, um z. B. ein Endergebnis hervorzuheben. Das funktioniert nicht für eine ganze mehrzeilige LaTeX-Umgebung in Fett (z. B. `$$\begin{aligned}...\end{aligned}$$`); dort stattdessen nur Teile der Formel oder den umgebenden Text fett setzen.
+Überall, wo `**fett**`/`*kursiv*` funktioniert, funktioniert auch `$formel$` (Inline) und `$$formel$$` (freistehend) für mathematische Formeln (LaTeX-Syntax, z. B. `$\frac{a}{b}$`, `$x_i$`). Vorschau und PDF setzen Formeln auch ohne Internet. Eine exportierte HTML-Datei lädt MathJax beim Öffnen von einem CDN nach; ohne Internet zeigt sie die rohe Formel-Quelle als lesbaren Text -- der HTML-Export weist nicht-blockierend darauf hin (`MJ001`). Ein einzelnes, nicht als Formel gemeintes `$`-Zeichen (z. B. `$5`) wird nicht fälschlich als Formelbeginn erkannt, solange kein passendes zweites `$` unmittelbar danach folgt. `**$formel$**`/`**$$formel$$**` setzt die Formel selbst fett (nicht nur Text drumherum) -- praktisch, um z. B. ein Endergebnis hervorzuheben. Das funktioniert nicht für eine ganze mehrzeilige LaTeX-Umgebung in Fett (z. B. `$$\begin{aligned}...\end{aligned}$$`); dort stattdessen nur Teile der Formel oder den umgebenden Text fett setzen.
 
 ## 2. Schnellstart: Arbeitsblatt
 
@@ -41,7 +41,7 @@ Formuliere hier deine erste Aufgabe.
 ---
 document_type: presentation
 presentation_layout: presentation_16_9
-Titel: Neue Praesentation
+Titel: Neue Präsentation
 Fach: Fach eintragen
 Thema: Thema eintragen
 ---
@@ -52,8 +52,8 @@ Starte hier mit der ersten Folie.
 :::
 
 --!
-:::task title="Weiterfuehrung"
-Fuehre hier den naechsten Gedanken aus.
+:::task title="Weiterführung"
+Führe hier den nächsten Gedanken aus.
 :::
 ```
 
@@ -289,7 +289,7 @@ Kreuzworträtsel-Antwortfeld. Der Inhalt ist eine YAML-Liste unter `words:` mit 
 :::crossword maxw=15 maxh=15
 words:
   - word: "SONNE"
-    clue: "Scheint tagsueber am Himmel"
+    clue: "Scheint tagsüber am Himmel"
   - word: "MOND"
     clue: "Scheint nachts am Himmel"
   - word: "STERN"

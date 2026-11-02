@@ -39,7 +39,7 @@ def inspect_kurzentwerfer_text(source: str) -> InspectionResult:
                     code="KZF010",
                     severity="error",
                     message=(
-                        f"Blattwerk-Marker '{marker}' ist in Kurzentwurf ungueltig. "
+                        f"Blattwerk-Marker '{marker}' ist in Kurzentwurf ungültig. "
                         "Bitte die Kurzentwurf-DSL verwenden."
                     ),
                 )
@@ -68,7 +68,7 @@ def inspect_kurzentwerfer_text(source: str) -> InspectionResult:
                 Diagnostic(
                     code="KZF101",
                     severity="error",
-                    message="Marker mit Doppelpunkt sind ungueltig. Bitte S>/A>/U> und s</ant< verwenden.",
+                    message="Marker mit Doppelpunkt sind ungültig. Bitte S>/A>/U> und s</ant< verwenden.",
                     line=line_number,
                 )
             )
@@ -84,7 +84,7 @@ def inspect_kurzentwerfer_text(source: str) -> InspectionResult:
                     code="KZF011",
                     severity="error",
                     message=(
-                        "Ungueltige Phase '"
+                        "Ungültige Phase '"
                         f"{raw_phase.phase}'. Erlaubt sind: {', '.join(ALLOWED_PHASES)}."
                     ),
                     line=raw_phase.line,
@@ -256,7 +256,7 @@ def _resolve_phase_times(
                 Diagnostic(
                     code="KZF131",
                     severity="error",
-                    message=f"Ungueltige globale Startzeit: {global_start_time}.",
+                    message=f"Ungültige globale Startzeit: {global_start_time}.",
                 )
             )
             return starts, ends
@@ -274,7 +274,7 @@ def _resolve_phase_times(
                     Diagnostic(
                         code="KZF132",
                         severity="error",
-                        message="Alle Phasen muessen t=... setzen, wenn Dauer-Modus verwendet wird.",
+                        message="Alle Phasen müssen t=... setzen, wenn Dauer-Modus verwendet wird.",
                         line=line,
                     )
                 )
@@ -291,7 +291,7 @@ def _resolve_phase_times(
                         Diagnostic(
                             code="KZF134",
                             severity="error",
-                            message=f"Ungueltige Startzeit im Header: {start_text}.",
+                            message=f"Ungültige Startzeit im Header: {start_text}.",
                             line=line,
                         )
                     )
@@ -341,7 +341,7 @@ def _resolve_phase_times(
                 Diagnostic(
                     code="KZF134",
                     severity="error",
-                    message=f"Ungueltige Startzeit im Header: {start_text}.",
+                    message=f"Ungültige Startzeit im Header: {start_text}.",
                     line=line,
                 )
             )
