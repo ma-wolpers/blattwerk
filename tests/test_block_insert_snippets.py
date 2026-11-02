@@ -15,6 +15,7 @@ dort ebenfalls gegen `BLOCK_INSERT_SNIPPETS` als Quelle der Wahrheit.
 from app.core.block_insert_snippets import BLOCK_INSERT_SNIPPETS
 from app.core.blatt_kern_shared_parsing import _SELF_CLOSING_BLOCK_PATTERN
 from app.core.blatt_validator_constants import BODYLESS_BLOCK_TYPES
+from app.core.insert_placeholders import strip_insert_placeholders
 from app.core.blatt_validator import inspect_markdown_text
 from app.core.markdown_conventions import collect_markdown_conventions
 
@@ -43,7 +44,7 @@ def test_every_block_insert_snippet_is_valid_markdown():
     wird deshalb das Snippet im Kontext einer Aufgabe mit Operator.
     """
     for block_type, snippet in BLOCK_INSERT_SNIPPETS.items():
-        cleaned = snippet.replace("\x01", "")
+        cleaned = strip_insert_placeholders(snippet)
         context = _CONTEXT_BEFORE.get(block_type, "")
         document = "---\nTitel: T\nFach: M\nThema: X\n---\n" + context + cleaned + "\n"
         diagnostics = inspect_markdown_text(document).diagnostics

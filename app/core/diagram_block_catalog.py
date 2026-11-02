@@ -36,7 +36,7 @@ DIAGRAM_BLOCKS: tuple[DiagramBlockSpec, ...] = (
             "für alle x aus d\n"
             "    wenn x = v\n"
             "        rückgabe wahr\n"
-            "% rückgabe falsch\x01\n"
+            "% rückgabe falsch[[CURSOR]]\n"
             ":::\n"
         ),
         empty_code="SG007",
@@ -55,7 +55,7 @@ DIAGRAM_BLOCKS: tuple[DiagramBlockSpec, ...] = (
             "    + getName(): Zeichenkette\n"
             "klasse Schueler\n"
             "    - jahrgang: Ganzzahl\n"
-            "Schueler -|> Person\x01\n"
+            "Schueler -|> Person[[CURSOR]]\n"
             ":::\n"
         ),
         empty_code="CD001",
@@ -71,7 +71,7 @@ DIAGRAM_BLOCKS: tuple[DiagramBlockSpec, ...] = (
             "    __Bezeichnung__\n"
             "entität Schueler\n"
             "    __Name__\n"
-            "Klasse 1 - gehoertZu - n Schueler\x01\n"
+            "Klasse 1 - gehoertZu - n Schueler[[CURSOR]]\n"
             ":::\n"
         ),
         empty_code="ER001",
@@ -87,7 +87,7 @@ DIAGRAM_BLOCKS: tuple[DiagramBlockSpec, ...] = (
             "ende: S1\n"
             "S0 -> S0: a\n"
             "S0 -> S1: b\n"
-            "S1 -> S1: a, b\x01\n"
+            "S1 -> S1: a, b[[CURSOR]]\n"
             ":::\n"
         ),
         empty_code="ST001",
@@ -107,7 +107,7 @@ DIAGRAM_BLOCKS: tuple[DiagramBlockSpec, ...] = (
             ":::graph\n"
             "A - B: 5\n"
             "B - C: 2\n"
-            "A - C: %{7}\x01\n"
+            "A - C: %{7}[[CURSOR]]\n"
             ":::\n"
         ),
         empty_code="GR001",
@@ -123,7 +123,7 @@ DIAGRAM_BLOCKS: tuple[DiagramBlockSpec, ...] = (
         snippet=(
             ":::networkdiagram\n"
             "PC1 - Switch - Router - Internet\n"
-            "PC2 - Switch\x01\n"
+            "PC2 - Switch[[CURSOR]]\n"
             ":::\n"
         ),
         empty_code="NW001",
@@ -137,7 +137,7 @@ DIAGRAM_BLOCKS: tuple[DiagramBlockSpec, ...] = (
             "wenn x > 0\n"
             "    rückgabe x\n"
             "sonst\n"
-            "    % rückgabe 0\x01\n"
+            "    % rückgabe 0[[CURSOR]]\n"
             ":::\n"
         ),
         empty_code="FC001",
@@ -151,7 +151,7 @@ DIAGRAM_BLOCKS: tuple[DiagramBlockSpec, ...] = (
         snippet=(
             ":::sequencediagram\n"
             "Client -> Server: anfrage()\n"
-            "Server --> Client: %{antwort}\x01\n"
+            "Server --> Client: %{antwort}[[CURSOR]]\n"
             ":::\n"
         ),
         empty_code="SQ001",
@@ -164,7 +164,7 @@ DIAGRAM_BLOCKS: tuple[DiagramBlockSpec, ...] = (
         snippet=(
             ":::syntaxdiagram\n"
             'Zahl = [ "-" ] Ziffer { Ziffer }\n'
-            'Ziffer = "0" | "1" | "2"\x01\n'
+            'Ziffer = "0" | "1" | "2"[[CURSOR]]\n'
             ":::\n"
         ),
         empty_code="SY001",
@@ -175,7 +175,7 @@ DIAGRAM_BLOCKS: tuple[DiagramBlockSpec, ...] = (
         module="diagram_logic",
         snippet=(
             ":::logicgates truthtable=true\n"
-            "Q = (A und B) oder nicht C\x01\n"
+            "Q = (A und B) oder nicht C[[CURSOR]]\n"
             ":::\n"
         ),
         empty_code="LG001",
@@ -194,7 +194,7 @@ DIAGRAM_BLOCKS: tuple[DiagramBlockSpec, ...] = (
             "Rot: 1/3\n"
             "    Rot: 1/4\n"
             "    Blau: 3/4\n"
-            "Blau: %{2/3}\x01\n"
+            "Blau: %{2/3}[[CURSOR]]\n"
             ":::\n"
         ),
         empty_code="PB001",
@@ -203,7 +203,7 @@ DIAGRAM_BLOCKS: tuple[DiagramBlockSpec, ...] = (
         name="termtree",
         title="Rechenbaum",
         module="diagram_term",
-        snippet=":::termtree gaps=results\n(3+4)*2\x01\n:::\n",
+        snippet=":::termtree gaps=results\n(3+4)*2[[CURSOR]]\n:::\n",
         empty_code="TT001",
         options=(BlockOptionSpec("gaps", "enum", frozenset({"none", "results", "leaves", "all"}), True, "none"),),
     ),
@@ -211,7 +211,7 @@ DIAGRAM_BLOCKS: tuple[DiagramBlockSpec, ...] = (
         name="timeline",
         title="Zeitstrahl",
         module="diagram_timeline",
-        snippet=":::timeline\n1789: Französische Revolution\n1848: Märzrevolution\x01\n:::\n",
+        snippet=":::timeline\n1789: Französische Revolution\n1848: Märzrevolution[[CURSOR]]\n:::\n",
         empty_code="TL001",
         options=(BlockOptionSpec("scale", "enum", frozenset({"even", "proportional"}), True, "even"),),
     ),
@@ -219,7 +219,7 @@ DIAGRAM_BLOCKS: tuple[DiagramBlockSpec, ...] = (
         name="chart",
         title="Statistikdiagramm",
         module="diagram_chart",
-        snippet=":::chart type=bar\nÄpfel: 12\nBirnen: 7\n% Kirschen: 3\x01\n:::\n",
+        snippet=":::chart type=bar\nÄpfel: 12\nBirnen: 7\n% Kirschen: 3[[CURSOR]]\n:::\n",
         empty_code="CH001",
         options=(
             BlockOptionSpec("type", "enum", frozenset({"bar", "pie", "box", "histogram", "scatter"}), True, "bar"),
@@ -230,7 +230,7 @@ DIAGRAM_BLOCKS: tuple[DiagramBlockSpec, ...] = (
         name="venn",
         title="Venn-Diagramm",
         module="diagram_venn",
-        snippet=":::venn\nA: 2, 4\nA B: 6\nB: %{3, 9}\x01\n:::\n",
+        snippet=":::venn\nA: 2, 4\nA B: 6\nB: %{3, 9}[[CURSOR]]\n:::\n",
         empty_code="VN001",
         keywords=("rest",),
         options=(BlockOptionSpec("variant", "enum", frozenset({"plain", "compare"}), True, "plain"),),
@@ -239,7 +239,7 @@ DIAGRAM_BLOCKS: tuple[DiagramBlockSpec, ...] = (
         name="arrowdiagram",
         title="Pfeildiagramm",
         module="diagram_arrow",
-        snippet=":::arrowdiagram left=x right=y\n1 -> 2\n2 -> 4\n% 3 -> 6\x01\n:::\n",
+        snippet=":::arrowdiagram left=x right=y\n1 -> 2\n2 -> 4\n% 3 -> 6[[CURSOR]]\n:::\n",
         empty_code="AR001",
         options=(
             BlockOptionSpec("left", "text", None, False, MISSING),
@@ -251,7 +251,7 @@ DIAGRAM_BLOCKS: tuple[DiagramBlockSpec, ...] = (
         name="fractions",
         title="Bruchdarstellung",
         module="diagram_fractions",
-        snippet=":::fractions shape=circle\n3/4\n% 2/3\x01\n:::\n",
+        snippet=":::fractions shape=circle\n3/4\n% 2/3[[CURSOR]]\n:::\n",
         empty_code="FR001",
         options=(
             BlockOptionSpec("shape", "enum", frozenset({"circle", "bar"}), True, "circle"),
@@ -262,7 +262,7 @@ DIAGRAM_BLOCKS: tuple[DiagramBlockSpec, ...] = (
         name="memorydiagram",
         title="Speicherbild",
         module="diagram_memory",
-        snippet=":::memorydiagram\nreihung r: 3, 5, 7\nvariable x: %{5}\nreferenz p -> r\x01\n:::\n",
+        snippet=":::memorydiagram\nreihung r: 3, 5, 7\nvariable x: %{5}\nreferenz p -> r[[CURSOR]]\n:::\n",
         empty_code="MM001",
         keywords=("reihung", "variable", "referenz", "stapel", "schlange"),
     ),

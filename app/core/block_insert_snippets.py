@@ -4,7 +4,7 @@
 "Einfügen" (Alt+I; Menüstruktur in
 `app/core/block_insert_menu_families.py`, Anbindung in
 `app/ui/blatt_ui_block_insert_menu.py`) exakt den Text, der beim Einfügen per
-Klick in den Editor geschrieben wird -- inklusive `\x01`-Cursor-Marker
+Klick in den Editor geschrieben wird -- inklusive Cursor-Platzhalter `[[CURSOR]]` (`insert_placeholders.py`)
 (derselbe Vertrag wie bisher im Editor).
 
 **Wichtig:** Ein Snippet ist ein *minimales, bequemes Beispiel* für die
@@ -29,7 +29,7 @@ from .diagram_block_catalog import DIAGRAM_BLOCKS
 BLOCK_INSERT_SNIPPETS: dict[str, str] = {
     "mc": (
         ":::mc inline=true\n"
-        "\x01Frage oder Einleitung…\n"
+        "[[CURSOR]]Frage oder Einleitung…\n"
         "- [x] Richtige Antwort\n"
         "- [ ] Falsche Antwort A\n"
         "- [ ] Falsche Antwort B\n"
@@ -38,63 +38,63 @@ BLOCK_INSERT_SNIPPETS: dict[str, str] = {
     "table": (
         ':::table rows=3 cols=3 column_headers="A|B|C"\n'
         "cells:\n"
-        '\x01  - ["", "", ""]\n'
+        '[[CURSOR]]  - ["", "", ""]\n'
         '  - ["", "", ""]\n'
         '  - ["", "", ""]\n'
         ":::\n"
     ),
     "columns": (
         ':::columns cols=2 widths="1 1" :::\n'
-        "\x01\n"
+        "[[CURSOR]]\n"
         ":::nextcol :::\n"
         "\n"
         ":::endcolumns :::\n"
     ),
     "dots": (
         ":::dots height=4cm\n"
-        "\x01\n"
+        "[[CURSOR]]\n"
         ":::\n"
     ),
     "geometry": (
         ':::geometry scale=0.5cm width=20 height=10 axis=true origin="10,5"\n'
         "points:\n"
-        '\x01  - {x: 0, y: 0, label: "A", show: "&"}\n'
+        '[[CURSOR]]  - {x: 0, y: 0, label: "A", show: "&"}\n'
         ":::\n"
     ),
     "info": (
         ":::info type=note\n"
-        "\x01Hinweis hier…\n"
+        "[[CURSOR]]Hinweis hier…\n"
         ":::\n"
     ),
     "grid": (
         ":::grid scale=0.5cm\n"
-        "\x01\n"
+        "[[CURSOR]]\n"
         ":::\n"
     ),
     "help": (
         ':::help title="Hilfe" level=1\n'
-        "\x01Hilfetext hier…\n"
+        "[[CURSOR]]Hilfetext hier…\n"
         ":::\n"
     ),
     "cloze": (
         ":::cloze gap=fixed words=below\n"
-        "\x01Text mit {{Lücke}} hier.\n"
+        "[[CURSOR]]Text mit {{Lücke}} hier.\n"
         ":::\n"
     ),
     "lines": (
         ":::lines rows=3\n"
-        "\x01\n"
+        "[[CURSOR]]\n"
         ":::\n"
     ),
     "material": (
         ':::material title="Titel"\n'
-        "\x01Inhalt hier…\n"
+        "[[CURSOR]]Inhalt hier…\n"
         ":::\n"
     ),
     "numberline": (
         ":::numberline min=0 max=10 tick_step=1 major_every=5 height=2cm\n"
         "labels:\n"
-        '\x01  - {value: 0, show: "&"}\n'
+        '[[CURSOR]]  - {value: 0, show: "&"}\n'
         '  - {value: 10, show: "&"}\n'
         "answers:\n"
         "  - {value: 5}\n"
@@ -102,46 +102,46 @@ BLOCK_INSERT_SNIPPETS: dict[str, str] = {
     ),
     "space": (
         ":::space height=3cm\n"
-        "\x01\n"
+        "[[CURSOR]]\n"
         ":::\n"
     ),
     "qrcode": (
         ":::qrcode url=https://example.org w=3cm h=3cm maxw=45% :::\n"
-        "\x01"
+        "[[CURSOR]]"
     ),
     "evaluation": (
         ":::evaluation level=task:::\n"
-        "\x01"
+        "[[CURSOR]]"
     ),
     "operators": (
         ":::operators:::\n"
-        "\x01"
+        "[[CURSOR]]"
     ),
     "solution": (
         ":::solution\n"
-        "\x01Musterlösung hier…\n"
+        "[[CURSOR]]Musterlösung hier…\n"
         ":::\n"
     ),
     "subtask": (
         ":::subtask work=single\n"
-        "\x01Teilaufgabe hier…\n"
+        "[[CURSOR]]Teilaufgabe hier…\n"
         ":::\n"
     ),
     "task": (
         ":::task work=single action=write\n"
-        "\x01Aufgabentext hier…\n"
+        "[[CURSOR]]Aufgabentext hier…\n"
         ":::\n"
     ),
     "wordsearch": (
         ":::wordsearch min_size=10x12 diagonal=false\n"
-        "\x01- Wort1\n"
+        "[[CURSOR]]- Wort1\n"
         "- Wort2\n"
         "- Wort3\n"
         ":::\n"
     ),
     "ordering": (
         ":::ordering numbering=numeric\n"
-        "\x01- Zuerst das Ei kaufen\n"
+        "[[CURSOR]]- Zuerst das Ei kaufen\n"
         "- Dann den Teig anrühren\n"
         "- Dann backen\n"
         "- Zum Schluss servieren\n"
@@ -150,7 +150,7 @@ BLOCK_INSERT_SNIPPETS: dict[str, str] = {
     "checkgrid": (
         ":::checkgrid\n"
         "columns:\n"
-        '\x01  - "richtig"\n'
+        '[[CURSOR]]  - "richtig"\n'
         '  - "falsch"\n'
         "rows:\n"
         '  - text: "Die Erde ist eine Scheibe."\n'
@@ -162,7 +162,7 @@ BLOCK_INSERT_SNIPPETS: dict[str, str] = {
     "crossword": (
         ":::crossword maxw=15 maxh=15\n"
         "words:\n"
-        '\x01  - word: "SONNE"\n'
+        '[[CURSOR]]  - word: "SONNE"\n'
         '    clue: "Scheint tagsueber am Himmel"\n'
         '  - word: "MOND"\n'
         '    clue: "Scheint nachts am Himmel"\n'
@@ -172,24 +172,24 @@ BLOCK_INSERT_SNIPPETS: dict[str, str] = {
     ),
     "mindmap": (
         ":::mindmap branches=6 shape=oval\n"
-        "\x01Thema\n"
+        "[[CURSOR]]Thema\n"
         ":::\n"
     ),
     "selfcheck": (
         ":::selfcheck scale=smiley steps=3\n"
-        "\x01- Ich kann das Thema erklären.\n"
+        "[[CURSOR]]- Ich kann das Thema erklären.\n"
         "- Ich kann Aufgaben dazu lösen.\n"
         ":::\n"
     ),
     "writebox": (
         ":::writebox style=frame lines=5\n"
-        "\x01Schreibimpuls hier…\n"
+        "[[CURSOR]]Schreibimpuls hier…\n"
         ":::\n"
     ),
     "matching": (
         ":::matching layout=horizontal height_mode=uniform lane_align=center show_guides=false\n"
         "left:\n"
-        '\x01  - "Begriff A"\n'
+        '[[CURSOR]]  - "Begriff A"\n'
         '  - "Begriff B"\n'
         "right:\n"
         '  - "Erklärung A"\n'
@@ -202,3 +202,7 @@ BLOCK_INSERT_SNIPPETS: dict[str, str] = {
 }
 
 BLOCK_INSERT_SNIPPETS.update({spec.name: spec.snippet for spec in DIAGRAM_BLOCKS})
+
+IMAGE_INSERT_SNIPPET = '![Bildbeschreibung](bild.png "w=80% align=center")\n[[CURSOR]]'
+"""Vorlage für den Eintrag „Bild“ im Menü „Einfügen“. Kein `:::`-Block, darum nicht in
+`BLOCK_INSERT_SNIPPETS` (das nur echte Blocktypen kennt), aber dieselbe Vorlagenquelle."""

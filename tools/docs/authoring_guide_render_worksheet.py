@@ -12,6 +12,7 @@ from app.core import authoring_guide_prose
 from app.core.blatt_validator_constants import MISSING
 from app.core.document_type_registry import DOCUMENT_TYPE_PRESENTATION, DOCUMENT_TYPE_WORKSHEET
 from app.core.document_type_templates import build_new_document_content
+from app.core.insert_placeholders import strip_insert_placeholders
 from app.core.markdown_conventions import MarkdownConventionCatalog
 from app.core.option_prose_resolution import build_majority_variant_map, resolve_option_prose_key
 
@@ -95,12 +96,12 @@ def _render_block_insert_example(block) -> str:
     """Rendert das Beispiel eines Blocks aus dem Menü "Einfügen" als gefencten
     Codeblock, falls vorhanden.
 
-    Entfernt den `\x01`-Cursor-Marker (nur für den Editor relevant) und gibt
+    Entfernt die Cursor-Platzhalter (nur für den Editor relevant) und gibt
     `""` zurück, wenn der Block keinen Eintrag im Einfügemenü hat.
     """
     if not block.insert_snippet:
         return ""
-    cleaned = block.insert_snippet.replace("\x01", "")
+    cleaned = strip_insert_placeholders(block.insert_snippet)
     return '\n\n**Beispiel** (identisch mit dem Menü "Einfügen" (Alt+I) im Editor):\n\n' + _fenced(cleaned)
 
 

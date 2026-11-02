@@ -5,6 +5,7 @@ from __future__ import annotations
 import pytest
 
 from app.core.blatt_validator import inspect_markdown_text
+from app.core.insert_placeholders import strip_insert_placeholders
 from app.core.diagram_block_dispatch import render_diagram_block
 from app.core.diagram_term import evaluate
 from app.core.diagram_term import parse as parse_term
@@ -145,7 +146,7 @@ def test_snippets_of_all_diagram_blocks_stay_free_of_warnings():
     from app.core.diagram_block_catalog import DIAGRAM_BLOCKS
 
     for spec in DIAGRAM_BLOCKS:
-        codes = _codes(spec.snippet.replace("\x01", ""))
+        codes = _codes(strip_insert_placeholders(spec.snippet))
         assert not [code for code in codes if code[:2] in {spec.empty_code[:2]} and code != "SG020"], (spec.name, codes)
 
 

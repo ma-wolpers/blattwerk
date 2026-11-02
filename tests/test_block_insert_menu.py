@@ -10,7 +10,8 @@ und deshalb bewusst *nicht* Gegenstand dieser Tests.
 
 from app.core.block_insert_menu_families import BLOCK_INSERT_FAMILIES, BLOCK_INSERT_STANDALONE
 from app.core.block_insert_snippets import BLOCK_INSERT_SNIPPETS
-from app.ui.blatt_ui_block_insert_menu import BlattwerkAppBlockInsertMenuMixin, _IMAGE_INSERT_SNIPPET
+from app.core.block_insert_snippets import IMAGE_INSERT_SNIPPET
+from app.ui.blatt_ui_block_insert_menu import BlattwerkAppBlockInsertMenuMixin
 
 
 class _FakeApp(BlattwerkAppBlockInsertMenuMixin):
@@ -118,4 +119,4 @@ def test_clicking_the_image_entry_inserts_the_fixed_image_snippet():
 
     image_item["command"]()
 
-    assert app.inserted == [_IMAGE_INSERT_SNIPPET]
+    assert app.inserted == [IMAGE_INSERT_SNIPPET]

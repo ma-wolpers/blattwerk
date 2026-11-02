@@ -12,6 +12,7 @@ from app.core.block_line_scan import scan_block_lines
 from app.core.diagram_block_catalog import DIAGRAM_BLOCKS
 from app.core.diagram_block_dispatch import estimate_diagram_weight, render_diagram_block
 from app.core.diagram_text import iter_source_lines, make_cell, render_cell
+from app.core.insert_placeholders import strip_insert_placeholders
 
 EXISTING_CODE_PREFIXES = {"AN", "BL", "CW", "EV", "FM", "IM", "KL", "MA", "MJ", "OP", "PK", "PT", "QR", "SC", "SL"}
 
@@ -39,7 +40,7 @@ def test_diagram_names_are_lowercase_english_and_codes_are_unique():
 def test_every_snippet_renders_and_estimates_a_weight():
     """Jedes Einfüge-Snippet ist gültig: Es rendert in beiden Fassungen etwas Sichtbares."""
     for spec in DIAGRAM_BLOCKS:
-        content = "\n".join(spec.snippet.replace("\x01", "").splitlines()[1:-1])
+        content = "\n".join(strip_insert_placeholders(spec.snippet).splitlines()[1:-1])
         assert render_diagram_block(spec.name, {}, content, include_solutions=False)
         assert render_diagram_block(spec.name, {}, content, include_solutions=True)
         assert estimate_diagram_weight(spec.name, {}, content) > 0

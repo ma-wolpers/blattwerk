@@ -3,11 +3,10 @@
 from __future__ import annotations
 
 from ..core.block_insert_menu_families import BLOCK_INSERT_FAMILIES, BLOCK_INSERT_STANDALONE
-from ..core.block_insert_snippets import BLOCK_INSERT_SNIPPETS
+from ..core.block_insert_snippets import BLOCK_INSERT_SNIPPETS, IMAGE_INSERT_SNIPPET
 from ..core.completion_catalogs import get_completion_block_type_detail
 
 _IMAGE_MENU_LABEL = "Bild (image)"
-_IMAGE_INSERT_SNIPPET = '![Bildbeschreibung](bild.png "w=80% align=center")\n\x01'
 
 
 class BlattwerkAppBlockInsertMenuMixin:
@@ -74,5 +73,5 @@ class BlattwerkAppBlockInsertMenuMixin:
         return {
             "type": "command",
             "label": _IMAGE_MENU_LABEL,
-            "command": lambda: self._insert_editor_snippet(_IMAGE_INSERT_SNIPPET),
+            "command": lambda: self._insert_editor_snippet(IMAGE_INSERT_SNIPPET),
         }

@@ -82,7 +82,7 @@ class DiagramBlockSpec:
         name: Blockname (englisch, ohne Alias).
         title: Deutscher Anzeigename für Menü und Meldungen.
         module: Modulname unter `app.core` (Vertrag siehe Moduldoku).
-        snippet: Einfügevorlage mit `\\x01` als Cursor-Marker.
+        snippet: Einfügevorlage mit `[[CURSOR]]` als Cursor-Platzhalter (`insert_placeholders.py`).
         empty_code: Warnungscode für einen leeren Block.
         keywords: Schlüsselwörter am Zeilenanfang (für die Hervorhebung).
         options: Blockeigene Optionen; `width`, `show`, `mode`, `align` kommen immer dazu.

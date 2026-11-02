@@ -11,7 +11,6 @@ Completion-Modulen. Kontext-Erkennung lebt in
 
 from __future__ import annotations
 
-import re
 
 from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 
@@ -22,6 +21,7 @@ from bw_gui.runtime import WidgetShortcutBinder, bind_click, bind_hover, listbox
 from bw_gui.runtime.overlay_stack import OverlayCategory, register_overlay
 
 from .local_keys import bind_actions
+from ..core.insert_placeholders import resolve_insert_placeholders
 
 
 class BlattwerkAppEditorCompletionPopupMixin:
@@ -277,7 +277,7 @@ class BlattwerkAppEditorCompletionPopupMixin:
 
     @staticmethod
     def _resolve_completion_insert(candidate):
-        """Returns insert text plus target cursor offset after insertion."""
+        """Returns insert text plus target cursor offset after insertion (rules: `resolve_insert_placeholders`)."""
 
         if not isinstance(candidate, dict):
             return None, None
@@ -286,39 +286,7 @@ class BlattwerkAppEditorCompletionPopupMixin:
         if raw_insert_text is None:
             return None, None
 
-        placeholder_pattern = re.compile(r"\[\[(\d+):([^\]]*)\]\]")
-        occurrences = []
-        output_parts = []
-        scan_index = 0
-
-        for match in placeholder_pattern.finditer(raw_insert_text):
-            output_parts.append(raw_insert_text[scan_index:match.start()])
-            replacement_text = match.group(2)
-            output_offset = len("".join(output_parts))
-            output_parts.append(replacement_text)
-            occurrences.append(
-                {
-                    "order": int(match.group(1)),
-                    "start": output_offset,
-                    "end": output_offset + len(replacement_text),
-                }
-            )
-            scan_index = match.end()
-
-        output_parts.append(raw_insert_text[scan_index:])
-        parsed_insert_text = "".join(output_parts)
-
-        if occurrences:
-            ordered = sorted(occurrences, key=lambda item: (item["order"], item["start"]))
-            return parsed_insert_text, ordered[0]["start"]
-
-        cursor_marker = "[[CURSOR]]"
-        marker_index = parsed_insert_text.find(cursor_marker)
-        if marker_index >= 0:
-            insert_text = parsed_insert_text.replace(cursor_marker, "", 1)
-            return insert_text, marker_index
-
-        return parsed_insert_text, len(parsed_insert_text)
+        return resolve_insert_placeholders(raw_insert_text)
 
     def _close_editor_completion(self):
         """Hides and clears completion popup state."""

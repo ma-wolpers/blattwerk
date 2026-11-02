@@ -12,6 +12,7 @@ from bw_gui.contracts.events import EventResult
 from bw_gui.contracts.key_spec import KeySpec
 from bw_gui.runtime import WidgetShortcutBinder
 
+from ..core.insert_placeholders import resolve_insert_placeholders
 from .blatt_ui_editor_multicursor import MATH_CROSSING_MESSAGE, BlattwerkAppEditorMultiCursorMixin
 from .editor_marker_shortcuts import apply_backtick_marker, apply_caret_marker, apply_dollar_marker, apply_highlight_marker, apply_percent_marker, apply_pipe_marker, apply_star_marker, apply_tilde_marker, apply_underscore_marker, selection_crosses_math_boundary
 from .ui_constants import EDITOR_DOCUMENT_LOADED
@@ -429,28 +430,16 @@ class BlattwerkAppEditorKeysMixin(BlattwerkAppEditorMultiCursorMixin):
         return pos
 
     def _insert_editor_snippet(self, template: str):
-        """Inserts a block snippet at the cursor. \\x01 in template marks cursor landing position."""
+        """Inserts a block snippet at the cursor; the cursor lands on its placeholder (`resolve_insert_placeholders`)."""
 
         if self.editor_widget is None:
             return
 
-        cursor_mark = "\x01"
-        cursor_offset = template.find(cursor_mark)
-        clean_text = template.replace(cursor_mark, "")
-
+        clean_text, cursor_offset = resolve_insert_placeholders(template)
         insert_pos = self.editor_widget.index("insert")
-        line, col = map(int, insert_pos.split("."))
-
-        prefix = "\n" if col > 0 else ""
+        prefix = "\n" if int(insert_pos.split(".")[1]) > 0 else ""
         self.editor_widget.insert(insert_pos, prefix + clean_text)
-
-        if cursor_offset >= 0:
-            text_to_cursor = prefix + template[:cursor_offset]
-            newline_count = text_to_cursor.count("\n")
-            last_newline = text_to_cursor.rfind("\n")
-            cursor_line = line + newline_count
-            cursor_col = len(text_to_cursor) - last_newline - 1 if last_newline >= 0 else col + len(text_to_cursor)
-            self.editor_widget.mark_set("insert", f"{cursor_line}.{cursor_col}")
+        self.editor_widget.mark_set("insert", f"{insert_pos} +{len(prefix) + cursor_offset}c")
 
         self.editor_widget.see("insert")
         self.editor_widget.focus_set()
