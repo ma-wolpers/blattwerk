@@ -95,21 +95,41 @@ def test_text_width_counts_what_a_formula_shows():
 
 
 def test_text_and_gaps_always_stand_on_a_light_ground():
-    """Alle Töne mit Text enden unter 35 Prozent Farbe; kräftige Füllung gibt es nur ohne Text."""
+    """Töne bleiben flach und hell, die Datenfarben sind hell genug für schwarzen Text."""
+    import colorsys
     import re
     from pathlib import Path
 
-    from app.core.diagram_svg import TONES
+    from app.styles.diagram_palette import data_palette
 
     css = Path(__file__).resolve().parents[1].joinpath("assets", "worksheet.css").read_text(encoding="utf-8")
-    for tone in TONES:
-        number = tone.rsplit("-", 1)[1]
-        rule = re.search(rf"\.diagram-stop-{number}b \{{\s*stop-color: color-mix\(in srgb, var\(--diagram-\w+\) (\d+)%", css)
-        assert rule and int(rule.group(1)) < 35, tone
+    for number in range(1, 5):
+        rule = re.search(rf"\.diagram-tone-{number} \{{\s*fill: color-mix\(in srgb, var\(--diagram-\w+\) (\d+)%", css)
+        assert rule and int(rule.group(1)) < 30, number
+    for color in data_palette("#2F7FAE", False) + data_palette("#5A5A5A", False) + data_palette("#000000", True):
+        channels = [int(color[i: i + 2], 16) / 255 for i in (1, 3, 5)]
+        assert colorsys.rgb_to_hls(*channels)[1] >= 0.6, color
 
 
-def test_every_diagram_with_canvas_has_its_gradients():
-    """Jedes Diagramm bringt die Verläufe mit, sonst blieben die Formen ungefüllt."""
+def test_diagrams_use_flat_shades_without_gradients_or_shadows():
+    """Keine Verläufe und keine Schatten, weder im Bild noch im CSS der Diagramme."""
+    from pathlib import Path
+
     html = render_diagram_block("graph", {}, "A - B")
-    assert "id='diagram-gradient-1'" in html
-    assert "diagram-tone-5" not in html and "diagram-tone-6" not in html
+    assert "Gradient" not in html and "<defs" not in html
+    css = Path(__file__).resolve().parents[1].joinpath("assets", "worksheet.css").read_text(encoding="utf-8")
+    section = css[css.index("/* Diagrammblöcke"): css.index("/* Struktogramm (:::structogram)")]
+    assert "gradient" not in section.replace("Verläufen", "") and "drop-shadow" not in section
+
+
+def test_data_palette_is_colorful_except_in_black_and_white():
+    """Mehrere klar verschiedene Farben; im Schwarz-Weiß-Profil nur Grau."""
+    from app.styles.diagram_palette import DATA_COLOR_COUNT, data_palette
+    from app.styles.worksheet_design import COLOR_PROFILE_ORDER, build_design_css
+
+    colorful = data_palette("#4C5ED9", False)
+    assert len(set(colorful)) == DATA_COLOR_COUNT
+    assert len(set(data_palette("#5A5A5A", False))) == DATA_COLOR_COUNT
+    assert all(c[1:3] == c[3:5] == c[5:7] for c in data_palette("#4C5ED9", True))
+    for profile in COLOR_PROFILE_ORDER:
+        assert "--diagram-data-8:" in build_design_css(profile)

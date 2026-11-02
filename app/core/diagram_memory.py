@@ -20,7 +20,7 @@ from dataclasses import dataclass, field
 
 from .diagram_edges import parse_edge_line
 from .diagram_numbers import split_numbers
-from .diagram_svg import LINE_HEIGHT, Canvas, text_width
+from .diagram_svg import DATA_TONES, LINE_HEIGHT, Canvas, text_width
 from .diagram_text import Cell, ParseIssue, iter_source_lines, make_cell, plain_cell
 
 _ENTRY_RE = re.compile(r"^(reihung|variable|stapel|schlange)\s+([^:]+?)\s*:\s*(.*)$", re.IGNORECASE)
@@ -115,7 +115,7 @@ def _height(item) -> float:
     return _CELL_H
 
 
-_ENTRY_TONES = {"reihung": "diagram-tone-1", "variable": "diagram-tone-3", "stapel": "diagram-tone-2", "schlange": "diagram-tone-4"}
+_ENTRY_TONES = {"reihung": DATA_TONES[0], "variable": DATA_TONES[1], "stapel": DATA_TONES[2], "schlange": DATA_TONES[3]}
 
 
 def _draw_entry(canvas: Canvas, entry: Entry, x: float, y: float) -> tuple[float, float]:

@@ -12,7 +12,7 @@ import re
 from dataclasses import dataclass
 from datetime import date
 
-from .diagram_svg import LINE_HEIGHT, Canvas, text_width
+from .diagram_svg import DATA_TONES, LINE_HEIGHT, Canvas, text_width
 from .diagram_text import Cell, ParseIssue, iter_source_lines, make_cell
 
 _EVENT_RE = re.compile(r"^(-?\d{1,4}(?:\s*v\.\s*Chr\.)?|\d{1,2}\.\d{1,2}\.\d{1,4})\s*:\s*(.+)$")
@@ -24,6 +24,7 @@ _TICK = 5.0
 _MARGIN = 14.0
 _MIN_DISTANCE = _LABEL_WIDTH / 2
 _LABEL_LINES = 4
+_TEXT_GAP = 3.0
 
 
 @dataclass(frozen=True)
@@ -114,9 +115,9 @@ def render(options, content, include_solutions=False) -> str:
         above = index % 2 == 0
         side = -1 if above else 1
         time_y = rail + side * (_TICK + LINE_HEIGHT / 2 + 1)
-        canvas.rect(x, time_y, text_width(event.time.text) * 1.1 + 10, LINE_HEIGHT, radius=5.0, css="diagram-tone-3" if above else "diagram-tone-4")
+        canvas.rect(x, time_y, text_width(event.time.text) * 1.1 + 10, LINE_HEIGHT, radius=5.0, css=DATA_TONES[index % len(DATA_TONES)])
         canvas.label(event.time, x, time_y, text_width(event.time.text) + 8, weight="bold")
-        text_y = time_y + side * (LINE_HEIGHT / 2 + text_height / 2)
+        text_y = time_y + side * (LINE_HEIGHT / 2 + text_height / 2 + _TEXT_GAP)
         canvas.label(event.text, x, text_y, _LABEL_WIDTH - 4, text_height, wrap=True, anchor="bottom" if above else "top")
     height = rail + _TICK + LINE_HEIGHT + text_height + _MARGIN
     return canvas.finish("timeline", options, end + _MARGIN, height)

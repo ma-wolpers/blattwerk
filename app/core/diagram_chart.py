@@ -21,7 +21,7 @@ from dataclasses import dataclass
 from fractions import Fraction
 
 from .diagram_numbers import five_numbers, format_number, nice_ticks, parse_number, split_numbers
-from .diagram_svg import LINE_HEIGHT, TONES, Canvas, text_width
+from .diagram_svg import DATA_TONES, LINE_HEIGHT, Canvas, text_width
 from .diagram_text import Cell, ParseIssue, iter_source_lines, make_cell, plain_cell
 
 _INTERVAL_RE = re.compile(r"^(-?\d+(?:[.,]\d+)?)\s*-\s*(-?\d+(?:[.,]\d+)?)$")
@@ -147,7 +147,7 @@ def _render_bars(canvas: Canvas, rows: list[Row], options, adjacent: bool) -> tu
         cx = x0 + slot * (index + 0.5)
         height = float(row.values[0]) / ticks[-1] * _PLOT_H
         if not (row.gap and not canvas.include_solutions):
-            canvas.rect(cx, y0 - height / 2, bar, height, css=f"diagram-bar {TONES[0 if adjacent else index % len(TONES)]}")
+            canvas.rect(cx, y0 - height / 2, bar, height, css=f"diagram-bar {DATA_TONES[0 if adjacent else index % len(DATA_TONES)]}")
         canvas.label(_value_cell(row.values[0], row, hide), cx, y0 - height - LINE_HEIGHT / 2 - 1, slot)
         if not adjacent:
             canvas.label(row.label, cx, y0 + LINE_HEIGHT / 2 + 3, slot, LINE_HEIGHT * 2, wrap=True)
@@ -175,9 +175,9 @@ def _render_pie(canvas: Canvas, rows: list[Row], options) -> tuple[float, float]
         sweep = float(share) * 2 * math.pi
         hidden = row.gap and not canvas.include_solutions
         if len(rows) == 1 and not hidden:
-            canvas.ellipse(cx, cy, _PIE_R, _PIE_R, TONES[0])
+            canvas.ellipse(cx, cy, _PIE_R, _PIE_R, DATA_TONES[0])
         elif sweep and not hidden:
-            canvas.sector(cx, cy, _PIE_R, angle, angle + sweep, TONES[index % len(TONES)])
+            canvas.sector(cx, cy, _PIE_R, angle, angle + sweep, DATA_TONES[index % len(DATA_TONES)])
         elif sweep:
             canvas.sector(cx, cy, _PIE_R, angle, angle + sweep, "diagram-shape")
         middle = angle + sweep / 2
@@ -212,7 +212,7 @@ def _render_box(canvas: Canvas, rows: list[Row]) -> tuple[float, float]:
             canvas.line(x_of(q3), y, x_of(maximum), y)
             for value in (minimum, maximum):
                 canvas.line(x_of(value), y - 8, x_of(value), y + 8)
-            canvas.rect((x_of(q1) + x_of(q3)) / 2, y, x_of(q3) - x_of(q1), 26.0, css=TONES[index % len(TONES)])
+            canvas.rect((x_of(q1) + x_of(q3)) / 2, y, x_of(q3) - x_of(q1), 26.0, css=DATA_TONES[index % len(DATA_TONES)])
             canvas.line(x_of(mid), y - 13, x_of(mid), y + 13)
         y += _BOX_ROW
     axis_y = y - _BOX_ROW / 2 + 8

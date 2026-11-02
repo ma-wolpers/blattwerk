@@ -2017,8 +2017,8 @@ h1 {
        diese grau, ein Sonderfall ist nicht nötig. */
     --diagram-main: var(--theme-accent-main, #777);
     --diagram-second: var(--theme-accent-secondary, #999);
-    --diagram-ink: color-mix(in srgb, var(--theme-accent-strong, #333) 60%, black);
-    --diagram-shadow: color-mix(in srgb, var(--diagram-main) 38%, transparent);
+    --diagram-ink: var(--theme-accent-strong, #333);
+    --diagram-tone-fallback: color-mix(in srgb, var(--diagram-main) 20%, white);
     box-sizing: border-box;
     max-width: 100%;
     margin-bottom: 0.45em;
@@ -2128,7 +2128,7 @@ h1 {
 }
 
 .diagram-table th {
-    background: linear-gradient(color-mix(in srgb, var(--diagram-main) 8%, white), color-mix(in srgb, var(--diagram-main) 22%, white));
+    background: color-mix(in srgb, var(--diagram-main) 14%, white);
 }
 
 .diagram-table th,
@@ -2138,78 +2138,83 @@ h1 {
     text-align: center;
 }
 
-/* Text und Lücken stehen immer auf hellem Grund: Die Töne enden bei gut 30 Prozent Farbe.
-   Kräftiger ist nur `.diagram-fill`, und darauf steht nie Text. */
-.diagram-stop-1a {
-    stop-color: color-mix(in srgb, var(--diagram-main) 5%, white);
-}
-
-.diagram-stop-1b {
-    stop-color: color-mix(in srgb, var(--diagram-main) 20%, white);
-}
-
+/* Flache Abstufungen des Farbprofils, ohne Verläufe und Schatten. Text und Lücken stehen
+   immer auf hellem Grund: Die Töne enthalten höchstens gut 20 Prozent Farbe. */
 .diagram-svg .diagram-tone-1 {
-    fill: url(#diagram-gradient-1);
+    fill: color-mix(in srgb, var(--diagram-main) 9%, white);
     stroke: var(--diagram-ink);
     stroke-width: 1;
-    filter: drop-shadow(1px 1.5px 1.5px var(--diagram-shadow));
-}
-
-.diagram-stop-2a {
-    stop-color: color-mix(in srgb, var(--diagram-second) 5%, white);
-}
-
-.diagram-stop-2b {
-    stop-color: color-mix(in srgb, var(--diagram-second) 22%, white);
 }
 
 .diagram-svg .diagram-tone-2 {
-    fill: url(#diagram-gradient-2);
+    fill: color-mix(in srgb, var(--diagram-second) 11%, white);
     stroke: var(--diagram-ink);
     stroke-width: 1;
-    filter: drop-shadow(1px 1.5px 1.5px var(--diagram-shadow));
-}
-
-.diagram-stop-3a {
-    stop-color: color-mix(in srgb, var(--diagram-main) 10%, white);
-}
-
-.diagram-stop-3b {
-    stop-color: color-mix(in srgb, var(--diagram-main) 30%, white);
 }
 
 .diagram-svg .diagram-tone-3 {
-    fill: url(#diagram-gradient-3);
+    fill: color-mix(in srgb, var(--diagram-main) 20%, white);
     stroke: var(--diagram-ink);
     stroke-width: 1;
-    filter: drop-shadow(1px 1.5px 1.5px var(--diagram-shadow));
-}
-
-.diagram-stop-4a {
-    stop-color: color-mix(in srgb, var(--diagram-second) 10%, white);
-}
-
-.diagram-stop-4b {
-    stop-color: color-mix(in srgb, var(--diagram-second) 32%, white);
 }
 
 .diagram-svg .diagram-tone-4 {
-    fill: url(#diagram-gradient-4);
+    fill: color-mix(in srgb, var(--diagram-second) 24%, white);
     stroke: var(--diagram-ink);
     stroke-width: 1;
-    filter: drop-shadow(1px 1.5px 1.5px var(--diagram-shadow));
 }
 
-.diagram-stop-fill-a {
-    stop-color: color-mix(in srgb, var(--diagram-main) 42%, white);
+/* Mehrere Farben, wo sie Dinge auseinanderhalten (`app/styles/diagram_palette.py`). */
+.diagram-svg .diagram-data-1 {
+    fill: var(--diagram-data-1, var(--diagram-tone-fallback));
+    stroke: var(--diagram-ink);
+    stroke-width: 1;
 }
 
-.diagram-stop-fill-b {
-    stop-color: color-mix(in srgb, var(--diagram-main) 72%, white);
+.diagram-svg .diagram-data-2 {
+    fill: var(--diagram-data-2, var(--diagram-tone-fallback));
+    stroke: var(--diagram-ink);
+    stroke-width: 1;
+}
+
+.diagram-svg .diagram-data-3 {
+    fill: var(--diagram-data-3, var(--diagram-tone-fallback));
+    stroke: var(--diagram-ink);
+    stroke-width: 1;
+}
+
+.diagram-svg .diagram-data-4 {
+    fill: var(--diagram-data-4, var(--diagram-tone-fallback));
+    stroke: var(--diagram-ink);
+    stroke-width: 1;
+}
+
+.diagram-svg .diagram-data-5 {
+    fill: var(--diagram-data-5, var(--diagram-tone-fallback));
+    stroke: var(--diagram-ink);
+    stroke-width: 1;
+}
+
+.diagram-svg .diagram-data-6 {
+    fill: var(--diagram-data-6, var(--diagram-tone-fallback));
+    stroke: var(--diagram-ink);
+    stroke-width: 1;
+}
+
+.diagram-svg .diagram-data-7 {
+    fill: var(--diagram-data-7, var(--diagram-tone-fallback));
+    stroke: var(--diagram-ink);
+    stroke-width: 1;
+}
+
+.diagram-svg .diagram-data-8 {
+    fill: var(--diagram-data-8, var(--diagram-tone-fallback));
+    stroke: var(--diagram-ink);
+    stroke-width: 1;
 }
 
 .diagram-fill {
-    fill: url(#diagram-gradient-fill);
+    fill: color-mix(in srgb, var(--diagram-main) 50%, white);
     stroke: var(--diagram-ink);
     stroke-width: 1;
 }
@@ -2218,9 +2223,9 @@ h1 {
     stroke-width: 1;
 }
 
-/* Runde Ecken, wo keine Form sie verbietet: GO-Klassen, Balken und Bruchteile bleiben eckig. */
+/* Leicht runde Ecken, wo keine Form sie verbietet: GO-Klassen, Balken und Bruchteile bleiben eckig. */
 .diagram:not(.diagram-classdiagram):not(.diagram-chart):not(.diagram-fractions) rect[class*="diagram-tone"] {
-    rx: 5px;
+    rx: 3px;
 }
 
 .diagram-accent {
@@ -2229,38 +2234,21 @@ h1 {
     stroke-width: 1.6;
 }
 
-.diagram-stop-set-1a {
-    stop-color: var(--diagram-main);
-    stop-opacity: 0.08;
-}
-
-.diagram-stop-set-1b {
-    stop-color: var(--diagram-main);
-    stop-opacity: 0.24;
-}
-
-.diagram-stop-set-2a {
-    stop-color: var(--diagram-second);
-    stop-opacity: 0.08;
-}
-
-.diagram-stop-set-2b {
-    stop-color: var(--diagram-second);
-    stop-opacity: 0.26;
-}
-
 .diagram-set-1 {
-    fill: url(#diagram-gradient-set-1);
+    fill: var(--diagram-data-1, var(--diagram-tone-fallback));
+    fill-opacity: 0.5;
     stroke: var(--diagram-ink);
 }
 
 .diagram-set-2 {
-    fill: url(#diagram-gradient-set-2);
+    fill: var(--diagram-data-2, var(--diagram-tone-fallback));
+    fill-opacity: 0.5;
     stroke: var(--diagram-ink);
 }
 
 .diagram-set-3 {
-    fill: url(#diagram-gradient-set-1);
+    fill: var(--diagram-data-3, var(--diagram-tone-fallback));
+    fill-opacity: 0.5;
     stroke: var(--diagram-ink);
 }
 
@@ -2321,7 +2309,7 @@ h1 {
 /* Kopf von Verzweigung, Auswahl und Schleife dezent aus dem Farbprofil; die GO-Form bleibt. */
 .stg-head,
 .stg-loop-text {
-    background: linear-gradient(color-mix(in srgb, var(--theme-accent-main, #777) 6%, white), color-mix(in srgb, var(--theme-accent-main, #777) 18%, white));
+    background: color-mix(in srgb, var(--theme-accent-main, #777) 10%, white);
 }
 
 .stg-gap {
