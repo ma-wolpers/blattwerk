@@ -86,9 +86,20 @@ def _centers(count: int, distance: float, radius: float) -> list[tuple[float, fl
     return [(radius, radius), (radius + distance * 2, radius), (radius + distance, radius + height)]
 
 
-def _region_spot(sets, names, centers) -> tuple[float, float]:
-    """Mitte eines Bereichs: Schwerpunkt seiner Mengen, ein Stück weg von den übrigen."""
+def _region_spot(sets, names, centers, radius: float) -> tuple[float, float]:
+    """Mitte eines Bereichs.
+
+    Bei zwei Mengen ist die Mitte exakt: Eine Sichel reicht vom äußeren Kreisrand bis zum
+    Rand des anderen Kreises. Bei drei Mengen liegt sie am Schwerpunkt der Mengen, ein Stück
+    weg von den übrigen.
+    """
     inside = [centers[names.index(name)] for name in sets]
+    if len(names) == 2 and len(inside) == 1:
+        other = centers[1 - names.index(sets[0])]
+        side = 1 if inside[0][0] > other[0] else -1
+        outer = inside[0][0] + side * radius
+        inner = other[0] + side * radius
+        return (outer + inner) / 2, inside[0][1]
     x = sum(p[0] for p in inside) / len(inside)
     y = sum(p[1] for p in inside) / len(inside)
     if len(inside) == len(names):
@@ -103,7 +114,7 @@ def _region_spot(sets, names, centers) -> tuple[float, float]:
 def _field_width(sets, count: int, radius: float, distance: float) -> float:
     """Breite, die in einem Bereich für Text frei ist; die Schnittlinse ist schmal."""
     if len(sets) == 1:
-        return radius * (1.0 if count == 2 else 0.9)
+        return 2 * distance * 0.86 if count == 2 else radius * 0.9
     return max(radius * 0.5, 2 * (radius - distance) * 0.9)
 
 
@@ -134,7 +145,7 @@ def render(options, content, include_solutions=False) -> str:
             continue
         if not set(region.sets) <= set(names):
             continue
-        x, y = _region_spot(region.sets, names, centers)
+        x, y = _region_spot(region.sets, names, centers, radius)
         field = _field_width(region.sets, len(names), radius, distance)
         lines = max(1, int(text_width(region.text.text) // field) + 1)
         canvas.label(region.text, left + x, top + y, field, lines * LINE_HEIGHT, wrap=True)

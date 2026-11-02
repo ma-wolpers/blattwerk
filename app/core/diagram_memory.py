@@ -164,7 +164,7 @@ def render(options, content, include_solutions=False) -> str:
         name_y = cursor + _CELL_H / 2 if isinstance(item, Reference) or item.kind != "stapel" else cursor + height / 2
         canvas.label(plain_cell(item.name), _MARGIN + column / 2, name_y, column, align="right")
         if isinstance(item, Reference):
-            canvas.rect(x + _CELL_W / 2, cursor + _CELL_H / 2, _CELL_W, _CELL_H, css="diagram-tone-5")
+            canvas.rect(x + _CELL_W / 2, cursor + _CELL_H / 2, _CELL_W, _CELL_H, css="diagram-tone-3")
             canvas.ellipse(x + _CELL_W / 2, cursor + _CELL_H / 2, 3.0, 3.0, "diagram-solid")
             origins.append((item, cursor + _CELL_H / 2))
             anchors[item.name] = (x + _CELL_W, cursor + _CELL_H / 2)

@@ -224,6 +224,26 @@ def test_venn_regions_stay_inside_their_circles():
     names = ["A", "B", "C"]
     centers = _centers(3, distance, radius)
     for sets in (("A",), ("B",), ("C",), ("A", "B"), ("A", "C"), ("B", "C"), ("A", "B", "C")):
-        x, y = _region_spot(sets, names, centers)
+        x, y = _region_spot(sets, names, centers, radius)
         for name, center in zip(names, centers):
             assert (hypot(x - center[0], y - center[1]) < radius) == (name in sets), (sets, name)
+
+
+def test_venn_two_sets_center_text_in_the_crescent():
+    """Der Text sitzt mittig in der Sichel und ragt nicht in die Schnittmenge."""
+    from app.core.diagram_venn import _SIZES, _centers, _field_width, _region_spot
+
+    for radius, distance in _SIZES.values():
+        centers = _centers(2, distance, radius)
+        x, _y = _region_spot(("A",), ["A", "B"], centers, radius)
+        half = _field_width(("A",), 2, radius, distance) / 2
+        assert x == pytest.approx(distance)
+        assert x - half >= 0
+        assert x + half <= centers[1][0] - radius
+
+
+def test_timeline_texts_start_at_the_same_height():
+    """Alle Texte unter dem Strahl hängen an derselben Kante, egal wie lang sie sind."""
+    html = render_diagram_block("timeline", {}, "1:a\n2:kurz\n3:b\n4:ein sehr langer Text über mehrere Zeilen")
+    assert html.count("diagram-anchor-top") == 2
+    assert html.count("diagram-anchor-bottom") == 2

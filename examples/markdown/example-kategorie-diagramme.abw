@@ -303,7 +303,7 @@ schlange w: Ana, Ben, Cem
 
 ## Netzwerkplan `:::networkdiagram`
 
-Ein Baum steht mit dem meistverbundenen Gerät oben. Ein Ring wird frei angeordnet, `Tablet: rechner` setzt ein Symbol ausdrücklich.
+Ein Baum steht mit dem meistverbundenen Gerät oben. Ein Ring wird frei angeordnet, `Kasse: rechner` setzt ein Symbol ausdrücklich.
 
 :::networkdiagram
 PC1 - Switch
@@ -312,8 +312,11 @@ Laptop - Switch
 Server - Switch
 Drucker - Switch
 Switch - Router - Internet
-Tablet: rechner
-Tablet - Router
+Router - WLAN
+WLAN - Tablet
+WLAN - Handy
+Kasse: rechner
+Kasse - Switch
 :::
 
 --

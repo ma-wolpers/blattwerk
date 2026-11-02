@@ -8,7 +8,7 @@ Regel:
 
 ## [Unreleased]
 
-- **Diagrammfarben aus dem Farbprofil (2026-11-02).** `.diagram` leitet `--diagram-tone-1` bis `-6` aus `--theme-accent-main/-secondary` ab; `diagram_svg.TONES` ist die Reihenfolge für Datenreihen. `Canvas.sector` ersetzt die Sektor-Rechnung aus `diagram_fractions.py`. Ein Test verbietet feste Farben im Diagramm-CSS und verlangt graue Akzente im Schwarz-Weiß-Profil.
+- **Diagrammfarben aus dem Farbprofil (2026-11-02).** SVG-Verläufe (`_GRADIENTS`, Stoppfarben in `worksheet.css`) aus `--theme-accent-main/-secondary`, Töne 1 bis 4 mit `drop-shadow`; `diagram_svg.TONES` ist die Reihenfolge für Datenreihen. Ein Test begrenzt die Töne, damit Text und Lücken hell bleiben. `Canvas.sector` ersetzt die Sektor-Rechnung aus `diagram_fractions.py`. Ein Test verbietet feste Farben im Diagramm-CSS und verlangt graue Akzente im Schwarz-Weiß-Profil.
 - **Konsistenz-Audit aller Blöcke (2026-11-02).** Prüfungen mit denselben Parsern wie die Renderer: `blatt_validator_answers.py`, `blatt_validator_answers_math.py`, `blatt_validator_structure.py`; Optionswerte in `_validate_option_value_form` (`OP006`-`OP008`). Parser von `matching` nach `answer_matching_parse.py` (Datei lag über 300 Zeilen). Term-Exponenten und Bruchgrößen begrenzt, damit extreme Eingaben das Rendern nicht blockieren. `tests/test_block_examples.py` verlangt für jeden Block ein Beispiel. Bewusst nicht geprüft: Lernhilfen vor der ersten Aufgabe (unterstützt), Wort länger als `min_size` (Raster wächst).
 - Speicherbild: `diagram_memory.py`.
 - Bruchdarstellung: `diagram_fractions.py`.

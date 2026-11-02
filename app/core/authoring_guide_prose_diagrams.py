@@ -94,8 +94,8 @@ DIAGRAM_PROSE_SECTIONS: dict[str, str] = {
     ),
     "block:networkdiagram": (
         "Netzwerkplan mit einfachen Symbolen aus kurzen Verbindungszeilen: `PC1 - Switch - Router`. Das "
-        "Symbol ergibt sich aus dem Namensanfang (`PC`, `Laptop`, `Switch`, `Router`, `Server`, `Internet`, "
-        "`Drucker`); `Tablet1: rechner` setzt es ausdrücklich."
+        "Symbol ergibt sich aus dem Namensanfang (`PC`, `Laptop`, `Tablet`, `Handy`, `Switch`, `Router`, "
+        "`WLAN`, `Server`, `Internet`, `Drucker`); `Kasse1: rechner` setzt es ausdrücklich."
     ),
     "block:erdiagram": (
         "ER-Diagramm in der Gestalt der zentralen Prüfungsaufgaben (GO Informatik, S. 8). `entität Name` "

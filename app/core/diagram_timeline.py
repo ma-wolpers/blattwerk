@@ -116,9 +116,7 @@ def render(options, content, include_solutions=False) -> str:
         time_y = rail + side * (_TICK + LINE_HEIGHT / 2 + 1)
         canvas.rect(x, time_y, text_width(event.time.text) * 1.1 + 10, LINE_HEIGHT, radius=5.0, css="diagram-tone-3" if above else "diagram-tone-4")
         canvas.label(event.time, x, time_y, text_width(event.time.text) + 8, weight="bold")
-        lines = max(1, min(_LABEL_LINES, int(text_width(event.text.text) // (_LABEL_WIDTH - 4)) + 1))
-        height = lines * LINE_HEIGHT
-        text_y = time_y + side * (LINE_HEIGHT / 2 + height / 2)
-        canvas.label(event.text, x, text_y, _LABEL_WIDTH - 4, height, wrap=True)
+        text_y = time_y + side * (LINE_HEIGHT / 2 + text_height / 2)
+        canvas.label(event.text, x, text_y, _LABEL_WIDTH - 4, text_height, wrap=True, anchor="bottom" if above else "top")
     height = rail + _TICK + LINE_HEIGHT + text_height + _MARGIN
     return canvas.finish("timeline", options, end + _MARGIN, height)

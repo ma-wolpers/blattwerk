@@ -107,8 +107,10 @@ def test_graph_validator_codes():
 def test_network_symbols_come_from_names_and_can_be_overridden():
     """Namensanfang wählt das Symbol, `Name: symbol` überschreibt es."""
     assert symbol_for("Switch2") == "switch"
-    assert symbol_for("Laptop") == "rechner"
-    assert symbol_for("Tablet") == "rechner"
+    assert symbol_for("Laptop") == "laptop"
+    assert symbol_for("Tablet") == "tablet"
+    assert symbol_for("Handy1") == "handy"
+    assert symbol_for("Kasse") == "rechner"
     model, issues = parse_network("PC1 - Switch - Router\nDrucker1: rechner")
     assert not issues
     assert [(edge.source, edge.target) for edge in model.edges] == [("PC1", "Switch"), ("Switch", "Router")]
@@ -117,7 +119,7 @@ def test_network_symbols_come_from_names_and_can_be_overridden():
 
 def test_network_renders_and_validates():
     """Plan rendert deterministisch, Fehler werden gemeldet."""
-    content = "PC1 - Switch\nPC2 - Switch\nSwitch - Router\nRouter - Internet\nServer - Switch\nDrucker - Switch"
+    content = "PC1 - Switch\nPC2 - Switch\nSwitch - Router\nRouter - Internet\nServer - Switch\nDrucker - Switch\nLaptop - Switch\nRouter - WLAN\nWLAN - Tablet\nWLAN - Handy"
     html = render_diagram_block("networkdiagram", {}, content)
     assert "PC1" in html and "Internet" in html
     assert html == render_diagram_block("networkdiagram", {}, content)
@@ -138,3 +140,9 @@ def test_width_option_never_enlarges_beyond_natural_size():
     """`width=` darf verkleinern, die Schrift wächst aber nie mit."""
     html = render_diagram_block("graph", {"width": "90%"}, "A - B")
     assert "width:90%;max-width:min(100%," in html
+
+
+def test_cloud_is_one_outline_not_stacked_ovals():
+    """Das Internet ist ein einziger Umriss."""
+    html = render_diagram_block("networkdiagram", {}, "Router - Internet")
+    assert html.count("<path class='diagram-tone-2'") == 1

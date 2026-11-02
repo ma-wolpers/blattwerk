@@ -92,3 +92,24 @@ def test_text_width_counts_what_a_formula_shows():
 
     assert text_width("$\\frac{1}{2}$") == text_width("12")
     assert text_width("abc") > text_width("a")
+
+
+def test_text_and_gaps_always_stand_on_a_light_ground():
+    """Alle Töne mit Text enden unter 35 Prozent Farbe; kräftige Füllung gibt es nur ohne Text."""
+    import re
+    from pathlib import Path
+
+    from app.core.diagram_svg import TONES
+
+    css = Path(__file__).resolve().parents[1].joinpath("assets", "worksheet.css").read_text(encoding="utf-8")
+    for tone in TONES:
+        number = tone.rsplit("-", 1)[1]
+        rule = re.search(rf"\.diagram-stop-{number}b \{{\s*stop-color: color-mix\(in srgb, var\(--diagram-\w+\) (\d+)%", css)
+        assert rule and int(rule.group(1)) < 35, tone
+
+
+def test_every_diagram_with_canvas_has_its_gradients():
+    """Jedes Diagramm bringt die Verläufe mit, sonst blieben die Formen ungefüllt."""
+    html = render_diagram_block("graph", {}, "A - B")
+    assert "id='diagram-gradient-1'" in html
+    assert "diagram-tone-5" not in html and "diagram-tone-6" not in html

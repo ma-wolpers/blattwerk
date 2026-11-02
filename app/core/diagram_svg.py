@@ -4,8 +4,9 @@ Warum `foreignObject` für Beschriftungen: Text soll Inline-Markup, Formeln und
 Lücken beherrschen wie überall in Blattwerk (`diagram_text.render_cell`) und trotzdem
 mit dem Diagramm mitskalieren. Der Spike in Chromium-PDF hat das bestätigt.
 
-Farben kommen nur als Töne aus dem Farbprofil (`TONES`, `.diagram-tone-1` bis `-6` in
-`worksheet.css`). Im Schwarz-Weiß-Profil sind sie grau, und keine Farbe trägt allein
+Farben kommen nur als Verläufe aus dem Farbprofil (`TONES`, `.diagram-tone-1` bis `-4` in
+`worksheet.css`), mit einem weichen Schatten derselben Farbe. Text und Lücken stehen immer auf
+hellem Grund. Im Schwarz-Weiß-Profil sind die Töne grau, und keine Farbe trägt allein
 Bedeutung. Der Hintergrund von Formen, die Linien überdecken, ist `--diagram-paper`.
 """
 
@@ -21,8 +22,15 @@ from .diagram_text import Cell, plain_cell, render_cell
 FONT_PX = 13.0
 LINE_HEIGHT = 17.0
 """Zeilenhöhe in Einheiten der Zeichenfläche (`.diagram-label` setzt dieselbe Schrift)."""
-TONES = ("diagram-tone-3", "diagram-tone-4", "diagram-tone-5", "diagram-tone-6", "diagram-tone-1", "diagram-tone-2")
-"""Reihenfolge für Datenreihen: kräftige, gut unterscheidbare Töne zuerst."""
+TONES = ("diagram-tone-3", "diagram-tone-4", "diagram-tone-1", "diagram-tone-2")
+"""Reihenfolge für Datenreihen: kräftigere Töne zuerst. Alle bleiben hell genug für Text und Lücken."""
+_GRADIENT_NAMES = ("1", "2", "3", "4", "fill", "set-1", "set-2")
+_GRADIENTS = "<defs>" + "".join(
+    f"<linearGradient id='diagram-gradient-{name}' x1='0' y1='0' x2='0' y2='1'>"
+    f"<stop offset='0' class='diagram-stop-{name}a' /><stop offset='1' class='diagram-stop-{name}b' /></linearGradient>"
+    for name in _GRADIENT_NAMES
+) + "</defs>"
+"""Weiche Verläufe von oben nach unten; die Farben stehen in `worksheet.css`."""
 ARROW_LENGTH = 10.0
 ARROW_HALF_WIDTH = 4.5
 _MATH_RE = re.compile(r"\$+([^$]*)\$+")
@@ -138,7 +146,7 @@ class Canvas:
         else:
             self.polygon([left, tip, right], "diagram-shape")
 
-    def label(self, content, cx, cy, width, height=LINE_HEIGHT, align: str = "center", wrap: bool = False, weight: str = "") -> None:
+    def label(self, content, cx, cy, width, height=LINE_HEIGHT, align: str = "center", wrap: bool = False, weight: str = "", anchor: str = "") -> None:
         """Beschriftung als `foreignObject`, zentriert um `(cx, cy)`.
 
         Args:
@@ -150,6 +158,8 @@ class Canvas:
             align: `center`, `left` oder `right`.
             wrap: Text darf umbrechen (sonst bleibt er einzeilig und läuft über).
             weight: `bold` für Überschriften.
+            anchor: `top` oder `bottom` hält den Text an dieser Feldkante, damit
+                Beschriftungen auf gleicher Höhe beginnen, auch wenn das Feld höher ist als nötig.
         """
         cell = content if isinstance(content, Cell) else plain_cell(str(content))
         html, has_gap = render_cell(cell, self.include_solutions)
@@ -161,6 +171,8 @@ class Canvas:
             classes.append("diagram-wrap")
         if weight == "bold":
             classes.append("diagram-bold")
+        if anchor:
+            classes.append(f"diagram-anchor-{anchor}")
         if has_gap:
             classes.append("diagram-gap")
         self.parts.append(
@@ -183,5 +195,5 @@ class Canvas:
         return (
             f"<div class='diagram diagram-{escape(name)}'>{header}"
             f"<svg class='diagram-svg' style='{size}' viewBox='0 0 {_attr(width)} {_attr(height)}' xmlns='http://www.w3.org/2000/svg'>"
-            f"{''.join(self.parts)}</svg></div>"
+            f"{_GRADIENTS}{''.join(self.parts)}</svg></div>"
         )

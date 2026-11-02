@@ -21,7 +21,11 @@ _SYMBOL_PREFIXES = (
     ("server", ("server",)),
     ("internet", ("internet", "wan", "cloud")),
     ("drucker", ("drucker", "printer")),
-    ("rechner", ("pc", "rechner", "laptop", "client", "computer", "host")),
+    ("laptop", ("laptop", "notebook")),
+    ("tablet", ("tablet", "ipad")),
+    ("handy", ("handy", "smartphone", "phone")),
+    ("wlan", ("wlan", "wifi", "accesspoint")),
+    ("rechner", ("pc", "rechner", "client", "computer", "host")),
 )
 _SYMBOLS = tuple(symbol for symbol, _prefixes in _SYMBOL_PREFIXES)
 _DEFAULT_SYMBOL = "rechner"
@@ -112,9 +116,27 @@ def _draw_symbol(canvas: Canvas, symbol: str, cx: float, cy: float) -> None:
     elif symbol == "drucker":
         canvas.rect(cx, cy - 11, w * 0.45, h * 0.3, css="diagram-tone-3")
         canvas.rect(cx, cy + 2, w * 0.8, h * 0.45, css="diagram-tone-3")
+    elif symbol == "laptop":
+        canvas.rect(cx, cy - 4, w * 0.62, h * 0.6, radius=2.0, css="diagram-tone-3")
+        canvas.polygon([(cx - w * 0.31, cy + 7), (cx + w * 0.31, cy + 7), (cx + w * 0.42, cy + 13), (cx - w * 0.42, cy + 13)], "diagram-tone-1")
+    elif symbol == "tablet":
+        canvas.rect(cx, cy, w * 0.5, h * 0.92, radius=3.0, css="diagram-tone-3")
+        canvas.ellipse(cx, cy + h * 0.36, 1.6, 1.6, "diagram-solid")
+    elif symbol == "handy":
+        canvas.rect(cx, cy, w * 0.32, h * 0.92, radius=3.0, css="diagram-tone-3")
+        canvas.ellipse(cx, cy + h * 0.36, 1.4, 1.4, "diagram-solid")
+    elif symbol == "wlan":
+        canvas.rect(cx, cy + 8, w * 0.7, h * 0.32, radius=2.0, css="diagram-tone-3")
+        canvas.line(cx, cy + 3, cx, cy - 7)
+        for radius in (5.0, 10.0):
+            canvas.path(f"M {cx - radius:.1f} {cy - 7 - radius * 0.3:.1f} A {radius:.1f} {radius:.1f} 0 0 1 {cx + radius:.1f} {cy - 7 - radius * 0.3:.1f}")
     else:
-        for dx, dy, rx, ry in ((-11, 2, 12, 10), (10, 3, 13, 10), (0, -5, 13, 11)):
-            canvas.ellipse(cx + dx, cy + dy, rx, ry, "diagram-tone-2")
+        points = ((-13, 13), (-16, -3), (3, -12), (17, -2), (14, 13))
+        radii = (9.0, 11.0, 9.0, 9.0)
+        data = f"M {cx + points[0][0]:.1f} {cy + points[0][1]:.1f} "
+        for (px, py), radius in zip(points[1:], radii):
+            data += f"A {radius:.1f} {radius:.1f} 0 0 1 {cx + px:.1f} {cy + py:.1f} "
+        canvas.path(data + "Z", css="diagram-tone-2")
 
 
 def render(options, content, include_solutions=False) -> str:
