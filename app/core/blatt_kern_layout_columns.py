@@ -14,6 +14,7 @@ from html import escape
 
 from .blatt_kern_layout_estimate import auto_columns_template
 from .blatt_kern_task_render import render_block
+from .columns_count import clamp_columns_count, resolve_columns_count
 from .operator_legend_blocks import OPERATORS_BLOCK_TYPE, as_own_section
 
 
@@ -119,7 +120,7 @@ def render_columns_container(
     explicit_template, explicit_count = parse_columns_template(options, columns_count)
 
     if explicit_template:
-        columns_count = max(2, min(explicit_count, 6))
+        columns_count = clamp_columns_count(explicit_count)
         columns_blocks = columns_blocks[:columns_count]
         template = explicit_template
     else:
@@ -193,12 +194,7 @@ def render_body_with_columns(
             in_columns = True
             columns_options = dict(options)
 
-            try:
-                columns_count = int(columns_options.get("cols", 2))
-            except ValueError:
-                columns_count = 2
-
-            columns_count = max(2, min(columns_count, 6))
+            columns_count = resolve_columns_count(columns_options)
             columns_blocks = [[] for _ in range(columns_count)]
             current_column_index = 0
             continue

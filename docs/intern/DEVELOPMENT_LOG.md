@@ -8,6 +8,7 @@ Regel:
 
 ## [Unreleased]
 
+- **Spaltenzahl und Spaltenbereiche an einer Stelle (2026-11-02).** Neu `app/core/columns_count.py` (`COLUMNS_MIN`/`COLUMNS_MAX`/`COLUMNS_DEFAULT`, `clamp_columns_count`, `resolve_columns_count`). Ersetzt die dreifach ausgeschriebene Klemmung 2..6 und das doppelte Lesen von `cols=` in Renderer und Validator. `blatt_validator_columns.analyze_columns_structure` ist die eine Zustandsmaschine für Spaltenbereiche und liefert neben den Diagnosen jetzt auch die Bereiche (`ColumnsScope`) für das Block-Einfügen. `_PRESENTATION_SCOPE_RESET_BLOCK_TYPES` heißt jetzt `COLUMNS_SCOPE_RESET_BLOCK_TYPES` (öffentlich, weil das Einfügen sie mitliest). Tests: `test_columns_count.py`.
 - **Eine Blockstruktur für alle (2026-11-02, Vorarbeit für Block-Einfügen per Alt+I + Buchstabe).** Neues `app/core/block_line_scan.py` (`scan_block_lines`) ersetzt sechs eigene Schleifen mit teils abweichenden Schließregeln:
   - Validator-Markersyntax (`_collect_block_marker_syntax_diagnostics`, jetzt eine Tabelle Zeilenrolle -> Diagnose),
   - Editor-Strukturanalyse (`_analyze_editor_block_structure` entfernt),

@@ -19,10 +19,13 @@ eigenständiges Problem und wird unabhängig vom `erroneous`-Flag gemeldet.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 from .blatt_validator_region import compute_block_region_id
 from .blatt_validator_types import BuildDiagnostic
+from .columns_count import resolve_columns_count
 
-_PRESENTATION_SCOPE_RESET_BLOCK_TYPES = frozenset({"pagebreak"})
+COLUMNS_SCOPE_RESET_BLOCK_TYPES = frozenset({"pagebreak"})
 """Blocktypen, die einen eigenen Render-Scope für `render_body_with_columns`
 eröffnen (siehe `_build_presentation_slides` in `blatt_kern_layout_render.py`:
 `pagebreak` leert `current_blocks`, der Renderer schließt offene `columns`
@@ -31,10 +34,24 @@ für diese Folie also ohnehin toleriert automatisch). Bewusst OHNE
 (`clear_blocks=False`), `sectionmark` beeinflusst den Block-Strom gar nicht."""
 
 
+@dataclass
+class ColumnsScope:
+    """Ein Spaltenbereich im Block-Strom, wie ihn die Zustandsmaschine unten sieht.
+
+    Attributes:
+        open_index: Index des `columns`-Blocks.
+        close_index: Index des Blocks, der den Bereich beendet (`endcolumns`
+            oder ein Scope-Ende wie `pagebreak`), `None` bis zum Ende.
+    """
+
+    open_index: int
+    close_index: int | None = None
+
+
 class _ColumnsFrame:
     """Ein offener `:::columns`-Rahmen im Validierungs-Stack."""
 
-    __slots__ = ("open_index", "expected_cols", "nextcol_count", "erroneous", "options")
+    __slots__ = ("open_index", "expected_cols", "nextcol_count", "erroneous", "options", "scope")
 
     def __init__(self, open_index, expected_cols, erroneous=False, options=None):
         self.open_index = open_index
@@ -42,25 +59,16 @@ class _ColumnsFrame:
         self.nextcol_count = 0
         self.erroneous = erroneous
         self.options = options or {}
+        self.scope = ColumnsScope(open_index)
 
 
-def _resolve_expected_columns(options):
-    """Ermittelt die erwartete Spaltenzahl aus `cols=N` (Default 2, geklemmt 2..6).
+def _emit_unclosed_diagnostics(diagnostics, stack, close_index=None):
+    """Meldet `BL009` für jeden am Scope-Ende noch offenen Rahmen und leert den Stack.
 
-    Spiegelt exakt die Klemmlogik aus `render_body_with_columns`
-    (`blatt_kern_layout_render.py`), damit Validator und Renderer nie
-    unterschiedliche Vorstellungen von der gültigen Spaltenzahl haben.
+    `close_index` ist der Block, der den Scope beendet (`None` = Dokumentende).
     """
-    try:
-        raw_cols = int((options or {}).get("cols", 2))
-    except (TypeError, ValueError):
-        raw_cols = 2
-    return max(2, min(raw_cols, 6))
-
-
-def _emit_unclosed_diagnostics(diagnostics, stack):
-    """Meldet `BL009` für jeden am Scope-Ende noch offenen Rahmen und leert den Stack."""
     for frame in stack:
+        frame.scope.close_index = close_index
         diagnostics.append(
             BuildDiagnostic(
                 code="BL009",
@@ -78,12 +86,27 @@ def _emit_unclosed_diagnostics(diagnostics, stack):
 
 def _validate_columns_structure(blocks):
     """Prüft `columns`/`nextcol`/`endcolumns`-Paarung im gesamten Block-Strom (`BL007`-`BL011`)."""
+    return analyze_columns_structure(blocks)[0]
+
+
+def analyze_columns_structure(blocks):
+    """Die eine Zustandsmaschine für Spaltenbereiche: Diagnosen plus erkannte Bereiche.
+
+    Args:
+        blocks: Folge von `(block_type, options, content)` wie aus `parse_blocks`.
+            Das Block-Einfügen im Editor übergibt dieselbe Form, gebaut aus den
+            Köpfen und Markerzeilen von `scan_block_lines`.
+
+    Returns:
+        `(diagnostics, scopes)`; `scopes` in Reihenfolge ihres Öffnens.
+    """
     diagnostics = []
+    scopes: list[ColumnsScope] = []
     stack: list[_ColumnsFrame] = []
 
     for index, (block_type, options, _content) in enumerate(blocks):
-        if block_type in _PRESENTATION_SCOPE_RESET_BLOCK_TYPES and stack:
-            _emit_unclosed_diagnostics(diagnostics, stack)
+        if block_type in COLUMNS_SCOPE_RESET_BLOCK_TYPES and stack:
+            _emit_unclosed_diagnostics(diagnostics, stack, close_index=index)
             continue
 
         if block_type == "columns":
@@ -103,9 +126,10 @@ def _validate_columns_structure(blocks):
                     )
                 )
                 stack[-1].erroneous = True
-                stack.append(_ColumnsFrame(index, _resolve_expected_columns(options), erroneous=True, options=options))
+                stack.append(_ColumnsFrame(index, resolve_columns_count(options), erroneous=True, options=options))
             else:
-                stack.append(_ColumnsFrame(index, _resolve_expected_columns(options), options=options))
+                stack.append(_ColumnsFrame(index, resolve_columns_count(options), options=options))
+            scopes.append(stack[-1].scope)
             continue
 
         if block_type == "nextcol":
@@ -141,6 +165,7 @@ def _validate_columns_structure(blocks):
                 continue
 
             frame = stack.pop()
+            frame.scope.close_index = index
             if not frame.erroneous:
                 expected_nextcol = frame.expected_cols - 1
                 if frame.nextcol_count != expected_nextcol:
@@ -161,4 +186,4 @@ def _validate_columns_structure(blocks):
             continue
 
     _emit_unclosed_diagnostics(diagnostics, stack)
-    return diagnostics
+    return diagnostics, scopes
