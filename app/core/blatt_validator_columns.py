@@ -84,6 +84,19 @@ def _emit_unclosed_diagnostics(diagnostics, stack, close_index=None):
     stack.clear()
 
 
+def index_in_columns_scope(blocks, index: int) -> bool:
+    """True, wenn Block `index` innerhalb eines Spaltenbereichs liegt (zwischen Öffnen und Ende).
+
+    Für Regeln wie KL004 („Klausur-Trenner nicht in `:::columns`“). Nutzt die
+    Bereiche aus `analyze_columns_structure`, damit auch ein Ende an
+    `pagebreak` zählt.
+    """
+    _diagnostics, scopes = analyze_columns_structure(blocks)
+    return any(
+        scope.open_index < index and (scope.close_index is None or index < scope.close_index) for scope in scopes
+    )
+
+
 def _validate_columns_structure(blocks):
     """Prüft `columns`/`nextcol`/`endcolumns`-Paarung im gesamten Block-Strom (`BL007`-`BL011`)."""
     return analyze_columns_structure(blocks)[0]

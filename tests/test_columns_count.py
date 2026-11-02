@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from app.core.blatt_validator_columns import analyze_columns_structure
+from app.core.blatt_validator_columns import analyze_columns_structure, index_in_columns_scope
 from app.core.columns_count import COLUMNS_DEFAULT, COLUMNS_MAX, COLUMNS_MIN, resolve_columns_count
 
 
@@ -35,3 +35,11 @@ def test_nested_columns_close_both_scopes_at_document_end():
     diagnostics, scopes = analyze_columns_structure(_blocks("columns", "columns"))
     assert [(scope.open_index, scope.close_index) for scope in scopes] == [(0, None), (1, None)]
     assert "BL010" in {d.code for d in diagnostics}
+
+
+def test_index_in_columns_scope_ends_at_pagebreak():
+    blocks = _blocks("columns", "task", "pagebreak", "aidsplit", "columns", "nextcol", "endcolumns", "task")
+    assert index_in_columns_scope(blocks, 1)
+    assert not index_in_columns_scope(blocks, 3)  # früher (Zählung columns/endcolumns) fälschlich "in Spalten"
+    assert index_in_columns_scope(blocks, 5)
+    assert not index_in_columns_scope(blocks, 7)

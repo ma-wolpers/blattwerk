@@ -6,13 +6,17 @@ setzt aus ihren Codes die Probleme zusammen, der Validator meldet sie.
 
 from __future__ import annotations
 
+from .blatt_validator_columns import index_in_columns_scope
+
 _TASK_RELATED = frozenset({"task", "subtask", "solution"})
 
 AID_SPLIT_BLOCK = "aidsplit"
 CHOICE_SPLIT_BLOCK = "choicesplit"
 PART_SPLIT_BLOCKS = frozenset({AID_SPLIT_BLOCK, CHOICE_SPLIT_BLOCK})
 """Pseudoblöcke der Teil-Trenner (`--hm`, `--w`): Punktmodell und Lösungszuordnung
-beenden an jedem die laufende Aufgabeneinheit (keine Zuordnung über Teilgrenzen)."""
+beenden an jedem die laufende Aufgabeneinheit (keine Zuordnung über Teilgrenzen).
+Keiner davon darf in einem Spaltenbereich stehen (`KL004`); das Block-Einfügen liest
+das mit, wenn es Spalten um eine Markierung legt."""
 
 
 def aid_split_position_problem(blocks, index: int, start: int = 0) -> str | None:
@@ -33,7 +37,7 @@ def aid_split_position_problem(blocks, index: int, start: int = 0) -> str | None
     after = [block_type for block_type, _o, _c in blocks[index + 1 :]]
     if "task" not in before or "task" not in after:
         return "KL004"
-    if before.count("columns") > before.count("endcolumns"):
+    if index_in_columns_scope(blocks, index):
         return "KL004"
     return _next_task_problem(after)
 
@@ -51,7 +55,7 @@ def aid_cover_position_problem(blocks, index: int) -> str | None:
     after = [block_type for block_type, _o, _c in blocks[index + 1 :]]
     if any(block_type in _TASK_RELATED for block_type in before):
         return "KL007"
-    if "task" not in after or before.count("columns") > before.count("endcolumns"):
+    if "task" not in after or index_in_columns_scope(blocks, index):
         return "KL004"
     return _next_task_problem(after)
 
@@ -76,8 +80,7 @@ def choice_position_problem(blocks, index: int, end: int) -> str | None:
         `task`) oder ``None``. Eine Aufgabe *davor* ist nicht nötig: ein
         Wahlbereich darf direkt nach Deckblatt, Einleitung oder `--hm` beginnen.
     """
-    before = [block_type for block_type, _o, _c in blocks[:index]]
-    if before.count("columns") > before.count("endcolumns"):
+    if index_in_columns_scope(blocks, index):
         return "KL004"
     if "task" not in [block_type for block_type, _o, _c in blocks[index + 1 : end]]:
         return "KL004"

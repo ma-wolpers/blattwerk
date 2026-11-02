@@ -21,6 +21,7 @@ The format is based on Keep a Changelog.
 - **Warnungen aus dem Rendern kommen seltener:** Dieselbe Warnung erscheint nur noch einmal pro Dokumentstand und nennt den richtigen Vorgang („Vorschau“ oder „Export“).
 
 ### Fixed
+- Klausur: Ein `--hm` oder `--w` nach einem Seitenumbruch `--!` gilt nicht mehr fälschlich als „innerhalb von Spalten“ (`KL004`), wenn davor ein Spaltenbereich ohne `endcolumns` stand.
 - Die Vorschlagsliste setzt `columns`, `evaluation`, `operators` und `qrcode` jetzt mit dem schließenden `:::` in derselben Zeile ein. Ohne das verschluckte der Block den Text danach.
 - Eine Trennlinie `---` im Dokument gilt im Editor nicht mehr als Frontmatter-Grenze. Bisher färbte sie die Hervorhebung als Frontmatter, und die Struktur-Liste sowie die Vorschläge hielten den Text danach für Frontmatter.
 - Strg+Z nach einem Dokumentwechsel holt nicht mehr den Text des vorigen Dokuments zurück.
