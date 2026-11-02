@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from app.core import authoring_guide_prose
 from app.core.blatt_validator_constants import MISSING
+from app.core.block_insert_menu_families import INSERT_MENU_ALT, INSERT_MENU_LABEL, mnemonic_for
 from app.core.document_type_registry import DOCUMENT_TYPE_PRESENTATION, DOCUMENT_TYPE_WORKSHEET
 from app.core.document_type_templates import build_new_document_content
 from app.core.insert_placeholders import strip_insert_placeholders
@@ -102,7 +103,9 @@ def _render_block_insert_example(block) -> str:
     if not block.insert_snippet:
         return ""
     cleaned = strip_insert_placeholders(block.insert_snippet)
-    return '\n\n**Beispiel** (identisch mit dem Menü "Einfügen" (Alt+I) im Editor):\n\n' + _fenced(cleaned)
+    letter = mnemonic_for(block.name)
+    keys = f"Alt+{INSERT_MENU_ALT.upper()}" + (f", dann {letter}" if letter else "")
+    return f'\n\n**Beispiel** (identisch mit dem Menü "{INSERT_MENU_LABEL}" ({keys}) im Editor):\n\n' + _fenced(cleaned)
 
 
 def _render_block_reference(catalog: MarkdownConventionCatalog) -> str:

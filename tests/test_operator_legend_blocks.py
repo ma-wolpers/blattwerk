@@ -157,7 +157,7 @@ def test_scope_value_is_validated():
 
 def test_insert_menu_and_snippet():
     families = {label: entries for label, entries in BLOCK_INSERT_FAMILIES}
-    assert any(block == "operators" for entries in families.values() for _label, block in entries)
+    assert any(block == "operators" for entries in families.values() for _title, block, _letter in entries)
     assert BLOCK_INSERT_SNIPPETS["operators"].startswith(":::operators")
 
 

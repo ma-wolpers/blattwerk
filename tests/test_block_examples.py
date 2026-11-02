@@ -28,7 +28,7 @@ EXAMPLE_FILES = {
     "Offen/Reflexion": "example-kategorie-offen.abw",
 }
 LAYOUT_FILE = "example-kategorie-layout.abw"
-LAYOUT_BLOCKS = {block for _label, block in BLOCK_INSERT_STANDALONE} | {"nextcol", "endcolumns"}
+LAYOUT_BLOCKS = {block for _title, block, _letter in BLOCK_INSERT_STANDALONE} | {"nextcol", "endcolumns"}
 ALL_FILES = [*EXAMPLE_FILES.values(), LAYOUT_FILE]
 INFORMATIONAL_CODES = {"MJ001", "AN005"}
 """Kein Mangel des Beispiels: `MJ001` weist auf Formeln im HTML-Export hin, `AN005` auf leere
@@ -54,7 +54,7 @@ def test_every_menu_family_has_an_example_file():
 @pytest.mark.parametrize(("family", "entries"), BLOCK_INSERT_FAMILIES)
 def test_example_file_shows_all_blocks_of_its_family(family, entries):
     """Kein Block einer Familie fehlt in ihrer Datei."""
-    expected = {block for _label, block in entries}
+    expected = {block for _title, block, _letter in entries}
     assert not expected - _used_types(EXAMPLE_FILES[family])
 
 

@@ -97,5 +97,5 @@ def test_grade_option_is_known():
 
 def test_insert_menu_and_snippet():
     families = dict(BLOCK_INSERT_FAMILIES)
-    assert ("Bewertungstabelle (evaluation)", "evaluation") in families["Aufgaben"]
+    assert "evaluation" in {block for _title, block, _letter in families["Aufgaben"]}
     assert BLOCK_INSERT_SNIPPETS["evaluation"].startswith(":::evaluation")

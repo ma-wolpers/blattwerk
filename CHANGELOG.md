@@ -28,6 +28,7 @@ The format is based on Keep a Changelog.
 - **Keine veraltete Vorschau mehr:** Änderungen an eingebundenen Bildern (auch neu aufgetauchte), am Copyright-Text, an Metadaten-Vorgaben, an der CSS-Vorlage und an Operatorendaten werden jetzt erkannt.
 
 ### Added
+- **Blöcke per Buchstabe einfügen:** Alt+I öffnet das Menü „Einfügen“, ein Buchstabe fügt den Block sofort ein, auch aus den Untermenüs heraus. Die Buchstaben sind die des früheren Strg+B-Menüs (T = Aufgabe, S = Teilaufgabe, R = Musterlösung, F = Info, M = Material, C = Spalten, I = Bild …) und stehen rechts neben jedem Eintrag. Alt darf dabei gedrückt bleiben.
 - **Schalter „Flächen tönen“ über der Vorschau:** Er gilt für jedes Farbprofil und alle Blöcke. Ausgeschaltet sind alle Flächen weiß, auch Zuordnungen, Wortbank und Mindmap. Getönt bleiben Tabellenköpfe, Codewort-Felder, Lösungsmarkierungen, Hervorhebungen, Klassenköpfe und der farbige Versatz. Die Linien aller Diagramme sind jetzt schwarz, Struktogramme ganz schwarz-weiß.
 - **Netzwerkplan mit mehr Symbolen:** Laptop, Tablet, Handy und WLAN haben eigene Symbole, das Internet ist eine einzelne Wolke.
 - **Diagramme in den Farben des Farbprofils:** Alle Diagrammblöcke außer dem Struktogramm nutzen flache Abstufungen des gewählten Farbprofils, dazu einen farbigen Versatz nach rechts unten in Form des jeweiligen Objekts. Wo Farben Dinge auseinanderhalten, etwa im Kreisdiagramm, gibt es mehrere passende Farben, im Schwarz-Weiß-Profil nur Grau. Text und Lücken stehen immer auf hellem Grund.

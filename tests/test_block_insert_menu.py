@@ -8,10 +8,14 @@ veränderbare redaktionelle Gruppierung (siehe `block_insert_menu_families.py`)
 und deshalb bewusst *nicht* Gegenstand dieser Tests.
 """
 
-from app.core.block_insert_menu_families import BLOCK_INSERT_FAMILIES, BLOCK_INSERT_STANDALONE
+import pytest
+
+from app.core.block_insert_menu_families import BLOCK_INSERT_FAMILIES, BLOCK_INSERT_STANDALONE, iter_insert_entries, mnemonic_for
 from app.core.block_insert_snippets import BLOCK_INSERT_SNIPPETS
 from app.core.block_insert_snippets import IMAGE_INSERT_SNIPPET
 from app.ui.blatt_ui_block_insert_menu import BlattwerkAppBlockInsertMenuMixin
+from app.ui.blatt_ui_menu_items import BlattwerkAppMenuItemsMixin
+from bw_gui.menu._menu_mnemonics import collect_mnemonics
 
 
 class _FakeApp(BlattwerkAppBlockInsertMenuMixin):
@@ -36,8 +40,8 @@ def _iter_leaf_commands(items: list[dict]):
 
 
 def _referenced_block_types() -> list[str]:
-    referenced = [block_type for _label, entries in BLOCK_INSERT_FAMILIES for _leaf_label, block_type in entries]
-    referenced.extend(block_type for _label, block_type in BLOCK_INSERT_STANDALONE)
+    referenced = [block_type for _family, entries in BLOCK_INSERT_FAMILIES for _title, block_type, _letter in entries]
+    referenced.extend(block_type for _title, block_type, _letter in BLOCK_INSERT_STANDALONE)
     return referenced
 
 
@@ -120,3 +124,33 @@ def test_clicking_the_image_entry_inserts_the_fixed_image_snippet():
     image_item["command"]()
 
     assert app.inserted == [IMAGE_INSERT_SNIPPET]
+
+
+def test_mnemonics_are_unique_single_letters():
+    letters = [letter for _title, _key, letter in iter_insert_entries() if letter is not None]
+    assert all(len(letter) == 1 for letter in letters)
+    assert len({letter.casefold() for letter in letters}) == len(letters)
+
+
+def test_old_letter_table_is_kept_for_the_main_blocks():
+    assert {key: mnemonic_for(key) for key in ("task", "subtask", "solution", "info", "columns", "image")} == {
+        "task": "T", "subtask": "S", "solution": "R", "info": "F", "columns": "C", "image": "I",
+    }
+
+
+class _MenuApp(_FakeApp, BlattwerkAppMenuItemsMixin):
+    """Host mit echter Umwandlung in bw-gui-`MenuItem`s."""
+
+
+def test_mnemonics_reach_bw_gui_menu_items_and_pass_its_uniqueness_check():
+    app = _MenuApp()
+    items = app._to_shared_menu_items(app._menu_insert_block_items())
+    found = collect_mnemonics(items)
+    assert found["t"].label == "Aufgabe (task)"
+    found["t"].command()
+    assert app.inserted == [BLOCK_INSERT_SNIPPETS["task"]]
+
+
+def test_unknown_menu_key_is_rejected_instead_of_dropped():
+    with pytest.raises(KeyError):
+        _MenuApp()._to_shared_menu_items([{"type": "command", "label": "X", "mnemonik": "x"}])

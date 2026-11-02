@@ -13,6 +13,7 @@ from bw_gui.runtime import AppShellConfig
 from app.app_info import APP_INFO
 from app.bootstrap.wiring import AppDependencies
 from .preview_page_cache import PreviewPageCache
+from ..core.block_insert_menu_families import INSERT_MENU_ALT, INSERT_MENU_LABEL
 from .blatt_shortcuts import build_preview_keybinding_registry
 from .ui_constants import EDITOR_DOCUMENT_NOT_LOADED, EDITOR_VIEW_PREVIEW_ONLY, VIEW_FIT_WIDTH, VIEW_LAYOUT_SINGLE
 from bw_gui.contracts.hsm import build_ui_hsm_contract
@@ -60,7 +61,7 @@ class BlattwerkAppBase(
     def build_menu(self) -> list:
         return [
             section_spec("file", lambda: self._to_shared_menu_items(self._menu_file_items()), label="Datei", alt="d"),
-            section_spec("insert_block", lambda: self._to_shared_menu_items(self._menu_insert_block_items()), label="Einfügen", alt="i"),
+            section_spec("insert_block", lambda: self._to_shared_menu_items(self._menu_insert_block_items()), label=INSERT_MENU_LABEL, alt=INSERT_MENU_ALT),
             section_spec("view", lambda: self._to_shared_menu_items(self._menu_view_items()), label="Ansicht", alt="a"),
             section_spec("extras", lambda: self._to_shared_menu_items(self._menu_extras_items()), label="Extras", alt="e"),
             section_spec("shortcuts", lambda: self._to_shared_menu_items(self._menu_shortcuts_items()), label="Shortcuts", alt="s"),

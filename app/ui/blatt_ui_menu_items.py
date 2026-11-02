@@ -11,35 +11,37 @@ from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 ensure_bw_gui_on_path()
 from bw_gui.menu import MenuItem as SharedMenuItem
 
+import dataclasses
+
 from .blatt_shortcuts import iter_menu_labels
 from .ui_constants import EDITOR_VIEW_BOTH, EDITOR_VIEW_EDITOR_ONLY, EDITOR_VIEW_PREVIEW_ONLY, VIEW_FIT_PAGE, VIEW_FIT_WIDTH, VIEW_LAYOUT_SINGLE, VIEW_LAYOUT_STACK, VIEW_LAYOUT_STRIP
+
+_MENU_ITEM_FIELDS = frozenset(field.name for field in dataclasses.fields(SharedMenuItem))
+"""Erlaubte Schlüssel einer Menü-Dict-Zeile: genau die Felder von bw-guis `MenuItem`."""
 
 
 class BlattwerkAppMenuItemsMixin:
     """Menümodell der Hauptansicht: Datei-, Ansicht-, Extras- und Kürzel-Einträge (BlattwerkApp-Mixin)."""
 
     def _to_shared_menu_items(self, items: list[dict]):
-            """Convert local dict-based menu rows into shared menu item objects."""
+        """Wandelt die Dict-Zeilen der Menüs in bw-gui-`MenuItem`s um.
 
-            converted = []
-            for item in items:
-                item_type = str(item.get("type", "command"))
-                sub_items = tuple()
-                if item_type == "submenu":
-                    sub_items = self._to_shared_menu_items(list(item.get("items", [])))
+        Generisch über die Felder von `MenuItem`: Ein neues bw-gui-Feld (wie
+        `mnemonic`) braucht hier keine Nacharbeit. `type` fehlt -> `"command"`,
+        Untermenüs werden rekursiv umgewandelt. Ein unbekannter Schlüssel ist ein
+        Tippfehler und löst `KeyError` aus, statt still zu verschwinden.
+        """
 
-                converted.append(
-                    SharedMenuItem(
-                        type=item_type,
-                        label=str(item.get("label", "")),
-                        command=item.get("command"),
-                        checked=bool(item.get("checked", False)),
-                        items=sub_items,
-                        description=item.get("description"),
-                    )
-                )
-
-            return tuple(converted)
+        converted = []
+        for item in items:
+            unknown = set(item) - _MENU_ITEM_FIELDS
+            if unknown:
+                raise KeyError(f"Unbekannte Menü-Schlüssel {sorted(unknown)} in {item.get('label')!r}")
+            fields = {"type": "command", **item}
+            if fields["type"] == "submenu":
+                fields["items"] = self._to_shared_menu_items(list(fields.get("items", [])))
+            converted.append(SharedMenuItem(**fields))
+        return tuple(converted)
 
     def _refresh_custom_menu_model(self):
             """Refresh hook used by persistence when recent files change."""
