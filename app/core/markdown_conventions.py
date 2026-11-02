@@ -23,7 +23,7 @@ Quellen im Einzelnen:
   der Validator (`blatt_validator_patterns.py`) verwenden.
 - `block_insert_snippets.py` (`BLOCK_INSERT_SNIPPETS`): dieselben Einfüge-
   Vorlagen des Menüs "Einfügen", die der Editor
-  (`app/ui/blatt_ui_editor.py::_insert_editor_snippet`) tatsächlich einfügt
+  (`app/ui/blatt_ui_editor_block_insert.py::_insert_block_from_menu`) tatsächlich einfügt
   -- re-verpackt als `BlockSpec.insert_snippet`.
 - `answer_grid_entries.py`: Geometry-Objekt-Felder (`GEOMETRY_ENTRY_ALLOWED_KEYS`)
   -- dieselbe Quelle, die auch Renderer und Validator (`AN011`-`AN014`)

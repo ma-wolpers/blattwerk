@@ -12,9 +12,10 @@ from .blatt_ui_editor_source import BlattwerkAppEditorSourceMixin
 from .blatt_ui_editor_highlight import BlattwerkAppEditorHighlightMixin
 from .blatt_ui_editor_keys import BlattwerkAppEditorKeysMixin
 from .blatt_ui_editor_view import BlattwerkAppEditorViewMixin
+from .blatt_ui_editor_block_insert import BlattwerkAppEditorBlockInsertMixin
 
 
-class BlattwerkAppEditorMixin(BlattwerkAppEditorViewMixin, BlattwerkAppEditorKeysMixin, BlattwerkAppEditorHighlightMixin, BlattwerkAppEditorSourceMixin):
+class BlattwerkAppEditorMixin(BlattwerkAppEditorBlockInsertMixin, BlattwerkAppEditorViewMixin, BlattwerkAppEditorKeysMixin, BlattwerkAppEditorHighlightMixin, BlattwerkAppEditorSourceMixin):
     """Adds a basic markdown editor area with debounced live save."""
 
     def _build_editor_panel(self, parent):

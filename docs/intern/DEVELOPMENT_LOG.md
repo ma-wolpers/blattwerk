@@ -8,6 +8,12 @@ Regel:
 
 ## [Unreleased]
 
+- **Block-Einfügen im Editor angebunden (2026-11-02).**
+  - Neues Mixin `blatt_ui_editor_block_insert.py` (`_insert_block_from_menu`) ersetzt `_insert_editor_snippet` (aus `blatt_ui_editor_keys.py` entfernt). Es gibt nur noch einen Einfügeweg, den Menü und Kennbuchstaben nutzen.
+  - Neu `blatt_ui_editor_edits.py` (`editor_surface`, `replace_editor_range`, `replace_editor_text` über bw-guis `TextSurface`). Darüber laufen jetzt auch Schriftwahl (`_replace_editor_text_as_one_undo_step` entfernt) und Tabellenumwandlung (setzte `autoseparators` fest auf `True` und ließ den Separator davor weg). `_editor_selection_crosses_math` rechnet Offsets ebenfalls darüber.
+  - Dabei in bw-gui behoben: `transact` nahm ein Edit nicht zurück, dessen `delete` gelang und dessen `insert` scheiterte.
+  - Tests: `test_editor_block_insert.py` (echter Tk-Text). `test_editor_markdown_table_conversion_action.py` prüft jetzt mit echtem Text das Undo-Verhalten statt Aufruflisten.
+  - GRENZE: Mit mehreren Cursorn wird nichts eingefügt.
 - **Block einfügen als reine Funktion (2026-11-02).** `app/core/block_insert_transform.py` (`plan_block_insert` -> `BlockInsertEdit` oder `BlockInsertError`) mit `app/core/block_insert_context.py` (`DocumentLayout`: Offsets, Block- und Spaltenbereiche, Prüfungen). Alles Strukturwissen kommt aus den vorhandenen Quellen:
   - Blöcke: `scan_block_lines`; Spaltenbereiche: `analyze_columns_structure`; Marker: `_parse_inline_control_marker`, `is_control_marker_line`.
   - Frontmatter: `frontmatter_editing_lines`.

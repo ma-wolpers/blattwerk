@@ -52,7 +52,8 @@ class BlattwerkAppBlockInsertMenuMixin:
         Die `description` kommt aus `get_completion_block_type_detail()` -- derselben
         Quelle wie die `:::`-Autovervollständigung, damit keine zweite
         Blockerklärung gepflegt werden muss. Der Klick (oder der Kennbuchstabe)
-        fügt die Vorlage aus `BLOCK_INSERT_SNIPPETS` über `_insert_editor_snippet` ein.
+        fügt die Vorlage aus `BLOCK_INSERT_SNIPPETS` über `_insert_block_from_menu` ein
+        (an der Markierung bzw. am Cursor, siehe `blatt_ui_editor_block_insert.py`).
         """
 
         detail = get_completion_block_type_detail(block_type)
@@ -60,7 +61,7 @@ class BlattwerkAppBlockInsertMenuMixin:
             "type": "command",
             "label": insert_menu_label(title, block_type),
             "mnemonic": mnemonic,
-            "command": lambda bt=block_type: self._insert_editor_snippet(BLOCK_INSERT_SNIPPETS[bt]),
+            "command": lambda bt=block_type: self._insert_block_from_menu(BLOCK_INSERT_SNIPPETS[bt], bt),
             "description": detail["description"] if detail is not None else None,
         }
 
@@ -75,5 +76,5 @@ class BlattwerkAppBlockInsertMenuMixin:
             "type": "command",
             "label": insert_menu_label(title, key),
             "mnemonic": mnemonic,
-            "command": lambda: self._insert_editor_snippet(IMAGE_INSERT_SNIPPET),
+            "command": lambda: self._insert_block_from_menu(IMAGE_INSERT_SNIPPET, None),
         }

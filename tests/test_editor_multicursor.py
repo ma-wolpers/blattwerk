@@ -12,6 +12,7 @@ ensure_bw_gui_on_path()
 from bw_gui.runtime import on_text_modified
 from bw_gui.testing.keys import press_key
 
+from app.ui.blatt_ui_editor_block_insert import MULTICURSOR_INSERT_MESSAGE
 from app.ui.blatt_ui_editor_completion_popup import BlattwerkAppEditorCompletionPopupMixin
 from editor_state_support import _RealEditor, _write, no_real_dialogs, tk_root  # noqa: F401  (fixtures)
 
@@ -221,9 +222,18 @@ def test_foreign_change_through_the_pipeline_ends_the_mode(tmp_path, tk_root):
     on_text_modified(app.editor_widget, lambda _w: app._on_editor_modified())
     app.editor_widget.mark_set("insert", "1.0")
     _click(app, "2.0")
-    app._insert_editor_snippet("X")
+    app.editor_widget.insert("end", "X")  # Änderung von außen, nicht über den Controller
     tk_root.update()
     assert not app._editor_multicursor_active()
+
+
+def test_block_insert_with_several_cursors_changes_nothing(tmp_path, tk_root):
+    app = _open(tk_root, tmp_path, "aaa\nbbb\n")
+    app.editor_widget.mark_set("insert", "1.0")
+    _click(app, "2.0")
+    app._insert_block_from_menu(":::info\n[[CURSOR]]\n:::\n", "info")
+    assert app.editor_widget.get("1.0", "end-1c") == "aaa\nbbb\n"
+    assert app.status_var.get() == MULTICURSOR_INSERT_MESSAGE
 
 
 def test_shift_enter_writes_at_every_cursor(tmp_path, tk_root):

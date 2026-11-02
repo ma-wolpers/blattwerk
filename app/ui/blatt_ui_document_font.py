@@ -14,6 +14,7 @@ from ..core.document_font import FONT_PROFILE_KEY, document_font_profile_value
 from ..core.frontmatter_edit import EditUnsafe, FrontmatterEditor
 from ..styles.blatt_styles import DEFAULT_FONT_PROFILE, FONT_PROFILE_LABELS, FONT_PROFILE_ORDER, normalize_font_profile
 from .ui_constants import EDITOR_DOCUMENT_LOADED
+from .blatt_ui_editor_edits import replace_editor_text
 
 APP_DEFAULT_FONT_CHOICE = "__app_default__"
 """Menuewert fuer "kein `font_profile` im Dokument" (App-Einstellung gilt)."""
@@ -76,7 +77,7 @@ class BlattwerkAppDocumentFontMixin:
             self.status_var.set(f"Schrift nicht geändert: Frontmatter nicht sicher bearbeitbar ({error}).")
             self._sync_font_profile_combo()
             return
-        self._replace_editor_text_as_one_undo_step(new_text)
+        replace_editor_text(self.editor_widget, new_text)
         self._save_editor_content()
         self._sync_font_profile_combo()
         self.refresh_preview()
@@ -100,18 +101,3 @@ class BlattwerkAppDocumentFontMixin:
         else:
             text = FONT_PROFILE_LABELS.get(choice, choice)
         self.font_profile_menubutton.configure(text=text)
-
-    def _replace_editor_text_as_one_undo_step(self, new_text: str) -> None:
-        """Ersetzt den Editorinhalt als genau einen Undo-Schritt und behaelt die Scrollposition."""
-        editor = self.editor_widget
-        scroll_fraction = editor.yview()[0]
-        previous = editor.cget("autoseparators")
-        editor.configure(autoseparators=False)
-        try:
-            editor.edit_separator()
-            editor.delete("1.0", "end")
-            editor.insert("1.0", new_text)
-            editor.edit_separator()
-        finally:
-            editor.configure(autoseparators=previous)
-        editor.yview_moveto(scroll_fraction)

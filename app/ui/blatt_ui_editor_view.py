@@ -9,6 +9,7 @@ from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 ensure_bw_gui_on_path()
 from bw_gui.runtime import ui
 
+from .blatt_ui_editor_edits import replace_editor_text
 from .dialog_services import messagebox
 from ..core.block_line_scan import LineKind, scan_block_lines
 from ..core.frontmatter import frontmatter_editing_lines
@@ -47,15 +48,7 @@ class BlattwerkAppEditorViewMixin:
                 messagebox.showinfo("Markdown-Tabellen umwandeln", "Keine Markdown-Tabellen gefunden.")
             return
 
-        scroll_fraction = self.editor_widget.yview()[0]
-        self.editor_widget.configure(autoseparators=False)
-        try:
-            self.editor_widget.delete("1.0", "end")
-            self.editor_widget.insert("1.0", result.new_text)
-            self.editor_widget.edit_separator()
-        finally:
-            self.editor_widget.configure(autoseparators=True)
-        self.editor_widget.yview_moveto(scroll_fraction)
+        replace_editor_text(self.editor_widget, result.new_text)
 
         self.status_var.set(f"{result.converted_count} Markdown-Tabelle(n) umgewandelt.")
         if result.skipped:

@@ -12,7 +12,7 @@ from bw_gui.contracts.events import EventResult
 from bw_gui.contracts.key_spec import KeySpec
 from bw_gui.runtime import WidgetShortcutBinder
 
-from ..core.insert_placeholders import resolve_insert_placeholders
+from .blatt_ui_editor_edits import editor_surface
 from .blatt_ui_editor_multicursor import MATH_CROSSING_MESSAGE, BlattwerkAppEditorMultiCursorMixin
 from .editor_marker_shortcuts import apply_backtick_marker, apply_caret_marker, apply_dollar_marker, apply_highlight_marker, apply_percent_marker, apply_pipe_marker, apply_star_marker, apply_tilde_marker, apply_underscore_marker, selection_crosses_math_boundary
 from .ui_constants import EDITOR_DOCUMENT_LOADED
@@ -192,10 +192,8 @@ class BlattwerkAppEditorKeysMixin(BlattwerkAppEditorMultiCursorMixin):
 
     def _editor_selection_crosses_math(self, sel_first, sel_last) -> bool:
         """Prüft die Selektion gegen das GESAMTE Dokument auf eine Formelgrenzen-Überschneidung."""
-        full_text = self.editor_widget.get("1.0", "end-1c")
-        start_offset = len(self.editor_widget.get("1.0", sel_first))
-        end_offset = len(self.editor_widget.get("1.0", sel_last))
-        return selection_crosses_math_boundary(full_text, start_offset, end_offset)
+        surface = editor_surface(self.editor_widget)
+        return selection_crosses_math_boundary(surface.content(), surface.offset(sel_first), surface.offset(sel_last))
 
     def _apply_editor_marker_edit(self, sel_first, sel_last, edit) -> None:
         """Wendet ein `MarkerEdit` an: Text ersetzen, neue (innere) Selektion setzen, Editor-Zustand aktualisieren.
@@ -428,24 +426,6 @@ class BlattwerkAppEditorKeysMixin(BlattwerkAppEditorMultiCursorMixin):
                     pos += 1
 
         return pos
-
-    def _insert_editor_snippet(self, template: str):
-        """Inserts a block snippet at the cursor; the cursor lands on its placeholder (`resolve_insert_placeholders`)."""
-
-        if self.editor_widget is None:
-            return
-
-        clean_text, cursor_offset = resolve_insert_placeholders(template)
-        insert_pos = self.editor_widget.index("insert")
-        prefix = "\n" if int(insert_pos.split(".")[1]) > 0 else ""
-        self.editor_widget.insert(insert_pos, prefix + clean_text)
-        self.editor_widget.mark_set("insert", f"{insert_pos} +{len(prefix) + cursor_offset}c")
-
-        self.editor_widget.see("insert")
-        self.editor_widget.focus_set()
-        self._queue_editor_highlighting(immediate=True)
-        self._queue_editor_diagnostics(immediate=True)
-        self._queue_editor_outline(immediate=True)
 
     def _on_editor_mouse_click(self, _event=None):
         """Closes completion popup when user clicks in editor.

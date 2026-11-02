@@ -20,13 +20,13 @@ from bw_gui.menu._menu_mnemonics import collect_mnemonics
 
 class _FakeApp(BlattwerkAppBlockInsertMenuMixin):
     """Minimaler Host für den Mixin -- steht für `BlattwerkAppEditorMixin`'s
-    `_insert_editor_snippet`, ohne echten Tk-Editor aufzubauen."""
+    `_insert_block_from_menu`, ohne echten Tk-Editor aufzubauen."""
 
     def __init__(self):
         self.inserted: list[str] = []
 
-    def _insert_editor_snippet(self, template: str):
-        self.inserted.append(template)
+    def _insert_block_from_menu(self, snippet: str, block_type: str | None):
+        self.inserted.append(snippet)
 
 
 def _iter_leaf_commands(items: list[dict]):
