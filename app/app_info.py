@@ -15,7 +15,7 @@ class AppInfo:
 
 APP_INFO = AppInfo(
     name="Blattwerk",
-    version="0.4.1",
+    version="0.5.0",
     appdata_folder="blattwerk",
     window_title="Blattwerk",
 )
