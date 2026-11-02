@@ -133,39 +133,19 @@ def _resolve_profile_colors(color_profile: str):
 
 
 _UNTINTED_CSS = """
-.material,
-.info,
-.solution,
-.solution-version {
-    background: #FFFFFF;
-}
-
-.task-header-left,
-.task-points {
-    background: transparent;
-    padding: 0;
-    border-radius: 0;
-}
-
-.diagram-svg [class*="diagram-tone"]:not(.diagram-keep-tint),
-.diagram-svg [class*="diagram-data"] {
-    fill: #FFFFFF;
-}
-
-.diagram-set-1,
-.diagram-set-2,
-.diagram-set-3 {
-    fill: none;
-}
-
-.diagram-table th {
-    background: #FFFFFF;
+:root {
+    --tint: 0;
 }
 """
-"""Flächen ohne Tönung: Kästen und Diagrammflächen weiß, der farbige Versatz bleibt.
+"""Ohne Tönung: Alle Flächen mischen ihre Farbe mit `var(--tint)` und werden damit weiß.
 
-Die Köpfe im Klassendiagramm (`diagram-keep-tint`) und die Färbung von Bruchteilen bleiben,
-weil sie Bedeutung tragen."""
+Einziger Schalter der Tönung. Was immer getönt bleibt, steht in einer Regel in
+`assets/worksheet.css` (`--tint: 1`)."""
+
+
+def _tinted(color: str) -> str:
+    """Fläche in `color`, die der Schalter „Flächen tönen“ weiß werden lässt."""
+    return f"color-mix(in srgb, {color} calc(100% * var(--tint, 1)), white)"
 
 
 def _resolve_symbol_style(color_profile: str, contrast_profile: str):
@@ -258,7 +238,7 @@ h1 {
 
 .info {{
     border-left-color: var(--info-border-color);
-    background: var(--info-bg-color);
+    background: {_tinted('var(--info-bg-color)')};
 }}
 
 .info.warning {{
@@ -286,7 +266,7 @@ h1 {{
 
 .material {{
     border-color: var(--theme-material-border);
-    background: var(--theme-material-bg);
+    background: {_tinted('var(--theme-material-bg)')};
 }}
 
 .material h3 {{
@@ -316,12 +296,12 @@ img {{
 .solution-version-inline {{
     border-color: var(--solution-accent-strong);
     color: var(--solution-accent-strong);
-    background: var(--solution-accent-soft);
+    background: {_tinted('var(--solution-accent-soft)')};
 }}
 
 .solution {{
     border-color: var(--solution-border-color);
-    background: var(--solution-bg-color);
+    background: {_tinted('var(--solution-bg-color)')};
 }}
 
 .solution-label {{

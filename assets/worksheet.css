@@ -40,7 +40,7 @@ hr {
 }
 
 mark {
-    background-color: var(--theme-accent-soft, #fff36d);
+    background-color: color-mix(in srgb, var(--theme-accent-soft, #fff36d) calc(100% * var(--tint, 1)), white);
     padding: 0 0.06em;
 }
 
@@ -84,14 +84,14 @@ sup {
 
 code {
     font-family: "Consolas", "Courier New", monospace;
-    background: #f0f0f0;
+    background: color-mix(in srgb, #f0f0f0 calc(100% * var(--tint, 1)), white);
     padding: 0.05em 0.3em;
     border-radius: 3px;
 }
 
 pre {
     font-family: "Consolas", "Courier New", monospace;
-    background: #f0f0f0;
+    background: color-mix(in srgb, #f0f0f0 calc(100% * var(--tint, 1)), white);
     padding: 0.5em 0.7em;
     border-radius: 4px;
     overflow-x: auto;
@@ -435,7 +435,7 @@ h1 {
     border-left: 4px solid #999;
     padding: 0.35em 1em;
     margin: var(--block-gap-compact) 0;
-    background: #f5f5f5;
+    background: color-mix(in srgb, #f5f5f5 calc(100% * var(--tint, 1)), white);
 }
 
 .info.warning {
@@ -470,7 +470,7 @@ h1 {
 
 .solution {
     border: 1px solid #2f5f2f;
-    background: #eef9ee;
+    background: color-mix(in srgb, #eef9ee calc(100% * var(--tint, 1)), white);
     padding: 0.5em 0.8em;
     margin: var(--block-gap-compact) 0 var(--block-gap-regular) 0;
 }
@@ -909,7 +909,7 @@ h1 {
     border: 1px solid var(--theme-accent-secondary);
     border-radius: 999px;
     padding: 0.08em 0.48em;
-    background: var(--theme-accent-secondary-soft, #f3f3f3);
+    background: color-mix(in srgb, var(--theme-accent-secondary-soft, #f3f3f3) calc(100% * var(--tint, 1)), white);
     color: var(--theme-accent-secondary);
     font-size: 0.92em;
 }
@@ -1478,7 +1478,7 @@ h1 {
     border: var(--field-border-width) solid var(--field-border-color);
     border-radius: 0.28em;
     padding: calc(var(--box-buffer-block, 0.13cm) * 0.92) calc(var(--box-buffer-inline, 0.2cm) * 0.95);
-    background: var(--theme-material-bg);
+    background: color-mix(in srgb, var(--theme-material-bg) calc(100% * var(--tint, 1)), white);
     min-height: 0.7cm;
     overflow: hidden;
     display: flex;
@@ -1568,7 +1568,7 @@ h1 {
 }
 
 .matching-line.matching-line-worksheet {
-    stroke: color-mix(in srgb, var(--solution-accent-strong, #205840) 55%, white);
+    stroke: color-mix(in srgb, var(--solution-accent-strong, #205840) calc(55% * var(--tint, 1)), white);
     stroke-dasharray: 2.2 1.8;
 }
 
@@ -1618,14 +1618,14 @@ h1 {
     color: var(--text-color);
 }
 
-.ws-hit-0 { background: color-mix(in srgb, var(--theme-accent-main) 22%, white); }
-.ws-hit-1 { background: color-mix(in srgb, var(--theme-accent-secondary) 24%, white); }
-.ws-hit-2 { background: color-mix(in srgb, var(--solution-accent-strong, #205840) 22%, white); }
-.ws-hit-3 { background: color-mix(in srgb, var(--theme-accent-main) 14%, white); }
-.ws-hit-4 { background: color-mix(in srgb, var(--theme-accent-secondary) 15%, white); }
-.ws-hit-5 { background: color-mix(in srgb, var(--solution-accent-strong, #205840) 13%, white); }
-.ws-hit-6 { background: color-mix(in srgb, var(--theme-accent-main) 28%, white); }
-.ws-hit-7 { background: color-mix(in srgb, var(--theme-accent-secondary) 30%, white); }
+.ws-hit-0 { background: color-mix(in srgb, var(--theme-accent-main) calc(22% * var(--tint, 1)), white); }
+.ws-hit-1 { background: color-mix(in srgb, var(--theme-accent-secondary) calc(24% * var(--tint, 1)), white); }
+.ws-hit-2 { background: color-mix(in srgb, var(--solution-accent-strong, #205840) calc(22% * var(--tint, 1)), white); }
+.ws-hit-3 { background: color-mix(in srgb, var(--theme-accent-main) calc(14% * var(--tint, 1)), white); }
+.ws-hit-4 { background: color-mix(in srgb, var(--theme-accent-secondary) calc(15% * var(--tint, 1)), white); }
+.ws-hit-5 { background: color-mix(in srgb, var(--solution-accent-strong, #205840) calc(13% * var(--tint, 1)), white); }
+.ws-hit-6 { background: color-mix(in srgb, var(--theme-accent-main) calc(28% * var(--tint, 1)), white); }
+.ws-hit-7 { background: color-mix(in srgb, var(--theme-accent-secondary) calc(30% * var(--tint, 1)), white); }
 
 .answer.crossword-answer {
     border: 0;
@@ -1692,7 +1692,7 @@ h1 {
 }
 
 .cw-cell-code {
-    background: color-mix(in srgb, var(--theme-accent-main) 22%, white);
+    background: color-mix(in srgb, var(--theme-accent-main) calc(22% * var(--tint, 1)), white);
 }
 
 .crossword-clues-wrap {
@@ -1733,7 +1733,7 @@ h1 {
     min-width: 1.2em;
     padding: 0.05em 0.15em;
     border: var(--field-border-width) solid var(--field-border-color);
-    background: color-mix(in srgb, var(--theme-accent-main) 22%, white);
+    background: color-mix(in srgb, var(--theme-accent-main) calc(22% * var(--tint, 1)), white);
     font-weight: 700;
     text-transform: uppercase;
 }
@@ -1763,7 +1763,7 @@ h1 {
 }
 
 .ordering-rank-filled {
-    background: color-mix(in srgb, var(--theme-accent-main) 22%, white);
+    background: color-mix(in srgb, var(--theme-accent-main) calc(22% * var(--tint, 1)), white);
 }
 
 .ordering-label p {
@@ -1802,7 +1802,7 @@ h1 {
 }
 
 .checkgrid-box.is-correct {
-    background: color-mix(in srgb, var(--theme-accent-main) 22%, white);
+    background: color-mix(in srgb, var(--theme-accent-main) calc(22% * var(--tint, 1)), white);
 }
 
 /* Open-ended blocks (mindmap/selfcheck/writebox) -- no worksheet/solution
@@ -1828,7 +1828,7 @@ h1 {
 }
 
 .mindmap-center {
-    fill: color-mix(in srgb, var(--theme-accent-main) 22%, white);
+    fill: color-mix(in srgb, var(--theme-accent-main) calc(22% * var(--tint, 1)), white);
     stroke: var(--field-border-color);
     stroke-width: 1.4;
 }
@@ -2008,6 +2008,29 @@ h1 {
     margin-bottom: 0;
 }
 
+/* Tönung an einer Stelle: Jede farbige Fläche mischt ihre Farbe mit `var(--tint)`. Der
+   Schalter „Flächen tönen“ setzt ohne Tönung nur `--tint: 0` (`worksheet_design.py`).
+   Diese Elemente bleiben immer getönt, weil die Farbe dort Bedeutung trägt oder der Kopf
+   die Tabelle gliedert: Tabellenköpfe, Hervorhebungen, Lösungs- und Codewortmarkierungen,
+   Code, Klassenköpfe, Bruchteile und der farbige Versatz der Diagramme.
+   `tests/test_tint.py` prüft, dass keine Fläche an diesem Weg vorbeiläuft. */
+mark,
+code,
+pre,
+.answer-table th,
+.diagram-table th,
+.evaluation-table th,
+.ws-hit-0, .ws-hit-1, .ws-hit-2, .ws-hit-3, .ws-hit-4, .ws-hit-5, .ws-hit-6, .ws-hit-7,
+.cw-cell-code,
+.crossword-code-letter,
+.ordering-rank-filled,
+.checkgrid-box.is-correct,
+.diagram-keep-tint,
+.diagram-fill,
+.diagram-offset {
+    --tint: 1;
+}
+
 /* Diagrammblöcke (diagram_svg.py): Linien und Text in Textfarbe, keine Bedeutungsfarben,
    damit das Schwarz-Weiß-Profil ohne Sonderfall gilt. */
 
@@ -2018,7 +2041,7 @@ h1 {
     --diagram-main: var(--theme-accent-main, #777);
     --diagram-second: var(--theme-accent-secondary, #999);
     --diagram-ink: var(--text-color, #111);
-    --diagram-tone-fallback: color-mix(in srgb, var(--diagram-main) 20%, white);
+    --diagram-tone-fallback: color-mix(in srgb, var(--diagram-main) calc(20% * var(--tint, 1)), white);
     box-sizing: border-box;
     max-width: 100%;
     margin-bottom: 0.45em;
@@ -2125,11 +2148,11 @@ h1 {
 
 .diagram-table {
     border-collapse: collapse;
-    box-shadow: 3px 3px 0 color-mix(in srgb, var(--diagram-main) 42%, white);
+    box-shadow: 3px 3px 0 color-mix(in srgb, var(--diagram-main) calc(42% * var(--tint, 1)), white);
 }
 
 .diagram-table th {
-    background: color-mix(in srgb, var(--diagram-main) 14%, white);
+    background: color-mix(in srgb, var(--diagram-main) calc(14% * var(--tint, 1)), white);
 }
 
 .diagram-table th,
@@ -2142,74 +2165,74 @@ h1 {
 /* Flache Abstufungen des Farbprofils, ohne Verläufe und Schatten. Text und Lücken stehen
    immer auf hellem Grund: Die Töne enthalten höchstens gut 20 Prozent Farbe. */
 .diagram-svg .diagram-tone-1 {
-    fill: color-mix(in srgb, var(--diagram-main) 9%, white);
+    fill: color-mix(in srgb, var(--diagram-main) calc(9% * var(--tint, 1)), white);
     stroke: var(--diagram-ink);
     stroke-width: 1;
 }
 
 .diagram-svg .diagram-tone-2 {
-    fill: color-mix(in srgb, var(--diagram-second) 11%, white);
+    fill: color-mix(in srgb, var(--diagram-second) calc(11% * var(--tint, 1)), white);
     stroke: var(--diagram-ink);
     stroke-width: 1;
 }
 
 .diagram-svg .diagram-tone-3 {
-    fill: color-mix(in srgb, var(--diagram-main) 20%, white);
+    fill: color-mix(in srgb, var(--diagram-main) calc(20% * var(--tint, 1)), white);
     stroke: var(--diagram-ink);
     stroke-width: 1;
 }
 
 .diagram-svg .diagram-tone-4 {
-    fill: color-mix(in srgb, var(--diagram-second) 24%, white);
+    fill: color-mix(in srgb, var(--diagram-second) calc(24% * var(--tint, 1)), white);
     stroke: var(--diagram-ink);
     stroke-width: 1;
 }
 
 /* Mehrere Farben, wo sie Dinge auseinanderhalten (`app/styles/diagram_palette.py`). */
 .diagram-svg .diagram-data-1 {
-    fill: var(--diagram-data-1, var(--diagram-tone-fallback));
+    fill: color-mix(in srgb, var(--diagram-data-1, var(--diagram-tone-fallback)) calc(100% * var(--tint, 1)), white);
     stroke: var(--diagram-ink);
     stroke-width: 1;
 }
 
 .diagram-svg .diagram-data-2 {
-    fill: var(--diagram-data-2, var(--diagram-tone-fallback));
+    fill: color-mix(in srgb, var(--diagram-data-2, var(--diagram-tone-fallback)) calc(100% * var(--tint, 1)), white);
     stroke: var(--diagram-ink);
     stroke-width: 1;
 }
 
 .diagram-svg .diagram-data-3 {
-    fill: var(--diagram-data-3, var(--diagram-tone-fallback));
+    fill: color-mix(in srgb, var(--diagram-data-3, var(--diagram-tone-fallback)) calc(100% * var(--tint, 1)), white);
     stroke: var(--diagram-ink);
     stroke-width: 1;
 }
 
 .diagram-svg .diagram-data-4 {
-    fill: var(--diagram-data-4, var(--diagram-tone-fallback));
+    fill: color-mix(in srgb, var(--diagram-data-4, var(--diagram-tone-fallback)) calc(100% * var(--tint, 1)), white);
     stroke: var(--diagram-ink);
     stroke-width: 1;
 }
 
 .diagram-svg .diagram-data-5 {
-    fill: var(--diagram-data-5, var(--diagram-tone-fallback));
+    fill: color-mix(in srgb, var(--diagram-data-5, var(--diagram-tone-fallback)) calc(100% * var(--tint, 1)), white);
     stroke: var(--diagram-ink);
     stroke-width: 1;
 }
 
 .diagram-svg .diagram-data-6 {
-    fill: var(--diagram-data-6, var(--diagram-tone-fallback));
+    fill: color-mix(in srgb, var(--diagram-data-6, var(--diagram-tone-fallback)) calc(100% * var(--tint, 1)), white);
     stroke: var(--diagram-ink);
     stroke-width: 1;
 }
 
 .diagram-svg .diagram-data-7 {
-    fill: var(--diagram-data-7, var(--diagram-tone-fallback));
+    fill: color-mix(in srgb, var(--diagram-data-7, var(--diagram-tone-fallback)) calc(100% * var(--tint, 1)), white);
     stroke: var(--diagram-ink);
     stroke-width: 1;
 }
 
 .diagram-svg .diagram-data-8 {
-    fill: var(--diagram-data-8, var(--diagram-tone-fallback));
+    fill: color-mix(in srgb, var(--diagram-data-8, var(--diagram-tone-fallback)) calc(100% * var(--tint, 1)), white);
     stroke: var(--diagram-ink);
     stroke-width: 1;
 }
@@ -2220,47 +2243,47 @@ h1 {
 }
 
 .diagram-offset-main {
-    fill: color-mix(in srgb, var(--diagram-main) 42%, white);
+    fill: color-mix(in srgb, var(--diagram-main) calc(42% * var(--tint, 1)), white);
 }
 
 .diagram-offset-second {
-    fill: color-mix(in srgb, var(--diagram-second) 42%, white);
+    fill: color-mix(in srgb, var(--diagram-second) calc(42% * var(--tint, 1)), white);
 }
 
 .diagram-offset-data-1 {
-    fill: color-mix(in srgb, var(--diagram-data-1, var(--diagram-main)) 62%, var(--diagram-ink));
+    fill: color-mix(in srgb, var(--diagram-data-1, var(--diagram-main)) calc(62% * var(--tint, 1)), var(--diagram-ink));
 }
 
 .diagram-offset-data-2 {
-    fill: color-mix(in srgb, var(--diagram-data-2, var(--diagram-main)) 62%, var(--diagram-ink));
+    fill: color-mix(in srgb, var(--diagram-data-2, var(--diagram-main)) calc(62% * var(--tint, 1)), var(--diagram-ink));
 }
 
 .diagram-offset-data-3 {
-    fill: color-mix(in srgb, var(--diagram-data-3, var(--diagram-main)) 62%, var(--diagram-ink));
+    fill: color-mix(in srgb, var(--diagram-data-3, var(--diagram-main)) calc(62% * var(--tint, 1)), var(--diagram-ink));
 }
 
 .diagram-offset-data-4 {
-    fill: color-mix(in srgb, var(--diagram-data-4, var(--diagram-main)) 62%, var(--diagram-ink));
+    fill: color-mix(in srgb, var(--diagram-data-4, var(--diagram-main)) calc(62% * var(--tint, 1)), var(--diagram-ink));
 }
 
 .diagram-offset-data-5 {
-    fill: color-mix(in srgb, var(--diagram-data-5, var(--diagram-main)) 62%, var(--diagram-ink));
+    fill: color-mix(in srgb, var(--diagram-data-5, var(--diagram-main)) calc(62% * var(--tint, 1)), var(--diagram-ink));
 }
 
 .diagram-offset-data-6 {
-    fill: color-mix(in srgb, var(--diagram-data-6, var(--diagram-main)) 62%, var(--diagram-ink));
+    fill: color-mix(in srgb, var(--diagram-data-6, var(--diagram-main)) calc(62% * var(--tint, 1)), var(--diagram-ink));
 }
 
 .diagram-offset-data-7 {
-    fill: color-mix(in srgb, var(--diagram-data-7, var(--diagram-main)) 62%, var(--diagram-ink));
+    fill: color-mix(in srgb, var(--diagram-data-7, var(--diagram-main)) calc(62% * var(--tint, 1)), var(--diagram-ink));
 }
 
 .diagram-offset-data-8 {
-    fill: color-mix(in srgb, var(--diagram-data-8, var(--diagram-main)) 62%, var(--diagram-ink));
+    fill: color-mix(in srgb, var(--diagram-data-8, var(--diagram-main)) calc(62% * var(--tint, 1)), var(--diagram-ink));
 }
 
 .diagram-fill {
-    fill: color-mix(in srgb, var(--diagram-main) 50%, white);
+    fill: color-mix(in srgb, var(--diagram-main) calc(50% * var(--tint, 1)), white);
     stroke: var(--diagram-ink);
     stroke-width: 1;
 }
@@ -2284,19 +2307,19 @@ h1 {
 
 .diagram-set-1 {
     fill: var(--diagram-data-1, var(--diagram-tone-fallback));
-    fill-opacity: 0.5;
+    fill-opacity: calc(0.5 * var(--tint, 1));
     stroke: var(--diagram-ink);
 }
 
 .diagram-set-2 {
     fill: var(--diagram-data-2, var(--diagram-tone-fallback));
-    fill-opacity: 0.5;
+    fill-opacity: calc(0.5 * var(--tint, 1));
     stroke: var(--diagram-ink);
 }
 
 .diagram-set-3 {
     fill: var(--diagram-data-3, var(--diagram-tone-fallback));
-    fill-opacity: 0.5;
+    fill-opacity: calc(0.5 * var(--tint, 1));
     stroke: var(--diagram-ink);
 }
 
@@ -2436,7 +2459,7 @@ h1 {
 }
 
 .answer-table th {
-    background: var(--theme-accent-secondary-soft, #f3f3f3);
+    background: color-mix(in srgb, var(--theme-accent-secondary-soft, #f3f3f3) calc(100% * var(--tint, 1)), white);
     font-weight: 600;
 }
 

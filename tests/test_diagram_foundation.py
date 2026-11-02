@@ -106,7 +106,7 @@ def test_text_and_gaps_always_stand_on_a_light_ground():
 
     css = Path(__file__).resolve().parents[1].joinpath("assets", "worksheet.css").read_text(encoding="utf-8")
     for number in range(1, 5):
-        rule = re.search(rf"\.diagram-tone-{number} \{{\s*fill: color-mix\(in srgb, var\(--diagram-\w+\) (\d+)%", css)
+        rule = re.search(rf"\.diagram-tone-{number} \{{\s*fill: color-mix\(in srgb, var\(--diagram-\w+\) calc\((\d+)%", css)
         assert rule and int(rule.group(1)) < 30, number
     for color in data_palette("#2F7FAE", False) + data_palette("#5A5A5A", False) + data_palette("#000000", True):
         channels = [int(color[i: i + 2], 16) / 255 for i in (1, 3, 5)]
@@ -174,11 +174,7 @@ def test_untinted_mode_whitens_surfaces_but_keeps_class_headers_and_offsets():
     """Ohne Tönung sind Flächen weiß; Klassenköpfe, Bruchteile und der Versatz bleiben farbig."""
     from app.styles.worksheet_design import build_design_css
 
-    tinted = build_design_css("indigo", tint=True)
-    untinted = build_design_css("indigo", tint=False)
-    assert "diagram-keep-tint" not in tinted
-    assert ':not(.diagram-keep-tint)' in untinted and ".material" in untinted
-    assert "diagram-offset" not in untinted and "diagram-fill" not in untinted
+    assert "--tint: 0" in build_design_css("indigo", tint=False)
     header = render_diagram_block("classdiagram", {}, "klasse A\n    - x: Ganzzahl")
     assert "diagram-keep-tint" in header
 
