@@ -36,6 +36,7 @@ class _Host(BlattwerkAppPreviewMixin):
         self.preview_section_separator_var = _Var("dot")
         self.preview_hide_future_sections_var = _Var(False)
         self.design_color_profile_var = _Var("indigo")
+        self.design_tint_var = _Var(True)
         self.design_font_profile_var = _Var("segoe")
         self.design_font_size_profile_var = _Var("normal")
 

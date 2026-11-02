@@ -18,12 +18,15 @@ class WorksheetDesignOptions:
     color_profile: str
     font_profile: str
     font_size_profile: str
+    tint: bool = True
+    """Flächen tönen (Kästen, Diagramme); `False` lässt sie weiß. Gilt für jedes Farbprofil."""
 
     def as_kwargs(self):
         return {
             "color_profile": self.color_profile,
             "font_profile": self.font_profile,
             "font_size_profile": self.font_size_profile,
+            "tint": self.tint,
         }
 
 

@@ -91,6 +91,7 @@ class BlattwerkAppBase(
         self.preview_layout_mode_var = ui.StringVar(value=VIEW_LAYOUT_SINGLE)
         self.editor_view_mode_var = ui.StringVar(value=EDITOR_VIEW_PREVIEW_ONLY)
         self.design_color_profile_var = ui.StringVar(value=DEFAULT_COLOR_PROFILE)
+        self.design_tint_var = ui.BooleanVar(value=True)
         self.design_font_profile_var = ui.StringVar(value=DEFAULT_FONT_PROFILE)
         self._font_profile_menu_var = ui.StringVar(value=DEFAULT_FONT_PROFILE)
         self.design_font_size_profile_var = ui.StringVar(value=DEFAULT_FONT_SIZE_PROFILE)

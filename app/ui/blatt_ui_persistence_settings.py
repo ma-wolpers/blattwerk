@@ -58,6 +58,7 @@ class BlattwerkAppPersistenceSettingsMixin:
             payload["default_theme_key"] = self.theme_var.get()
             payload["default_contrast_profile"] = self.preview_contrast_var.get()
             payload["default_color_profile"] = self.design_color_profile_var.get()
+            payload["default_tint"] = bool(self.design_tint_var.get())
             payload["default_font_profile"] = self.design_font_profile_var.get()
             payload["default_font_size_profile"] = self.design_font_size_profile_var.get()
             payload["startup_fit_mode"] = self.preview_fit_mode_var.get()
@@ -93,6 +94,7 @@ class BlattwerkAppPersistenceSettingsMixin:
             # window chrome) — otherwise self.theme_key silently drifts from theme_var.
             BwBaseWindow.apply_theme(self, self.theme_var.get())
             self.design_color_profile_var.set(normalized["default_color_profile"])
+            self.design_tint_var.set(bool(normalized["default_tint"]))
             self.design_font_profile_var.set(normalized["default_font_profile"])
             self.design_font_size_profile_var.set(normalized["default_font_size_profile"])
             self.preview_contrast_var.set(normalized["default_contrast_profile"])
@@ -247,6 +249,7 @@ class BlattwerkAppPersistenceSettingsMixin:
             self.preview_controls_collapsed_var.set(True)
             self.preview_contrast_var.set(resolved_profiles["worksheet_contrast"])
             self.design_color_profile_var.set(resolved_profiles["worksheet_color_profile"])
+            self.design_tint_var.set(resolved_profiles["worksheet_tint"])
             self.design_font_profile_var.set(resolved_profiles["worksheet_font_profile"])
             self.design_font_size_profile_var.set(resolved_profiles["worksheet_font_size_profile"])
 
@@ -270,6 +273,7 @@ class BlattwerkAppPersistenceSettingsMixin:
                 normalize_design_profiles_for_persistence(
                     worksheet_contrast=self.preview_contrast_var.get(),
                     worksheet_color_profile=self.design_color_profile_var.get(),
+                    worksheet_tint=self.design_tint_var.get(),
                     worksheet_font_profile=self.design_font_profile_var.get(),
                     worksheet_font_size_profile=self.design_font_size_profile_var.get(),
                 )

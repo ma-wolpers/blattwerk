@@ -100,6 +100,7 @@ def append_help_cards_appendix(
     color_profile: str,
     font_profile: str,
     font_size_profile: str,
+    tint: bool = True,
     render=write_pdf_from_html,
 ) -> int:
     """Hängt die sichtbaren Lernhilfen in Dokumentreihenfolge an `pdf_path` an.
@@ -112,7 +113,7 @@ def append_help_cards_appendix(
             zweites Lesen/Validieren.
         include_solutions: Kartensichtbarkeit wie in der jeweiligen Fassung.
         page_format: Format des Arbeitsblatts; nur die Sammelseite nutzt es.
-        print_profile, color_profile, font_profile, font_size_profile: Design.
+        print_profile, color_profile, font_profile, font_size_profile, tint: Design.
         render: HTML→PDF-Funktion (Tests).
 
     Returns:
@@ -127,6 +128,7 @@ def append_help_cards_appendix(
         "color_profile": color_profile,
         "font_profile": font_profile,
         "font_size_profile": font_size_profile,
+        "tint": tint,
     }
     if mode == HELP_APPENDIX_SINGLE:
         pages = build_help_card_single_pages(

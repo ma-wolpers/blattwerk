@@ -4,15 +4,6 @@
 from __future__ import annotations
 
 _COLOR_PROFILE_PRESETS = {
-    "default": {
-        "label": "Grau",
-        "colors": {
-            "primary_border": "#5A5A5A",
-            "primary_bg": "#F4F4F4",
-            "secondary_border": "#7A7A7A",
-            "secondary_bg": "#ECECEC",
-        },
-    },
     "ocean": {
         "label": "Ocean",
         "colors": {
@@ -89,9 +80,9 @@ _COLOR_PROFILE_PRESETS = {
         "label": "S/W",
         "colors": {
             "primary_border": "#3E3E3E",
-            "primary_bg": "#FFFFFF",
+            "primary_bg": "#F4F4F4",
             "secondary_border": "#585858",
-            "secondary_bg": "#F4F4F4",
+            "secondary_bg": "#ECECEC",
         },
     },
 }

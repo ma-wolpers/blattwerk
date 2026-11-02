@@ -283,6 +283,7 @@ def render_help_cards_html(
     color_profile="indigo",
     font_profile="segoe",
     font_size_profile="normal",
+    tint=True,
     layout=HELP_CARD_LAYOUT_SHEET,
     card_indices=None,
 ):
@@ -329,6 +330,7 @@ def render_help_cards_html(
         color_profile=color_profile,
         font_profile=font_profile,
         font_size_profile=font_size_profile,
+        tint=tint,
     )
     cards_html = [_render_help_card_section(index, block, layout) for index, block in selected]
 

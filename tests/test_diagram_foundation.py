@@ -79,7 +79,7 @@ def test_diagram_colors_come_only_from_the_color_profile():
     css = Path(__file__).resolve().parents[1].joinpath("assets", "worksheet.css").read_text(encoding="utf-8")
     start = css.index("/* Diagrammblöcke")
     section = css[start: css.index("/* Struktogramm (:::structogram)")]
-    fallbacks = {"#777", "#999", "#333"}
+    fallbacks = {"#777", "#999", "#333", "#111"}
     assert set(re.findall(r"#[0-9a-fA-F]{3,6}", section)) <= fallbacks
 
     bw = build_design_css("bw")
@@ -168,3 +168,37 @@ def test_pie_has_one_offset_for_the_whole_circle():
     """Der Kreis bekommt einen Versatz, die Sektoren keinen eigenen."""
     html = render_diagram_block("chart", {"type": "pie"}, "A: 1\nB: 2\nC: 3")
     assert html.count("diagram-offset ") == 1
+
+
+def test_untinted_mode_whitens_surfaces_but_keeps_class_headers_and_offsets():
+    """Ohne Tönung sind Flächen weiß; Klassenköpfe, Bruchteile und der Versatz bleiben farbig."""
+    from app.styles.worksheet_design import build_design_css
+
+    tinted = build_design_css("indigo", tint=True)
+    untinted = build_design_css("indigo", tint=False)
+    assert "diagram-keep-tint" not in tinted
+    assert ':not(.diagram-keep-tint)' in untinted and ".material" in untinted
+    assert "diagram-offset" not in untinted and "diagram-fill" not in untinted
+    header = render_diagram_block("classdiagram", {}, "klasse A\n    - x: Ganzzahl")
+    assert "diagram-keep-tint" in header
+
+
+def test_gray_profile_is_black_and_white_with_tint():
+    """Das frühere Profil „Grau“ wird zu S/W; S/W mit Tönung hat seine hellen Grautöne."""
+    import re
+
+    from app.styles.worksheet_design import COLOR_PROFILE_ORDER, build_design_css, normalize_color_profile
+
+    assert "default" not in COLOR_PROFILE_ORDER
+    for old in ("default", "standard", "grau", "Grau"):
+        assert normalize_color_profile(old) == "bw"
+    tinted = build_design_css("bw", tint=True)
+    background = re.search(r"--info-bg-color: (#[0-9A-Fa-f]{6})", tinted).group(1)
+    assert background.upper() == "#F4F4F4"
+
+
+def test_every_attribute_oval_has_an_offset():
+    """Regression: das ER-Attribut ohne Schlüssel hatte keinen Versatz."""
+    html = render_diagram_block("erdiagram", {}, "entität A\n    __k__\n    Name\nentität B\n    __j__\nA 1 - r - n B")
+    shapes = re.findall(r"<ellipse class='([^']*)'", html)
+    assert len([css for css in shapes if "diagram-offset" in css]) == len([css for css in shapes if "diagram-offset" not in css])

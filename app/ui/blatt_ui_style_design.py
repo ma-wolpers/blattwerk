@@ -62,6 +62,7 @@ class BlattwerkAppStyleDesignMixin:
                 color_profile=normalize_color_profile(self.design_color_profile_var.get()),
                 font_profile=normalize_font_profile(self.design_font_profile_var.get()),
                 font_size_profile=normalize_font_size_profile(self.design_font_size_profile_var.get()),
+                tint=bool(self.design_tint_var.get()),
             )
 
     def _set_font_size_profile(self, profile_key: str):

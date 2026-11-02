@@ -269,6 +269,13 @@ PREFERENCE_SPECS = {
         "values": list(COLOR_PROFILE_ORDER),
         "live_apply": True,
     },
+    "default_tint": {
+        "tab": "design_theme",
+        "label": "Flächen tönen",
+        "type": "bool",
+        "default": True,
+        "live_apply": True,
+    },
     "default_font_profile": {
         "tab": "design_theme",
         "label": "Schriftprofil",

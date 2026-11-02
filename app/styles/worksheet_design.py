@@ -12,7 +12,7 @@ COLOR_PROFILE_ORDER = list(_COLOR_PROFILE_PRESETS.keys())
 COLOR_PROFILE_LABELS = {
     key: preset["label"] for key, preset in _COLOR_PROFILE_PRESETS.items()
 }
-DEFAULT_COLOR_PROFILE = "default"
+DEFAULT_COLOR_PROFILE = "bw"
 CONTRAST_PROFILE_LABELS = {
     "standard": "Normal",
     "strong": "Hoch",
@@ -61,10 +61,9 @@ _SYMBOL_STYLE_PRESETS = {
 def normalize_color_profile(value: str | None) -> str:
     """Normalisiert Profilnamen auf bekannte Farbprofile."""
     normalized = (value or "").strip().lower()
-    if normalized in {"bw_theme", "bw"}:
+    if normalized in {"bw_theme", "bw", "default", "standard", "grau"}:
+        # Das frühere Profil „Grau“ ist S/W mit Tönung (Schalter „Flächen tönen“).
         return "bw"
-    if normalized in {"default", "standard"}:
-        return "default"
     return normalized if normalized in _COLOR_PROFILE_PRESETS else DEFAULT_COLOR_PROFILE
 
 
@@ -116,7 +115,7 @@ def _resolve_profile_colors(color_profile: str):
     secondary_border = profile_colors["secondary_border"]
     secondary_bg = profile_colors["secondary_bg"]
 
-    if color_profile not in {"default", "bw"}:
+    if color_profile != "bw":
         solution_border = _mix_hex(primary_border, "#4B9A6E", 0.36)
         solution_bg = _mix_hex(primary_bg, "#E7F7EC", 0.40)
     else:
@@ -133,6 +132,42 @@ def _resolve_profile_colors(color_profile: str):
     }
 
 
+_UNTINTED_CSS = """
+.material,
+.info,
+.solution,
+.solution-version {
+    background: #FFFFFF;
+}
+
+.task-header-left,
+.task-points {
+    background: transparent;
+    padding: 0;
+    border-radius: 0;
+}
+
+.diagram-svg [class*="diagram-tone"]:not(.diagram-keep-tint),
+.diagram-svg [class*="diagram-data"] {
+    fill: #FFFFFF;
+}
+
+.diagram-set-1,
+.diagram-set-2,
+.diagram-set-3 {
+    fill: none;
+}
+
+.diagram-table th {
+    background: #FFFFFF;
+}
+"""
+"""Flächen ohne Tönung: Kästen und Diagrammflächen weiß, der farbige Versatz bleibt.
+
+Die Köpfe im Klassendiagramm (`diagram-keep-tint`) und die Färbung von Bruchteilen bleiben,
+weil sie Bedeutung tragen."""
+
+
 def _resolve_symbol_style(color_profile: str, contrast_profile: str):
     """Liefert Filter + Kontur für Aufgabensymbole aus zentralen Presets."""
 
@@ -147,6 +182,7 @@ def _resolve_symbol_style(color_profile: str, contrast_profile: str):
 def build_design_css(
     color_profile: str = DEFAULT_COLOR_PROFILE,
     contrast_profile: str = "standard",
+    tint: bool = True,
 ):
     """Erzeugt CSS-Overrides für Arbeitsblatt-Gestaltung."""
 
@@ -170,7 +206,7 @@ def build_design_css(
     )
     solution_accent_soft = _mix_hex(profile_colors["solution_bg"], "#FFFFFF", 0.15)
 
-    warning_border = "#B35B5B" if color_profile not in {"default", "bw"} else "#5A5A5A"
+    warning_border = "#B35B5B" if color_profile != "bw" else "#5A5A5A"
     note_border = _mix_hex(profile_colors["info_border"], "#666666", 0.35)
     bw_mode = color_profile == "bw"
     symbol_style = _resolve_symbol_style(color_profile, contrast_profile)
@@ -192,21 +228,9 @@ def build_design_css(
 h1 {
     border-bottom: 1px solid #5A5A5A;
 }
-
-.material,
-.info,
-.solution,
-.solution-version {
-    background: #FFFFFF;
-}
-
-.task-header-left,
-.task-points {
-    background: transparent;
-    padding: 0;
-    border-radius: 0;
-}
 """
+    if not tint:
+        bw_overrides += _UNTINTED_CSS
 
     return f"""
 :root {{

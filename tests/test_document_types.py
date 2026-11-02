@@ -193,6 +193,7 @@ def test_preview_cache_key_changes_for_kurzentwurf_runtime_options(tmp_path):
             "preview_section_separator_var": _DummyVar("dot"),
             "preview_hide_future_sections_var": _DummyVar(False),
             "design_color_profile_var": _DummyVar("indigo"),
+            "design_tint_var": _DummyVar(True),
             "design_font_profile_var": _DummyVar("segoe"),
             "design_font_size_profile_var": _DummyVar("normal"),
             "_normalize_presentation_section_separator": staticmethod(
@@ -269,6 +270,7 @@ def test_build_document_tab_state_forces_worksheet_preview_for_kurzentwurf(tmp_p
             "preview_contrast_var": _DummyVar("standard"),
             "preview_help_appendix_var": _DummyVar("none"),
             "design_color_profile_var": _DummyVar("indigo"),
+            "design_tint_var": _DummyVar(True),
             "design_font_profile_var": _DummyVar("segoe"),
             "design_font_size_profile_var": _DummyVar("normal"),
             "preview_fit_mode_var": _DummyVar("fit_width"),

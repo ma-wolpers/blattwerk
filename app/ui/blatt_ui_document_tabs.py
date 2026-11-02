@@ -97,6 +97,7 @@ class BlattwerkDocumentTabsMixin:
             "contrast": self.preview_contrast_var.get(),
             "help_appendix": self.preview_help_appendix_var.get(),
             "color_profile": self.design_color_profile_var.get(),
+            "tint": bool(self.design_tint_var.get()),
             "font_profile": self.design_font_profile_var.get(),
             "fit_mode": self.preview_fit_mode_var.get(),
             "layout_mode": self.preview_layout_mode_var.get(),
@@ -147,6 +148,7 @@ class BlattwerkDocumentTabsMixin:
         tab_state["contrast"] = self.preview_contrast_var.get()
         tab_state["help_appendix"] = self.preview_help_appendix_var.get()
         tab_state["color_profile"] = self.design_color_profile_var.get()
+        tab_state["tint"] = bool(self.design_tint_var.get())
         tab_state["font_profile"] = self.design_font_profile_var.get()
         if self._font_size_profile_is_per_tab():
             tab_state["font_size_profile"] = self.design_font_size_profile_var.get()
@@ -211,6 +213,7 @@ class BlattwerkDocumentTabsMixin:
             self.preview_contrast_var.set(tab_state.get("contrast", self.preview_contrast_var.get()))
             self.preview_help_appendix_var.set(coerce_help_appendix(tab_state.get("help_appendix")))
             self.design_color_profile_var.set(tab_state.get("color_profile", self.design_color_profile_var.get()))
+            self.design_tint_var.set(bool(tab_state.get("tint", self.design_tint_var.get())))
             self.design_font_profile_var.set(tab_state.get("font_profile", self.design_font_profile_var.get()))
             if self._font_size_profile_is_per_tab():
                 self.design_font_size_profile_var.set(

@@ -139,6 +139,7 @@ def test_cache_key_separates_solution_and_expectation(tmp_path):
     host.preview_section_separator_var = _Var("dot")
     host.preview_hide_future_sections_var = _Var(False)
     host.design_color_profile_var = _Var("indigo")
+    host.design_tint_var = _Var(True)
     host.design_font_profile_var = _Var("segoe")
     host.design_font_size_profile_var = _Var("normal")
     host._worksheet_design_options = lambda: "design"

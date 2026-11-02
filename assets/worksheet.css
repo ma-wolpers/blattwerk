@@ -2017,7 +2017,7 @@ h1 {
        diese grau, ein Sonderfall ist nicht nötig. */
     --diagram-main: var(--theme-accent-main, #777);
     --diagram-second: var(--theme-accent-secondary, #999);
-    --diagram-ink: var(--theme-accent-strong, #333);
+    --diagram-ink: var(--text-color, #111);
     --diagram-tone-fallback: color-mix(in srgb, var(--diagram-main) 20%, white);
     box-sizing: border-box;
     max-width: 100%;
@@ -2352,16 +2352,6 @@ h1 {
     padding: 0.15em 0.4em 0.15em 1.4em;
     text-indent: -1em;
     overflow-wrap: anywhere;
-}
-
-/* Kopf von Verzweigung, Auswahl und Schleife dezent aus dem Farbprofil; die GO-Form bleibt. */
-.stg-head,
-.stg-loop-text {
-    background: color-mix(in srgb, var(--theme-accent-main, #777) 10%, white);
-}
-
-.stg {
-    box-shadow: 3px 3px 0 color-mix(in srgb, var(--theme-accent-main, #777) 42%, white);
 }
 
 .stg-gap {

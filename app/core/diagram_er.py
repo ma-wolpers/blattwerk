@@ -344,7 +344,7 @@ def render(options, content, include_solutions=False) -> str:
             canvas.rect(cx, cy, width, height, css="diagram-tone-3")
         canvas.label(node.title, cx, cy, width)
     for _owner, cell, x, y, width in ovals:
-        canvas.ellipse(x, y, width / 2, _OVAL_HEIGHT / 2, "diagram-tone-1" if "__" in cell.text else "diagram-shape")
+        canvas.ellipse(x, y, width / 2, _OVAL_HEIGHT / 2, "diagram-tone-1" if "__" in cell.text else "diagram-shape diagram-lift")
         canvas.label(cell, x, y, width, LINE_HEIGHT)
     right = max(x + w / 2 for x, _y, w, _h in placed) + _MARGIN
     bottom = max(y + h / 2 for _x, y, _w, h in placed) + _MARGIN

@@ -111,6 +111,7 @@ def build_worksheet(
     color_profile="indigo",
     font_profile="segoe",
     font_size_profile="normal",
+    tint=True,
     diagnostics_out=None,
     block_on_critical=True,
     metadata_defaults=None,
@@ -178,6 +179,7 @@ def build_worksheet(
             color_profile=color_profile,
             font_profile=font_profile,
             font_size_profile=font_size_profile,
+            tint=tint,
             black_screen_mode=black_screen_mode,
             presentation_section_separator=presentation_section_separator,
             presentation_hide_future_sections=presentation_hide_future_sections,
@@ -241,6 +243,7 @@ def build_worksheet(
                         color_profile=color_profile,
                         font_profile=font_profile,
                         font_size_profile=font_size_profile,
+            tint=tint,
                     )
         return staged.published_path
 
@@ -291,6 +294,7 @@ def build_help_cards(
     color_profile="indigo",
     font_profile="segoe",
     font_size_profile="normal",
+    tint=True,
     add_running_elements=True,
     diagnostics_out=None,
     block_on_critical=True,
@@ -337,6 +341,7 @@ def build_help_cards(
         color_profile=color_profile,
         font_profile=font_profile,
         font_size_profile=font_size_profile,
+        tint=tint,
     )
     suffix = out_file.suffix.lower()
 

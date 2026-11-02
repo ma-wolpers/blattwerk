@@ -128,6 +128,7 @@ def _render_presentation_html(
     color_profile,
     font_profile,
     font_size_profile,
+    tint,
     black_screen_mode,
     presentation_section_separator,
     presentation_hide_future_sections,
@@ -287,6 +288,7 @@ def _render_presentation_html(
         color_profile=color_profile,
         font_profile=font_profile,
         font_size_profile=font_size_profile,
+        tint=tint,
         slide_layout=True,
     ) + build_inline_font_css(inline_font_keys, font_profile)
 

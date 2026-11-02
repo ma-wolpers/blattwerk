@@ -323,6 +323,7 @@ def build_stylesheet(
     color_profile="indigo",
     font_profile=DEFAULT_FONT_PROFILE,
     font_size_profile=DEFAULT_FONT_SIZE_PROFILE,
+    tint=True,
     slide_layout=False,
     reserve_gutters=False,
     has_word_notes=False,
@@ -331,7 +332,7 @@ def build_stylesheet(
 
     `reserve_gutters` reserviert die Randspalten (siehe `page_geometry.py`);
     nur das Arbeitsblatt setzt es. `has_word_notes` ergänzt die rechte Spalte
-    für Worterklärungen.
+    für Worterklärungen. `tint=False` lässt Flächen weiß (siehe `build_design_css`).
     """
     base_stylesheet = _load_stylesheet_template_text().strip()
     overrides = "\n\n".join(
@@ -345,7 +346,7 @@ def build_stylesheet(
             build_font_profile_css(font_profile).strip(),
             build_font_size_profile_css(font_size_profile, slide_layout=slide_layout).strip(),
             build_design_css(
-                color_profile=color_profile, contrast_profile=print_profile
+                color_profile=color_profile, contrast_profile=print_profile, tint=tint
             ).strip(),
             build_gutter_css(reserve_gutters, has_word_notes).strip(),
         ]

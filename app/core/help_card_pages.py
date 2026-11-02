@@ -100,6 +100,7 @@ def build_help_card_single_pages(
     color_profile="indigo",
     font_profile="segoe",
     font_size_profile="normal",
+    tint=True,
     render=write_pdf_from_html,
 ):
     """Druckt jede sichtbare Karte auf eine eigene Seite im kleinsten passenden Format.
@@ -109,7 +110,7 @@ def build_help_card_single_pages(
         meta, blocks: geparstes Dokument, z. B. aus `load_help_card_source`
             oder direkt aus dem laufenden Arbeitsblatt-Build.
         include_solutions: Kartensichtbarkeit wie in der Lösungsfassung.
-        print_profile, color_profile, font_profile, font_size_profile: Design
+        print_profile, color_profile, font_profile, font_size_profile, tint: Design
             wie beim Arbeitsblatt.
         render: HTML→PDF-Funktion ``(html, out_path) -> Path``; Tests können
             einen Fake einsetzen.
@@ -137,6 +138,7 @@ def build_help_card_single_pages(
                 color_profile=color_profile,
                 font_profile=font_profile,
                 font_size_profile=font_size_profile,
+                tint=tint,
                 layout=HELP_CARD_LAYOUT_SINGLE,
                 card_indices=set(pending),
             )

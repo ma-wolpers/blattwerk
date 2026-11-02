@@ -10,6 +10,13 @@ def _clean_profile_value(value):
     return str(value or "").strip()
 
 
+def normalize_tint(value) -> bool:
+    """Gespeicherter Wert des Schalters „Flächen tönen“; ohne Angabe an (wie bisher)."""
+    if isinstance(value, bool):
+        return value
+    return str(value).strip().lower() not in {"0", "false", "no", "off", "nein"} if value is not None else True
+
+
 def resolve_persisted_design_profiles(ui_settings, color_profile_order):
     """Resolve persisted UI settings into normalized worksheet design profiles."""
 
@@ -25,6 +32,7 @@ def resolve_persisted_design_profiles(ui_settings, color_profile_order):
     return {
         "worksheet_contrast": normalize_contrast_profile(_clean_profile_value((ui_settings or {}).get("worksheet_contrast"))),
         "worksheet_color_profile": normalize_color_profile(_clean_profile_value(saved_color_profile)),
+        "worksheet_tint": normalize_tint((ui_settings or {}).get("worksheet_tint")),
         "worksheet_font_profile": normalize_font_profile(_clean_profile_value((ui_settings or {}).get("worksheet_font_profile"))),
         "worksheet_font_size_profile": normalize_font_size_profile(_clean_profile_value((ui_settings or {}).get("worksheet_font_size_profile"))),
     }
@@ -35,6 +43,7 @@ def normalize_design_profiles_for_persistence(
     worksheet_contrast,
     worksheet_color_profile,
     worksheet_font_profile,
+    worksheet_tint=True,
     worksheet_font_size_profile,
 ):
     """Normalize current UI profile values before writing persisted settings."""
@@ -44,4 +53,5 @@ def normalize_design_profiles_for_persistence(
         "worksheet_color_profile": normalize_color_profile(_clean_profile_value(worksheet_color_profile)),
         "worksheet_font_profile": normalize_font_profile(_clean_profile_value(worksheet_font_profile)),
         "worksheet_font_size_profile": normalize_font_size_profile(_clean_profile_value(worksheet_font_size_profile)),
+        "worksheet_tint": normalize_tint(worksheet_tint),
     }

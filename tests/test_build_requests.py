@@ -18,6 +18,7 @@ def test_design_options_as_kwargs_has_expected_keys():
         "color_profile": "bw",
         "font_profile": "segoe",
         "font_size_profile": "normal",
+        "tint": True,
     }
 
 

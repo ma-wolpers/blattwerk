@@ -214,6 +214,13 @@ class BlattwerkPreviewBuildMixin:
             self._color_profile_swatches[profile_key] = swatch
 
         self._refresh_color_profile_swatches()
+        self.design_tint_switch = Switch(
+            design_group_color,
+            text="Flächen tönen",
+            variable=self.design_tint_var,
+            on_change=lambda _tint: self._on_worksheet_design_changed(),
+        )
+        self.design_tint_switch.pack(side="left", padx=(12, 0))
 
         design_group_font = widgets.Frame(design_section)
         widgets.Separator(design_group_font, orient="vertical").pack(side="left", fill="y", padx=(0, 12))
