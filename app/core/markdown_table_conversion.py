@@ -19,14 +19,7 @@ import json
 import re
 from dataclasses import dataclass
 
-_BLOCK_START_PATTERN = re.compile(r"^:::(\w+)(.*)$")
-_SELF_CLOSING_BLOCK_PATTERN = re.compile(r"^:::(\w+)(.*?):::$")
-"""Mirrors `blatt_kern_shared_parsing.py::parse_blocks`'s fence regexes
-exactly. Kept as an intentional local duplicate rather than an import of
-those private module-level constants -- the same two patterns are already
-independently duplicated twice in `app/ui/blatt_ui_editor.py` (syntax
-highlighting, block-pair matching), so this follows established project
-precedent rather than introducing new cross-module coupling."""
+from .blatt_kern_shared_parsing import _BLOCK_START_PATTERN, _SELF_CLOSING_BLOCK_PATTERN
 
 _UNESCAPED_PIPE_PATTERN = re.compile(r"(?<!\\)\|")
 _DELIMITER_CELL_PATTERN = re.compile(r"^(:?)-+(:?)$")

@@ -26,6 +26,7 @@ from dataclasses import dataclass, field
 import yaml
 
 from ..blatt_kern_shared_data import CONTROL_MARKERS
+from ..blatt_kern_shared_parsing import _BLOCK_START_PATTERN
 from ..blatt_validator_constants import KNOWN_BLOCK_TYPES
 from ..document_semantics import Canonical, Invalid, canonicalize_document_type
 from ..frontmatter import frontmatter_bounds, load_frontmatter_yaml
@@ -52,7 +53,6 @@ AMBIGUOUS_BLOCK_NAMES = frozenset({"info", "raw", "table", "columns", "space", "
 _PSEUDO_BLOCK_TYPES = frozenset(spec.block_type for spec in CONTROL_MARKERS if spec.block_type)
 SPECIFIC_BLOCK_NAMES = frozenset(KNOWN_BLOCK_TYPES) - AMBIGUOUS_BLOCK_NAMES - _PSEUDO_BLOCK_TYPES
 
-_BLOCK_LINE_RE = re.compile(r"^:::(\w+)")
 _FENCE_RE = re.compile(r"^ {0,3}(```|~~~)")
 _LINE_MARKER_RE = re.compile(r"^[§%&](?=\s|$)")
 
@@ -165,7 +165,7 @@ def collect_signals(name: str, text: str) -> tuple[set[str], dict[str, str], boo
         signals.add("S_KZ_DSL")
         targets["S_KZ_DSL"] = "kurzentwurf"
 
-    block_names = {match.group(1) for line in lines if (match := _BLOCK_LINE_RE.match(line))}
+    block_names = {match.group(1) for line in lines if (match := _BLOCK_START_PATTERN.match(line))}
     specific_blocks = block_names & SPECIFIC_BLOCK_NAMES
     if all(_nonempty(meta, key) for key in ("Titel", "Fach", "Thema")) and specific_blocks:
         signals.add("S_WS")
