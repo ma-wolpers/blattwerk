@@ -5,7 +5,8 @@ from decimal import Decimal
 import pytest
 
 from app.core.blatt_kern_layout_render import render_html
-from app.core.blatt_kern_shared import parse_blocks, split_front_matter
+from app.core.blatt_kern_shared import parse_blocks
+from app.core.frontmatter import parse_frontmatter
 from app.core.blatt_validator import inspect_markdown_text
 from app.core.exam_parts import resolve_exam_parts
 from app.core.document_type_templates import build_new_document_content
@@ -21,7 +22,7 @@ def _codes(body, document_type="exam"):
 
 def test_exam_template_is_valid_and_has_no_mode():
     content = build_new_document_content("exam", {})
-    meta, _rest = split_front_matter(content)
+    meta, _rest = parse_frontmatter(content)
     assert meta["document_type"] == "exam" and "mode" not in meta
     diagnostics = inspect_markdown_text(content, document_type="exam").diagnostics
     assert not [d for d in diagnostics if d.severity == "error"]

@@ -60,7 +60,6 @@ from .blatt_kern_shared_parsing import (
     normalize_markdown,
     parse_blocks,
     parse_options,
-    split_front_matter,
 )
 
 __all__ = [
@@ -74,7 +73,6 @@ __all__ = [
     "ControlMarkerSpec",
     "CONTROL_MARKERS",
     "JA_NEIN_BOOLEAN_TOKENS",
-    "split_front_matter",
     "parse_options",
     "parse_blocks",
     "build_block_index_line_map",

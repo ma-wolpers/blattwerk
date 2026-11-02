@@ -9,7 +9,7 @@ App-Standard aus den Einstellungen (`default_font_profile`).
 
 from __future__ import annotations
 
-from ..core.blatt_kern_shared import split_front_matter
+from ..core.frontmatter import parse_frontmatter
 from ..core.document_font import FONT_PROFILE_KEY, document_font_profile_value
 from ..core.frontmatter_edit import EditUnsafe, FrontmatterEditor
 from ..styles.blatt_styles import DEFAULT_FONT_PROFILE, FONT_PROFILE_LABELS, FONT_PROFILE_ORDER, normalize_font_profile
@@ -38,7 +38,7 @@ class BlattwerkAppDocumentFontMixin:
         text = self._document_text_for_font()
         if text is None:
             return APP_DEFAULT_FONT_CHOICE
-        meta, _ = split_front_matter(text)
+        meta, _ = parse_frontmatter(text)
         value = document_font_profile_value(meta)
         return value if value in FONT_PROFILE_ORDER else APP_DEFAULT_FONT_CHOICE
 

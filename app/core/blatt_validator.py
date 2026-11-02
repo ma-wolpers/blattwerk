@@ -22,7 +22,8 @@ from __future__ import annotations
 from dataclasses import replace
 from pathlib import Path
 
-from .blatt_kern_shared import parse_blocks, split_front_matter
+from .blatt_kern_shared import parse_blocks
+from .frontmatter import parse_frontmatter
 from .blatt_validator_constants import (
     BLOCK_ALLOWED_OPTIONS,
     BLOCK_OPTION_KEY_ALIASES,
@@ -271,7 +272,7 @@ def inspect_markdown_text(markdown_text, cache=None, document_type="worksheet"):
     `document_type` (aus der Dateiendung) schaltet typabhängige Prüfungen
     zu, z. B. Punkt-/Lösungsdiagnosen nur für Arbeitsblatt und Klausur.
     """
-    meta, _content_unused = split_front_matter(markdown_text)
+    meta, _content_unused = parse_frontmatter(markdown_text)
     content, content_base_line = _extract_validation_content_and_base_line(markdown_text)
     blocks = parse_blocks(content)
     diagnostics = _collect_document_diagnostics(

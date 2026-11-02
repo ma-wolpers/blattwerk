@@ -22,7 +22,8 @@ from .blatt_kern_io_pdf import (
 )
 from .blatt_kern_help_render import collect_help_blocks, render_help_cards_html
 from .blatt_kern_layout_render import render_html
-from .blatt_kern_shared import parse_blocks, parse_options, split_front_matter
+from .blatt_kern_shared import parse_blocks, parse_options
+from .frontmatter import parse_frontmatter
 
 __all__ = [
     "BuildDiagnostic",
@@ -40,6 +41,6 @@ __all__ = [
     "parse_options",
     "render_help_cards_html",
     "render_html",
-    "split_front_matter",
+    "parse_frontmatter",
     "write_pdf_from_html",
 ]

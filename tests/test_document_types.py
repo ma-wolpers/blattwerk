@@ -2,7 +2,7 @@
 
 import pytest
 
-from app.core.blatt_kern_shared import split_front_matter
+from app.core.frontmatter import parse_frontmatter
 from app.core.document_semantics import (
     Absent,
     Canonical,
@@ -109,7 +109,7 @@ def test_evaluation_capability_only_for_worksheet_and_exam():
 @pytest.mark.parametrize("document_type", KNOWN_DOCUMENT_TYPES)
 def test_templates_write_canonical_marker_only_for_blattwerk_types(document_type):
     content = build_new_document_content(document_type, {"default_subject": "Mathe"})
-    meta, _rest = split_front_matter(content)
+    meta, _rest = parse_frontmatter(content)
 
     if spec_for_type(document_type).marker_required:
         assert meta.get("document_type") == document_type

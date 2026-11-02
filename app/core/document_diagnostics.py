@@ -13,7 +13,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from .blatt_validator import BuildDiagnostic, inspect_markdown_text
-from .blatt_kern_shared import split_front_matter
+from .frontmatter import parse_frontmatter
 from .document_semantics import marker_diagnostics, type_for_path
 from .document_type_registry import PIPELINE_KURZENTWURF, PIPELINE_MARKDOWN, PIPELINE_SCHILD, spec_for_type
 from .kurzentwurf_runtime.validator import inspect_kurzentwerfer_text
@@ -54,7 +54,7 @@ def inspect_document_text(markdown_text: str, *, document_type: str) -> Document
     """
     spec = spec_for_type(document_type)
     try:
-        meta, _content = split_front_matter(markdown_text)
+        meta, _content = parse_frontmatter(markdown_text)
     except Exception:
         meta = {}
     diagnostics = list(marker_diagnostics(meta, spec.id))

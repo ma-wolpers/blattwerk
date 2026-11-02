@@ -19,6 +19,7 @@ import json
 import re
 from dataclasses import dataclass
 
+from .blatt_kern_shared_parsing import format_block_header
 from .block_line_scan import LineKind, scan_block_lines
 
 _PROSE_KINDS = frozenset({LineKind.OUTSIDE, LineKind.STRAY_CLOSE, LineKind.MALFORMED})
@@ -245,15 +246,11 @@ def _render_table_block(header_cells, body_rows, alignment_tokens, line_ending):
     `rows=4 cols=2` when omitted, which would silently pad a smaller
     converted table with extra empty cells.
     """
-    option_parts = [
-        f"rows={len(body_rows)}",
-        f"cols={len(header_cells)}",
-        f'column_headers="{"|".join(header_cells)}"',
-    ]
+    options = {"rows": len(body_rows), "cols": len(header_cells), "column_headers": "|".join(header_cells)}
     if alignment_tokens is not None:
-        option_parts.append(f'alignment="{" ".join(alignment_tokens)}"')
+        options["alignment"] = " ".join(alignment_tokens)
 
-    block_lines = [":::table " + " ".join(option_parts), "cells:"]
+    block_lines = [format_block_header("table", options), "cells:"]
     for row in body_rows:
         cell_literals = ", ".join(json.dumps(cell, ensure_ascii=False) for cell in row)
         block_lines.append(f"  - [{cell_literals}]")

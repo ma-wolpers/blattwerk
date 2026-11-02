@@ -16,7 +16,6 @@ import re
 import shlex
 
 from .blatt_kern_shared_data import CONTROL_MARKERS, MARKDOWN_EXTENSIONS
-from .frontmatter import parse_frontmatter
 from .markdown_factory import new_markdown
 from .math_span_protection import convert_markdown_with_math as _convert_markdown_with_math
 
@@ -95,18 +94,6 @@ def convert_markdown_with_math(md, text):
     return _convert_markdown_with_math(md, text, normalize_markdown)
 
 
-def split_front_matter(text):
-    """Liest YAML-Front-Matter und liefert (Meta-Dict, Resttext).
-
-    Dünner Wrapper um `frontmatter.parse_frontmatter`, die eine zeilenbasierte
-    Grenzbestimmung (Invariante I6). Fällt auf leere Metadaten zurück, wenn
-    kein vollständiger Front-Matter vorhanden ist oder YAML leer ist.
-    Früher trennte diese Funktion per `text.split("---", 2)` und beendete das
-    Frontmatter damit an jedem `---`, auch mitten in einer Zeile.
-    """
-    return parse_frontmatter(text)
-
-
 def parse_options(options_raw):
     """Parst Block-Optionen im Format key=value mit Shell-Quoting-Unterstützung."""
     if not options_raw:
@@ -118,6 +105,43 @@ def parse_options(options_raw):
             key, value = part.split("=", 1)
             options[key] = value
     return options
+
+
+_UNQUOTED_OPTION_VALUE = re.compile(r"^[\w.%+-]+$")
+"""Werte, die ohne Anführungszeichen geschrieben werden (alles andere kommt in `"…"`)."""
+
+
+def format_option_value(value) -> str:
+    """Schreibt einen Optionswert so, dass `parse_options` genau ihn zurückliest.
+
+    Einfache Werte (`3`, `note`, `80%`) bleiben roh, alles andere (Leerzeichen,
+    `|`, Anführungszeichen, leer) kommt in doppelte Anführungszeichen; `\\`
+    und `"` werden darin für `shlex` maskiert.
+    """
+    text = str(value)
+    if _UNQUOTED_OPTION_VALUE.match(text):
+        return text
+    return '"' + text.replace("\\", "\\\\").replace('"', '\\"') + '"'
+
+
+def format_options(options) -> str:
+    """Schreibt Optionen als `key=value key2="…"` (Gegenstück zu `parse_options`).
+
+    Args:
+        options: Mapping oder Folge von `(key, value)`, Reihenfolge bleibt erhalten.
+    """
+    pairs = options.items() if hasattr(options, "items") else options
+    return " ".join(f"{key}={format_option_value(value)}" for key, value in pairs)
+
+
+def format_block_header(block_type, options=(), *, self_closing=False) -> str:
+    """Kopfzeile eines Blocks: `:::name opts` bzw. selbstschließend `:::name opts :::`.
+
+    Passt immer auf `_BLOCK_START_PATTERN` bzw. `_SELF_CLOSING_BLOCK_PATTERN`.
+    """
+    options_text = format_options(options)
+    header = f":::{block_type} {options_text}" if options_text else f":::{block_type}"
+    return f"{header} :::" if self_closing else header
 
 
 def parse_blocks(text):

@@ -1,7 +1,7 @@
 """Tests für Speichern-unter mit Typwechsel (`app/core/save_as_staging.py`)."""
 
 from app.core.document_semantics import marker_diagnostics
-from app.core.blatt_kern_shared import split_front_matter
+from app.core.frontmatter import parse_frontmatter
 from app.core.save_as_staging import stage_save_as_content
 
 WORKSHEET = "---\ndocument_type: worksheet\nTitel: T\nFach: M\nThema: X\n---\n:::task\nA\n:::\n"
@@ -12,7 +12,7 @@ def test_worksheet_to_exam_writes_canonical_marker():
 
     assert staged.type_changed and staged.marker_updated and not staged.edit_unsafe
     assert staged.content == WORKSHEET.replace("document_type: worksheet", "document_type: exam")
-    meta, _ = split_front_matter(staged.content)
+    meta, _ = parse_frontmatter(staged.content)
     assert marker_diagnostics(meta, "exam") == []  # kein selbst erzeugtes FM008
 
 
@@ -37,7 +37,7 @@ def test_blattwerk_to_markdown_keeps_marker_unchanged():
 
     assert staged.type_changed and not staged.marker_updated
     assert staged.content == WORKSHEET
-    meta, _ = split_front_matter(staged.content)
+    meta, _ = parse_frontmatter(staged.content)
     assert [d.code for d in marker_diagnostics(meta, "markdown")] == ["FM008"]
 
 

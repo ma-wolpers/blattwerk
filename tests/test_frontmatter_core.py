@@ -3,7 +3,6 @@
 import pytest
 import yaml
 
-from app.core.blatt_kern_shared import split_front_matter
 from app.core.blatt_validator_value_helpers import _extract_validation_content_and_base_line
 from app.core.frontmatter import (
     BOM,
@@ -81,10 +80,6 @@ def test_trailing_whitespace_on_fence_lines_allowed():
     text = "---  \nA: 1\n---\t\nB"
     assert parse_frontmatter(text) == ({"A": 1}, "B")
 
-
-def test_split_front_matter_delegates_to_core():
-    text = "---\nTitel: a---b\n---\n  Inhalt  \n"
-    assert split_front_matter(text) == ({"Titel": "a---b"}, "Inhalt")
 
 
 def test_empty_body_gives_empty_meta():

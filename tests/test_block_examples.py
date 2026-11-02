@@ -11,7 +11,8 @@ from pathlib import Path
 import pytest
 
 from app.core.blatt_kern_layout_render import render_html
-from app.core.blatt_kern_shared import parse_blocks, split_front_matter
+from app.core.blatt_kern_shared import parse_blocks
+from app.core.frontmatter import parse_frontmatter
 from app.core.blatt_validator import inspect_markdown_text
 from app.core.blatt_validator_constants import KNOWN_BLOCK_TYPES
 from app.core.block_insert_menu_families import BLOCK_INSERT_FAMILIES, BLOCK_INSERT_STANDALONE
@@ -37,7 +38,7 @@ Antwortfelder, und genau die zeigt die Antwortfeld-Datei."""
 
 def _blocks(name: str) -> tuple[dict, list]:
     """Frontmatter und Blöcke einer Beispieldatei."""
-    meta, body = split_front_matter((EXAMPLES / name).read_text(encoding="utf-8"))
+    meta, body = parse_frontmatter((EXAMPLES / name).read_text(encoding="utf-8"))
     return meta, parse_blocks(body)
 
 

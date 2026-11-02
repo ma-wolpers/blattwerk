@@ -26,7 +26,8 @@ from pathlib import Path
 from .blatt_kern_io_pdf import write_pdf_from_html
 from .markdown_factory import new_markdown
 from .export_staging import write_document_output
-from .blatt_kern_shared import parse_blocks, split_front_matter
+from .blatt_kern_shared import parse_blocks
+from .frontmatter import parse_frontmatter
 from .blatt_validator import has_blocking_diagnostics, inspect_markdown_text, summarize_blocking_diagnostics
 from .blatt_validator_types import BuildDiagnostic
 from .exam_parts import resolve_exam_parts
@@ -71,7 +72,7 @@ def _diag(code: str, message: str) -> BuildDiagnostic:
 
 def build_expectation_horizon_html(text: str) -> tuple[str, list[BuildDiagnostic]]:
     """Erzeugt das HTML des Erwartungshorizonts samt eigener Hinweise (SL005/SL007)."""
-    meta, _rest = split_front_matter(text)
+    meta, _rest = parse_frontmatter(text)
     content, _line = content_after_frontmatter(text)
     blocks = parse_blocks(content.strip())
     units = build_points_model(blocks)

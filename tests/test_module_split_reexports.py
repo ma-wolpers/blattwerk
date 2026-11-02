@@ -5,7 +5,7 @@ diverse `app/core`-Module per `from app.core.blatt_validator import ...`
 bzw. `from .blatt_kern_shared import ...` nutzen.
 """
 
-from app.core.blatt_kern_shared import parse_blocks, split_front_matter
+from app.core.blatt_kern_shared import parse_blocks
 from app.core.blatt_validator import (
     BuildDiagnostic,
     InspectedDocument,
@@ -21,7 +21,6 @@ from app.core.kurzentwurf_runtime.dsl import parse_kurzentwerfer_text
 
 def test_blatt_kern_shared_reexports_are_callable():
     assert callable(parse_blocks)
-    assert callable(split_front_matter)
 
 
 def test_blatt_validator_reexports_are_usable():
