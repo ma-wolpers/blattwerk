@@ -8,6 +8,14 @@ Regel:
 
 ## [Unreleased]
 
+- **Block einfügen als reine Funktion (2026-11-02).** `app/core/block_insert_transform.py` (`plan_block_insert` -> `BlockInsertEdit` oder `BlockInsertError`) mit `app/core/block_insert_context.py` (`DocumentLayout`: Offsets, Block- und Spaltenbereiche, Prüfungen). Alles Strukturwissen kommt aus den vorhandenen Quellen:
+  - Blöcke: `scan_block_lines`; Spaltenbereiche: `analyze_columns_structure`; Marker: `_parse_inline_control_marker`, `is_control_marker_line`.
+  - Frontmatter: `frontmatter_editing_lines`.
+  - Kopf: erste Snippet-Zeile bzw. `format_block_header` mit den nach `BLOCK_ALLOWED_OPTIONS` erlaubten Optionen.
+  - Spaltenzahl und `widths`: `COLUMNS_MIN`/`COLUMNS_MAX`/`width_tokens` wie BL014.
+  - Verbotene Marker in Spalten: `COLUMNS_SCOPE_RESET_BLOCK_TYPES` | `PART_SPLIT_BLOCKS`.
+
+  Tests: `test_block_insert_transform.py` (jedes Ergebnis ohne BL-Fehler im echten Validator). Noch nicht angebunden (folgt im UI-Schritt).
 - **KL004 nutzt die Spaltenbereiche des Validators (2026-11-02).** `exam_parts_position.py` zählte `columns`/`endcolumns` vor dem Trenner (dritte Spalten-Logik, ohne Scope-Ende an `pagebreak`). Jetzt `blatt_validator_columns.index_in_columns_scope` über `analyze_columns_structure`. Der Docstring von `PART_SPLIT_BLOCKS` nennt die Regel, weil das Block-Einfügen sie mitliest.
 - **Optionen und Kopfzeilen schreiben, ein Name für Frontmatter-Lesen (2026-11-02).** Neben `parse_options` stehen jetzt `format_option_value`/`format_options`/`format_block_header` (`blatt_kern_shared_parsing.py`, Rundlauf-Test `test_block_header_format.py`). Die Tabellenumwandlung baute ihren `:::table`-Kopf von Hand und nutzt sie jetzt (Ausgabe unverändert). Der Alias `split_front_matter` ist entfernt; alle Aufrufer (Validator, Diagnostik, Erwartungshorizont, `wiring.py`, Schriftmenü, Tests) nutzen `parse_frontmatter`.
 - **Einfügemenü: Kennbuchstaben und eine Quelle für Beschriftungen (2026-11-02).** Die Einträge in `block_insert_menu_families.py` sind jetzt `(Titel, Blocktyp, Buchstabe)`. Die Beschriftung `"Titel (typ)"` baut `insert_menu_label` (vorher von Hand und uneinheitlich, z. B. „Mindmap“ ohne Typ). Neu: `IMAGE_INSERT_ENTRY`, `iter_insert_entries`, `mnemonic_for`, `INSERT_MENU_LABEL`/`INSERT_MENU_ALT`; Menüleiste und Doku-Generator lesen daraus (die Anleitung nennt jetzt „Alt+I, dann T“). `_to_shared_menu_items` wandelt generisch über die Felder von bw-guis `MenuItem` um, dadurch kommt `mnemonic` ohne Nacharbeit durch, und unbekannte Schlüssel lösen `KeyError` aus. Buchstaben: Tabelle aus 42c7368. Tests prüfen Eindeutigkeit und dass sie die bw-gui-Prüfung bestehen.
