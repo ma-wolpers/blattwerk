@@ -18,9 +18,6 @@ from .blatt_validator_constants import MISSING, BlockOptionSpec, FrontmatterFiel
 from .expectation_kinds import EXPECTATION_KINDS, ExpectationKind
 from .option_prose_resolution import resolve_option_prose_key
 
-_SELF_CLOSING_BLOCK_TYPES = frozenset(
-    {"nextcol", "endcolumns", "pagebreak", "framebreak", "slidechromeoff", "sectionmark", "vspacer", "aidsplit", "choicesplit"}
-)
 
 
 class CompletionDetail(TypedDict):
@@ -38,14 +35,7 @@ class CompletionDetail(TypedDict):
     title: str
     description: str
     value_hint: str | None
-"""Blocktypen ohne eigenen Body, die immer als Einzeiler mit schließendem
-`:::` auf derselben Zeile geschrieben werden (siehe die self-closing
-Regel `_SELF_CLOSING_BLOCK_PATTERN` in `blatt_kern_shared_parsing.py`).
-Anders als z. B. `:::info ... :::`, das typischerweise Body-Inhalt
-zwischen öffnendem und schließendem Marker hat, tragen diese sieben
-Blocktypen nie Body-Inhalt -- ein öffnender Marker ohne sofortiges
-`:::` auf derselben Zeile lässt den Parser fälschlich auf einen
-mehrzeiligen Body warten (siehe `parse_blocks`)."""
+
 
 
 def get_completion_block_types() -> tuple[str, ...]:
@@ -465,9 +455,3 @@ def get_completion_expectation_kind_detail(kind: ExpectationKind) -> CompletionD
         description=kind.description,
         value_hint=value_hint,
     )
-
-
-def get_self_closing_block_types() -> frozenset[str]:
-    """Returns block types that are always self-closing markers without a body."""
-
-    return _SELF_CLOSING_BLOCK_TYPES

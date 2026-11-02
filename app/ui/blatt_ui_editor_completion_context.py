@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import re
 
+from ..core.blatt_validator_constants import BODYLESS_BLOCK_TYPES
 from ..core.block_line_scan import scan_block_lines
 from ..core.completion_catalogs import (
     get_completion_block_option_detail,
@@ -26,7 +27,6 @@ from ..core.completion_catalogs import (
     get_completion_option_value_detail,
     get_completion_option_values,
     get_completion_options_for_block,
-    get_self_closing_block_types,
 )
 from ..storage.local_config_store import get_option_value_decay_scores
 from .blatt_ui_editor_frontmatter import BlattwerkAppEditorFrontmatterMixin
@@ -72,7 +72,7 @@ class BlattwerkAppEditorCompletionContextMixin(BlattwerkAppEditorFrontmatterMixi
         weiterer Vorschlag mehr nötig. Vergleicht bewusst gegen `label`
         (der getippte Name selbst), nicht `insert_text`: bei selbstschließenden
         Blocktypen enthält `insert_text` zusätzlich das automatisch
-        mitgelieferte schließende `:::` (siehe `get_self_closing_block_types`)
+        mitgelieferte schließende `:::` (siehe `BODYLESS_BLOCK_TYPES`)
         und würde sonst nie exakt zum getippten Präfix passen.
         """
         if not prefix or len(suggestions) != 1:
@@ -113,12 +113,11 @@ class BlattwerkAppEditorCompletionContextMixin(BlattwerkAppEditorFrontmatterMixi
                 if auto and block_prefix == "" and stripped_line == ":::" and self._editor_get_enclosing_block_type(line_no):
                     return None
 
-                self_closing_block_types = get_self_closing_block_types()
                 suggestions = [
                     {
                         "label": block_type,
                         "insert_text": (
-                            f"{block_type} :::" if block_type in self_closing_block_types else block_type
+                            f"{block_type} :::" if block_type in BODYLESS_BLOCK_TYPES else block_type
                         ),
                         "kind": "block_type",
                         "block_type": block_type,

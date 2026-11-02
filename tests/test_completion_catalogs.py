@@ -1,3 +1,4 @@
+from app.core.blatt_validator_constants import BODYLESS_BLOCK_TYPES
 from app.core.completion_catalogs import (
     get_completion_block_option_detail,
     get_completion_block_type_detail,
@@ -10,7 +11,6 @@ from app.core.completion_catalogs import (
     get_completion_option_value_detail,
     get_completion_option_values,
     get_completion_options_for_block,
-    get_self_closing_block_types,
 )
 
 
@@ -44,8 +44,8 @@ def test_free_form_option_without_fixed_catalog_returns_empty_tuple():
     assert get_completion_option_values("lines", "rows") == ()
 
 
-def test_self_closing_block_types_contains_exactly_the_bodyless_markers():
-    assert get_self_closing_block_types() == {
+def test_bodyless_block_types_are_the_marker_pseudo_blocks_plus_one_line_blocks():
+    assert BODYLESS_BLOCK_TYPES == {
         "nextcol",
         "endcolumns",
         "pagebreak",
@@ -55,13 +55,17 @@ def test_self_closing_block_types_contains_exactly_the_bodyless_markers():
         "vspacer",
         "aidsplit",
         "choicesplit",
+        # Früher fehlten diese vier, obwohl sie nur einzeilig funktionieren:
+        "columns",
+        "evaluation",
+        "operators",
+        "qrcode",
     }
 
 
-def test_self_closing_block_types_excludes_regular_content_blocks():
-    self_closing = get_self_closing_block_types()
-    for regular_block_type in ("lines", "grid", "info", "table", "columns"):
-        assert regular_block_type not in self_closing
+def test_bodyless_block_types_exclude_regular_content_blocks():
+    for regular_block_type in ("lines", "grid", "info", "table", "task"):
+        assert regular_block_type not in BODYLESS_BLOCK_TYPES
 
 
 def test_value_style_none_preserves_full_unfiltered_value_set():

@@ -13,6 +13,8 @@ dort ebenfalls gegen `BLOCK_INSERT_SNIPPETS` als Quelle der Wahrheit.
 """
 
 from app.core.block_insert_snippets import BLOCK_INSERT_SNIPPETS
+from app.core.blatt_kern_shared_parsing import _SELF_CLOSING_BLOCK_PATTERN
+from app.core.blatt_validator_constants import BODYLESS_BLOCK_TYPES
 from app.core.blatt_validator import inspect_markdown_text
 from app.core.markdown_conventions import collect_markdown_conventions
 
@@ -56,3 +58,10 @@ def test_catalog_block_spec_insert_snippet_matches_source_dict():
     for block in catalog.blocks:
         expected = BLOCK_INSERT_SNIPPETS.get(block.name)
         assert block.insert_snippet == expected
+
+
+def test_bodyless_block_snippets_are_written_on_one_line():
+    """Was in `BODYLESS_BLOCK_TYPES` steht, beginnt im Snippet mit einer selbstschließenden Kopfzeile."""
+    for block_type in BODYLESS_BLOCK_TYPES & BLOCK_INSERT_SNIPPETS.keys():
+        first_line = BLOCK_INSERT_SNIPPETS[block_type].splitlines()[0]
+        assert _SELF_CLOSING_BLOCK_PATTERN.match(first_line.strip()), block_type

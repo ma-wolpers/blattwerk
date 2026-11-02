@@ -12,7 +12,7 @@ verteilt über Validierungscode.
 # line-limit: data-only
 from __future__ import annotations
 
-from .blatt_kern_shared_data import JA_NEIN_BOOLEAN_TOKENS
+from .blatt_kern_shared_data import CONTROL_MARKERS, JA_NEIN_BOOLEAN_TOKENS
 from .crossword_symbol_presets import SYMBOL_THEME_NAMES
 from .diagram_block_catalog import DIAGRAM_BLOCK_NAMES, DIAGRAM_BLOCKS
 from .document_type_registry import KNOWN_DOCUMENT_TYPES
@@ -79,6 +79,17 @@ REMOVED_BLOCK_NAMES = {"hilfe": "help", "struktogramm": "structogram"}
 """Frühere deutsche Blocknamen und ihr Ersatz (Fehler `BL013`, Umstellung per
 `tools/migrate_block_names.py`). Blocknamen sind einheitlich englisch, ohne Aliase."""
 KNOWN_BLOCK_TYPES |= DIAGRAM_BLOCK_NAMES
+BODYLESS_BLOCK_TYPES = frozenset(
+    {spec.block_type for spec in CONTROL_MARKERS if spec.block_type}
+    | {"columns", "nextcol", "endcolumns", "evaluation", "operators", "qrcode"}
+)
+"""Blocktypen ohne Inhalt: immer einzeilig als `:::name … :::` geschrieben.
+
+Ohne `:::` am Zeilenende würde der Parser auf einen Inhalt bis zum nächsten
+`:::` warten und folgenden Text verschlucken. Die Pseudo-Blöcke der
+Kontrollmarker kommen aus `CONTROL_MARKERS`. Nutzer: Completion (setzt
+`name :::` ein) und das Block-Einfügen (übernimmt keine Markierung);
+`tests/test_block_insert_snippets.py` prüft, dass ihre Snippets einzeilig sind."""
 KNOWN_SHOW_VALUES = {"worksheet", "solution", "both"}
 KNOWN_BLOCK_MODE_VALUES = {"worksheet", "solution"}
 KNOWN_PRESENTATION_LAYOUTS = {
