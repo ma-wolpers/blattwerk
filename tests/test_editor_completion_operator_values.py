@@ -2,49 +2,14 @@
 in `blatt_ui_editor_completion_context.py`.
 """
 
-from app.ui.blatt_ui_editor_completion_context import (
-    _FRONTMATTER_SCAN_LINE_LIMIT,
-    BlattwerkAppEditorCompletionContextMixin,
-)
-
-
-class _FakeEditorWidget:
-    """Supports `.get()`/`.compare()`/`.index()`. `total_line_count` can be much
-    larger than the actually-stored `text` lines, to simulate a huge
-    document without materializing thousands of lines -- any `.get()` call
-    past the stored lines (but within `total_line_count`) returns filler
-    text, so a test can assert the frontmatter scan never reaches it.
-    """
-
-    def __init__(self, text, cursor_line, cursor_col, total_line_count=None):
-        self._lines = text.splitlines()
-        self._cursor_line = cursor_line
-        self._cursor_col = cursor_col
-        self._total_line_count = total_line_count if total_line_count is not None else len(self._lines)
-        self.get_calls = []
-
-    def index(self, _index):
-        return f"{self._cursor_line}.{self._cursor_col}"
-
-    def get(self, start, end):
-        self.get_calls.append((start, end))
-        line_no = int(start.split(".")[0])
-        if 0 < line_no <= len(self._lines):
-            return self._lines[line_no - 1]
-        if line_no <= self._total_line_count:
-            return "Filler-Zeile ohne Frontmatter-Bezug"
-        return ""
-
-    def compare(self, index1, op, index2):
-        assert op == ">="
-        assert index2 == "end-1c"
-        line_no = int(index1.split(".")[0])
-        return line_no > self._total_line_count
+from app.ui.blatt_ui_editor_completion_context import BlattwerkAppEditorCompletionContextMixin
+from app.ui.blatt_ui_editor_frontmatter import FRONTMATTER_SCAN_LINE_LIMIT
+from editor_text_fake import FakeEditorText
 
 
 class _DummyContextEditor(BlattwerkAppEditorCompletionContextMixin):
     def __init__(self, text, cursor_line, cursor_col, total_line_count=None):
-        self.editor_widget = _FakeEditorWidget(text, cursor_line, cursor_col, total_line_count)
+        self.editor_widget = FakeEditorText(text, cursor_line, cursor_col, total_line_count)
         self.user_preferences = {}
 
 
@@ -124,7 +89,7 @@ def test_frontmatter_meta_gives_up_cleanly_without_second_delimiter():
 
 def test_frontmatter_meta_scan_is_bounded_regardless_of_document_length():
     # A 10,000-line document -- _editor_read_frontmatter_meta must never
-    # read past _FRONTMATTER_SCAN_LINE_LIMIT, independent of total size or
+    # read past FRONTMATTER_SCAN_LINE_LIMIT, independent of total size or
     # cursor position deep in the document.
     text = "---\nTitel: T\nFach: Mathematik\nThema: X\n---\n"
     editor = _DummyContextEditor(text, cursor_line=9_000, cursor_col=0, total_line_count=10_000)
@@ -132,5 +97,6 @@ def test_frontmatter_meta_scan_is_bounded_regardless_of_document_length():
     meta = editor._editor_read_frontmatter_meta()
 
     assert meta.get("Fach") == "Mathematik"
-    max_line_read = max(int(start.split(".")[0]) for start, _end in editor.editor_widget.get_calls)
-    assert max_line_read <= _FRONTMATTER_SCAN_LINE_LIMIT
+    # A range read ends at "<limit + 1>.0", i.e. it covers lines 1..limit only.
+    max_line_read = max(int(end.split(".")[0]) - 1 for _start, end in editor.editor_widget.get_calls)
+    assert max_line_read <= FRONTMATTER_SCAN_LINE_LIMIT

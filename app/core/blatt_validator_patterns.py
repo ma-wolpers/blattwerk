@@ -34,7 +34,6 @@ _HTML_IMAGE_SRC_RE = re.compile(r"<img[^>]+src=[\"']([^\"']+)[\"']", re.IGNORECA
 _WINDOWS_ABSOLUTE_PATH_RE = re.compile(r"^[a-zA-Z]:[\\/]")
 _UNC_ABSOLUTE_PATH_RE = re.compile(r"^[\\/]{2}[^\\/]+[\\/][^\\/]+")
 _POSIX_ABSOLUTE_PATH_RE = re.compile(r"^/")
-_BLOCK_WHITESPACE_AFTER_MARKER_PATTERN = re.compile(r"^:::\s+")
 
 # Funktional identisch zu den bisherigen eigenen `_VALID_*`-Mustern
 # (nur mit Capture-Gruppe statt ohne, was `.match()` nicht beeinflusst) --

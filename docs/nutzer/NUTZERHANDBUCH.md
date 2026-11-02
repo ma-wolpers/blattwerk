@@ -253,7 +253,7 @@ Die Leiste „Vorschau-Optionen“ über der Vorschau startet eingeklappt; mit �
 ## 12) Struktur-Outline
 
 - Unter der Diagnostik gibt es eine Struktur-Liste mit Frontmatter und Blattwerk-Blockköpfen.
-- Verschachtelte Blöcke werden eingerückt dargestellt.
+- Sie zeigt die Blöcke so, wie sie gedruckt werden. Ein Blockkopf innerhalb eines anderen Blocks ist dort Inhalt und erscheint nicht in der Liste (Diagnose `BL004`).
 - Klick auf einen Eintrag springt direkt zur passenden Zeile im Schreibbereich (auch bei erneutem Klick auf denselben Eintrag).
 - Die Struktur-Liste wird beim Tippen, Laden und Speichern automatisch aktualisiert.
 
@@ -262,5 +262,5 @@ Die Leiste „Vorschau-Optionen“ über der Vorschau startet eingeklappt; mit �
 - Öffnende und schließende `:::`-Marker werden farblich hervorgehoben.
 - Wenn der Cursor innerhalb eines `:::`-Blocks steht, werden Start- und Endmarker des Blocks als Paar markiert.
 - Nach einem schließenden `:::` darf kein weiterer Text in derselben Zeile stehen.
-- Falls doch, erscheint ein Diagnostik-Fehler `SY001` und die Zeile wird entsprechend markiert.
-- Offene, nicht geschlossene Blöcke werden als Diagnostik-Fehler `SY002` markiert.
+- Falls doch, erscheint der Fehler `BL002`, und der Text hinter `:::` wird markiert. So eine Zeile schließt den Block nicht.
+- Ein Block ohne schließende Zeile `:::` meldet den Fehler `BL017` an seiner Kopfzeile.

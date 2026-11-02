@@ -3,23 +3,20 @@
 `_collect_block_marker_syntax_diagnostics` validiert die reine Block-Syntax
 (offene/geschlossene `:::`-Marker, Abschnittstrenner, Vertikalabstands- und
 Folien-Chrome-Marker) direkt auf den Quellzeilen, bevor überhaupt in
-strukturierte Blöcke geparst wird — deshalb arbeitet sie zustandsbehaftet
-mit einem eigenen `block_stack` statt auf dem bereits geparsten
-`blocks`-Ergebnis aufzusetzen.
+strukturierte Blöcke geparst wird. Die Zeilenrollen liefert `scan_block_lines`
+(`block_line_scan.py`), dieselbe Zustandsmaschine wie im Editor.
 """
 
 from __future__ import annotations
 
 from .answer_line_markers import parse_answer_line_visibility
 from .blatt_validator_patterns import (
-    _BLOCK_START_PATTERN,
-    _BLOCK_WHITESPACE_AFTER_MARKER_PATTERN,
-    _SELF_CLOSING_BLOCK_PATTERN,
     _VALID_SECTION_MARK_PATTERN,
     _VALID_SLIDE_CHROME_OFF_PATTERN,
     _VALID_VSPACER_MARK_PATTERN,
 )
 from .blatt_validator_types import BuildDiagnostic
+from .block_line_scan import LineKind, scan_block_lines
 from .control_markers import is_control_marker_line
 
 _DOCUMENT_TEXT_REGION_ID = "worksheet:document-text"
@@ -40,178 +37,154 @@ def _block_type_region_id(block_type: str | None) -> str:
 
 
 def _collect_block_marker_syntax_diagnostics(content_text, base_line=1):
-    """Validiert `:::`-Marker-Syntax direkt auf den Quellzeilen.
+    """Validiert die `:::`-Marker-Syntax direkt auf den Quellzeilen.
+
+    Die Zeilenrollen kommen aus `scan_block_lines` (dieselben Regeln wie der
+    Parser); hier wird nur noch je Rolle die passende Diagnose gebaut:
+    `BL002` (`:::` mit Text dahinter), `BL003` (`:::` ohne offenen Block),
+    `BL004` (Kopf innerhalb eines Blocks), `BL005` (Abschnittstrenner im
+    Block), `BL006` (fehlerhafter Marker auf oberster Ebene) und `BL017`
+    (Block am Ende nicht geschlossen).
 
     `base_line` verschiebt gemeldete Zeilennummern auf die Position im
-    Gesamtdokument (siehe `_extract_validation_content_and_base_line`),
-    da `content_text` bereits um das Frontmatter gekürzt sein kann.
+    Gesamtdokument, da `content_text` bereits um das Frontmatter gekürzt ist.
     """
     diagnostics = []
-    block_stack = []
+    scan = scan_block_lines(content_text or "", base_line=max(1, int(base_line)), detect_frontmatter=False)
 
-    for line_no, raw_line in enumerate((content_text or "").splitlines(), start=1):
-        absolute_line_no = max(1, int(base_line) + line_no - 1)
-        stripped_line = raw_line.strip()
+    for line in scan.lines:
+        open_type = None
+        if line.span is not None and line.kind is not LineKind.OPEN:
+            open_type = scan.spans[line.span].block_type
+        if open_type is not None and is_control_marker_line(line.stripped):
+            diagnostics.append(_marker_inside_block(line, open_type))
+        builder = _LINE_DIAGNOSTICS.get(line.kind)
+        if builder is not None:
+            diagnostics.extend(builder(line, open_type))
 
-        if block_stack and is_control_marker_line(stripped_line):
+    for span in scan.spans:
+        if span.close_line is None:
             diagnostics.append(
                 BuildDiagnostic(
-                    code="BL005",
+                    code="BL017",
                     message=(
-                        "Ungueltiger Abschnittstrenner in Zeile "
-                        f"{absolute_line_no}: `{stripped_line}` innerhalb eines offenen "
-                        "`:::`-Blocks ist nicht erlaubt. "
-                        "Schliesse zuerst den aktuellen Block mit `:::` und setze den "
-                        "Abschnittstrenner danach auf Top-Level."
+                        f"Der Block `:::{span.block_type}` in Zeile {span.open_line} wird nicht mit "
+                        "einer eigenen Zeile `:::` geschlossen. Ohne Schluss wird er als Text ausgegeben."
                     ),
                     severity="error",
-                    line_number=absolute_line_no,
-                    region_id=_block_type_region_id(block_stack[-1] if block_stack else None),
-                    anchor=stripped_line,
+                    line_number=span.open_line,
+                    region_id=_block_type_region_id(span.block_type),
+                    anchor=f":::{span.block_type}",
                 )
             )
-
-        if not stripped_line.startswith(":::"):
-            if not block_stack:
-                if stripped_line.startswith("--#") and not _VALID_SECTION_MARK_PATTERN.match(stripped_line):
-                    diagnostics.append(
-                        BuildDiagnostic(
-                            code="BL006",
-                            message=(
-                                "Ungueltiger Abschnittsmarker in Zeile "
-                                f"{absolute_line_no}: `{stripped_line}`. "
-                                "Erwartet: `--# <Abschnittsname>`."
-                            ),
-                            severity="error",
-                            line_number=absolute_line_no,
-                            region_id=_DOCUMENT_TEXT_REGION_ID,
-                            anchor=stripped_line,
-                        )
-                    )
-                if stripped_line.startswith("-=") and not _VALID_VSPACER_MARK_PATTERN.match(stripped_line):
-                    diagnostics.append(
-                        BuildDiagnostic(
-                            code="BL006",
-                            message=(
-                                "Ungueltiger Vertikalabstands-Marker in Zeile "
-                                f"{absolute_line_no}: `{stripped_line}`. "
-                                "Erwartet: `-=<zahl><einheit>`, z. B. `-=0.2cm`."
-                            ),
-                            severity="error",
-                            line_number=absolute_line_no,
-                            region_id=_DOCUMENT_TEXT_REGION_ID,
-                            anchor=stripped_line,
-                        )
-                    )
-                if stripped_line.startswith("--hf") and not _VALID_SLIDE_CHROME_OFF_PATTERN.match(stripped_line):
-                    diagnostics.append(
-                        BuildDiagnostic(
-                            code="BL006",
-                            message=(
-                                "Ungueltiger Folien-Chrome-Marker in Zeile "
-                                f"{absolute_line_no}: `{stripped_line}`. "
-                                "Erwartet: `--hf`."
-                            ),
-                            severity="error",
-                            line_number=absolute_line_no,
-                            region_id=_DOCUMENT_TEXT_REGION_ID,
-                            anchor=stripped_line,
-                        )
-                    )
-            continue
-
-        if _BLOCK_WHITESPACE_AFTER_MARKER_PATTERN.match(stripped_line):
-            diagnostics.append(
-                BuildDiagnostic(
-                    code="BL002",
-                    message=(
-                        "Ungueltige Blocksyntax in Zeile "
-                        f"{absolute_line_no}: Nach `:::` darf kein Leerzeichen folgen. "
-                        "Erlaubt sind nur `:::blocktyp` oder `:::`."
-                    ),
-                    severity="error",
-                    line_number=absolute_line_no,
-                    region_id=_block_type_region_id(block_stack[-1] if block_stack else None),
-                    anchor=stripped_line,
-                )
-            )
-            continue
-
-        if stripped_line == ":::":
-            if not block_stack:
-                diagnostics.append(
-                    BuildDiagnostic(
-                        code="BL003",
-                        message=(
-                            "Ungueltiger Blockabschluss in Zeile "
-                            f"{absolute_line_no}: `:::` ohne passenden geoeffneten Block."
-                        ),
-                        severity="error",
-                        line_number=absolute_line_no,
-                        region_id=_DOCUMENT_TEXT_REGION_ID,
-                        anchor=stripped_line,
-                    )
-                )
-            else:
-                block_stack.pop()
-            continue
-
-        self_closing_match = _SELF_CLOSING_BLOCK_PATTERN.match(stripped_line)
-        if self_closing_match:
-            if block_stack:
-                nested_type = self_closing_match.group(1)
-                open_type = block_stack[-1]
-                diagnostics.append(
-                    BuildDiagnostic(
-                        code="BL004",
-                        message=(
-                            "Ungueltiger Blockwechsel in Zeile "
-                            f"{absolute_line_no}: `:::{nested_type} ... :::` beginnt, bevor "
-                            f"der geoeffnete Block `:::{open_type}` geschlossen wurde. "
-                            "Blattwerk unterstuetzt keine verschachtelten Bloecke; "
-                            "setze zuerst eine eigene Zeile mit `:::` zum Schliessen des "
-                            "aktuellen Blocks."
-                        ),
-                        severity="error",
-                        line_number=absolute_line_no,
-                        region_id=_block_type_region_id(open_type),
-                        anchor=stripped_line,
-                    )
-                )
-            continue
-
-        start_match = _BLOCK_START_PATTERN.match(stripped_line)
-        if start_match:
-            open_type = block_stack[-1] if block_stack else None
-            if block_stack:
-                nested_type = start_match.group(1)
-                follow_block_hint = ""
-                if open_type == "task" and nested_type == "subtask":
-                    follow_block_hint = (
-                        " `subtask` ist ein Folgeblock auf Top-Level: "
-                        "zuerst `task` mit `:::` schliessen, dann `:::subtask` oeffnen."
-                    )
-                diagnostics.append(
-                    BuildDiagnostic(
-                        code="BL004",
-                        message=(
-                            "Ungueltiger Blockwechsel in Zeile "
-                            f"{absolute_line_no}: `:::{nested_type}` beginnt, bevor der "
-                            f"geoeffnete Block `:::{open_type}` geschlossen wurde. "
-                            "Blattwerk unterstuetzt keine verschachtelten Bloecke; "
-                            "setze zuerst eine eigene Zeile mit `:::` zum Schliessen des "
-                            f"aktuellen Blocks.{follow_block_hint}"
-                        ),
-                        severity="error",
-                        line_number=absolute_line_no,
-                        region_id=_block_type_region_id(open_type),
-                        anchor=stripped_line,
-                    )
-                )
-                continue
-            block_stack.append(start_match.group(1))
-
     return diagnostics
+
+
+def _marker_inside_block(line, open_type):
+    """`BL005`: Abschnittstrenner innerhalb eines offenen Blocks."""
+    return BuildDiagnostic(
+        code="BL005",
+        message=(
+            f"Ungültiger Abschnittstrenner in Zeile {line.number}: `{line.stripped}` innerhalb eines "
+            "offenen `:::`-Blocks ist nicht erlaubt. Schließe zuerst den aktuellen Block mit `:::` "
+            "und setze den Abschnittstrenner danach auf oberste Ebene."
+        ),
+        severity="error",
+        line_number=line.number,
+        region_id=_block_type_region_id(open_type),
+        anchor=line.stripped,
+    )
+
+
+_TOP_LEVEL_MARKER_CHECKS = (
+    ("--#", _VALID_SECTION_MARK_PATTERN, "Abschnittsmarker", "`--# <Abschnittsname>`"),
+    ("-=", _VALID_VSPACER_MARK_PATTERN, "Vertikalabstands-Marker", "`-=<zahl><einheit>`, z. B. `-=0.2cm`"),
+    ("--hf", _VALID_SLIDE_CHROME_OFF_PATTERN, "Folien-Chrome-Marker", "`--hf`"),
+)
+"""`(Präfix, gültiges Muster, Bezeichnung, Erwartung)` für `BL006`."""
+
+
+def _outside_diagnostics(line, _open_type):
+    """`BL006`: Marker auf oberster Ebene, deren Präfix stimmt, deren Rest aber nicht."""
+    return [
+        BuildDiagnostic(
+            code="BL006",
+            message=f"Ungültiger {label} in Zeile {line.number}: `{line.stripped}`. Erwartet: {expected}.",
+            severity="error",
+            line_number=line.number,
+            region_id=_DOCUMENT_TEXT_REGION_ID,
+            anchor=line.stripped,
+        )
+        for prefix, pattern, label, expected in _TOP_LEVEL_MARKER_CHECKS
+        if line.stripped.startswith(prefix) and not pattern.match(line.stripped)
+    ]
+
+
+def _malformed_diagnostics(line, open_type):
+    """`BL002`: `:::` gefolgt von Leerzeichen oder anderem Text statt eines Blocknamens."""
+    return [
+        BuildDiagnostic(
+            code="BL002",
+            message=(
+                f"Ungültige Blocksyntax in Zeile {line.number}: Nach `:::` darf weder ein Leerzeichen "
+                "noch weiterer Text folgen. Erlaubt sind nur `:::blocktyp` oder `:::` allein."
+            ),
+            severity="error",
+            line_number=line.number,
+            region_id=_block_type_region_id(open_type),
+            anchor=line.stripped,
+        )
+    ]
+
+
+def _stray_close_diagnostics(line, _open_type):
+    """`BL003`: `:::` ohne offenen Block."""
+    return [
+        BuildDiagnostic(
+            code="BL003",
+            message=f"Ungültiger Blockabschluss in Zeile {line.number}: `:::` ohne passenden geöffneten Block.",
+            severity="error",
+            line_number=line.number,
+            region_id=_DOCUMENT_TEXT_REGION_ID,
+            anchor=line.stripped,
+        )
+    ]
+
+
+def _nested_header_diagnostics(line, open_type):
+    """`BL004`: Kopfzeile, bevor der offene Block geschlossen wurde (mit Hinweis `task` → `subtask`)."""
+    shown = f":::{line.header_type} ... :::" if line.kind is LineKind.NESTED_SELF_CLOSING else f":::{line.header_type}"
+    follow_block_hint = ""
+    if line.kind is LineKind.NESTED_OPEN and open_type == "task" and line.header_type == "subtask":
+        follow_block_hint = (
+            " `subtask` ist ein Folgeblock auf oberster Ebene: zuerst `task` mit `:::` schließen, "
+            "dann `:::subtask` öffnen."
+        )
+    return [
+        BuildDiagnostic(
+            code="BL004",
+            message=(
+                f"Ungültiger Blockwechsel in Zeile {line.number}: `{shown}` beginnt, bevor der geöffnete "
+                f"Block `:::{open_type}` geschlossen wurde. Blattwerk unterstützt keine verschachtelten "
+                "Blöcke; setze zuerst eine eigene Zeile mit `:::` zum Schließen des aktuellen Blocks."
+                f"{follow_block_hint}"
+            ),
+            severity="error",
+            line_number=line.number,
+            region_id=_block_type_region_id(open_type),
+            anchor=line.stripped,
+        )
+    ]
+
+
+_LINE_DIAGNOSTICS = {
+    LineKind.OUTSIDE: _outside_diagnostics,
+    LineKind.MALFORMED: _malformed_diagnostics,
+    LineKind.STRAY_CLOSE: _stray_close_diagnostics,
+    LineKind.NESTED_OPEN: _nested_header_diagnostics,
+    LineKind.NESTED_SELF_CLOSING: _nested_header_diagnostics,
+}
+"""Welche Zeilenrolle welche Diagnosen erzeugt (`BL005` gilt quer dazu, siehe oben)."""
 
 
 def _has_explicit_worksheet_marker_without_solution(content):

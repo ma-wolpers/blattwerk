@@ -1,5 +1,6 @@
 from app.ui.blatt_ui_editor_completion_context import BlattwerkAppEditorCompletionContextMixin
 from app.ui.blatt_ui_editor_completion_popup import BlattwerkAppEditorCompletionPopupMixin
+from editor_text_fake import FakeEditorText
 
 
 class _FakeEditorWidget:
@@ -117,22 +118,8 @@ def test_should_chain_completion_after_accept_false_for_other_kinds():
 
 class _DummyContextEditor(BlattwerkAppEditorCompletionContextMixin):
     def __init__(self, text, cursor_line, cursor_col):
-        self.editor_widget = _ContextFakeEditorWidget(text, cursor_line, cursor_col)
+        self.editor_widget = FakeEditorText(text, cursor_line, cursor_col)
         self.user_preferences = {}
-
-
-class _ContextFakeEditorWidget:
-    def __init__(self, text, cursor_line, cursor_col):
-        self._lines = text.splitlines()
-        self._cursor_line = cursor_line
-        self._cursor_col = cursor_col
-
-    def index(self, _index):
-        return f"{self._cursor_line}.{self._cursor_col}"
-
-    def get(self, start, end):
-        line_no = int(start.split(".")[0])
-        return self._lines[line_no - 1] if 0 < line_no <= len(self._lines) else ""
 
 
 def test_block_option_key_suggestions_include_trailing_equals_sign():

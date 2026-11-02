@@ -10,9 +10,22 @@ from app.core.frontmatter import (
     DuplicateKeyError,
     content_after_frontmatter,
     frontmatter_bounds,
+    frontmatter_editing_lines,
     load_frontmatter_yaml,
     parse_frontmatter,
 )
+
+
+@pytest.mark.parametrize("text, expected", [
+    ("---\nA: 1\n---\nRumpf\n---\n", [1, 2]),     # Schlusszeile 3 und spätere Trennlinie gehören nicht dazu
+    ("---\nA: 1\nB", [1, 2, 3]),                   # noch offen: alles ab der Öffnungszeile
+    (BOM + "---\nA: 1\n...\n", [1, 2]),
+    ("\n---\nA: 1\n---\n", []),                    # erste Zeile ist keine Öffnungszeile
+    ("Rumpf\n---\n", []),
+    ("", []),
+])
+def test_frontmatter_editing_lines(text, expected):
+    assert list(frontmatter_editing_lines(text)) == expected
 
 
 def test_bounds_basic_lf():

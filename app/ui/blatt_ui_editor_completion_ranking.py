@@ -10,8 +10,8 @@ als auch aus manuell getipptem Text beim Speichern.
 
 from __future__ import annotations
 
-import re
-
+from ..core.blatt_kern_shared_parsing import _BLOCK_START_PATTERN
+from ..core.block_line_scan import scan_block_lines
 from ..core.completion_catalogs import get_completion_block_types
 from ..storage.local_config_store import (
     get_block_type_decay_scores,
@@ -38,7 +38,7 @@ class BlattwerkAppEditorCompletionRankingMixin:
         if not block_type:
             insert_text = str(candidate.get("insert_text") or "")
             first_line = insert_text.splitlines()[0] if insert_text else ""
-            match = re.match(r"^\s*:::(\w+)", first_line)
+            match = _BLOCK_START_PATTERN.match(first_line.strip())
             if match:
                 block_type = match.group(1)
 
@@ -100,28 +100,16 @@ class BlattwerkAppEditorCompletionRankingMixin:
 
     @staticmethod
     def _collect_editor_block_type_counts(markdown_text: str) -> dict[str, int]:
-        """Collects per-block-type counts from opening or self-closing block headers."""
+        """Collects per-block-type counts from opening or self-closing block headers.
+
+        Zählt die Köpfe auf oberster Ebene aus `scan_block_lines`; ein Kopf
+        innerhalb eines Blocks ist für den Parser Inhalt und zählt nicht.
+        """
 
         counts: dict[str, int] = {}
-        self_closing_pattern = re.compile(r"^\s*:::(\w+)(.*?):::\s*$")
-        opening_pattern = re.compile(r"^\s*:::(\w+)(.*)$")
-
-        for line in markdown_text.splitlines():
-            stripped = line.strip()
-            if not stripped or stripped == ":::":
-                continue
-
-            self_closing_match = self_closing_pattern.match(stripped)
-            if self_closing_match:
-                block_type = self_closing_match.group(1).lower()
-                counts[block_type] = counts.get(block_type, 0) + 1
-                continue
-
-            opening_match = opening_pattern.match(stripped)
-            if opening_match:
-                block_type = opening_match.group(1).lower()
-                counts[block_type] = counts.get(block_type, 0) + 1
-
+        for header in scan_block_lines(markdown_text).headers:
+            block_type = header.header_type.lower()
+            counts[block_type] = counts.get(block_type, 0) + 1
         return counts
 
     def _record_editor_manual_block_type_usage(self, markdown_text: str) -> None:

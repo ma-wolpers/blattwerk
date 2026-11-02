@@ -19,7 +19,10 @@ import json
 import re
 from dataclasses import dataclass
 
-from .blatt_kern_shared_parsing import _BLOCK_START_PATTERN, _SELF_CLOSING_BLOCK_PATTERN
+from .block_line_scan import LineKind, scan_block_lines
+
+_PROSE_KINDS = frozenset({LineKind.OUTSIDE, LineKind.STRAY_CLOSE, LineKind.MALFORMED})
+"""Zeilen auf oberster Ebene, die als Fließtext gelten (eine stray `:::`-Zeile wie bisher eingeschlossen)."""
 
 _UNESCAPED_PIPE_PATTERN = re.compile(r"(?<!\\)\|")
 _DELIMITER_CELL_PATTERN = re.compile(r"^(:?)-+(:?)$")
@@ -49,22 +52,24 @@ def convert_markdown_tables_to_blocks(document_text):
     """Converts every recognizable top-level GFM Markdown table in `document_text`
     into an equivalent `:::table` block.
 
-    Walks the document line by line, tracking whether the current line sits
-    inside a `:::block ... :::` fence (in which case it is passed through
-    completely unchanged) or in top-level prose (in which case contiguous
-    runs of prose lines are handed to `_convert_tables_in_run`). This makes
-    the transform lossless everywhere except inside a genuinely recognized,
-    convertible table span.
+    Walks the document line by line. Which lines are top-level prose decides
+    `scan_block_lines` (`block_line_scan.py`, the parser's block rules):
+    block lines, self-closing headers and frontmatter pass through unchanged,
+    contiguous runs of prose lines are handed to `_convert_tables_in_run`.
+    This makes the transform lossless everywhere except inside a genuinely
+    recognized, convertible table span.
     """
-    lines = (document_text or "").splitlines(keepends=True)
+    text = document_text or ""
+    scan = scan_block_lines(text)
+    parts = text.split("\n")
+    # Same `\n`-only split as the scanner, so line numbers match; line endings are kept.
+    lines = [part + "\n" for part in parts[:-1]] + ([parts[-1]] if parts[-1] else [])
 
     output_parts = []
     outside_run = []
     run_start_line_number = 1
     converted_count = 0
     skipped = []
-    inside_block = False
-    line_number = 0
 
     def _flush_outside_run():
         nonlocal converted_count
@@ -78,30 +83,15 @@ def convert_markdown_tables_to_blocks(document_text):
         skipped.extend(run_skipped)
         outside_run.clear()
 
-    for line in lines:
-        line_number += 1
-        stripped = line.strip()
-
-        if inside_block:
-            output_parts.append(line)
-            if stripped == ":::":
-                inside_block = False
+    for line_number, line in enumerate(lines, start=1):
+        scanned = scan.line(line_number)
+        if scanned.span is None and scanned.kind in _PROSE_KINDS:
+            if not outside_run:
+                run_start_line_number = line_number
+            outside_run.append(line)
             continue
-
-        if _SELF_CLOSING_BLOCK_PATTERN.match(stripped):
-            _flush_outside_run()
-            output_parts.append(line)
-            continue
-
-        if _BLOCK_START_PATTERN.match(stripped):
-            _flush_outside_run()
-            output_parts.append(line)
-            inside_block = True
-            continue
-
-        if not outside_run:
-            run_start_line_number = line_number
-        outside_run.append(line)
+        _flush_outside_run()
+        output_parts.append(line)
 
     _flush_outside_run()
 

@@ -62,7 +62,7 @@ class _DummyEditor(BlattwerkAppEditorDiagnosticsMixin, BlattwerkAppEditorMixin):
         self._editor_outline_after_id = None
         self._editor_block_pair_after_id = None
         self._editor_block_pair_delay_ms = 120
-        self._editor_block_pairs_cache = []
+        self._editor_block_scan = None
         self.user_preferences = {}
         self.open_completion_calls: list[bool] = []
         self.close_completion_calls = 0

@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import re
 
+from app.core.block_line_scan import scan_block_lines
 from app.ui.blatt_ui_editor import BlattwerkAppEditorMixin
 from app.ui.blatt_ui_editor_diagnostics import BlattwerkAppEditorDiagnosticsMixin
 from bw_gui.contracts.key_event import RawKey, classify_key
@@ -84,7 +85,7 @@ class _DummyEditor(BlattwerkAppEditorDiagnosticsMixin, BlattwerkAppEditorMixin):
         self._editor_outline_after_id = None
         self._editor_block_pair_after_id = None
         self._editor_block_pair_delay_ms = 120
-        self._editor_block_pairs_cache = []
+        self._editor_block_scan = None
         self._editor_outline_items = []
         self.user_preferences = {}
 
@@ -165,7 +166,7 @@ def test_refresh_editor_outline_builds_expected_items():
 
 def test_refresh_editor_block_pair_highlight_touches_only_pair_lines():
     app = _DummyEditor(_SAMPLE_DOCUMENT)
-    app._refresh_editor_highlighting()  # populates _editor_block_pairs_cache = [(5, 7)]
+    app._refresh_editor_highlighting()  # populates _editor_block_scan (block 5..7)
     app.editor_widget.get_calls.clear()
     app.editor_widget.tag_add_calls.clear()
     app.editor_widget.insert_mark = "6.0"  # cursor inside the aufgabe block
@@ -198,7 +199,7 @@ def test_key_release_arrow_navigation_debounces_block_pair_highlight():
 
 def test_queue_editor_block_pair_highlight_immediate_runs_synchronously():
     app = _DummyEditor(_SAMPLE_DOCUMENT)
-    app._editor_block_pairs_cache = [(5, 7)]
+    app._editor_block_scan = scan_block_lines(_SAMPLE_DOCUMENT)
     app.editor_widget.insert_mark = "6.0"
 
     app._queue_editor_block_pair_highlight(immediate=True)

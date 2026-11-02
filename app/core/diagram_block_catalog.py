@@ -21,8 +21,6 @@ Vertrag eines Moduls `app.core.<module>`:
 # line-limit: data-only
 from __future__ import annotations
 
-import re
-
 from .blatt_validator_specs import MISSING, BlockOptionSpec, DiagramBlockSpec
 
 
@@ -272,5 +270,3 @@ DIAGRAM_BLOCKS: tuple[DiagramBlockSpec, ...] = (
 
 DIAGRAM_BLOCKS_BY_NAME = {spec.name: spec for spec in DIAGRAM_BLOCKS}
 DIAGRAM_BLOCK_NAMES = frozenset(DIAGRAM_BLOCKS_BY_NAME)
-DIAGRAM_HEADER_RE = re.compile(r"^\s*:::(?:" + "|".join(sorted(DIAGRAM_BLOCK_NAMES)) + r")(?=\s|$)")
-"""Erkennt die Kopfzeile eines Diagrammblocks; dort stehen Zeilenmarker nach der Einrückung."""

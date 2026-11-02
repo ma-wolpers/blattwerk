@@ -7,6 +7,9 @@ The format is based on Keep a Changelog.
 ## [Unreleased]
 
 ### Changed
+- **Ein Block ohne schließendes `:::` ist jetzt ein Fehler (`BL017`), auch in Vorschau und Export.** Bisher meldete das nur der Editor (`SY002`), und der Block erschien still als normaler Text.
+- **Text hinter `:::` meldet nur noch einen Fehler:** `BL002` gilt für jedes `:::` mit Leerzeichen oder Text dahinter. Die doppelte Editor-Meldung `SY001` entfällt.
+- **Der Editor zeigt Blöcke so, wie sie gedruckt werden:** Hervorhebung, Blockpaar-Markierung, Struktur-Liste und Vorschläge folgen jetzt denselben Regeln wie der Druck. Bei einem Block im Block oder einem `::: x` reicht der Block bis zum echten `:::`. Die Struktur-Liste zeigt nur noch Blöcke auf oberster Ebene.
 - **Farbprofil „Grau“ entfällt:** Es ist jetzt `S/W` mit eingeschaltetem „Flächen tönen“. Gespeicherte Einstellungen werden automatisch übernommen und sehen gleich aus.
 - **Blocknamen sind einheitlich englisch:** `:::hilfe` heißt nur noch `:::help`, `:::struktogramm` nur noch `:::structogram`. Alte Namen meldet Blattwerk als Fehler (`BL013`) mit dem neuen Namen. Ganze Ordner stellt `python tools/migrate_block_names.py <ordner>` um: Ohne `--write` zeigt es nur an, was es ändern würde.
 - **Vorschau und PDF-Export sind viel schneller:** Ein Arbeitsblatt mit fünf Seiten braucht rund 1 Sekunde statt 6, mit Operatorenliste oder Lernhilfen-Anhang rund 1,7 Sekunden statt 10 bis 12. Bisher wurde bei jedem Druck die Formel-Darstellung aus dem Internet geladen, auch ohne Formel im Dokument.
@@ -18,6 +21,7 @@ The format is based on Keep a Changelog.
 - **Warnungen aus dem Rendern kommen seltener:** Dieselbe Warnung erscheint nur noch einmal pro Dokumentstand und nennt den richtigen Vorgang („Vorschau“ oder „Export“).
 
 ### Fixed
+- Eine Trennlinie `---` im Dokument gilt im Editor nicht mehr als Frontmatter-Grenze. Bisher färbte sie die Hervorhebung als Frontmatter, und die Struktur-Liste sowie die Vorschläge hielten den Text danach für Frontmatter.
 - Strg+Z nach einem Dokumentwechsel holt nicht mehr den Text des vorigen Dokuments zurück.
 - Ein `:::geometry`-Polygon mit Label, dessen Eckpunkte alle auf einer Geraden liegen, bricht das Rendern nicht mehr ab.
 - **Keine veraltete Vorschau mehr:** Änderungen an eingebundenen Bildern (auch neu aufgetauchte), am Copyright-Text, an Metadaten-Vorgaben, an der CSS-Vorlage und an Operatorendaten werden jetzt erkannt.

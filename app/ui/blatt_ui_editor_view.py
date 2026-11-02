@@ -4,14 +4,14 @@ Aus ``blatt_ui_editor.py`` ausgelagert (300-Zeilen-Regel), Methoden unverändert
 
 from __future__ import annotations
 
-import re
-
 from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 
 ensure_bw_gui_on_path()
 from bw_gui.runtime import ui
 
 from .dialog_services import messagebox
+from ..core.block_line_scan import LineKind, scan_block_lines
+from ..core.frontmatter import frontmatter_editing_lines
 from ..core.markdown_table_conversion import convert_markdown_tables_to_blocks
 from .ui_constants import EDITOR_DOCUMENT_LOADED, EDITOR_VIEW_BOTH, EDITOR_VIEW_EDITOR_ONLY, EDITOR_VIEW_PREVIEW_ONLY
 
@@ -92,55 +92,18 @@ class BlattwerkAppEditorViewMixin:
         if self.editor_widget is None:
             return
 
-        line_count = int(self.editor_widget.index("end-1c").split(".")[0] or 1)
-        # See `_refresh_editor_highlighting` for why splitting the bulk-fetched
-        # text is equivalent to (and far cheaper than) a per-line widget `.get()`.
-        text_lines = self.editor_widget.get("1.0", "end-1c").split("\n")
+        full_text = self.editor_widget.get("1.0", "end-1c")
         items = []
-        frontmatter_count = 0
-        block_stack = []
-        self_closing_pattern = re.compile(r"^:::(\w+)(.*?):::$")
-        opening_pattern = re.compile(r"^:::(\w+)(.*)$")
+        frontmatter_lines = frontmatter_editing_lines(full_text)
+        if frontmatter_lines:
+            items.append({"line": frontmatter_lines.start, "label": f"{frontmatter_lines.start:>4}  Frontmatter"})
 
-        for line_no in range(1, max(1, line_count) + 1):
-            line_text = text_lines[line_no - 1]
-            stripped = line_text.strip()
-
-            if stripped == "---":
-                frontmatter_count += 1
-                if frontmatter_count == 1:
-                    items.append(
-                        {
-                            "line": line_no,
-                            "label": f"{line_no:>4}  Frontmatter",
-                        }
-                    )
+        # Nur öffnende Köpfe auf oberster Ebene: dieselbe flache Struktur, die der Parser liest.
+        for header in scan_block_lines(full_text).headers:
+            if header.kind is not LineKind.OPEN:
                 continue
-
-            if not stripped:
-                continue
-
-            if self_closing_pattern.match(stripped):
-                continue
-
-            opening_match = opening_pattern.match(stripped)
-            if opening_match:
-                block_type = opening_match.group(1)
-                rest = (opening_match.group(2) or "").strip()
-                indent = "  " * len(block_stack)
-                suffix = f" {rest}" if rest else ""
-                items.append(
-                    {
-                        "line": line_no,
-                        "label": f"{line_no:>4}  {indent}{block_type}{suffix}",
-                    }
-                )
-                block_stack.append(block_type.lower())
-                continue
-
-            if stripped.startswith(":::") and block_stack:
-                block_stack.pop()
-                continue
+            suffix = f" {header.header_options}" if header.header_options else ""
+            items.append({"line": header.number, "label": f"{header.number:>4}  {header.header_type}{suffix}"})
 
         self._set_editor_outline(items)
 

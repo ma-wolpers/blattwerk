@@ -11,22 +11,7 @@ from app.core.document_semantics import type_for_tab
 from app.core.expectation_kinds import EXPECTATION_KINDS
 from app.ui.blatt_ui_editor_completion_context import BlattwerkAppEditorCompletionContextMixin
 from app.ui.blatt_ui_editor_completion_points import BlattwerkAppEditorCompletionPointsMixin
-
-
-class _FakeEditorWidget:
-    def __init__(self, text, cursor_line, cursor_col):
-        self._lines = text.splitlines()
-        self._cursor_line = cursor_line
-        self._cursor_col = cursor_col
-
-    def index(self, index):
-        if index == "end-1c":
-            return f"{len(self._lines)}.0"
-        return f"{self._cursor_line}.{self._cursor_col}"
-
-    def get(self, start, _end):
-        line_no = int(start.split(".")[0])
-        return self._lines[line_no - 1] if 0 < line_no <= len(self._lines) else ""
+from editor_text_fake import FakeEditorText
 
 
 class _DummyEditor(BlattwerkAppEditorCompletionPointsMixin, BlattwerkAppEditorCompletionContextMixin):
@@ -35,7 +20,7 @@ class _DummyEditor(BlattwerkAppEditorCompletionPointsMixin, BlattwerkAppEditorCo
         line_index = next(index for index, line in enumerate(lines) if marker in line)
         col = lines[line_index].index(marker)
         lines[line_index] = lines[line_index].replace(marker, "", 1)
-        self.editor_widget = _FakeEditorWidget("\n".join(lines), line_index + 1, col)
+        self.editor_widget = FakeEditorText("\n".join(lines), line_index + 1, col)
         self.user_preferences = {}
         self._path = path
 

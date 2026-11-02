@@ -16,29 +16,15 @@ ensure_bw_gui_on_path()
 from bw_gui.contracts.pointer import Button
 from bw_gui.runtime import bind_click, on_treeview_select, widgets
 
-import re
-
 from .blatt_ui_editor_panels import PANEL_DIAGNOSTICS, PANEL_PACK_OPTIONS
 from ..core.blatt_kern_shared import build_block_index_line_map
 from ..core.blatt_validator_types import BuildDiagnostic
+from ..core.blatt_validator_value_helpers import _extract_validation_content_and_base_line
+from ..core.block_line_scan import scan_block_lines
 from ..core.diagnostic_identity import compute_diagnostic_identity
 from ..core.document_diagnostics import inspect_document_text, without_html_export_notices
-from ..core.document_type_registry import spec_for_type
 from ..storage import acknowledged_warnings_store
 from .ui_theme import get_theme
-
-_DOCUMENT_TEXT_REGION_ID = "worksheet:document-text"
-
-
-def _block_type_region_id(block_type: str | None) -> str:
-    """Same convention as `blatt_validator_marker_syntax.py`'s helper of the same
-    name -- kept as its own small copy here since these two diagnoses (`SY001`/
-    `SY002`) are editor-only and never reach the markdown-validator module."""
-
-    if block_type is None:
-        return _DOCUMENT_TEXT_REGION_ID
-    return f"worksheet:block-type:{block_type}"
-
 
 class BlattwerkAppEditorDiagnosticsMixin:
     """Adds the "Diagnostik" panel (list + line markers) below the editor."""
@@ -155,35 +141,10 @@ class BlattwerkAppEditorDiagnosticsMixin:
             return
 
         index_line_map = self._build_editor_diagnostics_line_map(text)
-        structure = self._analyze_editor_block_structure(text)
-        self._editor_block_pairs_cache = list(structure["pairs"])
+        # Blockstruktur für Blockpaar-Hervorhebung (`_refresh_editor_block_pair_highlight`).
+        self._editor_block_scan = scan_block_lines(text)
 
         source_diagnostics: list[BuildDiagnostic] = without_html_export_notices(inspected.diagnostics)
-
-        if spec_for_type(inspected.document_type).blocks:
-            for line_no, block_type in structure["close_suffix_lines"]:
-                source_diagnostics.append(
-                    BuildDiagnostic(
-                        code="SY001",
-                        message="Nach schließendem ::: ist kein weiterer Text erlaubt.",
-                        severity="error",
-                        line_number=max(1, int(line_no)),
-                        region_id=_block_type_region_id(block_type),
-                        anchor="",
-                    )
-                )
-
-            for line_no, block_type in structure["unclosed_open_lines"]:
-                source_diagnostics.append(
-                    BuildDiagnostic(
-                        code="SY002",
-                        message="Block ist geöffnet, aber nicht mit ::: geschlossen.",
-                        severity="error",
-                        line_number=max(1, int(line_no)),
-                        region_id=_block_type_region_id(block_type),
-                        anchor="",
-                    )
-                )
 
         items = []
         for diagnostic in source_diagnostics:
@@ -211,56 +172,10 @@ class BlattwerkAppEditorDiagnosticsMixin:
 
         self._set_editor_diagnostics(items)
 
-    @staticmethod
-    def _analyze_editor_block_structure(markdown_text: str) -> dict:
-        """Parses block openings/closings to drive mapping, outline and pair matching.
-
-        `close_suffix_lines`/`unclosed_open_lines` carry `(line_no, block_type)`
-        pairs (not bare line numbers) so `SY001`/`SY002` can anchor their
-        acknowledgment region to the actually-open block type instead of a
-        generic document-wide bucket -- that block type was already known
-        here, just discarded before the acknowledge-warnings feature.
-        """
-
-        pairs = []
-        close_suffix_lines = []
-        block_stack = []
-        lines = markdown_text.splitlines()
-
-        self_closing_pattern = re.compile(r"^:::(\w+)(.*?):::$")
-        opening_pattern = re.compile(r"^:::(\w+)(.*)$")
-
-        for line_no, raw_line in enumerate(lines, start=1):
-            stripped = raw_line.strip()
-            if not stripped:
-                continue
-
-            if self_closing_pattern.match(stripped):
-                continue
-
-            opening_match = opening_pattern.match(stripped)
-            if opening_match:
-                block_stack.append((opening_match.group(1).lower(), line_no))
-                continue
-
-            if stripped.startswith(":::") and block_stack:
-                open_type, open_line = block_stack.pop()
-                pairs.append((open_line, line_no))
-                if stripped != ":::":
-                    close_suffix_lines.append((line_no, open_type))
-
-        unclosed_open_lines = [(line_no, block_type) for block_type, line_no in block_stack]
-
-        return {
-            "pairs": pairs,
-            "close_suffix_lines": close_suffix_lines,
-            "unclosed_open_lines": unclosed_open_lines,
-        }
-
     def _build_editor_diagnostics_line_map(self, markdown_text: str) -> dict[int, int]:
         """Maps validator block indices to original editor line numbers."""
 
-        content_text, content_base_line = self._extract_validation_content_and_base_line(markdown_text)
+        content_text, content_base_line = _extract_validation_content_and_base_line(markdown_text)
         if not content_text:
             return {}
 
@@ -269,31 +184,6 @@ class BlattwerkAppEditorDiagnosticsMixin:
             block_index: content_base_line + max(0, int(local_line) - 1)
             for block_index, local_line in local_index_map.items()
         }
-
-    @staticmethod
-    def _extract_validation_content_and_base_line(markdown_text: str) -> tuple[str, int]:
-        """Returns validator content plus 1-based base line in original markdown."""
-
-        lines = markdown_text.splitlines(keepends=True)
-        content_start_line = 1
-        content_raw = markdown_text
-
-        if lines and lines[0].strip() == "---":
-            for line_index in range(1, len(lines)):
-                if lines[line_index].strip() == "---":
-                    content_start_line = line_index + 2
-                    content_raw = "".join(lines[line_index + 1 :])
-                    break
-
-        content_for_validation = content_raw.strip()
-        if not content_for_validation:
-            return "", content_start_line
-
-        leading_removed_chars = len(content_raw) - len(content_raw.lstrip())
-        leading_removed_text = content_raw[:leading_removed_chars]
-        leading_removed_lines = leading_removed_text.count("\n")
-        base_line = content_start_line + leading_removed_lines
-        return content_for_validation, max(1, base_line)
 
     def _set_editor_diagnostics(self, items):
         """Renders diagnostics into the Treeview and colored line tags.

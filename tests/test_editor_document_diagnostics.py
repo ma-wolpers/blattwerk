@@ -29,7 +29,7 @@ class _DummyDiagnosticsEditor(BlattwerkDocumentTypeMixin, BlattwerkAppEditorDiag
         self.editor_diagnostics_listbox = None
         self.user_preferences = {}
         self._editor_diagnostics_after_id = None
-        self._editor_block_pairs_cache = []
+        self._editor_block_scan = None
         self.items = None
 
     def _active_document_tab_state(self):

@@ -36,7 +36,7 @@ tatsächlich lesen, statt in einem separaten Schema-Modul oder im
 Validator. `blatt_validator_yaml_entries.py` importiert dieses Dict, um
 unbekannte Keys zu erkennen (Diagnose `AN011`); Parser und Validator
 können dadurch nicht auseinanderlaufen. Ein Test
-(`tests/test_blatt_validator.py`) füllt pro Sektion einen Eintrag mit
+(`tests/test_validator_geometry_entries.py`) füllt pro Sektion einen Eintrag mit
 *allen* hier gelisteten Keys und prüft sowohl, dass der Validator keine
 `AN011`-Diagnose meldet, als auch, dass die jeweilige `_parse_*`-Funktion
 kein Feld verliert — das hält beide Seiten nachweisbar synchron.

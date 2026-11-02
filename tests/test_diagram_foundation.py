@@ -8,7 +8,8 @@ from app.core._editable_convert_js import _IMAGE_ONLY_BLOCK_TYPES
 from app.core.authoring_guide_prose import PROSE_SECTIONS
 from app.core.blatt_validator_constants import BLOCK_ALLOWED_OPTIONS, KNOWN_BLOCK_TYPES
 from app.core.block_insert_snippets import BLOCK_INSERT_SNIPPETS
-from app.core.diagram_block_catalog import DIAGRAM_BLOCKS, DIAGRAM_HEADER_RE
+from app.core.block_line_scan import scan_block_lines
+from app.core.diagram_block_catalog import DIAGRAM_BLOCKS
 from app.core.diagram_block_dispatch import estimate_diagram_weight, render_diagram_block
 from app.core.diagram_text import iter_source_lines, make_cell, render_cell
 
@@ -23,7 +24,7 @@ def test_every_diagram_block_is_derived_everywhere():
         assert BLOCK_INSERT_SNIPPETS[spec.name] == spec.snippet
         assert spec.name in _IMAGE_ONLY_BLOCK_TYPES
         assert f"block:{spec.name}" in PROSE_SECTIONS
-        assert DIAGRAM_HEADER_RE.match(f":::{spec.name} width=50%")
+        assert scan_block_lines(f":::{spec.name} width=50%\n:::").spans[0].block_type == spec.name
 
 
 def test_diagram_names_are_lowercase_english_and_codes_are_unique():

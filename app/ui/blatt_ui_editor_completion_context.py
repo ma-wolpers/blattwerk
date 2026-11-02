@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import re
 
-from ..core.blatt_kern_shared_parsing import split_front_matter
+from ..core.block_line_scan import scan_block_lines
 from ..core.completion_catalogs import (
     get_completion_block_option_detail,
     get_completion_block_type_detail,
@@ -29,12 +29,7 @@ from ..core.completion_catalogs import (
     get_self_closing_block_types,
 )
 from ..storage.local_config_store import get_option_value_decay_scores
-
-_FRONTMATTER_SCAN_LINE_LIMIT = 60
-"""Sicherheitsnetz für `_editor_read_frontmatter_meta`: grosszügig über jeder
-realistischen Frontmatter-Grösse, verhindert bei einem Dokument ohne
-schliessendes `---` (kaputtes/fehlendes Frontmatter), dass der Scan
-versehentlich das gesamte (potenziell sehr lange) Dokument liest."""
+from .blatt_ui_editor_frontmatter import BlattwerkAppEditorFrontmatterMixin
 
 _EDITOR_FRONTMATTER_KEYS = (
     "Titel",
@@ -64,7 +59,7 @@ def _format_option_value_label(value: str, abbreviation_hints: dict[str, str]) -
     return f"{value} ({abbreviation})"
 
 
-class BlattwerkAppEditorCompletionContextMixin:
+class BlattwerkAppEditorCompletionContextMixin(BlattwerkAppEditorFrontmatterMixin):
     """Erkennt, welche Art Vervollständigung an der aktuellen Cursorposition passt."""
 
     @staticmethod
@@ -293,97 +288,21 @@ class BlattwerkAppEditorCompletionContextMixin:
         return None
 
     def _editor_get_enclosing_block_type(self, target_line_no: int) -> str | None:
-        """Returns the currently open block type for a given line number, if any."""
+        """Blocktyp (klein geschrieben), der nach Zeile `target_line_no` noch offen ist, sonst `None`.
 
-        if self.editor_widget is None:
-            return None
-
-        line_count = int(self.editor_widget.index("end-1c").split(".")[0] or 1)
-        upper_bound = max(1, min(target_line_no, line_count))
-
-        block_stack = []
-        self_closing_pattern = re.compile(r"^\s*:::(\w+)(.*?):::\s*$")
-        block_open_pattern = re.compile(r"^\s*:::(\w+)(.*)$")
-
-        for line_no in range(1, upper_bound + 1):
-            text = self.editor_widget.get(f"{line_no}.0", f"{line_no}.end")
-            stripped = text.strip()
-
-            if not stripped:
-                continue
-
-            if self_closing_pattern.match(stripped):
-                continue
-
-            if stripped == ":::":
-                if block_stack:
-                    block_stack.pop()
-                continue
-
-            block_open_match = block_open_pattern.match(stripped)
-            if block_open_match:
-                block_stack.append(block_open_match.group(1).lower())
-
-        if not block_stack:
-            return None
-        return block_stack[-1]
-
-    def _editor_cursor_in_frontmatter(self, line_no: int) -> bool:
-        """Returns true when the given line index is inside frontmatter section."""
-
-        if self.editor_widget is None:
-            return False
-
-        frontmatter_delim_count = 0
-        for current_line in range(1, max(1, line_no) + 1):
-            text = self.editor_widget.get(f"{current_line}.0", f"{current_line}.end").strip()
-            if text == "---":
-                frontmatter_delim_count += 1
-
-        return frontmatter_delim_count == 1
-
-    def _editor_read_frontmatter_meta(self):
-        """Reads and parses ONLY the frontmatter block (line 1 up to the second `---`),
-        not the whole buffer -- the single place in the completion layer that
-        extracts actual frontmatter VALUES (`Fach`, `Stufe`, ...), as opposed
-        to `_editor_cursor_in_frontmatter`/`_editor_document_has_frontmatter`
-        above, which only answer boundary questions and never read values. A
-        future need for another frontmatter value should go through this
-        method, not a fifth scan function.
-
-        Cost scales with frontmatter size (typically <15 lines), not
-        document length -- deliberately NOT `split_front_matter(self.editor_widget.get("1.0", "end-1c"))`
-        on the full buffer, which would scale with a growing task body
-        below it for no reason. `_FRONTMATTER_SCAN_LINE_LIMIT` is a safety
-        net for a document with no closing `---` (broken/missing
-        frontmatter) -- the scan gives up and returns `{}` rather than
-        reading the rest of a potentially very long document.
-
-        No debounce, no extra caching: this method is only reached from the
-        already-narrow "cursor sits inside an open `!!...!!`" branch, and a
-        bounded scan of a handful of lines is cheap enough on every
-        keystroke without either -- the same "make it cheap by
-        construction" standard the rest of completion already relies on.
+        Liest den Text nur bis zu dieser Zeile und fragt `scan_block_lines`
+        (Parserregeln). Ist die Zeile selbst die Schlusszeile `:::`, ist der
+        Block danach zu.
         """
+
         if self.editor_widget is None:
-            return {}
+            return None
 
-        lines = []
-        delimiter_count = 0
-        for line_no in range(1, _FRONTMATTER_SCAN_LINE_LIMIT + 1):
-            if self.editor_widget.compare(f"{line_no}.0", ">=", "end-1c"):
-                break  # reached end of document before a second `---`
-            text = self.editor_widget.get(f"{line_no}.0", f"{line_no}.end")
-            lines.append(text)
-            if text.strip() == "---":
-                delimiter_count += 1
-                if delimiter_count == 2:
-                    break
-
-        if delimiter_count < 2:
-            return {}
-        meta, _rest = split_front_matter("\n".join(lines))
-        return meta or {}
+        target_line_no = max(1, int(target_line_no))
+        span = scan_block_lines(self._editor_head_text(target_line_no)).span_at(target_line_no)
+        if span is None or span.close_line == target_line_no:
+            return None
+        return span.block_type.lower()
 
     def _build_block_option_key_suggestions(self, block_type: str, options, *, prefix: str = "", exclude=()):
         """Builds `key=` completion candidates for block option KEYS.
@@ -512,23 +431,3 @@ class BlattwerkAppEditorCompletionContextMixin:
             }
             for value in filtered
         ]
-
-    def _editor_document_has_frontmatter(self) -> bool:
-        """Detects whether the current editor buffer already contains frontmatter."""
-
-        if self.editor_widget is None:
-            return False
-
-        line_count = int(self.editor_widget.index("end-1c").split(".")[0] or 1)
-        delimiter_lines = []
-        for line_no in range(1, max(1, line_count) + 1):
-            text = self.editor_widget.get(f"{line_no}.0", f"{line_no}.end").strip()
-            if text == "---":
-                delimiter_lines.append(line_no)
-                if len(delimiter_lines) >= 2:
-                    return True
-
-            if text and not delimiter_lines:
-                return False
-
-        return False

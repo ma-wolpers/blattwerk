@@ -120,11 +120,12 @@ Subprozess siehe `tests/test_blatt_diagnostics_cli.py` (Validator) sowie
 - `SL022`: Die Optionen ergeben genau den Hoechstwert -- jede wird gebraucht, `(xP)` genuegt statt `(x/kP)`. Warnung.
 - `SL023`: Ein Erwartungstyp, der nur als Abzug gilt (Lernhilfe `Lh`), steht ohne Minuszeichen, z. B. `(1P Lh)` statt `(−1P Lh)`. Warnung.
 - `BL001`: Unbekannter Blocktyp.
-- `BL002`: Leerzeichen direkt nach `:::` im Marker (`::: block`) ist ungueltig.
+- `BL002`: Nach `:::` folgt ein Leerzeichen oder anderer Text statt eines Blocknamens (`::: block`, `::: Ende`, `:::-`). Erlaubt sind nur `:::blocktyp` oder `:::` allein.
 - `BL003`: Schliessender Marker `:::` ohne passenden offenen Block.
 - `BL004`: Ungueltiger Blockwechsel: Ein neuer `:::`-Block startet, bevor der aktuell offene Block geschlossen wurde; Marker muessen strikt als Oeffnen/Schliessen abwechseln.
 - `BL005`: Abschnittstrenner `---` oder `--` innerhalb eines offenen `:::`-Blocks sind ungueltig; sie sind nur auf Top-Level erlaubt.
 - `BL006`: Ungueltiger Abschnitts- (`--#`), Vertikalabstands- (`-=`) oder Folien-Chrome-Marker (`--hf`) -- Syntax entspricht nicht der erwarteten Form.
+- `BL017`: Ein Block wird nicht mit einer eigenen Zeile `:::` geschlossen (Fehler, gemeldet an seiner Kopfzeile). Ohne Schluss würde er als Text ausgegeben.
 - `BL007`: `nextcol` ausserhalb eines offenen `columns`-Blocks.
 - `BL008`: `endcolumns` ohne passenden offenen `columns`-Block.
 - `BL009`: `columns`-Block wird bis Dokument- bzw. Folienende nicht mit `endcolumns` geschlossen.

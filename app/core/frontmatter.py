@@ -210,3 +210,30 @@ def content_after_frontmatter(text: str) -> tuple[str, int]:
     if bounds is None:
         return source, 1
     return source[bounds.end :], bounds.content_start_line
+
+
+def frontmatter_editing_lines(text: str) -> range:
+    """Zeilen (1-basiert), die beim Bearbeiten als Frontmatter gelten: Öffnungszeile bis vor die Schlusszeile.
+
+    Baut auf `frontmatter_bounds` auf und unterscheidet sich nur in einem
+    Fall: Ist das Frontmatter noch nicht geschlossen (die Öffnungszeile
+    `---` steht, die Schlusszeile wird gerade erst geschrieben), gilt alles
+    ab der Öffnungszeile als Frontmatter. Der Parser sieht dann noch kein
+    Frontmatter; der Editor soll beim Schreiben aber schon Schlüssel
+    hervorheben und vervollständigen.
+
+    Die Schlusszeile selbst gehört nicht dazu (dort ist man wieder im
+    Dokumentrumpf).
+
+    Returns:
+        Leerer Bereich, wenn die erste Zeile keine Öffnungszeile ist.
+    """
+    source = text or ""
+    bounds = frontmatter_bounds(source)
+    if bounds is not None:
+        return range(bounds.start_line, bounds.content_start_line - 1)
+    first_line = source[1:] if source.startswith(BOM) else source
+    first_content, _ending = split_line_ending(next(iter_lines_with_offsets(first_line), (0, ""))[1])
+    if first_content.rstrip() != _FENCE_OPEN:
+        return range(0)
+    return range(1, source.count("\n") + 2)

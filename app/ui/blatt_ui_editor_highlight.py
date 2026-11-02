@@ -13,7 +13,9 @@ from bw_gui.runtime import ui
 
 from ..core.control_markers import control_marker_line_match
 from ..core.inline_markup.style_spans import STYLE_MARKER_REGEX
-from ..core.diagram_block_catalog import DIAGRAM_HEADER_RE
+from ..core.block_line_scan import LineKind, scan_block_lines
+from ..core.diagram_block_catalog import DIAGRAM_BLOCK_NAMES
+from ..core.frontmatter import frontmatter_editing_lines
 from ..core.diagram_text import INDENTED_LINE_MARKER_RE
 from .ui_theme import get_theme, is_dark_theme
 
@@ -21,18 +23,24 @@ _INLINE_STYLE_MARKER_PATTERN = re.compile(STYLE_MARKER_REGEX)
 _LINE_MARKER_PATTERN = re.compile(r"^([§%&])(?=\s|$)")
 
 
-def _diagram_content_lines(text_lines, pairs):
-    """Zeilennummern (1-basiert) im Inhalt von Diagrammblöcken.
+def _diagram_content_lines(scan):
+    """Zeilennummern (1-basiert) im Inhalt geschlossener Diagrammblöcke.
 
     Dort stehen Zeilenmarker nach der Einrückung (`INDENTED_LINE_MARKER_RE`),
-    überall sonst nur am absoluten Zeilenanfang. `pairs` sind die
-    `(öffnende Zeile, schließende Zeile)`-Paare aus der Blockstrukturanalyse.
+    überall sonst nur am absoluten Zeilenanfang. `scan` ist die Blockstruktur
+    aus `scan_block_lines`.
     """
     lines = set()
-    for open_line, close_line in pairs:
-        if 0 < open_line <= len(text_lines) and DIAGRAM_HEADER_RE.match(text_lines[open_line - 1]):
-            lines.update(range(open_line + 1, close_line))
+    for span in scan.spans:
+        if span.close_line is not None and span.block_type in DIAGRAM_BLOCK_NAMES:
+            lines.update(range(span.open_line + 1, span.close_line))
     return lines
+
+
+def _header_token_end(line_text: str, block_type: str) -> tuple[int, int]:
+    """`(Anfang, Ende)` des Tokens `:::name` in einer Kopfzeile (Einrückung berücksichtigt)."""
+    start = len(line_text) - len(line_text.lstrip())
+    return start, start + 3 + len(block_type)
 
 
 _SYNTAX_TAGS = (
@@ -175,10 +183,8 @@ class BlattwerkAppEditorHighlightMixin:
             self.editor_widget.tag_remove(tag_name, "1.0", "end")
 
         full_text = self.editor_widget.get("1.0", "end-1c")
-        structure = self._analyze_editor_block_structure(full_text)
-        closing_lines = {line_no for _open, line_no in structure["pairs"]}
-        closing_suffix_lines = {line_no for line_no, _block_type in structure["close_suffix_lines"]}
-        self._editor_block_pairs_cache = list(structure["pairs"])
+        scan = scan_block_lines(full_text)
+        self._editor_block_scan = scan
 
         last_line = int(self.editor_widget.index("end-1c").split(".")[0] or 1)
         # Both `full_text` and `last_line` come from the same "end-1c" Tk index
@@ -187,25 +193,23 @@ class BlattwerkAppEditorHighlightMixin:
         # matches `widget.get(f"{n}.0", f"{n}.end")` line-for-line, including for
         # an empty buffer and a trailing newline).
         text_lines = full_text.split("\n")
-        diagram_lines = _diagram_content_lines(text_lines, structure["pairs"])
-        in_frontmatter = False
-        frontmatter_delim_seen = 0
+        diagram_lines = _diagram_content_lines(scan)
+        frontmatter_lines = frontmatter_editing_lines(full_text)
+        # Öffnungs- und (falls schon geschrieben) Schlusszeile; nie eine `---`-Trennlinie im Rumpf.
+        frontmatter_delims = {frontmatter_lines.start, frontmatter_lines.stop} if frontmatter_lines else set()
 
         for line_no in range(1, max(1, last_line) + 1):
             line_start = f"{line_no}.0"
             line_end = f"{line_no}.end"
             line_text = text_lines[line_no - 1]
-            stripped = line_text.strip()
+            scanned = scan.line(line_no)
 
-            if stripped == "---":
+            if line_no in frontmatter_delims:
                 self.editor_widget.tag_add("syn_frontmatter_delim", line_start, line_end)
-                frontmatter_delim_seen += 1
-                in_frontmatter = frontmatter_delim_seen == 1
-                if frontmatter_delim_seen >= 2:
-                    in_frontmatter = False
                 continue
 
-            if in_frontmatter:
+            if line_no in frontmatter_lines:
+                # GRENZE: Nur die Position des Schlüssels zum Färben; YAML selbst liest `frontmatter.py`.
                 key_match = re.match(r"^(\s*)([^:\s][^:]*)(\s*:)", line_text)
                 if key_match:
                     key_start = len(key_match.group(1))
@@ -217,16 +221,15 @@ class BlattwerkAppEditorHighlightMixin:
                     )
                 continue
 
-            if line_no in closing_lines:
+            if scanned.kind in (LineKind.CLOSE, LineKind.MALFORMED):
                 marker_col = line_text.find(":::")
-                if marker_col >= 0:
-                    self.editor_widget.tag_add(
-                        "syn_block_fence",
-                        f"{line_no}.{marker_col}",
-                        f"{line_no}.{marker_col + 3}",
-                    )
+                self.editor_widget.tag_add(
+                    "syn_block_fence",
+                    f"{line_no}.{marker_col}",
+                    f"{line_no}.{marker_col + 3}",
+                )
 
-                if line_no in closing_suffix_lines and marker_col >= 0:
+                if scanned.kind is LineKind.MALFORMED:
                     content_end = len(line_text)
                     error_start = marker_col + 3
                     while error_start < content_end and line_text[error_start].isspace():
@@ -245,12 +248,8 @@ class BlattwerkAppEditorHighlightMixin:
                 self.editor_widget.tag_add("syn_control", f"{line_no}.{control_match.start(2)}", f"{line_no}.{control_match.end(2)}")
                 continue
 
-            header_match = re.match(r"^(\s*)(:::(\w+))(.*)$", line_text)
-            if header_match:
-                indent = len(header_match.group(1))
-                token = header_match.group(2)
-                token_start = indent
-                token_end = token_start + len(token)
+            if scanned.is_header:
+                token_start, token_end = _header_token_end(line_text, scanned.header_type)
                 self.editor_widget.tag_add(
                     "syn_block_fence",
                     f"{line_no}.{token_start}",
@@ -262,8 +261,10 @@ class BlattwerkAppEditorHighlightMixin:
                     f"{line_no}.{token_end}",
                 )
 
-                options_part = header_match.group(4) or ""
+                options_part = line_text[token_end:]
                 options_offset = token_end
+                # GRENZE: Färbt nur Zeichenpositionen. `parse_options` (shlex) liefert keine
+                # Positionen, daher ein eigenes Muster; die Bedeutung der Optionen bleibt beim Parser.
                 for option_match in re.finditer(
                     r"([A-Za-z_][A-Za-z0-9_]*)=(\"[^\"]*\"|'[^']*'|[^\s]+)",
                     options_part,
@@ -331,50 +332,30 @@ class BlattwerkAppEditorHighlightMixin:
 
         self.editor_widget.tag_remove("syn_block_pair", "1.0", "end")
 
-        pairs = getattr(self, "_editor_block_pairs_cache", [])
-        if not pairs:
+        scan = getattr(self, "_editor_block_scan", None)
+        if scan is None:
             return
 
-        insert_index = self.editor_widget.index("insert")
-        current_line = int(insert_index.split(".")[0])
-        containing_pairs = [
-            (open_line, close_line)
-            for open_line, close_line in pairs
-            if open_line <= current_line <= close_line
-        ]
-        if not containing_pairs:
+        current_line = int(self.editor_widget.index("insert").split(".")[0])
+        span = scan.span_at(current_line)
+        if span is None or span.close_line is None:
             return
 
-        open_line, close_line = min(
-            containing_pairs,
-            key=lambda pair: (pair[1] - pair[0], pair[0]),
-        )
+        self._tag_block_pair_marker(span.open_line, span.block_type)
+        self._tag_block_pair_marker(span.close_line, None)
 
-        self._tag_block_pair_marker(open_line, include_type=True)
-        self._tag_block_pair_marker(close_line, include_type=False)
-
-    def _tag_block_pair_marker(self, line_no: int, include_type: bool):
-        """Applies block-pair highlight tag to marker token at given line."""
+    def _tag_block_pair_marker(self, line_no: int, block_type: str | None):
+        """Markiert das Token `:::name` (Kopfzeile, `block_type` gesetzt) bzw. `:::` (Schlusszeile)."""
 
         if self.editor_widget is None:
             return
 
         line_text = self.editor_widget.get(f"{line_no}.0", f"{line_no}.end")
-        marker_col = line_text.find(":::")
-        if marker_col < 0:
-            return
-
-        if include_type:
-            match = re.match(r"^(\s*)(:::(\w+))", line_text)
-            if match:
-                start_col = len(match.group(1))
-                end_col = start_col + len(match.group(2))
-            else:
-                start_col = marker_col
-                end_col = marker_col + 3
+        if block_type is not None:
+            start_col, end_col = _header_token_end(line_text, block_type)
         else:
-            start_col = marker_col
-            end_col = marker_col + 3
+            start_col = line_text.find(":::")
+            end_col = start_col + 3
 
         self.editor_widget.tag_add(
             "syn_block_pair",
