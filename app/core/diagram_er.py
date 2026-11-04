@@ -10,7 +10,10 @@ Syntax (dieselben Beziehungszeilen wie beim Klassendiagramm):
 
 Gestalt: Entitäten als Rechtecke, Beziehungen als Rauten, Attribute als Ovale,
 Schlüssel unterstrichen (vorhandenes `__…__`), Kardinalitäten an den Kanten. Die
-Attribute liegen rings um ihren Knoten dort, wo keine Kante verläuft.
+Anordnung (`diagram_er_layout`) hält das Diagramm flach und vermeidet Kreuzungen. Danach
+kommen die Beschriftungen: Kardinalitäten neben ihre Kante, wo nichts anderes steht,
+Attribute rings um ihren Knoten dort, wo weder eine Kante noch eine andere Beschriftung
+liegt und ihre Verbindungslinie keine Kante kreuzt.
 """
 
 from __future__ import annotations
@@ -18,10 +21,12 @@ from __future__ import annotations
 import math
 import re
 from dataclasses import dataclass, field
+from functools import lru_cache
 
 from .diagram_edges import parse_edge_line
-from .diagram_layout_tree import free_layout
-from .diagram_route import Box, box_exit, diamond_exit
+from .diagram_er_layout import OVAL_HEIGHT, RING_GAP, arrange, oval_size, recursive_pairs, relation_groups, route_edges, shape_size
+from .diagram_layout import Layout
+from .diagram_route import Box, box_exit, diamond_corner, rects_overlap, segment_hits_rect, segments_cross
 from .diagram_svg import LINE_HEIGHT, Canvas, text_width
 from .diagram_text import Cell, ParseIssue, iter_source_lines, make_cell
 
@@ -29,17 +34,12 @@ _HEADER_RE = re.compile(r"^entität\s+(.+)$", re.IGNORECASE)
 _CARDINALITY = r"(?:\d+|[a-z]|\*|[%§&]\{[^}]*\})"
 _LEFT_END_RE = re.compile(rf"^(.+?)\s+({_CARDINALITY})$")
 _RIGHT_END_RE = re.compile(rf"^({_CARDINALITY})\s+(.+)$")
-_ENTITY_HEIGHT = 32.0
-_DIAMOND_HEIGHT = 42.0
-_OVAL_HEIGHT = 28.0
-_RING_GAP = 15.0
 _CARD_DISTANCE = 13.0
+_CARD_SIDE = 9.0
+"""Abstand der Kardinalität seitlich von ihrer Kante."""
 _MARGIN = 10.0
-_ANGLE_STEPS = 16
-_RECURSIVE_DROP = 34.0
-"""Abstand einer rekursiven Raute von ihrer Entität."""
+_ANGLE_STEPS = 24
 _MAX_RINGS = 6
-_SEGMENT_SAMPLES = 24
 
 
 @dataclass
@@ -147,134 +147,132 @@ def check(collect, _options, model: ErModel) -> None:
             collect.add("ER009", f"Das Attribut `{name}` steht bei `{node.title.text}` doppelt.", anchor=f"ER009:{node.name}:{name}")
 
 
-def _shape_size(node: ErNode) -> tuple[float, float]:
-    """Größe von Rechteck oder Raute ohne die Attribute."""
-    width = text_width(node.title.text)
-    return (width * 1.5 + 28, _DIAMOND_HEIGHT) if node.diamond else (max(width + 22, 64.0), _ENTITY_HEIGHT)
+def _attribute_blocked(rect, placed, segments) -> bool:
+    """Ein Oval darf nie etwas überdecken, auch keine Kante: Sie verschwände dahinter."""
+    return any(rects_overlap(rect, other, 2) for other in placed) or any(segment_hits_rect(segment, rect, 2) for segment in segments)
 
 
-def _oval_size(cell: Cell) -> tuple[float, float]:
-    """Größe eines Attribut-Ovals."""
-    return text_width(cell.text.replace("__", "")) + 22, _OVAL_HEIGHT
+def _attribute_conflicts(rect, connector, own, placed, segments, connectors) -> int:
+    """Zählt, was ein Attribut-Oval samt Verbindungslinie an diesem Platz stört.
 
-
-def _halo(node: ErNode, recursive_width: float) -> tuple[float, float]:
-    """Äußere Größe inklusive Attributring und rekursiver Raute (`recursive_width` > 0).
-
-    Das Layout rechnet damit, damit nichts kollidiert.
+    Gezählt werden Kanten, die die Verbindungslinie kreuzen, gekreuzte andere
+    Verbindungslinien und fremde Formen oder Beschriftungen, an denen die Verbindungslinie
+    zu knapp vorbeiläuft. Läuft sie mitten hindurch, zählt das dreifach: Eine Linie hinter
+    einem anderen Oval sähe aus wie ein zusammengesetztes Attribut. Überdeckungen und
+    Kanten unter dem Oval schließt der Aufrufer vorher ganz aus (`_attribute_blocked`).
     """
-    width, height = _shape_size(node)
-    if recursive_width:
-        width = max(width, recursive_width + width / 3)
-        height += 2 * (_RECURSIVE_DROP + _DIAMOND_HEIGHT)
-    if not node.attributes:
-        return width, height
-    widest = max(_oval_size(cell)[0] for cell in node.attributes)
-    return width + 2 * (widest + _RING_GAP), height + 2 * (_OVAL_HEIGHT + _RING_GAP)
+    edges = sum(2 for segment in segments if segments_cross(connector, segment))
+    lines = sum(2 for other in connectors if segments_cross(connector, other))
+    near = sum(
+        3 if segment_hits_rect(connector, other) else 1
+        for other in placed
+        if other is not own and segment_hits_rect(connector, other, 6)
+    )
+    return edges + lines + near
 
 
-def _hits_segment(rect, segment) -> bool:
-    """Prüft, ob die Strecke das Rechteck `(x, y, breite, höhe)` schneidet (Abtastung)."""
-    (x1, y1), (x2, y2) = segment
-    for step in range(_SEGMENT_SAMPLES + 1):
-        share = step / _SEGMENT_SAMPLES
-        if abs(x1 + (x2 - x1) * share - rect[0]) < rect[2] / 2 + 2 and abs(y1 + (y2 - y1) * share - rect[1]) < rect[3] / 2 + 2:
-            return True
-    return False
-
-
-def _overlap(a, b) -> bool:
-    """Prüft, ob sich zwei Rechtecke `(x, y, breite, höhe)` um den Mittelpunkt schneiden."""
-    return abs(a[0] - b[0]) < (a[2] + b[2]) / 2 + 2 and abs(a[1] - b[1]) < (a[3] + b[3]) / 2 + 2
-
-
-def _place_attributes(node: ErNode, center, blocked_angles, placed, segments) -> list[tuple[Cell, float, float, float]]:
+def _place_attributes(node: ErNode, center, blocked_angles, placed, segments, connectors) -> list[tuple[Cell, float, float, float]]:
     """Verteilt Attribute auf einen Ring; freie Winkel zuerst, weit weg von den Kanten.
 
-    Findet sich auf dem Ring kein freier Platz, rückt der Ring nach außen. Nach
-    `_MAX_RINGS` Versuchen zählt nur noch der Abstand zu anderen Formen.
+    Findet sich auf dem Ring kein störungsfreier Platz, rückt der Ring nach außen. Nach
+    `_MAX_RINGS` Ringen gewinnt der Platz mit den wenigsten Störungen, möglichst weit
+    innen; nur wenn auch der nicht existiert, geht es weiter nach außen. Plätze links und
+    rechts gewinnen bei Gleichstand, weil sie das Diagramm nicht höher machen. Breite Ovale
+    kommen zuerst an die Reihe, sie finden am schwersten Platz.
 
     Returns:
         `(zelle, x, y, breite)` je Attribut.
     """
-    shape_width, shape_height = _shape_size(node)
+    shape_width, shape_height = shape_size(node)
+    own = next(rect for rect in placed if rect[:2] == center and rect[2:] == (shape_width, shape_height))
     result = []
     used = list(blocked_angles)
-    for cell in node.attributes:
-        width, height = _oval_size(cell)
-        ring = 1.0
+    for cell in sorted(node.attributes, key=lambda cell: -oval_size(cell)[0]):
+        width, height = oval_size(cell)
+        ring = 1
         chosen = None
+        fallback = None
         while chosen is None:
-            rx = (shape_width + width) / 2 + _RING_GAP * ring
-            ry = (shape_height + height) / 2 + _RING_GAP * ring
+            rx = (shape_width + width) / 2 + RING_GAP * ring
+            ry = (shape_height + height) / 2 + RING_GAP * ring
             candidates = []
             for step in range(_ANGLE_STEPS):
                 angle = 2 * math.pi * step / _ANGLE_STEPS - math.pi / 2
                 x, y = center[0] + rx * math.cos(angle), center[1] + ry * math.sin(angle)
-                rect = (x, y, width, height)
-                if any(_overlap(rect, other) for other in placed):
-                    continue
-                if ring <= _MAX_RINGS and any(_hits_segment(rect, segment) for segment in segments):
+                if _attribute_blocked((x, y, width, height), placed, segments):
                     continue
                 clearance = min((abs(math.atan2(math.sin(angle - a), math.cos(angle - a))) for a in used), default=math.pi)
-                candidates.append((-clearance, step, angle, x, y))
+                spot = (-round(clearance, 3), abs(math.sin(angle)), step, angle, x, y)
+                conflicts = _attribute_conflicts((x, y, width, height), (center, (x, y)), own, placed, segments, connectors)
+                if not conflicts:
+                    candidates.append(spot)
+                elif fallback is None or (conflicts, ring) < fallback[:2]:
+                    fallback = (conflicts, ring, spot)
             if candidates:
-                _score, _step, angle, x, y = min(candidates)
-                chosen = (x, y, angle)
-            else:
-                ring += 1.0
-        x, y, angle = chosen
+                chosen = min(candidates)[-3:]
+            elif ring >= _MAX_RINGS and fallback is not None:
+                chosen = fallback[2][-3:]
+            ring += 1
+        angle, x, y = chosen
         used.append(angle)
         placed.append((x, y, width, height))
+        connectors.append((center, (x, y)))
         result.append((cell, x, y, width))
     return result
 
 
-def _draw_cardinality(canvas: Canvas, cell: Cell, start, end) -> None:
-    """Kardinalität nahe der Entität, seitlich neben der Kante."""
+def _cardinality_spot(cell: Cell, points, placed, segments) -> tuple[float, float, float, float]:
+    """Platz der Kardinalität nahe der Entität, seitlich neben der Kante.
+
+    Probiert beide Seiten der Kante und dann wachsende Abstände von der Entität, bis die
+    Beschriftung weder andere Beschriftungen noch fremde Kanten berührt.
+
+    Returns:
+        `(x, y, breite, höhe)`; die Breite ist die des Texts.
+    """
+    start, end = points[0], points[1]
     length = math.hypot(end[0] - start[0], end[1] - start[1]) or 1.0
     ux, uy = (end[0] - start[0]) / length, (end[1] - start[1]) / length
-    x = start[0] + ux * _CARD_DISTANCE - uy * 9
-    y = start[1] + uy * _CARD_DISTANCE + ux * 9
-    canvas.label(cell, x, y, text_width(cell.text) + 8)
+    width = text_width(cell.text)
+    own = list(zip(points, points[1:]))
+    spots = []
+    for along in (_CARD_DISTANCE * step for step in range(1, 6)):
+        for side in (1, -1):
+            spots.append((start[0] + ux * along - uy * _CARD_SIDE * side, start[1] + uy * along + ux * _CARD_SIDE * side, width, LINE_HEIGHT - 4))
+    for rect in spots:
+        if not any(rects_overlap(rect, other, 3) for other in placed) and not any(segment_hits_rect(segment, rect, 1) for segment in segments if segment not in own):
+            return rect
+    return spots[0]
 
 
-def _link_route(model: ErModel, link: ErLink, centers, order: int, recursive: bool) -> list[tuple[float, float]]:
-    """Punkte einer Kante von der Entität zur Raute; rekursiv als rechtwinklige Linie."""
-    entity, relation = model.nodes[link.entity], model.nodes[link.relation]
+def _recursive_route(model: ErModel, link: ErLink, centers, order: int) -> list[tuple[float, float]]:
+    """Rechteckige Schleife zur rekursiven Raute: aus der Entität senkrecht hinaus, waagerecht in die Ecke.
+
+    Die erste Kante nimmt die linke, die zweite die rechte Rautenecke (GO).
+    """
     ex, ey = centers[link.entity]
     rx, ry = centers[link.relation]
-    entity_w, entity_h = _shape_size(entity)
-    relation_w, relation_h = _shape_size(relation)
-    if recursive:
-        sign = -1 if order == 0 else 1
-        start = (ex + sign * entity_w / 3, ey + (entity_h / 2 if ry > ey else -entity_h / 2))
-        end = (rx + sign * relation_w / 2, ry)
-        return [start, (start[0], end[1]), end]
-    return [box_exit(Box(ex, ey, entity_w, entity_h), (rx, ry)), diamond_exit(rx, ry, relation_w / 2, relation_h / 2, (ex, ey))]
+    entity_w, entity_h = shape_size(model.nodes[link.entity])
+    relation_w = shape_size(model.nodes[link.relation])[0]
+    sign = -1 if order == 0 else 1
+    start = (ex + sign * entity_w / 3, ey + (entity_h / 2 if ry > ey else -entity_h / 2))
+    end = (rx + sign * relation_w / 2, ry)
+    return [start, (start[0], end[1]), end]
 
 
 def _all_routes(model: ErModel, centers) -> list[tuple[ErLink, list[tuple[float, float]]]]:
     """Alle Kanten mit ihren Punkten; zwei Kanten derselben Raute zur selben Entität sind rekursiv."""
+    sizes = {name: shape_size(node) for name, node in model.nodes.items()}
+    straight = route_edges(sizes, centers, relation_groups(model))
+    recursive = recursive_pairs(model)
     routes = []
     seen: dict[tuple[str, str], int] = {}
     for link in model.links:
         pair = (link.entity, link.relation)
         order = seen.get(pair, 0)
         seen[pair] = order + 1
-        recursive = pair in _recursive_pairs(model)
-        routes.append((link, _link_route(model, link, centers, order, recursive)))
+        routes.append((link, _recursive_route(model, link, centers, order) if pair in recursive else straight[pair]))
     return routes
-
-
-def _recursive_pairs(model: ErModel) -> set[tuple[str, str]]:
-    """Paare aus Entität und Raute, die zweimal vorkommen (rekursive Beziehung)."""
-    seen: set[tuple[str, str]] = set()
-    repeated: set[tuple[str, str]] = set()
-    for link in model.links:
-        pair = (link.entity, link.relation)
-        (repeated if pair in seen else seen).add(pair)
-    return repeated
 
 
 def _attribute_blocks(routes) -> dict[str, list[float]]:
@@ -286,66 +284,71 @@ def _attribute_blocks(routes) -> dict[str, list[float]]:
     return blocked
 
 
-def _layout_centers(model: ErModel):
-    """Freies Layout; rekursive Rauten kommen danach fest neben ihre Entität, weg von den übrigen Kanten."""
-    recursive = _recursive_pairs(model)
-    relation_of = {entity: relation for entity, relation in recursive}
-    hanging = {relation for _entity, relation in recursive}
-    sizes = {}
-    for name, node in model.nodes.items():
-        if name in hanging:
-            continue
-        loop = relation_of.get(name)
-        sizes[name] = _halo(node, _shape_size(model.nodes[loop])[0] if loop else 0.0)
-    edges = [(link.entity, link.relation) for link in model.links if link.relation not in hanging]
-    layout = free_layout(sizes, edges, spacing=70.0, margin=_MARGIN, gap=8.0)
-    centers = dict(layout.centers)
-    for entity, relation in recursive:
-        x, y = centers[entity]
-        others = [centers[link.relation][1] for link in model.links if link.entity == entity and link.relation not in hanging]
-        side = -1 if others and sum(others) / len(others) > y else 1
-        centers[relation] = (x, y + side * (_shape_size(model.nodes[entity])[1] / 2 + _RECURSIVE_DROP + _DIAMOND_HEIGHT / 2))
-    return centers, layout
+@lru_cache(maxsize=32)
+def _arrangement(content: str) -> Layout:
+    """Anordnung je Blockinhalt; Arbeitsblatt- und Lösungsfassung teilen sie.
+
+    Die Suche ist der teure Teil des Renderns und hängt nur vom Inhalt ab. Aufrufer
+    lesen das Ergebnis nur.
+    """
+    return arrange(parse(content)[0])
 
 
 def render(options, content, include_solutions=False) -> str:
-    """Rendert das ER-Diagramm; ein leerer Block ergibt nichts."""
+    """Rendert das ER-Diagramm; ein leerer Block ergibt nichts.
+
+    Erst stehen alle Plätze fest (Formen, Kardinalitäten, Attribute), dann rückt alles
+    so, dass die äußerste Beschriftung am Rand liegt: Ein Attribut, das nach außen
+    ausweichen musste, wird so nie abgeschnitten.
+    """
     model, _issues = parse(content)
     if not model:
         return ""
-    centers, layout = _layout_centers(model)
+    centers = _arrangement(str(content or "")).centers
     routes = _all_routes(model, centers)
-    blocked = _attribute_blocks(routes)
     segments = [pair for _link, points in routes for pair in zip(points, points[1:])]
-    placed = [(centers[name][0], centers[name][1], *_shape_size(node)) for name, node in model.nodes.items()]
+    placed = [(*centers[name], *shape_size(node)) for name, node in model.nodes.items()]
+    cards = []
+    for link, points in routes:
+        if link.cardinality is not None:
+            rect = _cardinality_spot(link.cardinality, points, placed, segments)
+            placed.append(rect)
+            cards.append((link.cardinality, rect))
+    blocked = _attribute_blocks(routes)
+    connectors: list = []
     ovals = []
     for name, node in model.nodes.items():
-        for cell, x, y, width in _place_attributes(node, centers[name], blocked.get(name, []), placed, segments):
+        for cell, x, y, width in _place_attributes(node, centers[name], blocked.get(name, []), placed, segments, connectors):
             ovals.append((name, cell, x, y, width))
 
+    left = min(x - w / 2 for x, _y, w, _h in placed) - _MARGIN
+    top = min(y - h / 2 for _x, y, _w, h in placed) - _MARGIN
     canvas = Canvas(include_solutions)
+    for _link, points in routes:
+        canvas.polyline([(x - left, y - top) for x, y in points])
+    taken_corners: dict[str, list[tuple[float, float]]] = {}
     for link, points in routes:
-        canvas.polyline(points)
-        if link.cardinality is not None:
-            _draw_cardinality(canvas, link.cardinality, points[0], points[1])
+        taken_corners.setdefault(link.relation, []).append(points[-1])
     for owner, _cell, x, y, _width in ovals:
-        node_w, node_h = _shape_size(model.nodes[owner])
+        node_w, node_h = shape_size(model.nodes[owner])
         if model.nodes[owner].diamond:
-            start = diamond_exit(*centers[owner], node_w / 2, node_h / 2, (x, y))
+            start = diamond_corner(*centers[owner], node_w / 2, node_h / 2, (x, y), taken_corners.get(owner, ()))
         else:
             start = box_exit(Box(*centers[owner], node_w, node_h), (x, y))
-        canvas.line(*start, x, y)
+        canvas.line(start[0] - left, start[1] - top, x - left, y - top)
     for name, node in model.nodes.items():
-        cx, cy = centers[name]
-        width, height = _shape_size(node)
+        cx, cy = centers[name][0] - left, centers[name][1] - top
+        width, height = shape_size(node)
         if node.diamond:
             canvas.polygon([(cx, cy - height / 2), (cx + width / 2, cy), (cx, cy + height / 2), (cx - width / 2, cy)], "diagram-tone-4")
         else:
             canvas.rect(cx, cy, width, height, css="diagram-tone-3")
         canvas.label(node.title, cx, cy, width)
+    for cell, (x, y, width, _height) in cards:
+        canvas.label(cell, x - left, y - top, width + 8)
     for _owner, cell, x, y, width in ovals:
-        canvas.ellipse(x, y, width / 2, _OVAL_HEIGHT / 2, "diagram-tone-1" if "__" in cell.text else "diagram-shape diagram-lift")
-        canvas.label(cell, x, y, width, LINE_HEIGHT)
+        canvas.ellipse(x - left, y - top, width / 2, OVAL_HEIGHT / 2, "diagram-tone-1" if "__" in cell.text else "diagram-shape diagram-lift")
+        canvas.label(cell, x - left, y - top, width, LINE_HEIGHT)
     right = max(x + w / 2 for x, _y, w, _h in placed) + _MARGIN
     bottom = max(y + h / 2 for _x, y, _w, h in placed) + _MARGIN
-    return canvas.finish("erdiagram", options, max(right, layout.width), max(bottom, layout.height))
+    return canvas.finish("erdiagram", options, right - left, bottom - top)

@@ -103,7 +103,9 @@ DIAGRAM_PROSE_SECTIONS: dict[str, str] = {
         "Schlüsselattribut. Beziehungen stehen in kurzen Zeilen wie beim Klassendiagramm: "
         "`Klasse 1 - gehoertZu - n Schueler`, eingerückte Zeilen darunter sind Attribute der Beziehung. "
         "Rekursive Beziehungen schreibt man `Schueler 1 - istPateVon - 1 Schueler`. Die Anordnung entsteht "
-        "automatisch. Lücken: `%` nach der Einrückung bei Attributen, `%{1}` bei Kardinalitäten."
+        "automatisch: möglichst flach, ohne Kreuzungen, mit rechtwinkligen Linien, die an den Rautenecken "
+        "enden. Mehrere Beziehungen zwischen denselben Entitäten stehen nebeneinander. "
+        "Lücken: `%` nach der Einrückung bei Attributen, `%{1}` bei Kardinalitäten."
     ),
     "block:statediagram": (
         "Automaten in der Gestalt der zentralen Prüfungsaufgaben (GO Informatik, S. 12): eine kurze Zeile "

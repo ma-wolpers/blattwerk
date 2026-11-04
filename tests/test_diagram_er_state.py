@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
+import re
+
 from app.core.blatt_validator import inspect_markdown_text
 from app.core.diagram_block_dispatch import render_diagram_block
 from app.core.diagram_er import parse as parse_er
+from app.core.diagram_er_layout import arrange, relation_groups, route_edges, shape_size
+from app.core.diagram_route import diamond_corner, rects_overlap, segment_hits_rect, segments_cross, segments_overlap
 from app.core.diagram_state import parse as parse_state
 from diagram_go_examples import GO_DFA, GO_ER_DIAGRAM, GO_MEALY, GO_PUSHDOWN
 
@@ -58,6 +62,90 @@ def test_er_gaps_cover_attributes_and_cardinalities():
 def test_er_render_is_deterministic():
     """Das freie Layout nutzt keinen Zufall."""
     assert render_diagram_block("erdiagram", {}, GO_ER_DIAGRAM) == render_diagram_block("erdiagram", {}, GO_ER_DIAGRAM)
+
+
+KITA = """\
+entität Gruppe
+    __Gruppenname__
+    Dauer der Betreuung
+entität Kind
+    __Vorname__
+    __Nachname__
+    Alter
+    Besonderheit
+    Art des Mittagessens
+entität Person
+    Vorname
+    Name
+    Handynummer
+entität Adresse
+    Festnetznummer
+    Faxnummer
+entität MitarbeitendeR
+MitarbeitendeR 1 - ist - 1 Person
+MitarbeitendeR n - arbeitet in - 1 Gruppe
+Kind n - gehtIn - 1 Gruppe
+Person n - hat - n Adresse
+Person n - ist sorgeberechtigt für - n Kind
+Person n - ist abholberechtigt für - n Kind
+Person n - ist im Notfall ansprechbar für - n Kind"""
+
+
+def _er_routes(content: str):
+    """Modell, Anordnung und rechtwinklige Kantenwege eines ER-Diagramms."""
+    model, _ = parse_er(content)
+    layout = arrange(model)
+    sizes = {name: shape_size(node) for name, node in model.nodes.items()}
+    return model, layout, route_edges(sizes, layout.centers, relation_groups(model))
+
+
+def test_er_layout_is_flat_and_free_of_crossings():
+    """Flach statt hoch, keine Kante kreuzt oder überdeckt eine andere oder läuft durch eine Form."""
+    for content in (GO_ER_DIAGRAM, KITA):
+        model, layout, routes = _er_routes(content)
+        assert layout.width > 2 * layout.height
+        segments = [(key, pair) for key, points in routes.items() for pair in zip(points, points[1:])]
+        for index, (key, segment) in enumerate(segments):
+            for other_key, other in segments[index + 1:]:
+                assert key == other_key or not segments_overlap(segment, other)
+                assert key[0] == other_key[0] or key[1] == other_key[1] or not segments_cross(segment, other)
+            for name, node in model.nodes.items():
+                if name in layout.centers and name not in key:
+                    assert not segment_hits_rect(segment, (*layout.centers[name], *shape_size(node)))
+
+
+def test_er_parallel_relations_fan_out_and_edges_end_at_diamond_corners():
+    """Drei Beziehungen zwischen Person und Kind liegen nebeneinander; Kanten sind rechtwinklig und enden an Ecken."""
+    model, layout, routes = _er_routes(KITA)
+    fan = next(relations for first, second, relations in relation_groups(model) if {first, second} == {"Person", "Kind"})
+    rects = [(*layout.centers[name], *shape_size(model.nodes[name])) for name in fan]
+    assert len(rects) == 3
+    assert not any(rects_overlap(a, b) for i, a in enumerate(rects) for b in rects[i + 1:])
+    for (_entity, relation), points in routes.items():
+        cx, cy = layout.centers[relation]
+        width, height = shape_size(model.nodes[relation])
+        assert points[-1] in {(cx - width / 2, cy), (cx + width / 2, cy), (cx, cy - height / 2), (cx, cy + height / 2)}
+        assert all(abs(a[0] - b[0]) < 1e-6 or abs(a[1] - b[1]) < 1e-6 for a, b in zip(points, points[1:]))
+
+
+def test_er_cardinalities_and_attributes_do_not_overlap():
+    """Kein Oval und keine Kardinalität überdeckt ein anderes Element (Rechtecke aus dem SVG)."""
+    html = render_diagram_block("erdiagram", {}, KITA)
+    boxes = [tuple(float(v) for v in match) for match in re.findall(r"<foreignObject x='([-\d.]+)' y='([-\d.]+)' width='([\d.]+)' height='([\d.]+)'", html)]
+    centred = [(x + w / 2, y + h / 2, w - 8, h - 4) for x, y, w, h in boxes]
+    assert not [(a, b) for i, a in enumerate(centred) for b in centred[i + 1:] if rects_overlap(a, b)]
+
+
+def test_route_helpers_detect_crossings_overlaps_and_corners():
+    """Geometrie-Helfer: echte Kreuzung, aufeinanderliegende Strecken, Rechtecktreffer, Rautenecke."""
+    assert segments_cross(((0, 0), (10, 10)), ((0, 10), (10, 0)))
+    assert not segments_cross(((0, 0), (10, 0)), ((10, 0), (20, 5)))
+    assert segments_overlap(((0, 0), (0, 10)), ((0, 5), (0, 20)))
+    assert not segments_overlap(((0, 0), (0, 10)), ((0, 10), (0, 20)))
+    assert segment_hits_rect(((-10, 0), (10, 0)), (0, 0, 4, 4))
+    assert not segment_hits_rect(((-10, 5), (10, 5)), (0, 0, 4, 4))
+    assert diamond_corner(0, 0, 30, 20, (100, 10)) == (30, 0)
+    assert diamond_corner(0, 0, 30, 20, (100, 10), taken=[(30, 0)]) == (0, 20)
 
 
 def test_state_parses_start_ends_and_merges_parallel_transitions():

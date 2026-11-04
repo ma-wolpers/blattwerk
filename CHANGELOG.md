@@ -7,6 +7,7 @@ The format is based on Keep a Changelog.
 ## [Unreleased]
 
 ### Changed
+- **ER-Diagramme (`:::erdiagram`) sind aufgeräumt wie im GO-Beispiel:** Linien laufen rechtwinklig und enden an den Ecken der Beziehungsrauten; stehen zwei Entitäten schräg zueinander, sitzt die Raute im Knick eines L. Die Anordnung ist möglichst flach und vermeidet Kreuzungen und Linien durch fremde Formen. Mehrere Beziehungen zwischen denselben Entitäten (etwa „ist sorgeberechtigt für“ und „ist abholberechtigt für“) stehen nebeneinander statt übereinander. Attribute, Kardinalitäten und ihre Linien überdecken nichts mehr. Bestehende ER-Diagramme sehen dadurch beim nächsten Export anders aus.
 - **Überschriften im Text sehen nicht mehr aus wie der Dokumenttitel.** Auf Arbeitsblättern und in Klausuren rückt jede Markdown-Überschrift eine Ebene tiefer: `#` erscheint so groß wie bisher `##`, `##` wie `###` usw. (`#####` und `######` sind beide die kleinste Stufe). Der `Titel` aus dem Kopf ist damit die einzige oberste Überschrift. Präsentationen bleiben unverändert, weil der Titel dort nur in der Kopfzeile steht. Schlichte `.md`-Dateien rücken nur, wenn sie einen `Titel` haben.
 
 ## [0.5.0] - 2026-11-02

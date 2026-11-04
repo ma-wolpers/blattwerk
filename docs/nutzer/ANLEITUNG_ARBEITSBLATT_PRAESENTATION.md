@@ -324,7 +324,7 @@ Keine Optionen.
 
 ### `erdiagram`
 
-ER-Diagramm in der Gestalt der zentralen Prüfungsaufgaben (GO Informatik, S. 8). `entität Name` beginnt eine Entität, die eingerückten Zeilen sind ihre Attribute; `__Name__` unterstreicht ein Schlüsselattribut. Beziehungen stehen in kurzen Zeilen wie beim Klassendiagramm: `Klasse 1 - gehoertZu - n Schueler`, eingerückte Zeilen darunter sind Attribute der Beziehung. Rekursive Beziehungen schreibt man `Schueler 1 - istPateVon - 1 Schueler`. Die Anordnung entsteht automatisch. Lücken: `%` nach der Einrückung bei Attributen, `%{1}` bei Kardinalitäten.
+ER-Diagramm in der Gestalt der zentralen Prüfungsaufgaben (GO Informatik, S. 8). `entität Name` beginnt eine Entität, die eingerückten Zeilen sind ihre Attribute; `__Name__` unterstreicht ein Schlüsselattribut. Beziehungen stehen in kurzen Zeilen wie beim Klassendiagramm: `Klasse 1 - gehoertZu - n Schueler`, eingerückte Zeilen darunter sind Attribute der Beziehung. Rekursive Beziehungen schreibt man `Schueler 1 - istPateVon - 1 Schueler`. Die Anordnung entsteht automatisch: möglichst flach, ohne Kreuzungen, mit rechtwinkligen Linien, die an den Rautenecken enden. Mehrere Beziehungen zwischen denselben Entitäten stehen nebeneinander. Lücken: `%` nach der Einrückung bei Attributen, `%{1}` bei Kardinalitäten.
 
 | Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
 |---|---|---|---|---|---|
