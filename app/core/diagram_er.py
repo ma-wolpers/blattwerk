@@ -24,7 +24,9 @@ from dataclasses import dataclass, field
 from functools import lru_cache
 
 from .diagram_edges import parse_edge_line
-from .diagram_er_layout import RING_GAP, arrange, attribute_box, oval_size, recursive_pairs, relation_groups, route_edges, shape_size, title_box
+from .diagram_er_layout import arrange, recursive_pairs, relation_groups
+from .diagram_er_route import route_edges
+from .diagram_er_shapes import RING_GAP, attribute_box, oval_size, shape_size, title_box
 from .diagram_layout import Layout
 from .diagram_route import Box, box_exit, diamond_corner, rects_overlap, segment_hits_rect, segments_cross
 from .diagram_svg import LINE_HEIGHT, Canvas, text_width

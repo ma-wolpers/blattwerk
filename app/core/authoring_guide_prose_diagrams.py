@@ -103,7 +103,7 @@ DIAGRAM_PROSE_SECTIONS: dict[str, str] = {
         "Schlüsselattribut. Beziehungen stehen in kurzen Zeilen wie beim Klassendiagramm: "
         "`Klasse 1 - gehoertZu - n Schueler`, eingerückte Zeilen darunter sind Attribute der Beziehung. "
         "Rekursive Beziehungen schreibt man `Schueler 1 - istPateVon - 1 Schueler`. Die Anordnung entsteht "
-        "automatisch: breiter als hoch, sodass es eine Folie gut füllt, ohne Kreuzungen, mit rechtwinkligen Linien, die an den Rautenecken "
+        "automatisch: kompakt und eher flach (passend für A4-Arbeitsblätter), ohne Kreuzungen, mit rechtwinkligen Linien, die an den Rautenecken "
         "enden. Mehrere Beziehungen zwischen denselben Entitäten stehen nebeneinander. Lange Namen brechen "
         "an Leerzeichen um. Gendergerechte Schreibweisen gehen in allen Namen: `Mitarbeiter*in`, "
         "`Mitarbeiter:in`, `Mitarbeiter_in`; Stern und Unterstrich mitten im Wort sind immer Zeichen, "

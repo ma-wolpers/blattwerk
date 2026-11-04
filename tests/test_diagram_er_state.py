@@ -7,7 +7,9 @@ import re
 from app.core.blatt_validator import inspect_markdown_text
 from app.core.diagram_block_dispatch import render_diagram_block
 from app.core.diagram_er import parse as parse_er
-from app.core.diagram_er_layout import arrange, relation_groups, route_edges, shape_size, title_box
+from app.core.diagram_er_layout import arrange, relation_groups
+from app.core.diagram_er_route import route_edges
+from app.core.diagram_er_shapes import shape_size, title_box
 from app.core.diagram_route import diamond_corner, rects_overlap, segment_hits_rect, segments_cross, segments_overlap
 from app.core.diagram_svg import balanced_lines
 from app.core.diagram_state import parse as parse_state
@@ -101,11 +103,11 @@ def _er_routes(content: str):
 
 
 def test_er_layout_is_flat_and_free_of_crossings():
-    """Breiter als hoch, aber nicht endlos breit (passt auf eine Folie); keine Kante kreuzt
-    oder überdeckt eine andere oder läuft durch eine Form."""
+    """Flach, aber kein einzeiliges Band; keine Kante kreuzt oder überdeckt eine andere oder
+    läuft durch eine Form."""
     for content in (GO_ER_DIAGRAM, KITA):
         model, layout, routes = _er_routes(content)
-        assert 1.5 * layout.height < layout.width < 2.5 * layout.height
+        assert 1.5 * layout.height < layout.width < 4 * layout.height
         segments = [(key, pair) for key, points in routes.items() for pair in zip(points, points[1:])]
         for index, (key, segment) in enumerate(segments):
             for other_key, other in segments[index + 1:]:
@@ -136,6 +138,18 @@ def test_er_cardinalities_and_attributes_do_not_overlap():
     boxes = [tuple(float(v) for v in match) for match in re.findall(r"<foreignObject x='([-\d.]+)' y='([-\d.]+)' width='([\d.]+)' height='([\d.]+)'", html)]
     centred = [(x + w / 2, y + h / 2, w - 8, h - 4) for x, y, w, h in boxes]
     assert not [(a, b) for i, a in enumerate(centred) for b in centred[i + 1:] if rects_overlap(a, b)]
+
+
+def test_er_kita_fits_two_rows_with_the_diagonal_relation_in_between():
+    """Person, Kind, Adresse, Gruppe stehen im 2x2-Raster; „arbeitet in“ sitzt schräg dazwischen
+    und erreicht obere und untere Rautenecke, ohne „hat“ oder „geht in“ zu berühren."""
+    model, layout, routes = _er_routes(KITA.replace("entität MitarbeitendeR\n", "").replace("MitarbeitendeR 1 - ist - 1 Person\n", "").replace("MitarbeitendeR n", "Person 1"))
+    rows = {round(layout.centers[name][1]) for name in ("Person", "Kind", "Adresse", "Gruppe")}
+    assert len(rows) == 2
+    works = next(name for name in model.nodes if name.startswith("arbeitet in"))
+    cx, cy = layout.centers[works]
+    height = shape_size(model.nodes[works])[1]
+    assert {routes[("Person", works)][-1], routes[("Gruppe", works)][-1]} == {(cx, cy - height / 2), (cx, cy + height / 2)}
 
 
 def test_er_gender_marks_stay_characters():

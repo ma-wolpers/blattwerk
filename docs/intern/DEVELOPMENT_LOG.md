@@ -8,6 +8,12 @@ Regel:
 
 ## [Unreleased]
 
+- **ER: kompakter, A4 statt Folie, Module geteilt (2026-11-04).** Zielverhältnis wieder 2,4 (1,9 war auf 16:9-Folien ausgelegt, ER-Diagramme stehen aber meist auf A4). Reine Fläche `sqrt(b*h)` als Maß verworfen: einzeiliges Band 1576x156. Die eigentliche Verschwendung kam aus der Geometrie:
+  - Platzbedarf nach Lage (`_print`): Attribute einer Raute zwischen Nachbarn in einer Zeile nur oben/unten, zwischen übereinander stehenden nur seitlich. „seitSchuljahr“ blähte sonst den Zeilenabstand auf.
+  - Zeilen und Spalten mit getrennter Ausdehnung davor/danach (`_axis`). Die rekursive Raute hängt auf der Seite mit weniger Beziehungen (`_loop_side`, jetzt in `_geometry` statt nachträglich), nur dort wird Platz reserviert.
+  - L-Wege starten ein Viertel der Seite von der zugewandten Ecke, nie in der Mitte: Dort lag sonst eine gerade Kante darauf (Kita: „arbeitet in“ auf „hat“). Neue Wegform Z (`_z_route`) für Rauten schräg zwischen zwei Entitäten, wenn beide L-Zellen belegt sind: über bzw. unter den Rauten des Zwischenraums in obere/untere Ecke; der Zeilenabstand hält dafür `APPROACH` frei. Damit wird das 2x2-Raster der Kita möglich: 1055x409 statt 1399x385. GO 1071x339, eigenes Schul-Beispiel 763x339.
+  - Aufgeteilt wegen der 300-Zeilen-Grenze: `diagram_er_shapes.py` (alle Formmaße, eine Quelle), `diagram_er_route.py` (Kantenführung), `diagram_er_layout.py` (Raster, Kosten, Suche).
+
 - **ER: Zielverhältnis 2,4 -> 1,9 (2026-11-04).** Mit 2,4 zählte Breite bis zu diesem Verhältnis als gratis, die Suche zog Entitäten auseinander, und auf der Folie blieb Fläche leer (Kita 1399x385, Maßstab 0,64 auf 900x470). 1,9 entspricht der Inhaltsfläche einer 16:9-Folie: Kita 993x539, Maßstab 0,87; Gender-Testfolie 0,69 -> 0,91; GO unverändert. Ein höheres Längengewicht (0,15/0,3) verkürzt Kanten, vergrößert aber die Fläche (Kita 1055x573), verworfen. Verbleibende Leerflächen sind eine GRENZE des Rasters: Die Fächerlücke zwischen zwei Spalten gilt für alle Zeilen.
 
 - **ER: Umbruch langer Namen, Gender-Schreibweisen (2026-11-04).**

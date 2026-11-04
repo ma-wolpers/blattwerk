@@ -1,16 +1,21 @@
 """Anordnung der ER-Diagramme: Entitäten im Raster, Beziehungsrauten in den Zwischenräumen.
 
-Warum kein Federmodell: Es kennt weder die Höhe noch Kreuzungen, und mehrere
-Beziehungen zwischen denselben Entitäten lägen deckungsgleich übereinander. Hier liegen
-die Entitäten auf Rasterzellen, und eine Suche vertauscht Zellen, solange die Kosten
-sinken. Die Kosten zählen Kanten durch fremde Formen, Kreuzungen, Überlappungen und vor
-allem die Höhe: ER-Diagramme sollen flach sein und dürfen dafür breiter werden.
+Warum kein Federmodell: Es kennt weder Fläche noch Kreuzungen, und mehrere Beziehungen
+zwischen denselben Entitäten lägen deckungsgleich übereinander. Hier liegen die
+Entitäten auf Rasterzellen, und eine Suche vertauscht Zellen, solange die Kosten sinken.
+Die Kosten zählen Kanten durch fremde Formen, Kreuzungen, Überlappungen und vor allem
+die wirksame Größe: ER-Diagramme stehen meist auf A4-Arbeitsblättern, sollen flach sein
+und dürfen dabei nicht so breit werden, dass die Schrift beim Einpassen winzig wird.
 
 Eine Raute steht mitten im Zwischenraum ihrer beiden Entitäten; stehen die Entitäten
 schräg zueinander, sitzt sie im Knick eines L wie im GO-Beispiel. Mehrere Beziehungen
 zwischen denselben Entitäten fächern sich auf: übereinander, wenn die Entitäten
-nebeneinander oder schräg stehen, nebeneinander, wenn sie übereinander stehen. Die
-Zwischenräume wachsen mit, damit die Rauten samt ihren Attributen Platz haben.
+nebeneinander oder schräg stehen, nebeneinander, wenn sie übereinander stehen.
+
+Platz wird nur reserviert, wo er gebraucht wird: Attribute einer Raute zwischen zwei
+Entitäten nebeneinander stehen über oder unter ihr, zwischen zwei übereinander stehenden
+daneben. Eine rekursive Raute hängt auf der Seite ihrer Entität, auf der weniger andere
+Beziehungen liegen, und nur dort wird Platz für sie reserviert.
 
 Rein und deterministisch: Startreihenfolge ist eine Breitensuche in Schreibreihenfolge,
 die Suche probiert Zellen in fester Reihenfolge.
@@ -21,117 +26,32 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 
+from .diagram_er_route import APPROACH, route_edges
+from .diagram_er_shapes import RECURSIVE_DROP, attribute_ring, shape_size
 from .diagram_layout import Layout
-from .diagram_route import Box, diamond_corner, rects_overlap, segment_hits_rect, segments_cross, segments_overlap
-from .diagram_svg import LINE_HEIGHT, balanced_lines, text_width
+from .diagram_route import rects_overlap, segment_hits_rect, segments_cross, segments_overlap
 
-ENTITY_HEIGHT = 32.0
-DIAMOND_HEIGHT = 42.0
-OVAL_HEIGHT = 28.0
-"""Höhe einzeiliger Formen; jede weitere Namenszeile macht sie höher."""
-_WRAP_ENTITY = 120.0
-_WRAP_OVAL = 150.0
-"""Textbreite, ab der der Name einer Entität bzw. ein Attribut umbricht (Rauten: `title_box`)."""
-RING_GAP = 15.0
-"""Abstand des Attributrings von seiner Form."""
-RECURSIVE_DROP = 34.0
-"""Abstand einer rekursiven Raute von ihrer Entität."""
 _PAD = 14.0
 """Luft zwischen einer Raute und den Formen neben ihr."""
 _MIN_GAP = 36.0
 _FAN_GAP = 10.0
-_INSET = 10.0
-"""Abstand eines L-Ansatzes in Fächern von der Entitätsecke, je Verschachtelung mehr."""
 _MAX_ROWS = 4
 _ROUNDS = 12
 _COST_HIT = 2000.0
 """Kante durch eine fremde Form: fast immer unlesbar."""
 _COST_OVERLAP = 2000.0
 _COST_CROSS = 500.0
-_ASPECT = 1.9
-"""Angestrebtes Verhältnis Breite zu Höhe: die Inhaltsfläche einer 16:9-Folie unter Titel und
-Fußzeile. Breiter als das schenkt keine Schriftgröße mehr, sondern lässt Fläche leer (2,4
-ergab beim Kita-Beispiel Maßstab 0,64 statt 0,87)."""
+_ASPECT = 2.4
+"""Breite, die so viel zählt wie eine Einheit Höhe: ER-Diagramme sollen flach sein, aber
+nicht so breit, dass sie auf A4 winzig werden. Reine Fläche (`sqrt(breite * höhe)`) als
+Maß ergab einzeilige Bandwürmer (1576x156)."""
 _COST_SIZE = 1.0
-"""Gewicht der wirksamen Größe `max(breite / _ASPECT, höhe)`; sie bestimmt, wie stark das
-Diagramm beim Einpassen schrumpft."""
+"""Gewicht der wirksamen Größe `max(breite / _ASPECT, höhe)`: So stark schrumpft das
+Diagramm beim Einpassen."""
 _COST_HEIGHT = 0.3
-"""Bei gleicher wirksamer Größe gewinnt das flachere Diagramm."""
+"""Bei ähnlicher Fläche gewinnt das flachere Diagramm."""
 _COST_LENGTH = 0.05
-"""Gleichstandsbrecher: verbundene Entitäten rücken zusammen. Bewusst klein, eine lange
-gerade Kante ist besser als ein höheres Diagramm."""
-
-
-def _box(lines: list[str]) -> tuple[float, int]:
-    """Breite der breitesten Zeile und Zeilenzahl."""
-    return max(text_width(line) for line in lines), len(lines)
-
-
-def _diamond_size(text_width_: float, lines: int) -> tuple[float, float]:
-    """Raute, in deren Seiten die Ecken des Textblocks gerade noch liegen.
-
-    Bedingung `(b/2) / B + (h/2) / H <= 1` für Textbreite `b`, Texthöhe `h` und die
-    Rautenhalbachsen `B`, `H`; jede weitere Zeile macht die Raute etwas höher.
-    """
-    height = DIAMOND_HEIGHT + (lines - 1) * LINE_HEIGHT * 1.5
-    return text_width_ / (1 - lines * LINE_HEIGHT / height) + 12, height
-
-
-def title_box(node) -> tuple[float, int]:
-    """Breite der breitesten Zeile und Zeilenzahl des Namens einer Entität oder Raute.
-
-    Entitäten brechen ab `_WRAP_ENTITY` um. Rauten nehmen ein oder zwei Zeilen, je
-    nachdem, was die kleinere Raute ergibt: Eine zweizeilige Raute braucht etwa die
-    doppelte Zeilenbreite, lohnt sich also nur, wenn sich der Name gut halbieren lässt.
-    """
-    if not node.diamond:
-        return _box(balanced_lines(node.title.text, _WRAP_ENTITY))
-    options = [_box(balanced_lines(node.title.text, 0.0, count)) for count in (1, 2)]
-    return min(options, key=lambda box: sum(_diamond_size(*box)))
-
-
-def attribute_box(cell) -> tuple[float, int]:
-    """Breite der breitesten Zeile und Zeilenzahl eines Attributs (ohne `__`)."""
-    return _box(balanced_lines(cell.text.replace("__", ""), _WRAP_OVAL))
-
-
-def shape_size(node) -> tuple[float, float]:
-    """Größe von Rechteck oder Raute ohne die Attribute, passend zum umbrochenen Namen."""
-    width, lines = title_box(node)
-    if node.diamond:
-        return _diamond_size(width, lines)
-    return max(width + 22, 64.0), ENTITY_HEIGHT + (lines - 1) * LINE_HEIGHT
-
-
-def oval_size(cell) -> tuple[float, float]:
-    """Größe eines Attribut-Ovals; mehrzeilig breiter, damit die Textecken im Oval bleiben."""
-    width, lines = attribute_box(cell)
-    if lines == 1:
-        return width + 22, OVAL_HEIGHT
-    return width * 1.3 + 22, OVAL_HEIGHT + (lines - 1) * LINE_HEIGHT * 1.2
-
-
-def footprint(node, recursive=None) -> tuple[float, float]:
-    """Äußere Größe inklusive Attributring und rekursiver Raute (`recursive`: deren Größe).
-
-    Das Layout hält diesen Platz frei, damit die Attribute später ringsum Platz finden:
-    seitlich das breiteste Oval auf der einen und das zweitbreiteste auf der anderen
-    Seite, darüber und darunter je eine Ovalhöhe. Eine rekursive Raute braucht oben und
-    unten mehr; Attribute weichen ihr seitlich aus, also zählt dort das Größere von beidem.
-    Reicht das im Einzelfall nicht, weicht die Attributplatzierung nach außen aus, und der
-    Rand wächst mit.
-    """
-    width, height = shape_size(node)
-    ovals = [oval_size(cell) for cell in node.attributes]
-    above = max(h for _w, h in ovals) + RING_GAP if ovals else 0.0
-    if recursive:
-        width = max(width, recursive[0] + width / 3)
-        above = max(above, RECURSIVE_DROP + recursive[1])
-    if not ovals:
-        return width, height + 2 * above
-    widths = sorted((w for w, _h in ovals), reverse=True)
-    sides = widths[0] + (widths[1] if len(widths) > 1 else widths[0])
-    return width + sides + 2 * RING_GAP, height + 2 * above
+"""Gleichstandsbrecher: verbundene Entitäten rücken zusammen."""
 
 
 def recursive_pairs(model) -> set[tuple[str, str]]:
@@ -142,23 +62,6 @@ def recursive_pairs(model) -> set[tuple[str, str]]:
         pair = (link.entity, link.relation)
         (repeated if pair in seen else seen).add(pair)
     return repeated
-
-
-@dataclass(frozen=True)
-class _Plan:
-    """Was die Suche über das Diagramm wissen muss.
-
-    Attributes:
-        entities: Entitäten im Raster, in Schreibreihenfolge.
-        sizes: Größe jeder Form im Raster (Entitäten und Rauten) ohne Attribute.
-        footprints: Platzbedarf jeder Form im Raster samt Attributen.
-        groups: `(a, b, rauten)` je Entitätspaar; rekursive Beziehungen fehlen.
-    """
-
-    entities: list[str]
-    sizes: dict[str, tuple[float, float]]
-    footprints: dict[str, tuple[float, float]]
-    groups: list[tuple[str, str, list[str]]]
 
 
 def relation_groups(model) -> list[tuple[str, str, list[str]]]:
@@ -177,33 +80,65 @@ def relation_groups(model) -> list[tuple[str, str, list[str]]]:
     return list(groups.values())
 
 
-def _plan(model) -> tuple[_Plan, set[tuple[str, str]]]:
-    """Sammelt Größen und Entitätspaare; liefert auch die rekursiven Paare."""
-    recursive = recursive_pairs(model)
-    hanging = {relation for _entity, relation in recursive}
-    loop_of = {entity: relation for entity, relation in recursive}
-    entities = [name for name, node in model.nodes.items() if not node.diamond]
-    sizes, footprints = {}, {}
-    for name, node in model.nodes.items():
-        if name in hanging:
-            continue
-        loop = loop_of.get(name)
-        sizes[name] = shape_size(node)
-        footprints[name] = footprint(node, shape_size(model.nodes[loop]) if loop else None)
-    return _Plan(entities, sizes, footprints, relation_groups(model)), recursive
+@dataclass(frozen=True)
+class _Plan:
+    """Was die Suche über das Diagramm wissen muss.
+
+    Attributes:
+        entities: Entitäten im Raster, in Schreibreihenfolge.
+        sizes: Formgröße jeder Entität und Raute ohne Attribute.
+        rings: Platz der Attribute je Form (`attribute_ring`).
+        groups: `(a, b, rauten)` je Entitätspaar; rekursive Beziehungen fehlen.
+        loops: Rekursive Raute je Entität.
+    """
+
+    entities: list[str]
+    sizes: dict[str, tuple[float, float]]
+    rings: dict[str, tuple[float, float]]
+    groups: list[tuple[str, str, list[str]]]
+    loops: dict[str, str]
 
 
-def _between(values, extents, gaps, first: int, second: int) -> float:
-    """Lage einer Raute auf einer Achse: Mitte der Zelle, des Zwischenraums oder der Strecke."""
-    if first == second:
-        return values[first]
-    low, high = min(first, second), max(first, second)
-    if high - low == 1:
-        return values[low] + extents[low] / 2 + gaps[low] / 2
-    return (values[first] + values[second]) / 2
+def _plan(model) -> _Plan:
+    """Sammelt Größen, Entitätspaare und rekursive Beziehungen."""
+    return _Plan(
+        [name for name, node in model.nodes.items() if not node.diamond],
+        {name: shape_size(node) for name, node in model.nodes.items()},
+        {name: attribute_ring(node) for name, node in model.nodes.items()},
+        relation_groups(model),
+        {entity: relation for entity, relation in recursive_pairs(model)},
+    )
 
 
-def _fan(plan: _Plan, relations, sideways: bool) -> tuple[list[float], tuple[float, float]]:
+def _print(plan: _Plan, name: str, sideways: bool = True, upright: bool = True) -> tuple[float, float]:
+    """Platzbedarf einer Form samt Attributen, die daneben (`sideways`) bzw. darüber und darunter (`upright`) stehen."""
+    (width, height), (sides, above) = plan.sizes[name], plan.rings[name]
+    return width + (sides if sideways else 0.0), height + (2 * above if upright else 0.0)
+
+
+def _loop_side(plan: _Plan, entity: str, row_of) -> int:
+    """Seite der rekursiven Raute: oben (-1), wenn unten mehr Beziehungen liegen, sonst unten (+1)."""
+    partners = [other for first, second, _relations in plan.groups for here, other in ((first, second), (second, first)) if here == entity]
+    below = sum(1 for other in partners if row_of[other] > row_of[entity])
+    above = sum(1 for other in partners if row_of[other] < row_of[entity])
+    return -1 if below > above else 1
+
+
+def _entity_extent(plan: _Plan, entity: str, side: int) -> tuple[float, float, float]:
+    """Halbe Breite sowie Platz über und unter der Entität; die rekursive Raute nur auf `side`."""
+    width, height = _print(plan, entity)
+    loop = plan.loops.get(entity)
+    if not loop:
+        return width / 2, height / 2, height / 2
+    (shape_w, shape_h), above = plan.sizes[entity], plan.rings[entity][1]
+    loop_w, loop_h = plan.sizes[loop]
+    hanging = shape_h / 2 + max(above, RECURSIVE_DROP + loop_h)
+    rest = shape_h / 2 + above
+    half = max(width, loop_w + shape_w / 3) / 2
+    return (half, hanging, rest) if side < 0 else (half, rest, hanging)
+
+
+def _fan(prints, relations, sideways: bool) -> tuple[list[float], tuple[float, float]]:
     """Versatz jeder Raute eines Fächers längs der Fächerachse und Platzbedarf `(breite, höhe)`.
 
     `sideways` legt die Rauten nebeneinander statt übereinander. Bei ungerader Zahl sitzt
@@ -212,7 +147,7 @@ def _fan(plan: _Plan, relations, sideways: bool) -> tuple[list[float], tuple[flo
     Der Platzbedarf ist symmetrisch um die Linie, also die weiter ausladende Seite doppelt.
     """
     axis = 0 if sideways else 1
-    sizes = [plan.footprints[relation] for relation in relations]
+    sizes = [prints[relation] for relation in relations]
     offsets, cursor = [], 0.0
     for size in sizes:
         offsets.append(cursor + size[axis] / 2)
@@ -225,12 +160,27 @@ def _fan(plan: _Plan, relations, sideways: bool) -> tuple[list[float], tuple[flo
 
 
 def _axis(extents, gaps) -> tuple[list[float], float]:
-    """Mittelpunkte aufeinanderfolgender Spalten oder Zeilen und ihre Gesamtlänge."""
+    """Mittelpunkte aufeinanderfolgender Spalten oder Zeilen aus `(davor, danach)` und ihre Gesamtlänge."""
     values, cursor = [], 0.0
-    for index, extent in enumerate(extents):
-        values.append(cursor + extent / 2)
-        cursor += extent + (gaps[index] if index < len(gaps) else 0.0)
+    for index, (before, after) in enumerate(extents):
+        values.append(cursor + before)
+        cursor += before + after + (gaps[index] if index < len(gaps) else 0.0)
     return values, cursor
+
+
+def _between(values, extents, gaps, first: int, second: int) -> float:
+    """Lage einer Raute auf einer Achse: Mitte der Zelle, des Zwischenraums oder der Strecke."""
+    if first == second:
+        return values[first]
+    low, high = min(first, second), max(first, second)
+    if high - low == 1:
+        return values[low] + extents[low][1] + gaps[low] / 2
+    return (values[first] + values[second]) / 2
+
+
+def _grow(extent: list[float], before: float, after: float) -> None:
+    """Vergrößert `[davor, danach]` einer Spalte oder Zeile, wo nötig."""
+    extent[0], extent[1] = max(extent[0], before), max(extent[1], after)
 
 
 def _corner_cells(plan: _Plan, col_of, row_of) -> list[tuple[int, int] | None]:
@@ -253,51 +203,66 @@ def _corner_cells(plan: _Plan, col_of, row_of) -> list[tuple[int, int] | None]:
     return cells
 
 
-def _geometry(plan: _Plan, cells) -> Layout:
-    """Mittelpunkte aller Formen im Raster; leere Spalten und Zeilen entfallen."""
+def _geometry(plan: _Plan, cells) -> tuple[Layout, dict[str, tuple[float, float]]]:
+    """Mittelpunkte aller Formen im Raster; leere Spalten und Zeilen entfallen.
+
+    Returns:
+        `Layout` mit Entitäten, Rauten und rekursiven Rauten sowie der Platzbedarf jeder
+        nicht rekursiven Raute, so wie ihre Lage ihn ergibt.
+    """
     cols = sorted({col for _row, col in cells.values()})
     rows = sorted({row for row, _col in cells.values()})
     col_of = {entity: cols.index(cells[entity][1]) for entity in plan.entities}
     row_of = {entity: rows.index(cells[entity][0]) for entity in plan.entities}
-    widths, heights = [0.0] * len(cols), [0.0] * len(rows)
+    col_extents, row_extents = [[0.0, 0.0] for _ in cols], [[0.0, 0.0] for _ in rows]
+    sides = {entity: _loop_side(plan, entity, row_of) for entity in plan.loops}
     for entity in plan.entities:
-        widths[col_of[entity]] = max(widths[col_of[entity]], plan.footprints[entity][0])
-        heights[row_of[entity]] = max(heights[row_of[entity]], plan.footprints[entity][1])
+        half, up, down = _entity_extent(plan, entity, sides.get(entity, 1))
+        _grow(col_extents[col_of[entity]], half, half)
+        _grow(row_extents[row_of[entity]], up, down)
     corner_cells = _corner_cells(plan, col_of, row_of)
     col_gaps, row_gaps = [_MIN_GAP] * (len(cols) - 1), [_MIN_GAP] * (len(rows) - 1)
+    prints: dict[str, tuple[float, float]] = {}
     for (first, second, relations), corner in zip(plan.groups, corner_cells):
         (left, right), (top, bottom) = sorted((col_of[first], col_of[second])), sorted((row_of[first], row_of[second]))
-        fan_width, fan_height = _fan(plan, relations, sideways=left == right)[1]
+        free = corner is not None or (left != right and top != bottom)
+        for relation in relations:
+            prints[relation] = _print(plan, relation, sideways=free or left == right, upright=free or top == bottom)
+        fan_width, fan_height = _fan(prints, relations, sideways=left == right)[1]
         if corner is not None:
-            widths[corner[0]] = max(widths[corner[0]], fan_width)
-            heights[corner[1]] = max(heights[corner[1]], fan_height)
+            _grow(col_extents[corner[0]], fan_width / 2, fan_width / 2)
+            _grow(row_extents[corner[1]], fan_height / 2, fan_height / 2)
             continue
         if left == right:
-            widths[left] = max(widths[left], fan_width)
+            _grow(col_extents[left], fan_width / 2, fan_width / 2)
         elif right - left == 1:
             col_gaps[left] = max(col_gaps[left], fan_width + 2 * _PAD)
         if top == bottom:
-            heights[top] = max(heights[top], fan_height)
+            _grow(row_extents[top], fan_height / 2, fan_height / 2)
         elif bottom - top == 1:
-            row_gaps[top] = max(row_gaps[top], fan_height + 2 * _PAD)
-    xs, width = _axis(widths, col_gaps)
-    ys, height = _axis(heights, row_gaps)
+            approach = 2 * APPROACH if left != right else 0.0
+            row_gaps[top] = max(row_gaps[top], fan_height + 2 * _PAD + approach)
+    xs, width = _axis(col_extents, col_gaps)
+    ys, height = _axis(row_extents, row_gaps)
     centers = {entity: (xs[col_of[entity]], ys[row_of[entity]]) for entity in plan.entities}
     for (first, second, relations), corner in zip(plan.groups, corner_cells):
         if corner is not None:
             x, y = xs[corner[0]], ys[corner[1]]
         else:
-            x = _between(xs, widths, col_gaps, col_of[first], col_of[second])
-            y = _between(ys, heights, row_gaps, row_of[first], row_of[second])
+            x = _between(xs, col_extents, col_gaps, col_of[first], col_of[second])
+            y = _between(ys, row_extents, row_gaps, row_of[first], row_of[second])
         sideways = col_of[first] == col_of[second]
-        for relation, offset in zip(relations, _fan(plan, relations, sideways)[0]):
+        for relation, offset in zip(relations, _fan(prints, relations, sideways)[0]):
             centers[relation] = (x + offset, y) if sideways else (x, y + offset)
-    return Layout(centers, width, height)
+    for entity, loop in plan.loops.items():
+        x, y = centers[entity]
+        centers[loop] = (x, y + sides[entity] * (plan.sizes[entity][1] / 2 + RECURSIVE_DROP + plan.sizes[loop][1] / 2))
+    return Layout(centers, width, height), prints
 
 
 def _cost(plan: _Plan, cells) -> float:
     """Bewertet eine Belegung; kleiner ist besser (Gewichte siehe `_COST_*`)."""
-    layout = _geometry(plan, cells)
+    layout, prints = _geometry(plan, cells)
     centers = layout.centers
     routes = route_edges(plan.sizes, centers, plan.groups)
     segments = [(relation, entity, segment) for (entity, relation), points in routes.items() for segment in zip(points, points[1:])]
@@ -310,75 +275,14 @@ def _cost(plan: _Plan, cells) -> float:
         if (relation != other_relation and entity != other_entity and segments_cross(segment, other))
         or ((relation, entity) != (other_relation, other_entity) and segments_overlap(segment, other))
     )
-    spots = [(name, (*centers[name], *plan.footprints[name])) for name in centers]
-    overlaps = sum(1 for index, (name, rect) in enumerate(spots) for other_name, other in spots[index + 1:] if (name not in cells or other_name not in cells) and rects_overlap(rect, other))
+    spots = [(name, (*centers[name], *_print(plan, name))) for name in plan.entities]
+    spots += [(name, (*centers[name], *size)) for name, size in prints.items()]
+    overlaps = sum(1 for index, (name, rect) in enumerate(spots) for other_name, other in spots[index + 1:] if (name in prints or other_name in prints) and rects_overlap(rect, other))
     length = sum(math.dist(*segment) for _relation, _entity, segment in segments)
     return (
         _COST_HIT * hits + _COST_OVERLAP * overlaps + _COST_CROSS * crossings
         + _COST_SIZE * max(layout.width / _ASPECT, layout.height) + _COST_HEIGHT * layout.height + _COST_LENGTH * length
     )
-
-
-def _corner_for(size, center, entity, other, taken) -> tuple[tuple[float, float], bool]:
-    """Rautenecke der Kante zu `entity` und ob die Kante dort waagerecht ankommt.
-
-    Liegt die Raute zwischen ihren beiden Entitäten, zeigen die Ecken zu ihnen (links und
-    rechts bzw. oben und unten); sonst gewinnt die freie Ecke in Richtung der Entität.
-    """
-    (rx, ry), (width, height) = center, size
-    if (entity[0] - rx) * (other[0] - rx) < 0 and abs(entity[0] - rx) > width / 2:
-        return (rx + math.copysign(width / 2, entity[0] - rx), ry), True
-    if (entity[1] - ry) * (other[1] - ry) < 0 and abs(entity[1] - ry) > height / 2:
-        return (rx, ry + math.copysign(height / 2, entity[1] - ry)), False
-    corner = diamond_corner(rx, ry, width / 2, height / 2, entity, taken)
-    return corner, corner[1] == ry
-
-
-def _orthogonal(box: Box, corner, horizontal: bool, inset: float | None) -> list[tuple[float, float]]:
-    """Rechtwinkliger Weg vom Rand der Entität zur Rautenecke (GO).
-
-    Gerade, wenn die Ecke irgendwo neben der Entität liegt (waagerechte Ankunft) bzw.
-    über oder unter ihr, auch knapp an deren Ecke: Ein L mit Stummel wäre schlimmer. Sonst ein L aus der Ober- oder Unterseite bzw. aus der Seite, `inset` von
-    der Ecke der Entität entfernt, ohne `inset` aus der Mitte.
-    """
-    cx, cy = corner
-    if horizontal:
-        if box.top < cy < box.bottom:
-            return [(box.right if cx > box.cx else box.left, cy), corner]
-        step = min(inset or box.width / 2, box.width / 2)
-        x = box.right - step if cx > box.cx else box.left + step
-        return [(x, box.bottom if cy > box.cy else box.top), (x, cy), corner]
-    if box.left < cx < box.right:
-        return [(cx, box.bottom if cy > box.cy else box.top), corner]
-    step = min(inset or box.height / 2, box.height / 2)
-    y = box.bottom - step if cy > box.cy else box.top + step
-    return [(box.right if cx > box.cx else box.left, y), (cx, y), corner]
-
-
-def route_edges(sizes, centers, groups) -> dict[tuple[str, str], list[tuple[float, float]]]:
-    """Rechtwinklige Wege aller nicht rekursiven Kanten je `(entität, raute)`.
-
-    Die Suche bewertet genau diese Wege, die Zeichnung zeichnet sie: So sieht die
-    Bewertung dasselbe wie das Blatt. Rauten eines Fächers, die nicht auf Höhe der Entität
-    liegen, erreicht ein L aus Ober- oder Unterseite; äußere Rauten setzen weiter innen an,
-    so umschließen ihre L die inneren, ohne sie zu kreuzen.
-
-    Args:
-        sizes: Formgröße je Entität und Raute.
-        centers: Mittelpunkte.
-        groups: `relation_groups`.
-    """
-    routes = {}
-    for first, second, relations in groups:
-        middle = (len(relations) - 1) / 2
-        for index, relation in enumerate(relations):
-            inset = _INSET * max(1, math.ceil(abs(index - middle))) if len(relations) > 1 else None
-            taken: list[tuple[float, float]] = []
-            for entity, other in ((first, second), (second, first)):
-                corner, horizontal = _corner_for(sizes[relation], centers[relation], centers[entity], centers[other], taken)
-                taken.append(corner)
-                routes[(entity, relation)] = _orthogonal(Box(*centers[entity], *sizes[entity]), corner, horizontal, inset)
-    return routes
 
 
 def _start_order(plan: _Plan) -> list[str]:
@@ -424,16 +328,6 @@ def _climb(plan: _Plan, cells, slots) -> tuple[float, dict]:
     return cost, cells
 
 
-def _hang_recursive(model, centers, recursive) -> None:
-    """Rekursive Rauten unter oder über ihre Entität, weg von deren übrigen Beziehungen."""
-    for entity, relation in recursive:
-        x, y = centers[entity]
-        others = [centers[link.relation][1] for link in model.links if link.entity == entity and link.relation in centers and link.relation != relation]
-        side = -1 if others and sum(others) / len(others) > y else 1
-        drop = shape_size(model.nodes[entity])[1] / 2 + RECURSIVE_DROP + shape_size(model.nodes[relation])[1] / 2
-        centers[relation] = (x, y + side * drop)
-
-
 def _starts(order: list[str], rows: int) -> list[dict[str, tuple[int, int]]]:
     """Startbelegungen für `rows` Zeilen: zeilenweise und schlangenförmig.
 
@@ -450,7 +344,7 @@ def _starts(order: list[str], rows: int) -> list[dict[str, tuple[int, int]]]:
 
 
 def arrange(model) -> Layout:
-    """Ordnet das ER-Diagramm flach an: wenige Zeilen, keine Kanten durch Formen, wenige Kreuzungen.
+    """Ordnet das ER-Diagramm kompakt an: keine Kanten durch Formen, wenige Kreuzungen.
 
     Probiert ein bis `_MAX_ROWS` Zeilen, jeweils mit einer freien Spalte als Spielraum, und
     Startreihenfolgen aus Breitensuche und Schreibreihenfolge; die günstigste Belegung gewinnt.
@@ -459,7 +353,7 @@ def arrange(model) -> Layout:
         `Layout` mit Mittelpunkten aller Entitäten und Rauten; der Ursprung liegt an der
         linken oberen Ecke des freigehaltenen Platzes, Ränder fügt der Aufrufer hinzu.
     """
-    plan, recursive = _plan(model)
+    plan = _plan(model)
     orders = [_start_order(plan)]
     if plan.entities != orders[0]:
         orders.append(list(plan.entities))
@@ -471,7 +365,4 @@ def arrange(model) -> Layout:
             result = _climb(plan, start, slots)
             if best is None or result[0] < best[0] - 1e-6:
                 best = result
-    layout = _geometry(plan, best[1])
-    centers = dict(layout.centers)
-    _hang_recursive(model, centers, recursive)
-    return Layout(centers, layout.width, layout.height)
+    return _geometry(plan, best[1])[0]
