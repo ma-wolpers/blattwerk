@@ -35,7 +35,7 @@ def _operator_pattern(operators) -> re.Pattern:
     return re.compile("|".join(alternatives))
 
 
-def parse_edge_line(text: str, operators) -> EdgeLine | None:
+def parse_edge_line(text: str, operators, labels: bool = True) -> EdgeLine | None:
     """Zerlegt eine Beziehungszeile.
 
     Der erste Doppelpunkt trennt die Beschriftung ab; Operatoren dahinter zählen nicht
@@ -44,11 +44,13 @@ def parse_edge_line(text: str, operators) -> EdgeLine | None:
     Args:
         text: Zeile ohne Einrückung und Marker.
         operators: Erlaubte Operatoren des Blocks.
+        labels: Ob der Block Beschriftungen kennt. Ohne bleibt ein Doppelpunkt Teil des
+            Namens (ER-Diagramm: `Mitarbeiter:in`).
 
     Returns:
         `EdgeLine`, oder `None`, wenn die Zeile keine vollständige Beziehung ist.
     """
-    head, _colon, label = str(text).partition(":")
+    head, _colon, label = str(text).partition(":") if labels else (str(text), "", "")
     names: list[str] = []
     found: list[str] = []
     position = 0

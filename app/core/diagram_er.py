@@ -24,7 +24,7 @@ from dataclasses import dataclass, field
 from functools import lru_cache
 
 from .diagram_edges import parse_edge_line
-from .diagram_er_layout import OVAL_HEIGHT, RING_GAP, arrange, oval_size, recursive_pairs, relation_groups, route_edges, shape_size
+from .diagram_er_layout import RING_GAP, arrange, attribute_box, oval_size, recursive_pairs, relation_groups, route_edges, shape_size, title_box
 from .diagram_layout import Layout
 from .diagram_route import Box, box_exit, diamond_corner, rects_overlap, segment_hits_rect, segments_cross
 from .diagram_svg import LINE_HEIGHT, Canvas, text_width
@@ -117,7 +117,7 @@ def parse(content) -> tuple[ErModel, list[ParseIssue]]:
             current = ErNode(name, make_cell(name, source.show))
             model.nodes[name] = current
             continue
-        edge = parse_edge_line(source.text, ("-",))
+        edge = parse_edge_line(source.text, ("-",), labels=False)
         if edge is None:
             issues.append(ParseIssue("ER002", "error", source.number, "Erwartet `entität Name` oder `A 1 - beziehung - n B`."))
             current = None
@@ -284,6 +284,18 @@ def _attribute_blocks(routes) -> dict[str, list[float]]:
     return blocked
 
 
+def _wrapped_label(canvas: Canvas, cell: Cell, cx, cy, shape_width: float, box: tuple[float, int]) -> None:
+    """Beschriftung einer Form; mehrzeilig in der Breite der breitesten geschätzten Zeile.
+
+    Einzeilig bleibt das Feld so breit wie die Form und bricht nie um.
+    """
+    text_width_, lines = box
+    if lines == 1:
+        canvas.label(cell, cx, cy, shape_width)
+    else:
+        canvas.label(cell, cx, cy, text_width_ + 6, lines * LINE_HEIGHT, wrap=True)
+
+
 @lru_cache(maxsize=32)
 def _arrangement(content: str) -> Layout:
     """Anordnung je Blockinhalt; Arbeitsblatt- und Lösungsfassung teilen sie.
@@ -343,12 +355,13 @@ def render(options, content, include_solutions=False) -> str:
             canvas.polygon([(cx, cy - height / 2), (cx + width / 2, cy), (cx, cy + height / 2), (cx - width / 2, cy)], "diagram-tone-4")
         else:
             canvas.rect(cx, cy, width, height, css="diagram-tone-3")
-        canvas.label(node.title, cx, cy, width)
+        _wrapped_label(canvas, node.title, cx, cy, width, title_box(node))
     for cell, (x, y, width, _height) in cards:
         canvas.label(cell, x - left, y - top, width + 8)
     for _owner, cell, x, y, width in ovals:
-        canvas.ellipse(x - left, y - top, width / 2, OVAL_HEIGHT / 2, "diagram-tone-1" if "__" in cell.text else "diagram-shape diagram-lift")
-        canvas.label(cell, x - left, y - top, width, LINE_HEIGHT)
+        height = oval_size(cell)[1]
+        canvas.ellipse(x - left, y - top, width / 2, height / 2, "diagram-tone-1" if "__" in cell.text else "diagram-shape diagram-lift")
+        _wrapped_label(canvas, cell, x - left, y - top, width, attribute_box(cell))
     right = max(x + w / 2 for x, _y, w, _h in placed) + _MARGIN
     bottom = max(y + h / 2 for _x, y, _w, h in placed) + _MARGIN
     return canvas.finish("erdiagram", options, right - left, bottom - top)

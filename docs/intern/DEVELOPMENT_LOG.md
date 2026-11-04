@@ -8,6 +8,13 @@ Regel:
 
 ## [Unreleased]
 
+- **ER: Umbruch langer Namen, Gender-Schreibweisen (2026-11-04).**
+  - `diagram_svg.balanced_lines`: Umbruch nur an Leerzeichen in möglichst wenige, gleich breite Zeilen (alle Schnittkombinationen, Namen sind kurz). Gesetzt wird mit `wrap=True` in der Breite der breitesten *geschätzten* Zeile; `text_width` schätzt eher zu groß, also bricht der Browser höchstens so oft um.
+  - `diagram_er_layout.title_box`/`attribute_box`: Entitäten ab 120 px, Attribute ab 150 px. Rauten wählen 1 oder 2 Zeilen nach kleinerer Summe aus Breite und Höhe (`_diamond_size`: Textblock-Ecken in den Rautenseiten). Eine feste Schwelle machte „ist sorgeberechtigt / für“ größer statt kleiner.
+  - Fächer (`_fan`): Bei ungerader Zahl sitzt die mittlere Raute auf der Verbindungslinie. Zentrieren des ganzen Stapels versetzte sie bei ungleich hohen Rauten, ihre Kante bekam ein 3-px-L. `_orthogonal` läuft gerade, sobald die Ecke zwischen den Entitätskanten liegt (`_ALIGN` entfällt).
+  - `parse_edge_line(..., labels=False)` für ER: Der Doppelpunkt bleibt im Namen (`Mitarbeiter:in`). Andere Blöcke behalten Beschriftungen.
+  - `diagram_text.render_cell`: `*`/`_` zwischen Buchstaben oder Ziffern bekommen den Backslash-Escape von `inline_markup/escaping.py`, und zwar erst hier, weil `make_cell` (Marker-Zerlegung) Backslashes schluckt. HTML-Entities gingen nicht: Der Run-Renderer escapt Text in formatierten Abschnitten (`__…__`) erneut. Gilt für alle Diagrammblöcke.
+
 - **ER-Layout neu: Raster mit Kostenfunktion statt Federmodell (2026-11-04).** `free_layout` kannte weder Höhe noch Kreuzungen, parallele Beziehungen (gleiches Entitätspaar) lagen deckungsgleich. Neues Modul `diagram_er_layout.py`, `free_layout` bleibt für `:::graph`/`:::networkdiagram`.
   - Entitäten auf Rasterzellen; Bergsteigen über Verschieben/Tauschen für 1–4 Zeilen (je eine Reservespalte) und mehrere deterministische Startbelegungen (Breitensuche zeilenweise/schlangenförmig, Schreibreihenfolge), weil von einer schlechten Belegung jeder Einzeltausch erst durch eine Kante quer durch eine Form führt.
   - Kosten: Kante durch fremde Form / Überlappung (2000), Kreuzung oder deckungsgleiche Strecken (500), wirksame Größe `max(breite / 2.4, höhe)` plus 0,3 × Höhe (Nutzerwunsch: vertikal reduziert, aber nicht endlos breit), Kantenlänge 0,05 als Gleichstandsbrecher. Höheres Längengewicht (0,15) getestet: rückt Entitäten zusammen, macht das Kita-Beispiel aber 15 % höher, verworfen.

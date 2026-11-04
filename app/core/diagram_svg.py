@@ -13,6 +13,7 @@ ist alles grau, und keine Farbe trägt allein Bedeutung. Der Hintergrund von For
 
 from __future__ import annotations
 
+import itertools
 import math
 import re
 from html import escape
@@ -48,6 +49,28 @@ def text_width(text: str) -> float:
     weit neben ihrer Kante.
     """
     return estimate_text_width(_MATH_RE.sub(_visible_math, str(text)), FONT_PX)
+
+
+def balanced_lines(text: str, limit: float, max_lines: int = 3) -> list[str]:
+    """Bricht `text` an Leerzeichen in möglichst wenige, möglichst gleich breite Zeilen.
+
+    Eine weitere Zeile kommt erst hinzu, wenn sonst eine Zeile breiter als `limit` wäre,
+    höchstens `max_lines`. Wörter bleiben ganz. Gleich breite Zeilen sehen in Rauten und
+    Ovalen ruhiger aus als der gierige Umbruch, der die erste Zeile vollstopft.
+
+    Die Zeilen dienen der Größenschätzung; gesetzt wird der ganze Text mit `wrap=True`
+    in der Breite der breitesten Zeile. Weil `text_width` eher zu groß schätzt, bricht
+    der Browser höchstens so oft um wie geschätzt.
+    """
+    words = str(text).split()
+    best = [" ".join(words)]
+    for count in range(2, min(max_lines, len(words)) + 1):
+        if max(text_width(line) for line in best) <= limit:
+            break
+        cuts = itertools.combinations(range(1, len(words)), count - 1)
+        splits = ([" ".join(words[a:b]) for a, b in zip((0, *cut), (*cut, len(words)))] for cut in cuts)
+        best = min(splits, key=lambda lines: max(text_width(line) for line in lines))
+    return best
 
 
 def width_style(options) -> str:

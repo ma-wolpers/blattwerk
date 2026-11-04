@@ -28,6 +28,9 @@ from .answer_line_markers import (
 from .inline_markup.spans import blank_comment_only_lines
 
 TAB_WIDTH = 4
+_INNER_MARK_RE = re.compile(r"(?<=[^\W_])([*_])(?=[^\W_])")
+"""`*` und `_` mitten im Wort (Buchstabe oder Ziffer davor und danach): `Kund*in`,
+`Kund_innen_nr`. Sie sind immer Zeichen, nie Formatierung (`render_cell` escapt sie)."""
 INDENTED_LINE_MARKER_RE = re.compile(r"^\s*([§%&])(?=\s|$)")
 """Zeilenmarker *nach* der Einrückung -- gilt nur im Inhalt von Diagrammblöcken.
 Gemeinsame Quelle für Editor-Highlighting (`blatt_ui_editor_highlight.py`); die
@@ -145,7 +148,11 @@ def render_cell(cell: Cell, include_solutions: bool) -> tuple[str, bool]:
     has_gap = False
     for show, text in _merged_segments(cell.segments):
         # Vor Markdown escapen: Bedingungen wie `a<b` dürfen nie als HTML-Tag gelesen werden.
-        fragment = _render_inline_markdown_fragment(escape(text, quote=False), inline_only=True)
+        # Gendersternchen und -unterstrich bekommen den Backslash-Escape erst hier, weil die
+        # Marker-Zerlegung in `make_cell` Backslashes schluckt. Sonst würde `Lehrer*innen und
+        # Schüler*innen` kursiv und `__Kund_innen_nr__` verlöre die Unterstreichung.
+        safe = _INNER_MARK_RE.sub(r"\\\1", escape(text, quote=False))
+        fragment = _render_inline_markdown_fragment(safe, inline_only=True)
         if not fragment:
             continue
         if include_solutions:

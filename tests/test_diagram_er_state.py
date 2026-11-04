@@ -7,8 +7,9 @@ import re
 from app.core.blatt_validator import inspect_markdown_text
 from app.core.diagram_block_dispatch import render_diagram_block
 from app.core.diagram_er import parse as parse_er
-from app.core.diagram_er_layout import arrange, relation_groups, route_edges, shape_size
+from app.core.diagram_er_layout import arrange, relation_groups, route_edges, shape_size, title_box
 from app.core.diagram_route import diamond_corner, rects_overlap, segment_hits_rect, segments_cross, segments_overlap
+from app.core.diagram_svg import balanced_lines
 from app.core.diagram_state import parse as parse_state
 from diagram_go_examples import GO_DFA, GO_ER_DIAGRAM, GO_MEALY, GO_PUSHDOWN
 
@@ -134,6 +135,32 @@ def test_er_cardinalities_and_attributes_do_not_overlap():
     boxes = [tuple(float(v) for v in match) for match in re.findall(r"<foreignObject x='([-\d.]+)' y='([-\d.]+)' width='([\d.]+)' height='([\d.]+)'", html)]
     centred = [(x + w / 2, y + h / 2, w - 8, h - 4) for x, y, w, h in boxes]
     assert not [(a, b) for i, a in enumerate(centred) for b in centred[i + 1:] if rects_overlap(a, b)]
+
+
+def test_er_gender_marks_stay_characters():
+    """`*`, `:` und `_` in Namen sprengen weder die Syntax noch werden sie Formatierung."""
+    content = (
+        "entität Mitarbeiter:in\n    __Personal_nr__\nentität Kund*in\n    __Kund*innen_ID__\n"
+        "    Lehrer*innen und Schüler*innen\nMitarbeiter:in 1 - berät - n Kund*in"
+    )
+    model, issues = parse_er(content)
+    assert not issues
+    assert list(model.nodes)[:2] == ["Mitarbeiter:in", "Kund*in"]
+    html = render_diagram_block("erdiagram", {}, content)
+    assert "<u>Personal_nr</u>" in html and "<u>Kund*innen_ID</u>" in html
+    assert "Lehrer*innen und Schüler*innen" in html and "<em>" not in html
+    assert "<em>kursiv</em>" in render_diagram_block("erdiagram", {}, "entität A\n    __k__\n    *kursiv*")
+
+
+def test_er_long_names_wrap_only_where_the_shape_gets_smaller():
+    """Rauten brechen nur um, wenn die Raute dadurch kleiner wird; Wörter bleiben ganz."""
+    assert balanced_lines("ist im Notfall ansprechbar für", 0.0, 2) == ["ist im Notfall", "ansprechbar für"]
+    assert balanced_lines("Erziehungsberechtigte*r", 0.0, 3) == ["Erziehungsberechtigte*r"]
+    model, _ = parse_er(KITA)
+    lines = {name.split("#")[0]: title_box(node)[1] for name, node in model.nodes.items()}
+    assert lines["ist im Notfall ansprechbar für"] == 2
+    assert lines["ist sorgeberechtigt für"] == 1 and lines["Kind"] == 1
+    assert "diagram-wrap" in render_diagram_block("erdiagram", {}, KITA)
 
 
 def test_route_helpers_detect_crossings_overlaps_and_corners():
