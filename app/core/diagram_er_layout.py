@@ -48,8 +48,10 @@ _COST_HIT = 2000.0
 """Kante durch eine fremde Form: fast immer unlesbar."""
 _COST_OVERLAP = 2000.0
 _COST_CROSS = 500.0
-_ASPECT = 2.4
-"""Angestrebtes Verhältnis Breite zu Höhe: flacher als eine 16:9-Folie, aber nicht endlos breit."""
+_ASPECT = 1.9
+"""Angestrebtes Verhältnis Breite zu Höhe: die Inhaltsfläche einer 16:9-Folie unter Titel und
+Fußzeile. Breiter als das schenkt keine Schriftgröße mehr, sondern lässt Fläche leer (2,4
+ergab beim Kita-Beispiel Maßstab 0,64 statt 0,87)."""
 _COST_SIZE = 1.0
 """Gewicht der wirksamen Größe `max(breite / _ASPECT, höhe)`; sie bestimmt, wie stark das
 Diagramm beim Einpassen schrumpft."""

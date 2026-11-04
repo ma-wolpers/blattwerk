@@ -101,10 +101,11 @@ def _er_routes(content: str):
 
 
 def test_er_layout_is_flat_and_free_of_crossings():
-    """Flach statt hoch, keine Kante kreuzt oder überdeckt eine andere oder läuft durch eine Form."""
+    """Breiter als hoch, aber nicht endlos breit (passt auf eine Folie); keine Kante kreuzt
+    oder überdeckt eine andere oder läuft durch eine Form."""
     for content in (GO_ER_DIAGRAM, KITA):
         model, layout, routes = _er_routes(content)
-        assert layout.width > 2 * layout.height
+        assert 1.5 * layout.height < layout.width < 2.5 * layout.height
         segments = [(key, pair) for key, points in routes.items() for pair in zip(points, points[1:])]
         for index, (key, segment) in enumerate(segments):
             for other_key, other in segments[index + 1:]:

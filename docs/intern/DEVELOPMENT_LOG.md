@@ -8,6 +8,8 @@ Regel:
 
 ## [Unreleased]
 
+- **ER: Zielverhältnis 2,4 -> 1,9 (2026-11-04).** Mit 2,4 zählte Breite bis zu diesem Verhältnis als gratis, die Suche zog Entitäten auseinander, und auf der Folie blieb Fläche leer (Kita 1399x385, Maßstab 0,64 auf 900x470). 1,9 entspricht der Inhaltsfläche einer 16:9-Folie: Kita 993x539, Maßstab 0,87; Gender-Testfolie 0,69 -> 0,91; GO unverändert. Ein höheres Längengewicht (0,15/0,3) verkürzt Kanten, vergrößert aber die Fläche (Kita 1055x573), verworfen. Verbleibende Leerflächen sind eine GRENZE des Rasters: Die Fächerlücke zwischen zwei Spalten gilt für alle Zeilen.
+
 - **ER: Umbruch langer Namen, Gender-Schreibweisen (2026-11-04).**
   - `diagram_svg.balanced_lines`: Umbruch nur an Leerzeichen in möglichst wenige, gleich breite Zeilen (alle Schnittkombinationen, Namen sind kurz). Gesetzt wird mit `wrap=True` in der Breite der breitesten *geschätzten* Zeile; `text_width` schätzt eher zu groß, also bricht der Browser höchstens so oft um.
   - `diagram_er_layout.title_box`/`attribute_box`: Entitäten ab 120 px, Attribute ab 150 px. Rauten wählen 1 oder 2 Zeilen nach kleinerer Summe aus Breite und Höhe (`_diamond_size`: Textblock-Ecken in den Rautenseiten). Eine feste Schwelle machte „ist sorgeberechtigt / für“ größer statt kleiner.
