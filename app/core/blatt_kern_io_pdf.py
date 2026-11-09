@@ -133,22 +133,43 @@ def find_chromium_executable():
     return None
 
 
-def _chromium_command(browser, html_uri, out_pdf_path):
+_BACKGROUND_SERVICE_FLAGS = (
+    "--no-first-run",
+    "--no-default-browser-check",
+    "--disable-extensions",
+    "--disable-sync",
+    "--disable-background-networking",
+    "--disable-component-update",
+)
+"""Schaltet Dienste ab, die ein frisches Profil beim Start sonst anwirft (Erstlauf, Sync,
+Komponenten-Updates). Sie tragen nichts zum Druck bei."""
+
+
+def _chromium_command(browser, html_uri, out_pdf_path, profile_dir):
     """Baut den Headless-Druckaufruf; erzeugt reproduzierbare PDFs ohne GUI-Interaktion.
 
     Eigene Funktion, damit das Messskript (`tools/measure_render.py`) Abwandlungen wie
     Zeitbudget oder Profil an einer Stelle anbringen kann.
 
+    Jeder Druck bekommt ein eigenes, frisches Profil. Messung 2026-11-09 mit Edge 157
+    (seit 2026-11-07): Mit dem Standardprofil kostete schon der Start einer leeren Seite
+    rund 4,1 s, mit eigenem Profil und `_BACKGROUND_SERVICE_FLAGS` rund 1,6 s. Ein
+    gemeinsames Dauerprofil scheidet aus (Development-Log 2026-10-30: zwei gleichzeitige
+    Instanzen scheitern mit Exit-Code 21).
+
     Args:
         browser: Pfad oder Name der Chromium-Programmdatei.
         html_uri: ``file://``-URI der zu druckenden Seite.
         out_pdf_path: Absoluter Zielpfad der PDF.
+        profile_dir: Ordner, den nur dieser Druck als ``--user-data-dir`` nutzt.
     """
     return [
         browser,
         "--headless=new",
         "--disable-gpu",
         "--allow-file-access-from-files",
+        f"--user-data-dir={profile_dir}",
+        *_BACKGROUND_SERVICE_FLAGS,
         "--virtual-time-budget=5000",
         "--no-pdf-header-footer",
         "--print-to-pdf-no-header",
@@ -189,7 +210,9 @@ def write_pdf_from_html(html, out_pdf_path):
         temp_html_path = temp_dir / "blattwerk-render.html"
         temp_html_path.write_text(html_with_fallbacks, encoding="utf-8")
 
-        command = _chromium_command(browser, temp_html_path.resolve().as_uri(), str(out_pdf_path.resolve()))
+        command = _chromium_command(
+            browser, temp_html_path.resolve().as_uri(), str(out_pdf_path.resolve()), temp_dir / "profile"
+        )
 
         result = subprocess.run(
             command,

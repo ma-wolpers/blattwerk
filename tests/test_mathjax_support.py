@@ -106,8 +106,8 @@ def test_formulas_are_typeset_without_internet(monkeypatch, tmp_path, profile):
     """Regression: `\\mathbb` holte Schriftteile vom CDN und ließ die ganze Seite roh."""
     original = blatt_kern_io_pdf._chromium_command
 
-    def offline(browser, html_uri, out_pdf_path):
-        parts = list(original(browser, html_uri, out_pdf_path))
+    def offline(*args):
+        parts = list(original(*args))
         parts.insert(1, "--host-resolver-rules=MAP * ~NOTFOUND")
         return parts
 

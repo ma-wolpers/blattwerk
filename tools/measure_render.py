@@ -114,7 +114,7 @@ class Variant:
         name: Name in der Ergebnistabelle.
         budget_ms: Wert für ``--virtual-time-budget``; None lässt ihn unverändert.
         offline: Sperrt die Namensauflösung, der CDN-Abruf scheitert also.
-        profile_dir: Dauerhafter ``--user-data-dir``; None bedeutet Temp-Profil.
+        profile_dir: Dauerhafter ``--user-data-dir``; None behält das frische Profil je Druck.
     """
 
     name: str
@@ -184,8 +184,10 @@ def _patch_chromium(variant: Variant):
     """Wandelt den Chromium-Aufruf ab und liefert die Funktion zum Zurücksetzen."""
     original = blatt_kern_io_pdf._chromium_command
 
-    def command(browser, html_uri, out_pdf_path):
-        parts = list(original(browser, html_uri, out_pdf_path))
+    def command(browser, html_uri, out_pdf_path, profile_dir):
+        if variant.profile_dir is not None:
+            profile_dir = variant.profile_dir
+        parts = list(original(browser, html_uri, out_pdf_path, profile_dir))
         if variant.budget_ms is not None:
             parts = [
                 f"--virtual-time-budget={variant.budget_ms}" if part.startswith("--virtual-time-budget=") else part
@@ -193,8 +195,6 @@ def _patch_chromium(variant: Variant):
             ]
         if variant.offline:
             parts.insert(1, "--host-resolver-rules=MAP * ~NOTFOUND")
-        if variant.profile_dir is not None:
-            parts.insert(1, f"--user-data-dir={variant.profile_dir}")
         return parts
 
     blatt_kern_io_pdf._chromium_command = command

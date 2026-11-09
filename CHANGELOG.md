@@ -13,6 +13,7 @@ The format is based on Keep a Changelog.
 - **Überschriften im Text sehen nicht mehr aus wie der Dokumenttitel.** Auf Arbeitsblättern und in Klausuren rückt jede Markdown-Überschrift eine Ebene tiefer: `#` erscheint so groß wie bisher `##`, `##` wie `###` usw. (`#####` und `######` sind beide die kleinste Stufe). Der `Titel` aus dem Kopf ist damit die einzige oberste Überschrift. Präsentationen bleiben unverändert, weil der Titel dort nur in der Kopfzeile steht. Schlichte `.md`-Dateien rücken nur, wenn sie einen `Titel` haben.
 
 ### Fixed
+- **PDF-Export und Vorschau sind wieder schneller.** Seit einem Update von Microsoft Edge brauchte jeder Druck rund 4 Sekunden, schon bevor die eigentliche Seite entstand; ein Export mit Operatorenliste oder Lernhilfen dauerte so fast 9 Sekunden. Blattwerk startet den Browser jetzt so, dass jeder Druck etwa 1,5 Sekunden schneller ist.
 - **Menüs und Hinweisfenster blitzen nicht mehr oben links auf.** Menüs der Menüleiste, Untermenüs und Hinweise (auch der Name beim Überfahren eines Farbprofils) erschienen kurz in der oberen linken Bildschirmecke, bevor sie an ihren Platz sprangen. Das wirkte wie ein Ruckeln beim Öffnen. Jetzt erscheinen sie direkt an ihrer Stelle.
 - **Ein Menü, das nur ausgegraute Einträge hat, bleibt offen**, statt sich sofort wieder zu schließen.
 
