@@ -8,6 +8,8 @@ Regel:
 
 ## [Unreleased]
 
+- **Overlays erst an der Zielposition sichtbar (2026-11-09, bw-gui).** Ein frisches Tk-`Toplevel` wird im ersten Idle-Durchlauf bei `+0+0` gemappt; jedes `update_idletasks()` zum Messen zeigte Menü-Popups und Tooltips daher kurz oben links. bw-gui hat dafür eine Erzeugungsstelle `screen_placement.new_overlay_window` (sofort `withdraw`), und `place_overlay_now` deckt das Fenster erst nach dem Positionieren auf (`deiconify` + `lift`). Der Farbprofil-Tooltip (`blatt_ui_style_design._show_swatch_tooltip`) nutzt sie statt eigenem `Toplevel` + `overrideredirect`. Außerdem nimmt in bw-gui jedes echte Menü-Popup den Fokus, auch eines ohne aktive Zeile; nur Beschreibungs-Flyouts bleiben fokusfrei (`open_popup(..., description_flyout=True)`).
+
 - **ER: kompakter, A4 statt Folie, Module geteilt (2026-11-04).** Zielverhältnis wieder 2,4 (1,9 war auf 16:9-Folien ausgelegt, ER-Diagramme stehen aber meist auf A4). Reine Fläche `sqrt(b*h)` als Maß verworfen: einzeiliges Band 1576x156. Die eigentliche Verschwendung kam aus der Geometrie:
   - Platzbedarf nach Lage (`_print`): Attribute einer Raute zwischen Nachbarn in einer Zeile nur oben/unten, zwischen übereinander stehenden nur seitlich. „seitSchuljahr“ blähte sonst den Zeilenabstand auf.
   - Zeilen und Spalten mit getrennter Ausdehnung davor/danach (`_axis`). Die rekursive Raute hängt auf der Seite mit weniger Beziehungen (`_loop_side`, jetzt in `_geometry` statt nachträglich), nur dort wird Platz reserviert.

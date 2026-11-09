@@ -12,6 +12,10 @@ The format is based on Keep a Changelog.
 - **Gendergerechte Schreibweisen in Diagrammen:** `Mitarbeiter:in` funktioniert jetzt im ER-Diagramm; bisher galt der Doppelpunkt als Beginn einer Beschriftung, und die Zeile war ein Fehler (`ER002`). In allen Diagrammblöcken sind `*` und `_` mitten im Wort immer Zeichen: `Lehrer*innen und Schüler*innen` wird nicht mehr kursiv, und ein Schlüssel wie `__Kund_innen_nr__` bleibt unterstrichen.
 - **Überschriften im Text sehen nicht mehr aus wie der Dokumenttitel.** Auf Arbeitsblättern und in Klausuren rückt jede Markdown-Überschrift eine Ebene tiefer: `#` erscheint so groß wie bisher `##`, `##` wie `###` usw. (`#####` und `######` sind beide die kleinste Stufe). Der `Titel` aus dem Kopf ist damit die einzige oberste Überschrift. Präsentationen bleiben unverändert, weil der Titel dort nur in der Kopfzeile steht. Schlichte `.md`-Dateien rücken nur, wenn sie einen `Titel` haben.
 
+### Fixed
+- **Menüs und Hinweisfenster blitzen nicht mehr oben links auf.** Menüs der Menüleiste, Untermenüs und Hinweise (auch der Name beim Überfahren eines Farbprofils) erschienen kurz in der oberen linken Bildschirmecke, bevor sie an ihren Platz sprangen. Das wirkte wie ein Ruckeln beim Öffnen. Jetzt erscheinen sie direkt an ihrer Stelle.
+- **Ein Menü, das nur ausgegraute Einträge hat, bleibt offen**, statt sich sofort wieder zu schließen.
+
 ## [0.5.0] - 2026-11-02
 
 ### Changed

@@ -27,7 +27,7 @@ from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 ensure_bw_gui_on_path()
 
 from bw_gui.contracts.screen_geometry import Rect, Side
-from bw_gui.runtime.screen_placement import place_overlay_now
+from bw_gui.runtime.screen_placement import new_overlay_window, place_overlay_now
 from bw_gui.runtime import ui, widgets
 from bw_gui.runtime.overlay_stack import OverlayCategory, register_overlay
 
@@ -130,10 +130,11 @@ class BlattwerkAppStyleDesignMixin:
             if not bool(preferences.get("tooltips_enabled", True)):
                 return
 
-            tooltip = ui.Toplevel(self.root)
+            # Bleibt versteckt, bis place_overlay_now es an der Zielposition zeigt
+            # (sonst blitzt es kurz oben links auf dem Bildschirm auf).
+            tooltip = new_overlay_window(self.root)
             # Tooltip: sperrt nie Kuerzel (der fruehere Scan zaehlte ihn zufaellig als Dialog).
             register_overlay(tooltip, OverlayCategory.TRANSIENT, toplevel=tooltip)
-            tooltip.overrideredirect(True)
 
             label = widgets.Label(
                 tooltip,
