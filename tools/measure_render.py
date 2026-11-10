@@ -31,7 +31,7 @@ if str(ROOT) not in sys.path:
 
 from PIL import Image  # noqa: E402
 
-from app.core import blatt_kern_io_pdf  # noqa: E402
+from app.core import blatt_kern_io_pdf, pdf_printers, print_service  # noqa: E402
 from app.core.build_requests import WorksheetDesignOptions  # noqa: E402
 from app.core.document_preview_build import build_preview_images_for_document  # noqa: E402
 from app.core.document_semantics import type_for_path  # noqa: E402
@@ -114,13 +114,13 @@ class Variant:
         name: Name in der Ergebnistabelle.
         budget_ms: Wert für ``--virtual-time-budget``; None lässt ihn unverändert.
         offline: Sperrt die Namensauflösung, der CDN-Abruf scheitert also.
-        profile_dir: Dauerhafter ``--user-data-dir``; None behält das frische Profil je Druck.
+        command_line: Druckt über `CommandLinePrinter` statt über den Dauerbrowser.
     """
 
     name: str
     budget_ms: int | None = None
     offline: bool = False
-    profile_dir: Path | None = None
+    command_line: bool = False
 
 
 @dataclass
@@ -181,24 +181,33 @@ class Heartbeat:
 
 
 def _patch_chromium(variant: Variant):
-    """Wandelt den Chromium-Aufruf ab und liefert die Funktion zum Zurücksetzen."""
-    original = blatt_kern_io_pdf._chromium_command
+    """Wandelt Startschalter, Budget und Druckweg ab und liefert die Funktion zum Zurücksetzen.
 
-    def command(browser, html_uri, out_pdf_path, profile_dir):
-        if variant.profile_dir is not None:
-            profile_dir = variant.profile_dir
-        parts = list(original(browser, html_uri, out_pdf_path, profile_dir))
-        if variant.budget_ms is not None:
-            parts = [
-                f"--virtual-time-budget={variant.budget_ms}" if part.startswith("--virtual-time-budget=") else part
-                for part in parts
-            ]
-        if variant.offline:
-            parts.insert(1, "--host-resolver-rules=MAP * ~NOTFOUND")
-        return parts
+    Jede Variante bekommt einen eigenen Druckdienst, denn ein laufender Dauerbrowser behält
+    die Schalter, mit denen er gestartet wurde.
+    """
+    original_flags = pdf_printers.browser_flags
+    original_budget = pdf_printers.VIRTUAL_TIME_BUDGET_MS
 
-    blatt_kern_io_pdf._chromium_command = command
-    return lambda: setattr(blatt_kern_io_pdf, "_chromium_command", original)
+    def flags(profile_dir):
+        parts = original_flags(profile_dir)
+        return [*parts, "--host-resolver-rules=MAP * ~NOTFOUND"] if variant.offline else parts
+
+    pdf_printers.browser_flags = flags
+    if variant.budget_ms is not None:
+        pdf_printers.VIRTUAL_TIME_BUDGET_MS = variant.budget_ms
+    browser = blatt_kern_io_pdf.find_chromium_executable()
+    previous = print_service.replace_default_print_service(
+        print_service.PrintService(browser, fast_available=False if variant.command_line else None)
+    )
+
+    def restore():
+        print_service.shutdown_default_print_service()
+        print_service.replace_default_print_service(previous)
+        pdf_printers.browser_flags = original_flags
+        pdf_printers.VIRTUAL_TIME_BUDGET_MS = original_budget
+
+    return restore
 
 
 def _build_once(path: Path, scenario: Scenario) -> tuple[float, StageTimer, list[Image.Image]]:
@@ -259,7 +268,7 @@ def _measure_variant(variant: Variant, scenarios, runs: int, doc_dir: Path) -> N
     try:
         blank = _measure_blank_print(variant, runs)
         print(f"\n## Variante: {variant.name}\n")
-        print(f"Leere Seite (reiner Prozessstart): Median {statistics.median(blank):.2f} s, p90 {_percentile(blank, 0.9):.2f} s\n")
+        print(f"Leere Seite (erster Lauf mit Browserstart: {blank[0]:.2f} s): Median {statistics.median(blank):.2f} s, p90 {_percentile(blank, 0.9):.2f} s\n")
 
         results: dict[str, list] = defaultdict(list)
         schedule = [scenario for scenario in scenarios for _ in range(runs)]
@@ -314,7 +323,7 @@ def main() -> None:
                 # Budget 0 ist keine Variante: Chromium hängt damit bis in den Timeout.
                 Variant("budget_1000", budget_ms=1000),
                 Variant("offline", offline=True),
-                Variant("dauerprofil", profile_dir=Path(temp_dir) / "profile"),
+                Variant("kommandozeile", command_line=True),
             ]
         for variant in variants:
             _measure_variant(variant, scenarios, args.runs, doc_dir)

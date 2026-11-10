@@ -28,6 +28,9 @@ from .blatt_ui_tab_strip import BlattwerkAppTabStripMixin
 from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 from app.bootstrap.single_instance import InstanceServer
 from app.bootstrap.wiring import AppDependencies, build_gui_dependencies
+from app.core.blatt_kern_io_pdf import prewarm_pdf_printing
+from app.core.print_service import set_fallback_listener, shutdown_default_print_service
+from .dialog_services import messagebox
 from .window_identity import configure_windows_process_identity
 
 ensure_bw_gui_on_path()
@@ -74,14 +77,22 @@ def run_gui(
         instance_server: Bereits gestarteter Server, über den spätere Starts ihre Dateien
             an dieses Fenster übergeben (wird beim Beenden gestoppt), oder ``None``, wenn
             der Port nicht belegt werden konnte. Die Startdatei wird in beiden Fällen geöffnet.
+
+    Der Druckbrowser startet vor dem Fenster im Hintergrund (`prewarm_pdf_printing`), damit
+    schon die erste Vorschau schnell ist. Fällt er aus, zeigt die GUI die Warnung des
+    Druckdienstes als Dialog; Drucke laufen nur im Tk-Thread, der Dialog also auch.
     """
 
+    prewarm_pdf_printing()
     resolved_dependencies = dependencies or build_gui_dependencies()
     configure_windows_process_identity()
     app = BlattwerkApp(deps=resolved_dependencies, startup_file=startup_file)
+    set_fallback_listener(lambda message: messagebox.showwarning("PDF-Druck langsamer", message))
     try:
         app.start_external_open_listener(instance_server)
         app.run()
     finally:
+        set_fallback_listener(None)
+        shutdown_default_print_service()
         if instance_server is not None:
             instance_server.stop()

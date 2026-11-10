@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import re
 import shutil
-import subprocess
 import tempfile
 from pathlib import Path
 from urllib.parse import unquote, urlparse
@@ -18,6 +17,7 @@ from .pdf_running_elements import (  # noqa: F401 -- re-exportiert (wiring.py)
     annotate_pdf_running_elements,
 )
 from .mathjax_support import prepare_html_for_print
+from .print_service import default_print_service
 from .render_job import note_file_dependency, stage
 from .render_stages import STAGE_PRINT
 
@@ -133,49 +133,11 @@ def find_chromium_executable():
     return None
 
 
-_BACKGROUND_SERVICE_FLAGS = (
-    "--no-first-run",
-    "--no-default-browser-check",
-    "--disable-extensions",
-    "--disable-sync",
-    "--disable-background-networking",
-    "--disable-component-update",
-)
-"""Schaltet Dienste ab, die ein frisches Profil beim Start sonst anwirft (Erstlauf, Sync,
-Komponenten-Updates). Sie tragen nichts zum Druck bei."""
-
-
-def _chromium_command(browser, html_uri, out_pdf_path, profile_dir):
-    """Baut den Headless-Druckaufruf; erzeugt reproduzierbare PDFs ohne GUI-Interaktion.
-
-    Eigene Funktion, damit das Messskript (`tools/measure_render.py`) Abwandlungen wie
-    Zeitbudget oder Profil an einer Stelle anbringen kann.
-
-    Jeder Druck bekommt ein eigenes, frisches Profil. Messung 2026-11-09 mit Edge 157
-    (seit 2026-11-07): Mit dem Standardprofil kostete schon der Start einer leeren Seite
-    rund 4,1 s, mit eigenem Profil und `_BACKGROUND_SERVICE_FLAGS` rund 1,6 s. Ein
-    gemeinsames Dauerprofil scheidet aus (Development-Log 2026-10-30: zwei gleichzeitige
-    Instanzen scheitern mit Exit-Code 21).
-
-    Args:
-        browser: Pfad oder Name der Chromium-Programmdatei.
-        html_uri: ``file://``-URI der zu druckenden Seite.
-        out_pdf_path: Absoluter Zielpfad der PDF.
-        profile_dir: Ordner, den nur dieser Druck als ``--user-data-dir`` nutzt.
-    """
-    return [
-        browser,
-        "--headless=new",
-        "--disable-gpu",
-        "--allow-file-access-from-files",
-        f"--user-data-dir={profile_dir}",
-        *_BACKGROUND_SERVICE_FLAGS,
-        "--virtual-time-budget=5000",
-        "--no-pdf-header-footer",
-        "--print-to-pdf-no-header",
-        f"--print-to-pdf={out_pdf_path}",
-        html_uri,
-    ]
+def prewarm_pdf_printing():
+    """Startet den Druckbrowser im Hintergrund (App-Start); ohne Browser wirkungslos."""
+    browser = find_chromium_executable()
+    if browser:
+        default_print_service(browser).prewarm()
 
 
 def _note_local_image_dependencies(html):
@@ -191,7 +153,8 @@ def write_pdf_from_html(html, out_pdf_path):
 
     Meldet die Render-Stufe ``print`` und die eingebundenen Bilder. Das ist die einzige
     Stelle mit einem Chromium-Druck, deshalb erfasst sie alle Pipelines, den zweiten
-    Durchgang der Operatorenliste und den Lernhilfen-Anhang.
+    Durchgang der Operatorenliste und den Lernhilfen-Anhang. Welcher Druckweg (Dauerbrowser
+    oder Kommandozeile) greift, entscheidet `print_service`.
     """
     browser = find_chromium_executable()
     if not browser:
@@ -210,23 +173,9 @@ def write_pdf_from_html(html, out_pdf_path):
         temp_html_path = temp_dir / "blattwerk-render.html"
         temp_html_path.write_text(html_with_fallbacks, encoding="utf-8")
 
-        command = _chromium_command(
-            browser, temp_html_path.resolve().as_uri(), str(out_pdf_path.resolve()), temp_dir / "profile"
-        )
+        default_print_service(browser).print_pdf(temp_html_path.resolve().as_uri(), str(out_pdf_path.resolve()))
 
-        result = subprocess.run(
-            command,
-            capture_output=True,
-            text=True,
-            timeout=60,
-            encoding="utf-8",
-            errors="replace",
-        )
-        if result.returncode != 0:
-            details = (result.stderr or result.stdout or "Unbekannter Fehler").strip()
-            raise RuntimeError(f"PDF-Erstellung fehlgeschlagen: {details}")
-
-        # Chromium ist beendet; die Datei ist vollstaendig. Ein vorhandenes Ziel kann aber
+        # Der Druck ist abgeschlossen; die Datei ist vollstaendig. Ein vorhandenes Ziel kann aber
         # eine *alte* Datei sein, falls Chromium nicht schreiben durfte - deshalb drucken
         # Exporte immer auf eine frische Arbeitsdatei (`export_staging`).
         if not out_pdf_path.exists():

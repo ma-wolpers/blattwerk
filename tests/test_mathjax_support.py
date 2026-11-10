@@ -7,7 +7,7 @@ from pathlib import Path
 import fitz
 import pytest
 
-from app.core import blatt_kern_io_pdf
+from app.core import pdf_printers, print_service
 from app.core.blatt_kern_io_build import build_worksheet
 from app.core.blatt_kern_io_pdf import find_chromium_executable, write_pdf_from_html
 from app.core.mathjax_support import (
@@ -104,15 +104,19 @@ FORMULAS = [
 @pytest.mark.parametrize("profile", [PROFILE_DOCUMENT, PROFILE_PLAIN, PROFILE_KURZENTWURF])
 def test_formulas_are_typeset_without_internet(monkeypatch, tmp_path, profile):
     """Regression: `\\mathbb` holte Schriftteile vom CDN und ließ die ganze Seite roh."""
-    original = blatt_kern_io_pdf._chromium_command
+    original = pdf_printers.browser_flags
 
-    def offline(*args):
-        parts = list(original(*args))
-        parts.insert(1, "--host-resolver-rules=MAP * ~NOTFOUND")
-        return parts
+    def offline(profile_dir):
+        return [*original(profile_dir), "--host-resolver-rules=MAP * ~NOTFOUND"]
 
-    monkeypatch.setattr(blatt_kern_io_pdf, "_chromium_command", offline)
-    pdf = write_pdf_from_html(_page(" ".join(FORMULAS), profile), tmp_path / "out.pdf")
+    monkeypatch.setattr(pdf_printers, "browser_flags", offline)
+    # Ein frischer Dienst, damit der Dauerbrowser mit den Offline-Schaltern startet.
+    previous = print_service.replace_default_print_service(None)
+    try:
+        pdf = write_pdf_from_html(_page(" ".join(FORMULAS), profile), tmp_path / "out.pdf")
+    finally:
+        print_service.shutdown_default_print_service()
+        print_service.replace_default_print_service(previous)
     with fitz.open(pdf) as document:
         text = "".join(page.get_text() for page in document)
     assert "$" not in text and "\\" not in text
