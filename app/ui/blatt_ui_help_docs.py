@@ -8,11 +8,10 @@ from bw_libs.shared_gui_core import ensure_bw_gui_on_path
 
 ensure_bw_gui_on_path()
 from bw_gui.runtime import listbox_selection, on_listbox_select, ui, widgets
-from bw_gui.theming._theme_manager import mix_hex
-from bw_gui.widgets import configure_doc_text_tags, html_to_events, render_events_into_text
+from bw_gui.widgets import configure_doc_text_theme, html_to_events, render_events_into_text
 
 from ..core.markdown_factory import new_markdown
-from .ui_theme import apply_window_theme, configure_ttk_theme, get_theme
+from .ui_theme import apply_window_theme, configure_ttk_theme
 
 HELP_DOCS_DIR = Path(__file__).resolve().parents[2] / "docs" / "nutzer"
 HELP_DOCS_MARKDOWN_EXTENSIONS = ["fenced_code", "tables", "sane_lists"]
@@ -176,19 +175,6 @@ class BlattwerkAppHelpDocsMixin:
         self.root.clipboard_append(code)
         self.status_var.set("Code in Zwischenablage kopiert")
 
-    def _help_docs_text_style(self, theme_key: str | None) -> dict:
-        """Builds the plain color/font dict bw_gui's doc renderer expects, from the app theme."""
-
-        theme = get_theme(theme_key)
-        return {
-            "fg_primary": theme["fg_primary"],
-            "bg_surface": theme["bg_surface"],
-            "bg_code": mix_hex(theme["border"], theme["bg_surface"], 0.35),
-            "font_family": "Segoe UI",
-            "mono_font_family": "Consolas",
-            "base_size": 10,
-        }
-
     def _configure_help_docs_style(self) -> None:
         """Applies window chrome and Text tag colors/fonts from the currently active theme."""
 
@@ -199,7 +185,7 @@ class BlattwerkAppHelpDocsMixin:
         apply_window_theme(window, theme_key)
         configure_ttk_theme(window, theme_key)
         if self.help_docs_text is not None:
-            configure_doc_text_tags(self.help_docs_text, self._help_docs_text_style(theme_key))
+            configure_doc_text_theme(self.help_docs_text, theme_key)
 
     def _apply_help_docs_theme(self) -> None:
         """Theme-change hook (called from ``_apply_theme``): re-styles and re-renders."""
