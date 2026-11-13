@@ -13,11 +13,10 @@ from decimal import Decimal
 
 import pytest
 
-from app.core.blatt_kern_task_render import render_block
 from app.core.blatt_validator import inspect_markdown_text
 from app.core.exam_expectation_horizon import build_expectation_horizon_html
 from app.core.expectation_kinds import EXPECTATION_KINDS, resolve_expectation_kind
-from app.core.solution_items import parse_solution_items, solution_points_total
+from app.core.expectation_items import parse_expectation_items, expectation_points_total
 
 HEAD = "---\ndocument_type: exam\nTitel: T\nFach: M\nThema: X\n---\n"
 
@@ -29,7 +28,7 @@ def _codes(body):
 
 def _task(points, *lines):
     """Aufgabe mit `points=` und einer Lösung aus den gegebenen Punktzeilen."""
-    return f":::task points={points} afb=1\nA\n:::\n:::solution\n" + "".join(f"{n}. Schritt {n} {s}\n" for n, s in enumerate(lines, 1)) + ":::\n"
+    return f":::task points={points} afb=1\nA\n:::\n:::expectation\n" + "".join(f"{n}. Schritt {n} {s}\n" for n, s in enumerate(lines, 1)) + ":::\n"
 
 
 def test_every_kind_has_a_short_explanation():
@@ -59,7 +58,7 @@ def test_resolution_by_name_abbreviation_alias_case_insensitive(token, key):
 
 def test_kind_combines_with_path_and_counts_normally():
     """`(0,5aP An)`: Wert und Weg wie ohne Typ; Typ zusätzlich."""
-    items, _misplaced = parse_solution_items("1. a (0,5aP An)\n2. b (0,5bP Aw)\n3. c (0,5P Er)\n")
+    items = parse_expectation_items("1. a (0,5aP An)\n2. b (0,5bP Aw)\n3. c (0,5P Er)\n")
     assert [(i.points, i.path, i.kind) for i in items] == [
         (Decimal("0.5"), "a", "ansatz"), (Decimal("0.5"), "b", "anwendung"), (Decimal("0.5"), None, "ergebnis"),
     ]
@@ -73,30 +72,23 @@ def test_missing_kind_is_fine_and_unknown_kind_is_sl017_but_still_counts():
     codes = [(d.code, d.severity) for d in diagnostics if d.code[:2] in ("SL", "PK")]
     assert codes == [("SL017", "warning")]
     assert "Ansatz (An)" in next(d.message for d in diagnostics if d.code == "SL017")
-    items, _misplaced = parse_solution_items("1. x (1aP Xy)\n2. y (1bP)\n")
-    assert solution_points_total(items).total == Decimal(1) and items[0].kind is None and items[0].kind_token == "Xy"
+    items = parse_expectation_items("1. x (1aP Xy)\n2. y (1bP)\n")
+    assert expectation_points_total(items).total == Decimal(1) and items[0].kind is None and items[0].kind_token == "Xy"
 
 
 @pytest.mark.parametrize(("suffix", "codes"), [("(−1P Bg)", []), ("(−1aP Bg)", [("SL016", "warning")]), ("(−1P Xy)", [("SL017", "warning")])])
 def test_typed_deductions(suffix, codes):
     """Typisierte Abzüge: gültig, mit/ohne Buchstabe (SL016), unbekannter Typ (SL017); Abzug bleibt Abzug."""
     assert _codes(_task(2, "(2P Bg)", suffix)) == codes
-    items, _misplaced = parse_solution_items(f"1. Je falsche Begründung {suffix}\n")
+    items = parse_expectation_items(f"1. Je falsche Begründung {suffix}\n")
     assert items[0].is_deduction and items[0].points == Decimal(-1)
-
-
-def test_solution_hides_the_kind_token_and_shows_no_symbol():
-    """Lösungsversion: kein Typ-Token, kein Symbol."""
-    html = render_block("solution", {}, "1. Ansatz (0,5aP An)\n2. Je Fehler (-1P Bg)", include_solutions=True)
-    assert "Ansatz (0,5P, Weg A)" in html and "Je Fehler (−1P)" in html
-    assert "An)" not in html and "Bg" not in html and "💡" not in html and "🧩" not in html
 
 
 def test_horizon_shows_symbols_and_one_legend_of_used_kinds_including_deductions():
     """Horizont: Symbol vor dem Text (auch in der Abzugszeile), eine Legende (Typ + Erklärsatz) in Katalogreihenfolge."""
     body = (
         _task(2, "(1P Er)", "(1P An)", "(-1P Bg)")
-        + ":::task points=1 afb=2\nB\n:::\n:::solution\n1. Satz (1P Sa)\n:::\n"
+        + ":::task points=1 afb=2\nB\n:::\n:::expectation\n1. Satz (1P Sa)\n:::\n"
     )
     html, diagnostics = build_expectation_horizon_html(HEAD + body)
     assert "<span class='kind' title='Ergebnis'>✅</span> Schritt 1" in html

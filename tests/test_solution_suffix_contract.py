@@ -24,11 +24,11 @@ from app.core.points_suffix import (
     SUFFIX_VALID,
     parse_points_suffix,
 )
-from app.core.solution_items import collect_solution_targets, parse_solution_items
+from app.core.expectation_items import collect_expectation_targets, parse_expectation_items
 
 HEAD = "---\ndocument_type: exam\nTitel: T\nFach: M\nThema: X\n---\n"
 SNAIL_6C = (
-    ":::task afb=2\nSchnecke\n:::\n:::subtask points=2\nc\n:::\n:::solution\n"
+    ":::task afb=2\nSchnecke\n:::\n:::subtask points=2\nc\n:::\n:::expectation\n"
     "1. Entweder: Der Graph verläuft flacher (0,5aP)\n"
     "2. und: Die Änderungsrate ist kleiner (0,5aP)\n"
     "3. Oder: Steigung berechnen (1bP)\n"
@@ -44,7 +44,7 @@ def _codes(body):
 
 def _task(points, *lines):
     """Aufgabe mit `points=` und einer Lösung aus den gegebenen Punktzeilen."""
-    return f":::task points={points} afb=1\nA\n:::\n:::solution\n" + "".join(f"{n}. Schritt {n} {s}\n" for n, s in enumerate(lines, 1)) + ":::\n"
+    return f":::task points={points} afb=1\nA\n:::\n:::expectation\n" + "".join(f"{n}. Schritt {n} {s}\n" for n, s in enumerate(lines, 1)) + ":::\n"
 
 
 @pytest.mark.parametrize(
@@ -82,7 +82,7 @@ def test_suffix_contract_status_and_value(head, status, value, path):
 
 def test_invalid_items_carry_no_points_and_keep_their_text():
     """Kein Zahlenwert für unlesbare Suffixe; das Suffix bleibt im Erwartungstext sichtbar."""
-    items, _misplaced = parse_solution_items("1. b (0,5abP)\n2. c (1aP)\n")
+    items = parse_expectation_items("1. b (0,5abP)\n2. c (1aP)\n")
     assert [(i.text, i.points, i.path, i.suffix_status) for i in items] == [
         ("b (0,5abP)", None, None, SUFFIX_INVALID),
         ("c", Decimal(1), "a", SUFFIX_VALID),
@@ -125,8 +125,8 @@ def test_path_scope_is_one_target_subtasks_are_independent():
     """Teilaufgabe a mit a/b, Teilaufgabe b nur mit a: SL015 nur bei b; Summen getrennt."""
     body = (
         ":::task afb=1\nA\n:::\n:::subtask points=1\na\n:::\n:::subtask points=2\nb\n:::\n"
-        ":::solution target=a\n1. x (1aP)\n2. y (1bP)\n:::\n"
-        ":::solution target=b\n1. z (1aP)\n2. w (1P)\n:::\n"
+        ":::expectation target=a\n1. x (1aP)\n2. y (1bP)\n:::\n"
+        ":::expectation target=b\n1. z (1aP)\n2. w (1P)\n:::\n"
     )
     diagnostics = [d for d in inspect_markdown_text(HEAD + body, document_type="exam").diagnostics if d.code[:2] in ("SL", "PK")]
     assert [(d.code, "1b" in d.message) for d in diagnostics] == [("SL015", True)]
@@ -134,15 +134,15 @@ def test_path_scope_is_one_target_subtasks_are_independent():
 
 def test_two_solution_blocks_of_one_target_share_their_letters():
     """Zwei Lösungsblöcke derselben Teilaufgabe bilden ein Ziel: a und b sind eine Wahl."""
-    body = ":::task points=1 afb=1\nA\n:::\n:::solution\n1. x (1aP)\n:::\n:::solution\n1. y (1bP)\n:::\n"
+    body = ":::task points=1 afb=1\nA\n:::\n:::expectation\n1. x (1aP)\n:::\n:::expectation\n1. y (1bP)\n:::\n"
     assert _codes(body) == []
-    targets, _issues = collect_solution_targets(parse_blocks(body))
+    targets, _issues = collect_expectation_targets(parse_blocks(body))
     assert [(item.path, item.points) for item in targets[0].items] == [("a", Decimal(1)), ("b", Decimal(1))]
 
 
 def test_aid_split_separates_path_groups():
     """Vor und nach `--hm` sind getrennte Aufgaben: kein gemeinsamer Weg, je SL015."""
-    body = ":::task points=1 afb=1\nA\n:::\n:::solution\n1. x (1aP)\n:::\n--hm\n:::task points=1 afb=1\nB\n:::\n:::solution\n1. y (1bP)\n:::\n"
+    body = ":::task points=1 afb=1\nA\n:::\n:::expectation\n1. x (1aP)\n:::\n--hm\n:::task points=1 afb=1\nB\n:::\n:::expectation\n1. y (1bP)\n:::\n"
     assert _codes(body) == [("SL015", "warning"), ("SL015", "warning")]
 
 
@@ -150,7 +150,7 @@ def test_task_level_and_subtask_targets_are_separate():
     """Aufgabenebene und Teilaufgabe teilen keine Buchstaben."""
     body = (
         ":::task points=2 afb=1\nA\n:::\n:::subtask\na\n:::\n:::subtask\nb\n:::\n"
-        ":::solution target=task\n1. x (1aP)\n2. y (1P)\n:::\n:::solution target=a\n1. z (1bP)\n:::\n"
+        ":::expectation target=task\n1. x (1aP)\n2. y (1P)\n:::\n:::expectation target=a\n1. z (1bP)\n:::\n"
     )
     sl015 = [d.message for d in inspect_markdown_text(HEAD + body, document_type="exam").diagnostics if d.code == "SL015"]
     assert len(sl015) == 2 and any("Aufgabe 1:" in m for m in sl015) and any("Aufgabe 1a:" in m for m in sl015)
@@ -174,15 +174,15 @@ def test_subtask_points_with_tenths_compare_exactly():
     """Zielwerte aus Teilaufgaben (`subtask_effective`) sind ebenfalls exakte Decimals."""
     body = (
         ":::task afb=1\nA\n:::\n:::subtask points=0,1\na\n:::\n:::subtask points=0.2\nb\n:::\n"
-        ":::solution target=a\n1. x (0.1P)\n:::\n:::solution target=b\n1. y (0,1P)\n2. z (0,1P)\n:::\n"
+        ":::expectation target=a\n1. x (0.1P)\n:::\n:::expectation target=b\n1. y (0,1P)\n2. z (0,1P)\n:::\n"
     )
     assert _codes(body) == []
 
 
-def test_solution_display_normalizes_valid_suffix_and_keeps_others_raw():
-    """Lösung: `(0,5P, Weg A)`, `(1P)`; unlesbare Suffixe bleiben sichtbar unverändert."""
+def test_solution_shows_point_like_brackets_as_plain_text():
+    """Lösung ist reiner Text: Klammern werden weder normalisiert noch als Punkte gelesen."""
     html = render_block("solution", {}, "1. a (0.5aP)\n2. b (1 P)\n3. d (0,5abP)", include_solutions=True)
-    assert "a (0,5P, Weg A)" in html and "b (1P)" in html and "d (0,5abP)" in html
+    assert "a (0.5aP)" in html and "b (1 P)" in html and "d (0,5abP)" in html and "Weg" not in html
 
 
 def test_expectation_horizon_marks_paths_and_shows_plain_points():
@@ -199,7 +199,7 @@ def test_unreadable_suffix_blocks_validation_and_every_export_path(tmp_path, suf
     """Integration: Fehler im Validator, Horizont-Export wirft ohne Datei, Klausur-Export blockiert, Vorschau läuft."""
     from app.core.blatt_kern_io_build import build_worksheet
 
-    body = f":::task points=2 afb=1\nA\n:::\n:::solution\n1. a {suffix}\n2. b (1P)\n:::\n"
+    body = f":::task points=2 afb=1\nA\n:::\n:::expectation\n1. a {suffix}\n2. b (1P)\n:::\n"
     diagnostics = inspect_markdown_text(HEAD + body, document_type="exam").diagnostics
     assert has_blocking_diagnostics(diagnostics)
     source = tmp_path / "klausur.kbw"

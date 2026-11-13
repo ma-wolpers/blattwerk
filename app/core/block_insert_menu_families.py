@@ -16,7 +16,8 @@ Jeder Eintrag ist `(Titel, Blocktyp, Kennbuchstabe)`. Die Menübeschriftung
 Kennbuchstabe (oder `None`) löst den Eintrag im offenen Menü aus (Alt+I, dann
 Buchstabe; `MenuItem.mnemonic` in bw-gui). Die Buchstaben folgen der Tabelle
 des früheren Strg+B-Popups (42c7368).
-GRENZE: `evaluation`, `operators` und die Diagramme haben keinen Buchstaben, J ist frei.
+GRENZE: `evaluation`, `operators` und die Diagramme haben keinen Buchstaben; J gehört
+seit dem Erwartungsblock zu `expectation`.
 
 `BLOCK_INSERT_FAMILIES` gruppiert echte `:::`-Blocktypen in benannte Untermenüs;
 `BLOCK_INSERT_STANDALONE` listet Blocktypen, die strukturell zu einzigartig für eine
@@ -49,6 +50,7 @@ BLOCK_INSERT_FAMILIES: list[tuple[str, list[InsertEntry]]] = [
             ("Material", "material", "M"),
             ("Infobox / Hinweis", "info", "F"),
             ("Musterlösung", "solution", "R"),
+            ("Erwartungen", "expectation", "J"),
             ("Hilfe-Karte", "help", "H"),
         ],
     ),

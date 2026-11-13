@@ -18,7 +18,7 @@ def _codes(body, document_type="exam"):
 
 
 def _task(solution_lines, extra=""):
-    return f":::task points=2 afb=1\nA\n:::\n{extra}:::solution\n" + "".join(f"{line}\n" for line in solution_lines) + ":::\n"
+    return f":::task points=2 afb=1\nA\n:::\n{extra}:::expectation\n" + "".join(f"{line}\n" for line in solution_lines) + ":::\n"
 
 
 def test_lernhilfe_kind_is_deduction_only_with_own_label():
@@ -47,8 +47,8 @@ def test_subtask_help_accepts_deduction_in_task_solution():
     body = (
         ":::task afb=1\nA\n:::\n:::subtask points=1 afb=1\na\n:::\n" + HELP
         + ":::subtask points=1 afb=1\nb\n:::\n"
-        ":::solution target=task\n1. Lernhilfe genutzt (−1P Lh)\n:::\n"
-        ":::solution target=a\n1. Ergebnis (1P)\n:::\n:::solution target=b\n1. Ergebnis (1P)\n:::\n"
+        ":::expectation target=task\n1. Lernhilfe genutzt (−1P Lh)\n:::\n"
+        ":::expectation target=a\n1. Ergebnis (1P)\n:::\n:::expectation target=b\n1. Ergebnis (1P)\n:::\n"
     )
     assert _codes(body) == []
 

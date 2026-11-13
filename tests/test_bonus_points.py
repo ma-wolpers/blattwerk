@@ -21,11 +21,11 @@ from app.core.points_model import build_points_model, points_badge
 
 HEAD = "---\ndocument_type: exam\nTitel: T\nFach: M\nThema: X\n---\n"
 WITH_BONUS_SUBTASK = (
-    ":::task afb=1\nA\n:::\n:::subtask points=2\na\n:::\n:::solution\n1. x (2P)\n:::\n"
-    ":::subtask points=2 afb=2 bonus=true\nb\n:::\n:::solution\n1. y (1/2P)\n2. z (1/2P)\n3. w (1/2P)\n:::\n"
-    "--hm\n:::task points=3 afb=2\nB\n:::\n:::solution\n1. v (3P)\n:::\n"
+    ":::task afb=1\nA\n:::\n:::subtask points=2\na\n:::\n:::expectation\n1. x (2P)\n:::\n"
+    ":::subtask points=2 afb=2 bonus=true\nb\n:::\n:::expectation\n1. y (1/2P)\n2. z (1/2P)\n3. w (1/2P)\n:::\n"
+    "--hm\n:::task points=3 afb=2\nB\n:::\n:::expectation\n1. v (3P)\n:::\n"
 )
-BONUS_TASK = ":::task points=4 afb=1\nA\n:::\n:::task points=2 bonus=true\nZusatz\n:::\n:::solution\n1. q (2P)\n:::\n"
+BONUS_TASK = ":::task points=4 afb=1\nA\n:::\n:::task points=2 bonus=true\nZusatz\n:::\n:::expectation\n1. q (2P)\n:::\n"
 
 
 def _codes(body):

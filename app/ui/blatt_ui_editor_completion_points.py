@@ -1,8 +1,8 @@
-"""Editor completion mixin: Erwartungstypen in der Punktklammer eines Klausur-Lösungspunkts.
+"""Editor completion mixin: Erwartungstypen in der Punktklammer einer Klausur-Erwartung.
 
-Steht der Cursor in einer `.kbw` in der Kopfzeile eines Lösungspunkts
-(`1. …`) innerhalb von `:::solution` direkt nach `(0,5P ` (bzw. mitten im
-schon begonnenen Typ-Wort), schlägt die Completion die Erwartungstypen vor.
+Steht der Cursor in einer `.kbw` in einer Zeile innerhalb von
+`:::expectation` direkt nach `(0,5P ` (bzw. mitten im schon begonnenen
+Typ-Wort), schlägt die Completion die Erwartungstypen vor.
 Übernommen wird immer der volle Name (`Ansatz`), auch wenn ein Kürzel
 getippt wurde -- Entscheidung der Nutzerin (2026-10-25).
 
@@ -13,8 +13,8 @@ auslösen. Das Popup fragt diesen Kontext deshalb *vor*
 `_collect_editor_completion_context` ab (`_open_editor_completion`).
 
 Fachwissen kommt nur aus dem Core: die Grammatik der Typ-Stelle aus
-`points_suffix.find_kind_slot`, die Kopfzeilen-Regel aus
-`solution_structure.ITEM_HEAD_RE`, Typen und Detailtexte aus
+`points_suffix.find_kind_slot`, der Blockname aus
+`expectation_items.EXPECTATION_BLOCK`, Typen und Detailtexte aus
 `completion_catalogs`.
 
 GRENZE: Der Dokumenttyp wird über den Pfad des aktiven Tabs bestimmt (wie
@@ -32,14 +32,14 @@ from ..core.completion_catalogs import (
 )
 from ..core.document_type_registry import DOCUMENT_TYPE_EXAM
 from ..core.points_suffix import find_kind_slot
-from ..core.solution_structure import ITEM_HEAD_RE
+from ..core.expectation_items import EXPECTATION_BLOCK
 
 _RIGHT_OF_SLOT_RE = re.compile(r"^\s*\)?\s*$")
 """Rechts vom Cursor darf höchstens noch die schließende Klammer stehen."""
 
 
 class BlattwerkAppEditorCompletionPointsMixin:
-    """Schlägt Erwartungstypen nach `(Zahl P ` in Klausur-Lösungspunkten vor."""
+    """Schlägt Erwartungstypen nach `(Zahl P ` in Klausur-Erwartungen vor."""
 
     def _collect_expectation_kind_completion_context(self, auto: bool):
         """Returns a completion context for expectation kinds at the cursor, else ``None``.
@@ -49,9 +49,8 @@ class BlattwerkAppEditorCompletionPointsMixin:
 
         1. Der Text links vom Cursor endet in der Typ-Stelle eines
            Punkt-Suffixes (`find_kind_slot`), rechts steht höchstens `)`.
-        2. Die Zeile ist eine Lösungspunkt-Kopfzeile (`ITEM_HEAD_RE`).
-        3. Der umschließende Block ist `:::solution`.
-        4. Der aktive Tab ist eine Klausur (`.kbw`).
+        2. Der umschließende Block ist `:::expectation`.
+        3. Der aktive Tab ist eine Klausur (`.kbw`).
 
         Der Rückgabewert hat dieselbe Form wie bei
         `_collect_editor_completion_context` (`suggestions`,
@@ -76,9 +75,7 @@ class BlattwerkAppEditorCompletionPointsMixin:
         slot = find_kind_slot(line_text[:cursor_col])
         if slot is None or not _RIGHT_OF_SLOT_RE.match(line_text[cursor_col:]):
             return None
-        if not ITEM_HEAD_RE.match(line_text):
-            return None
-        if self._editor_get_enclosing_block_type(line_no) != "solution":
+        if self._editor_get_enclosing_block_type(line_no) != EXPECTATION_BLOCK:
             return None
         if self._editor_active_document_type() != DOCUMENT_TYPE_EXAM:
             return None

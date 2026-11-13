@@ -45,7 +45,7 @@ Kommentaren und Leerraum besteht, samt Zeilenumbruch. Der Kommentarinhalt ist
 `%%a%% Text %%b%%` *keine* reine Kommentarzeile ist."""
 
 FENCE_PATTERN = re.compile(r"^```[^\n]*\n(.*?)\n^```[ \t]*$", re.DOTALL | re.MULTILINE)
-"""`COMMENT_PATTERN`/`FENCE_PATTERN` sind öffentlich, weil `solution_items.classify_solution`
+"""`COMMENT_PATTERN`/`FENCE_PATTERN` sind öffentlich, weil `expectation_structure.classify_expectations`
 dieselben Bereiche wie die Render-Pipeline ausnehmen muss (keine zweite Regex)."""
 _INLINE_CODE_PATTERN = re.compile(r"(?<!\\)`([^`\n]+?)(?<!\\)`")
 

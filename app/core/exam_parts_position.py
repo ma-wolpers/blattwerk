@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from .blatt_validator_columns import index_in_columns_scope
 
-_TASK_RELATED = frozenset({"task", "subtask", "solution"})
+_TASK_RELATED = frozenset({"task", "subtask", "solution", "expectation"})
 
 AID_SPLIT_BLOCK = "aidsplit"
 CHOICE_SPLIT_BLOCK = "choicesplit"

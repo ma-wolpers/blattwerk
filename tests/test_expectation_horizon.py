@@ -12,19 +12,28 @@ def _html(body):
     return build_expectation_horizon_html(HEAD + body)
 
 
-def test_contains_only_numbered_expectations_not_task_text():
+def test_contains_expectations_but_neither_task_text_nor_solution():
+    """Nur `:::expectation` erscheint; Aufgabentext und Musterlösung nie, auch nicht mit Punkten darin."""
     html, diagnostics = _html(
-        ":::task points=3 afb=1\nGEHEIMER AUFGABENTEXT\n:::\n:::solution\nFreitext ohne Nummer\n1. Ansatz (1P)\n   - Detail\n2. Ergebnis (2P)\n:::\n"
+        ":::task points=3 afb=1\nGEHEIMER AUFGABENTEXT\n:::\n:::solution\nGEHEIME LÖSUNG (3P)\n:::\n"
+        ":::expectation\nAnsatz\nmit zweiter Zeile (1P)\nErgebnis (2P)\n:::\n"
     )
-    assert "GEHEIMER AUFGABENTEXT" not in html and "Freitext ohne Nummer" not in html
-    assert "Ansatz - Detail" in html and "Ergebnis" in html
+    assert "GEHEIMER AUFGABENTEXT" not in html and "GEHEIME LÖSUNG" not in html
+    assert "Ansatz mit zweiter Zeile" in html and "Ergebnis" in html
     assert diagnostics == []
+
+
+def test_number_column_shows_only_written_numbers():
+    """Die Spalte „Nr.“ zeigt selbst geschriebene Nummern und bleibt sonst leer -- nie automatisch gezählt."""
+    html, _ = _html(":::task points=3 afb=1\nA\n:::\n:::expectation\n2. Schritt (1P)\nohne Nummer (2P)\n:::\n")
+    assert "<td class='num'>2</td><td>Schritt</td>" in html and "<td class='num'></td><td>ohne Nummer</td>" in html
+    assert "<td class='num'>1</td>" not in html
 
 
 def test_merged_solutions_and_targets_are_listed_per_subtask():
     body = (
         ":::task afb=2\nA\n:::\n:::subtask points=2\na\n:::\n:::subtask points=1,5\nb\n:::\n"
-        ":::solution\n1. zu b (1,5P)\n:::\n:::solution target=a\n1. zu a (1P)\n:::\n:::solution target=a\n1. auch zu a (1P)\n:::\n"
+        ":::expectation\n1. zu b (1,5P)\n:::\n:::expectation target=a\n1. zu a (1P)\n:::\n:::expectation target=a\n1. auch zu a (1P)\n:::\n"
     )
     html, _ = _html(body)
     a_pos, b_pos = html.index("Aufgabe 1a (2 P)"), html.index("Aufgabe 1b (1,5 P)")
@@ -33,7 +42,7 @@ def test_merged_solutions_and_targets_are_listed_per_subtask():
 
 
 def test_missing_points_and_missing_expectations_are_warnings():
-    html, diagnostics = _html(":::task points=2 afb=1\nA\n:::\n:::solution\n1. ohne Punkte\n:::\n:::task points=1 afb=1\nB\n:::\n")
+    html, diagnostics = _html(":::task points=2 afb=1\nA\n:::\n:::expectation\n1. ohne Punkte\n:::\n:::task points=1 afb=1\nB\n:::\n")
     codes = [d.code for d in diagnostics]
     assert codes == ["SL005", "SL007"]
     assert "keine Erwartung hinterlegt" in html
@@ -41,7 +50,7 @@ def test_missing_points_and_missing_expectations_are_warnings():
 
 def test_parts_subtotals_and_no_afb_statistics():
     """Teilsummen je Hilfsmittel-Teil; die AFB-Statistik ist intern und fehlt im Horizont."""
-    html, _ = _html(":::task points=4 afb=1\nA\n:::\n:::solution\n1. x (4P)\n:::\n--hm\n:::task points=6 afb=3\nB\n:::\n:::solution\n1. y (6P)\n:::\n")
+    html, _ = _html(":::task points=4 afb=1\nA\n:::\n:::expectation\n1. x (4P)\n:::\n--hm\n:::task points=6 afb=3\nB\n:::\n:::expectation\n1. y (6P)\n:::\n")
     assert html.index("Teil A – hilfsmittelfrei") < html.index("Summe Teil A: 4 P") < html.index("Teil B – mit Hilfsmitteln")
     assert "Summe Teil B: 6 P" in html
     assert "Anforderungsbereich" not in html and "AFB" not in html and "%" not in html.split("<body>")[1]
@@ -49,7 +58,7 @@ def test_parts_subtotals_and_no_afb_statistics():
 
 def test_no_parts_without_aid_split():
     """Ohne `--hm` keine Teilüberschriften und keine Teilsummen."""
-    html, _ = _html(":::task points=4\nA\n:::\n:::solution\n1. x (4P)\n:::\n")
+    html, _ = _html(":::task points=4\nA\n:::\n:::expectation\n1. x (4P)\n:::\n")
     assert "Teil A" not in html and "Summe Teil" not in html
 
 
@@ -57,10 +66,10 @@ def test_no_parts_without_aid_split():
     "body",
     [
         ":::task points=10\nA\n:::\n:::subtask points=3\na\n:::\n:::subtask points=4\nb\n:::\n",  # PK001
-        ":::task points=4\nA\n:::\n:::solution\n1. x (3P)\n:::\n",  # PK002
+        ":::task points=4\nA\n:::\n:::expectation\n1. x (3P)\n:::\n",  # PK002
         ":::task\nA\n:::\n:::subtask points=1\na\n:::\n:::subtask\nb\n:::\n",  # PK004
-        ":::task\nA\n:::\n:::subtask points=1\na\n:::\n:::subtask points=1\nb\n:::\n:::solution target=task\n1. x (2P)\n:::\n",  # PK005
-        ":::task\nA\n:::\n:::subtask\na\n:::\n:::subtask\nb\n:::\n:::solution target=z\n1. x\n:::\n",  # SL008
+        ":::task\nA\n:::\n:::subtask points=1\na\n:::\n:::subtask points=1\nb\n:::\n:::expectation target=task\n1. x (2P)\n:::\n",  # PK005
+        ":::task\nA\n:::\n:::subtask\na\n:::\n:::subtask\nb\n:::\n:::expectation target=z\n1. x\n:::\n",  # SL008
     ],
 )
 def test_point_errors_block_export(tmp_path, body):
@@ -73,7 +82,7 @@ def test_point_errors_block_export(tmp_path, body):
 
 def test_html_and_pdf_export(tmp_path):
     source = tmp_path / "k.kbw"
-    source.write_text(HEAD + ":::task points=2 afb=1\nA\n:::\n:::solution\n1. Formel $x^2$ (2P)\n:::\n", encoding="utf-8")
+    source.write_text(HEAD + ":::task points=2 afb=1\nA\n:::\n:::expectation\n1. Formel $x^2$ (2P)\n:::\n", encoding="utf-8")
     diagnostics = []
 
     html_out = build_expectation_horizon(source, tmp_path / "ewh.html", diagnostics_out=diagnostics)
@@ -106,7 +115,7 @@ def test_export_dialog_offers_expectation_horizon_only_as_pdf_or_html():
 
 def test_horizon_uses_the_smaller_base_font():
     """Kompakter Druck: Grundschrift 9 pt, Überschriften proportional kleiner."""
-    html, _diagnostics = _html(":::task points=1 afb=1\nA\n:::\n:::solution\n1. x (1P)\n:::\n")
+    html, _diagnostics = _html(":::task points=1 afb=1\nA\n:::\n:::expectation\n1. x (1P)\n:::\n")
     assert "font-size: 9pt" in html and "h1 { font-size: 14pt" in html
 
 
@@ -127,7 +136,7 @@ def _preview(source, document_type="exam"):
 
 def test_preview_variant_expectation_rasterizes_the_horizon(tmp_path):
     source = tmp_path / "k.kbw"
-    source.write_text(HEAD + ":::task points=2\nA\n:::\n:::solution\n1. ohne Punkte\n:::\n:::task points=1\nB\n:::\n", encoding="utf-8")
+    source.write_text(HEAD + ":::task points=2\nA\n:::\n:::expectation\n1. ohne Punkte\n:::\n:::task points=1\nB\n:::\n", encoding="utf-8")
 
     pages, diagnostics = _preview(source)
 
@@ -137,7 +146,7 @@ def test_preview_variant_expectation_rasterizes_the_horizon(tmp_path):
 
 def test_preview_variant_expectation_blocks_on_point_errors(tmp_path):
     source = tmp_path / "k.kbw"
-    source.write_text(HEAD + ":::task points=4\nA\n:::\n:::solution\n1. x (3P)\n:::\n", encoding="utf-8")
+    source.write_text(HEAD + ":::task points=4\nA\n:::\n:::expectation\n1. x (3P)\n:::\n", encoding="utf-8")
 
     with pytest.raises(ValueError):
         _preview(source)

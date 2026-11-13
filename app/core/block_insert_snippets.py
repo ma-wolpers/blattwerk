@@ -122,6 +122,11 @@ BLOCK_INSERT_SNIPPETS: dict[str, str] = {
         "[[CURSOR]]Musterlösung hier…\n"
         ":::\n"
     ),
+    "expectation": (
+        ":::expectation\n"
+        "[[CURSOR]]Erwartung hier… (1P)\n"
+        ":::\n"
+    ),
     "subtask": (
         ":::subtask work=single\n"
         "[[CURSOR]]Teilaufgabe hier…\n"

@@ -15,7 +15,7 @@ from app.core.points_model import (
     build_points_model,
     parse_points,
 )
-from app.core.solution_items import collect_solution_targets
+from app.core.expectation_items import collect_expectation_targets
 
 HEAD = "---\ndocument_type: worksheet\nTitel: T\nFach: M\nThema: X\n---\n"
 
@@ -63,7 +63,7 @@ def test_non_numeric_points_warn_pk003_and_still_render():
 
 
 def test_solution_points_sum_matches_or_pk002():
-    good = ":::task points=4\nA\n:::\n:::solution\n1. Ansatz (2P)\n2. Ergebnis (1,5P)\n3. Einheit (0,5P)\n:::\n"
+    good = ":::task points=4\nA\n:::\n:::expectation\n1. Ansatz (2P)\n2. Ergebnis (1,5P)\n3. Einheit (0,5P)\n:::\n"
     bad = good.replace("(0,5P)", "(1P)")
     assert "PK002" not in _codes(good)
     assert "PK002" in _codes(bad)
@@ -72,11 +72,11 @@ def test_solution_points_sum_matches_or_pk002():
 def test_solution_after_subtasks_belongs_to_last_subtask_and_target_overrides():
     body = (
         ":::task\nA\n:::\n:::subtask points=2\na\n:::\n:::subtask points=3\nb\n:::\n"
-        ":::solution\n1. zu b (3P)\n:::\n"
-        ":::solution target=a\n1. zu a (2P)\n:::\n"
-        ":::solution target=B\n1. auch zu b\n:::\n"
+        ":::expectation\n1. zu b (3P)\n:::\n"
+        ":::expectation target=a\n1. zu a (2P)\n:::\n"
+        ":::expectation target=B\n1. auch zu b\n:::\n"
     )
-    targets, issues = collect_solution_targets(parse_blocks(body))
+    targets, issues = collect_expectation_targets(parse_blocks(body))
     assert issues == []
     by_letter = {t.subtask_letter: t for t in targets}
     assert [i.text for i in by_letter["b"].items] == ["zu b", "auch zu b"]
@@ -85,24 +85,24 @@ def test_solution_after_subtasks_belongs_to_last_subtask_and_target_overrides():
 
 
 def test_target_task_after_subtasks_with_pointed_subtasks_is_pk005():
-    body = ":::task\nA\n:::\n:::subtask points=2\na\n:::\n:::subtask points=2\nb\n:::\n:::solution target=task\n1. x (4P)\n:::\n"
+    body = ":::task\nA\n:::\n:::subtask points=2\na\n:::\n:::subtask points=2\nb\n:::\n:::expectation target=task\n1. x (4P)\n:::\n"
     assert "PK005" in _codes(body)
 
 
 @pytest.mark.parametrize("target", ["d", "zz", "1"])
 def test_invalid_target_is_sl008_error(target):
-    body = f":::task\nA\n:::\n:::subtask\na\n:::\n:::subtask\nb\n:::\n:::solution target={target}\n1. x\n:::\n"
+    body = f":::task\nA\n:::\n:::subtask\na\n:::\n:::subtask\nb\n:::\n:::expectation target={target}\n1. x\n:::\n"
     diagnostics = inspect_markdown_text(HEAD + body).diagnostics
     assert any(d.code == "SL008" and d.severity == "error" for d in diagnostics)
 
 
 def test_target_letter_of_other_unit_is_sl008():
-    body = ":::task\nA\n:::\n:::subtask\na\n:::\n:::subtask\nb\n:::\n:::task\nB\n:::\n:::solution target=b\n1. x\n:::\n"
+    body = ":::task\nA\n:::\n:::subtask\na\n:::\n:::subtask\nb\n:::\n:::task\nB\n:::\n:::expectation target=b\n1. x\n:::\n"
     assert "SL008" in _codes(body)
 
 
 def test_solution_without_preceding_task_is_sl001():
-    assert "SL001" in _codes(":::solution\n1. x\n:::\n:::task\nA\n:::\n")
+    assert "SL001" in _codes(":::expectation\n1. x\n:::\n:::task\nA\n:::\n")
 
 
 def test_solution_never_crosses_aid_split():
@@ -110,20 +110,22 @@ def test_solution_never_crosses_aid_split():
     blocks = [
         ("task", {"points": "2"}, "A"),
         ("aidsplit", {}, ""),
-        ("solution", {}, "1. x (2P)"),
+        ("expectation", {}, "1. x (2P)"),
         ("task", {}, "B"),
     ]
-    targets, issues = collect_solution_targets(blocks)
+    targets, issues = collect_expectation_targets(blocks)
     assert targets == [] and [i.code for i in issues] == ["SL001"]
 
 
-def test_misplaced_points_in_nested_or_bullet_item_is_sl004():
-    body = ":::task points=2\nA\n:::\n:::solution\n1. Ansatz (2P)\n   - Detail (1P)\n- Stichpunkt (1P)\n:::\n"
-    assert "SL004" in _codes(body)
+def test_points_in_solution_are_sl024_and_never_scored():
+    """Punkte in `:::solution` zählen nicht (keine Summenprüfung), sondern melden SL024."""
+    body = ":::task points=2\nA\n:::\n:::solution\nAnsatz (1P)\n:::\n"
+    codes = _codes(body)
+    assert "SL024" in codes and "PK002" not in codes and "SL004" not in codes
 
 
 def test_solution_points_without_task_points_is_pk006():
-    assert "PK006" in _codes(":::task\nA\n:::\n:::solution\n1. x (2P)\n:::\n")
+    assert "PK006" in _codes(":::task\nA\n:::\n:::expectation\n1. x (2P)\n:::\n")
 
 
 def test_points_diagnostics_only_for_worksheet_and_exam():

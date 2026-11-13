@@ -8,13 +8,13 @@ veraltet; sie werden vorerst weiter dargestellt, aber gemeldet.
 
 **KL013 (Warnung):** In Klausuren sind Lernhilfen erlaubt, ihre Nutzung soll aber Punkte kosten.
 Deshalb muss jede (Teil-)Aufgabe, an der eine für Schüler:innen sichtbare
-Lernhilfe hängt, in ihrer Lösung -- oder in der Lösung der übergeordneten
+Lernhilfe hängt, in ihren Erwartungen -- oder in denen der übergeordneten
 Aufgabe bzw. einer ihrer Teilaufgaben -- mindestens einen Abzug mit dem
-Erwartungstyp „Lernhilfe“ tragen, z. B. ``1. Lernhilfe genutzt (−1P Lh)``.
+Erwartungstyp „Lernhilfe“ tragen, z. B. ``Lernhilfe genutzt (−1P Lh)`` in `:::expectation`.
 
 Die Zuordnung Lernhilfe -> (Teil-)Aufgabe kommt allein aus
 `blatt_kern_shared_blocks.assign_help_blocks` (dieselbe wie für die
-Verweise „→ Lernhilfe B“), die Lösungspunkte aus `solution_items`, die
+Verweise „→ Lernhilfe B“), die Erwartungen aus `expectation_items`, die
 Aufgabeneinheiten aus `points_model` -- keine eigene Zählung.
 """
 
@@ -27,7 +27,7 @@ from .blatt_validator_region import compute_block_region_id
 from .blatt_validator_types import BuildDiagnostic
 from .expectation_kinds import LERNHILFE_KIND_KEY
 from .points_model import build_points_model
-from .solution_items import collect_solution_targets
+from .expectation_items import collect_expectation_targets
 
 
 def validate_help_blocks(blocks, document_type: str = "worksheet") -> list[BuildDiagnostic]:
@@ -75,7 +75,7 @@ def help_deduction_diagnostics(blocks) -> list[BuildDiagnostic]:
         return []
 
     units = build_points_model(blocks)
-    targets, _issues = collect_solution_targets(blocks)
+    targets, _issues = collect_expectation_targets(blocks)
     diagnostics = []
     for owner_index in owners:
         position = _unit_position(units, owner_index)
@@ -92,8 +92,8 @@ def help_deduction_diagnostics(blocks) -> list[BuildDiagnostic]:
                 owner_index,
                 blocks,
                 "KL013",
-                f"{label} hat eine Lernhilfe, aber ihre Lösung enthält keinen Lernhilfe-Abzug -- "
-                "z. B. `1. Lernhilfe genutzt (−1P Lh)`, damit die Nutzung in der Wertung zählt.",
+                f"{label} hat eine Lernhilfe, aber ihre Erwartungen enthalten keinen Lernhilfe-Abzug -- "
+                "z. B. `Lernhilfe genutzt (−1P Lh)` in `:::expectation`, damit die Nutzung in der Wertung zählt.",
             )
         )
     return diagnostics
@@ -111,9 +111,9 @@ def _unit_position(units, block_index):
 
 
 def _has_help_deduction(targets, unit_index, subtask_position) -> bool:
-    """Ob eine passende Lösung einen Abzug vom Typ „Lernhilfe“ enthält.
+    """Ob passende Erwartungen einen Abzug vom Typ „Lernhilfe“ enthalten.
 
-    Passend sind bei einer Teilaufgabe ihre eigene Lösung und die der Aufgabe,
+    Passend sind bei einer Teilaufgabe ihre eigenen Erwartungen und die der Aufgabe,
     bei einer Aufgabe ihre eigene und die jeder ihrer Teilaufgaben.
     """
     for target in targets:

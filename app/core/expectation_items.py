@@ -1,22 +1,21 @@
-"""Lösungspunkte: einzige Zuordnung von `:::solution` zu (Teil-)Aufgaben und einzige Punktsumme.
+"""Erwartungen: einzige Zuordnung von `:::expectation` zu (Teil-)Aufgaben und einzige Punktsumme.
 
 Zuordnungsregel:
 
 * **Ohne `target=`:** Ziel ist der nächste vorangehende `task`- oder
   `subtask`-Block; andere Blöcke dazwischen werden übersprungen. Die Suche
-  stoppt an jedem Teil-Trenner (`aidsplit`/`choicesplit`) -- eine Lösung wird nie einer
+  stoppt an jedem Teil-Trenner (`aidsplit`/`choicesplit`) -- eine Erwartung wird nie einer
   Aufgabe des anderen Teils zugeordnet. Keine vorangehende Aufgabe → SL001.
 * **`target=task`** → Task der aktuellen Einheit; **`target=a|b|…`** → die
   Teilaufgabe mit genau diesem angezeigten Bezeichner (ohne Groß/Klein) in
   derselben Einheit. Ungültig → SL008 (Fehler).
-* Mehrere Lösungen mit demselben Ziel werden in Dokumentreihenfolge
+* Mehrere Erwartungsblöcke mit demselben Ziel werden in Dokumentreihenfolge
   zusammengeführt.
 
-Items sind die Lösungspunkte aus `solution_structure.classify_solution` --
-dieselbe Zerlegung, aus der `solution_display` die oberste Liste rendert.
-Unterlisten gehören als Fortsetzung zum Eltern-Item. `(xP)` zählt nur am
-Zeilenende der Kopfzeile eines Punkts (SL004 sonst); die Grammatik des
-Suffixes steht ausschließlich in `points_suffix`.
+Items sind die Erwartungen aus `expectation_structure.classify_expectations`;
+die Grammatik der Punktklammer steht ausschließlich in `points_suffix`.
+`:::solution` ist reiner Lösungstext und wird nie bewertet -- stehen dort noch
+Punktangaben, meldet der Validator SL024 (`solution_has_points`).
 
 Abzüge je Fehler (`(−0,5P)`, negative `points`) gehören zu keiner Summe
 und zu keinem Weg; sie werden im Erwartungshorizont getrennt ausgewiesen.
@@ -24,13 +23,13 @@ und zu keinem Weg; sie werden im Erwartungshorizont getrennt ausgewiesen.
 Alternative Lösungswege: Ein Buchstabe im Suffix (`(0,5aP)`, `(1bP)`)
 ordnet den Punkt einem Weg zu; Punkte ohne Buchstabe gelten für alle Wege.
 Erreichbar ist dann Σ(ohne Buchstabe) + max über die Wege von Σ(Weg)
-(`solution_points_total`).
+(`expectation_points_total`).
 
 Summative Optionen: `(x/kP)` -- alle Optionen eines Ziels zählen zusammen,
 höchstens k Punkte („von diesen vier Begründungen brauchst du zwei“).
 Erreichbar ist insgesamt gemeinsam + bester Weg + min(Σ Optionen, k).
 Geltungsbereich (für Wege und Optionen) ist genau ein Ziel
-(`SolutionTarget`): Mehrere Lösungsblöcke desselben Ziels teilen sich die
+(`ExpectationTarget`): Mehrere Erwartungsblöcke desselben Ziels teilen sich die
 Buchstaben, Aufgabenebene und jede Teilaufgabe sind getrennt, am `--hm`
 wird zurückgesetzt.
 
@@ -44,28 +43,32 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from decimal import Decimal
 
-from .points_model import iter_units
-from .points_suffix import SUFFIX_NONE, has_points_candidate, parse_points_suffix, strip_valid_suffix
-from .solution_structure import LIST_LINE_RE, classify_solution
 from .exam_parts_position import PART_SPLIT_BLOCKS
+from .expectation_structure import classify_expectations
+from .points_model import iter_units
+from .points_suffix import SUFFIX_NONE, parse_points_suffix, strip_valid_suffix
+
+EXPECTATION_BLOCK = "expectation"
+"""Blocktyp, aus dem allein Erwartungen und Teilpunkte gelesen werden."""
 
 
 @dataclass
-class SolutionItem:
-    """Ein nummerierter Erwartungspunkt (Text ohne gültiges Punkt-Suffix).
+class ExpectationItem:
+    """Eine Erwartung (Text ohne gültiges Punkt-Suffix).
 
     Attributes:
-        text: Sichtbarer Text (Kopf + Fortsetzung, ohne Kommentare und ohne
-            gültiges Suffix; ein altes oder unlesbares Suffix bleibt im Text).
+        text: Sichtbarer Text (alle Zeilen verbunden, ohne Kommentare und ohne
+            gültiges Suffix; ein unlesbares Suffix bleibt im Text).
         points: Punktzahl, **nur** bei gültigem Suffix (`points_suffix`),
             sonst ``None`` -- unlesbare Suffixe gehen so in keine Summe ein.
             Negativ = Abzug je Fehler (`is_deduction`).
         path: Weg-Buchstabe des Suffixes oder ``None`` (gilt für alle Wege).
         suffix_status: Status aus `points_suffix` (`none`/`valid`/`invalid`).
-        cap: Höchstwert k einer summativen Option `(x/kP)`, sonst ``None``.
         suffix_text: Wortlaut der Suffix-Klammer (für Diagnosetexte), sonst leer.
         kind: Erwartungstyp (Schlüssel aus `expectation_kinds`) oder ``None``.
         kind_token: Typ-Token wie geschrieben; gesetzt, aber `kind` ``None`` = unbekannter Typ (SL017).
+        cap: Höchstwert k einer summativen Option `(x/kP)`, sonst ``None``.
+        label: Optionale Nummer der Erwartung (`"1"` bei `1. …`) oder ``None``.
     """
 
     text: str
@@ -76,76 +79,68 @@ class SolutionItem:
     kind: str | None = None
     kind_token: str | None = None
     cap: Decimal | None = None
+    label: str | None = None
 
     @property
     def is_option(self) -> bool:
-        """Ob der Punkt eine summative Option `(x/kP)` ist."""
+        """Ob die Erwartung eine summative Option `(x/kP)` ist."""
         return self.cap is not None
 
     @property
     def is_deduction(self) -> bool:
-        """Ob der Punkt ein Abzug je Fehler ist (negativer Zahlenwert)."""
+        """Ob die Erwartung ein Abzug je Fehler ist (negativer Zahlenwert)."""
         return self.points is not None and self.points < 0
 
 
 @dataclass
-class SolutionTarget:
-    """Zusammengeführte Lösungs-Items eines Ziels (Task oder Teilaufgabe)."""
+class ExpectationTarget:
+    """Zusammengeführte Erwartungen eines Ziels (Task oder Teilaufgabe)."""
 
     unit_index: int
     subtask_letter: str | None
     subtask_position: int | None
-    items: list[SolutionItem] = field(default_factory=list)
+    items: list[ExpectationItem] = field(default_factory=list)
     block_indices: list[int] = field(default_factory=list)
-    misplaced_points: bool = False
 
     @property
     def is_task_level(self) -> bool:
-        """Ob die Lösung zur Aufgabe selbst statt zu einer Teilaufgabe gehört."""
+        """Ob die Erwartungen zur Aufgabe selbst statt zu einer Teilaufgabe gehören."""
         return self.subtask_position is None
 
 
 @dataclass
-class SolutionIssue:
-    """Zuordnungsproblem einer einzelnen `:::solution` (SL001/SL008)."""
+class ExpectationIssue:
+    """Zuordnungsproblem eines einzelnen `:::expectation`-Blocks (SL001/SL008)."""
 
     code: str
     block_index: int
     message: str
 
 
-def parse_solution_items(content: str) -> tuple[list[SolutionItem], bool]:
-    """Liefert die Items und ob `(xP)` an einer nicht zählenden Stelle stand (SL004).
-
-    Die Punkte kommen ausschließlich aus `classify_solution` (Kopfzeile plus
-    Fortsetzung). Nicht zählend ist ein Suffix in einer Listen- oder
-    Aufzählungszeile, die keine Kopfzeile ist -- außerhalb geschützter
-    Bereiche (Mathe, Kommentar, Codezaun), die nie ausgewertet werden.
-    """
-    layout = classify_solution(content)
-    head_lines = {entry.head_line for entry in layout.entries}
-    misplaced = any(
-        LIST_LINE_RE.match(line) and has_points_candidate(line)
-        for number, line in enumerate(layout.lines)
-        if number not in head_lines and number not in layout.protected_lines
-    )
+def parse_expectation_items(content: str) -> list[ExpectationItem]:
+    """Liefert die Erwartungen eines Blockinhalts (Zerlegung allein aus `classify_expectations`)."""
     items = []
-    for entry in layout.entries:
-        visible_head, *visible_rest = entry.visible_lines()
-        suffix = parse_points_suffix(visible_head)
-        head = strip_valid_suffix(visible_head, suffix)
-        continuation = " ".join(part.strip() for part in visible_rest if part.strip())
-        text = (head + (" " + continuation if continuation else "")).strip()
-        items.append(SolutionItem(
-            text, suffix.value, suffix.path, suffix.status, suffix.text_in(visible_head), suffix.kind, suffix.kind_token,
-            suffix.cap,
+    for entry in classify_expectations(content).entries:
+        visible = [line.strip() for line in entry.visible_lines()]
+        suffix_line = entry.suffix_line()
+        suffix = parse_points_suffix(suffix_line)
+        body = [part for part in visible if part]
+        body[-1] = strip_valid_suffix(suffix_line, suffix).strip()
+        items.append(ExpectationItem(
+            " ".join(part for part in body if part), suffix.value, suffix.path, suffix.status,
+            suffix.text_in(suffix_line), suffix.kind, suffix.kind_token, suffix.cap, entry.label,
         ))
-    return items, misplaced
+    return items
+
+
+def solution_has_points(content: str) -> bool:
+    """Ob ein `:::solution`-Inhalt noch Punktangaben trägt (SL024) -- dieselbe Grammatik wie Erwartungen."""
+    return any(item.suffix_status != SUFFIX_NONE for item in parse_expectation_items(content))
 
 
 @dataclass(frozen=True)
 class PointsTotal:
-    """Erreichbare Punkte eines Ziels (`solution_points_total`).
+    """Erreichbare Punkte eines Ziels (`expectation_points_total`).
 
     Attributes:
         total: gemeinsam + bester Weg.
@@ -165,7 +160,7 @@ class PointsTotal:
     option_caps: frozenset[Decimal] = frozenset()
 
 
-def solution_points_total(items) -> PointsTotal:
+def expectation_points_total(items) -> PointsTotal:
     """Erreichbare Punkte: Σ(ohne Buchstabe) + max über die Wege von Σ(Weg) + min(Σ Optionen, k).
 
     Berücksichtigt nur Punkte mit Zahlenwert (gültiges Suffix); Abzüge je
@@ -195,12 +190,12 @@ def solution_points_total(items) -> PointsTotal:
     return PointsTotal(total, shared, ordered, best, options, frozenset(caps))
 
 
-def collect_solution_targets(blocks) -> tuple[list[SolutionTarget], list[SolutionIssue]]:
-    """Ordnet alle `:::solution`-Blöcke ihren Zielen zu (siehe Moduldoku)."""
+def collect_expectation_targets(blocks) -> tuple[list[ExpectationTarget], list[ExpectationIssue]]:
+    """Ordnet alle `:::expectation`-Blöcke ihren Zielen zu (siehe Moduldoku)."""
     units = iter_units(blocks)
     unit_by_task_index = {unit.block_index: position for position, unit in enumerate(units)}
-    targets: dict[tuple[int, int | None], SolutionTarget] = {}
-    issues: list[SolutionIssue] = []
+    targets: dict[tuple[int, int | None], ExpectationTarget] = {}
+    issues: list[ExpectationIssue] = []
     current_unit: int | None = None
     last_target: tuple[int, int | None] | None = None
     for index, (block_type, options, content) in enumerate(blocks):
@@ -212,40 +207,38 @@ def collect_solution_targets(blocks) -> tuple[list[SolutionTarget], list[Solutio
         elif block_type == "subtask" and current_unit is not None:
             position = next(i for i, sub in enumerate(units[current_unit].subtasks) if sub.block_index == index)
             last_target = (current_unit, position)
-        elif block_type == "solution":
+        elif block_type == EXPECTATION_BLOCK:
             key = _resolve_target(options, current_unit, last_target, units, index, issues)
             if key is None:
                 continue
             target = targets.setdefault(key, _new_target(units, key))
-            items, misplaced = parse_solution_items(content)
-            target.items.extend(items)
+            target.items.extend(parse_expectation_items(content))
             target.block_indices.append(index)
-            target.misplaced_points = target.misplaced_points or misplaced
     return sorted(targets.values(), key=lambda t: (t.unit_index, -1 if t.subtask_position is None else t.subtask_position)), issues
 
 
-def _new_target(units, key) -> SolutionTarget:
+def _new_target(units, key) -> ExpectationTarget:
     """Leeres Ziel für `(unit_index, subtask_position)` mit angezeigtem Teilaufgaben-Buchstaben."""
     unit_index, position = key
     letter = None if position is None else units[unit_index].subtasks[position].letter
-    return SolutionTarget(unit_index, letter, position)
+    return ExpectationTarget(unit_index, letter, position)
 
 
 def _resolve_target(options, current_unit, last_target, units, index, issues):
-    """Ziel einer Lösung nach `target=` bzw. der vorangehenden Aufgabe; meldet SL001/SL008 in `issues`."""
+    """Ziel einer Erwartung nach `target=` bzw. der vorangehenden Aufgabe; meldet SL001/SL008 in `issues`."""
     raw_target = options.get("target")
     if raw_target is None:
         if last_target is None:
-            issues.append(SolutionIssue("SL001", index, "Lösung ohne vorangehende Aufgabe wird keiner Aufgabe zugeordnet."))
+            issues.append(ExpectationIssue("SL001", index, "Erwartung ohne vorangehende Aufgabe wird keiner Aufgabe zugeordnet."))
         return last_target
     wanted = str(raw_target).strip().lower()
     if current_unit is None:
-        issues.append(SolutionIssue("SL008", index, f"`target={raw_target}`: keine Aufgabe in diesem Teil vor der Lösung."))
+        issues.append(ExpectationIssue("SL008", index, f"`target={raw_target}`: keine Aufgabe in diesem Teil vor der Erwartung."))
         return None
     if wanted == "task":
         return (current_unit, None)
     for position, sub in enumerate(units[current_unit].subtasks):
         if sub.letter is not None and sub.letter == wanted:
             return (current_unit, position)
-    issues.append(SolutionIssue("SL008", index, f"`target={raw_target}` passt zu keiner Teilaufgabe dieser Aufgabe."))
+    issues.append(ExpectationIssue("SL008", index, f"`target={raw_target}` passt zu keiner Teilaufgabe dieser Aufgabe."))
     return None

@@ -308,9 +308,13 @@ def should_render_block(block_type, options, include_solutions, document_type="w
     """Entscheidet, ob ein Block in der aktuellen Ausgabe sichtbar sein soll.
 
     `:::solution` ist per Definition nur in der Lösungsfassung sichtbar; seine
-    Optionen `mode`/`show` sind veraltet und werden ignoriert (`OP004`).
+    Optionen `mode`/`show`/`target` sind veraltet und werden ignoriert (`OP004`).
+    `:::expectation` erscheint in keiner Fassung -- nur der Erwartungshorizont
+    liest ihn (`expectation_items`).
     Ohne `mode`/`show` gilt `DEFAULT_SHOW_MODE_BY_BLOCK_TYPE` bzw. „both“.
     """
+    if block_type == "expectation":
+        return False
     if block_type == "solution":
         return bool(include_solutions) and not has_slide_layout(document_type)
     mode_raw = (options.get("mode") or "").strip().lower()

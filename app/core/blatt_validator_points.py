@@ -1,12 +1,17 @@
-"""Punkt- und Lösungsdiagnosen (PK001–PK006, SL001/SL004/SL006/SL008, SL015–SL023).
+"""Punkt- und Erwartungsdiagnosen (PK001–PK006, SL001/SL006/SL008, SL015–SL024).
 
-Liest Punkte nur über `points_model`, Lösungs-Items und ihre Summe nur über
-`solution_items` und die Suffix-Grammatik nur über `points_suffix`
+Liest Punkte nur über `points_model`, Erwartungen und ihre Summe nur über
+`expectation_items` und die Suffix-Grammatik nur über `points_suffix`
 (Invariante I4). Gilt für Arbeitsblätter und Klausuren.
 
 Fehler (blockieren den Export wie alle Blattwerk-Fehler): PK001, PK002,
-PK004, PK005, SL008, SL018, SL019, SL020, SL021. Warnungen: PK003, PK006, SL001, SL004,
-SL006, SL015, SL016, SL017, SL022, SL023.
+PK004, PK005, SL008, SL018, SL019, SL020, SL021. Warnungen: PK003, PK006, SL001,
+SL006, SL015, SL016, SL017, SL022, SL023, SL024.
+
+SL024: Punktangaben in `:::solution` zählen nicht (die Lösung ist reiner
+Text); sie gehören in `:::expectation`. Erkannt mit derselben Grammatik
+(`expectation_items.solution_has_points`). SL004 entfällt: Eine Punktklammer
+am Zeilenende beendet immer eine Erwartung, eine „falsche Stelle“ gibt es nicht.
 
 Erwartungstypen (`(0,5P An)`) sind optional; ein unbekannter Typ ist nur eine
 Warnung (SL017), Wert und Weg des Punkts zählen trotzdem. Ein Typ, der nur
@@ -42,7 +47,7 @@ from .points_model import (
 )
 from .expectation_kinds import is_deduction_only_kind, valid_kinds_hint
 from .points_suffix import SUFFIX_GRAMMAR_HINT, SUFFIX_INVALID, path_label
-from .solution_items import collect_solution_targets, solution_points_total
+from .expectation_items import collect_expectation_targets, expectation_points_total, solution_has_points
 
 POINTS_DOCUMENT_TYPES = frozenset({"worksheet", "exam"})
 
@@ -62,17 +67,27 @@ def _diag(code, message, blocks, index, severity="warning") -> BuildDiagnostic:
 
 
 def validate_points(blocks, document_type: str = "worksheet") -> list[BuildDiagnostic]:
-    """Prüft Punktangaben und Lösungspunkte (nur Arbeitsblatt und Klausur)."""
+    """Prüft Punktangaben und Erwartungen (nur Arbeitsblatt und Klausur)."""
     if document_type not in POINTS_DOCUMENT_TYPES:
         return []
     units = build_points_model(blocks)
     diagnostics = [d for unit in units for d in _unit_diagnostics(unit, blocks)]
-    targets, issues = collect_solution_targets(blocks)
+    targets, issues = collect_expectation_targets(blocks)
     for issue in issues:
         severity = "error" if issue.code == "SL008" else "warning"
         diagnostics.append(_diag(issue.code, issue.message, blocks, issue.block_index, severity))
     for target in targets:
         diagnostics.extend(_target_diagnostics(target, units[target.unit_index], blocks))
+    diagnostics.extend(
+        _diag(
+            "SL024",
+            "Punktangaben in `:::solution` zählen nicht -- Erwartungen mit Teilpunkten gehören in einen "
+            "`:::expectation`-Block.",
+            blocks, index,
+        )
+        for index, (block_type, _options, content) in enumerate(blocks)
+        if block_type == "solution" and solution_has_points(content)
+    )
     return diagnostics
 
 
@@ -99,16 +114,10 @@ def _unit_diagnostics(unit: TaskUnit, blocks) -> list[BuildDiagnostic]:
 
 
 def _target_diagnostics(target, unit: TaskUnit, blocks) -> list[BuildDiagnostic]:
-    """Diagnosen eines Lösungsziels (Aufgabe oder Teilaufgabe), Reihenfolge siehe Moduldocstring."""
+    """Diagnosen eines Erwartungsziels (Aufgabe oder Teilaufgabe), Reihenfolge siehe Moduldocstring."""
     anchor_index = target.block_indices[0]
     label = f"Aufgabe {unit.number}" + (f"{target.subtask_letter}" if target.subtask_letter else "")
     result = []
-    if target.misplaced_points:
-        result.append(_diag(
-            "SL004",
-            f"Lösung zu {label}: Punkte `(xP)` zählen nur am Ende der ersten Zeile eines Lösungspunkts `1. …`.",
-            blocks, anchor_index,
-        ))
     unreadable = _unreadable_suffix_diagnostics(target, label, blocks, anchor_index)
     if unreadable:
         return result + unreadable
@@ -116,21 +125,21 @@ def _target_diagnostics(target, unit: TaskUnit, blocks) -> list[BuildDiagnostic]
         if item.kind_token and item.kind is None:
             result.append(_diag(
                 "SL017",
-                f"Lösung zu {label}: unbekannter Erwartungstyp `{item.kind_token}` in `{item.suffix_text}`. "
+                f"Erwartung zu {label}: unbekannter Erwartungstyp `{item.kind_token}` in `{item.suffix_text}`. "
                 f"Gültig (Name oder Kürzel): {valid_kinds_hint()}.",
                 blocks, anchor_index,
             ))
         if is_deduction_only_kind(item.kind) and not item.is_deduction:
             result.append(_diag(
                 "SL023",
-                f"Lösung zu {label}: Erwartungstyp `{item.kind_token}` gilt nur als Abzug -- "
+                f"Erwartung zu {label}: Erwartungstyp `{item.kind_token}` gilt nur als Abzug -- "
                 f"Minuszeichen ergänzen, z. B. `(−1P {item.kind_token})`.",
                 blocks, anchor_index,
             ))
         if item.is_deduction and item.path:
             result.append(_diag(
                 "SL016",
-                f"Lösung zu {label}: Abzug `{item.suffix_text}` mit Weg-Buchstabe -- Abzüge gelten für die ganze "
+                f"Erwartung zu {label}: Abzug `{item.suffix_text}` mit Weg-Buchstabe -- Abzüge gelten für die ganze "
                 "(Teil-)Aufgabe, der Buchstabe wird ignoriert.",
                 blocks, anchor_index,
             ))
@@ -138,7 +147,7 @@ def _target_diagnostics(target, unit: TaskUnit, blocks) -> list[BuildDiagnostic]
     if len(paths) == 1:
         result.append(_diag(
             "SL015",
-            f"Lösung zu {label}: Nur {path_label(paths[0])} (`{paths[0]}`) ist markiert -- ohne zweiten Weg gibt es keine Alternative.",
+            f"Erwartung zu {label}: Nur {path_label(paths[0])} (`{paths[0]}`) ist markiert -- ohne zweiten Weg gibt es keine Alternative.",
             blocks, anchor_index,
         ))
     annotated = [item.points for item in target.items if item.points is not None]
@@ -147,14 +156,14 @@ def _target_diagnostics(target, unit: TaskUnit, blocks) -> list[BuildDiagnostic]
     if target.is_task_level and unit.subtasks_pointed:
         result.append(_diag(
             "PK005",
-            f"Lösung zu {label}: Teilpunkte auf Aufgabenebene, obwohl die Teilaufgaben bepunktet sind.",
+            f"Erwartung zu {label}: Teilpunkte auf Aufgabenebene, obwohl die Teilaufgaben bepunktet sind.",
             blocks, anchor_index, "error",
         ))
         return result
     if len(annotated) < len(target.items):
         result.append(_diag(
             "SL006",
-            f"Lösung zu {label}: Nur ein Teil der Erwartungen hat Punkte -- keine Summenprüfung.",
+            f"Erwartung zu {label}: Nur ein Teil der Erwartungen hat Punkte -- keine Summenprüfung.",
             blocks, anchor_index,
         ))
         return result
@@ -163,11 +172,11 @@ def _target_diagnostics(target, unit: TaskUnit, blocks) -> list[BuildDiagnostic]
         if unit.status in (STATUS_INCONSISTENT, STATUS_NON_NUMERIC):
             return result  # Punktfehler der Aufgabe ist bereits gemeldet
         result.append(_diag(
-            "PK006", f"Lösung zu {label}: Teilpunkte vergeben, aber {label} hat keine eigene Punktzahl.",
+            "PK006", f"Erwartung zu {label}: Teilpunkte vergeben, aber {label} hat keine eigene Punktzahl.",
             blocks, anchor_index,
         ))
         return result
-    total = solution_points_total(target.items)
+    total = expectation_points_total(target.items)
     option_problems = _option_diagnostics(target, total, label, blocks, anchor_index)
     result.extend(option_problems)
     if any(d.severity == "error" for d in option_problems):
@@ -175,7 +184,7 @@ def _target_diagnostics(target, unit: TaskUnit, blocks) -> list[BuildDiagnostic]
     if total.total != expected and unit.status == STATUS_OK:
         result.append(_diag(
             "PK002",
-            f"Lösung zu {label}: Summe der Teilpunkte ({_total_text(total)}) "
+            f"Erwartung zu {label}: Summe der Teilpunkte ({_total_text(total)}) "
             f"weicht von der Punktzahl ({format_points(expected)}) ab.",
             blocks, anchor_index, "error",
         ))
@@ -189,7 +198,7 @@ def _unreadable_suffix_diagnostics(target, label: str, blocks, anchor_index: int
         if item.suffix_status == SUFFIX_INVALID:
             result.append(_diag(
                 "SL018",
-                f"Lösung zu {label}: Punktangabe `{item.suffix_text}` ist nicht lesbar. Erlaubt: {SUFFIX_GRAMMAR_HINT}.",
+                f"Erwartung zu {label}: Punktangabe `{item.suffix_text}` ist nicht lesbar. Erlaubt: {SUFFIX_GRAMMAR_HINT}.",
                 blocks, anchor_index, "error",
             ))
     return result
@@ -223,23 +232,23 @@ def _option_diagnostics(target, total, label: str, blocks, anchor_index: int) ->
     if len(total.option_caps) > 1:
         caps = ", ".join(format_points(cap) for cap in sorted(total.option_caps))
         return [_diag(
-            "SL019", f"Lösung zu {label}: Optionen mit verschiedenen Höchstwerten ({caps}) -- alle `(x/kP)` "
+            "SL019", f"Erwartung zu {label}: Optionen mit verschiedenen Höchstwerten ({caps}) -- alle `(x/kP)` "
             "eines Ziels brauchen dasselbe k.", blocks, anchor_index, "error",
         )]
     cap = next(iter(total.option_caps))
     result = [
-        _diag("SL020", f"Lösung zu {label}: Option `{item.suffix_text}` bringt mehr als den Höchstwert {format_points(cap)}.",
+        _diag("SL020", f"Erwartung zu {label}: Option `{item.suffix_text}` bringt mehr als den Höchstwert {format_points(cap)}.",
               blocks, anchor_index, "error")
         for item in target.items if item.is_option and item.points > cap
     ]
     if total.options < cap:
         result.append(_diag(
-            "SL021", f"Lösung zu {label}: Die Optionen ergeben zusammen nur {format_points(total.options)} von "
+            "SL021", f"Erwartung zu {label}: Die Optionen ergeben zusammen nur {format_points(total.options)} von "
             f"höchstens {format_points(cap)} Punkten -- der Höchstwert ist nicht erreichbar.", blocks, anchor_index, "error",
         ))
     elif total.options == cap:
         result.append(_diag(
-            "SL022", f"Lösung zu {label}: Die Optionen ergeben genau den Höchstwert {format_points(cap)} -- jede wird "
+            "SL022", f"Erwartung zu {label}: Die Optionen ergeben genau den Höchstwert {format_points(cap)} -- jede wird "
             "gebraucht, `(xP)` genügt statt `(x/kP)`.", blocks, anchor_index,
         ))
     return result

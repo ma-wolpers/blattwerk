@@ -1,7 +1,8 @@
-"""Punkt-Suffix eines Lösungspunkts: einzige Grammatik und einzige Anzeigeform.
+"""Punkt-Suffix einer Erwartung: einzige Grammatik der Punktklammer.
 
-Ein Suffix ist eine Klammer am Ende der (sichtbaren) Kopfzeile eines
-Lösungspunkts (`solution_structure`). Jede Kopfzeile hat genau einen Status:
+Ein Suffix ist eine Klammer am Ende der (sichtbaren) letzten Zeile einer
+Erwartung (`expectation_structure`); sie beendet die Erwartung zugleich.
+Jede solche Zeile hat genau einen Status:
 
 ==========  ==================================================  ==================
 Status      Bedingung                                           Zahlenwert
@@ -41,7 +42,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 
 from .expectation_kinds import resolve_expectation_kind
-from .points_model import format_points, format_signed_points, parse_points
+from .points_model import parse_points
 
 SUFFIX_NONE = "none"
 SUFFIX_VALID = "valid"
@@ -68,7 +69,7 @@ class PointsSuffix:
 
     Attributes:
         status: `SUFFIX_NONE`, `SUFFIX_VALID` oder `SUFFIX_INVALID`.
-        span: Zeichenbereich der Klammer in der Kopfzeile (ohne Leerraum am
+        span: Zeichenbereich der Klammer in der Zeile (ohne Leerraum am
             Ende), bei `none` ``None``.
         value: Punktzahl, nur bei `valid`; negativ bei einem Abzug.
         path: Weg-Buchstabe, nur bei `valid` mit Buchstabe (bei Abzügen
@@ -98,7 +99,7 @@ class PointsSuffix:
 
 
 def parse_points_suffix(head: str) -> PointsSuffix:
-    """Klassifiziert das Suffix einer sichtbaren Kopfzeile (nur dafür gedacht, nicht für beliebige Zeilen)."""
+    """Klassifiziert das Suffix am Ende einer sichtbaren Zeile (Kommentare bereits entfernt)."""
     match = _CANDIDATE_RE.search(head or "")
     if match is None or not _P_TOKEN_RE.search(match.group("body")):
         return PointsSuffix(SUFFIX_NONE)
@@ -141,29 +142,15 @@ def find_kind_slot(left_text: str) -> tuple[int, str] | None:
 
 
 def has_points_candidate(line: str) -> bool:
-    """Ob `line` mit einem Punkt-Kandidaten endet (Grundlage für SL004 an Nicht-Kopfzeilen)."""
+    """Ob `line` mit einem Punkt-Kandidaten endet (gültig oder unlesbar) -- beendet eine Erwartung."""
     return parse_points_suffix(line).status != SUFFIX_NONE
 
 
 def strip_valid_suffix(head: str, suffix: PointsSuffix) -> str:
-    """Kopfzeile ohne gültiges Suffix; andere Status bleiben als sichtbarer Text stehen."""
+    """Zeile ohne gültiges Suffix; andere Status bleiben als sichtbarer Text stehen."""
     if suffix.status != SUFFIX_VALID:
         return head
     return head[: suffix.span[0]].rstrip()
-
-
-def display_suffix(suffix: PointsSuffix) -> str:
-    """Anzeigeform in der Lösung: `(0,5P)`, `(0,5P, Weg A)`, `(1P, Option, max. 2P)`, `(−0,5P)`.
-
-    Abzüge zeigen nie einen Weg (der Buchstabe ist wirkungslos, SL016). Das
-    Typ-Token wird in der Lösung nie angezeigt (Symbole nur im Erwartungshorizont).
-    """
-    text = f"{format_signed_points(suffix.value)}P"
-    if suffix.path and not suffix.is_deduction:
-        text += f", {path_label(suffix.path)}"
-    elif suffix.cap is not None:
-        text += f", Option, max. {format_points(suffix.cap)}P"
-    return f"({text})"
 
 
 def path_label(letter: str) -> str:

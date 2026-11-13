@@ -31,7 +31,6 @@ from .blatt_kern_task_header_render import _render_subtask_block, _render_task_b
 from .exam_part_render import render_exam_part
 from .exam_parts_position import PART_SPLIT_BLOCKS
 from .operator_legend_blocks import OPERATOR_LEGEND_HTML_KEY, OPERATORS_BLOCK_TYPE
-from .solution_display import render_solution_html
 from .qrcode_block import render_qrcode_block
 
 
@@ -241,7 +240,7 @@ def _render_block_body(
         show_label = _option_is_enabled(options.get("label"), default=True)
         label_html = "<div class='solution-label'>Lösung</div>" if show_label else ""
         return _wrap_with_object_alignment(
-            f"<div class='solution'>{label_html}{render_solution_html(content, heading_offset)}</div>",
+            f"<div class='solution'>{label_html}{convert_markdown_with_math(md, normalized_content)}</div>",
             object_alignment,
         )
 

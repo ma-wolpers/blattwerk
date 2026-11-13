@@ -53,7 +53,7 @@ Dieser Hinweis ist nur für die Bearbeitung wichtig und fehlt in der Lösung.
 
 # Lösung `:::solution`
 
-Mit Bezeichnung, ohne Bezeichnung und gezielt einer Teilaufgabe zugeordnet:
+Mit Bezeichnung, ohne Bezeichnung und direkt hinter jeder Teilaufgabe:
 
 :::task
 **Nenne** die Ausgangsstoffe der Fotosynthese.
@@ -82,17 +82,36 @@ In den Chloroplasten.
 :::subtask
 **Nenne** die Energiequelle.
 :::
+:::solution label=false
+Licht.
+:::
 
 :::subtask
 **Nenne** das energiereiche Produkt.
 :::
-
-:::solution target=a
-Licht.
+:::solution label=false
+Traubenzucker.
 :::
 
-:::solution target=b
-Traubenzucker.
+--
+
+# Erwartungen `:::expectation`
+
+Teilpunkte für den Erwartungshorizont einer Klausur -- weder im Arbeitsblatt noch in der Lösung sichtbar. Jede Erwartung endet mit ihrer Punktklammer, Nummern sind freiwillig:
+
+:::task points=3
+**Berechne** die Masse von $2$ Litern Wasser.
+:::
+
+:::solution
+$m=\rho\cdot V=1\,\frac{\text{kg}}{\text{l}}\cdot2\,\text{l}=2\,\text{kg}$
+:::
+
+:::expectation
+1. Formel $m=\rho\cdot V$ (1P An)
+2. eingesetzt und gerechnet (1P Aw)
+Ergebnis mit Einheit $2\,\text{kg}$ (1P Er)
+Einheit fehlt (−0,5P Ei)
 :::
 
 --

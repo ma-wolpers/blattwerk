@@ -35,7 +35,7 @@ def _context(text, **kwargs):
     return _DummyEditor(text, **kwargs)._collect_expectation_kind_completion_context(auto=True)
 
 
-_SOLUTION = ":::task points=1\nAufgabe\n:::\n:::solution\n{line}\n:::\n"
+_SOLUTION = ":::task points=1\nAufgabe\n:::\n:::expectation\n{line}\n:::\n"
 
 
 def test_offers_all_kinds_after_points_and_space_inserting_full_name():
@@ -83,9 +83,15 @@ def test_only_inside_solution_block():
     assert _context(text) is None
 
 
-def test_only_on_solution_point_head_lines():
-    indented = _SOLUTION.format(line="1. Ansatz\n    Folgezeile (1P |")
-    assert _context(indented) is None
+def test_also_on_continuation_lines_without_number():
+    """Jede Zeile eines Erwartungsblocks kann eine Punktklammer tragen -- Nummern sind optional."""
+    continued = _SOLUTION.format(line="1. Ansatz\n    Folgezeile (1P |")
+    assert _context(continued) is not None
+
+
+def test_not_in_solution_blocks():
+    """In `:::solution` gibt es keine Punkte mehr, also auch keine Typ-Vorschläge."""
+    assert _context(_SOLUTION.replace(":::expectation", ":::solution").format(line="Ansatz (1P |")) is None
 
 
 def test_no_popup_without_space_after_p():

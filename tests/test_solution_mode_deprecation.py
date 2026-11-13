@@ -1,4 +1,4 @@
-"""`:::solution mode/show` ist veraltet und wird ignoriert (Phase 8)."""
+"""`:::solution mode/show/target` ist veraltet und wird ignoriert (Phase 8, `target` seit `:::expectation`)."""
 
 import pytest
 
@@ -9,7 +9,7 @@ from app.core.completion_catalogs import get_completion_options_for_block
 HEAD = "---\ndocument_type: worksheet\nTitel: T\nFach: M\nThema: X\n---\n"
 
 
-@pytest.mark.parametrize("option", ["mode=worksheet", "mode=solution", "show=worksheet", "show=both"])
+@pytest.mark.parametrize("option", ["mode=worksheet", "mode=solution", "show=worksheet", "show=both", "target=a"])
 def test_solution_mode_and_show_warn_op004(option):
     diagnostics = inspect_markdown_text(HEAD + f":::solution {option}\nX\n:::\n").diagnostics
     codes = [d.code for d in diagnostics]
@@ -23,11 +23,19 @@ def test_solution_is_only_visible_in_solution_version(options):
     assert should_render_block("solution", options, include_solutions=True, document_type="presentation") is False
 
 
+def test_expectation_is_never_visible():
+    """`:::expectation` gehört allein in den Erwartungshorizont."""
+    for include_solutions in (False, True):
+        assert should_render_block("expectation", {}, include_solutions=include_solutions) is False
+
+
 def test_other_blocks_keep_their_block_mode_option():
     assert should_render_block("info", {"mode": "solution"}, include_solutions=False) is False
     assert should_render_block("info", {"mode": "solution"}, include_solutions=True) is True
 
 
-def test_completion_no_longer_offers_mode_or_show_for_solution():
+def test_completion_no_longer_offers_mode_show_or_target_for_solution():
+    """`target` ordnet seit dem Erwartungsblock `:::expectation` zu, nicht mehr die Lösung."""
     names = set(get_completion_options_for_block("solution"))
-    assert "mode" not in names and "show" not in names and "target" in names
+    assert "mode" not in names and "show" not in names and "target" not in names
+    assert "target" in set(get_completion_options_for_block("expectation"))

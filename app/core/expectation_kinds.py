@@ -87,7 +87,7 @@ def resolve_expectation_kind(token: str | None) -> ExpectationKind | None:
 
 
 def kind_by_key(key: str) -> ExpectationKind:
-    """Typ zu einem internen Schlüssel (für Anzeige aus `SolutionItem.kind`)."""
+    """Typ zu einem internen Schlüssel (für Anzeige aus `ExpectationItem.kind`)."""
     return _BY_KEY[key]
 
 

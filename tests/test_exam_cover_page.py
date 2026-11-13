@@ -18,7 +18,7 @@ from app.core.evaluation_table import build_evaluation_table
 from app.core.exam_analysis import analyze_exam, format_analysis_lines
 from app.core.exam_expectation_horizon import build_expectation_horizon_html
 from app.core.points_model import build_points_model
-from app.core.solution_items import collect_solution_targets
+from app.core.expectation_items import collect_expectation_targets
 
 HEAD = "---\ndocument_type: exam\nTitel: T\nFach: M\nThema: X\n---\n"
 COVER = (
@@ -29,9 +29,9 @@ COVER = (
 )
 PART_A = (
     ":::task afb=1\nTerme\n:::\n:::subtask points=2\na\n:::\n:::subtask points=3 afb=2\nb\n:::\n"
-    ":::solution target=a\n1. x (2P)\n:::\n:::solution target=b\n1. y (3P)\n:::\n"
+    ":::expectation target=a\n1. x (2P)\n:::\n:::expectation target=b\n1. y (3P)\n:::\n"
 )
-PART_B = ":::task points=5 afb=3\nModell\n:::\n:::solution\n1. z (5P)\n:::\n"
+PART_B = ":::task points=5 afb=3\nModell\n:::\n:::expectation\n1. z (5P)\n:::\n"
 ONE_MARKER = PART_A + "--hm\n" + PART_B
 WITH_COVER = COVER + "--hm\n" + PART_A + "--hm\n" + PART_B
 
@@ -52,7 +52,7 @@ def _units_signature(blocks):
 
 
 def _targets_signature(blocks):
-    targets, issues = collect_solution_targets(blocks)
+    targets, issues = collect_expectation_targets(blocks)
     return [(t.unit_index, t.subtask_letter, [(i.text, i.points) for i in t.items]) for t in targets], [i.code for i in issues]
 
 
@@ -106,7 +106,7 @@ def test_cover_has_no_part_heading_and_part_a_starts_on_new_page():
     assert annotated[0][0] != "aidsplit"
 
 
-@pytest.mark.parametrize("before", [":::task points=1 afb=1\nX\n:::\n", ":::subtask points=1\nx\n:::\n", ":::solution\n1. x\n:::\n"])
+@pytest.mark.parametrize("before", [":::task points=1 afb=1\nX\n:::\n", ":::subtask points=1\nx\n:::\n", ":::expectation\n1. x\n:::\n"])
 def test_task_related_block_before_cover_marker_is_kl007(before):
     body = before + "--hm\n" + PART_A + "--hm\n" + PART_B
     assert any(d.code == "KL007" and d.severity == "error" for d in _diagnostics(body))
@@ -126,7 +126,7 @@ def test_subtask_alone_does_not_count_as_task_in_part_a():
 
 
 def test_cover_followed_by_non_task_is_kl005():
-    body = COVER + "--hm\n:::solution\n1. x\n:::\n" + PART_A + "--hm\n" + PART_B
+    body = COVER + "--hm\n:::expectation\n1. x\n:::\n" + PART_A + "--hm\n" + PART_B
     assert any(d.code == "KL005" and d.severity == "error" for d in _diagnostics(body))
 
 

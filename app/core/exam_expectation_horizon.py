@@ -1,9 +1,9 @@
 """Erwartungshorizont einer Klausur als HTML/PDF (Plan Phase 6).
 
-Datenquellen ausschließlich: `solution_items` (Erwartungen und `(xP)`),
+Datenquellen ausschließlich: `expectation_items` (Erwartungen aus `:::expectation`),
 `points_model` (Punktzahlen), `exam_analysis` (Teilsummen) und
 `exam_parts.resolve_exam_parts` (Teile, auch Wahlteile). Es gibt **keinen
-Aufgabentext**, nur die nummerierten Erwartungen, und keine AFB-Statistik
+Aufgabentext** und keine Musterlösung, nur die Erwartungen, und keine AFB-Statistik
 (intern, nur in der Klausur-Übersicht des Editors). Bonuspunkte
 (`bonus=true`) stehen getrennt: „Aufgabe 3 (2 P + 2 Bonuspunkte)“, „Aufgabe 3b
 (+2 Bonuspunkte)“, Teilsummen ohne Bonus mit Bonus-Zusatz.
@@ -14,7 +14,7 @@ Fehlerverhalten:
   Fehler) → kein Export (`ValueError` mit Zusammenfassung).
 * Ziel ohne jede `(P)`-Angabe → Export mit leerer Punktspalte, SL005.
 * Teilweise annotiert (SL006) → Export mit der Validator-Warnung.
-* (Teil-)Aufgabe ohne nummerierte Erwartung → Zeile „keine Erwartung
+* (Teil-)Aufgabe ohne Erwartung → Zeile „keine Erwartung
   hinterlegt“, SL007.
 """
 
@@ -36,7 +36,7 @@ from .export_path_guardrails import validate_export_output_path
 from .frontmatter import content_after_frontmatter
 from .math_span_protection import convert_markdown_with_math
 from .points_model import build_points_model, format_points, format_signed_points, subtask_effective
-from .solution_items import collect_solution_targets
+from .expectation_items import collect_expectation_targets
 from .expectation_kinds import EXPECTATION_KINDS, deduction_label_for, kind_by_key
 from .mathjax_support import PROFILE_PLAIN, mathjax_head
 from .points_suffix import path_label
@@ -76,7 +76,7 @@ def build_expectation_horizon_html(text: str) -> tuple[str, list[BuildDiagnostic
     content, _line = content_after_frontmatter(text)
     blocks = parse_blocks(content.strip())
     units = build_points_model(blocks)
-    targets, _issues = collect_solution_targets(blocks)
+    targets, _issues = collect_expectation_targets(blocks)
     layout = resolve_exam_parts(blocks, "exam").layout
     analysis = analyze_exam(blocks, "exam")
     diagnostics: list[BuildDiagnostic] = []
@@ -95,7 +95,7 @@ def build_expectation_horizon_html(text: str) -> tuple[str, list[BuildDiagnostic
         body.append("<table><tr><th class='num'>Nr.</th><th>Erwartung</th><th class='pts'>max. P.</th><th class='pts'>erreicht</th></tr>")
         keys = []
         if not unit.subtasks or (unit_index, None) in targets_by_key:
-            keys.append((unit_index, None))  # Aufgabenebene (bei Teilaufgaben nur, wenn dort Lösungen stehen)
+            keys.append((unit_index, None))  # Aufgabenebene (bei Teilaufgaben nur, wenn dort Erwartungen stehen)
         keys.extend((unit_index, position) for position in range(len(unit.subtasks)))
         for key in keys:
             body.extend(_target_rows(unit, key, targets_by_key.get(key), diagnostics))
@@ -152,15 +152,16 @@ def _target_rows(unit, key, target, diagnostics) -> list[str]:
     if position is not None:
         rows.append(f"<tr class='target-row'><td colspan='4'>{escape(label)} ({points})</td></tr>")
     if target is None or not target.items:
-        diagnostics.append(_diag("SL007", f"Erwartungshorizont: {label} hat keine nummerierte Erwartung."))
+        diagnostics.append(_diag("SL007", f"Erwartungshorizont: {label} hat keine Erwartung (`:::expectation`)."))
         rows.append("<tr><td class='num'></td><td class='missing'>keine Erwartung hinterlegt</td><td class='pts'></td><td class='pts'></td></tr>")
         return rows
     if all(item.points is None for item in target.items):
         diagnostics.append(_diag("SL005", f"Erwartungshorizont: {label} hat keine Teilpunkte `(xP)`."))
     expectations = [item for item in target.items if not item.is_deduction]
-    for number, item in enumerate(expectations, start=1):
+    for item in expectations:
         points = _item_points_text(item)
         path = _alternative_label(item)
+        number = escape(item.label) if item.label else ""  # nur selbst geschriebene Nummern, nie automatisch
         rows.append(f"<tr><td class='num'>{number}</td><td>{path}{_kind_symbol(item)}{_inline(item.text)}</td><td class='pts'>{points}</td><td class='pts'></td></tr>")
     caps = sorted({item.cap for item in expectations if item.is_option})
     if caps:
