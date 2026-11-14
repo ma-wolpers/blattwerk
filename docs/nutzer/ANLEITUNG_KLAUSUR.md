@@ -38,7 +38,7 @@ Formuliere hier die erste Aufgabe.
 
 Punktzahl der Aufgabe bzw. Teilaufgabe, wird rechts am Zeilenrand als `X P` angezeigt (Zahl, Komma oder Punkt als Dezimaltrenner). Halbe Punkte sind möglich: `points=0,5` oder `points=1.5` erscheinen einheitlich als `0,5 P` bzw. `1,5 P`. Sind alle Teilaufgaben bepunktet, ergibt ihre Summe die Punktzahl der Aufgabe; ein zusätzlich gesetztes `points` an der Aufgabe muss genau dieser Summe entsprechen (`PK001`). Nur einen Teil der Teilaufgaben zu bepunkten ist ein Fehler (`PK004`).
 
-Musterlösungstext, nur in der Lösungsfassung sichtbar. `label=true|false` (Standard `true`) blendet das Label "Lösung" ein/aus. Der Inhalt ist gewöhnliches Markdown (Rechenwege, Sätze, Listen) und wird nie bewertet: Teilpunkte und Erwartungen gehören in `:::expectation`. Steht in einer Lösung noch eine Punktangabe wie `(1P)`, warnt `SL024`; `target=` ist an `:::solution` veraltet und wird ignoriert (`OP004`).
+Musterlösungstext, im Arbeitsblatt und in der Klausur nur in der Lösungsfassung sichtbar, in Präsentationen immer (dort gibt es keine eigene Lösungsfassung). `label=true|false` (Standard `true`) blendet das Label "Lösung" ein/aus. Der Inhalt ist gewöhnliches Markdown (Rechenwege, Sätze, Listen) und wird nie bewertet: Teilpunkte und Erwartungen gehören in `:::expectation`. Steht in einer Lösung noch eine Punktangabe wie `(1P)`, warnt `SL024`; `target=` ist an `:::solution` veraltet und wird ignoriert (`OP004`).
 
 ## 3. Erwartungstypen
 

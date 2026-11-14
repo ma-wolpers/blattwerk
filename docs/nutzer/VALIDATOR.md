@@ -133,6 +133,8 @@ Subprozess siehe `tests/test_blatt_diagnostics_cli.py` (Validator) sowie
 - `BL010`: Verschachtelter `columns`-Block (ein neuer `columns` startet, bevor der vorherige mit `endcolumns` geschlossen wurde).
 - `BL011`: Anzahl `nextcol`-Marker zwischen `columns` und `endcolumns` weicht von `cols - 1` ab (Warnung).
 - `BL012`: `:::help` in einer Praesentation (`.pbw`) -- Lernhilfen sind dort veraltet und gibt es nur noch in Arbeitsblaettern und Klausuren. Der Block wird noch dargestellt. Warnung.
+- `BL018`: `:::expectation` in einem Dokumenttyp ohne Punkte und Erwartungen (z. B. Praesentation) -- der Block wird dort weder angezeigt noch ausgewertet. Warnung.
+- `BL012`, `BL018`, `EV002` und `OPR007` kommen aus einer gemeinsamen Tabelle (`block_availability`): Jeder dieser Bloecke haengt an einer Faehigkeit des Dokumenttyps (Lernhilfen, Punkte, Bewertungstabelle, Operatorentabelle) und wird gemeldet, wenn der Typ sie nicht hat.
 - `BL013`: Früherer Blockname `hilfe` oder `struktogramm` -- die Blöcke heißen jetzt `help` und `structogram`. `tools/migrate_block_names.py` stellt ganze Ordner um. Fehler.
 - `OPR001`: Ein `!!...!!`-Operator-Marker passt zu keinem bekannten Operator des Fachs. Warnung.
 - `OPR002`: **entfallen** (frueher Laufzeitpruefung der Operatoren-Daten; jetzt Test der Daten-Dateien).
@@ -145,7 +147,9 @@ Subprozess siehe `tests/test_blatt_diagnostics_cli.py` (Validator) sowie
 - `OP001`: Unbekannte Option fuer einen bekannten Block.
 - `OP002`: Ungueltiger Wert einer bekannten Option.
 - `OP003`: Option `show` in einem Block ist veraltet; `mode=worksheet|solution` verwenden.
-- `OP004`: Option `mode` bzw. `show` bei `:::solution` ist veraltet und wird ignoriert -- Loesungen erscheinen nur in der Loesungsfassung. Warnung.
+- `OP004`: Veraltete Option, die ignoriert wird. Warnung. Faelle (eine Quelle: `block_mode_policy.deprecated_ignored_options`, auch die Editor-Vorschlaege richten sich danach):
+  - `mode`, `show` oder `target` bei `:::solution` -- Loesungen erscheinen nur in der Loesungsfassung (in Praesentationen immer), `target=` ordnet nur noch `:::expectation` zu.
+  - In Praesentationen (`.pbw`): `mode` bzw. `show` an einem Block ohne Loesungsvariante (`task`, `subtask`, `info`, `material`, `help`, `mindmap`, `operators`, `qrcode`, `selfcheck`, `writebox`). Dort ist jeder Block sichtbar; `mode` entscheidet nur an Antwort- und Diagrammbloecken, ob ihre Loesungen eingetragen erscheinen.
 - `OP005`: `:::geometry axis=true` ohne gueltiges `origin` (Format `"col,row"`). Fehler -- der gesamte Geometry-Payload des Blocks (alle Sektionen) wird dadurch nicht gerendert, kein stiller Ruecksfall auf Rasterkoordinaten.
 - `AN003`: YAML-Fehler in YAML-basiertem `answer`.
 - `AN004`: YAML-Root hat falschen Typ (kein Mapping).
@@ -155,6 +159,7 @@ Subprozess siehe `tests/test_blatt_diagnostics_cli.py` (Validator) sowie
 - `AN008`: Legacy-Syntax `:::answer type=...` ist nicht mehr erlaubt; dedizierten Blocktyp nutzen (z. B. `:::grid`, `:::lines`).
 - `AN009`: Option `type` ist bei dedizierten Antwort-Blocktypen unzulaessig (der Blocktyp selbst definiert bereits den Antworttyp).
 - `AN010`: Ein `task`-/`subtask`- oder textbasierter `answer`-Block nutzt explizite `§`-Marker ohne sichtbares Loesungs-Gegenstueck; pruefe die Paarung von Arbeitsblatt- und Loesungsinhalt.
+- `AN055`: In einer Praesentation (`.pbw`) enthaelt ein `task`-/`subtask`-Block `%`-markierte Loesungsteile. Aufgabenbloecke zeigen dort immer die Aufgabenfassung, die Teile erschienen also nie. Loesungen gehoeren in `:::solution` oder in einen Antwortblock mit `mode=solution`. Warnung.
 - `AN011`: Unbekannter YAML-Key in einem `geometry`-Objekt-Eintrag (`points`/`sequence`/`pairs`/`polygons`/`circles`/`functions`), z. B. ein Tippfehler wie `lable` statt `label`.
 - `AN012`: Ungueltiger `line`-Wert in einem `pairs`-Eintrag (erlaubt: `solid`, `dashed`). Objekt-Feld-Ebene, getrennt von der gleichnamigen Block-Option `line=solid|dashed` bei `:::grid`/`:::geometry` (dort `OP002`).
 - `AN013`: Ungueltiger `color`- oder `fill`-Wert in einem `geometry`-Objekt-Eintrag (kein von `parse_svg_color` akzeptiertes CSS-Farbformat).

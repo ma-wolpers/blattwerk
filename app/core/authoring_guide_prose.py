@@ -237,13 +237,17 @@ PROSE_SECTIONS: dict[str, str] = {
         "stattdessen nur Teile der Formel oder den umgebenden Text fett setzen."
     ),
     "presentation:visibility": (
-        "In Präsentationen (`.pbw`) gibt es **keinen Lösungs-Umschalter**: Blöcke mit "
-        "`mode=solution`/`show=solution` sowie `:::solution ... :::`-Blöcke (nach Blocktyp) werden in "
-        "Präsentationen **immer** ausgeblendet -- unabhängig davon, ob ein Export explizit \"mit "
-        "Lösung\" anfordert. Es gibt keine Möglichkeit, sie in einer Präsentation sichtbar zu machen. "
-        "`mode=worksheet` (oder keine Angabe, Standard `both`) rendert dagegen normal. Praktisch "
-        "bedeutet das: `mode=solution`/`:::solution` in einem Präsentationsdokument zu verwenden "
-        "entspricht \"diesen Block dauerhaft verstecken\", nicht \"Lösungsansicht anbieten\"."
+        "Eine Präsentation (`.pbw`) ist Aufgabenblatt und Lösung zugleich: Es gibt **keinen "
+        "Lösungs-Umschalter**, und **jeder Block wird angezeigt** -- auch `:::solution`, im "
+        "gewohnten Lösungsdesign (z. B. auf einer Auflösungsfolie nach `--!`). Ob Lösungen *in* "
+        "einem Block eingetragen sind, entscheidet `mode` an Antwort- und Diagrammblöcken "
+        "(`cloze`, `table`, `mc`, `grid`, `chart` …): ohne Angabe bzw. `mode=worksheet` bleiben "
+        "Lücken und Felder leer, `mode=solution` trägt die Lösungen (`%`-Teile, Lösungszellen) ein. "
+        "Derselbe Lückentext kann also auf einer Folie leer und auf der nächsten mit "
+        "`mode=solution` ausgefüllt stehen. An allen anderen Blöcken (`task`, `subtask`, `info`, "
+        "`material` …) wirkt `mode`/`show` in Präsentationen nicht und wird gemeldet (`OP004`); "
+        "`%`-Teile im Aufgabentext erscheinen dort nie (`AN055`) -- Lösungen gehören in "
+        "`:::solution` oder einen Antwortblock mit `mode=solution`."
     ),
     # -- Kurzentwurf ---------------------------------------------------------
     "kurzentwurf:phases": (
@@ -583,7 +587,8 @@ PROSE_SECTIONS: dict[str, str] = {
         "(`style=bubble|cloud|frame|letter`). Kein Arbeitsblatt-/Lösungs-Unterschied."
     ),
     "block:solution": (
-        "Musterlösungstext, nur in der Lösungsfassung sichtbar. `label=true|false` (Standard `true`) "
+        "Musterlösungstext, im Arbeitsblatt und in der Klausur nur in der Lösungsfassung sichtbar, in "
+        "Präsentationen immer (dort gibt es keine eigene Lösungsfassung). `label=true|false` (Standard `true`) "
         "blendet das Label \"Lösung\" ein/aus. Der Inhalt ist gewöhnliches Markdown (Rechenwege, Sätze, "
         "Listen) und wird nie bewertet: Teilpunkte und Erwartungen gehören in `:::expectation`. Steht in "
         "einer Lösung noch eine Punktangabe wie `(1P)`, warnt `SL024`; `target=` ist an `:::solution` "
@@ -709,9 +714,12 @@ PROSE_SECTIONS: dict[str, str] = {
         "`OP003` aus, bleibt aber weiterhin funktionsfähig)."
     ),
     "option:mode": (
-        "Blockweite Sichtbarkeitssteuerung, Nachfolger von `show`: `worksheet` blendet den Block nur "
-        "im Arbeitsblatt ein, `solution` nur in der Lösung. Ohne `mode` **und** ohne `show` ist der "
-        "Block in beiden Ausgaben sichtbar."
+        "Blockweite Fassung, Nachfolger von `show`. In Arbeitsblatt und Klausur Sichtbarkeit: "
+        "`worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung; ohne "
+        "`mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. In Präsentationen ist "
+        "jeder Block sichtbar; dort wählt `mode` nur an Antwort- und Diagrammblöcken, ob ihre "
+        "Lösungen eingetragen erscheinen (`solution`) oder leer bleiben (`worksheet`, Standard), "
+        "und ist an allen anderen Blöcken wirkungslos (`OP004`)."
     ),
     "option:align": (
         "Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, "

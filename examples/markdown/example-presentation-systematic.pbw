@@ -2,7 +2,7 @@
 document_type: presentation
 Titel: Praesentation - Systematische Featureabdeckung
 Fach: Informatik
-Thema: Praesentationsmodus mit Markern und Sichtbarkeitsregeln
+Thema: Praesentationsmodus mit Markern und Loesungen pro Block
 Stufe: 8
 presentation_layout: presentation_16_9
 presentation_show_mini_header: true
@@ -17,7 +17,7 @@ Dieses Beispiel deckt die zentralen Praesentationsfeatures systematisch ab:
 1. Frontmatter-Modus `presentation`
 2. Layout-Preset `presentation_16_9`
 3. Marker `--#`, `--!`, `-+`, `-=...`
-4. Blocksichtbarkeit ueber `mode=worksheet|solution`
+4. Loesungen pro Block: Antwortbloecke leer oder mit `mode=solution` ausgefuellt, `:::solution` immer sichtbar
 5. Abschnittswechsel mit aktiver Footer-Navigation
 :::
 
@@ -37,13 +37,15 @@ Diese Folie entsteht per `-+` als naechster Frame mit zusaetzlichem Inhalt.
 
 --# Analyse
 
-:::task title="Kernaussage" points=3 work=single action=write mode=worksheet
-Formuliere eine klare Kernaussage in einem Satz.
+:::task title="Kernaussage" points=3 work=single action=write
+Ergaenze den Satz ueber eine gute Kernaussage.
 :::
 
-:::task title="Interne Loesungsnotiz" points=0 work=single action=read mode=solution
-Dieser Block ist nur fuer Loesungen gedacht und darf in Praesentationen nicht sichtbar sein.
+:::cloze gap=fixed
+Eine Kernaussage ist {{kurz}} und {{praezise}}.
 :::
+
+%% Interne Notiz: Notizen nur fuer die Lehrkraft stehen als Kommentar im Quelltext, nicht als Block. %%
 
 -=1.2cm
 
@@ -52,6 +54,14 @@ Nutze den Abstand oberhalb bewusst, um den Blick auf die naechste Aussage zu len
 :::
 
 --!
+
+:::cloze gap=fixed mode=solution
+Eine Kernaussage ist {{kurz}} und {{praezise}}.
+:::
+
+:::solution
+Beispiel: Ein Algorithmus beschreibt eindeutige Handlungsschritte.
+:::
 
 --# Abschluss
 
