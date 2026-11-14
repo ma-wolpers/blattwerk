@@ -180,6 +180,7 @@ Die Leiste „Vorschau-Optionen“ über der Vorschau startet eingeklappt; mit �
 - Klausur-Funktionen (automatisch generiert): `docs/nutzer/ANLEITUNG_KLAUSUR.md`
 - CSS-Anpassung: `docs/nutzer/CSS_ANLEITUNG.md`
 - Arbeitsblatt-Regeln (Praxis): `docs/intern/ARBEITSBLATT_NOTIZEN.md`
+- Fachkonventionen Mathematik (Schreibweisen, Definitionen): `docs/intern/FACHKONVENTIONEN_MATHEMATIK.md`
 
 ## 9a) Blöcke einfügen (Alt+I)
 
