@@ -187,28 +187,25 @@ _LINE_DIAGNOSTICS = {
 """Welche Zeilenrolle welche Diagnosen erzeugt (`BL005` gilt quer dazu, siehe oben)."""
 
 
-def _has_explicit_worksheet_marker_without_solution(content):
-    """Prüft, ob Inhalt `§`-Marker ohne sichtbares Lösungs-Gegenstück nutzt (für `AN010`)."""
-    has_worksheet_marker = False
-    has_solution_marker = False
+def content_visibility_modes(content) -> set[str]:
+    """Fassungen (`worksheet`/`solution`/`both`) aller nichtleeren Inhaltssegmente.
 
+    Segmente und ihre Fassung kommen allein aus
+    `answer_line_markers.parse_answer_line_visibility` (`§`, `%`, `&`), wie im
+    Renderer. Genutzt von `AN010` und `AN055`.
+    """
+    modes = set()
     for raw_line in str(content or "").splitlines():
         if not raw_line.strip():
             continue
-
         parsed = parse_answer_line_visibility(raw_line, default_show="both")
         for segment in parsed.get("segments", []):
-            segment_text = str(segment.get("text", "")).strip()
-            if not segment_text:
-                continue
+            if str(segment.get("text", "")).strip():
+                modes.add(segment.get("show"))
+    return modes
 
-            segment_show = segment.get("show")
-            if segment_show == "worksheet":
-                has_worksheet_marker = True
-            elif segment_show == "solution":
-                has_solution_marker = True
 
-            if has_worksheet_marker and has_solution_marker:
-                return False
-
-    return has_worksheet_marker and not has_solution_marker
+def _has_explicit_worksheet_marker_without_solution(content):
+    """Prüft, ob Inhalt `§`-Marker ohne sichtbares Lösungs-Gegenstück nutzt (für `AN010`)."""
+    modes = content_visibility_modes(content)
+    return "worksheet" in modes and "solution" not in modes

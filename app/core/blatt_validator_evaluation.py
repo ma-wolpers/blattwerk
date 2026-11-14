@@ -1,22 +1,23 @@
-"""Diagnosen der Bewertungstabelle `:::evaluation` (EV001, EV002).
+"""Diagnosen der Bewertungstabelle `:::evaluation` (EV001).
 
 * EV001 (Warnung): Das Dokument enthält eine Bewertungstabelle, aber
   bepunktbare Aufgaben ohne Punkte (Zelle „–“).
-* EV002 (Warnung): Bewertungstabelle in einem Dokumenttyp ohne diese
-  Funktion (z. B. Präsentation); sie wird dort nicht dargestellt.
+* EV002 (Bewertungstabelle in einem Typ ohne diese Funktion) meldet die
+  gemeinsame Verfügbarkeitstabelle `block_availability`.
 """
 
 from __future__ import annotations
 
 from .blatt_validator_region import compute_block_region_id
 from .blatt_validator_types import BuildDiagnostic
-from .document_type_registry import spec_for_type
+from .document_type_registry import has_evaluation
 from .points_model import STATUS_MISSING, build_points_model
 
 
 def validate_evaluation(blocks, document_type: str = "worksheet") -> list[BuildDiagnostic]:
+    """EV001 am ersten `:::evaluation`-Block, wenn der Typ die Tabelle hat."""
     indices = [index for index, (block_type, _o, _c) in enumerate(blocks) if block_type == "evaluation"]
-    if not indices:
+    if not indices or not has_evaluation(document_type):
         return []
 
     def diag(code, message, index):
@@ -26,12 +27,6 @@ def validate_evaluation(blocks, document_type: str = "worksheet") -> list[BuildD
             region_id=compute_block_region_id(block_type, options), anchor=code,
         )
 
-    try:
-        available = spec_for_type(document_type).evaluation
-    except KeyError:
-        available = False
-    if not available:
-        return [diag("EV002", "Die Bewertungstabelle gibt es nur in Arbeitsblättern und Klausuren; sie wird hier nicht angezeigt.", index) for index in indices]
     missing = [unit.number for unit in build_points_model(blocks) if unit.status == STATUS_MISSING]
     if not missing:
         return []

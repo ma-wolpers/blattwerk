@@ -1,10 +1,10 @@
-"""Lernhilfen-Diagnosen: KL013 (Klausur) und BL012 (Präsentation).
+"""Lernhilfen-Diagnosen: KL013 (Klausur).
 
 `validate_help_blocks` ist der eine Einstieg aus dem Validator-Orchestrator.
 
-**BL012 (Warnung):** Lernhilfen gibt es nur in Arbeitsblättern und Klausuren.
-In Präsentationen (Typen mit `slide_layout`) sind `:::help`
-veraltet; sie werden vorerst weiter dargestellt, aber gemeldet.
+**BL012** (Lernhilfe in einem Typ ohne Capability `help_cards`, also in
+Präsentationen) meldet die gemeinsame Verfügbarkeitstabelle
+`block_availability`, nicht dieses Modul.
 
 **KL013 (Warnung):** In Klausuren sind Lernhilfen erlaubt, ihre Nutzung soll aber Punkte kosten.
 Deshalb muss jede (Teil-)Aufgabe, an der eine für Schüler:innen sichtbare
@@ -21,8 +21,7 @@ Aufgabeneinheiten aus `points_model` -- keine eigene Zählung.
 from __future__ import annotations
 
 from .blatt_kern_shared_blocks import assign_help_blocks
-from .blatt_kern_shared_data import HELP_BLOCK_TYPE
-from .document_type_registry import DOCUMENT_TYPE_EXAM, has_slide_layout
+from .document_type_registry import DOCUMENT_TYPE_EXAM
 from .blatt_validator_region import compute_block_region_id
 from .blatt_validator_types import BuildDiagnostic
 from .expectation_kinds import LERNHILFE_KIND_KEY
@@ -35,22 +34,9 @@ def validate_help_blocks(blocks, document_type: str = "worksheet") -> list[Build
 
     Args:
         blocks: geparste Blockliste.
-        document_type: Typ aus der Dateiendung; Präsentationen bekommen BL012,
-            Klausuren KL013, andere Typen nichts.
+        document_type: Typ aus der Dateiendung; Klausuren bekommen KL013,
+            andere Typen nichts (BL012 kommt aus `block_availability`).
     """
-    if has_slide_layout(document_type or ""):
-        return [
-            _diag(
-                index,
-                blocks,
-                "BL012",
-                f"`:::{block_type}` ist in Präsentationen veraltet -- Lernhilfen gibt es nur in "
-                "Arbeitsblättern und Klausuren. Der Block wird noch dargestellt; bitte als normalen "
-                "Folieninhalt umsetzen oder entfernen.",
-            )
-            for index, (block_type, _options, _content) in enumerate(blocks)
-            if block_type == HELP_BLOCK_TYPE
-        ]
     if document_type == DOCUMENT_TYPE_EXAM:
         return help_deduction_diagnostics(blocks)
     return []

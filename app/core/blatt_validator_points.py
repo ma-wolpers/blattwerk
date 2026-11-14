@@ -48,8 +48,7 @@ from .points_model import (
 from .expectation_kinds import is_deduction_only_kind, valid_kinds_hint
 from .points_suffix import SUFFIX_GRAMMAR_HINT, SUFFIX_INVALID, path_label
 from .expectation_items import collect_expectation_targets, expectation_points_total, solution_has_points
-
-POINTS_DOCUMENT_TYPES = frozenset({"worksheet", "exam"})
+from .document_type_registry import has_points
 
 
 def _diag(code, message, blocks, index, severity="warning") -> BuildDiagnostic:
@@ -67,8 +66,8 @@ def _diag(code, message, blocks, index, severity="warning") -> BuildDiagnostic:
 
 
 def validate_points(blocks, document_type: str = "worksheet") -> list[BuildDiagnostic]:
-    """Prüft Punktangaben und Erwartungen (nur Arbeitsblatt und Klausur)."""
-    if document_type not in POINTS_DOCUMENT_TYPES:
+    """Prüft Punktangaben und Erwartungen (nur Typen mit Capability `points`: Arbeitsblatt, Klausur)."""
+    if not has_points(document_type):
         return []
     units = build_points_model(blocks)
     diagnostics = [d for unit in units for d in _unit_diagnostics(unit, blocks)]

@@ -24,7 +24,7 @@ import fitz
 
 from .blatt_kern_help_render import HELP_CARD_LAYOUT_SHEET, collect_labeled_help_blocks
 from .blatt_kern_io_pdf import write_pdf_from_html
-from .document_type_registry import PIPELINE_WORKSHEET, spec_for_type
+from .document_type_registry import spec_for_type
 from .help_card_pages import (
     build_help_card_single_pages,
     print_html_to_document,
@@ -60,14 +60,14 @@ def coerce_help_appendix(mode) -> str:
 def help_appendix_supported(document_type: str | None) -> bool:
     """Ob ein Dokumenttyp den Lernhilfen-Anhang anbietet.
 
-    Arbeitsblatt-Pipeline ohne Folien-Layout, also Arbeitsblatt und Klausur.
-    Präsentationen nicht: Lernhilfen sind dort veraltet (`BL012`).
+    Genau die Typen mit Capability `help_cards` (Arbeitsblatt, Klausur).
+    Präsentationen nicht: Lernhilfen sind dort veraltet (`BL012`). Unbekannte
+    Typen nicht.
     """
     try:
-        spec = spec_for_type(document_type)
+        return spec_for_type(document_type).help_cards
     except KeyError:
         return False
-    return spec.pipeline == PIPELINE_WORKSHEET and not spec.slide_layout
 
 
 def ensure_help_appendix_request(mode: str, *, document_type: str, output_suffix: str) -> None:

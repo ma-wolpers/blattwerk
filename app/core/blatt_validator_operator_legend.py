@@ -12,7 +12,8 @@ bleiben. Bereiche und Abdeckung kommen ausschließlich aus
 * OPR006 (Fehler): `operators`-Block ohne einen einzigen `!!...!!`-Marker in
   seinem Bereich -- die Tabelle bliebe leer.
 * OPR007 (Warnung): `operators`-Block in einem Dokumenttyp ohne
-  Operatorentabelle (z. B. Präsentation); er wird nicht dargestellt.
+  Operatorentabelle (z. B. Präsentation); er wird nicht dargestellt. Gemeldet
+  von der gemeinsamen Verfügbarkeitstabelle `block_availability`.
 * OPR008 (Warnung): Bereiche überschneiden sich -- dieselbe Fundstelle steht
   in mehreren Tabellen. Erlaubt, aber meist unbeabsichtigt.
 
@@ -53,10 +54,7 @@ def validate_operator_legend(blocks, meta, document_type: str = "worksheet") -> 
     """Prüft Operatorentabellen und ihre Abdeckung (Regeln siehe Moduldocstring)."""
     table_indices = [index for index, (block_type, _o, _c) in enumerate(blocks) if block_type == OPERATORS_BLOCK_TYPE]
     if not shows_operator_legend(document_type):
-        return [
-            _diag(blocks, "OPR007", "Die Operatorentabelle gibt es nur in Arbeitsblättern und Klausuren; sie wird hier nicht angezeigt.", index)
-            for index in table_indices
-        ]
+        return []  # OPR007 je Block: `block_availability`
     marker_indices = operator_marker_indices(blocks)
     if not table_indices:
         if not marker_indices:
