@@ -349,12 +349,6 @@ _DIAGRAM_COMMON_OPTIONS = (
 )
 """Optionen jedes Diagrammblocks, hinter dessen eigenen aus `diagram_block_catalog`."""
 
-DEPRECATED_IGNORED_OPTIONS = {"solution": frozenset({"mode", "show", "target"})}
-"""Optionen, die veraltet sind und **ignoriert** werden (Warnung `OP004`); sie stehen
-bewusst nicht mehr im Spec, damit die Completion sie nicht anbietet. `:::solution`
-ist per Definition nur in der Lösungsfassung sichtbar und wird nie bewertet --
-`target=` ordnet seitdem `:::expectation` zu."""
-
 QRCODE_SIZE_OPTION_KEYS = {"w", "h", "maxw", "width", "height", "max-width"}
 _OPT_QRCODE_SIZE_HINT = "CSS-Größe wie `3cm`, `120px`, `60%` oder `auto`"
 

@@ -22,6 +22,7 @@ from .blatt_kern_shared_blocks import (
     annotate_task_help_references,
     assign_help_blocks,
     assign_task_numbers,
+    block_shows_solutions,
     help_block_labels,
     should_render_block,
 )
@@ -84,6 +85,7 @@ __all__ = [
     "assign_help_blocks",
     "help_block_labels",
     "should_render_block",
+    "block_shows_solutions",
     "is_hole_punch_layout_enabled",
     "format_meta_line",
     "get_current_school_year_label",

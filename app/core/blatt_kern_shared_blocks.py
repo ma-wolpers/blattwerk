@@ -13,7 +13,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from .blatt_kern_shared_data import HELP_BLOCK_TYPE
-from .document_type_registry import has_slide_layout
+from .block_mode_policy import (
+    SHOW_MODE_SOLUTION,
+    SHOW_MODE_WORKSHEET,
+    SOLUTION_VARIANT_BLOCK_TYPES,
+    block_show_mode,
+)
+from .document_type_registry import solutions_per_block
 
 
 def _dedupe_preserve_order(values):
@@ -295,49 +301,38 @@ def annotate_task_help_references(
     return annotated_blocks
 
 
-DEFAULT_SHOW_MODE_BY_BLOCK_TYPE = {"operators": "worksheet"}
-"""Blocktypspezifischer Standard, wenn weder `mode` noch `show` gesetzt ist (sonst „both“).
-
-`operators`: Die Operatorentabelle erscheint wie die frühere automatische
-Liste nur in der Arbeitsblattfassung; `mode=solution` zeigt sie nur in der
-Lösungsfassung.
-"""
-
-
 def should_render_block(block_type, options, include_solutions, document_type="worksheet"):
     """Entscheidet, ob ein Block in der aktuellen Ausgabe sichtbar sein soll.
 
-    `:::solution` ist per Definition nur in der Lösungsfassung sichtbar; seine
-    Optionen `mode`/`show`/`target` sind veraltet und werden ignoriert (`OP004`).
-    `:::expectation` erscheint in keiner Fassung -- nur der Erwartungshorizont
-    liest ihn (`expectation_items`).
-    Ohne `mode`/`show` gilt `DEFAULT_SHOW_MODE_BY_BLOCK_TYPE` bzw. „both“.
+    `:::expectation` erscheint nie -- nur der Erwartungshorizont liest ihn
+    (`expectation_items`). In Typen mit Lösungen pro Block (Präsentation) ist
+    jeder andere Block sichtbar, `:::solution` eingeschlossen; was ein Block
+    dort zeigt, entscheidet `block_shows_solutions`. Sonst gilt die Fassung:
+    `:::solution` nur in der Lösungsfassung (seine `mode`/`show` ignoriert,
+    `OP004`), alle übrigen Blöcke nach `block_mode_policy.block_show_mode`.
     """
     if block_type == "expectation":
         return False
+    if solutions_per_block(document_type):
+        return True
     if block_type == "solution":
-        return bool(include_solutions) and not has_slide_layout(document_type)
-    mode_raw = (options.get("mode") or "").strip().lower()
-    if mode_raw in {"worksheet", "solution"}:
-        show_mode = mode_raw
-    else:
-        # Legacy-Fallback for existing documents.
-        show_mode_raw = (options.get("show") or "").strip().lower()
-        if show_mode_raw in {"worksheet", "solution", "both"}:
-            show_mode = show_mode_raw
-        else:
-            show_mode = DEFAULT_SHOW_MODE_BY_BLOCK_TYPE.get(block_type, "both")
-
-
-    if has_slide_layout(document_type) and show_mode == "solution":
-        return False
-
-    if show_mode == "worksheet" and include_solutions:
-        return False
-    if show_mode == "solution" and not include_solutions:
-        return False
-
-    if block_type == "solution":
-        return include_solutions
-
+        return bool(include_solutions)
+    show_mode = block_show_mode(block_type, options)
+    if show_mode == SHOW_MODE_WORKSHEET:
+        return not include_solutions
+    if show_mode == SHOW_MODE_SOLUTION:
+        return bool(include_solutions)
     return True
+
+
+def block_shows_solutions(block_type, options, include_solutions, document_type="worksheet") -> bool:
+    """Ob ein sichtbarer Block seine Lösungsvariante zeigt (ausgefüllte Lücken, `%`-Teile …).
+
+    Mit eigener Lösungsfassung ist das die Fassung selbst (`include_solutions`).
+    Bei Lösungen pro Block (Präsentation) nur für lösungsfähige Blöcke mit
+    `mode=solution`; ohne Angabe bleiben ihre Lösungen leer, und `task`/`subtask`
+    zeigen immer die Aufgabenfassung (`AN055`).
+    """
+    if not solutions_per_block(document_type):
+        return bool(include_solutions)
+    return block_type in SOLUTION_VARIANT_BLOCK_TYPES and block_show_mode(block_type, options) == SHOW_MODE_SOLUTION

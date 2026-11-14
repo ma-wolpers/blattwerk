@@ -158,7 +158,7 @@ def _collect_document_diagnostics(meta, blocks, content_text, content_base_line=
 
         allowed_options = BLOCK_ALLOWED_OPTIONS.get(block_type, set())
         qrcode_url_value = _validate_block_options(
-            diagnostics, index, block_type, options, allowed_options
+            diagnostics, index, block_type, options, allowed_options, document_type
         )
 
         is_answer_block = _validate_block_type_specifics(

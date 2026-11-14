@@ -111,17 +111,3 @@ class BlattwerkAppEditorCompletionPointsMixin:
             }
             for kind in get_completion_expectation_kinds(prefix)
         ]
-
-    def _editor_active_document_type(self) -> str | None:
-        """Returns the document type of the active tab via its path, or ``None`` without a path.
-
-        Gleiche Herleitung wie `_refresh_editor_diagnostics`: Pfad aus
-        `_active_document_tab_state()`, Typ über `_read_document_type`
-        (Endung bzw. temporäre Markdown-Interpretation).
-        """
-        try:
-            tab_state = self._active_document_tab_state()
-        except Exception:
-            return None
-        raw_path = str(tab_state.get("path", "") or "").strip() if isinstance(tab_state, dict) else ""
-        return self._read_document_type(raw_path) if raw_path else None

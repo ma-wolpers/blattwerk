@@ -14,7 +14,7 @@ from pathlib import Path
 from .dialog_services import messagebox
 
 from ..core.document_semantics import type_for_path, type_for_tab
-from ..core.document_type_registry import DOCUMENT_TYPE_MARKDOWN, DocumentTypeSpec, spec_for_type
+from ..core.document_type_registry import DOCUMENT_TYPE_MARKDOWN, DocumentTypeSpec, solutions_renderable, spec_for_type
 
 
 class BlattwerkDocumentTypeMixin:
@@ -52,7 +52,7 @@ class BlattwerkDocumentTypeMixin:
     @staticmethod
     def _solutions_renderable_for_type(document_type: str | None) -> bool:
         """Ob für den Typ eine Lösungsfassung gewählt werden kann (``None``: nein)."""
-        return bool(document_type) and spec_for_type(document_type).solutions_renderable
+        return bool(document_type) and solutions_renderable(document_type)
 
     def _confirm_open_unknown_extension(self, input_path) -> bool:
         """Fragt bei unbekannter Endung, ob die Datei als Markdown interpretiert werden soll.

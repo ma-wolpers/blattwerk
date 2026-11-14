@@ -14,6 +14,7 @@ from typing import Protocol, TypedDict
 from . import authoring_guide_prose
 from . import operator_legend
 from . import blatt_validator as validator
+from .block_mode_policy import deprecated_ignored_options
 from .blatt_validator_constants import MISSING, BlockOptionSpec, FrontmatterFieldSpec
 from .expectation_kinds import EXPECTATION_KINDS, ExpectationKind
 from .option_prose_resolution import resolve_option_prose_key
@@ -50,7 +51,7 @@ def get_completion_answer_types() -> tuple[str, ...]:
     return tuple(sorted(validator.KNOWN_ANSWER_TYPES))
 
 
-def get_completion_options_for_block(block_type: str) -> tuple[str, ...]:
+def get_completion_options_for_block(block_type: str, document_type: str | None = None) -> tuple[str, ...]:
     """Returns allowed option keys for a block type.
 
     Excludes key aliases (`BLOCK_OPTION_KEY_ALIASES`, e.g. `columns.ratio`,
@@ -58,12 +59,16 @@ def get_completion_options_for_block(block_type: str) -> tuple[str, ...]:
     validated syntax, just not offered as a completion candidate. Filtering
     is block-scoped, not a global string exclusion: `qrcode.width` is an
     alias of `w`, but `table`'s own `width` is primary and stays offered.
+    Options the validator reports as deprecated for this block in this
+    document type (`block_mode_policy.deprecated_ignored_options`, e.g.
+    `mode` on `task` in a presentation) are not offered either.
     """
 
     block_type_key = str(block_type or "").strip().lower()
     allowed = validator.BLOCK_ALLOWED_OPTIONS.get(block_type_key, set())
-    aliases = validator.BLOCK_OPTION_KEY_ALIASES.get(block_type_key, frozenset())
-    return tuple(sorted(key for key in allowed if key not in aliases))
+    hidden = validator.BLOCK_OPTION_KEY_ALIASES.get(block_type_key, frozenset())
+    hidden = hidden | deprecated_ignored_options(block_type_key, document_type)
+    return tuple(sorted(key for key in allowed if key not in hidden))
 
 
 def _resolve_style_filtered_values(

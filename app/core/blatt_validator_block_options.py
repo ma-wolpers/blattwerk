@@ -25,11 +25,11 @@ from .answer_grid_axis import _resolve_axis_state
 from .blatt_validator_constants import (
     ANSWER_BLOCK_TYPES,
     BLOCK_OPTION_SPECS,
-    DEPRECATED_IGNORED_OPTIONS,
     KNOWN_SHOW_VALUES,
     OBJECT_ALIGN_VALUE_HINT,
     QRCODE_SIZE_OPTION_KEYS,
 )
+from .block_mode_policy import deprecated_ignored_options, deprecated_option_reason
 from .blatt_validator_region import compute_block_region_id
 from .diagram_block_catalog import DIAGRAM_BLOCK_NAMES
 from .blatt_validator_types import BuildDiagnostic
@@ -144,15 +144,17 @@ def _validate_geometry_axis_origin_pair(diagnostics, index, block_type, options)
     )
 
 
-def _validate_block_options(diagnostics, index, block_type, options, allowed_options):
+def _validate_block_options(diagnostics, index, block_type, options, allowed_options, document_type="worksheet"):
     """Validiert die `key=value`-Optionen eines Blocks und hängt Diagnosen an `diagnostics` an.
 
     Liefert den `url`-Wert eines `qrcode`-Blocks zurück (leerer String, wenn
     keiner gesetzt ist) — der Aufrufer braucht ihn nach dieser Funktion noch
     für die `QR001`("Pflichtoption fehlt")-Prüfung, die erst nach der
-    kompletten Options-Schleife feststellbar ist.
+    kompletten Options-Schleife feststellbar ist. `document_type` entscheidet
+    über typabhängig veraltete Optionen (`block_mode_policy`, `OP004`).
     """
     qrcode_url_value = ""
+    deprecated_keys = deprecated_ignored_options(block_type, document_type)
 
     for option_key, option_value in _option_items(options):
         if option_key == "type" and block_type in ANSWER_BLOCK_TYPES:
@@ -172,13 +174,13 @@ def _validate_block_options(diagnostics, index, block_type, options, allowed_opt
             )
             continue
 
-        if option_key in DEPRECATED_IGNORED_OPTIONS.get(block_type, ()):
+        if option_key in deprecated_keys:
             diagnostics.append(
                 BuildDiagnostic(
                     code="OP004",
                     message=(
                         f"Option `{option_key}` bei `:::{block_type}` ist veraltet und wird ignoriert -- "
-                        "Lösungen erscheinen nur in der Lösungsfassung."
+                        f"{deprecated_option_reason(block_type, document_type)}"
                     ),
                     block_index=index,
                     block_type=block_type,

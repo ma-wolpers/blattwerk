@@ -10,10 +10,15 @@ Typbedingtes Verhalten, das früher am Frontmatter-Feld `mode` hing
 (`presentation`, `test`), steht ausschließlich hier als benannte Capability:
 
 * `slide_layout` -- Folien-Layout (früher `mode: presentation`).
-* `solutions_renderable` -- ob eine Lösungsfassung erzeugt werden kann
-  (Präsentationen nie).
+* `solution_display` -- wie Lösungsinhalt erscheint: als eigene
+  Lösungsfassung mit Umschalter (Arbeitsblatt, Klausur), pro Block nach
+  dessen `mode` (Präsentation: alles sichtbar, lösungsfähige Blöcke zeigen
+  ihre Lösungen nur mit `mode=solution`) oder gar nicht.
 * `work_hints` -- ob Sozialform-Icons gerendert werden (früher fehlten sie
   bei `mode: test`; jetzt nur bei Klausuren).
+* `help_cards`, `evaluation`, `operator_legend`, `points` -- ob es
+  Lernhilfen, Bewertungstabelle, Operatorentabelle bzw. Punkte/Erwartungen
+  gibt. Welche Blöcke davon abhängen, steht in `block_availability`.
 
 `export_formats` beschreibt nur, welche Formate ein Typ unterstützt, in
 UI-Reihenfolge. Das ist ausdrücklich **keine** Export-Format-Registry: die
@@ -42,6 +47,12 @@ PREVIEW_VARIANT_EXPECTATION = "expectation"
 """Ansichten der Vorschau. Dieselben Tokens nutzt der Exportdialog als Inhalts-Modus
 (`export_dialog_worksheet.py`), damit die Vorschau-Ansicht direkt als Vorauswahl taugt."""
 
+SOLUTION_DISPLAY_VERSION = "version"
+SOLUTION_DISPLAY_PER_BLOCK = "per_block"
+SOLUTION_DISPLAY_NONE = "none"
+"""Werte von `DocumentTypeSpec.solution_display`: eigene Lösungsfassung (Umschalter in
+Vorschau/Export), Lösungen pro Block nach `mode` (ohne Umschalter) oder keine Lösungen."""
+
 
 @dataclass(frozen=True)
 class DocumentTypeSpec:
@@ -57,7 +68,8 @@ class DocumentTypeSpec:
         new_document_title: Titel im Template eines neuen Dokuments.
         new_dialog_title: Titel des Speichern-Dialogs beim Neu-Anlegen.
         blocks: Ob `:::`-Blöcke und Kontrollmarker Blattwerk-Semantik haben.
-        solutions_renderable: Ob eine Lösungsfassung erzeugt werden kann.
+        solution_display: `SOLUTION_DISPLAY_*` -- eigene Lösungsfassung,
+            Lösungen pro Block oder keine.
         slide_layout: Ob das Folien-Layout gilt.
         work_hints: Ob Sozialform-Icons gerendert werden.
         aid_split: Ob der Hilfsmittel-Trenner `--hm` wirkt.
@@ -70,6 +82,9 @@ class DocumentTypeSpec:
         operator_legend: Ob `:::operators:::` eine Operatorentabelle rendert
             und fehlende Tabellen gemeldet werden (OPR004–OPR008). Sonst
             rendert der Block nichts und es gibt OPR007.
+        help_cards: Ob Lernhilfen (`:::help`) vorgesehen sind; sonst BL012.
+        points: Ob Punkte und Erwartungen (`:::expectation`) geprüft werden
+            (PK-/SL-Codes); sonst meldet ein Erwartungsblock BL018.
     """
 
     id: str
@@ -81,7 +96,7 @@ class DocumentTypeSpec:
     new_document_title: str
     new_dialog_title: str
     blocks: bool
-    solutions_renderable: bool
+    solution_display: str
     slide_layout: bool
     work_hints: bool
     aid_split: bool
@@ -90,6 +105,8 @@ class DocumentTypeSpec:
     expectation_horizon: bool = False
     empty_answer_hint: bool = True
     operator_legend: bool = False
+    help_cards: bool = False
+    points: bool = False
 
 
 DOCUMENT_TYPE_SPECS: tuple[DocumentTypeSpec, ...] = (
@@ -103,7 +120,9 @@ DOCUMENT_TYPE_SPECS: tuple[DocumentTypeSpec, ...] = (
         new_document_title="Neues Arbeitsblatt",
         new_dialog_title="Neues Aufgabenblatt anlegen",
         blocks=True,
-        solutions_renderable=True,
+        solution_display=SOLUTION_DISPLAY_VERSION,
+        help_cards=True,
+        points=True,
         slide_layout=False,
         work_hints=True,
         aid_split=False,
@@ -121,7 +140,7 @@ DOCUMENT_TYPE_SPECS: tuple[DocumentTypeSpec, ...] = (
         new_document_title="Neue Präsentation",
         new_dialog_title="Neue Präsentation anlegen",
         blocks=True,
-        solutions_renderable=False,
+        solution_display=SOLUTION_DISPLAY_PER_BLOCK,
         slide_layout=True,
         work_hints=True,
         aid_split=False,
@@ -138,7 +157,9 @@ DOCUMENT_TYPE_SPECS: tuple[DocumentTypeSpec, ...] = (
         new_document_title="Neue Klausur",
         new_dialog_title="Neue Klausur anlegen",
         blocks=True,
-        solutions_renderable=True,
+        solution_display=SOLUTION_DISPLAY_VERSION,
+        help_cards=True,
+        points=True,
         slide_layout=False,
         work_hints=False,
         aid_split=True,
@@ -158,7 +179,7 @@ DOCUMENT_TYPE_SPECS: tuple[DocumentTypeSpec, ...] = (
         new_document_title="Neuer Kurzentwurf",
         new_dialog_title="Neuen Kurzentwurf anlegen",
         blocks=False,
-        solutions_renderable=False,
+        solution_display=SOLUTION_DISPLAY_NONE,
         slide_layout=False,
         work_hints=True,
         aid_split=False,
@@ -175,7 +196,7 @@ DOCUMENT_TYPE_SPECS: tuple[DocumentTypeSpec, ...] = (
         new_document_title="Neue Schilder",
         new_dialog_title="Neue Schilder anlegen",
         blocks=False,
-        solutions_renderable=False,
+        solution_display=SOLUTION_DISPLAY_NONE,
         slide_layout=False,
         work_hints=False,
         aid_split=False,
@@ -192,7 +213,7 @@ DOCUMENT_TYPE_SPECS: tuple[DocumentTypeSpec, ...] = (
         new_document_title="Neues Dokument",
         new_dialog_title="Neues Markdown-Dokument anlegen",
         blocks=False,
-        solutions_renderable=False,
+        solution_display=SOLUTION_DISPLAY_NONE,
         slide_layout=False,
         work_hints=True,
         aid_split=False,
@@ -270,9 +291,38 @@ def shows_operator_legend(document_type: str | None) -> bool:
 
 
 def solutions_renderable(document_type: str) -> bool:
-    """Ob eine Lösungsfassung erzeugt werden kann (unbekannte Typen: ja)."""
+    """Ob es eine eigene Lösungsfassung mit Umschalter gibt (unbekannte Typen: ja)."""
     spec = _SPECS_BY_ID.get(document_type)
-    return True if spec is None else spec.solutions_renderable
+    return True if spec is None else spec.solution_display == SOLUTION_DISPLAY_VERSION
+
+
+def solutions_per_block(document_type: str | None) -> bool:
+    """Ob jeder Block selbst über seine Lösungen entscheidet (Präsentation; unbekannte Typen: nein).
+
+    Dann sind alle Blöcke sichtbar, `:::solution` eingeschlossen; lösungsfähige
+    Blöcke zeigen ihre Lösungen nur mit `mode=solution`
+    (`blatt_kern_shared_blocks.block_shows_solutions`).
+    """
+    spec = _SPECS_BY_ID.get(document_type)
+    return bool(spec and spec.solution_display == SOLUTION_DISPLAY_PER_BLOCK)
+
+
+def has_help_cards(document_type: str | None) -> bool:
+    """Ob Lernhilfen vorgesehen sind (unbekannte Typen: ja, wie bisher ohne BL012)."""
+    spec = _SPECS_BY_ID.get(document_type)
+    return True if spec is None else spec.help_cards
+
+
+def has_evaluation(document_type: str | None) -> bool:
+    """Ob `:::evaluation` verfügbar ist (unbekannte Typen: nein)."""
+    spec = _SPECS_BY_ID.get(document_type)
+    return bool(spec and spec.evaluation)
+
+
+def has_points(document_type: str | None) -> bool:
+    """Ob Punkte und Erwartungen geprüft werden (unbekannte Typen: nein)."""
+    spec = _SPECS_BY_ID.get(document_type)
+    return bool(spec and spec.points)
 
 
 def preview_variants(document_type: str | None) -> tuple[str, ...]:
@@ -292,7 +342,7 @@ def preview_variants(document_type: str | None) -> tuple[str, ...]:
     if spec is None or spec.pipeline != PIPELINE_WORKSHEET:
         return (PREVIEW_VARIANT_WORKSHEET,)
     variants = [PREVIEW_VARIANT_WORKSHEET]
-    if spec.solutions_renderable:
+    if spec.solution_display == SOLUTION_DISPLAY_VERSION:
         variants.append(PREVIEW_VARIANT_SOLUTION)
     if spec.expectation_horizon:
         variants.append(PREVIEW_VARIANT_EXPECTATION)

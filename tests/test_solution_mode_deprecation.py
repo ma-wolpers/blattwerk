@@ -18,9 +18,10 @@ def test_solution_mode_and_show_warn_op004(option):
 
 @pytest.mark.parametrize("options", [{"mode": "worksheet"}, {"show": "worksheet"}, {"show": "both"}, {}])
 def test_solution_is_only_visible_in_solution_version(options):
+    """Mit eigener Lösungsfassung nur dort; in Präsentationen immer (Lösungen pro Block)."""
     assert should_render_block("solution", options, include_solutions=False) is False
     assert should_render_block("solution", options, include_solutions=True) is True
-    assert should_render_block("solution", options, include_solutions=True, document_type="presentation") is False
+    assert should_render_block("solution", options, include_solutions=False, document_type="presentation") is True
 
 
 def test_expectation_is_never_visible():

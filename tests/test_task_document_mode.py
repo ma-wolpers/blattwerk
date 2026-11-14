@@ -119,7 +119,8 @@ def test_render_html_exam_type_hides_work_icons_in_both_output_modes():
     assert "title='lesen'" in solution_html
 
 
-def test_render_html_presentation_uses_slide_counter_and_hides_solution_only_blocks():
+def test_render_html_presentation_uses_slide_counter_and_shows_every_block():
+    """Präsentationen zeigen jeden Block; `mode` an `task` ist dort wirkungslos (OP004)."""
     meta = {
         "Titel": "T",
         "Fach": "M",
@@ -137,7 +138,7 @@ def test_render_html_presentation_uses_slide_counter_and_hides_solution_only_blo
 
     assert "Folie 1/2" in html
     assert "Folie 2/2" in html
-    assert "Nur Loesung" not in html
+    assert "Nur Loesung" in html
     assert re.search(r"Aufgabe\s+\d+\s+-\s+Visible", html)
     assert re.search(r"Aufgabe\s+\d+\s+-\s+Zweite", html)
     assert "presentation-section-item active" in html

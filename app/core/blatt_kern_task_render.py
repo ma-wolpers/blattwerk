@@ -17,6 +17,7 @@ from .blatt_kern_shared import (
     get_task_action_info,
     get_work_info,
     normalize_markdown,
+    block_shows_solutions,
     should_render_block,
 )
 from .answer_special_mindmap import render_mindmap_block
@@ -137,6 +138,8 @@ def _render_block_body(
 
     Freier Text (`raw`) und alle Blockrümpfe teilen sich einen Konverter, dessen
     Überschriften-Versatz `content_heading_offset(document_type)` festlegt.
+    Ab hier ist `include_solutions` die Fassung *dieses* Blocks
+    (`block_shows_solutions`): in Präsentationen je Block nach `mode`.
     """
     if not should_render_block(
         block_type,
@@ -145,6 +148,7 @@ def _render_block_body(
         document_type=document_type,
     ):
         return ""
+    include_solutions = block_shows_solutions(block_type, options, include_solutions, document_type)
 
     object_alignment = _normalize_object_alignment(block_type, options)
     heading_offset = content_heading_offset(document_type)

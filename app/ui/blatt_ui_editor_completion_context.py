@@ -81,6 +81,22 @@ class BlattwerkAppEditorCompletionContextMixin(BlattwerkAppEditorFrontmatterMixi
         candidate_text = str(sole.get("label") or sole.get("insert_text") or "")
         return candidate_text.strip().lower() == prefix.strip().lower()
 
+    def _editor_active_document_type(self) -> str | None:
+        """Returns the document type of the active tab via its path, or ``None`` without a path.
+
+        Gleiche Herleitung wie `_refresh_editor_diagnostics`: Pfad aus
+        `_active_document_tab_state()`, Typ über `_read_document_type`
+        (Endung bzw. temporäre Markdown-Interpretation). Genutzt für
+        typabhängige Vorschläge: Block-Optionen (`block_mode_policy`) und
+        Erwartungstypen (`blatt_ui_editor_completion_points`).
+        """
+        try:
+            tab_state = self._active_document_tab_state()
+        except Exception:
+            return None
+        raw_path = str(tab_state.get("path", "") or "").strip() if isinstance(tab_state, dict) else ""
+        return self._read_document_type(raw_path) if raw_path else None
+
     def _collect_editor_completion_context(self, auto: bool):
         """Derives completion candidates from current line and cursor context."""
 
@@ -141,7 +157,7 @@ class BlattwerkAppEditorCompletionContextMixin(BlattwerkAppEditorFrontmatterMixi
                 }
 
             block_token = after_fence.split(" ", 1)[0]
-            block_allowed_options = get_completion_options_for_block(block_token)
+            block_allowed_options = get_completion_options_for_block(block_token, self._editor_active_document_type())
             if block_allowed_options:
                 option_value_match = re.search(r"\b([A-Za-z_][A-Za-z0-9_]*)=([^\s]*)$", left_text)
                 if option_value_match:
