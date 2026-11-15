@@ -188,6 +188,26 @@ Koordinatensystem."), nicht nur überraschende -- Antizipationen sind für die L
 um zu wissen, welche Reaktionen zu erwarten sind; je vollständiger antizipiert ist, desto
 besser kann sie darauf reagieren.
 
+**Antizipationen nur im Unterrichtsgespräch, wörtlich.** Als Antizipation zählen nur
+mündliche Äußerungen im Unterrichtsgespräch (z. B. `LSG`, `SSG`). Sie stehen so da, wie
+Lernende sie tatsächlich sagen würden: umgangssprachlich, Mathematik in Worten statt als
+Formel. Arbeitsergebnisse aus Einzel-, Partner- oder Gruppenarbeit werden **nicht**
+künstlich als Äußerung formuliert -- diese Segmente bekommen kein `ant<` (der Validator
+verzichtet dann auf `KZF152`, wenn `U>` die Arbeitsform nennt). Typische Fehler aus der
+Arbeitsphase gehören als Äußerung in das anschließende Gespräch, z. B. in die Sicherung.
+
+- Nicht: `ant< „Bei g ist $e=5$."` / `ant< „Allgemein: $a\cdot(x-d)^3+e$"`
+- Sondern: `ant< „Bei g ist e fünf, die anderen braucht man da gar nicht."`
+
+**Hauptkompetenz in den Lernaktivitäten markieren (Pflicht).** In jedem Kurzentwurf wird
+jede Lernaktivität (`s<`), die zur vorrangig geförderten Kompetenz der Stunde passt,
+farblich mit `==…==` hervorgehoben. Markiert wird der Teil, in dem die Kompetenz sichtbar
+wird, nicht zwingend der ganze Satz; Formeln (`$…$`) bleiben außerhalb der Markierung.
+Metaebene oder rein prozedurale Schritte, die die Kompetenz nicht üben, bleiben unmarkiert.
+
+- Beispiel (Kompetenz "zwischen Darstellungsformen wechseln"): `s< ==beschreiben den
+  Graphen== von $f(x)=x^3$ ==allein anhand der Funktionsgleichung==.`
+
 **`Vertiefung`/`Reserve` (und andere wiederholbare Phasen) chronologisch einordnen.** Phasen
 dürfen mehrfach vorkommen und müssen keiner festen Reihenfolge folgen (siehe Hauptanleitung)
 -- diese Freiheit nutzen: eine Vertiefungsphase gehört an die Stelle im Unterrichtsverlauf,
