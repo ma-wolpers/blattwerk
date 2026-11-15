@@ -159,6 +159,8 @@ def render_document_html(
       border: 1px solid #222;
       padding: 6px 8px;
       vertical-align: top;
+      hyphens: auto;
+      overflow-wrap: anywhere;
     }}
 
     table.kurzentwurf th {{
@@ -329,7 +331,7 @@ def render_document_html(
             <tr>
                 <th rowspan="2">Phase</th>
                 <th colspan="2">Lernweg</th>
-                <th rowspan="2" class="lernumgebung-head">Lernumgebung<br><span class="header-subline">Sozialform<br>Medien<br>Materialien (in Referenz zum Anhang)</span></th>
+                <th rowspan="2" class="lernumgebung-head">Lern&shy;umgebung<br><span class="header-subline">Sozialform<br>Medien<br>Materialien (in Referenz zum Anhang)</span></th>
             </tr>
             <tr>
                 <th>Inhaltliche Lernschritte</th>

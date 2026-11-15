@@ -96,3 +96,17 @@ def test_double_dollar_math_is_inline_math():
 def test_currency_dollar_is_not_math():
     result = inspect_kurzentwerfer_text(_document("S> kostet $5 und $10\nA>\ns< a\nant< b\nU> u"))
     assert not [d for d in result.diagnostics if d.code == "KZF160"]
+
+
+def test_long_words_wrap_inside_narrow_cells_instead_of_being_clipped():
+    """Regression: bei `table-layout: fixed` ragten lange Wörter (z. B. "Variationsprogression")
+    in der schmalen Lernumgebung-Spalte über den Zellrand und wurden in Vorschau/PDF
+    abgeschnitten. Zellen trennen jetzt deutsch (`hyphens: auto`) und brechen notfalls
+    mitten im Wort um (`overflow-wrap: anywhere`, falls kein Trennwörterbuch vorhanden ist)."""
+    html, _ = render_html_from_source(_document("S> x\nA>\ns< a\nant< b\nU> Tafelbild Variationsprogression"))
+    cell_rule = re.search(r"table\.kurzentwurf th,\s*table\.kurzentwurf td \{\{?([^}]*)\}", html)
+    assert cell_rule, "Zellen-CSS-Regel nicht gefunden"
+    assert "hyphens: auto" in cell_rule.group(1)
+    assert "overflow-wrap: anywhere" in cell_rule.group(1)
+    assert 'lang="de"' in html
+    assert "Lern&shy;umgebung" in html
