@@ -118,36 +118,52 @@ Fortgelten-Lassen, das nur beim Lesen einer einzelnen Phase auffällt.
 
 | Marker | Inhalt | Nicht hierhin |
 | --- | --- | --- |
-| `S>` | Lernschritte und Handlungen der Lehrkraft (Impuls, Arbeitsauftrag, Material verteilen, Ergebnisse vergleichen lassen) | Lernaktivitäten, Material-/Sozialformangaben |
+| `S>` | Der fachliche Lernschritt und inhaltstragende Impulse; darf leer bleiben | Lernaktivitäten, Material-/Sozialformangaben, Ablauf- und Organisationsschritte |
 | `A>` + `s<` | Was die Lernenden tun | Lehrkraft-Handlungen |
 | `ant<` | Erwartete Äußerungen der Lernenden, **nur** im `A>`-Block direkt hinter dem zugehörigen `s<` | Hinter `S>`- oder `U>`-Inhalt (löst `KZF154` aus) |
 | `U>` | Nur Material, Sozialform und Methode | Beschreibungen, was die Lehrkraft tut |
 
 - Nicht: `U> GA; Lehrkraft verteilt die Kartensätze und erklärt die Spielregeln`
-- Sondern: `S> Kartensätze verteilen, Spielregeln erklären` und `U> GA; Gruppenpuzzle;
-  Kartensätze ❎🔺🔷☀️`
+- Sondern: `U> GA; Gruppenpuzzle; Kartensätze ❎🔺🔷☀️` -- das Verteilen und Erklären ist
+  Ablauf und steht nirgends.
 
-**`S>` in Stichpunkten statt Fließtext.** Mehrere Lernschritte in einer Zelle als
-Markdown-Liste mit einem Schritt pro Zeile schreiben (wird als Liste gerendert), nicht als
-zusammenhängenden Satz:
+**`S>` nennt den fachlichen Lernschritt.** Die Spalte heißt "Inhaltliche Lernschritte": Sie
+sagt, was fachlich bzw. didaktisch an dieser Stelle passiert, nicht was die Lehrkraft
+praktisch tut, und sie wiederholt keinen Arbeitsauftrag, der schon in `s<` steht. Impulse
+gehören hierher, wenn sie Inhalt tragen.
+
+- Nicht: `S> $f(x)=x^3$ an die Tafel schreiben` / `S> Auftrag Arbeitsheft S. 11, Nr. 1:
+  passende Parameter wählen`
+- Sondern: `S> $f(x)=x^3$ als einfache Potenzfunktion mit bekanntem Globalverhalten` /
+  `S> Umgedreht: zu einer gegebenen Beschreibung der Graphenveränderung passende Parameter
+  wählen`
+
+**`S>` darf leer bleiben.** Sagen `s<` und `U>` schon alles (typisch in Arbeitsphasen und in
+der Sicherung), bleibt `S>` leer, statt mit Ablaufschritten gefüllt zu werden.
+
+**Raum- und Tafelorganisation nicht in `S>`.** Welcher Tafelflügel, welcher Sitzbereich was
+bearbeitet, wer zufällig berichtet -- das gehört nicht in die Lernschritte. Nur wenn die
+Organisation inhaltlich wirklich wichtig ist, steht sie knapp in `U>`, z. B.
+`U> LSG; Tafel (linker Flügel)`.
+
+**Spiegelstriche nur für echte Aufzählungen.** Mehrere gleichrangige Lernschritte in einer
+Zelle als Markdown-Liste, einer pro Zeile. Ein Lernschritt mit seinem zugehörigen Impuls
+steht dagegen als zwei Zeilen ohne Spiegelstriche:
 
 ```markdown
-S> - Leitfrage präsentieren
-   - Arbeitsauftrag erteilen
-   - Kartensätze verteilen
+S> Begriff *Parameter* für $a$, $d$ und $e$ einführen
+*„Was müssen wir bei den Parametern einsetzen, damit genau diese Funktionen herauskommen?"*
 ```
 
-statt `S> Die Lehrkraft präsentiert die Leitfrage, erteilt anschließend den Arbeitsauftrag
-und verteilt danach die Kartensätze.` Ein einzelner kurzer Schritt darf ohne Spiegelstrich
-direkt hinter `S>` stehen.
+Kein Fließtext-Satz wie `S> Die Lehrkraft führt den Begriff ein und fragt anschließend ...`.
 
 **Keine selbstverständlichen Schritte in `S>`.** Nur nennen, was eine inhaltliche
-Information trägt (welcher Impuls, welcher Auftrag, welches Material). Was schon aus dem
+Information trägt (fachlicher Schritt, inhaltstragender Impuls). Was schon aus dem
 Phasennamen oder dem Ablauf folgt, weglassen:
 
 - Weglassen: `S> Ergebnisse der Sicherung sichern` / `S> Phase beenden` / `S> zur
-  Erarbeitung überleiten`
-- Behalten: `S> Tafelbild mit den drei Funktionsdarstellungen entwickeln`
+  Erarbeitung überleiten` / `S> je Gruppe eine Person zufällig berichten lassen`
+- Behalten: `S> Allgemeine Form $a\cdot(x-d)^3+e$ rechts neben die Funktionen`
 
 **Schreibweise: Umlaute und Prozentzeichen.** Umlaute und ß konsequent ausschreiben (ä,
 ö, ü, ß statt ae, oe, ue, ss). Zwischen Zahl und Prozentzeichen steht ein Leerzeichen:
@@ -234,6 +250,10 @@ die Summe gegenrechnen, bevor der Kurzentwurf als fertig gilt.
 Faustregel für die Phasenlänge: möglichst nicht unter ~5 Minuten (`t=2` ist fast immer ein
 Signal, dass der Inhalt eigentlich zu einer Nachbarphase gehört) -- sonst wirkt der
 Kurzentwurf fragmentierter, als der tatsächliche Unterrichtsverlauf ist.
+
+**Übung vor Technik.** Eine reine Überprüfung am Rechner (z. B. Vermutungen am TI-Nspire
+kontrollieren) kurz halten, etwa 5 Minuten; die gewonnene Zeit gehört in die Übungs- bzw.
+Vertiefungsphase, in der die Lernenden die Kompetenz selbst anwenden.
 
 **Lernaktivitäten (`s<`) nur konstruktiv und überprüfbar, nicht rezeptiv formulieren -- und auf die
 kognitive Aktivität fokussieren, nicht auf Spielmechanik/Prozedur.** Was Lernende selbst
