@@ -195,7 +195,8 @@ an der sie inhaltlich tatsächlich stattfindet, nicht pauschal ans Dokumentende.
 ist ein flexibel platzierter Puffer, kein fester Stundenabschluss -- sie kann z. B. zwischen
 einer Sicherung und der folgenden Vertiefung stehen, wenn dort am ehesten Zeit übrig bleibt,
 oder an jeder anderen Stelle, die zur Stundenlogik passt. Ein Dokumentende suggeriert
-dagegen fälschlich, `Reserve` sei eine reguläre, feste Abschlussphase.
+dagegen fälschlich, `Reserve` sei eine reguläre, feste Abschlussphase. Steht die `Reserve`
+trotzdem am Ende des Verlaufs, warnt der Validator mit `KZF049`.
 
 **`Reserve` nie von unsicheren Fakten abhängig machen.** Der Inhalt einer `Reserve`-Phase
 muss unabhängig vom tatsächlichen Verlauf der Stunde ausführbar sein -- nicht auf Dinge

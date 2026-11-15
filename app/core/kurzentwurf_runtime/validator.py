@@ -5,6 +5,7 @@ import re
 
 from .dsl import parse_kurzentwerfer_text
 from .math_support import collect_math_diagnostics
+from .phase_order import collect_phase_order_diagnostics
 from .region import compute_phase_region_id
 from .model import (
     ALLOWED_PHASES,
@@ -184,6 +185,8 @@ def inspect_kurzentwerfer_text(source: str) -> InspectionResult:
                 "segments": tuple(validated_segments),
             }
         )
+
+    diagnostics.extend(collect_phase_order_diagnostics(normalized_blocks))
 
     starts, ends = _resolve_phase_times(
         normalized_blocks,

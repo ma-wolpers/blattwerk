@@ -240,6 +240,7 @@ in `app/core/kurzentwurf_runtime/validator.py`. Ein Dokument mit mindestens eine
 - `KZF046` (error): `#phase`-Zeile ohne Phasenname nach dem `#`.
 - `KZF047` (error): `t=...` ist keine positive Ganzzahl (Minuten).
 - `KZF048` (error): `#phase`-Abschnitt enthaelt keine Segmente.
+- `KZF049` (warning): Die `Didaktische Reserve` beendet den Stundenverlauf (eine folgende `Hausaufgabe` zaehlt nicht mit). Sie gehoert an die Stelle, an der sie inhaltlich stattfinden wuerde. Abhakbar, falls eine Reserve am Ende wirklich gewollt ist.
 - `KZF100` (error): Legacy-`[row]`-Blocksyntax ist in der aktuellen DSL (V2) nicht mehr erlaubt.
 - `KZF101` (error): Marker mit Doppelpunkt (z. B. `S:`) sind ungueltig -- `S>`/`A>`/`U>`/`s<`/`ant<` verwenden.
 - `KZF102` (error): `#phase`-Abschnitt enthaelt kein einziges Segment.

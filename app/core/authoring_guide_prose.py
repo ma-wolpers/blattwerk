@@ -263,7 +263,10 @@ PROSE_SECTIONS: dict[str, str] = {
         "erscheint lediglich die Warnung `KZF136`. Jede Phase darf mehrfach im selben Dokument "
         "vorkommen (Wiederholungen werden automatisch mit römischen Ziffern durchnummeriert, z. B. "
         "\"Erarbeitung I\"/\"Erarbeitung II\") und es gibt **keine** vorgeschriebene Reihenfolge der "
-        "Phasen -- sie können in beliebiger, auch wiederholter Abfolge auftreten."
+        "Phasen -- sie können in beliebiger, auch wiederholter Abfolge auftreten. Einzige Ausnahme "
+        "(Spalte \"Platz im Verlauf\"): Die `Didaktische Reserve` gehört an die Stelle, an der sie "
+        "inhaltlich stattfinden würde, und darf den Verlauf nicht beenden -- sonst erscheint die "
+        "Warnung `KZF049`. Eine `Hausaufgabe` danach zählt dabei nicht mit."
     ),
     "kurzentwurf:phase:einstieg": (
         "Aktiviert Vorwissen, schafft Zieltransparenz und weckt Interesse am neuen Thema."
@@ -288,7 +291,9 @@ PROSE_SECTIONS: dict[str, str] = {
     "kurzentwurf:phase:reserve": (
         "Optionaler Puffer für den Fall, dass mehr Zeit übrig bleibt als geplant. Fließt wie "
         "`Hausaufgabe` nicht in die `t=`-Zeitrechnung ein, braucht aber ebenso die volle "
-        "Segment-/Zeilenmarker-Struktur (sonst `KZF048`/`KZF102`)."
+        "Segment-/Zeilenmarker-Struktur (sonst `KZF048`/`KZF102`). Steht chronologisch an der Stelle, "
+        "an der sie stattfinden würde, z. B. vor der Phase, deren Aufgabe auf sie folgt -- nie am "
+        "Ende des Verlaufs (`KZF049`)."
     ),
     "kurzentwurf:identity_meta": (
         "Titel, Untertitel und globale Startzeit können sowohl im YAML-Frontmatter (`---`-Block) als "

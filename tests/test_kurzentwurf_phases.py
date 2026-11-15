@@ -195,3 +195,41 @@ def test_conversation_and_work_tokens_are_disjoint():
     assert CONVERSATION_SOCIAL_FORM_TOKENS
     assert WORK_SOCIAL_FORM_TOKENS
     assert not CONVERSATION_SOCIAL_FORM_TOKENS & WORK_SOCIAL_FORM_TOKENS
+
+
+_SEGMENT = "S> x\nA>\ns< y\nant< z\nU> u"
+
+
+def _kzf049(*phase_headers: str) -> list:
+    body = "\n".join(f"{header}\n{_SEGMENT}\n" for header in phase_headers)
+    result = inspect_kurzentwerfer_text(f"---\nStundenthema: T\nLerngruppe: X\nstart: 08:00\n---\n{body}")
+    return [d for d in result.diagnostics if d.code == "KZF049"]
+
+
+def test_reserve_as_last_phase_triggers_ackable_kzf049():
+    """Die Reserve gehört chronologisch in den Verlauf, nicht pauschal ans Ende."""
+    diagnostics = _kzf049("#einstieg t=10", "#vertiefung t=10", "#reserve")
+    assert len(diagnostics) == 1
+    assert diagnostics[0].severity == "warning"
+    assert diagnostics[0].region_id
+    assert diagnostics[0].anchor == "Didaktische Reserve"
+
+
+def test_reserve_followed_only_by_homework_still_triggers_kzf049():
+    assert len(_kzf049("#einstieg t=10", "#reserve", "#hausaufgabe")) == 1
+
+
+def test_reserve_inside_the_lesson_or_absent_is_not_flagged():
+    assert _kzf049("#einstieg t=10", "#reserve", "#vertiefung t=10") == []
+    assert _kzf049("#einstieg t=10", "#vertiefung t=10", "#hausaufgabe") == []
+
+
+def test_every_phase_placement_is_a_known_value():
+    from app.core.kurzentwurf_runtime.model import (
+        PHASE_PLACEMENT_AFTER_LESSON,
+        PHASE_PLACEMENT_BUFFER,
+        PHASE_PLACEMENT_REGULAR,
+    )
+
+    known = {PHASE_PLACEMENT_REGULAR, PHASE_PLACEMENT_BUFFER, PHASE_PLACEMENT_AFTER_LESSON}
+    assert {spec.placement for spec in PHASE_SPECS} <= known

@@ -3,6 +3,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 
+PHASE_PLACEMENT_REGULAR = "regular"
+PHASE_PLACEMENT_BUFFER = "buffer"
+PHASE_PLACEMENT_AFTER_LESSON = "after_lesson"
+"""Werte für `PhaseSpec.placement`."""
+
+
 @dataclass(frozen=True)
 class PhaseSpec:
     """Einzige Quelle für eine Kurzentwurf-Phase: Anzeigename, `#`-Hashtag, Zeitpflicht.
@@ -12,11 +18,18 @@ class PhaseSpec:
     `KZF011`). `hashtag` ist der Text, den Autor:innen tatsächlich nach `#`
     tippen müssen -- **nicht** identisch mit `display_name` (z. B.
     `Ergebnissicherung` -> `#sicherung`, `Didaktische Reserve` -> `#reserve`).
+
+    `placement` sagt, wohin die Phase im Verlauf gehört: `regular` überall,
+    `buffer` (Didaktische Reserve) an die Stelle, an der sie inhaltlich
+    stattfinden würde, nie ans Ende des Verlaufs (`KZF049`), `after_lesson`
+    (Hausaufgabe) hinter die Stunde; sie zählt beim Suchen der letzten Phase
+    nicht mit.
     """
 
     display_name: str
     hashtag: str
     requires_explicit_time: bool
+    placement: str = PHASE_PLACEMENT_REGULAR
 
 
 PHASE_SPECS: tuple[PhaseSpec, ...] = (
@@ -24,8 +37,8 @@ PHASE_SPECS: tuple[PhaseSpec, ...] = (
     PhaseSpec("Erarbeitung", "erarbeitung", True),
     PhaseSpec("Ergebnissicherung", "sicherung", True),
     PhaseSpec("Vertiefung", "vertiefung", True),
-    PhaseSpec("Hausaufgabe", "hausaufgabe", False),
-    PhaseSpec("Didaktische Reserve", "reserve", False),
+    PhaseSpec("Hausaufgabe", "hausaufgabe", False, PHASE_PLACEMENT_AFTER_LESSON),
+    PhaseSpec("Didaktische Reserve", "reserve", False, PHASE_PLACEMENT_BUFFER),
 )
 
 ALLOWED_PHASES: tuple[str, ...] = tuple(spec.display_name for spec in PHASE_SPECS)

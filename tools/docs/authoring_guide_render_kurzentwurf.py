@@ -10,18 +10,31 @@ from __future__ import annotations
 
 from app.core.document_type_registry import DOCUMENT_TYPE_KURZENTWURF
 from app.core.document_type_templates import build_new_document_content
+from app.core.kurzentwurf_runtime.model import (
+    PHASE_PLACEMENT_AFTER_LESSON,
+    PHASE_PLACEMENT_BUFFER,
+    PHASE_PLACEMENT_REGULAR,
+)
 from app.core.markdown_conventions import MarkdownConventionCatalog
 
 from authoring_guide_render_shared import _AUTOGEN_HEADER, _fenced, _prose, _render_inline_marks_section
 
 
+_PLACEMENT_LABELS = {
+    PHASE_PLACEMENT_REGULAR: "beliebig",
+    PHASE_PLACEMENT_BUFFER: "chronologisch im Verlauf, nie am Ende (`KZF049`)",
+    PHASE_PLACEMENT_AFTER_LESSON: "nach der Stunde",
+}
+"""Anzeigetext je `PhaseSpec.placement`; ein fehlender Wert lässt die Generierung scheitern."""
+
+
 def _render_kurzentwurf_phase_table(catalog: MarkdownConventionCatalog) -> str:
-    """Rendert die Phasen-Tabelle (Anzeigename/Hashtag/Zeitpflicht) aus `PHASE_SPECS`."""
-    lines = ["| Anzeigename | Hashtag | Braucht `t=`? |", "|---|---|---|"]
+    """Rendert die Phasen-Tabelle (Anzeigename/Hashtag/Zeitpflicht/Platz) aus `PHASE_SPECS`."""
+    lines = ["| Anzeigename | Hashtag | Braucht `t=`? | Platz im Verlauf |", "|---|---|---|---|"]
     for spec in catalog.kurzentwurf.phase_specs:
         lines.append(
             f"| `{spec.display_name}` | `#{spec.hashtag}` | "
-            f"{'ja' if spec.requires_explicit_time else 'nein'} |"
+            f"{'ja' if spec.requires_explicit_time else 'nein'} | {_PLACEMENT_LABELS[spec.placement]} |"
         )
     return "\n".join(lines)
 

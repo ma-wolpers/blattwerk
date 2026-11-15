@@ -50,16 +50,16 @@ Akzeptierte Schlüssel (alle gleichwertig, case-insensitiv): `lerngruppe`, `star
 
 ## 3. Phasen
 
-Ein Kurzentwurf gliedert sich in `#phase`-Abschnitte. Wichtig: der nach `#` getippte Hashtag ist **nicht** derselbe Text wie der Anzeigename der Phase (siehe Tabelle unten) -- z. B. heißt die Phase `Ergebnissicherung`, aber der Hashtag lautet `#sicherung`, und `Didaktische Reserve` ist `#reserve`. `t=<minuten>` gibt die Dauer der Phase an und ist optional; ohne Zeitangaben wird die Phase ohne Zeitlabel gerendert. `Hausaufgabe` und `Didaktische Reserve` benötigen nie ein `t=...` (fließen nicht in die Zeitrechnung ein). Zusätzlich gibt es `start=HH:MM` als optionales Attribut im `#phase`-Header: das steuert **nicht** die Zeitberechnung, sondern ist nur ein Plausibilitäts-Check gegen die aus `t=` fortlaufend berechnete Startzeit -- weicht `start=` davon ab, wird es ignoriert und es erscheint lediglich die Warnung `KZF136`. Jede Phase darf mehrfach im selben Dokument vorkommen (Wiederholungen werden automatisch mit römischen Ziffern durchnummeriert, z. B. "Erarbeitung I"/"Erarbeitung II") und es gibt **keine** vorgeschriebene Reihenfolge der Phasen -- sie können in beliebiger, auch wiederholter Abfolge auftreten.
+Ein Kurzentwurf gliedert sich in `#phase`-Abschnitte. Wichtig: der nach `#` getippte Hashtag ist **nicht** derselbe Text wie der Anzeigename der Phase (siehe Tabelle unten) -- z. B. heißt die Phase `Ergebnissicherung`, aber der Hashtag lautet `#sicherung`, und `Didaktische Reserve` ist `#reserve`. `t=<minuten>` gibt die Dauer der Phase an und ist optional; ohne Zeitangaben wird die Phase ohne Zeitlabel gerendert. `Hausaufgabe` und `Didaktische Reserve` benötigen nie ein `t=...` (fließen nicht in die Zeitrechnung ein). Zusätzlich gibt es `start=HH:MM` als optionales Attribut im `#phase`-Header: das steuert **nicht** die Zeitberechnung, sondern ist nur ein Plausibilitäts-Check gegen die aus `t=` fortlaufend berechnete Startzeit -- weicht `start=` davon ab, wird es ignoriert und es erscheint lediglich die Warnung `KZF136`. Jede Phase darf mehrfach im selben Dokument vorkommen (Wiederholungen werden automatisch mit römischen Ziffern durchnummeriert, z. B. "Erarbeitung I"/"Erarbeitung II") und es gibt **keine** vorgeschriebene Reihenfolge der Phasen -- sie können in beliebiger, auch wiederholter Abfolge auftreten. Einzige Ausnahme (Spalte "Platz im Verlauf"): Die `Didaktische Reserve` gehört an die Stelle, an der sie inhaltlich stattfinden würde, und darf den Verlauf nicht beenden -- sonst erscheint die Warnung `KZF049`. Eine `Hausaufgabe` danach zählt dabei nicht mit.
 
-| Anzeigename | Hashtag | Braucht `t=`? |
-|---|---|---|
-| `Einstieg` | `#einstieg` | ja |
-| `Erarbeitung` | `#erarbeitung` | ja |
-| `Ergebnissicherung` | `#sicherung` | ja |
-| `Vertiefung` | `#vertiefung` | ja |
-| `Hausaufgabe` | `#hausaufgabe` | nein |
-| `Didaktische Reserve` | `#reserve` | nein |
+| Anzeigename | Hashtag | Braucht `t=`? | Platz im Verlauf |
+|---|---|---|---|
+| `Einstieg` | `#einstieg` | ja | beliebig |
+| `Erarbeitung` | `#erarbeitung` | ja | beliebig |
+| `Ergebnissicherung` | `#sicherung` | ja | beliebig |
+| `Vertiefung` | `#vertiefung` | ja | beliebig |
+| `Hausaufgabe` | `#hausaufgabe` | nein | nach der Stunde |
+| `Didaktische Reserve` | `#reserve` | nein | chronologisch im Verlauf, nie am Ende (`KZF049`) |
 
 ## 4. Zeilenmarker innerhalb einer Phase
 
