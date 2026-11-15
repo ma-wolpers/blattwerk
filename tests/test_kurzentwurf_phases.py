@@ -153,3 +153,45 @@ def test_kzf154_is_an_ackable_warning():
     assert diagnostics[0].region_id
     assert diagnostics[0].anchor == "ant< z"
     assert result.document is not None
+
+
+def _kzf152_count(body: str) -> int:
+    result = inspect_kurzentwerfer_text(_document_with_body(body))
+    return len([d for d in result.diagnostics if d.code == "KZF152"])
+
+
+def test_kzf152_skipped_when_u_names_only_work_forms():
+    """Antizipationen sind mündliche Äußerungen im Unterrichtsgespräch -- reine Arbeitsphasen brauchen keine."""
+    assert _kzf152_count("S> x\nA>\ns< y\nU> EA; Arbeitsheft S. 11") == 0
+    assert _kzf152_count("S> x\nA>\ns< y\nU> arbeitsteilige PA; TI-Nspire") == 0
+    assert _kzf152_count("S> x\nA>\ns< y\nU> GA, Kartensätze") == 0
+
+
+def test_kzf152_kept_for_conversation_mixed_or_unknown_social_form():
+    assert _kzf152_count("S> x\nA>\ns< y\nU> LSG; Tafel") == 1
+    assert _kzf152_count("S> x\nA>\ns< y\nU> EA → LSG; Tafel") == 1
+    assert _kzf152_count("S> x\nA>\ns< y\nU> Tafel") == 1
+    assert _kzf152_count("S> x\nA>\ns< y") == 1
+
+
+def test_kzf152_matches_whole_words_only():
+    """"Papier" enthält "pa", ist aber keine Partnerarbeit -- die Warnung bleibt."""
+    assert _kzf152_count("S> x\nA>\ns< y\nU> Papier") == 1
+
+
+def test_every_social_form_spelling_is_recognized_case_insensitively():
+    from app.core.kurzentwurf_runtime.dsl_segments import expects_anticipation
+    from app.core.kurzentwurf_runtime.model import SOCIAL_FORM_SPECS
+
+    for spec in SOCIAL_FORM_SPECS:
+        for spelling in (spec.abbreviation, *spec.aliases):
+            for variant in (spelling, spelling.upper(), spelling.lower()):
+                assert expects_anticipation(f"{variant}; Tafel") is spec.conversation, (spec, variant)
+
+
+def test_conversation_and_work_tokens_are_disjoint():
+    from app.core.kurzentwurf_runtime.model import CONVERSATION_SOCIAL_FORM_TOKENS, WORK_SOCIAL_FORM_TOKENS
+
+    assert CONVERSATION_SOCIAL_FORM_TOKENS
+    assert WORK_SOCIAL_FORM_TOKENS
+    assert not CONVERSATION_SOCIAL_FORM_TOKENS & WORK_SOCIAL_FORM_TOKENS

@@ -29,7 +29,8 @@ Quellen im Einzelnen:
   -- dieselbe Quelle, die auch Renderer und Validator (`AN011`-`AN014`)
   verwenden.
 - `kurzentwurf_runtime/model.py` (`PHASE_SPECS`, davon `ALLOWED_PHASES`
-  abgeleitet; `LINE_MARKER_SPECS`) und `kurzentwurf_runtime/dsl_frontmatter.py`
+  abgeleitet; `LINE_MARKER_SPECS`; `SOCIAL_FORM_SPECS`, aus denen auch
+  `dsl_segments.expects_anticipation` liest) und `kurzentwurf_runtime/dsl_frontmatter.py`
   (`TITLE_KEYS`/`SUBTITLE_KEYS`/`START_KEYS`): die tatsächlich vom
   Kurzentwurf-DSL-Parser verstandenen Phasen (inkl. `#`-Hashtag, nicht nur
   Anzeigename), Zeilenmarker und Identitäts-Metadaten-Keys. `validator.py`
@@ -70,7 +71,15 @@ from .blatt_validator_constants import (
 from .migration.kurzentwurf_signals import KURZENTWURF_LEGACY_DETECTION_SUPPORT_KEYS
 from .inline_markup.syntax import MARKER_SPECS, MarkerSpec
 from .kurzentwurf_runtime.dsl_frontmatter import START_KEYS, SUBTITLE_KEYS, TITLE_KEYS
-from .kurzentwurf_runtime.model import ALLOWED_PHASES, LINE_MARKER_SPECS, PHASE_SPECS, LineMarkerSpec, PhaseSpec
+from .kurzentwurf_runtime.model import (
+    ALLOWED_PHASES,
+    LINE_MARKER_SPECS,
+    PHASE_SPECS,
+    SOCIAL_FORM_SPECS,
+    LineMarkerSpec,
+    PhaseSpec,
+    SocialFormSpec,
+)
 
 
 @dataclass(frozen=True)
@@ -122,6 +131,8 @@ class KurzentwurfSpec:
     `identity_meta_keys` sind die vom DSL-Parser tatsächlich verstandenen
     Aliase für Titel/Untertitel/Startzeit (`TITLE_KEYS`/`SUBTITLE_KEYS`/
     `START_KEYS`, `kurzentwurf_runtime/dsl_frontmatter.py`).
+    `social_forms` sind die in `U>` erkannten Sozialformen (`SOCIAL_FORM_SPECS`);
+    sie entscheiden, ob ein Segment Antizipationen erwartet (`KZF152`).
     `legacy_detection_only_keys` werden dagegen von `kurzentwurf_runtime`
     nirgends gelesen/gerendert -- reine Heuristik zur automatischen
     Typerkennung alter `.md`-Dateien in der Migration (`migration/kurzentwurf_signals.py`). Diese
@@ -132,6 +143,7 @@ class KurzentwurfSpec:
     phases: tuple[str, ...]
     phase_specs: tuple[PhaseSpec, ...]
     line_markers: tuple[LineMarkerSpec, ...]
+    social_forms: tuple[SocialFormSpec, ...]
     identity_meta_keys: frozenset[str]
     legacy_detection_only_keys: frozenset[str]
 
@@ -197,6 +209,7 @@ def collect_markdown_conventions() -> MarkdownConventionCatalog:
             phases=tuple(ALLOWED_PHASES),
             phase_specs=tuple(PHASE_SPECS),
             line_markers=tuple(LINE_MARKER_SPECS),
+            social_forms=tuple(SOCIAL_FORM_SPECS),
             identity_meta_keys=frozenset(TITLE_KEYS | SUBTITLE_KEYS | START_KEYS),
             legacy_detection_only_keys=frozenset(KURZENTWURF_LEGACY_DETECTION_SUPPORT_KEYS),
         ),

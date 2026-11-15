@@ -58,6 +58,61 @@ LINE_MARKER_SPECS: tuple[LineMarkerSpec, ...] = (
     LineMarkerSpec("ant>", "antizipiert", True, rejected=True),
 )
 
+@dataclass(frozen=True)
+class SocialFormSpec:
+    """Einzige Quelle für eine in `U>` erkannte Sozialform.
+
+    `abbreviation` ist das empfohlene Kürzel, `aliases` sind weitere
+    Schreibweisen, die als dieselbe Sozialform zählen (Groß/Klein egal).
+    `conversation` sagt, ob in dieser Sozialform ein Unterrichtsgespräch
+    stattfindet. Nur dort sind Antizipationen (`ant<`) mündliche Äußerungen
+    der Lernenden, die der Kurzentwurf erwartet (`KZF152`). In reinen
+    Arbeitsformen entfällt die Erwartung, statt Arbeitsergebnisse künstlich
+    als Äußerungen zu formulieren.
+    """
+
+    abbreviation: str
+    meaning: str
+    conversation: bool
+    aliases: tuple[str, ...] = ()
+
+    @property
+    def tokens(self) -> tuple[str, ...]:
+        """Kürzel und alle Schreibweisen, für den Vergleich in Kleinbuchstaben."""
+        return tuple(token.casefold() for token in (self.abbreviation, *self.aliases))
+
+
+SOCIAL_FORM_SPECS: tuple[SocialFormSpec, ...] = (
+    SocialFormSpec(
+        "LSG",
+        "Lehrer-Schüler-Gespräch: die Lehrkraft moderiert, Lernende antworten",
+        True,
+        ("Lehrer-Schüler-Gespräch", "Unterrichtsgespräch", "UG"),
+    ),
+    SocialFormSpec(
+        "SSG",
+        "Schüler-Schüler-Gespräch: Lernende geben sich gegenseitig Feedback, ohne Moderation der Lehrkraft",
+        True,
+        ("Schüler-Schüler-Gespräch",),
+    ),
+    SocialFormSpec(
+        "Plenum",
+        "Gespräch der ganzen Lerngruppe; unscharf, besser LSG oder SSG",
+        True,
+        ("Diskussion",),
+    ),
+    SocialFormSpec("EA", "Einzelarbeit: Lernende arbeiten allein", False, ("Einzelarbeit", "Stillarbeit")),
+    SocialFormSpec("PA", "Partnerarbeit: Lernende arbeiten zu zweit", False, ("Partnerarbeit",)),
+    SocialFormSpec("GA", "Gruppenarbeit: Lernende arbeiten in Kleingruppen", False, ("Gruppenarbeit",)),
+)
+
+CONVERSATION_SOCIAL_FORM_TOKENS: frozenset[str] = frozenset(
+    token for spec in SOCIAL_FORM_SPECS if spec.conversation for token in spec.tokens
+)
+WORK_SOCIAL_FORM_TOKENS: frozenset[str] = frozenset(
+    token for spec in SOCIAL_FORM_SPECS if not spec.conversation for token in spec.tokens
+)
+
 FORBIDDEN_BLATTWERK_MARKERS: tuple[str, ...] = (
     ":::",
     "§{",

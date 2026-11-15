@@ -322,6 +322,13 @@ PROSE_SECTIONS: dict[str, str] = {
         "unten. Zusätzlich: `---` allein auf einer Zeile trennt zwei Segmente innerhalb derselben "
         "Phase; `|` allein auf einer Zeile springt ohne Werteingabe zur nächsten Spalte."
     ),
+    "kurzentwurf:social_forms": (
+        "Die Sozialform in `U>` entscheidet, ob ein Segment Antizipationen erwartet. Blattwerk "
+        "erkennt die Kürzel und Schreibweisen aus der Tabelle als einzelne Wörter, Groß/Klein egal. "
+        "Nennt `U>` nur Arbeitsformen, findet kein Unterrichtsgespräch statt und `KZF152` "
+        "entfällt. Steht dort eine Gesprächsform (auch gemischt wie `EA → LSG`) oder keine "
+        "erkennbare Sozialform, bleibt die Erinnerung an `ant<` bestehen."
+    ),
     "kurzentwurf:marker:S>": ("Beginnt die Spalte Lernschritte; der Inhalt steht direkt hinter `S>` auf derselben Zeile."),
     "kurzentwurf:marker:A>": (
         "Schaltet die aktive Spalte auf Lernaktivitäten um, trägt aber selbst **keinen** Inhalt -- "
@@ -340,8 +347,11 @@ PROSE_SECTIONS: dict[str, str] = {
     "kurzentwurf:marker:ant<": (
         "Markiert eine antizipierte Schüler:innen-Antwort/-Reaktion zum jeweiligen Lernschritt -- "
         "**nicht nur Fehlvorstellungen**, sondern gute, neutrale wie falsche erwartete Antworten "
-        "gleichermaßen. Sollte nach jedem `s<` gesetzt werden -- fehlt es, erscheint die Warnung "
-        "`KZF152`. Gehört ausschließlich in einen `A>`-Block, direkt hinter das zugehörige `s<`: "
+        "gleichermaßen. Antizipationen sind **mündliche Äußerungen im Unterrichtsgespräch**, "
+        "wörtlich so, wie Lernende sie sagen würden -- keine Arbeitsergebnisse. In einem Segment "
+        "mit Gesprächsform oder ohne erkennbare Sozialform sollte nach jedem `s<` ein `ant<` "
+        "stehen, sonst erscheint die Warnung `KZF152`. Nennt `U>` nur Arbeitsformen (siehe "
+        "Sozialformen unten), entfällt die Warnung. Gehört ausschließlich in einen `A>`-Block, direkt hinter das zugehörige `s<`: "
         "steht `ant<` vor dem ersten `s<` eines Segments oder hinter `S>`-/`U>`-Inhalt (bzw. nach "
         "einem `|`-Spaltenwechsel), erscheint die Warnung `KZF154`."
     ),

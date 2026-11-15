@@ -251,7 +251,7 @@ in `app/core/kurzentwurf_runtime/validator.py`. Ein Dokument mit mindestens eine
 - `KZF136` (warning): `start=...` weicht von der aus `t=...` fortlaufend berechneten Startzeit ab und wird ignoriert.
 - `KZF150` (error): `A>` mit Inhalt auf derselben Zeile -- `A>` markiert nur die Spalte Lernaktivitaeten, Inhalt gehoert auf eine folgende `s<`-Zeile.
 - `KZF151` (error): Inhalt in der Spalte Lernaktivitaeten vor dem ersten `s<`.
-- `KZF152` (warning): `s<` ohne ein folgendes `ant<` -- Antizipation fehlt.
+- `KZF152` (warning): `s<` ohne ein folgendes `ant<` -- Antizipation fehlt. Gilt nur fuer Segmente mit Unterrichtsgespraech oder ohne erkennbare Sozialform; nennt `U>` nur Arbeitsformen (`EA`/`PA`/`GA`, Liste in `ANLEITUNG_KURZENTWURF.md` unter "Sozialformen in `U>`"), entfaellt die Warnung.
 - `KZF153` (error): `ant>` ist kein gueltiger Marker (kein Alias von `ant<`) -- `ant<` verwenden.
 - `KZF154` (warning): `ant<` steht ausserhalb eines `A>`-Blocks -- vor dem ersten `s<` des Segments oder hinter `S>`-/`U>`-Inhalt bzw. einem `|`-Spaltenwechsel. Antizipationen gehoeren direkt hinter das zugehoerige `s<`; ein erneutes `A>` macht die Lernaktivitaeten wieder zur aktiven Spalte. Gerendert wird die Antizipation trotzdem (unter den Lernaktivitaeten).
 - `KZF160` (warning): Dokument enthaelt `$...$`/`$$...$$`-Formel-Syntax -- Vorschau und PDF setzen Formeln auch ohne Internet; eine exportierte HTML-Datei laedt MathJax beim Oeffnen von einem CDN und zeigt ohne Internet die rohe Formel-Quelle als Text (einmal pro Dokument, an der ersten Fundstelle; erscheint nur beim HTML-Export; Gegenstueck zu `MJ001`).

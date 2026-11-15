@@ -12,10 +12,27 @@ import re
 from dataclasses import dataclass
 
 from .dsl_phases import _PhaseBuilder
-from .model import Diagnostic, RawSegment
+from .model import CONVERSATION_SOCIAL_FORM_TOKENS, WORK_SOCIAL_FORM_TOKENS, Diagnostic, RawSegment
 from .region import compute_phase_region_id
 
 _MARKER_RE = re.compile(r"^(?P<marker>S>|A>|U>|s<|ant<|ant>)\s*(?P<value>.*)$", re.IGNORECASE)
+_SOCIAL_FORM_WORD_RE = re.compile(r"[\w-]+")
+
+
+def expects_anticipation(umgebung: str | None) -> bool:
+    """Prüft, ob ein Segment Antizipationen (`ant<`) erwartet (Grundlage von `KZF152`).
+
+    Antizipationen sind mündliche Äußerungen im Unterrichtsgespräch. Nennt
+    `U>` nur Arbeitsformen (z. B. `EA`, `PA`, `GA`) und keine Gesprächsform,
+    entfällt die Erwartung. Bei einer Gesprächsform (`LSG`, `SSG`, `Plenum`)
+    oder wenn keine Sozialform erkennbar ist, bleibt sie bestehen: im Zweifel
+    wird erinnert. Die erkannten Schreibweisen stehen nur in
+    `model.SOCIAL_FORM_SPECS`.
+    """
+    words = {word.casefold() for word in _SOCIAL_FORM_WORD_RE.findall(str(umgebung or ""))}
+    if words & CONVERSATION_SOCIAL_FORM_TOKENS:
+        return True
+    return not words & WORK_SOCIAL_FORM_TOKENS
 
 
 def _normalize_optional_text(value: str | None) -> str | None:
@@ -174,14 +191,19 @@ def _finalize_segment(
     if phase_builder is None or segment_builder.is_empty():
         return
 
-    if segment_builder.has_s_marker and not segment_builder.has_ant_marker:
+    if (
+        segment_builder.has_s_marker
+        and not segment_builder.has_ant_marker
+        and expects_anticipation(segment_builder.umgebung)
+    ):
         diagnostics.append(
             Diagnostic(
                 code="KZF152",
                 severity="warning",
                 message=(
-                    "Nach s< wurde kein ant< gefunden. "
-                    "Füge ant< für Antizipation in dieser Segmentzeile hinzu."
+                    "Nach s< wurde kein ant< gefunden. Füge mündliche Äußerungen hinzu, "
+                    "die du im Unterrichtsgespräch erwartest. Ist das Segment eine reine "
+                    "Arbeitsphase, nenne die Sozialform in U> (z. B. EA, PA, GA)."
                 ),
                 line=segment_builder.line,
                 region_id=compute_phase_region_id(

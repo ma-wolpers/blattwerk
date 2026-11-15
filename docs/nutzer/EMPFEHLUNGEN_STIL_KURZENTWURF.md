@@ -97,14 +97,10 @@ Gruppenarbeit` dupliziert Information, die bereits strukturell in `t=10` steckt,
 bei einer späteren Änderung der Phasendauer leicht veralten.
 
 **Sozialformen präzise benennen.** Konkrete Abkürzungen statt vager Begriffe wie "Plenum"
-oder "Diskussion", die offenlassen, wer eigentlich mit wem spricht:
-
-- `LSG` (Lehrer-Schüler-Gespräch) -- die Lehrkraft moderiert, Schüler:innen antworten.
-- `SSG` (Schüler-Schüler-Gespräch) -- Lernende geben sich gegenseitig Feedback, ohne dass
-  die Lehrkraft moderiert.
-- `GA` -- Lernende arbeiten in Kleingruppen.
-- `PA` -- Lernende arbeiten in Paaren.
-- `EA` -- Lernende arbeiten allein.
+oder "Diskussion", die offenlassen, wer eigentlich mit wem spricht. Kürzel und Bedeutung
+stehen in der Tabelle "Sozialformen in `U>`" in
+[`ANLEITUNG_KURZENTWURF.md`](ANLEITUNG_KURZENTWURF.md) (aus dem Code erzeugt). Die
+Sozialform entscheidet dort auch, ob ein Segment Antizipationen erwartet (`KZF152`).
 
 **Material stets mit konkretem Dateinamen -- und `U>`-Angaben jede Phase erneut nennen.**
 `U>` ist die richtige Spalte für Materialangaben (siehe Hauptanleitung) -- innerhalb dieser

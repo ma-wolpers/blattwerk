@@ -69,8 +69,21 @@ Innerhalb einer Phase gliedern Zeilenmarker den Inhalt in drei Spalten (Lernschr
 - **`A>`**: Schaltet die aktive Spalte auf Lernaktivitäten um, trägt aber selbst **keinen** Inhalt -- Inhalt direkt hinter `A>` auf derselben Zeile ist ungültig und löst `KZF150` aus. Der eigentliche Inhalt gehört auf eine folgende `s<`-Zeile.
 - **`s<`**: Lernaktivität der Lernenden -- der eigentliche Inhalt der Spalte Lernaktivitäten, folgt typischerweise auf `A>`. Inhalt in dieser Spalte vor dem ersten `s<` löst `KZF151` aus.
 - **`U>`**: Beginnt die Spalte Lernumgebung/Sozialform; Inhalt direkt hinter `U>`. Materialangaben (z. B. welches Arbeitsblatt verwendet wird) gehören strukturell ausschließlich hierhin -- keine andere Spalte ist dafür vorgesehen.
-- **`ant<`**: Markiert eine antizipierte Schüler:innen-Antwort/-Reaktion zum jeweiligen Lernschritt -- **nicht nur Fehlvorstellungen**, sondern gute, neutrale wie falsche erwartete Antworten gleichermaßen. Sollte nach jedem `s<` gesetzt werden -- fehlt es, erscheint die Warnung `KZF152`. Gehört ausschließlich in einen `A>`-Block, direkt hinter das zugehörige `s<`: steht `ant<` vor dem ersten `s<` eines Segments oder hinter `S>`-/`U>`-Inhalt (bzw. nach einem `|`-Spaltenwechsel), erscheint die Warnung `KZF154`.
+- **`ant<`**: Markiert eine antizipierte Schüler:innen-Antwort/-Reaktion zum jeweiligen Lernschritt -- **nicht nur Fehlvorstellungen**, sondern gute, neutrale wie falsche erwartete Antworten gleichermaßen. Antizipationen sind **mündliche Äußerungen im Unterrichtsgespräch**, wörtlich so, wie Lernende sie sagen würden -- keine Arbeitsergebnisse. In einem Segment mit Gesprächsform oder ohne erkennbare Sozialform sollte nach jedem `s<` ein `ant<` stehen, sonst erscheint die Warnung `KZF152`. Nennt `U>` nur Arbeitsformen (siehe Sozialformen unten), entfällt die Warnung. Gehört ausschließlich in einen `A>`-Block, direkt hinter das zugehörige `s<`: steht `ant<` vor dem ersten `s<` eines Segments oder hinter `S>`-/`U>`-Inhalt (bzw. nach einem `|`-Spaltenwechsel), erscheint die Warnung `KZF154`.
 - **`ant>`**: **Kein** gültiger Alias von `ant<`, obwohl es vom Zeilenmarker-Muster erkannt wird -- führt immer zum Fehler `KZF153` ("Bitte ant< verwenden"). Nur `ant<` verwenden.
+
+### Sozialformen in `U>`
+
+Die Sozialform in `U>` entscheidet, ob ein Segment Antizipationen erwartet. Blattwerk erkennt die Kürzel und Schreibweisen aus der Tabelle als einzelne Wörter, Groß/Klein egal. Nennt `U>` nur Arbeitsformen, findet kein Unterrichtsgespräch statt und `KZF152` entfällt. Steht dort eine Gesprächsform (auch gemischt wie `EA → LSG`) oder keine erkennbare Sozialform, bleibt die Erinnerung an `ant<` bestehen.
+
+| Kürzel | Bedeutung | Weitere Schreibweisen | Unterrichtsgespräch (`ant<` erwartet) |
+|---|---|---|---|
+| `LSG` | Lehrer-Schüler-Gespräch: die Lehrkraft moderiert, Lernende antworten | `Lehrer-Schüler-Gespräch`, `Unterrichtsgespräch`, `UG` | ja |
+| `SSG` | Schüler-Schüler-Gespräch: Lernende geben sich gegenseitig Feedback, ohne Moderation der Lehrkraft | `Schüler-Schüler-Gespräch` | ja |
+| `Plenum` | Gespräch der ganzen Lerngruppe; unscharf, besser LSG oder SSG | `Diskussion` | ja |
+| `EA` | Einzelarbeit: Lernende arbeiten allein | `Einzelarbeit`, `Stillarbeit` | nein |
+| `PA` | Partnerarbeit: Lernende arbeiten zu zweit | `Partnerarbeit` | nein |
+| `GA` | Gruppenarbeit: Lernende arbeiten in Kleingruppen | `Gruppenarbeit` | nein |
 
 ## 5. Legacy-Erkennungs-Felder (nicht aktiv verwenden)
 

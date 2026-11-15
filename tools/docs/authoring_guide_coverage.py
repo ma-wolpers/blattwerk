@@ -45,6 +45,7 @@ def _kurzentwurf_prose_keys(catalog: MarkdownConventionCatalog) -> tuple[str, ..
         "kurzentwurf:identity_meta",
         "kurzentwurf:legacy_detection_only",
         "kurzentwurf:markers",
+        "kurzentwurf:social_forms",
     ]
     keys.extend(f"kurzentwurf:phase:{spec.hashtag}" for spec in catalog.kurzentwurf.phase_specs)
     keys.extend(f"kurzentwurf:marker:{spec.token}" for spec in catalog.kurzentwurf.line_markers)

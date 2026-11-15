@@ -34,6 +34,20 @@ def _render_kurzentwurf_line_marker_reference(catalog: MarkdownConventionCatalog
     return "\n".join(parts)
 
 
+def _render_kurzentwurf_social_form_table(catalog: MarkdownConventionCatalog) -> str:
+    """Rendert die Sozialform-Tabelle (Kürzel/Bedeutung/Schreibweisen/Gespräch) aus `SOCIAL_FORM_SPECS`."""
+    lines = [
+        "| Kürzel | Bedeutung | Weitere Schreibweisen | Unterrichtsgespräch (`ant<` erwartet) |",
+        "|---|---|---|---|",
+    ]
+    for spec in catalog.kurzentwurf.social_forms:
+        aliases = ", ".join(f"`{alias}`" for alias in spec.aliases) or "--"
+        lines.append(
+            f"| `{spec.abbreviation}` | {spec.meaning} | {aliases} | {'ja' if spec.conversation else 'nein'} |"
+        )
+    return "\n".join(lines)
+
+
 def _render_kurzentwurf_legacy_field_details(catalog: MarkdownConventionCatalog) -> str:
     """Rendert eine Bullet-Liste mit einer Erklärung pro Legacy-Erkennungsfeld."""
     parts = []
@@ -68,7 +82,11 @@ def render_kurzentwurf_guide(catalog: MarkdownConventionCatalog) -> str:
         "## 4. Zeilenmarker innerhalb einer Phase\n\n"
         + _prose("kurzentwurf:markers")
         + "\n\n"
-        + _render_kurzentwurf_line_marker_reference(catalog),
+        + _render_kurzentwurf_line_marker_reference(catalog)
+        + "\n\n### Sozialformen in `U>`\n\n"
+        + _prose("kurzentwurf:social_forms")
+        + "\n\n"
+        + _render_kurzentwurf_social_form_table(catalog),
         "## 5. Legacy-Erkennungs-Felder (nicht aktiv verwenden)\n\n"
         + _prose("kurzentwurf:legacy_detection_only")
         + "\n\n"
