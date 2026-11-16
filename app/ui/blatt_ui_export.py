@@ -17,6 +17,7 @@ from .blatt_ui_export_documents import BlattwerkAppExportDocumentsMixin
 from .blatt_ui_export_images import BlattwerkAppExportImagesMixin
 from .blatt_ui_export_help_cards import BlattwerkAppExportHelpCardsMixin
 from .blatt_ui_export_dialogs import BlattwerkAppExportDialogsMixin
+from ..core.selfcheck_bw_warning import SC002_AMPEL_IN_BW
 
 
 class BlattwerkAppExportMixin(
@@ -28,9 +29,12 @@ class BlattwerkAppExportMixin(
 ):
     """Stellt Export-Workflows für PDF/HTML/PNG/ZIP bereit."""
 
-    _SURFACED_COMPILE_WARNING_CODES = {"SL005", "SL007", "PT002", "IM003", "PPTX001", "PPTX002", "PPTX003"}
+    _SURFACED_COMPILE_WARNING_CODES = {
+        "SL005", "SL007", "PT002", "IM003", SC002_AMPEL_IN_BW, "PPTX001", "PPTX002", "PPTX003",
+    }
     """`PT002` (Präsentations-Overflow), `IM003` (Worterklärung passt nicht
-    sauber an den Seitenrand, nur im gerenderten PDF messbar) plus die beiden Fallback-Diagnosen des
+    sauber an den Seitenrand, nur im gerenderten PDF messbar), `SC002` (Ampel-Skala im
+    S/W-Profil, nur beim Bauen bekannt) plus die beiden Fallback-Diagnosen des
     experimentellen editierbaren PPTX-Exports (`blatt_kern_pptx_export.py`):
     `PPTX001` (einzelne Folie gerastert) und `PPTX002` (kompletter Fallback
     auf den Raster-Export). Ein interner Fallback darf nie unsichtbar

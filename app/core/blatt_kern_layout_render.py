@@ -51,6 +51,7 @@ from .blatt_kern_shared import (
 from .blatt_kern_layout_columns import render_body_with_columns, render_columns_container
 from .blatt_kern_layout_presentation import _render_presentation_html
 from .evaluation_table import annotate_evaluation_blocks
+from .emoji_markup import mark_emoji_glyphs
 from .student_header import render_student_header
 from .exam_part_render import annotate_exam_parts, attach_part_headers, document_header_owner, tag_student_header
 from .document_type_registry import has_slide_layout
@@ -110,7 +111,7 @@ def render_html(
                 or (meta or {}).get("presentation_format")
                 or DEFAULT_PRESENTATION_PAGE_FORMAT
             ).strip()
-        return _render_presentation_html(
+        return mark_emoji_glyphs(_render_presentation_html(
             meta,
             blocks,
             include_solutions=False,
@@ -124,7 +125,7 @@ def render_html(
             presentation_section_separator=presentation_section_separator,
             presentation_hide_future_sections=presentation_hide_future_sections,
             presentation_ignore_framebreaks=presentation_ignore_framebreaks,
-        )
+        ))
 
     blocks = annotate_evaluation_blocks(blocks, document_type)
     # Vor annotate_exam_parts: dort verschiebt der synthetische Teil-A-Block die Indizes.
@@ -206,7 +207,7 @@ def render_html(
 
     copyright_text = get_copyright_text(meta)
 
-    return f"""<!DOCTYPE html>
+    return mark_emoji_glyphs(f"""<!DOCTYPE html>
 <html lang="de">
 <head>
 <meta charset="utf-8">
@@ -230,4 +231,4 @@ def render_html(
 
 </body>
 </html>
-"""
+""")

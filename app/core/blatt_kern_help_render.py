@@ -7,6 +7,7 @@ from html import escape
 
 from ..styles.blatt_styles import build_stylesheet
 from .mathjax_support import PROFILE_DOCUMENT, mathjax_head
+from .emoji_markup import mark_emoji_glyphs
 from .blatt_kern_shared import (
     HELP_BLOCK_TYPE,
     _new_markdown_converter,
@@ -335,7 +336,7 @@ def render_help_cards_html(
     cards_html = [_render_help_card_section(index, block, layout) for index, block in selected]
 
     title_value = escape((meta or {}).get("Titel", "Hilfekarten"))
-    return f"""<!DOCTYPE html>
+    return mark_emoji_glyphs(f"""<!DOCTYPE html>
 <html lang="de">
 <head>
 <meta charset="utf-8">
@@ -351,4 +352,4 @@ def render_help_cards_html(
 {_wrap_cards_for_layout(cards_html, page_format, layout)}
 </body>
 </html>
-"""
+""")

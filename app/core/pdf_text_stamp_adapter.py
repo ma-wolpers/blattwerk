@@ -24,6 +24,8 @@ from contextlib import contextmanager
 from functools import lru_cache
 from pathlib import Path
 
+from .emoji_data import CLUSTER_EXTENDERS
+
 try:
     import fitz
 except ImportError:
@@ -38,11 +40,6 @@ ALIGN_LEFT = "left"
 ALIGN_CENTER = "center"
 ALIGN_RIGHT = "right"
 _FITZ_ALIGN = {ALIGN_LEFT: 0, ALIGN_CENTER: 1, ALIGN_RIGHT: 2}  # fitz.TEXT_ALIGN_*
-
-_CLUSTER_EXTENDERS = {"Mn", "Me", "Cf", "Sk"}
-"""Unicode-Kategorien, die an ein vorangehendes Basiszeichen gebunden sind (Kombinations-
-zeichen, Variation Selector U+FE0F, ZWJ U+200D, Hautton-Modifikatoren)."""
-
 
 class StampError(RuntimeError):
     """Ein Laufelement konnte nicht gestempelt werden (statt still zu fehlen)."""
@@ -67,7 +64,7 @@ def renderable_text(font_file: str, text: str) -> str:
     """Entfernt Zeichencluster, fuer die die Schrift keine Glyphe hat, und glaettet Leerraum.
 
     Ein Cluster ist ein Basiszeichen plus direkt folgende Erweiterungszeichen
-    (`_CLUSTER_EXTENDERS`). Fehlt die Glyphe des Basiszeichens, faellt der ganze Cluster
+    (`CLUSTER_EXTENDERS` aus `emoji_data.py`). Fehlt die Glyphe des Basiszeichens, faellt der ganze Cluster
     weg - sonst bliebe z. B. der Variation Selector hinter einem Emoji stehen, fuer den
     manche Schriften eine (unsichtbare) Glyphe haben. ZWJ-Sequenzen (👨‍👩‍👧) zerfallen in
     Basiszeichen + ZWJ-Erweiterungen und verschwinden damit vollstaendig.
@@ -84,7 +81,7 @@ def renderable_text(font_file: str, text: str) -> str:
         if ch.isspace():
             kept.append(" ")
             dropping = False
-        elif unicodedata.category(ch) in _CLUSTER_EXTENDERS and (dropping or not kept):
+        elif unicodedata.category(ch) in CLUSTER_EXTENDERS and (dropping or not kept):
             dropping = True
         elif font.has_glyph(ord(ch)):
             kept.append(ch)

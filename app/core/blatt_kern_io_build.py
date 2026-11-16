@@ -22,6 +22,7 @@ from .blatt_kern_layout_render import render_html
 from .blatt_kern_shared import get_copyright_text, is_hole_punch_layout_enabled
 from .document_type_registry import has_slide_layout, solutions_renderable
 from .word_note_pdf_check import append_word_note_placement_warnings
+from .selfcheck_bw_warning import append_bw_ampel_warnings
 from .blatt_validator import (
     BuildDiagnostic,
     InspectedDocument,
@@ -190,6 +191,7 @@ def build_worksheet(
         )
         html = absolutize_local_image_sources(html, md_file.parent)
         html = apply_image_size_options(html)
+    append_bw_ampel_warnings(diagnostics_out=diagnostics_out, blocks=blocks, color_profile=color_profile)
     suffix = out_file.suffix.lower()
 
     if suffix == ".html":

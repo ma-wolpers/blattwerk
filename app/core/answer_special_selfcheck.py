@@ -20,17 +20,34 @@ from .answer_special_shared import (
 )
 
 _MIN_STEPS, _MAX_STEPS, _DEFAULT_STEPS = 2, 7, 3
-_KNOWN_SCALES = frozenset({"smiley", "ampel", "sterne", "zahlen"})
+AMPEL_SCALE = "ampel"
+"""Skala, deren Bedeutung an Farben hängt (S/W-Warnung `SC002`, `selfcheck_bw_warning.py`)."""
+_KNOWN_SCALES = frozenset({"smiley", AMPEL_SCALE, "sterne", "zahlen"})
 
 _SCALE_GLYPH_PRESETS = {
     "smiley": {
         3: ("\U0001F61F", "\U0001F610", "\U0001F642"),  # worried, neutral, slight smile
         5: ("\U0001F61F", "\U0001F641", "\U0001F610", "\U0001F642", "\U0001F604"),
     },
-    "ampel": {
+    AMPEL_SCALE: {
         3: ("\U0001F534", "\U0001F7E1", "\U0001F7E2"),  # red, yellow, green
     },
 }
+
+
+def resolve_selfcheck_scale(options):
+    """Einzige Auflösung der `scale=`-Option eines `:::selfcheck`-Blocks.
+
+    Kleinschreibung, Standard `smiley`; eine unbekannte Skala fällt ebenfalls auf
+    `smiley` zurück. Genutzt von Renderer, Validator (`SC001`) und der S/W-Warnung
+    (`SC002`), damit alle dieselbe Skala sehen.
+
+    Example:
+        >>> resolve_selfcheck_scale({"scale": " Ampel "}), resolve_selfcheck_scale({"scale": "x"})
+        ('ampel', 'smiley')
+    """
+    scale = str((options or {}).get("scale") or "smiley").strip().lower()
+    return scale if scale in _KNOWN_SCALES else "smiley"
 
 
 def _resolve_scale_glyphs(scale, steps):
@@ -65,9 +82,7 @@ def render_selfcheck_block(options, content):
         return ""
 
     options = options or {}
-    scale = str(options.get("scale") or "smiley").strip().lower()
-    if scale not in _KNOWN_SCALES:
-        scale = "smiley"
+    scale = resolve_selfcheck_scale(options)
     steps = max(_MIN_STEPS, min(_MAX_STEPS, _safe_int(options.get("steps"), _DEFAULT_STEPS)))
     glyphs = _resolve_scale_glyphs(scale, steps)
     glyphs_html = "".join(f"<span class='selfcheck-glyph'>{escape(glyph)}</span>" for glyph in glyphs)

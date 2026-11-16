@@ -1019,7 +1019,8 @@ PROSE_SECTIONS: dict[str, str] = {
         "Ab `subbranches > 0` wird das Diagramm zweistufig gezeichnet."
     ),
     "block:selfcheck.scale": (
-        "Symbolsatz der Skala: `smiley` (Standard), `ampel`, `sterne` oder `zahlen`."
+        "Symbolsatz der Skala: `smiley` (Standard), `ampel`, `sterne` oder `zahlen`. "
+        "Im Schwarz-Weiß-Profil sind die Ampelfarben kaum unterscheidbar (Warnung `SC002`)."
     ),
     "block:selfcheck.steps": (
         "Anzahl der Skalenstufen (2-7, Standard `3`)."

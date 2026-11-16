@@ -20,7 +20,7 @@ from .answer_line_markers import (
     collect_answer_marker_conflict_lines,
     is_effectively_empty_answer_content,
 )
-from .answer_special_selfcheck import _MAX_STEPS, _MIN_STEPS, _SCALE_GLYPH_PRESETS
+from .answer_special_selfcheck import _MAX_STEPS, _MIN_STEPS, _SCALE_GLYPH_PRESETS, resolve_selfcheck_scale
 from .answer_special_shared import _safe_int
 from .crossword_validation import validate_crossword_payload
 from .math_span_protection import _MATH_SPAN_PATTERN
@@ -202,7 +202,7 @@ def _validate_selfcheck_options(index, block_type, options):
         return []
 
     diagnostics = []
-    scale = str(options.get("scale") or "smiley").strip().lower()
+    scale = resolve_selfcheck_scale(options)
 
     # `_SCALE_GLYPH_PRESETS` is sparse (e.g. `smiley` only curates {3, 5},
     # not every value in between) -- any `steps` not an exact match falls

@@ -887,7 +887,7 @@ Offene Selbsteinschätzung ohne feste Lösung: der Blockinhalt ist eine Liste vo
 | `label1` | Text | -- | nein | -- | Beschriftung der ersten Skalen-Spalte, nur wirksam bei `dual=true` (Standard: keine Beschriftung). |
 | `label2` | Text | -- | nein | -- | Beschriftung der zweiten Skalen-Spalte, nur wirksam bei `dual=true` (Standard: keine Beschriftung). |
 | `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Fassung, Nachfolger von `show`. In Arbeitsblatt und Klausur Sichtbarkeit: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung; ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. In Präsentationen ist jeder Block sichtbar; dort wählt `mode` nur an Antwort- und Diagrammblöcken, ob ihre Lösungen eingetragen erscheinen (`solution`) oder leer bleiben (`worksheet`, Standard), und ist an allen anderen Blöcken wirkungslos (`OP004`). |
-| `scale` | Enum | `ampel`, `smiley`, `sterne`, `zahlen` | nein | `smiley` | Symbolsatz der Skala: `smiley` (Standard), `ampel`, `sterne` oder `zahlen`. |
+| `scale` | Enum | `ampel`, `smiley`, `sterne`, `zahlen` | nein | `smiley` | Symbolsatz der Skala: `smiley` (Standard), `ampel`, `sterne` oder `zahlen`. Im Schwarz-Weiß-Profil sind die Ampelfarben kaum unterscheidbar (Warnung `SC002`). |
 | `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
 | `steps` | Ganzzahl | -- | nein | `3` | Anzahl der Skalenstufen (2-7, Standard `3`). |
 

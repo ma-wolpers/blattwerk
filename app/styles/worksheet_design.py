@@ -25,9 +25,17 @@ _PROFILE_COLORS = {
 }
 
 
+EMOJI_GLYPH_CLASS = "emoji-glyph"
+"""Klasse jedes Emojis im Dokument; einzige Quelle des Namens.
+
+`app/core/emoji_markup.mark_emoji_glyphs` setzt sie im fertigen HTML,
+`build_design_css` gestaltet sie über `_SYMBOL_STYLE_PRESETS`. Das gilt für alle
+Emojis, auch für die Aufgabensymbole."""
+
+
 @dataclass(frozen=True)
 class _SymbolStylePreset:
-    """Bündelt Filter- und Konturstile für Aufgabensymbole."""
+    """Bündelt Filter- und Konturstile für Emojis (Klasse `EMOJI_GLYPH_CLASS`)."""
 
     symbol_filter: str
     text_stroke: str
@@ -149,7 +157,7 @@ def _tinted(color: str) -> str:
 
 
 def _resolve_symbol_style(color_profile: str, contrast_profile: str):
-    """Liefert Filter + Kontur für Aufgabensymbole aus zentralen Presets."""
+    """Liefert Filter + Kontur für Emojis aus zentralen Presets (S/W: Outline-Darstellung)."""
 
     if color_profile == "bw":
         mode_key = "bw"
@@ -282,7 +290,7 @@ h1 {{
     border-radius: 0;
 }}
 
-.task-work-symbol {{
+.{EMOJI_GLYPH_CLASS} {{
     filter: {symbol_style.symbol_filter};
     -webkit-text-stroke: {symbol_style.text_stroke};
     text-shadow: {symbol_style.text_shadow};
