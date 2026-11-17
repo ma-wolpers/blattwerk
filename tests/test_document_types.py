@@ -162,6 +162,24 @@ def test_kurzentwurf_template_validates_without_any_diagnostic():
     assert result.document is not None
 
 
+def test_kurzentwurf_template_names_a_social_form_in_every_segment():
+    """Die Vorlage soll die Stilregel "U> in jedem Segment" vorleben; Antizipationen
+    stehen nur dort, wo eine Gesprächsform genannt ist (siehe `expects_anticipation`)."""
+    from app.core.kurzentwurf_runtime.dsl_segments import expects_anticipation
+    from app.core.kurzentwurf_runtime.model import SOCIAL_FORM_SPECS
+    from app.core.kurzentwurf_runtime.validator import inspect_kurzentwerfer_text
+
+    known = {token for spec in SOCIAL_FORM_SPECS for token in spec.tokens}
+    document = inspect_kurzentwerfer_text(build_new_document_content(DOCUMENT_TYPE_KURZENTWURF, {})).document
+    segments = [segment for phase in document.phases for segment in phase.segments]
+
+    assert segments
+    for segment in segments:
+        words = {word.casefold() for word in segment.umgebung.replace(";", " ").split()}
+        assert words & known, segment.umgebung
+        assert bool(segment.antizipiert) == expects_anticipation(segment.umgebung), segment
+
+
 def test_removed_preferences_are_dropped_and_have_no_effect():
     from app.storage.user_preferences_adapter import normalize_user_preferences
 

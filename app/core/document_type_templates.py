@@ -134,6 +134,14 @@ def _build_exam_template(preferences: Mapping[str, object]) -> str:
 
 
 def _build_kurzentwurf_template(preferences: Mapping[str, object]) -> str:
+    """Neuer Kurzentwurf: Frontmatter und ein kurzes Muster aus Gesprächs- und Arbeitsphase.
+
+    Die Vorlage ist zugleich der Schnellstart in `ANLEITUNG_KURZENTWURF.md` und
+    wird gern kopiert. Sie folgt deshalb `EMPFEHLUNGEN_STIL_KURZENTWURF.md`:
+    `S>` nennt den fachlichen Lernschritt, jedes Segment nennt in `U>` seine
+    Sozialform, und nur Gesprächsphasen tragen `ant<`. Sie validiert ohne
+    jede Diagnose (Test in `tests/test_document_types.py`).
+    """
     default_grade = str(preferences.get("default_grade_level", "") or "").strip()
     default_subject = str(preferences.get("default_subject", "") or "").strip()
 
@@ -156,23 +164,23 @@ def _build_kurzentwurf_template(preferences: Mapping[str, object]) -> str:
         "\n".join(metadata_lines)
         + "\n\n"
         + "#einstieg t=10\n"
-        + "S> Leitfrage präsentieren\n"
+        + "S> Leitfrage als Problem, das mit dem Vorwissen noch nicht lösbar ist\n"
         + "A>\n"
         + "s< formulieren erste Vermutungen zur Leitfrage.\n"
         + 'ant< - "Ich vermute, dass ..."\n'
         + '      - "Das liegt bestimmt an ..."\n'
         + "U> LSG; Tafel\n\n"
         + "#erarbeitung t=20\n"
-        + "S> Arbeitsauftrag erteilen\n"
+        + "S> Fachlichen Lernschritt eintragen\n"
         + "A>\n"
         + "s< bearbeiten die Leitfrage mithilfe des Materials.\n"
-        + 'ant< "Im Material steht, dass ..."\n'
         + "U> GA; Arbeitsblatt eintragen\n\n"
         + "---\n"
-        + "S> Zwischenergebnisse vergleichen lassen\n"
+        + "S> Lösungswege vergleichen\n"
         + "A>\n"
         + "s< vergleichen ihre Ergebnisse mit einer Nachbargruppe.\n"
         + 'ant< "Wir haben das anders gelöst, weil ..."\n'
+        + "U> SSG\n"
     )
 
 

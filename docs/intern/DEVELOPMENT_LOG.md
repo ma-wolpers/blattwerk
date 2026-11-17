@@ -8,6 +8,8 @@ Regel:
 
 ## [Unreleased]
 
+- **Kurzentwurf-Vorlage an die Stilempfehlung angeglichen (2026-11-17).** Löst den offenen Punkt aus dem `S>`-Eintrag darunter: `_build_kurzentwurf_template` (zugleich Schnellstart der Anleitung) nutzt fachliche Lernschritte statt Handlungs-`S>`; das GA-Segment hat kein `ant<` mehr (war ein verbalisiertes Arbeitsergebnis), das Vergleichssegment nennt `U> SSG`. Docstring ergänzt. Neuer Test `test_kurzentwurf_template_names_a_social_form_in_every_segment` (jede `U>`-Zelle nennt eine Sozialform aus `SOCIAL_FORM_SPECS`; `ant<` genau dort, wo `expects_anticipation` es erwartet). Anleitung neu generiert.
+
 - **Emojis: eine Markierung, eine Regel; `SC002` Ampel im S/W-Profil (2026-11-16).** Nutzerwunsch: im S/W-Modus sollen wirklich alle Emojis wie die Aufgabensymbole aussehen, also auch im Fließtext, in Überschriften und Tabellen. Bisher hing das Filter-Preset (`_SYMBOL_STYLE_PRESETS`) nur an `.task-work-symbol`.
   - Neu `app/core/emoji_markup.mark_emoji_glyphs(html)`: ein Nachlauf über das fertige Dokument (`render_html`, beide Zweige, und `render_help_cards_html`). Er umschließt jedes Emoji-Cluster mit `<span class="emoji-glyph">`. Ausgenommen sind `<head>`, Tags/Attribute, Kommentare, `script`/`style`/`svg`/`textarea`/`title` und Formeln (`find_math_span_ranges`). Der Nachlauf ist idempotent. Erkennung: SMP 1F000–1FAFF, BMP-`Emoji_Presentation`-Tabelle oder Zeichen + U+FE0F, Cluster mit Extendern, ZWJ, Flaggenpaaren. ☐/☆ ohne FE0F bleiben Text.
   - Neu `app/core/emoji_data.py` (reine Daten). `CLUSTER_EXTENDERS` liegt jetzt dort statt in `pdf_text_stamp_adapter.py`, der Adapter importiert es.

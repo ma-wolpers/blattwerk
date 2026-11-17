@@ -21,7 +21,7 @@ Material:
 ---
 
 #einstieg t=10
-S> Leitfrage präsentieren
+S> Leitfrage als Problem, das mit dem Vorwissen noch nicht lösbar ist
 A>
 s< formulieren erste Vermutungen zur Leitfrage.
 ant< - "Ich vermute, dass ..."
@@ -29,17 +29,17 @@ ant< - "Ich vermute, dass ..."
 U> LSG; Tafel
 
 #erarbeitung t=20
-S> Arbeitsauftrag erteilen
+S> Fachlichen Lernschritt eintragen
 A>
 s< bearbeiten die Leitfrage mithilfe des Materials.
-ant< "Im Material steht, dass ..."
 U> GA; Arbeitsblatt eintragen
 
 ---
-S> Zwischenergebnisse vergleichen lassen
+S> Lösungswege vergleichen
 A>
 s< vergleichen ihre Ergebnisse mit einer Nachbargruppe.
 ant< "Wir haben das anders gelöst, weil ..."
+U> SSG
 ```
 
 ## 2. Frontmatter/Identitäts-Metadaten
