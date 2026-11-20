@@ -80,6 +80,7 @@ Subprozess siehe `tests/test_blatt_diagnostics_cli.py` (Validator) sowie
 - `FM009`: `document_type` fehlt in einer Blattwerk-Datei (`.abw`, `.pbw`, `.kbw`, `.ebw`, `.sbw`). Warnung. In `.md` ist der Marker optional, dort gibt es kein `FM009`.
 - `FM010`: Ungueltiger Wert fuer `document_type` (kein bekannter Typ oder Alias, oder kein Text). Warnung.
 - `FM012`: Unbekanntes Schriftprofil in `font_profile` (die Meldung nennt alle erlaubten Werte). Warnung; gerendert wird mit der Schrift der App-Einstellung.
+- `FM013`: Unbekannte Sprache in `Sprache` (die Meldung nennt alle erlaubten Werte). Warnung; die Labels erscheinen im Programm-Standard Deutsch.
 - `FM011`: `Lerngruppe`/`Datum` hat einen YAML-Typ, der nicht in die Schuelerkopfzeile uebernommen wird (z. B. `Lerngruppe: 11.6` wird als Zahl gelesen -- in Anfuehrungszeichen setzen). Warnung; das Feld bleibt leer. `Datum` darf Text oder ein ISO-Datum sein.
 - `EV001`: Bewertungstabelle `:::evaluation` vorhanden, aber Aufgaben ohne Punkte (Zelle `–`). Warnung.
 - `EV002`: Bewertungstabelle in einem Dokumenttyp ohne diese Funktion (z. B. Praesentation); sie wird nicht angezeigt. Warnung.

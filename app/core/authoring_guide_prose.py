@@ -113,6 +113,14 @@ PROSE_SECTIONS: dict[str, str] = {
         "(App-Einstellung)\" entfernt ihn. Ein unbekannter Wert ergibt die Warnung `FM012`, gerendert wird "
         "dann mit der App-Schrift."
     ),
+    "frontmatter:Sprache": (
+        "Sprache der Texte, die Blattwerk selbst ins Dokument schreibt (Schülerkopfzeile, "
+        "\"Aufgabe N\", Punkte, \"Lösung\", Lösungs-Badge, Schuljahr, Seitenzahlen, Klausurteile, "
+        "Bewertungstabelle, Lernhilfen-Verweise). Ohne Angabe gilt der Programm-Standard Deutsch. "
+        "Erlaubt: `de`, `pt-BR` (Groß-/Kleinschreibung egal); ein unbekannter Wert ergibt die Warnung "
+        "`FM013`, gerendert wird dann deutsch. Den Inhalt selbst übersetzt das Feld nicht. Deutsch "
+        "bleiben Erwartungshorizont und Operatorentabelle (ihre Definitionen sind deutsche Fachdaten)."
+    ),
     # -- Control-Marker ----------------------------------------------------
     "marker:pagebreak": (
         "`--!` auf einer eigenen Zeile erzwingt einen harten Seiten-/Folienumbruch an dieser Stelle "

@@ -15,6 +15,7 @@ from __future__ import annotations
 from .blatt_kern_shared_data import CONTROL_MARKERS, JA_NEIN_BOOLEAN_TOKENS
 from .crossword_symbol_presets import SYMBOL_THEME_NAMES
 from .diagram_block_catalog import DIAGRAM_BLOCK_NAMES, DIAGRAM_BLOCKS
+from .document_labels_data import LANGUAGES
 from .document_type_registry import KNOWN_DOCUMENT_TYPES
 from ..styles.blatt_styles_data import FONT_PROFILE_ORDER
 from .blatt_validator_specs import MISSING, BlockOptionSpec, FrontmatterFieldSpec  # noqa: F401 -- re-exportiert
@@ -692,6 +693,7 @@ OPTIONAL_FRONTMATTER_FIELDS = (
     FrontmatterFieldSpec("font_profile", "enum", frozenset(FONT_PROFILE_ORDER), MISSING, True),
     FrontmatterFieldSpec("Lerngruppe", "header_text", None, MISSING, True),
     FrontmatterFieldSpec("Datum", "header_date", None, MISSING, True),
+    FrontmatterFieldSpec("Sprache", "enum", frozenset(LANGUAGES), MISSING, True),
 )
 """Vollständiger normativer Katalog optionaler Frontmatter-Felder.
 
@@ -707,7 +709,10 @@ Stelle aus dem Dokument-Meta gelesen -- toter, aber weiterhin syntaktisch
 akzeptierter Frontmatter-Inhalt. `font_profile` ist dagegen wirksam
 (`app/core/document_font.py`, Vorrang vor der App-Auswahl) und als Enum
 ueber alle Schriftprofile validiert; ein unbekannter Wert ist die Warnung
-`FM012` (Rueckfall auf die App-Schrift, Build laeuft weiter). `Stufe` ist dagegen jetzt `validated=True` mit einem
+`FM012` (Rueckfall auf die App-Schrift, Build laeuft weiter). `Sprache` folgt demselben
+Muster (`app/core/document_language.py`, Werte aus `document_labels_data.LANGUAGES`):
+ohne Wert gilt der Programm-Standard Deutsch, ein unbekannter Wert ist die Warnung
+`FM013`.`Stufe` ist dagegen jetzt `validated=True` mit einem
 festen (aber inhaltlich bedeutungslosen) Wertebereich und wird von
 `app/core/operator_legend.py` gelesen, um Operatoren-Definitionen
 (`data/operatoren/*.json`) nach den dort selbst definierten

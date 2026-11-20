@@ -84,6 +84,7 @@ Eine Präsentation (`.pbw`) ist Aufgabenblatt und Lösung zugleich: Es gibt **ke
 | `font_profile` | nein | enum | `andika`, `arial`, `bahnschrift`, `book_antiqua`, `calibri`, `cambria`, `candara`, `century_gothic`, `comic_neue`, `comic_sans_ms`, `constantia`, `corbel`, `franklin_gothic_medium`, `fredoka`, `garamond`, `georgia`, `gloria_hallelujah`, `indie_flower`, `lucida_sans`, `patrick_hand`, `rockwell`, `segoe`, `short_stack`, `tahoma`, `times_new_roman`, `trebuchet_ms`, `verdana` | ja |
 | `Lerngruppe` | nein | header_text | -- | ja |
 | `Datum` | nein | header_date | -- | ja |
+| `Sprache` | nein | enum | `de`, `pt-br` | ja |
 
 - **`Titel`** (Pflichtfeld): Der Titel des Dokuments, erscheint im Dokumentkopf und in der Fensterleiste.
 - **`Fach`** (Pflichtfeld): Das Unterrichtsfach, erscheint zusammen mit `Thema` in der Metazeile des Dokumentkopfs.
@@ -102,6 +103,7 @@ Eine Präsentation (`.pbw`) ist Aufgabenblatt und Lösung zugleich: Es gibt **ke
 - **`font_profile`** (optional): Legt die Schrift des Dokuments fest und hat Vorrang vor der Schriftwahl der App. Erlaubt sind die Schlüssel der Schriftprofile, z. B. `segoe`, `arial`, `comic_sans_ms` oder die mitgelieferten Schriften `comic_neue`, `andika`, `fredoka`, `patrick_hand`, `indie_flower`, `gloria_hallelujah`, `short_stack`. Das Schriftmenü der Vorschau schreibt diesen Eintrag selbst; "Standard (App-Einstellung)" entfernt ihn. Ein unbekannter Wert ergibt die Warnung `FM012`, gerendert wird dann mit der App-Schrift.
 - **`Lerngruppe`** (optional): Füllt das Feld „Lerngruppe“ der Schülerkopfzeile vor (nur sichtbar mit `show_student_header: ja`). Muss Text sein: Werte, die YAML als Zahl liest, bitte in Anführungszeichen setzen, z. B. `Lerngruppe: "11.6"` (sonst Warnung `FM011`, das Feld bleibt leer). Der Vorlagen-Platzhalter `Lerngruppe eintragen` zählt als leer.
 - **`Datum`** (optional): Füllt das Feld „Datum“ der Schülerkopfzeile vor (nur sichtbar mit `show_student_header: ja`) und erscheint im Erwartungshorizont. Freier Text wie `25.09.26` wird unverändert übernommen, ein ISO-Datum wie `2026-09-25` als `25.09.2026` angezeigt. Der Vorlagen-Platzhalter `Datum eintragen` zählt als leer.
+- **`Sprache`** (optional): Sprache der Texte, die Blattwerk selbst ins Dokument schreibt (Schülerkopfzeile, "Aufgabe N", Punkte, "Lösung", Lösungs-Badge, Schuljahr, Seitenzahlen, Klausurteile, Bewertungstabelle, Lernhilfen-Verweise). Ohne Angabe gilt der Programm-Standard Deutsch. Erlaubt: `de`, `pt-BR` (Groß-/Kleinschreibung egal); ein unbekannter Wert ergibt die Warnung `FM013`, gerendert wird dann deutsch. Den Inhalt selbst übersetzt das Feld nicht. Deutsch bleiben Erwartungshorizont und Operatorentabelle (ihre Definitionen sind deutsche Fachdaten).
 
 ## 5. Blockreferenz
 
