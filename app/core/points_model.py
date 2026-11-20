@@ -37,6 +37,7 @@ import re
 from dataclasses import dataclass, field
 from decimal import Decimal, InvalidOperation
 
+from .document_language import label, language_from_options
 from .exam_parts_position import PART_SPLIT_BLOCKS
 
 POINTS_KEY = "points"
@@ -61,11 +62,23 @@ def is_bonus(options: dict | None) -> bool:
 
 
 def points_badge(options: dict) -> str | None:
-    """Punktanzeige am Aufgaben-/Teilaufgabenkopf: `2 P` bzw. `+2 Bonuspunkte` (``None`` ohne Punkte)."""
-    label = points_label(options)
-    if label is None:
+    """Punktanzeige am Aufgaben-/Teilaufgabenkopf (``None`` ohne Punkte).
+
+    Deutsch `2 P` bzw. `+2 Bonuspunkte`; die Einheit kommt in der Dokumentsprache
+    (Laufzeitoption `_language`) aus `document_labels_data.LABELS`. Die Zahl dient
+    als ``count`` für Pluralformen; nicht-numerische Angaben nutzen die erste Form.
+
+    Example:
+        >>> points_badge({"points": "2"}), points_badge({"points": "2", "_language": "pt-br"})
+        ('2 P', '2 pts')
+    """
+    shown = points_label(options)
+    if shown is None:
         return None
-    return f"+{label} Bonuspunkte" if is_bonus(options) else f"{label} P"
+    value = parse_points(points_display(options))
+    count = value if isinstance(value, Decimal) else None
+    key = "bonus_points" if is_bonus(options) else "points"
+    return label(key, language_from_options(options), count=count, points=shown)
 
 
 class NonNumeric:

@@ -28,12 +28,13 @@ DEFAULT_LANGUAGE = "de"
 """Programm-Standard, solange ein Dokument keine `Sprache` angibt."""
 
 LANGUAGES = {
-    "de": {"name": "Deutsch", "html_lang": "de"},
-    "pt-br": {"name": "Português (Brasil)", "html_lang": "pt-BR"},
+    "de": {"name": "Deutsch", "html_lang": "de", "date_format": "%d.%m.%Y"},
+    "pt-br": {"name": "Português (Brasil)", "html_lang": "pt-BR", "date_format": "%d/%m/%Y"},
 }
 """Erlaubte Werte für `Sprache` (klein geschrieben; Eingabe ist unabhängig von
 Groß-/Kleinschreibung). `html_lang` landet im `<html lang>`-Attribut und steuert
-damit die automatische Silbentrennung des Browsers."""
+damit die automatische Silbentrennung des Browsers; `date_format` (``strftime``)
+formatiert ein als YAML-Datum vorbefülltes `Datum` der Schülerkopfzeile."""
 
 PLURAL_ONE_BELOW = {"pt-br": 2}
 """Pluralregel je Sprache: Singularform, solange ``abs(count)`` kleiner als dieser
@@ -62,6 +63,7 @@ LABELS = {
     # -- Lernhilfen ------------------------------------------------------------
     "help_title": {"de": "Hilfe", "pt-br": "Ajuda"},
     "help_cards_title": {"de": "Hilfekarten", "pt-br": "Cartões de ajuda"},
+    "help_level": {"de": "Stufe {level}", "pt-br": "Nível {level}"},
     "help_reference": {"de": "→ Lernhilfe", "pt-br": "→ Ajuda"},
     "help_references": {"de": "→ Lernhilfen", "pt-br": "→ Ajudas"},
     # -- Klausurteile ----------------------------------------------------------
@@ -75,6 +77,7 @@ LABELS = {
         "de": "Wähle {k} der {n} Wahlteile; gewertet werden die angekreuzten.",
         "pt-br": "Escolha {k} das {n} partes opcionais; serão corrigidas as assinaladas.",
     },
+    "choice_part_check": {"de": "Diesen Wahlteil wähle ich.", "pt-br": "Escolho esta parte opcional."},
     # -- Bewertungstabelle -----------------------------------------------------
     "evaluation_task": {"de": "Aufgabe", "pt-br": "Questão"},
     "evaluation_max_points": {"de": "max. Punkte", "pt-br": "pontuação máx."},
@@ -91,5 +94,7 @@ LABELS = {
     "choice_true": {"de": "richtig", "pt-br": "verdadeiro"},
     "choice_false": {"de": "falsch", "pt-br": "falso"},
     "crossword_code": {"de": "Lösungscode:", "pt-br": "Palavra-chave:"},
+    "crossword_across": {"de": "Waagerecht", "pt-br": "Horizontais"},
+    "crossword_down": {"de": "Senkrecht", "pt-br": "Verticais"},
 }
 """Alle festen Ausgabetexte; Zugriff ausschließlich über `document_language`."""

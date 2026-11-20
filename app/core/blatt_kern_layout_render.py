@@ -36,6 +36,7 @@ from ..styles.blatt_styles import (
     resolve_printable_width_cm,
 )
 from .document_font import resolve_document_font_profile
+from .document_language import html_lang, label, resolve_document_language
 from ..styles.page_geometry import resolve_gutter_widths_cm
 from .blatt_kern_shared import (
     _meta_bool_ja_nein,
@@ -127,11 +128,13 @@ def render_html(
             presentation_ignore_framebreaks=presentation_ignore_framebreaks,
         ))
 
-    blocks = annotate_evaluation_blocks(blocks, document_type)
+    # Einmal aufgelöst, danach sichtbar weitergegeben (Labels, `<html lang>`, Datumsformat).
+    language, _ = resolve_document_language(meta)
+    blocks = annotate_evaluation_blocks(blocks, document_type, language=language)
     # Vor annotate_exam_parts: dort verschiebt der synthetische Teil-A-Block die Indizes.
     blocks = annotate_operator_blocks(blocks, meta, document_type)
     header_owner = document_header_owner(blocks, document_type)
-    blocks = annotate_exam_parts(blocks, document_type)
+    blocks = annotate_exam_parts(blocks, document_type, language=language)
     student_header = render_student_header(meta)
     # Jeder Klausurteil auf neuer Seite bekommt dieselbe Kopfzeile wie der Dokumentanfang.
     blocks = attach_part_headers(blocks, student_header)
@@ -143,6 +146,7 @@ def render_html(
         include_solutions=include_solutions,
         help_tag=(meta or {}).get("tag"),
         document_type=document_type,
+        language=language,
     )
     hole_punch_enabled = is_hole_punch_layout_enabled(meta)
     gutter_left_cm, gutter_right_cm = resolve_gutter_widths_cm(reserve_gutters=True)
@@ -164,6 +168,7 @@ def render_html(
             printable_width_cm=printable_width_cm,
             printable_height_cm=printable_height_cm,
             cache=cache,
+            language=language,
         )
     has_word_notes = bool(collected_word_notes)
     if word_notes_out is not None:
@@ -171,12 +176,10 @@ def render_html(
     sectioned_body = split_sections(body)
 
     meta_line = format_meta_line(meta)
-    school_year_label = escape(get_current_school_year_label())
-    right_header_label = "Lösungsversion" if include_solutions else school_year_label
-    right_header_html = right_header_label
+    right_header_html = escape(get_current_school_year_label(language=language))
     if include_solutions:
         right_header_html = (
-            "<span class='solution-version-inline'>Lösungsversion</span>"
+            f"<span class='solution-version-inline'>{escape(label('solution_version', language))}</span>"
         )
 
     document_header = ""
@@ -208,7 +211,7 @@ def render_html(
     copyright_text = get_copyright_text(meta)
 
     return mark_emoji_glyphs(f"""<!DOCTYPE html>
-<html lang="de">
+<html lang="{html_lang(language)}">
 <head>
 <meta charset="utf-8">
 <title>{meta.get("Titel", "Arbeitsblatt")}</title>

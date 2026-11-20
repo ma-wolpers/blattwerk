@@ -19,6 +19,7 @@ from .blatt_kern_shared_data import (
     TASK_HINT_MAP,
     WORK_MODE_MAP,
 )
+from .document_language import DEFAULT_LANGUAGE, label
 
 _SECTION_BREAK_SPLIT_PATTERN = re.compile(
     r"(<!--BLATTWERK_SECTION_BREAK-->)", flags=re.IGNORECASE
@@ -109,11 +110,12 @@ def format_meta_line(meta):
     return thema
 
 
-def get_current_school_year_label(reference_date=None):
+def get_current_school_year_label(reference_date=None, language=DEFAULT_LANGUAGE):
     """Liefert das aktuelle Schuljahr in Niedersachsen als Label.
 
     Regel: Bis einschließlich Juli läuft das Schuljahr vom Vorjahr ins aktuelle Jahr,
-    ab August vom aktuellen ins nächste Jahr.
+    ab August vom aktuellen ins nächste Jahr. Der Text kommt in der Dokumentsprache
+    ``language`` (Standard: ``Schuljahr 2026/2027``); die Jahresregel bleibt dieselbe.
     """
 
     date_value = reference_date or datetime.now()
@@ -126,7 +128,7 @@ def get_current_school_year_label(reference_date=None):
         start_year = year
         end_year = year + 1
 
-    return f"Schuljahr {start_year}/{end_year}"
+    return label("school_year", language, start=start_year, end=end_year)
 
 
 def get_copyright_text(meta=None):

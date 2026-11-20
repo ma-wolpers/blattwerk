@@ -22,6 +22,7 @@ from datetime import date
 from html import escape
 
 from .blatt_kern_shared_meta import _meta_bool_ja_nein
+from .document_language import DEFAULT_LANGUAGE, format_date, label, resolve_document_language
 from .document_type_templates import HEADER_PLACEHOLDERS
 
 HEADER_TEXT_KIND = "header_text"
@@ -35,17 +36,19 @@ class InvalidHeaderValue(ValueError):
     """Wert eines Kopf-Feldes hat einen nicht erlaubten YAML-Typ."""
 
 
-def resolve_header_value(kind: str, raw_value) -> str | None:
+def resolve_header_value(kind: str, raw_value, language=DEFAULT_LANGUAGE) -> str | None:
     """Liefert den Anzeigetext eines Kopf-Feldes oder ``None`` (leer lassen).
 
     Wirft `InvalidHeaderValue`, wenn der YAML-Typ für die Feldart nicht
     erlaubt ist; der Renderer behandelt das als leer, der Validator meldet
     `FM011`. Platzhalter und leere Werte liefern ``None`` ohne Fehler.
+    Ein YAML-Datum wird im Format der Dokumentsprache ``language`` geschrieben
+    (Standard Deutsch `TT.MM.JJJJ`).
     """
     if raw_value is None:
         return None
     if kind == HEADER_DATE_KIND and isinstance(raw_value, date):
-        return raw_value.strftime("%d.%m.%Y")
+        return format_date(raw_value, language)
     if not isinstance(raw_value, str):
         raise InvalidHeaderValue(type(raw_value).__name__)
     text = raw_value.strip()
@@ -73,10 +76,10 @@ def _field_html(label: str, value: str | None) -> str:
     return f"<div class=\"student-field\"><span class=\"student-label\">{label}</span>{line}</div>"
 
 
-def _safe_value(meta: dict, name: str) -> str | None:
+def _safe_value(meta: dict, name: str, language) -> str | None:
     """Vorbefüllung für `name`; ungültige Typen bleiben im Dokument leer (Diagnose: FM011)."""
     try:
-        return resolve_header_value(_FIELD_KINDS[name], meta.get(name))
+        return resolve_header_value(_FIELD_KINDS[name], meta.get(name), language)
     except InvalidHeaderValue:
         return None
 
@@ -85,14 +88,17 @@ def render_student_header(meta: dict | None) -> str:
     """Rendert die Schülerkopfzeile oder ``""``, wenn `show_student_header` aus ist.
 
     `Name` bleibt immer leer (wird von Hand ausgefüllt); `Lerngruppe` und
-    `Datum` werden nach den Typregeln im Moduldocstring vorbefüllt.
+    `Datum` werden nach den Typregeln im Moduldocstring vorbefüllt. Die
+    Beschriftungen (und das Datumsformat) folgen dem Frontmatter-Feld `Sprache`;
+    die Frontmatter-Schlüssel selbst bleiben deutsch.
     """
     metadata = meta if isinstance(meta, dict) else {}
     if not _meta_bool_ja_nein(metadata.get("show_student_header"), default=False):
         return ""
+    language, _problem = resolve_document_language(metadata)
     fields = [
-        _field_html("Name", None),
-        _field_html("Lerngruppe", _safe_value(metadata, "Lerngruppe")),
-        _field_html("Datum", _safe_value(metadata, "Datum")),
+        _field_html(escape(label("student_name", language)), None),
+        _field_html(escape(label("student_group", language)), _safe_value(metadata, "Lerngruppe", language)),
+        _field_html(escape(label("student_date", language)), _safe_value(metadata, "Datum", language)),
     ]
     return f"<div class=\"student-header\">{''.join(fields)}</div>"

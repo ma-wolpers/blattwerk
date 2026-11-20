@@ -26,6 +26,7 @@ from .crossword_placement import (
     resolve_crossword_bounds,
 )
 from .crossword_symbol_presets import symbol_theme_by_name
+from .document_language import label, language_from_options
 from .wordbank_position import (
     normalize_wordbank_position,
     resolve_wordbank_auto_position,
@@ -156,7 +157,7 @@ def render_crossword_answer(options, content, include_solutions):
                 (entry.row, entry.col): index + 1 for index, entry in enumerate(selection.letters)
             }
             if include_solutions:
-                code_html = _render_code_solution(selection)
+                code_html = _render_code_solution(selection, language_from_options(options))
 
     cells = layout.cells()
     min_row, max_row, min_col, max_col = _occupied_bounding_box(cells)
@@ -187,7 +188,7 @@ def render_crossword_answer(options, content, include_solutions):
 
     md = _new_markdown_converter()
     horizontal_clues, vertical_clues = grouped_clues(layout, numbering)
-    clues_html = _render_clue_lists(horizontal_clues, vertical_clues, md)
+    clues_html = _render_clue_lists(horizontal_clues, vertical_clues, md, language_from_options(options))
 
     position = normalize_wordbank_position(options.get("position"), default="auto")
     if position == "auto":
@@ -311,26 +312,29 @@ def _render_grid_cells(
     return "".join(parts)
 
 
-def _render_clue_group(label, clues, md):
+def _render_clue_group(heading, clues, md):
+    """Eine Hinweisliste (waagerecht oder senkrecht) mit Überschrift ``heading``."""
     if not clues:
         return ""
     items = "".join(
         f"<li value='{number}'>{convert_markdown_with_math(md, clue).strip()}</li>"
         for number, _word, clue in clues
     )
-    return f"<div class='crossword-clue-group'><h4 class='crossword-clue-heading'>{escape(label)}</h4><ol class='crossword-clues'>{items}</ol></div>"
+    return f"<div class='crossword-clue-group'><h4 class='crossword-clue-heading'>{escape(heading)}</h4><ol class='crossword-clues'>{items}</ol></div>"
 
 
-def _render_clue_lists(horizontal_clues, vertical_clues, md):
-    groups = _render_clue_group("Waagerecht", horizontal_clues, md) + _render_clue_group(
-        "Senkrecht", vertical_clues, md
+def _render_clue_lists(horizontal_clues, vertical_clues, md, language):
+    """Beide Hinweislisten; die Überschriften kommen in der Dokumentsprache."""
+    groups = _render_clue_group(label("crossword_across", language), horizontal_clues, md) + _render_clue_group(
+        label("crossword_down", language), vertical_clues, md
     )
     if not groups:
         return ""
     return f"<div class='crossword-clues-wrap'>{groups}</div>"
 
 
-def _render_code_solution(selection):
+def _render_code_solution(selection, language):
+    """Lösungscode-Zeile der Lösungsfassung; das Label kommt in der Dokumentsprache."""
     if not selection.letters:
         return ""
     letters_html = "".join(
@@ -338,7 +342,7 @@ def _render_code_solution(selection):
     )
     return (
         "<div class='crossword-code'>"
-        "<span class='crossword-code-label'>Lösungscode:</span> "
+        f"<span class='crossword-code-label'>{escape(label('crossword_code', language))}</span> "
         f"{letters_html}"
         "</div>"
     )

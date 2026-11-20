@@ -103,6 +103,17 @@ def html_lang(language) -> str:
     return LANGUAGES[normalize_language(language)]["html_lang"]
 
 
+def format_date(value, language) -> str:
+    """Datum im Format der Dokumentsprache (`LANGUAGES[...]["date_format"]`).
+
+    Example:
+        >>> from datetime import date
+        >>> format_date(date(2026, 9, 25), "de"), format_date(date(2026, 9, 25), "pt-br")
+        ('25.09.2026', '25/09/2026')
+    """
+    return value.strftime(LANGUAGES[normalize_language(language)]["date_format"])
+
+
 def _template(key: str, language: str, count) -> str:
     """Vorlage für ``key`` in ``language``; Pluraltupel werden über ``count`` aufgelöst.
 

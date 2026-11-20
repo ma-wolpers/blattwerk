@@ -26,6 +26,7 @@ from __future__ import annotations
 
 from html import escape
 
+from .document_language import DEFAULT_LANGUAGE, label, language_from_options
 from .exam_parts import AID_PART_LABELS, AID_SPLIT_BLOCK, resolve_exam_parts  # noqa: F401 (AID_PART_LABELS: Re-Export)
 from .exam_parts_invariants import PART_KIND_CHOICE
 
@@ -38,24 +39,24 @@ PART_BREAK_KEY = "_exam_part_break"
 PART_CHOICE_NOTE_KEY = "_exam_part_choice_note"
 """Block-Option: Hinweistext des Wahlbereichs (nur am ersten Wahlteil)."""
 PART_CHOICE_CHECK_KEY = "_exam_part_choice_check"
-"""Block-Option: Wahlteil bekommt ein Ankreuzfeld."""
-CHOICE_CHECK_TEXT = "Diesen Wahlteil wähle ich."
+"""Block-Option: Wahlteil bekommt ein Ankreuzfeld (Text: Label `choice_part_check`)."""
 PART_HEADER_HTML_KEY = "_exam_part_header_html"
 """Block-Option mit dem fertigen Kopfzeilen-HTML; gesetzt nur von `attach_part_headers`."""
 
 _PAGEBREAK_HTML = "<div class='ab-pagebreak' aria-hidden='true'></div>"
 
 
-def annotate_exam_parts(blocks, document_type: str | None):
+def annotate_exam_parts(blocks, document_type: str | None, language=DEFAULT_LANGUAGE):
     """Markiert für das Rendern den Beginn jedes Teils.
 
     Ein Teil mit Trenner bekommt die Marken an diesem Block; der erste Teil
     ohne Trenner (Teil A ohne Deckblatt) einen synthetischen Block am
     Dokumentanfang -- danach sind die Blockindizes um eins verschoben, daher
     laufen indexbasierte Annotationen vorher. Ohne gültiges Layout bleibt die
-    Blockliste unverändert (dann rendert ein Trenner nichts).
+    Blockliste unverändert (dann rendert ein Trenner nichts). Überschriften und
+    Wahlhinweis kommen in der Dokumentsprache ``language``.
     """
-    layout = resolve_exam_parts(blocks, document_type).layout
+    layout = resolve_exam_parts(blocks, document_type, language).layout
     if layout is None:
         return blocks
     annotated = list(blocks)
@@ -67,7 +68,7 @@ def annotate_exam_parts(blocks, document_type: str | None):
             group = groups[part.group_id]
             marks[PART_CHOICE_CHECK_KEY] = True
             if group.part_ids[0] == part.part_id:
-                marks[PART_CHOICE_NOTE_KEY] = f"Wähle {group.k} der {len(group.part_ids)} Wahlteile; gewertet werden die angekreuzten."
+                marks[PART_CHOICE_NOTE_KEY] = label("choice_part_note", language, k=group.k, n=len(group.part_ids))
         if part.marker_block is None:
             if part.heading:
                 prefix.append((AID_SPLIT_BLOCK, marks, ""))
@@ -135,7 +136,8 @@ def render_exam_part(options) -> str:
         html += f"<p class='exam-choice-note'>{escape(str(opts[PART_CHOICE_NOTE_KEY]))}</p>"
     html += f"<h2 class='aid-part'>{escape(str(opts.get(PART_HEADING_KEY) or ''))}</h2>"
     if opts.get(PART_CHOICE_CHECK_KEY):
-        html += f"<p class='exam-choice-check'><span class='exam-choice-box' aria-hidden='true'>☐</span> {CHOICE_CHECK_TEXT}</p>"
+        check_text = escape(label("choice_part_check", language_from_options(opts)))
+        html += f"<p class='exam-choice-check'><span class='exam-choice-box' aria-hidden='true'>☐</span> {check_text}</p>"
     if part_starts_new_page(opts):
         return _PAGEBREAK_HTML + str(opts.get(PART_HEADER_HTML_KEY) or "") + html
     return html

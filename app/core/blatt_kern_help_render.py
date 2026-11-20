@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 from .document_font import resolve_document_font_profile
+from .document_language import DEFAULT_LANGUAGE, html_lang, label, resolve_document_language
 
 from html import escape
 
@@ -132,7 +133,7 @@ def _wrap_cards_for_layout(cards_html, page_format, layout=HELP_CARD_LAYOUT_SHEE
     return f'<div class="help-cards-columns">{joined}</div>'
 
 
-def _render_help_card_section(index, block, layout):
+def _render_help_card_section(index, block, layout, language=DEFAULT_LANGUAGE):
     """Rendert eine einzelne Lernhilfenkarte als `<section class="help-card">`.
 
     Args:
@@ -142,6 +143,7 @@ def _render_help_card_section(index, block, layout):
         block: gelabelter Hilfeblock aus `collect_labeled_help_blocks`.
         layout: `HELP_CARD_LAYOUT_SHEET` oder `HELP_CARD_LAYOUT_SINGLE`; nur das
             Einzelseiten-Layout setzt den unsichtbaren Seitenmarker.
+        language: Dokumentsprache für Standardtitel ("Hilfe") und Stufen-Badge.
     """
     block_content = block["content"]
     level = block["level"]
@@ -153,11 +155,12 @@ def _render_help_card_section(index, block, layout):
         else ""
     )
 
-    title_text = (block["options"].get("title") or "Hilfe").strip() or "Hilfe"
+    default_title = label("help_title", language)
+    title_text = (block["options"].get("title") or default_title).strip() or default_title
     label_text = (block.get("label") or "").strip()
     header_title = f"{label_text} - {title_text}" if label_text else title_text
     level_badge = (
-        f"<span class='help-card-level'>Stufe {level}</span>"
+        f"<span class='help-card-level'>{escape(label('help_level', language, level=level))}</span>"
         if level is not None
         else ""
     )
@@ -309,6 +312,7 @@ def render_help_cards_html(
     if layout not in HELP_CARD_LAYOUTS:
         raise ValueError(f"Unbekanntes Lernhilfen-Layout: {layout!r}")
     font_profile, _ = resolve_document_font_profile(meta, font_profile)
+    language, _ = resolve_document_language(meta)
 
     help_blocks = collect_labeled_help_blocks(
         meta,
@@ -333,14 +337,15 @@ def render_help_cards_html(
         font_size_profile=font_size_profile,
         tint=tint,
     )
-    cards_html = [_render_help_card_section(index, block, layout) for index, block in selected]
+    cards_html = [_render_help_card_section(index, block, layout, language) for index, block in selected]
 
-    title_value = escape((meta or {}).get("Titel", "Hilfekarten"))
+    cards_title = escape(label("help_cards_title", language))
+    title_value = escape((meta or {}).get("Titel", "")) or cards_title
     return mark_emoji_glyphs(f"""<!DOCTYPE html>
-<html lang="de">
+<html lang="{html_lang(language)}">
 <head>
 <meta charset="utf-8">
-<title>{title_value} – Hilfekarten</title>
+<title>{title_value} – {cards_title}</title>
 {mathjax_head(PROFILE_DOCUMENT)}
 <style>
 {stylesheet}

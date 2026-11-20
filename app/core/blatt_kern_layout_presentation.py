@@ -13,6 +13,7 @@ from html import escape
 from ..styles.blatt_styles import build_inline_font_css, build_stylesheet, resolve_printable_width_cm
 from .inline_markup.style_spans import collect_inline_style_fonts
 from .blatt_kern_layout_columns import render_body_with_columns
+from .document_language import DEFAULT_LANGUAGE, html_lang, resolve_document_language
 from .mathjax_support import PROFILE_DOCUMENT, mathjax_head
 from .blatt_kern_shared import (
     annotate_standalone_subtasks,
@@ -33,8 +34,11 @@ def _build_presentation_slides(
     document_type,
     printable_width_cm,
     ignore_framebreaks=False,
+    language=DEFAULT_LANGUAGE,
 ):
     """Build slide payloads from block stream, including frame-duplication markers.
+
+    `language` is the resolved document language, passed on to every block.
 
     `ignore_framebreaks=True` treats `-+`-Marker (framebreak) als reines
     No-Op statt eine neue, den bisherigen Inhalt behaltende Folie zu
@@ -77,6 +81,7 @@ def _build_presentation_slides(
             include_solutions=include_solutions,
             document_type=document_type,
             printable_width_cm=printable_width_cm,
+            language=language,
         )
         if not body_html.strip():
             return
@@ -139,6 +144,7 @@ def _render_presentation_html(
         page_format,
         hole_punch_enabled=hole_punch_enabled,
     )
+    language, _ = resolve_document_language(meta)
     numbered_blocks = assign_task_numbers(blocks)
     enriched_blocks = annotate_standalone_subtasks(numbered_blocks)
     enriched_blocks = annotate_task_help_references(
@@ -146,6 +152,7 @@ def _render_presentation_html(
         include_solutions=False,
         help_tag=(meta or {}).get("tag"),
         document_type="presentation",
+        language=language,
     )
     with collect_inline_style_fonts() as inline_font_keys:
         slides = _build_presentation_slides(
@@ -154,6 +161,7 @@ def _render_presentation_html(
             document_type="presentation",
             printable_width_cm=printable_width_cm,
             ignore_framebreaks=bool(presentation_ignore_framebreaks),
+            language=language,
         )
 
     if not slides:
@@ -293,7 +301,7 @@ def _render_presentation_html(
     ) + build_inline_font_css(inline_font_keys, font_profile)
 
     return f"""<!DOCTYPE html>
-<html lang=\"de\">
+<html lang=\"{html_lang(language)}\">
 <head>
 <meta charset=\"utf-8\">
 <title>{title_text}</title>

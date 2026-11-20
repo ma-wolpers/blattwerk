@@ -24,6 +24,7 @@ from .answer_special_mindmap import render_mindmap_block
 from .blatt_validator_constants import ANSWER_BLOCK_TYPES
 from .diagram_block_catalog import DIAGRAM_BLOCK_NAMES
 from .diagram_block_dispatch import render_diagram_block
+from .document_language import label, language_from_options
 from .document_type_registry import content_heading_offset
 from .answer_special_selfcheck import render_selfcheck_block
 from .answer_special_writebox import render_writebox_block
@@ -242,7 +243,8 @@ def _render_block_body(
 
     if block_type == "solution":
         show_label = _option_is_enabled(options.get("label"), default=True)
-        label_html = "<div class='solution-label'>Lösung</div>" if show_label else ""
+        solution_text = escape(label("solution", language_from_options(options)))
+        label_html = f"<div class='solution-label'>{solution_text}</div>" if show_label else ""
         return _wrap_with_object_alignment(
             f"<div class='solution'>{label_html}{convert_markdown_with_math(md, normalized_content)}</div>",
             object_alignment,

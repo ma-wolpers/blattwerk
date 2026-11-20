@@ -23,6 +23,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import Mapping
 
+from .document_language import DEFAULT_LANGUAGE, label
 from .document_type_registry import spec_for_type
 from .exam_parts_choice import ChoiceRegion, choice_split_indices, resolve_choice_regions
 from .exam_parts_invariants import PART_KIND_AID, PART_KIND_CHOICE, PART_KIND_REQUIRED, check_layout
@@ -37,12 +38,11 @@ from .exam_parts_position import (  # noqa: F401 (Re-Export der Trenner-Blocktyp
 MAX_AID_SPLITS = 2
 """Höchstens zwei `--hm`: mit zweitem Marker trennt der erste ein Deckblatt ab."""
 
-AID_PART_SHORT_LABELS = {"A": "Teil A", "B": "Teil B"}
-"""Kurznamen für Tabellen und Auswertungen."""
-AID_PART_LABELS = {"A": "Teil A – hilfsmittelfrei", "B": "Teil B – mit Hilfsmitteln"}
-"""Überschriften der Hilfsmittelteile im Dokument und im Erwartungshorizont."""
-REQUIRED_PART_LABEL = "Pflichtteil"
-"""Kurzname des Bereichs vor dem ersten Wahlbereich ohne `--hm` (ohne Überschrift im Dokument)."""
+_AID_PART_LABEL_KEYS = {"A": ("part_a_short", "part_a_heading"), "B": ("part_b_short", "part_b_heading")}
+"""Label-Schlüssel (`document_labels_data.LABELS`) je Hilfsmittelteil: (Kurzname, Überschrift)."""
+AID_PART_LABELS = {part: label(keys[1], DEFAULT_LANGUAGE) for part, keys in _AID_PART_LABEL_KEYS.items()}
+"""Überschriften der Hilfsmittelteile im Programm-Standard (abgeleitet aus der Label-Tabelle,
+z. B. für Tests und den deutschen Erwartungshorizont)."""
 
 
 @dataclass(frozen=True)
@@ -138,7 +138,7 @@ def aid_split_indices(blocks) -> list[int]:
     return [index for index, (block_type, _o, _c) in enumerate(blocks) if block_type == AID_SPLIT_BLOCK]
 
 
-def resolve_exam_parts(blocks, document_type: str | None) -> ExamPartResolution:
+def resolve_exam_parts(blocks, document_type: str | None, language=DEFAULT_LANGUAGE) -> ExamPartResolution:
     """Einzige Semantik der Teil-Trenner (deterministisch, ohne Seiteneffekte).
 
     * Typ ohne Teile (alles außer Klausur): kein Layout; jeder `--hm` ist
@@ -147,6 +147,11 @@ def resolve_exam_parts(blocks, document_type: str | None) -> ExamPartResolution:
     * `--w[k]`/`--w`: Wahlbereiche (`exam_parts_choice`), kombinierbar mit `--hm`.
     * Jedes Strukturproblem (`KL001`, `KL004`, `KL005`, `KL007`–`KL010`):
       kein Layout -- der Validator meldet Fehler, der Build wird blockiert.
+
+    `language` wählt nur die Anzeigetexte (`label`/`heading`) der Teile; Struktur,
+    Kennungen und Bereiche sind sprachunabhängig. Schülerseitige Ausgaben
+    (Überschriften, Bewertungstabelle) übergeben die Dokumentsprache, Validator
+    und Erwartungshorizont den Standard.
     """
     aid = aid_split_indices(blocks)
     choice = choice_split_indices(blocks)
@@ -161,7 +166,7 @@ def resolve_exam_parts(blocks, document_type: str | None) -> ExamPartResolution:
     problems.sort(key=lambda problem: problem.block_index)
     if problems or not separators:
         return ExamPartResolution(None, tuple(problems))
-    return ExamPartResolution(_build_layout(blocks, separators, regions, cover))
+    return ExamPartResolution(_build_layout(blocks, separators, regions, cover, language))
 
 
 def _aid_problems(blocks, indices: list[int]) -> tuple[ExamPartProblem, ...]:
@@ -181,12 +186,20 @@ def _aid_problems(blocks, indices: list[int]) -> tuple[ExamPartProblem, ...]:
     return tuple(problems)
 
 
-def _build_layout(blocks, separators: list[int], regions: list[ChoiceRegion], cover: int | None) -> ExamPartLayout:
+def _aid_texts(part: str, language) -> tuple[str, str]:
+    """(Kurzname, Überschrift) eines Hilfsmittelteils (`A`/`B`) in ``language``."""
+    short_key, heading_key = _AID_PART_LABEL_KEYS[part]
+    return label(short_key, language), label(heading_key, language)
+
+
+def _build_layout(
+    blocks, separators: list[int], regions: list[ChoiceRegion], cover: int | None, language=DEFAULT_LANGUAGE
+) -> ExamPartLayout:
     """Zerlegt die Blockliste an den Trennern in Teile (Bereichsvertrag siehe Moduldoku).
 
     Vor dem ersten Trenner steht Teil A (mit `--hm`, schließt ein Deckblatt
     ein) bzw. der Pflichtteil (ohne `--hm`); ab dem A/B-`--hm` Teil B; ab
-    jedem `--w` ein Wahlteil seines Bereichs.
+    jedem `--w` ein Wahlteil seines Bereichs. Anzeigetexte in ``language``.
     """
     choice_info: dict[int, tuple[int, int]] = {}
     groups = []
@@ -198,19 +211,19 @@ def _build_layout(blocks, separators: list[int], regions: list[ChoiceRegion], co
     specs = []
     if separators[0] > 0:
         if any(blocks[index][0] == AID_SPLIT_BLOCK for index in separators):
-            specs.append(("A", PART_KIND_AID, AID_PART_SHORT_LABELS["A"], AID_PART_LABELS["A"], 0, separators[0], cover, None))
+            specs.append(("A", PART_KIND_AID, *_aid_texts("A", language), 0, separators[0], cover, None))
         else:
-            specs.append(("P", PART_KIND_REQUIRED, REQUIRED_PART_LABEL, "", 0, separators[0], None, None))
+            specs.append(("P", PART_KIND_REQUIRED, label("required_part", language), "", 0, separators[0], None, None))
     for index, end in zip(separators, separators[1:] + [len(blocks)]):
         start = index if specs else 0
         if index in choice_info:
             group_no, position = choice_info[index]
-            label = f"Wahlteil {position}"
+            short = label("choice_part", language, position=position)
             title = str(blocks[index][1].get("title") or "").strip()
-            heading = f"{label} – {title}" if title else label
-            specs.append((f"W{group_no}.{position}", PART_KIND_CHOICE, label, heading, start, end, index, f"G{group_no}"))
+            heading = f"{short} – {title}" if title else short
+            specs.append((f"W{group_no}.{position}", PART_KIND_CHOICE, short, heading, start, end, index, f"G{group_no}"))
         else:
-            specs.append(("B", PART_KIND_AID, AID_PART_SHORT_LABELS["B"], AID_PART_LABELS["B"], start, end, index, None))
+            specs.append(("B", PART_KIND_AID, *_aid_texts("B", language), start, end, index, None))
     parts = []
     for order, spec in enumerate(specs):
         previous = specs[order - 1] if order else None

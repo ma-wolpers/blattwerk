@@ -14,6 +14,7 @@ from .blatt_kern_shared import (
     _safe_int,
     convert_markdown_with_math,
 )
+from .document_language import label as document_label, language_from_options
 from .wordbank_position import normalize_wordbank_position, wrap_with_wordbank_position
 
 def _normalize_choice_values(raw_value):
@@ -126,13 +127,15 @@ def _render_multiple_choice_answer(options, content, include_solutions):
     explicit_inline_weights = _parse_mc_inline_weights(options)
 
     rendered_groups = []
+    language = language_from_options(options)
+    true_text, false_text = document_label("choice_true", language), document_label("choice_false", language)
 
     if true_false_mode:
         correct_raw = _normalize_keyword(options.get("correct"), default="true")
         is_true_correct = correct_raw not in {"false", "falsch", "0", "no", "off"}
         choice_items = [
-            ("richtig", is_true_correct),
-            ("falsch", not is_true_correct),
+            (true_text, is_true_correct),
+            (false_text, not is_true_correct),
         ]
         tf_questions = [line.strip() for line in (content or "").splitlines() if line.strip()]
         if not tf_questions:
@@ -146,7 +149,7 @@ def _render_multiple_choice_answer(options, content, include_solutions):
             choice_items = [(label, False) for label in configured_options]
 
             if not choice_items:
-                choice_items = [("richtig", True), ("falsch", False)]
+                choice_items = [(true_text, True), (false_text, False)]
 
             rendered_groups = [(trailing_question_text, choice_items)]
 

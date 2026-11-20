@@ -15,6 +15,7 @@ from html import escape
 from .blatt_kern_layout_estimate import auto_columns_template
 from .blatt_kern_task_render import render_block
 from .columns_count import clamp_columns_count, resolve_columns_count
+from .document_language import DEFAULT_LANGUAGE, LANGUAGE_OPTION_KEY
 from .operator_legend_blocks import OPERATORS_BLOCK_TYPE, as_own_section
 
 
@@ -43,8 +44,15 @@ def _normalize_object_alignment(raw_value):
     return aliases.get(normalized, "")
 
 
-def _with_runtime_layout_options(options, printable_width_cm, printable_height_cm=None, cache=None):
+def _with_runtime_layout_options(
+    options, printable_width_cm, printable_height_cm=None, cache=None, language=DEFAULT_LANGUAGE
+):
     """Attach render-time layout context for answer blocks.
+
+    `language` is the document language resolved once by the caller
+    (`document_language.resolve_document_language`); it travels as
+    `_language` so every renderer that writes a fixed label (task header,
+    points, solution label …) reads it via `language_from_options`.
 
     `cache` is an optional `BlockComputationCache` (see
     `app/core/block_computation_cache.py`), injected as `_computation_cache`
@@ -60,6 +68,7 @@ def _with_runtime_layout_options(options, printable_width_cm, printable_height_c
     if printable_height_cm is not None:
         merged["_printable_height_cm"] = float(printable_height_cm)
     merged["_computation_cache"] = cache
+    merged[LANGUAGE_OPTION_KEY] = language
     return merged
 
 
@@ -111,8 +120,12 @@ def render_columns_container(
     printable_width_cm=18.0,
     printable_height_cm=None,
     cache=None,
+    language=DEFAULT_LANGUAGE,
 ):
-    """Rendert einen `columns`-Container inklusive automatischer Breitenlogik."""
+    """Rendert einen `columns`-Container inklusive automatischer Breitenlogik.
+
+    `language` wird wie Druckbreite und Cache an jeden Spaltenblock weitergegeben.
+    """
     if not columns_blocks:
         return ""
 
@@ -145,6 +158,7 @@ def render_columns_container(
                 printable_width_cm,
                 printable_height_cm=printable_height_cm,
                 cache=cache,
+                language=language,
             )
             rendered = render_block(
                 block_type,
@@ -180,8 +194,13 @@ def render_body_with_columns(
     printable_width_cm=18.0,
     printable_height_cm=None,
     cache=None,
+    language=DEFAULT_LANGUAGE,
 ):
-    """Rendert den Body und behandelt `columns`/`nextcol`/`endcolumns` Zustände."""
+    """Rendert den Body und behandelt `columns`/`nextcol`/`endcolumns` Zustände.
+
+    `language` ist die einmal aufgelöste Dokumentsprache; sie erreicht jeden Block
+    als Laufzeitoption `_language` (ohne Angabe: Programm-Standard).
+    """
     html_parts = []
     in_columns = False
     columns_options = {}
@@ -226,6 +245,7 @@ def render_body_with_columns(
                     printable_width_cm=printable_width_cm,
                     printable_height_cm=printable_height_cm,
                     cache=cache,
+                    language=language,
                 )
             )
             in_columns = False
@@ -245,6 +265,7 @@ def render_body_with_columns(
             printable_width_cm,
             printable_height_cm=printable_height_cm,
             cache=cache,
+            language=language,
         )
         rendered = render_block(
             block_type,
@@ -266,6 +287,7 @@ def render_body_with_columns(
                 include_solutions,
                 document_type=document_type,
                 printable_width_cm=printable_width_cm,
+                language=language,
             )
         )
 

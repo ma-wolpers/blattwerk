@@ -30,6 +30,7 @@ from dataclasses import dataclass, field
 from decimal import Decimal
 from html import escape
 
+from .document_language import DEFAULT_LANGUAGE, label, label_html
 from .exam_parts import ExamPartLayout, exam_max_points, resolve_exam_parts
 from .document_type_registry import spec_for_type
 from .points_model import (
@@ -103,14 +104,17 @@ def _unit_cells(unit, level: str) -> list[EvaluationCell]:
     return [EvaluationCell(unit.number, None, marker)]
 
 
-def build_evaluation_table(blocks, options: dict, document_type: str) -> EvaluationTable:
-    """Baut die Tabelle für einen `:::evaluation`-Block aus dem ganzen Dokument."""
+def build_evaluation_table(blocks, options: dict, document_type: str, language=DEFAULT_LANGUAGE) -> EvaluationTable:
+    """Baut die Tabelle für einen `:::evaluation`-Block aus dem ganzen Dokument.
+
+    ``language`` wählt die Teilnamen und den Wahlhinweis (Dokumentsprache).
+    """
     level = "subtask" if str((options or {}).get("level") or "task").strip().lower() == "subtask" else "task"
     title = str((options or {}).get("title") or "").strip() or None
     units = build_points_model(blocks)
-    layout = resolve_exam_parts(blocks, document_type).layout
+    layout = resolve_exam_parts(blocks, document_type, language).layout
     use_parts = layout is not None and (option_is_true(options, "parts") or bool(layout.groups))
-    groups = [EvaluationGroup(part.label, part_id=part.part_id, choice_note=_choice_note(layout, part)) for part in layout.parts] if use_parts else [EvaluationGroup(None)]
+    groups = [EvaluationGroup(part.label, part_id=part.part_id, choice_note=_choice_note(layout, part, language)) for part in layout.parts] if use_parts else [EvaluationGroup(None)]
     missing = []
     for unit in units:
         group = groups[layout.part_for_block(unit.block_index).order] if use_parts else groups[0]
@@ -120,24 +124,25 @@ def build_evaluation_table(blocks, options: dict, document_type: str) -> Evaluat
     return EvaluationTable(title, groups, missing, grade=option_is_true(options, "grade"), layout=layout if use_parts else None)
 
 
-def _choice_note(layout, part) -> str | None:
+def _choice_note(layout, part, language=DEFAULT_LANGUAGE) -> str | None:
     """„Wahlteile: k aus n“ am ersten Wahlteil eines Bereichs, sonst ``None``."""
     group = next((group for group in layout.groups if group.part_ids[0] == part.part_id), None)
-    return None if group is None else f"Wahlteile: {group.k} aus {len(group.part_ids)}"
+    return None if group is None else label("evaluation_choice_note", language, k=group.k, n=len(group.part_ids))
 
 
-def _grade_html() -> str:
+def _grade_html(language=DEFAULT_LANGUAGE) -> str:
     """Leere Felder für Prozent und Note, rechtsbündig unter der Tabelle."""
+    blank = "<span class='evaluation-blank'></span>"
     return (
         "<div class='evaluation-grade'>"
-        "<div class='evaluation-grade-row'>Dies sind <span class='evaluation-blank'></span> %</div>"
-        "<div class='evaluation-grade-row'>Note: <span class='evaluation-blank'></span></div>"
+        f"<div class='evaluation-grade-row'>{label_html('evaluation_percent', language, blank=blank)}</div>"
+        f"<div class='evaluation-grade-row'>{label_html('evaluation_grade', language, blank=blank)}</div>"
         "</div>"
     )
 
 
-def _group_html(group: EvaluationGroup) -> str:
-    """HTML einer Spaltengruppe mit Kopf, Höchstpunkten und leerer Zeile „erreicht“."""
+def _group_html(group: EvaluationGroup, language=DEFAULT_LANGUAGE) -> str:
+    """HTML einer Spaltengruppe mit Kopf, Höchstpunkten und leerer Zeile „erreicht“ (Labels in ``language``)."""
     total = group.total
     header = "".join(f"<th>{escape(cell.label)}</th>" for cell in group.cells)
     maxima = "".join(
@@ -150,31 +155,33 @@ def _group_html(group: EvaluationGroup) -> str:
         caption = f"<div class='evaluation-choice-note'>{escape(group.choice_note)}</div>" + caption
     return (
         f"{caption}<table class='evaluation-table'>"
-        f"<tr><th>Aufgabe</th>{header}<th>Σ</th></tr>"
-        f"<tr><th>max. Punkte</th>{maxima}<td>{total_text}</td></tr>"
-        f"<tr><th>erreicht</th>{empty}<td></td></tr></table>"
+        f"<tr><th>{label_html('evaluation_task', language)}</th>{header}<th>Σ</th></tr>"
+        f"<tr><th>{label_html('evaluation_max_points', language)}</th>{maxima}<td>{total_text}</td></tr>"
+        f"<tr><th>{label_html('evaluation_reached', language)}</th>{empty}<td></td></tr></table>"
     )
 
 
-def render_evaluation_html(table: EvaluationTable) -> str:
-    """HTML der Bewertungstabelle (für alle Renderpfade gleich)."""
+def render_evaluation_html(table: EvaluationTable, language=DEFAULT_LANGUAGE) -> str:
+    """HTML der Bewertungstabelle (für alle Renderpfade gleich; Labels in ``language``)."""
     parts = [f"<div class='evaluation-title'>{escape(table.title)}</div>"] if table.title else []
-    parts.extend(_group_html(group) for group in table.groups if group.cells or len(table.groups) == 1)
+    parts.extend(_group_html(group, language) for group in table.groups if group.cells or len(table.groups) == 1)
     if len(table.groups) > 1:
         grand = table.grand_total
-        parts.append(f"<div class='evaluation-grand-total'>Gesamt: {format_points(grand) if grand is not None else CELL_MISSING + '*'} P</div>")
+        grand_text = escape(format_points(grand) if grand is not None else CELL_MISSING + "*")
+        parts.append(f"<div class='evaluation-grand-total'>{label_html('evaluation_total', language, points=grand_text)}</div>")
     if any(group.total is None for group in table.groups):
-        parts.append("<div class='evaluation-footnote'>* Summe nicht ausgewiesen, weil nicht alle Punktzahlen bekannt sind.</div>")
+        parts.append(f"<div class='evaluation-footnote'>{label_html('evaluation_footnote', language)}</div>")
     if table.grade:
-        parts.append(_grade_html())
+        parts.append(_grade_html(language))
     return f"<div class='evaluation'>{''.join(parts)}</div>"
 
 
-def annotate_evaluation_blocks(blocks, document_type: str):
+def annotate_evaluation_blocks(blocks, document_type: str, language=DEFAULT_LANGUAGE):
     """Hängt an jeden `evaluation`-Block das fertige HTML (`_evaluation_html`) an.
 
     Nur für Typen mit Capability `evaluation` (Arbeitsblatt, Klausur); sonst
-    bleibt der Block ohne Annotation und rendert nichts.
+    bleibt der Block ohne Annotation und rendert nichts. ``language`` ist die
+    Dokumentsprache der Tabellenbeschriftung.
     """
     if not document_type or not spec_for_type(document_type).evaluation:
         return blocks
@@ -183,7 +190,7 @@ def annotate_evaluation_blocks(blocks, document_type: str):
     result = []
     for block_type, options, content in blocks:
         if block_type == "evaluation":
-            table = build_evaluation_table(blocks, options, document_type)
-            options = {**options, "_evaluation_html": render_evaluation_html(table)}
+            table = build_evaluation_table(blocks, options, document_type, language)
+            options = {**options, "_evaluation_html": render_evaluation_html(table, language)}
         result.append((block_type, options, content))
     return result

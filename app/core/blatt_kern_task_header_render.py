@@ -16,6 +16,7 @@ from .blatt_kern_shared import (
     get_work_info,
 )
 from .answer_line_markers import filter_answer_content_for_mode
+from .document_language import label, language_from_options
 from .document_type_registry import shows_work_hints
 from .points_model import points_badge
 
@@ -158,9 +159,10 @@ def _render_task_block(
     header = "<div class='task-header'>"
     header += "<div class='task-header-left'>"
     if options.get("_show_task_label"):
-        task_label = "Aufgabe"
+        language = language_from_options(options)
+        task_label = label("task", language)
         if task_id:
-            task_label = f"Aufgabe {task_id}"
+            task_label = label("task_numbered", language, number=task_id)
         if task_title:
             task_label = f"{task_label} - {task_title}"
         header += f"<span class='task-id'>{escape(task_label)}</span>"

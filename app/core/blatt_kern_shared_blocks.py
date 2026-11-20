@@ -19,6 +19,7 @@ from .block_mode_policy import (
     SOLUTION_VARIANT_BLOCK_TYPES,
     block_show_mode,
 )
+from .document_language import DEFAULT_LANGUAGE, label
 from .document_type_registry import solutions_per_block
 
 
@@ -78,8 +79,12 @@ def _help_labels_for_tag(help_count, tag_text):
     return [_alpha_label(index) for index in range(1, help_count + 1)]
 
 
-def _format_help_reference_text(help_keys):
-    """Build compact right-aligned task hint text for linked help blocks."""
+def _format_help_reference_text(help_keys, language=DEFAULT_LANGUAGE):
+    """Build compact right-aligned task hint text for linked help blocks.
+
+    German default: `→ Lernhilfe 1` for one help, `→ Lernhilfen 1, 2` for
+    several; the arrow word comes from the label table in ``language``.
+    """
     normalized_keys = _dedupe_preserve_order(
         [
             str(value).strip()
@@ -89,17 +94,11 @@ def _format_help_reference_text(help_keys):
     )
 
     if len(help_keys or []) <= 1:
-        if normalized_keys:
-            return f"→ Lernhilfe {normalized_keys[0]}"
-        return "→ Lernhilfe"
+        single = label("help_reference", language)
+        return f"{single} {normalized_keys[0]}" if normalized_keys else single
 
-    if normalized_keys and len(normalized_keys) == len(help_keys or []):
-        return f"→ Lernhilfen {', '.join(normalized_keys)}"
-
-    if normalized_keys:
-        return f"→ Lernhilfen {', '.join(normalized_keys)}"
-
-    return "→ Lernhilfen"
+    several = label("help_references", language)
+    return f"{several} {', '.join(normalized_keys)}" if normalized_keys else several
 
 
 def _normalize_help_tag(value):
@@ -272,11 +271,13 @@ def annotate_task_help_references(
     include_solutions=False,
     help_tag=None,
     document_type="worksheet",
+    language=DEFAULT_LANGUAGE,
 ):
     """Annotate task/subtask blocks with rendered help-reference hint text.
 
     Labels und Zuordnung kommen aus `assign_help_blocks`; Hilfeblöcke ohne
     vorangehende Aufgabe bekommen keinen Verweis, zählen aber beim Labeln mit.
+    `language` ist die Dokumentsprache des Verweistexts (`→ Lernhilfe`).
     """
     references_by_block_index = {}
     for assignment in assign_help_blocks(blocks, include_solutions, help_tag, document_type):
@@ -291,7 +292,7 @@ def annotate_task_help_references(
         if index in references_by_block_index and block_type in {"task", "subtask"}:
             updated_options = dict(options)
             updated_options["_help_reference_text"] = _format_help_reference_text(
-                references_by_block_index[index]
+                references_by_block_index[index], language
             )
             annotated_blocks.append((block_type, updated_options, content))
             continue
