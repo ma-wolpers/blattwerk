@@ -22,7 +22,14 @@ from __future__ import annotations
 
 from html import escape
 
-from .document_labels_data import DEFAULT_LANGUAGE, LABELS, LANGUAGES, PLURAL_ONE_BELOW
+from .document_labels_data import (
+    DEFAULT_LANGUAGE,
+    LABELS,
+    LANGUAGES,
+    PLURAL_BELOW_TWO,
+    PLURAL_EXACTLY_ONE,
+    PLURAL_RULES,
+)
 
 LANGUAGE_KEY = "Sprache"
 """Frontmatter-Schlüssel (deutsch wie `Titel`, `Fach`, `Stufe`)."""
@@ -125,11 +132,23 @@ def _template(key: str, language: str, count) -> str:
     template = entry.get(language, entry[DEFAULT_LANGUAGE])
     if isinstance(template, tuple):
         one, other = template
-        limit = PLURAL_ONE_BELOW.get(language)
-        if limit is None or count is None:
-            return one
-        return one if abs(float(count)) < limit else other
+        return one if count is None or _is_singular(PLURAL_RULES[language], count) else other
     return template
+
+
+def _is_singular(rule: str, count) -> bool:
+    """Ob ``count`` nach der Pluralregel ``rule`` die Singularform braucht.
+
+    Example:
+        >>> _is_singular("exactly_one", 1), _is_singular("exactly_one", 1.5), _is_singular("below_two", 1.5)
+        (True, False, True)
+    """
+    value = abs(float(count))
+    if rule == PLURAL_EXACTLY_ONE:
+        return value == 1
+    if rule == PLURAL_BELOW_TWO:
+        return value < 2
+    raise ValueError(f"Unbekannte Pluralregel {rule!r}")
 
 
 def label(key: str, language, count=None, **values) -> str:

@@ -13,8 +13,10 @@ Format der Einträge:
 * Platzhalter in ``{name}``-Schreibweise (``str.format``); alle Sprachen einer
   Vorlage nutzen dieselben Platzhalter (Guardrail-Test).
 * Ein Tupel ``(eins, mehrere)`` statt eines Strings ist eine Pluralvorlage; die
-  Auswahl trifft `PLURAL_ONE_BELOW` über den ``count`` des Aufrufers. Deutsch
-  braucht keine Pluralformen (``P``, ``Bonuspunkte`` sind schon bisher invariant).
+  Auswahl trifft `PLURAL_RULES` über den ``count`` des Aufrufers.
+* Punkttexte werden nur über `points_model.points_text`/`bonus_text`/
+  `points_with_bonus` gebildet (Zahlformat + Einheit an einer Stelle); ein
+  Bonus-Badge ist ``+`` vor `bonus_amount`.
 
 Bewusst **nicht** hier: lehrkraftseitige Texte (Erwartungshorizont, Diagnosen,
 Editor-Oberfläche) und die Operatorentabelle -- deren Definitionen stammen aus
@@ -36,10 +38,14 @@ Groß-/Kleinschreibung). `html_lang` landet im `<html lang>`-Attribut und steuer
 damit die automatische Silbentrennung des Browsers; `date_format` (``strftime``)
 formatiert ein als YAML-Datum vorbefülltes `Datum` der Schülerkopfzeile."""
 
-PLURAL_ONE_BELOW = {"pt-br": 2}
-"""Pluralregel je Sprache: Singularform, solange ``abs(count)`` kleiner als dieser
-Wert ist (Portugiesisch: ``1,5 ponto``, aber ``2 pontos``). Sprachen ohne Eintrag
-nutzen immer die erste bzw. einzige Vorlage."""
+PLURAL_EXACTLY_ONE = "exactly_one"
+"""Singular genau bei 1 (Deutsch: ``1 Bonuspunkt``, ``1,5 Bonuspunkte``)."""
+PLURAL_BELOW_TWO = "below_two"
+"""Singular unter 2 (Portugiesisch: ``1,5 ponto``, aber ``2 pontos``)."""
+
+PLURAL_RULES = {"de": PLURAL_EXACTLY_ONE, "pt-br": PLURAL_BELOW_TWO}
+"""Pluralregel je Sprache für Pluraltupel ``(eins, mehrere)`` (Guardrail-Test: jede
+Sprache hat eine Regel)."""
 
 LABELS = {
     # -- Schülerkopfzeile ----------------------------------------------------
@@ -50,9 +56,9 @@ LABELS = {
     "task": {"de": "Aufgabe", "pt-br": "Questão"},
     "task_numbered": {"de": "Aufgabe {number}", "pt-br": "Questão {number}"},
     "points": {"de": "{points} P", "pt-br": ("{points} pt", "{points} pts")},
-    "bonus_points": {
-        "de": "+{points} Bonuspunkte",
-        "pt-br": ("+{points} pt extra", "+{points} pts extras"),
+    "bonus_amount": {
+        "de": ("{points} Bonuspunkt", "{points} Bonuspunkte"),
+        "pt-br": ("{points} pt extra", "{points} pts extras"),
     },
     # -- Lösungen --------------------------------------------------------------
     "solution": {"de": "Lösung", "pt-br": "Solução"},
@@ -82,7 +88,7 @@ LABELS = {
     "evaluation_task": {"de": "Aufgabe", "pt-br": "Questão"},
     "evaluation_max_points": {"de": "max. Punkte", "pt-br": "pontuação máx."},
     "evaluation_reached": {"de": "erreicht", "pt-br": "obtida"},
-    "evaluation_total": {"de": "Gesamt: {points} P", "pt-br": "Total: {points} pts"},
+    "evaluation_total": {"de": "Gesamt: {total}", "pt-br": "Total: {total}"},
     "evaluation_choice_note": {"de": "Wahlteile: {k} aus {n}", "pt-br": "Partes opcionais: {k} de {n}"},
     "evaluation_percent": {"de": "Dies sind {blank} %", "pt-br": "Isso corresponde a {blank} %"},
     "evaluation_grade": {"de": "Note: {blank}", "pt-br": "Nota: {blank}"},

@@ -39,6 +39,7 @@ from .points_model import (
     build_points_model,
     format_points,
     option_is_true,
+    points_text,
     subtask_effective,
 )
 
@@ -167,8 +168,8 @@ def render_evaluation_html(table: EvaluationTable, language=DEFAULT_LANGUAGE) ->
     parts.extend(_group_html(group, language) for group in table.groups if group.cells or len(table.groups) == 1)
     if len(table.groups) > 1:
         grand = table.grand_total
-        grand_text = escape(format_points(grand) if grand is not None else CELL_MISSING + "*")
-        parts.append(f"<div class='evaluation-grand-total'>{label_html('evaluation_total', language, points=grand_text)}</div>")
+        grand_text = escape(points_text(grand if grand is not None else CELL_MISSING + "*", language))
+        parts.append(f"<div class='evaluation-grand-total'>{label_html('evaluation_total', language, total=grand_text)}</div>")
     if any(group.total is None for group in table.groups):
         parts.append(f"<div class='evaluation-footnote'>{label_html('evaluation_footnote', language)}</div>")
     if table.grade:

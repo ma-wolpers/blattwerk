@@ -35,7 +35,16 @@ from .exam_analysis import analyze_exam
 from .export_path_guardrails import validate_export_output_path
 from .frontmatter import content_after_frontmatter
 from .math_span_protection import convert_markdown_with_math
-from .points_model import build_points_model, format_points, format_signed_points, subtask_effective
+from .document_language import DEFAULT_LANGUAGE, label
+from .points_model import (
+    bonus_text,
+    build_points_model,
+    format_points,
+    format_signed_points,
+    points_text,
+    points_with_bonus,
+    subtask_effective,
+)
 from .expectation_items import collect_expectation_targets
 from .expectation_kinds import EXPECTATION_KINDS, deduction_label_for, kind_by_key
 from .mathjax_support import PROFILE_PLAIN, mathjax_head
@@ -91,7 +100,7 @@ def build_expectation_horizon_html(text: str) -> tuple[str, list[BuildDiagnostic
                 body.append(_part_sum(analysis.parts[current_part.order]))
             body.extend(_part_heading(layout, part))
             current_part = part
-        body.append(f"<h3>Aufgabe {unit.number} ({_unit_points_text(unit)})</h3>")
+        body.append(f"<h3>{escape(label('task_numbered', DEFAULT_LANGUAGE, number=unit.number))} ({_unit_points_text(unit)})</h3>")
         body.append("<table><tr><th class='num'>Nr.</th><th>Erwartung</th><th class='pts'>max. P.</th><th class='pts'>erreicht</th></tr>")
         keys = []
         if not unit.subtasks or (unit_index, None) in targets_by_key:
@@ -141,22 +150,22 @@ def _target_rows(unit, key, target, diagnostics) -> list[str]:
     """Tabellenzeilen eines Ziels (Aufgabe oder Teilaufgabe); ergänzt SL005/SL007 in `diagnostics`."""
     _unit_index, position = key
     if position is None:
-        label = f"Aufgabe {unit.number}"
+        target_label = label("task_numbered", DEFAULT_LANGUAGE, number=unit.number)
     else:
         sub = unit.subtasks[position]
-        label = f"Aufgabe {unit.number}{sub.letter or ''}"
+        target_label = label("task_numbered", DEFAULT_LANGUAGE, number=f"{unit.number}{sub.letter or ''}")
         expected = subtask_effective(unit, sub)
         bonus = sub.is_bonus or unit.is_bonus
-        points = f"+{format_points(expected)} Bonuspunkte" if bonus else f"{format_points(expected)} P"
+        points = f"+{bonus_text(expected)}" if bonus else points_text(expected)
     rows = []
     if position is not None:
-        rows.append(f"<tr class='target-row'><td colspan='4'>{escape(label)} ({points})</td></tr>")
+        rows.append(f"<tr class='target-row'><td colspan='4'>{escape(target_label)} ({escape(points)})</td></tr>")
     if target is None or not target.items:
-        diagnostics.append(_diag("SL007", f"Erwartungshorizont: {label} hat keine Erwartung (`:::expectation`)."))
+        diagnostics.append(_diag("SL007", f"Erwartungshorizont: {target_label} hat keine Erwartung (`:::expectation`)."))
         rows.append("<tr><td class='num'></td><td class='missing'>keine Erwartung hinterlegt</td><td class='pts'></td><td class='pts'></td></tr>")
         return rows
     if all(item.points is None for item in target.items):
-        diagnostics.append(_diag("SL005", f"Erwartungshorizont: {label} hat keine Teilpunkte `(xP)`."))
+        diagnostics.append(_diag("SL005", f"Erwartungshorizont: {target_label} hat keine Teilpunkte `(xP)`."))
     expectations = [item for item in target.items if not item.is_deduction]
     for item in expectations:
         points = _item_points_text(item)
@@ -167,7 +176,7 @@ def _target_rows(unit, key, target, diagnostics) -> list[str]:
     if caps:
         rows.append(
             "<tr class='option-cap'><td class='num'></td><td>Optionen zählen zusammen höchstens "
-            f"{escape(' bzw. '.join(format_points(cap) for cap in caps))} P</td><td class='pts'></td><td class='pts'></td></tr>"
+            f"{escape(points_text(' bzw. '.join(format_points(cap) for cap in caps)))}</td><td class='pts'></td><td class='pts'></td></tr>"
         )
     for item in target.items:
         if item.is_deduction:
@@ -222,11 +231,10 @@ def _item_points_text(item) -> str:
 
 
 def _unit_points_text(unit) -> str:
-    """Punktangabe im Aufgabentitel: `4 P`, `2 P + 2 Bonuspunkte` oder `+3 Bonuspunkte`."""
+    """Punktangabe im Aufgabentitel: `4 P`, `2 P + 2 Bonuspunkte` oder `+3 Bonuspunkte` (escaped)."""
     if unit.is_bonus:
-        return f"+{format_points(unit.bonus_points)} Bonuspunkte"
-    text = f"{format_points(unit.regular_points)} P"
-    return text + (f" + {format_points(unit.bonus_points)} Bonuspunkte" if unit.bonus_points else "")
+        return escape(f"+{bonus_text(unit.bonus_points)}")
+    return escape(points_with_bonus(unit.regular_points, unit.bonus_points))
 
 
 def _part_heading(layout, part) -> list[str]:
@@ -244,9 +252,8 @@ def _part_sum(part) -> str:
 
     Bonuspunkte stehen getrennt dahinter.
     """
-    bonus = f" + {format_points(part.bonus_points)} Bonuspunkte" if part.bonus_points else ""
-    label = "Gesamt" if part.label == "Gesamt" else f"Summe {part.label}"
-    return f"<p class='sum'>{escape(label)}: {format_points(part.points)} P{bonus}</p>"
+    sum_label = "Gesamt" if part.label == "Gesamt" else f"Summe {part.label}"
+    return f"<p class='sum'>{escape(sum_label)}: {escape(points_with_bonus(part.points, part.bonus_points))}</p>"
 
 
 def build_expectation_horizon(

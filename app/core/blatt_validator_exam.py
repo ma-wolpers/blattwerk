@@ -16,7 +16,7 @@ from .blatt_validator_region import compute_block_region_id
 from .blatt_validator_types import BuildDiagnostic
 from .exam_analysis import iter_scored_leaves, parse_afb
 from .exam_parts import PART_KIND_CHOICE, PART_SPLIT_BLOCKS, resolve_exam_parts
-from .points_model import STATUS_OK, build_points_model, format_points
+from .points_model import STATUS_OK, build_points_model, points_text
 
 _PART_PROBLEMS = {
     "KL001": ("error", "`--hm` darf in einer Klausur höchstens zweimal vorkommen (Deckblatt | Teil A | Teil B)."),
@@ -100,7 +100,7 @@ def _unequal_choice_points(layout, units, blocks) -> list[BuildDiagnostic]:
             sums[part_id] = sum((unit.effective for unit in part_units), start=Decimal(0))
         else:
             if len(set(sums.values())) > 1:
-                listing = ", ".join(f"{parts[part_id].label}: {format_points(value)} P" for part_id, value in sums.items())
+                listing = ", ".join(f"{parts[part_id].label}: {points_text(value)}" for part_id, value in sums.items())
                 diagnostics.append(_diag(
                     "KL011", f"Die Wahlteile eines Bereichs müssen gleich viele Punkte haben ({listing}).",
                     blocks, parts[group.part_ids[0]].marker_block, "error",

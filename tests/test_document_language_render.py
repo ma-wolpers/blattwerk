@@ -84,7 +84,7 @@ def test_portuguese_exam_labels():
 def test_german_default_is_unchanged():
     """Ohne `Sprache` bleiben alle bisherigen deutschen Texte erhalten."""
     html = _html(META, EXAM)
-    for text in ("Aufgabe 1", "2 P", "+1 Bonuspunkte", "Lerngruppe", "Datum", "25.09.2026",
+    for text in ("Aufgabe 1", "2 P", "+1 Bonuspunkt<", "Lerngruppe", "Datum", "25.09.2026",
                  "Schuljahr", "max. Punkte", "erreicht", "Note:", '<html lang="de">'):
         assert text in html, text
 

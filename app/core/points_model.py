@@ -37,7 +37,7 @@ import re
 from dataclasses import dataclass, field
 from decimal import Decimal, InvalidOperation
 
-from .document_language import label, language_from_options
+from .document_language import DEFAULT_LANGUAGE, label, language_from_options
 from .exam_parts_position import PART_SPLIT_BLOCKS
 
 POINTS_KEY = "points"
@@ -64,9 +64,9 @@ def is_bonus(options: dict | None) -> bool:
 def points_badge(options: dict) -> str | None:
     """Punktanzeige am Aufgaben-/Teilaufgabenkopf (``None`` ohne Punkte).
 
-    Deutsch `2 P` bzw. `+2 Bonuspunkte`; die Einheit kommt in der Dokumentsprache
-    (Laufzeitoption `_language`) aus `document_labels_data.LABELS`. Die Zahl dient
-    als ``count`` für Pluralformen; nicht-numerische Angaben nutzen die erste Form.
+    Deutsch `2 P` bzw. `+2 Bonuspunkte` (`+1 Bonuspunkt`); Einheit und Plural kommen
+    in der Dokumentsprache (Laufzeitoption `_language`) über `points_text`/
+    `bonus_text`. Nicht-numerische Angaben nutzen die erste Form.
 
     Example:
         >>> points_badge({"points": "2"}), points_badge({"points": "2", "_language": "pt-br"})
@@ -76,9 +76,54 @@ def points_badge(options: dict) -> str | None:
     if shown is None:
         return None
     value = parse_points(points_display(options))
-    count = value if isinstance(value, Decimal) else None
-    key = "bonus_points" if is_bonus(options) else "points"
-    return label(key, language_from_options(options), count=count, points=shown)
+    amount = value if isinstance(value, Decimal) else shown
+    language = language_from_options(options)
+    return f"+{bonus_text(amount, language)}" if is_bonus(options) else points_text(amount, language)
+
+
+def _shown_and_count(amount) -> tuple[str, Decimal | None]:
+    """Anzeigetext und Pluralzahl einer Punktangabe (`Decimal` oder fertiger Text)."""
+    if isinstance(amount, Decimal):
+        return format_points(amount), amount
+    return str(amount), None
+
+
+def points_text(amount, language=DEFAULT_LANGUAGE) -> str:
+    """Punktzahl mit Einheit, einzige Stelle für "Zahl + P" (`2 P`, pt-BR `2 pts`).
+
+    Args:
+        amount: `Decimal` (wird mit `format_points` formatiert und bestimmt den
+            Plural) oder ein fertiger Text wie ``"1 bzw. 2"`` (erste Form).
+        language: Dokumentsprache; lehrkraftseitige Ausgaben nutzen den Standard.
+
+    Example:
+        >>> points_text(Decimal("2")), points_text(Decimal("1.5"), "pt-br")
+        ('2 P', '1,5 pt')
+    """
+    shown, count = _shown_and_count(amount)
+    return label("points", language, count=count, points=shown)
+
+
+def bonus_text(amount, language=DEFAULT_LANGUAGE) -> str:
+    """Bonuspunkte mit Einheit ohne Vorzeichen (`1 Bonuspunkt`, `2 Bonuspunkte`).
+
+    Example:
+        >>> bonus_text(Decimal("1")), bonus_text(Decimal("2"))
+        ('1 Bonuspunkt', '2 Bonuspunkte')
+    """
+    shown, count = _shown_and_count(amount)
+    return label("bonus_amount", language, count=count, points=shown)
+
+
+def points_with_bonus(regular, bonus, language=DEFAULT_LANGUAGE) -> str:
+    """Reguläre Punkte plus optionaler Bonus: `2 P` bzw. `2 P + 1 Bonuspunkt`.
+
+    Example:
+        >>> points_with_bonus(Decimal("2"), Decimal("1")), points_with_bonus(Decimal("2"), Decimal("0"))
+        ('2 P + 1 Bonuspunkt', '2 P')
+    """
+    text = points_text(regular, language)
+    return f"{text} + {bonus_text(bonus, language)}" if bonus else text
 
 
 class NonNumeric:

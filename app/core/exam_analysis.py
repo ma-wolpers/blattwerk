@@ -23,7 +23,15 @@ from dataclasses import dataclass, field
 from decimal import Decimal
 
 from .exam_parts import exam_max_points, resolve_exam_parts
-from .points_model import STATUS_MISSING, STATUS_OK, TaskUnit, build_points_model, format_points
+from .points_model import (
+    STATUS_MISSING,
+    STATUS_OK,
+    TaskUnit,
+    build_points_model,
+    format_points,
+    points_text,
+    points_with_bonus,
+)
 
 AFB_LEVELS = (1, 2, 3)
 
@@ -125,7 +133,7 @@ def analyze_exam(blocks, document_type: str) -> ExamAnalysis:
         total.points = exam_max_points(layout, {part.part_id: result.points for part, result in zip(layout.parts, parts)})
     for part in [total] + parts:
         if part.unassigned_points:
-            part.reasons.append(f"{format_points(part.unassigned_points)} P ohne AFB")
+            part.reasons.append(f"{points_text(part.unassigned_points)} ohne AFB")
     return ExamAnalysis(total, parts, has_choices=bool(layout and layout.groups))
 
 
@@ -134,14 +142,13 @@ def format_analysis_lines(analysis: ExamAnalysis) -> list[str]:
     lines = []
     shown_parts = [part for part in analysis.parts if part.leaf_count]
     for part in ([analysis.total] if not analysis.parts else shown_parts + [analysis.total]):
-        bonus = f" + {format_points(part.bonus_points)} Bonuspunkte" if part.bonus_points else ""
-        lines.append(f"{part.label}: {format_points(part.points)} P{bonus}")
+        lines.append(f"{part.label}: {points_with_bonus(part.points, part.bonus_points)}")
         if part is analysis.total and analysis.has_choices:
             lines.append("  AFB nur je Teil (Wahlteile)")
         for level in AFB_LEVELS if not (part is analysis.total and analysis.has_choices) else ():
             share = analysis.percent(part.afb_points[level])
             suffix = f" · {format_points(share)} %" if share is not None else ""
-            lines.append(f"  AFB {'I' * level}: {format_points(part.afb_points[level])} P{suffix}")
+            lines.append(f"  AFB {'I' * level}: {points_text(part.afb_points[level])}{suffix}")
         if part.reasons and part is analysis.total:
             lines.append("  unvollständig: " + "; ".join(dict.fromkeys(part.reasons)))
     if analysis.total.complete and analysis.total.points <= 0:

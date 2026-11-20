@@ -11,7 +11,7 @@ import string
 import pytest
 
 from app.core.blatt_validator import has_blocking_diagnostics, inspect_markdown_text
-from app.core.document_labels_data import DEFAULT_LANGUAGE, LABELS, LANGUAGES
+from app.core.document_labels_data import DEFAULT_LANGUAGE, LABELS, LANGUAGES, PLURAL_RULES
 from app.core.document_language import (
     html_lang,
     label,
@@ -63,7 +63,7 @@ def test_german_default_output_is_unchanged():
     """Der Standard reproduziert die bisherigen festen Texte exakt."""
     assert label("task_numbered", None, number=2) == "Aufgabe 2"
     assert label("points", "de", count=1, points="1") == "1 P"
-    assert label("bonus_points", "de", count=1, points="1") == "+1 Bonuspunkte"
+    assert label("bonus_amount", "de", count=2, points="2") == "2 Bonuspunkte"
     assert label("page_of", "de", page=1, pages=2) == "Seite 1 von 2"
     assert html_lang(None) == "de"
 
@@ -73,6 +73,18 @@ def test_portuguese_plural(count, expected):
     """Portugiesisch: Singular unter 2, sonst Plural; ohne count die erste Form."""
     points = expected.split()[0]
     assert label("points", "pt-br", count=count, points=points) == expected
+
+
+@pytest.mark.parametrize(("count", "expected"), [(1, "1 Bonuspunkt"), (1.5, "1,5 Bonuspunkte"), (2, "2 Bonuspunkte")])
+def test_german_plural_is_singular_only_for_exactly_one(count, expected):
+    """Deutsch: Singular genau bei 1 (bisher fälschlich `1 Bonuspunkte`)."""
+    points = expected.split()[0]
+    assert label("bonus_amount", "de", count=count, points=points) == expected
+
+
+def test_every_language_has_a_plural_rule():
+    """Guardrail: Pluraltupel brauchen für jede Sprache eine Regel."""
+    assert set(PLURAL_RULES) == set(LANGUAGES)
 
 
 def test_label_html_escapes_template_not_values():
