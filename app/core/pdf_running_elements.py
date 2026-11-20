@@ -24,6 +24,7 @@ from ..styles.blatt_styles import (
 )
 from ..styles.bundled_fonts import bundled_font_file
 from .blatt_kern_shared import get_current_school_year_label
+from .document_language import DEFAULT_LANGUAGE, label
 from .pdf_text_stamp_adapter import (
     ALIGN_CENTER,
     ALIGN_LEFT,
@@ -91,13 +92,16 @@ def normalize_running_title(title) -> str:
 
 
 def annotate_pdf_running_elements(
-    pdf_path, title, copyright_text, print_profile="standard", include_solutions=False
+    pdf_path, title, copyright_text, print_profile="standard", include_solutions=False, language=DEFAULT_LANGUAGE
 ):
     """Stempelt Copyright, Seitenzahlen und (ab Seite 2) Titel und Kopf-Label in die PDF.
 
     - Fusszeile: Copyright links, "Seite i von n" rechts (nur bei mehreren Seiten).
     - Kopfzeile ab Seite 2: Titel links zur Zuordbarkeit; rechts das Schuljahr oder
       in der Loesungsfassung ein Badge "Lösungsversion".
+
+    Alle drei Texte kommen in der Dokumentsprache ``language`` aus der Label-Tabelle
+    (`document_language.label`); ohne Angabe der Programm-Standard Deutsch.
 
     Ohne PyMuPDF oder ohne Datei passiert nichts (bisheriges Verhalten).
 
@@ -111,26 +115,30 @@ def annotate_pdf_running_elements(
     colors = resolve_pdf_running_colors(print_profile)
     font_file = running_font_file()
     title_text = normalize_running_title(title)
-    right_label = RUNNING_BADGE_STYLE["text"] if include_solutions else get_current_school_year_label()
+    if include_solutions:
+        right_label = label("solution_version", language)
+    else:
+        right_label = get_current_school_year_label(language=language)
 
     with open_pdf_pages(pdf_path) as pages:
         page_count = len(pages)
         for index, (page, (width, height)) in enumerate(pages):
             layout = running_layout(width, height)
-            _stamp_footer(page, layout, font_file, copyright_text or "", index, page_count, colors)
+            _stamp_footer(page, layout, font_file, copyright_text or "", index, page_count, colors, language)
             if index > 0:
                 _stamp_header(page, layout, font_file, title_text, right_label, include_solutions, colors)
 
 
-def _stamp_footer(page, layout, font_file, copyright_text, index, page_count, colors):
+def _stamp_footer(page, layout, font_file, copyright_text, index, page_count, colors, language=DEFAULT_LANGUAGE):
     """Fusszeile einer Seite: Seitenzahl rechts, Copyright links im verbleibenden Platz.
 
     Die Seitenzahl kommt zuerst, damit das Copyright um ihre Breite plus Abstand
-    gekuerzt werden kann, statt sie zu ueberlappen.
+    gekuerzt werden kann, statt sie zu ueberlappen. Ihr Text ("Seite i von n")
+    kommt in der Dokumentsprache ``language``.
     """
     reserved = 0.0
     if page_count > 1:
-        number_text = f"Seite {index + 1} von {page_count}"
+        number_text = label("page_of", language, page=index + 1, pages=page_count)
         size = layout["page_number_font_size"]
         number_width = text_width(font_file, number_text, size)
         x = max(layout["side_inset"], layout["width"] - layout["side_inset"] - number_width)
@@ -159,7 +167,7 @@ def _stamp_header(page, layout, font_file, title_text, right_label, include_solu
 
     label_width = 0.0
     if include_solutions:
-        label_width = _stamp_solution_badge(page, layout, font_file)
+        label_width = _stamp_solution_badge(page, layout, font_file, right_label)
     elif right_label:
         label_width = text_width(font_file, right_label, size)
         stamp_line(
@@ -175,15 +183,19 @@ def _stamp_header(page, layout, font_file, title_text, right_label, include_solu
         )
 
 
-def _stamp_solution_badge(page, layout, font_file) -> float:
-    """Zeichnet das Badge "Lösungsversion" rechts in die Kopfzeile.
+def _stamp_solution_badge(page, layout, font_file, badge_text) -> float:
+    """Zeichnet das Lösungs-Badge (deutsch "Lösungsversion") rechts in die Kopfzeile.
+
+    Args:
+        badge_text: Text in der Dokumentsprache (Label `solution_version`); die
+            Geometrie kommt aus `RUNNING_BADGE_STYLE`.
 
     Returns:
         Die Badge-Breite in pt, damit der Titel links davor Platz laesst.
     """
     style = RUNNING_BADGE_STYLE
     size = max(8, layout["header_font_size"] - 1)
-    width = text_width(font_file, style["text"], size) + 2 * style["horizontal_pad"]
+    width = text_width(font_file, badge_text, size) + 2 * style["horizontal_pad"]
     top, bottom = layout["header_top"], layout["header_bottom"]
     x1 = layout["width"] - layout["side_inset"]
     x0 = max(layout["side_inset"], x1 - width)
@@ -192,7 +204,7 @@ def _stamp_solution_badge(page, layout, font_file) -> float:
 
     draw_box(page, (x0, y0, x1, y1), stroke=style["stroke"], fill=style["fill"], width=style["stroke_width"])
     stamp_line(
-        page, (x0, y0, x1, y1), style["text"],
+        page, (x0, y0, x1, y1), badge_text,
         font_file=font_file, size=size, color=style["stroke"], align=ALIGN_CENTER,
     )
     return width

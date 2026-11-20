@@ -353,7 +353,7 @@ RUNNING_ELEMENT_LAYOUTS = {
 }
 RUNNING_ELEMENT_GAP_PT = 12  # Mindestabstand Titel <-> rechtes Label, Copyright <-> Seitenzahl
 RUNNING_BADGE_STYLE = {
-    "text": "Lösungsversion",
+    # Nur Geometrie/Farben; der Text kommt sprachabhängig aus document_labels_data (solution_version).
     "horizontal_pad": 6,
     "vertical_pad": 2,
     "min_height": 12,

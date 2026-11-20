@@ -74,6 +74,20 @@ def test_solution_badge_and_long_title_share_the_header(tmp_path):
     assert "Sehr langer Titel" in header_text and "..." in header_text
 
 
+@pytest.mark.parametrize("include_solutions", [False, True])
+def test_running_elements_follow_the_document_language(tmp_path, include_solutions):
+    """`Sprache: pt-BR`: page number, school year and solution badge in Portuguese."""
+    pdf = tmp_path / "teste.pdf"
+    _two_page_pdf(pdf, 595, 842)
+
+    annotate_pdf_running_elements(pdf, "Teste", "© Test", include_solutions=include_solutions, language="pt-br")
+
+    assert "Página 1 de 2" in _page_text(pdf, 0)
+    header_text = _page_text(pdf, 1)
+    assert ("Gabarito" if include_solutions else "Ano letivo") in header_text
+    assert "Seite" not in _page_text(pdf, 0) and "Schuljahr" not in header_text
+
+
 @pytest.mark.parametrize(
     "raw, expected",
     [

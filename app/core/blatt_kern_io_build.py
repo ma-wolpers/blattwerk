@@ -20,6 +20,7 @@ from .help_card_pages import render_help_cards_print_html
 from .help_cards_appendix import HELP_APPENDIX_NONE, append_help_cards_appendix, ensure_help_appendix_request
 from .blatt_kern_layout_render import render_html
 from .blatt_kern_shared import get_copyright_text, is_hole_punch_layout_enabled
+from .document_language import resolve_document_language
 from .document_type_registry import has_slide_layout, solutions_renderable
 from .word_note_pdf_check import append_word_note_placement_warnings
 from .selfcheck_bw_warning import append_bw_ampel_warnings
@@ -223,6 +224,7 @@ def build_worksheet(
                         str(copyright_text_override or get_copyright_text(meta)),
                         print_profile=print_profile,
                         include_solutions=include_solutions,
+                        language=resolve_document_language(meta)[0],
                     )
                 with stage(STAGE_WORD_NOTES):
                     append_word_note_placement_warnings(
@@ -362,6 +364,7 @@ def build_help_cards(
                     str(copyright_text_override or get_copyright_text(meta)),
                     print_profile=print_profile,
                     include_solutions=include_solutions,
+                    language=resolve_document_language(meta)[0],
                 )
         return staged.published_path
 
