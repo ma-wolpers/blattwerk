@@ -6,6 +6,9 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added
+- **Neues Frontmatter-Feld `Sprache` (optional):** Mit `Sprache: pt-BR` schreibt Blattwerk seine eigenen Texte auf Portugiesisch (Brasilien), z. B. „Questão 1“ statt „Aufgabe 1“, „Nome / Turma / Data“ in der Schülerkopfzeile, „2 pts“, „Solução“, „Gabarito“ statt „Lösungsversion“, „Ano letivo“, „Página 1 de 2“. Das gilt auch für Klausurteile, Wahlteile, die Bewertungstabelle, Lernhilfen-Verweise und -Karten, richtig/falsch, das Kreuzworträtsel und das Datumsformat (`25/09/2026`). Den Inhalt übersetzt das Feld nicht. Ohne Feld bleibt alles deutsch wie bisher. Ein unbekannter Wert ergibt die Warnung `FM013`, und das Dokument erscheint deutsch. Der Erwartungshorizont und die Operatorentabelle bleiben deutsch.
+
 ### Changed
 - **Schwarz-Weiß: Alle Emojis erscheinen ohne Farbe.** Bisher bekamen nur die Symbole am Rand einer Aufgabe die schwarz-weiße Umriss-Darstellung. Jetzt gilt sie für jedes Emoji: im Titel, in Überschriften, im Fließtext, in Tabellen, Kästen, Selbsteinschätzungen und Lernhilfen. Im Farbprofil sehen alle Emojis so aus wie bisher die Aufgabensymbole. Der Erwartungshorizont bleibt unverändert.
 - **Neue Warnung `SC002`:** Eine Selbsteinschätzung mit `scale=ampel` im Schwarz-Weiß-Profil ist kaum lesbar, weil Rot, Gelb und Grün dort fast gleich aussehen. Der Export weist darauf hin; besser passen dann `scale=smiley` oder `scale=zahlen`.
