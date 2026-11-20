@@ -42,3 +42,17 @@ def test_column_blocks_get_all_runtime_options(monkeypatch, body):
         assert options["_printable_height_cm"] == 25.0
         assert options["_computation_cache"] is cache
         assert options["_language"] == "pt-br"
+
+
+THREE_WITH_EMPTY = ":::columns cols=3 :::\n:::task\nA\n:::\n:::nextcol :::\n:::nextcol :::\n:::task\nB\n:::\n"
+
+
+@pytest.mark.parametrize("closing", ["", ":::endcolumns :::\n"], ids=["unclosed", "closed"])
+def test_unclosed_columns_are_normalized_like_closed_ones(closing):
+    """Leere Mittelspalte entfällt in beiden Fällen: identisches HTML mit und ohne `endcolumns`."""
+    html = columns.render_body_with_columns(parse_blocks(THREE_WITH_EMPTY + closing), include_solutions=False)
+    assert html.count("<div class='column'>") == 2
+    closed = columns.render_body_with_columns(
+        parse_blocks(THREE_WITH_EMPTY + ":::endcolumns :::\n"), include_solutions=False
+    )
+    assert html == closed

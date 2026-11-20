@@ -187,6 +187,25 @@ def render_columns_container(
     return columns_html
 
 
+def normalize_closed_columns(columns_blocks):
+    """Spaltenliste eines abgeschlossenen Bereichs normalisieren.
+
+    Leere Spalten entfallen, solange mehr als zwei Spalten da sind; mindestens zwei
+    Spalten bleiben immer (sonst wäre es kein Spaltenlayout).
+
+    Example:
+        >>> normalize_closed_columns([["a"], [], ["b"]])
+        [['a'], ['b']]
+        >>> normalize_closed_columns([["a"]])
+        [['a'], []]
+    """
+    present = [column for column in columns_blocks if column is not None]
+    kept = [column for column in present if column or len(present) <= 2]
+    while len(kept) < 2:
+        kept.append([])
+    return kept
+
+
 def render_body_with_columns(
     blocks,
     include_solutions,
@@ -206,6 +225,20 @@ def render_body_with_columns(
     columns_options = {}
     columns_blocks = []
     current_column_index = 0
+
+    def _close_columns(open_columns, options):
+        """Einzige Stelle, die einen Spaltenbereich abschließt (`:::endcolumns` oder Dokumentende):
+        normalisieren und mit denselben Laufzeitoptionen wie der übrige Body rendern."""
+        return render_columns_container(
+            normalize_closed_columns(open_columns),
+            options,
+            include_solutions,
+            document_type=document_type,
+            printable_width_cm=printable_width_cm,
+            printable_height_cm=printable_height_cm,
+            cache=cache,
+            language=language,
+        )
 
     for block_type, options, content in blocks:
         if block_type == "columns" and not in_columns:
@@ -229,25 +262,7 @@ def render_body_with_columns(
             continue
 
         if block_type == "endcolumns" and in_columns:
-            # Spaltenkontext abschließen, normalisieren und als einen Container rendern.
-            columns_blocks = [col for col in columns_blocks if col is not None]
-            columns_blocks = [
-                col for col in columns_blocks if col or len(columns_blocks) <= 2
-            ]
-            if len(columns_blocks) < 2:
-                columns_blocks.append([])
-            html_parts.append(
-                render_columns_container(
-                    columns_blocks,
-                    columns_options,
-                    include_solutions,
-                    document_type=document_type,
-                    printable_width_cm=printable_width_cm,
-                    printable_height_cm=printable_height_cm,
-                    cache=cache,
-                    language=language,
-                )
-            )
+            html_parts.append(_close_columns(columns_blocks, columns_options))
             in_columns = False
             columns_options = {}
             columns_blocks = []
@@ -280,17 +295,7 @@ def render_body_with_columns(
             html_parts.append(rendered)
 
     if in_columns:
-        html_parts.append(
-            render_columns_container(
-                columns_blocks,
-                columns_options,
-                include_solutions,
-                document_type=document_type,
-                printable_width_cm=printable_width_cm,
-                printable_height_cm=printable_height_cm,
-                cache=cache,
-                language=language,
-            )
-        )
+        # Ohne `:::endcolumns` schließt das Dokumentende den Bereich -- gleich behandelt.
+        html_parts.append(_close_columns(columns_blocks, columns_options))
 
     return "".join(html_parts)
