@@ -117,5 +117,5 @@ def test_unknown_language_warns_but_does_not_block():
     report, hits = _fm013(HEAD.format(extra="Sprache: fr\n"))
     assert len(hits) == 1
     assert hits[0].severity == "warning"
-    assert "pt-br" in hits[0].message
+    assert "pt-BR" in hits[0].message  # übliche Schreibweise, nicht die normalisierte
     assert not has_blocking_diagnostics(report.diagnostics)

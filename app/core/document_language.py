@@ -79,7 +79,7 @@ def resolve_document_language(meta) -> tuple[str, str | None]:
         return value, None
     problem = (
         f"Unbekannte Sprache `{LANGUAGE_KEY}: {value}`; es gilt der Programm-Standard "
-        f"`{DEFAULT_LANGUAGE}`. Erlaubt: {', '.join(LANGUAGES)}."
+        f"`{DEFAULT_LANGUAGE}`. Erlaubt: {', '.join(spec['tag'] for spec in LANGUAGES.values())}."
     )
     return DEFAULT_LANGUAGE, problem
 
@@ -107,7 +107,7 @@ def html_lang(language) -> str:
         >>> html_lang("pt-br")
         'pt-BR'
     """
-    return LANGUAGES[normalize_language(language)]["html_lang"]
+    return LANGUAGES[normalize_language(language)]["tag"]
 
 
 def format_date(value, language) -> str:

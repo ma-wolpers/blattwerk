@@ -693,7 +693,7 @@ OPTIONAL_FRONTMATTER_FIELDS = (
     FrontmatterFieldSpec("font_profile", "enum", frozenset(FONT_PROFILE_ORDER), MISSING, True),
     FrontmatterFieldSpec("Lerngruppe", "header_text", None, MISSING, True),
     FrontmatterFieldSpec("Datum", "header_date", None, MISSING, True),
-    FrontmatterFieldSpec("Sprache", "enum", frozenset(LANGUAGES), MISSING, True),
+    FrontmatterFieldSpec("Sprache", "enum", frozenset(spec["tag"] for spec in LANGUAGES.values()), MISSING, True),
 )
 """Vollständiger normativer Katalog optionaler Frontmatter-Felder.
 

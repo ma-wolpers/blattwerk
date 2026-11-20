@@ -75,11 +75,16 @@ _SCALAR_NONEMPTY_FIELD_DIAGNOSTIC_CODES = {
 
 
 def _validate_optional_enum_field(field, raw_value):
+    """Prüft ein Enum-Feld ohne Rücksicht auf Groß-/Kleinschreibung.
+
+    `allowed_values` darf die übliche Schreibweise tragen (z. B. `pt-BR`), damit
+    Meldung, Anleitung und Editor-Vorschläge sie zeigen; verglichen wird klein.
+    """
     rules = _ENUM_FIELD_DIAGNOSTICS[field.name]
     normalized = str(raw_value or "").strip().lower()
     if rules["skip_when_empty"] and not normalized:
         return None
-    if normalized in field.allowed_values:
+    if normalized in {value.lower() for value in field.allowed_values}:
         return None
     return BuildDiagnostic(
         code=rules["code"],

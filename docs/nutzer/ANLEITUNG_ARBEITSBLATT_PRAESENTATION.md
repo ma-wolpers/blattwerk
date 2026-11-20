@@ -84,7 +84,7 @@ Eine Präsentation (`.pbw`) ist Aufgabenblatt und Lösung zugleich: Es gibt **ke
 | `font_profile` | nein | enum | `andika`, `arial`, `bahnschrift`, `book_antiqua`, `calibri`, `cambria`, `candara`, `century_gothic`, `comic_neue`, `comic_sans_ms`, `constantia`, `corbel`, `franklin_gothic_medium`, `fredoka`, `garamond`, `georgia`, `gloria_hallelujah`, `indie_flower`, `lucida_sans`, `patrick_hand`, `rockwell`, `segoe`, `short_stack`, `tahoma`, `times_new_roman`, `trebuchet_ms`, `verdana` | ja |
 | `Lerngruppe` | nein | header_text | -- | ja |
 | `Datum` | nein | header_date | -- | ja |
-| `Sprache` | nein | enum | `de`, `pt-br` | ja |
+| `Sprache` | nein | enum | `de`, `pt-BR` | ja |
 
 - **`Titel`** (Pflichtfeld): Der Titel des Dokuments, erscheint im Dokumentkopf und in der Fensterleiste.
 - **`Fach`** (Pflichtfeld): Das Unterrichtsfach, erscheint zusammen mit `Thema` in der Metazeile des Dokumentkopfs.

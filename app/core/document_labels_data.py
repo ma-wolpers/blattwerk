@@ -30,13 +30,14 @@ DEFAULT_LANGUAGE = "de"
 """Programm-Standard, solange ein Dokument keine `Sprache` angibt."""
 
 LANGUAGES = {
-    "de": {"name": "Deutsch", "html_lang": "de", "date_format": "%d.%m.%Y"},
-    "pt-br": {"name": "Português (Brasil)", "html_lang": "pt-BR", "date_format": "%d/%m/%Y"},
+    "de": {"name": "Deutsch", "tag": "de", "date_format": "%d.%m.%Y"},
+    "pt-br": {"name": "Português (Brasil)", "tag": "pt-BR", "date_format": "%d/%m/%Y"},
 }
-"""Erlaubte Werte für `Sprache` (klein geschrieben; Eingabe ist unabhängig von
-Groß-/Kleinschreibung). `html_lang` landet im `<html lang>`-Attribut und steuert
-damit die automatische Silbentrennung des Browsers; `date_format` (``strftime``)
-formatiert ein als YAML-Datum vorbefülltes `Datum` der Schülerkopfzeile."""
+"""Erlaubte Werte für `Sprache`. Schlüssel = normalisierte Form (klein; die Eingabe
+ist unabhängig von Groß-/Kleinschreibung). `tag` ist die übliche Schreibweise
+(BCP 47): sie steht in Anleitung, Editor-Vorschlägen und Meldungen und im
+`<html lang>`-Attribut (steuert die Silbentrennung des Browsers); `date_format`
+(``strftime``) formatiert ein als YAML-Datum vorbefülltes `Datum` der Kopfzeile."""
 
 PLURAL_EXACTLY_ONE = "exactly_one"
 """Singular genau bei 1 (Deutsch: ``1 Bonuspunkt``, ``1,5 Bonuspunkte``)."""
