@@ -113,10 +113,12 @@ def build_expectation_horizon_html(text: str) -> tuple[str, list[BuildDiagnostic
         body.append(_part_sum(analysis.parts[current_part.order]))
     body.append(_part_sum(analysis.total))
     body.append(_kinds_legend(targets))
-    title = escape(str(meta.get("Titel") or "Erwartungshorizont")) if isinstance(meta, dict) else "Erwartungshorizont"
+    document_title = escape(str(meta.get("Titel") or "").strip()) if isinstance(meta, dict) else ""
+    # Ohne `Titel` nur "Erwartungshorizont" (früher doppelt: "Erwartungshorizont – Erwartungshorizont").
+    title = f"Erwartungshorizont – {document_title}" if document_title else "Erwartungshorizont"
     html = (
         "<!DOCTYPE html>\n<html lang=\"de\">\n<head>\n<meta charset=\"utf-8\">\n"
-        f"<title>Erwartungshorizont – {title}</title>\n"
+        f"<title>{title}</title>\n"
         f"{mathjax_head(PROFILE_PLAIN)}\n"
         f"<style>{_STYLE}</style>\n</head>\n<body>\n" + "\n".join(body) + "\n</body>\n</html>\n"
     )

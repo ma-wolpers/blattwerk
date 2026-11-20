@@ -340,12 +340,14 @@ def render_help_cards_html(
     cards_html = [_render_help_card_section(index, block, layout, language) for index, block in selected]
 
     cards_title = escape(label("help_cards_title", language))
-    title_value = escape((meta or {}).get("Titel", "")) or cards_title
+    document_title = escape(str((meta or {}).get("Titel") or "").strip())
+    # Ohne `Titel` nur "Hilfekarten" (früher doppelt: "Hilfekarten – Hilfekarten").
+    title_value = f"{document_title} – {cards_title}" if document_title else cards_title
     return mark_emoji_glyphs(f"""<!DOCTYPE html>
 <html lang="{html_lang(language)}">
 <head>
 <meta charset="utf-8">
-<title>{title_value} – {cards_title}</title>
+<title>{title_value}</title>
 {mathjax_head(PROFILE_DOCUMENT)}
 <style>
 {stylesheet}

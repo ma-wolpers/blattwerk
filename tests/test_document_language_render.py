@@ -12,6 +12,7 @@ from datetime import date
 from app.core.blatt_kern_help_render import render_help_cards_html
 from app.core.blatt_kern_layout_render import render_html
 from app.core.blatt_kern_shared import parse_blocks
+from app.core.exam_expectation_horizon import build_expectation_horizon_html
 
 META = {"Titel": "T", "Fach": "M", "Thema": "X", "show_student_header": "ja", "Datum": date(2026, 9, 25)}
 PT = {**META, "Sprache": "pt-BR"}
@@ -132,6 +133,15 @@ def test_portuguese_help_reference_and_cards():
     assert "→ Ajuda" in worksheet and "Lernhilfe" not in worksheet
     cards = render_help_cards_html(dict(PT), parse_blocks(body))
     assert "Ajuda" in cards and "Nível 2" in cards and '<html lang="pt-BR">' in cards
+
+
+def test_document_titles_without_titel_are_not_doubled():
+    """Ohne `Titel` steht nur der Dokumentname im `<title>`, mit `Titel` beides."""
+    body = ":::task\nA\n:::\n:::help\nTipp\n:::\n"
+    assert "<title>Hilfekarten</title>" in render_help_cards_html({}, parse_blocks(body))
+    assert "<title>T – Hilfekarten</title>" in render_help_cards_html({"Titel": "T"}, parse_blocks(body))
+    horizon, _diagnostics = build_expectation_horizon_html("---\nFach: M\n---\n:::task points=1\nA\n:::\n")
+    assert "<title>Erwartungshorizont</title>" in horizon
 
 
 def test_portuguese_presentation():
