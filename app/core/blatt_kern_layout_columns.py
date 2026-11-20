@@ -287,6 +287,8 @@ def render_body_with_columns(
                 include_solutions,
                 document_type=document_type,
                 printable_width_cm=printable_width_cm,
+                printable_height_cm=printable_height_cm,
+                cache=cache,
                 language=language,
             )
         )

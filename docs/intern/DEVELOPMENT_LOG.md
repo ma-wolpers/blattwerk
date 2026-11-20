@@ -8,6 +8,8 @@ Regel:
 
 ## [Unreleased]
 
+- **Nicht geschlossene Spalten bekommen alle Laufzeitoptionen (2026-11-20).** Der Nachlauf in `render_body_with_columns` (Spaltenbereich ohne `:::endcolumns` am Dokumentende) rief `render_columns_container` ohne `printable_height_cm` und `cache` auf; Blöcke darin (z. B. `crossword`-`maxh`-Standard) fielen auf ihre Ersatzwerte zurück und nutzten den Rechen-Cache nicht. Jetzt dieselben Argumente wie im `endcolumns`-Zweig. Test `tests/test_layout_columns_runtime_options.py` (geschlossen/offen, schlägt ohne Fix fehl).
+
 - **Frontmatter `Sprache`: Ausgabe-Labels je Dokumentsprache (2026-11-20).** Nutzerwunsch nach einer pt-BR-Fassung eines Tests: Blattwerk-eigene Texte waren über ~15 Module als deutsche Literale verteilt.
   - Neu `app/core/document_labels_data.py` (reine Daten): `LANGUAGES` (`de`, `pt-br`; `html_lang`, `date_format`), `LABELS` (Schlüssel → Vorlage je Sprache, Pluraltupel), `PLURAL_ONE_BELOW`. Einzige Quelle aller festen Ausgabetexte.
   - Neu `app/core/document_language.py`: `resolve_document_language(meta)` (Muster `document_font`: Wert → sonst `DEFAULT_LANGUAGE` → unbekannt = Standard + Problemtext), `label`/`label_html` (Vorlage escaped, Werte fertiges HTML), `language_from_options`, `html_lang`, `format_date`.
