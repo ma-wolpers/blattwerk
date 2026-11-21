@@ -9,6 +9,13 @@ Regel:
 ## [Unreleased]
 
 - **Nicht geschlossene Spalten bekommen alle Laufzeitoptionen (2026-11-20).** Der Nachlauf in `render_body_with_columns` (Spaltenbereich ohne `:::endcolumns` am Dokumentende) rief `render_columns_container` ohne `printable_height_cm` und `cache` auf; Blöcke darin (z. B. `crossword`-`maxh`-Standard) fielen auf ihre Ersatzwerte zurück und nutzten den Rechen-Cache nicht. Jetzt dieselben Argumente wie im `endcolumns`-Zweig. Test `tests/test_layout_columns_runtime_options.py` (geschlossen/offen, schlägt ohne Fix fehl).
+  - Nachtrag: Beide Abschlüsse laufen jetzt über einen Abschluss `_close_columns` (Closure in `render_body_with_columns`) und die reine Funktion `normalize_closed_columns` (leere Spalten weg, mindestens zwei). Vorher normalisierte nur der `endcolumns`-Zweig.
+
+- **Punkttexte aus einer Stelle, Pluralregel je Sprache (2026-11-20).** `points_model.points_text`/`bonus_text`/`points_with_bonus` sind die einzige Bildung „Zahl + Einheit“; vorher setzten `exam_expectation_horizon` (5×), `exam_analysis` (3×), `blatt_validator_exam` (KL011) und die Bewertungstabelle „P“/„Bonuspunkte“ von Hand. Label `bonus_points` → `bonus_amount` (ohne „+“, das Badge setzt es davor), `evaluation_total` nimmt den fertigen Punkttext (`{total}`). `PLURAL_ONE_BELOW` → `PLURAL_RULES` mit benannten Regeln (`exactly_one` Deutsch, `below_two` pt-BR; Guardrail: jede Sprache hat eine Regel) -- damit „1 Bonuspunkt“ statt bisher „1 Bonuspunkte“. Der Erwartungshorizont nutzt `label("task_numbered", DEFAULT_LANGUAGE)` statt eigenem „Aufgabe N“.
+
+- **`<title>` ohne `Titel` nicht doppelt (2026-11-20).** `render_help_cards_html` und `build_expectation_horizon_html` setzten den Dokumentnamen als Ersatz für den fehlenden Titel ein und hängten ihn dann noch einmal an. Test in `tests/test_document_language_render.py`.
+
+- **`Sprache`: übliche Schreibweise `pt-BR` (2026-11-20).** `LANGUAGES[...]["html_lang"]` heißt jetzt `tag` und ist zugleich Anzeige-Schreibweise; `FrontmatterFieldSpec("Sprache").allowed_values` trägt die Tags, damit Anleitung, Editor-Vorschläge und `FM013` `pt-BR` zeigen. `_validate_optional_enum_field` vergleicht dafür ohne Groß-/Kleinschreibung (alle übrigen Enum-Felder haben nur Kleinwerte, Verhalten dort unverändert).
 
 - **Frontmatter `Sprache`: Ausgabe-Labels je Dokumentsprache (2026-11-20).** Nutzerwunsch nach einer pt-BR-Fassung eines Tests: Blattwerk-eigene Texte waren über ~15 Module als deutsche Literale verteilt.
   - Neu `app/core/document_labels_data.py` (reine Daten): `LANGUAGES` (`de`, `pt-br`; `html_lang`, `date_format`), `LABELS` (Schlüssel → Vorlage je Sprache, Pluraltupel), `PLURAL_ONE_BELOW`. Einzige Quelle aller festen Ausgabetexte.
