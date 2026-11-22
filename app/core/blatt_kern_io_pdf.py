@@ -17,6 +17,7 @@ from .pdf_running_elements import (  # noqa: F401 -- re-exportiert (wiring.py)
     annotate_pdf_running_elements,
 )
 from .mathjax_support import prepare_html_for_print
+from .print_hyphenation import hyphenate_html
 from .print_service import default_print_service
 from .render_job import note_file_dependency, stage
 from .render_stages import STAGE_PRINT
@@ -155,6 +156,10 @@ def write_pdf_from_html(html, out_pdf_path):
     Stelle mit einem Chromium-Druck, deshalb erfasst sie alle Pipelines, den zweiten
     Durchgang der Operatorenliste und den Lernhilfen-Anhang. Welcher Druckweg (Dauerbrowser
     oder Kommandozeile) greift, entscheidet `print_service`.
+
+    Vor dem Druck laufen die beiden Druckvorbereitungen: `hyphenate_html` (weiche
+    Trennstriche, weil der Headless-Browser selbst nicht trennt) und
+    `prepare_html_for_print` (lokales MathJax).
     """
     browser = find_chromium_executable()
     if not browser:
@@ -169,7 +174,7 @@ def write_pdf_from_html(html, out_pdf_path):
 
     with stage(STAGE_PRINT), tempfile.TemporaryDirectory() as temp_dir_name:
         temp_dir = Path(temp_dir_name)
-        html_with_fallbacks = _rewrite_heic_sources_for_browser_pdf(prepare_html_for_print(html), temp_dir)
+        html_with_fallbacks = _rewrite_heic_sources_for_browser_pdf(prepare_html_for_print(hyphenate_html(html)), temp_dir)
         temp_html_path = temp_dir / "blattwerk-render.html"
         temp_html_path.write_text(html_with_fallbacks, encoding="utf-8")
 

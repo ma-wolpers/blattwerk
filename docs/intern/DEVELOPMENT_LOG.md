@@ -8,6 +8,14 @@ Regel:
 
 ## [Unreleased]
 
+- **Silbentrennung im Druck, nur wo nötig (2026-11-22).** Anlass: Kurzentwurf-Spalte „Lernumgebung“ (10 %) brach Wörter hart („Stellenwertta|fel“): `hyphens: auto` wirkt im Headless-Edge nicht (eigenes Profil, `--disable-component-update`, kein `hyphen-data`).
+  - Neu `app/core/hyphenation_adapter.py` (einzige Pyphen-Stelle, 0.18.1 verifiziert: `language_fallback`, `Pyphen(left/right)`, `inserted(hyphen=)`; ohne Pyphen `None`). Neue Abhängigkeit `pyphen` in `requirements.txt`.
+  - Neu `app/core/print_hyphenation.hyphenate_html`, aufgerufen nur in `write_pdf_from_html` (vor `prepare_html_for_print`): merkt Wörter ab 6 Buchstaben mit Trennstelle als `span.bw-hyph[data-bw-hyph]` vor und hängt `_APPLY_SCRIPT` an. Das Skript ersetzt den Text nur bei Wörtern mit mehr als einem Zeilenrechteck oder breiter als ihr Block; Durchgänge bei `load`, `document.fonts.ready` und `MathJax.startup.promise`, ohne darauf zu warten (Schriften stehen bei `load` im Druck noch auf „loading“, ein Warten ließ den Durchgang ausfallen).
+  - Verworfen: U+00AD in jedes lange Wort. Chromium übernimmt sie in die PDF-Textebene (649 Stück im Kurzentwurf, `search_for` fand Wörter nicht mehr, `test_exam_choice_parts` schlug fehl).
+  - SSOT: Der Body-Durchlauf von `emoji_markup` (Body-Grenze, Schutzmuster, Formelbereiche) liegt jetzt in `app/core/document_text_pass.map_body_text`; Emoji-Markierung und Trennung nutzen ihn. Verhalten der Emoji-Markierung unverändert.
+  - `schild_render`: `hyphens: manual` → `none`, damit vorgemerkte Trennstellen Schilder nie trennen.
+  - Tests: `tests/test_print_hyphenation.py` (Vormerkung, Schutzbereiche, pt-BR, Idempotenz, Ende-zu-Ende-Druck: schmale Spalte getrennt, breite suchbar).
+
 - **Nicht geschlossene Spalten bekommen alle Laufzeitoptionen (2026-11-20).** Der Nachlauf in `render_body_with_columns` (Spaltenbereich ohne `:::endcolumns` am Dokumentende) rief `render_columns_container` ohne `printable_height_cm` und `cache` auf; Blöcke darin (z. B. `crossword`-`maxh`-Standard) fielen auf ihre Ersatzwerte zurück und nutzten den Rechen-Cache nicht. Jetzt dieselben Argumente wie im `endcolumns`-Zweig. Test `tests/test_layout_columns_runtime_options.py` (geschlossen/offen, schlägt ohne Fix fehl).
   - Nachtrag: Beide Abschlüsse laufen jetzt über einen Abschluss `_close_columns` (Closure in `render_body_with_columns`) und die reine Funktion `normalize_closed_columns` (leere Spalten weg, mindestens zwei). Vorher normalisierte nur der `endcolumns`-Zweig.
 

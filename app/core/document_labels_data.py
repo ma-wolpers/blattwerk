@@ -36,7 +36,7 @@ LANGUAGES = {
 """Erlaubte Werte für `Sprache`. Schlüssel = normalisierte Form (klein; die Eingabe
 ist unabhängig von Groß-/Kleinschreibung). `tag` ist die übliche Schreibweise
 (BCP 47): sie steht in Anleitung, Editor-Vorschlägen und Meldungen und im
-`<html lang>`-Attribut (steuert die Silbentrennung des Browsers); `date_format`
+`<html lang>`-Attribut (wählt das Trennwörterbuch, `print_hyphenation`); `date_format`
 (``strftime``) formatiert ein als YAML-Datum vorbefülltes `Datum` der Kopfzeile."""
 
 PLURAL_EXACTLY_ONE = "exactly_one"

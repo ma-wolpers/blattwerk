@@ -7,10 +7,11 @@ emoji-blind, `mark_emoji_glyphs` läuft einmal über das fertige Dokument
 die Outline-Darstellung). So sehen Emojis im Fließtext, in Überschriften, Tabellen,
 Selfcheck-Skalen und die Aufgabensymbole gleich aus.
 
-Unverändert bleiben alles vor `<body>` (Titel, Styles, Skripte), Tag-Markup samt
-Attributen, Kommentare, `<script>`/`<style>`/`<svg>`/`<textarea>`/`<title>`-Inhalte
-(ein `<span>` in SVG-Text wäre ungültig) und Formeln (`$...$`, erkannt über
-`find_math_span_ranges`, damit MathJax die LaTeX-Quelle unverändert sieht).
+Welche Teile der Seite Text sind (nicht vor `<body>`, keine Tags, Kommentare,
+`<script>`/`<style>`/`<svg>`/`<textarea>`/`<title>`-Inhalte, keine Formeln), entscheidet
+der gemeinsame Durchlauf `document_text_pass.map_body_text`; hier steht nur, was mit
+einem Stück Text passiert. Bereits markierte Emojis schützt `_ALREADY_MARKED`
+(Idempotenz).
 """
 
 from __future__ import annotations
@@ -27,7 +28,7 @@ from .emoji_data import (
     TEXT_PRESENTATION_SELECTOR,
     ZERO_WIDTH_JOINER,
 )
-from .math_span_protection import find_math_span_ranges
+from .document_text_pass import map_body_text
 from ..styles.worksheet_design import EMOJI_GLYPH_CLASS
 
 _OPEN_TAG = f'<span class="{EMOJI_GLYPH_CLASS}">'
@@ -36,16 +37,8 @@ _CLOSE_TAG = "</span>"
 _CANDIDATE_RE = re.compile("[⌚-⭕️\U0001F000-\U0001FAFF]")
 """Schneller Vorfilter: Ohne eines dieser Zeichen enthält ein Text kein Emoji."""
 
-_BODY_START_RE = re.compile(r"<body\b[^>]*>", re.IGNORECASE)
-
-_PROTECTED_RE = re.compile(
-    r"<!--.*?-->"
-    r"|<(script|style|svg|textarea|title)\b.*?</\1\s*>"
-    + "|" + re.escape(_OPEN_TAG) + r".*?" + re.escape(_CLOSE_TAG)
-    + r"|<[^>]*>",
-    re.DOTALL | re.IGNORECASE,
-)
-"""Bereiche, die der Nachlauf überspringt; bereits markierte Emojis (Idempotenz) inklusive."""
+_ALREADY_MARKED = re.escape(_OPEN_TAG) + r".*?" + re.escape(_CLOSE_TAG)
+"""Schon markierte Emojis bleiben unverändert (Idempotenz)."""
 
 
 def _in_range(code_point: int, bounds: tuple[int, int]) -> bool:
@@ -103,6 +96,8 @@ def _cluster_end(text: str, index: int) -> int:
 
 def _mark_plain_text(text: str) -> str:
     """Umschließt jedes Emoji-Cluster in reinem Text (ohne Formeln) mit dem Klassen-Span."""
+    if not _CANDIDATE_RE.search(text):
+        return text
     parts: list[str] = []
     index = 0
     plain_start = 0
@@ -115,32 +110,6 @@ def _mark_plain_text(text: str) -> str:
         else:
             index += 1
     parts.append(text[plain_start:])
-    return "".join(parts)
-
-
-def _mark_text_segment(text: str) -> str:
-    """Markiert Emojis in einem Textsegment zwischen Tags und lässt Formel-Spans aus."""
-    if not _CANDIDATE_RE.search(text):
-        return text
-    parts: list[str] = []
-    position = 0
-    for start, end in find_math_span_ranges(text):
-        parts.append(_mark_plain_text(text[position:start]))
-        parts.append(text[start:end])
-        position = end
-    parts.append(_mark_plain_text(text[position:]))
-    return "".join(parts)
-
-
-def _mark_fragment(html: str) -> str:
-    """Markiert Emojis in einem HTML-Fragment; geschützte Bereiche (`_PROTECTED_RE`) bleiben."""
-    parts: list[str] = []
-    position = 0
-    for match in _PROTECTED_RE.finditer(html):
-        parts.append(_mark_text_segment(html[position:match.start()]))
-        parts.append(match.group(0))
-        position = match.end()
-    parts.append(_mark_text_segment(html[position:]))
     return "".join(parts)
 
 
@@ -165,8 +134,4 @@ def mark_emoji_glyphs(html: str) -> str:
     """
     if not html or not _CANDIDATE_RE.search(html):
         return html
-    body_match = _BODY_START_RE.search(html)
-    if body_match is None:
-        return _mark_fragment(html)
-    head_end = body_match.end()
-    return html[:head_end] + _mark_fragment(html[head_end:])
+    return map_body_text(html, _mark_plain_text, protected_pattern=_ALREADY_MARKED)

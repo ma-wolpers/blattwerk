@@ -22,7 +22,9 @@ echten Layout-Engine (Binärsuche über ganze px). Headless Edge führt es vor
 dem Drucken aus (geprüft über `write_pdf_from_html`, dasselbe Verhalten
 nutzt MathJax). Ein exportiertes HTML passt sich im Browser genauso an.
 `word-break: keep-all` sorgt dafür, dass ein zu langes Wort als horizontaler
-Überlauf messbar wird statt getrennt zu werden.
+Überlauf messbar wird statt getrennt zu werden. `hyphens: none` hält dazu die
+weichen Trennstriche aus `print_hyphenation` wirkungslos: ein Schild-Begriff
+wird kleiner gesetzt, nie getrennt.
 
 Preview, HTML-, PDF- und PNG-Export nutzen alle `render_schild_html`, damit
 Vorschau und PDF identisch bleiben.
@@ -63,7 +65,7 @@ html, body {{ margin: 0; padding: 0; background: #fff; }}
 .schild-text {{
     width: 100%; text-align: center; color: #000;
     font-family: Arial, "Segoe UI", sans-serif; font-weight: {weight};
-    line-height: 1.2; overflow-wrap: normal; word-break: keep-all; hyphens: manual;
+    line-height: 1.2; overflow-wrap: normal; word-break: keep-all; hyphens: none;
 }}
 """
 

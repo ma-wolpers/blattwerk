@@ -7,6 +7,7 @@ The format is based on Keep a Changelog.
 ## [Unreleased]
 
 ### Added
+- **Silbentrennung in schmalen Spalten (Vorschau und PDF):** Lange Wörter, die nicht in ihre Spalte passen, werden jetzt nach Wörterbuch mit Trennstrich getrennt („Stellenwert-tafel“) statt mitten im Wort ohne Strich umzubrechen oder überzulaufen, z. B. in der Spalte „Lernumgebung“ des Kurzentwurfs oder in schmalen Tabellenzellen. Wörter, die in die Zeile passen, bleiben ungetrennt, damit die Suche im PDF sie weiter findet. Die Sprache folgt dem Feld `Sprache` (Deutsch oder Portugiesisch). Schilder trennen weiterhin nie. Exportiertes HTML bleibt ungetrennt.
 - **Neues Frontmatter-Feld `Sprache` (optional):** Mit `Sprache: pt-BR` schreibt Blattwerk seine eigenen Texte auf Portugiesisch (Brasilien), z. B. „Questão 1“ statt „Aufgabe 1“, „Nome / Turma / Data“ in der Schülerkopfzeile, „2 pts“, „Solução“, „Gabarito“ statt „Lösungsversion“, „Ano letivo“, „Página 1 de 2“. Das gilt auch für Klausurteile, Wahlteile, die Bewertungstabelle, Lernhilfen-Verweise und -Karten, richtig/falsch, das Kreuzworträtsel und das Datumsformat (`25/09/2026`). Den Inhalt übersetzt das Feld nicht. Ohne Feld bleibt alles deutsch wie bisher. Ein unbekannter Wert ergibt die Warnung `FM013`, und das Dokument erscheint deutsch. Der Erwartungshorizont und die Operatorentabelle bleiben deutsch.
 
 ### Changed
