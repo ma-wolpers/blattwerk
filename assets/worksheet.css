@@ -2162,6 +2162,60 @@ pre,
     text-align: center;
 }
 
+/* Stellenwerttafel (`diagram_placevalue.py`): feste Zellgröße zum Eintragen, dicker Strich
+   nach den Einern, Zeilenbeschriftung links außerhalb der Tafel, Spaltentöne aus der
+   Datenpalette (Kopf kräftig, Zellen hell, beide über `--tint`). */
+.pv-table td {
+    min-width: 1.9em;
+    height: 1.8em;
+}
+
+.pv-table th.pv-value {
+    font-weight: normal;
+    font-size: 0.85em;
+}
+
+.pv-table .pv-ones {
+    border-right: 3px solid currentColor;
+}
+
+.pv-table .pv-fraction {
+    min-width: 4.5em;
+}
+
+.pv-table.pv-labeled {
+    margin-left: 2.2em;
+}
+
+.pv-table td[data-label] {
+    position: relative;
+}
+
+.pv-table td[data-label]::before {
+    content: attr(data-label);
+    position: absolute;
+    right: calc(100% + 0.5em);
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.pv-table th.pv-tone-1 { background: color-mix(in srgb, var(--diagram-data-1, var(--diagram-tone-fallback)) calc(100% * var(--tint, 1)), white); }
+.pv-table th.pv-tone-2 { background: color-mix(in srgb, var(--diagram-data-2, var(--diagram-tone-fallback)) calc(100% * var(--tint, 1)), white); }
+.pv-table th.pv-tone-3 { background: color-mix(in srgb, var(--diagram-data-3, var(--diagram-tone-fallback)) calc(100% * var(--tint, 1)), white); }
+.pv-table th.pv-tone-4 { background: color-mix(in srgb, var(--diagram-data-4, var(--diagram-tone-fallback)) calc(100% * var(--tint, 1)), white); }
+.pv-table th.pv-tone-5 { background: color-mix(in srgb, var(--diagram-data-5, var(--diagram-tone-fallback)) calc(100% * var(--tint, 1)), white); }
+.pv-table th.pv-tone-6 { background: color-mix(in srgb, var(--diagram-data-6, var(--diagram-tone-fallback)) calc(100% * var(--tint, 1)), white); }
+.pv-table th.pv-tone-7 { background: color-mix(in srgb, var(--diagram-data-7, var(--diagram-tone-fallback)) calc(100% * var(--tint, 1)), white); }
+.pv-table th.pv-tone-8 { background: color-mix(in srgb, var(--diagram-data-8, var(--diagram-tone-fallback)) calc(100% * var(--tint, 1)), white); }
+.pv-table td.pv-tone-1 { background: color-mix(in srgb, var(--diagram-data-1, var(--diagram-tone-fallback)) calc(40% * var(--tint, 1)), white); }
+.pv-table td.pv-tone-2 { background: color-mix(in srgb, var(--diagram-data-2, var(--diagram-tone-fallback)) calc(40% * var(--tint, 1)), white); }
+.pv-table td.pv-tone-3 { background: color-mix(in srgb, var(--diagram-data-3, var(--diagram-tone-fallback)) calc(40% * var(--tint, 1)), white); }
+.pv-table td.pv-tone-4 { background: color-mix(in srgb, var(--diagram-data-4, var(--diagram-tone-fallback)) calc(40% * var(--tint, 1)), white); }
+.pv-table td.pv-tone-5 { background: color-mix(in srgb, var(--diagram-data-5, var(--diagram-tone-fallback)) calc(40% * var(--tint, 1)), white); }
+.pv-table td.pv-tone-6 { background: color-mix(in srgb, var(--diagram-data-6, var(--diagram-tone-fallback)) calc(40% * var(--tint, 1)), white); }
+.pv-table td.pv-tone-7 { background: color-mix(in srgb, var(--diagram-data-7, var(--diagram-tone-fallback)) calc(40% * var(--tint, 1)), white); }
+.pv-table td.pv-tone-8 { background: color-mix(in srgb, var(--diagram-data-8, var(--diagram-tone-fallback)) calc(40% * var(--tint, 1)), white); }
+
 /* Flache Abstufungen des Farbprofils, ohne Verläufe und Schatten. Text und Lücken stehen
    immer auf hellem Grund: Die Töne enthalten höchstens gut 20 Prozent Farbe. */
 .diagram-svg .diagram-tone-1 {

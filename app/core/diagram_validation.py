@@ -37,7 +37,9 @@ class DiagnosticCollector:
         )
 
 
-def validate_block(index, block_type, options, content, *, title, parse, check, empty_code) -> list[BuildDiagnostic]:
+def validate_block(
+    index, block_type, options, content, *, title, parse, check, empty_code, is_empty=None
+) -> list[BuildDiagnostic]:
     """Prüft einen Diagrammblock vollständig.
 
     Args:
@@ -48,8 +50,11 @@ def validate_block(index, block_type, options, content, *, title, parse, check, 
         title: Anzeigename, steht vor jeder Meldung.
         parse: `parse(content) -> (modell, issues)`; ein leeres Modell ist falsy.
         check: `check(collect, options, modell)` oder `None`; läuft nur bei
-            nicht leerem Modell.
+            nicht leerem Block.
         empty_code: Warnungscode für einen leeren Block.
+        is_empty: `is_empty(options, modell)` oder `None` (dann gilt ``not modell``).
+            Für Blöcke, deren Inhalt auch aus Optionen entstehen kann, etwa eine leere
+            Stellenwerttafel-Vorlage mit `rows=4`.
 
     Returns:
         Liste der Diagnosen; Zeilenangaben in Meldungen sind 1-basiert
@@ -59,7 +64,7 @@ def validate_block(index, block_type, options, content, *, title, parse, check, 
     model, issues = parse(content)
     for issue in issues:
         collect.add(issue.code, f"Zeile {issue.line} im Block: {issue.message}", issue.severity, f"{issue.code}:{issue.line}")
-    if not model:
+    if (is_empty(options or {}, model) if is_empty is not None else not model):
         collect.add(empty_code, "Der Block ist leer.")
         return collect.diagnostics
     if check is not None:

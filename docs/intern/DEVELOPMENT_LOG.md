@@ -8,6 +8,12 @@ Regel:
 
 ## [Unreleased]
 
+- **Diagrammblock `placevalue` (Stellenwerttafel) (2026-11-22).** Konzept mit der Lehrkraft in vier Fragerunden (Buchvorlage Dreifach Mathe 6).
+  - Neu `app/core/diagram_placevalue_model.py` (Parsen beider Schreibweisen, `resolve_columns` mit `PV004`-`PV006`, `row_value`, `fraction_tex`) und `app/core/diagram_placevalue.py` (HTML-Tabelle `diagram-table pv-table` statt SVG, Kopf darum immer getönt; `check`, `is_empty`, `estimate_weight`). Katalogeintrag, Prosa, Label `placevalue_fraction`, CSS `.pv-table` (Töne aus `--diagram-data-N` über `--tint`, Zeilenbeschriftung als `td[data-label]::before` außerhalb der Tafel, damit der Tabellenversatz bleibt).
+  - Fit-Check: Der Vertrag "leeres Modell = leerer Block" passte nicht zur leeren Vorlage (`rows=` ohne Inhalt). Neuer optionaler Modul-Haken `is_empty(options, modell)`, `diagram_validation.validate_block` und `diagram_block_dispatch` reichen ihn durch; alle anderen Blöcke unverändert.
+  - Neu `diagram_text.option_flag` (Ja/Nein-Option, `None` = nicht gesetzt). **Offen (Altfund, Nachfrage bei der Lehrkraft):** `diagram_graph._enabled`, `diagram_logic._enabled`, `diagram_fractions._FALSE_VALUES` und `schild_render.parse_bool_option` sind weitere Kopien derselben Regel.
+  - GRENZE: Spaltenkürzel bleiben bei `Sprache: pt-BR` deutsch (Schulbuch-Notation); nur der Bruchspalten-Kopf ist übersetzt. Tests: `tests/test_diagram_placevalue.py`.
+
 - **Silbentrennung im Druck, nur wo nötig (2026-11-22).** Anlass: Kurzentwurf-Spalte „Lernumgebung“ (10 %) brach Wörter hart („Stellenwertta|fel“): `hyphens: auto` wirkt im Headless-Edge nicht (eigenes Profil, `--disable-component-update`, kein `hyphen-data`).
   - Neu `app/core/hyphenation_adapter.py` (einzige Pyphen-Stelle, 0.18.1 verifiziert: `language_fallback`, `Pyphen(left/right)`, `inserted(hyphen=)`; ohne Pyphen `None`). Neue Abhängigkeit `pyphen` in `requirements.txt`.
   - Neu `app/core/print_hyphenation.hyphenate_html`, aufgerufen nur in `write_pdf_from_html` (vor `prepare_html_for_print`): merkt Wörter ab 6 Buchstaben mit Trennstelle als `span.bw-hyph[data-bw-hyph]` vor und hängt `_APPLY_SCRIPT` an. Das Skript ersetzt den Text nur bei Wörtern mit mehr als einem Zeilenrechteck oder breiter als ihr Block; Durchgänge bei `load`, `document.fonts.ready` und `MathJax.startup.promise`, ohne darauf zu warten (Schriften stehen bei `load` im Druck noch auf „loading“, ein Warten ließ den Durchgang ausfallen).

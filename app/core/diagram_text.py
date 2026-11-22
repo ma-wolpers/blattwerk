@@ -165,3 +165,33 @@ def render_cell(cell: Cell, include_solutions: bool) -> tuple[str, bool]:
         else:
             parts.append(fragment)
     return "".join(parts), has_gap
+
+
+OPTION_TRUE_VALUES = ("1", "true", "yes", "on", "ja")
+OPTION_FALSE_VALUES = ("0", "false", "no", "off", "nein")
+
+
+def option_flag(options, key: str) -> bool | None:
+    """Liest eine Ja/Nein-Blockoption eines Diagrammblocks.
+
+    Args:
+        options: Blockoptionen (Werte als Text, YAML-`bool` wird auch verstanden).
+        key: Optionsname.
+
+    Returns:
+        ``True``/``False`` für einen eindeutigen Wert, ``None`` wenn die Option fehlt
+        oder unklar ist -- dann entscheidet der Block über seinen Standard (z. B. "auto").
+
+    Example:
+        >>> option_flag({"comma": "nein"}, "comma"), option_flag({}, "comma")
+        (False, None)
+    """
+    value = (options or {}).get(key)
+    if isinstance(value, bool):
+        return value
+    normalized = str(value if value is not None else "").strip().lower()
+    if normalized in OPTION_TRUE_VALUES:
+        return True
+    if normalized in OPTION_FALSE_VALUES:
+        return False
+    return None

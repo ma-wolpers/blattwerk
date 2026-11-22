@@ -207,6 +207,7 @@ Subprozess siehe `tests/test_blatt_diagnostics_cli.py` (Validator) sowie
 - `VN001`-`VN005` (`venn`): `VN001` leerer Block (Warnung); `VN002` Zeile passt nicht zur Syntax, `VN003` nicht 2 oder 3 Mengen, `VN004` Bereich doppelt (Fehler); `VN005` Element in zwei Bereichen (Warnung).
 - `AR001`-`AR004` (`arrowdiagram`): `AR001` leerer Block (Warnung); `AR002` Zeile passt nicht zur Syntax (Fehler); `AR003` Pfeil doppelt, `AR004` bei `kind=function` nicht genau ein Pfeil (Warnungen).
 - `FR001`-`FR003` (`fractions`): `FR001` leerer Block (Warnung); `FR002` kein Bruch, `FR003` Nenner außerhalb von 1 bis 60 (Fehler).
+- `PV001`-`PV007` (`placevalue`): `PV001` leerer Block ohne `rows` (Warnung); `PV002` Zeile ist keine Zahl und keine Zellenzeile, `PV003` Zellenzahl passt nicht zu den Spalten, `PV004` unbekanntes Spaltenkürzel oder `from` rechts von `to` (Fehler); `PV005` Ziffern außerhalb von `from`/`to` fallen weg, `PV006` Zellenzeilen ohne `from` und `to`, `PV007` `rows` keine ganze Zahl (Warnungen).
 - `MM001`-`MM005` (`memorydiagram`): `MM001` leerer Block (Warnung); `MM002` Zeile passt nicht zur Syntax, `MM003` unbekanntes Referenzziel, `MM004` doppelter Name, `MM005` Variable ohne genau einen Wert (Fehler).
 - `AN021`-`AN024` (`mc`): `AN021` keine richtige Antwort, `AN022` doppelte Antwort (Warnungen); `AN023` `tf=true` mit Checkboxen, `AN024` `correct=` außerhalb (Fehler).
 - `AN025`, `AN026` (`checkgrid`): `AN025` `correct` zeigt auf keine Spalte (Fehler); `AN026` Spalten oder Zeilen fehlen (Warnung).

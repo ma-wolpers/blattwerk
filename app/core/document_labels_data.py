@@ -103,5 +103,7 @@ LABELS = {
     "crossword_code": {"de": "Lösungscode:", "pt-br": "Palavra-chave:"},
     "crossword_across": {"de": "Waagerecht", "pt-br": "Horizontais"},
     "crossword_down": {"de": "Senkrecht", "pt-br": "Verticais"},
+    # -- Stellenwerttafel ----------------------------------------------------
+    "placevalue_fraction": {"de": "Bruch", "pt-br": "Fração"},
 }
 """Alle festen Ausgabetexte; Zugriff ausschließlich über `document_language`."""

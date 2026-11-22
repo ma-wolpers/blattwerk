@@ -824,6 +824,36 @@ Erzwingt einen harten Seiten-/Folienumbruch -- siehe Control-Marker `--!`.
 
 Keine Optionen.
 
+### `placevalue`
+
+Stellenwerttafel wie im Schulbuch: dicker Strich nach den Einern, Komma hinter jeder Einerziffer. Eine Zeile pro Zahl, `52,34` oder `52.34`; einzelne Ziffern als Lücke mit `%{…}` (`5%{2},3%{4}`), die ganze Zeile mit `%`. Für Sonderfälle wie 13 Zehntel stehen die Zellen einzeln da: `| 1 | 8 | 13 | |` (eine Zelle je Spalte, braucht `from` und `to`). Spaltenkürzel, Groß-/Kleinschreibung zählt: `HT ZT T H Z E` und `z h t zt ht`. Die Kürzel bleiben auch bei `Sprache: pt-BR` deutsch.
+
+| Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
+|---|---|---|---|---|---|
+| `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
+| `colors` | Enum | `all`, `decimals`, `none` | ja | `decimals` | `decimals` färbt die Nachkommaspalten wie im Buch, `all` alle Spalten, `none` keine. Die Töne kommen aus dem Farbprofil (im Schwarz-Weiß-Profil Grau). |
+| `comma` | Bool | -- | nein | `True` | `false` lässt das Komma in leeren Einerzellen weg (sonst vorgedruckt). |
+| `fraction` | Enum | `improper`, `mixed` | ja | *(keiner)* | Zusatzspalte mit dem Wert als Bruch mit Nenner 10, 100, 1000 …: `mixed` gemischt (2,02 als 2 2/100), `improper` als ein Bruch (202/100). Hat die Zeile eine Lücke, ist auch der Bruch offen. |
+| `fraction_gap` | Bool | -- | nein | `False` | `true` lässt die ganze Bruchspalte im Arbeitsblatt offen (Tafel gegeben, Bruch gesucht). |
+| `from` | Text | -- | nein | -- | Erste (größte) Spalte, z. B. `Z`; ohne Angabe passend zu den Zahlen. |
+| `labels` | Enum | `letters`, `none`, `numbers` | ja | `none` | `numbers` beschriftet die Zeilen mit 1), 2) …, `letters` mit a), b) … |
+| `mode` | Enum | `solution`, `worksheet` | ja | -- | Blockweite Fassung, Nachfolger von `show`. In Arbeitsblatt und Klausur Sichtbarkeit: `worksheet` blendet den Block nur im Arbeitsblatt ein, `solution` nur in der Lösung; ohne `mode` **und** ohne `show` ist der Block in beiden Ausgaben sichtbar. In Präsentationen ist jeder Block sichtbar; dort wählt `mode` nur an Antwort- und Diagrammblöcken, ob ihre Lösungen eingetragen erscheinen (`solution`) oder leer bleiben (`worksheet`, Standard), und ist an allen anderen Blöcken wirkungslos (`OP004`). |
+| `rows` | Ganzzahl | -- | nein | -- | Anzahl Zeilen des Rasters/der Linien. Der genaue Standardwert und ob eine fehlende Angabe automatisch berechnet wird, hängt vom Blocktyp ab (siehe Tabelle: Spalte "Standard"). *Besonderheit bei `placevalue`:* Mindestzahl an Zeilen; fehlende bleiben leer. Mit `from`/`to` ohne Inhalt eine leere Vorlage. |
+| `show` | Enum | `both`, `solution`, `worksheet` | ja | `both` | Steuert die Sichtbarkeit des Blocks: `worksheet` (nur Arbeitsblatt), `solution` (nur Lösung) oder `both` (Standard, in beiden Ausgaben sichtbar). **Veraltet:** Neue Dokumente sollten stattdessen `mode=worksheet|solution` verwenden (`show` löst dafür die Warnung `OP003` aus, bleibt aber weiterhin funktionsfähig). |
+| `to` | Text | -- | nein | -- | Letzte (kleinste) Spalte, z. B. `t`; ohne Angabe passend zu den Zahlen. |
+| `values` | Bool | -- | nein | -- | Stellenwertzeile im Kopf (… 10, 1, 1/10 …). Ohne Angabe nur, wenn die Tafel Nachkommastellen hat. |
+| `width` | CSS-Länge | -- | nein | `100%` | Breite des Blocks als CSS-Länge (`70%`, `12cm`, ...); Standard ist die volle Zeilenbreite. |
+
+**Beispiel** (identisch mit dem Menü "Einfügen" (Alt+I) im Editor):
+
+```markdown
+:::placevalue from=Z to=h
+2,8
+52,34
+% 8,25
+:::
+```
+
 ### `probabilitytree`
 
 Baumdiagramm für Wahrscheinlichkeiten: Ergebnisse eingerückt, die Wahrscheinlichkeit hinter dem Doppelpunkt, als `1/3`, `0,5` oder `50%`. Blattwerk rechnet nach, ob die Äste einer Verzweigung zusammen 1 ergeben. Lücken: `%{1/3}` bei einem Wert, `%` am Zeilenanfang für den ganzen Ast.

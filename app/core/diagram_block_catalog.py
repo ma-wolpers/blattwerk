@@ -15,6 +15,8 @@ Vertrag eines Moduls `app.core.<module>`:
   wirft nie wegen Nutzereingaben. Erhält den rohen Inhalt.
 * `parse(content) -> (modell, issues)`: fehlertolerant; ein leeres Modell ist falsy.
 * optional `check(collect, options, modell)`: fachliche Prüfungen.
+* optional `is_empty(options, modell) -> bool`, sonst gilt ``not modell``: für Blöcke,
+  deren Inhalt auch aus Optionen entstehen kann (leere Stellenwerttafel mit `rows=`).
 * optional `estimate_weight(options, content) -> float`, sonst die gemeinsame Schätzung.
 """
 
@@ -256,6 +258,24 @@ DIAGRAM_BLOCKS: tuple[DiagramBlockSpec, ...] = (
         options=(
             BlockOptionSpec("shape", "enum", frozenset({"circle", "bar"}), True, "circle"),
             BlockOptionSpec("filled", "boolean", None, False, True),
+        ),
+    ),
+    DiagramBlockSpec(
+        name="placevalue",
+        title="Stellenwerttafel",
+        module="diagram_placevalue",
+        snippet=":::placevalue from=Z to=h\n2,8\n52,34\n% 8,25[[CURSOR]]\n:::\n",
+        empty_code="PV001",
+        options=(
+            BlockOptionSpec("from", "text", None, False, MISSING),
+            BlockOptionSpec("to", "text", None, False, MISSING),
+            BlockOptionSpec("rows", "integer", None, False, MISSING),
+            BlockOptionSpec("values", "boolean", None, False, MISSING),
+            BlockOptionSpec("colors", "enum", frozenset({"none", "decimals", "all"}), True, "decimals"),
+            BlockOptionSpec("comma", "boolean", None, False, True),
+            BlockOptionSpec("labels", "enum", frozenset({"none", "numbers", "letters"}), True, "none"),
+            BlockOptionSpec("fraction", "enum", frozenset({"mixed", "improper"}), True, None),
+            BlockOptionSpec("fraction_gap", "boolean", None, False, False),
         ),
     ),
     DiagramBlockSpec(

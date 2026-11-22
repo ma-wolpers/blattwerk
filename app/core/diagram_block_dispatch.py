@@ -58,6 +58,7 @@ def validate_diagram_blocks(blocks) -> list[BuildDiagnostic]:
                 parse=module.parse,
                 check=getattr(module, "check", None),
                 empty_code=spec.empty_code,
+                is_empty=getattr(module, "is_empty", None),
             )
         )
     return diagnostics

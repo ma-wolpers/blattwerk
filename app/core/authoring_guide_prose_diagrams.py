@@ -54,6 +54,30 @@ DIAGRAM_PROSE_SECTIONS: dict[str, str] = {
     ),
     "block:fractions.shape": ("Form: `circle` oder `bar`."),
     "block:fractions.filled": ("`false` lässt alle Teile leer, zum Selbstausmalen."),
+    "block:placevalue": (
+        "Stellenwerttafel wie im Schulbuch: dicker Strich nach den Einern, Komma hinter jeder Einerziffer. "
+        "Eine Zeile pro Zahl, `52,34` oder `52.34`; einzelne Ziffern als Lücke mit `%{…}` (`5%{2},3%{4}`), "
+        "die ganze Zeile mit `%`. Für Sonderfälle wie 13 Zehntel stehen die Zellen einzeln da: `| 1 | 8 | 13 | |` "
+        "(eine Zelle je Spalte, braucht `from` und `to`). Spaltenkürzel, Groß-/Kleinschreibung zählt: "
+        "`HT ZT T H Z E` und `z h t zt ht`. Die Kürzel bleiben auch bei `Sprache: pt-BR` deutsch."
+    ),
+    "block:placevalue.from": ("Erste (größte) Spalte, z. B. `Z`; ohne Angabe passend zu den Zahlen."),
+    "block:placevalue.to": ("Letzte (kleinste) Spalte, z. B. `t`; ohne Angabe passend zu den Zahlen."),
+    "block:placevalue.rows": ("Mindestzahl an Zeilen; fehlende bleiben leer. Mit `from`/`to` ohne Inhalt eine leere Vorlage."),
+    "block:placevalue.values": (
+        "Stellenwertzeile im Kopf (… 10, 1, 1/10 …). Ohne Angabe nur, wenn die Tafel Nachkommastellen hat."
+    ),
+    "block:placevalue.colors": (
+        "`decimals` färbt die Nachkommaspalten wie im Buch, `all` alle Spalten, `none` keine. Die Töne kommen aus "
+        "dem Farbprofil (im Schwarz-Weiß-Profil Grau)."
+    ),
+    "block:placevalue.comma": ("`false` lässt das Komma in leeren Einerzellen weg (sonst vorgedruckt)."),
+    "block:placevalue.labels": ("`numbers` beschriftet die Zeilen mit 1), 2) …, `letters` mit a), b) …"),
+    "block:placevalue.fraction": (
+        "Zusatzspalte mit dem Wert als Bruch mit Nenner 10, 100, 1000 …: `mixed` gemischt (2,02 als 2 2/100), "
+        "`improper` als ein Bruch (202/100). Hat die Zeile eine Lücke, ist auch der Bruch offen."
+    ),
+    "block:placevalue.fraction_gap": ("`true` lässt die ganze Bruchspalte im Arbeitsblatt offen (Tafel gegeben, Bruch gesucht)."),
     "block:memorydiagram": (
         "Speicherbild, um Code nachzuvollziehen: `reihung r: 3, 5, 7` mit Indizes, `variable x: 5`, "
         "`referenz p -> r` (auch `-> null`), `stapel s: 1, 2` mit dem letzten Wert oben und `schlange q: 1, 2`. "

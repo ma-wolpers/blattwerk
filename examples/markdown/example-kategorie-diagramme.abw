@@ -460,6 +460,21 @@ Kreise, auch unecht und als Lücke. Dazu Balken und leere Formen zum Selbstausma
 
 --
 
+## Stellenwerttafel `:::placevalue`
+
+Wie im Schulbuch, mit Zeilen a) b) c), einer Lücke und der Bruchspalte. Darunter eine leere Vorlage.
+
+:::placevalue from=Z to=t labels=letters fraction=mixed
+2,8
+5%{2},3%{4}
+% 3,701
+:::
+
+:::placevalue from=H to=h rows=2
+:::
+
+--
+
 ## Venn-Diagramm `:::venn`
 
 Zwei Mengen mit einer Lücke:
