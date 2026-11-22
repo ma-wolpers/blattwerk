@@ -173,10 +173,12 @@ def render(options, content, include_solutions=False) -> str:
     rows += [None] * max(0, (_min_rows(options) or 0) - len(rows))
     body = "".join(_body_row(index, row, columns, options, include_solutions) for index, row in enumerate(rows))
     labeled = " pv-labeled" if _choice(options, "labels", _LABEL_STYLES, "none") != "none" else ""
+    # Mit Bruchspalte höhere Zeilen: Ein handgeschriebener Bruch braucht Zähler, Strich und Nenner.
+    fractions = " pv-fractions" if _choice(options, "fraction", _FRACTION_MODES, None) else ""
     style = width_style(options)
     style_attr = f" style='{style}'" if style else ""
     return (
-        f"<div class='diagram diagram-placevalue'><table class='diagram-table pv-table{labeled}'{style_attr}>"
+        f"<div class='diagram diagram-placevalue'><table class='diagram-table pv-table{labeled}{fractions}'{style_attr}>"
         f"{_head(columns, options)}<tbody>{body}</tbody></table></div>"
     )
 

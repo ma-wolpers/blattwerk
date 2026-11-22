@@ -2183,6 +2183,10 @@ pre,
     min-width: 4.5em;
 }
 
+.pv-table.pv-fractions td {
+    height: 2.6em;
+}
+
 .pv-table.pv-labeled {
     margin-left: 2.2em;
 }

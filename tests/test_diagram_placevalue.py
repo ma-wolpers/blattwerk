@@ -117,6 +117,12 @@ def test_comma_is_preprinted_unless_switched_off():
     assert _rows(render_diagram_block("placevalue", {"comma": "false"}, "2,8"))[0][0] == "2,"
 
 
+def test_fraction_column_makes_rows_taller():
+    """Mit Bruchspalte trägt die Tafel die Klasse für höhere Zeilen (Platz für einen Bruch)."""
+    assert "pv-fractions" in render_diagram_block("placevalue", {"fraction": "mixed"}, "2,8")
+    assert "pv-fractions" not in render_diagram_block("placevalue", {}, "2,8")
+
+
 def test_fraction_gap_hides_whole_fraction_column():
     """`fraction_gap=true` lässt den Bruch auch bei sichtbaren Ziffern offen."""
     rows = _rows(render_diagram_block("placevalue", {"fraction": "improper", "fraction_gap": "true"}, "0,234"))
