@@ -51,8 +51,10 @@ def render_number_line_answer(
 
     height = _parse_css_size(options.get("height"), "2.7cm")
     width = _resolve_numberline_width(options, config)
+    # Rahmen nur auf Wunsch (`frame=true`); ohne Rahmen bleibt die Box gleich groß.
+    framed = " numberline-framed" if _option_is_enabled(options.get("frame"), default=False) else ""
     base_html = (
-        f"<div class='answer numberline' style='height:{height}; width:{width}'>"
+        f"<div class='answer numberline{framed}' style='height:{height}; width:{width}'>"
         f"{debug_html}"
         f"{numberline_html}"
         "</div>"

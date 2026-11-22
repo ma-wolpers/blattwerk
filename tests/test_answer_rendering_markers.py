@@ -269,6 +269,15 @@ def test_numberline_fallback_solution_key_is_only_rendered_in_solution_mode():
     assert "Skizze mit Begruendung" in solution_html
 
 
+def test_numberline_frame_is_off_by_default_and_opt_in():
+    """Ohne Option kein Rahmen; `frame=true` setzt die Rahmenklasse."""
+    options = {"type": "numberline", "min": "0", "max": "5"}
+
+    assert "numberline-framed" not in _render_answer_block(options, "", include_solutions=False)
+    framed = _render_answer_block({**options, "frame": "true"}, "", include_solutions=False)
+    assert "answer numberline numberline-framed" in framed
+
+
 def test_cloze_wordbank_shows_duplicate_words_by_default():
     options = {"type": "cloze", "words": "below"}
     content = "Die {{CPU}} arbeitet mit der {{CPU}}."

@@ -8,6 +8,8 @@ Regel:
 
 ## [Unreleased]
 
+- **Zahlenstrahl-Rahmen nur noch auf Wunsch (2026-11-22).** Neue Ja/Nein-Option `frame` (Standard aus) in der `numberline`-Spec; `answer_numberline` liest sie über das vorhandene `_option_is_enabled` und setzt die Klasse `numberline-framed`. CSS: Grundregel mit transparentem Rahmen (gleiche Boxgröße wie vorher), die Rahmenfarbe steht nur in `.answer.numberline.numberline-framed`. Test: `test_numberline_frame_is_off_by_default_and_opt_in`.
+
 - **Diagrammblock `placevalue` (Stellenwerttafel) (2026-11-22).** Konzept mit der Lehrkraft in vier Fragerunden (Buchvorlage Dreifach Mathe 6).
   - Neu `app/core/diagram_placevalue_model.py` (Parsen beider Schreibweisen, `resolve_columns` mit `PV004`-`PV006`, `row_value`, `fraction_tex`) und `app/core/diagram_placevalue.py` (HTML-Tabelle `diagram-table pv-table` statt SVG, Kopf darum immer getönt; `check`, `is_empty`, `estimate_weight`). Katalogeintrag, Prosa, Label `placevalue_fraction`, CSS `.pv-table` (Töne aus `--diagram-data-N` über `--tint`, Zeilenbeschriftung als `td[data-label]::before` außerhalb der Tafel, damit der Tabellenversatz bleibt).
   - Fit-Check: Der Vertrag "leeres Modell = leerer Block" passte nicht zur leeren Vorlage (`rows=` ohne Inhalt). Neuer optionaler Modul-Haken `is_empty(options, modell)`, `diagram_validation.validate_block` und `diagram_block_dispatch` reichen ihn durch; alle anderen Blöcke unverändert.

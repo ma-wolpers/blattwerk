@@ -1104,6 +1104,7 @@ PROSE_SECTIONS: dict[str, str] = {
     "block:numberline.max_width_mm": ("Maximale Darstellungsbreite des Zahlenstrahls in Millimetern."),
     "block:numberline.max_width_cm": ("Maximale Darstellungsbreite des Zahlenstrahls in Zentimetern."),
     "block:numberline.full_width": ("Erzwingt volle verfügbare Breite für den Zahlenstrahl."),
+    "block:numberline.frame": ("Zeichnet einen Rahmen um den Zahlenstrahl (Standard: ohne Rahmen)."),
     "block:numberline.positive_sign": (
         "Zeigt bei positiven Zahlen explizit ein `+`-Vorzeichen an (Standard: aus)."
     ),

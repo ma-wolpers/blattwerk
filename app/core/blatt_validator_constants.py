@@ -469,6 +469,7 @@ BLOCK_OPTION_SPECS: dict[str, tuple[BlockOptionSpec, ...]] = {
         BlockOptionSpec("full_width", "boolean", None, False, MISSING),
         BlockOptionSpec("positive_sign", "boolean", None, False, MISSING),
         BlockOptionSpec("signed_positive", "boolean", None, False, MISSING),  # Alias von positive_sign
+        BlockOptionSpec("frame", "boolean", None, False, False),
         _OPT_ALIGN,
     ),
     "mc": (

@@ -748,6 +748,7 @@ Zahlenstrahl-Antwortfeld mit YAML-Payload (`labels`/`answers`/`arcs`/... je Elem
 | Option | Art | Erlaubte Werte | Geprüft? | Standard | Erklärung |
 |---|---|---|---|---|---|
 | `align` | Enum | `b`, `block`, `blocksatz`, `c`, `center`, `centre`, `j`, `justify`, `l`, `left`, `links`, `linksbuendig`, `linksbundig`, `m`, `middle`, `mitte`, `r`, `rechts`, `rechtsbuendig`, `rechtsbundig`, `right`, `zentriert` | ja | -- | Horizontale Ausrichtung des Blockinhalts: `left`/`links`, `right`/`rechts`, `center`/`mitte`/`zentriert` oder `block`/`blocksatz` (deutsche und englische Schreibweisen gleichwertig). |
+| `frame` | Bool | -- | nein | `False` | Zeichnet einen Rahmen um den Zahlenstrahl (Standard: ohne Rahmen). |
 | `full_width` | Bool | -- | nein | -- | Erzwingt volle verfügbare Breite für den Zahlenstrahl. |
 | `height` | CSS-Länge | -- | nein | `2.7cm` | Höhe des Antwortfelds als CSS-Länge (z. B. `4cm`, `120px`). Der genaue Standardwert hängt vom Blocktyp ab (siehe Tabelle: Spalte "Standard"). |
 | `major_every` | Ganzzahl | -- | nein | `0` | Jede n-te Tick-Marke wird als Hauptmarkierung hervorgehoben. |
