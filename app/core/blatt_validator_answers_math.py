@@ -1,15 +1,16 @@
 """Inhaltliche Prüfungen für `table`, `numberline` und `geometry`: Maße, Bereiche, Formeln.
 
 Alle Größen kommen aus den Funktionen der Renderer (`resolve_table_layout`,
-`_build_number_line_config`, `_resolve_axis_state`), damit Warnung und Darstellung
-übereinstimmen.
+`_build_number_line_config`, `resolve_geometry_frame`, `resolve_coordinate_system`),
+damit Warnung und Darstellung übereinstimmen.
 """
 
 from __future__ import annotations
 
 import yaml
 
-from .answer_grid_axis import _resolve_axis_state
+from .answer_grid_entries import _entry_coordinates
+from .answer_grid_frame import resolve_coordinate_system, resolve_geometry_frame
 from .answer_grid_function_eval import _eval_function_expr
 from .answer_numberline_parse import _build_number_line_config, _parse_number_line_payload
 from .answer_numberline_values import _as_numberline_float
@@ -67,42 +68,32 @@ def check_numberline(collect, options, content) -> None:
                 collect.add("AN037", f"`{value:g}` in `{section}` liegt außerhalb von {number_min:g} bis {number_max:g}.", anchor=f"AN037:{section}:{value:g}")
 
 
-def _visible_range(options):
-    """Sichtbarer Bereich `(x_min, x_max, y_min, y_max)`, `None` ohne brauchbare Maße.
+def _check_points(collect, options, payload) -> None:
+    """Punkte außerhalb der Hauptfläche (`AN040`): im Randbereich zählen sie nicht zur Fläche, dahinter fehlen sie ganz.
 
-    Ohne Achse sind es die Rasterzellen, mit Achse mathematische Koordinaten.
+    Liest Koordinaten (`_entry_coordinates`), Koordinatensystem
+    (`resolve_coordinate_system`) und Flächen (`GeometryFrame`) auf genau dem
+    Weg des Renderers -- auch mit dessen Standardmaßen, wenn `width`/`height`
+    fehlen. Im Achsenzustand `"broken"` meldet `OP005`, hier gibt es nichts zu
+    prüfen.
     """
-    width, height = _safe_int(options.get("width"), 0), _safe_int(options.get("height"), 0)
-    if width <= 0 or height <= 0:
-        return None
-    state = _resolve_axis_state(options)
-    mode, origin = state
-    if mode != "active":
-        return 0.0, float(width), 0.0, float(height)
-    origin_x, origin_y = origin
-    step_x = _as_numberline_float(options.get("step_x")) or 1.0
-    step_y = _as_numberline_float(options.get("step_y")) or 1.0
-    return (
-        -origin_x * step_x,
-        (width - 1 - origin_x) * step_x,
-        -origin_y * step_y,
-        (height - 1 - origin_y) * step_y,
-    )
-
-
-def _check_points(collect, payload, visible) -> None:
-    """Punkte außerhalb der Fläche wären unsichtbar oder abgeschnitten (`AN040`)."""
-    x_min, x_max, y_min, y_max = visible
+    coord_system = resolve_coordinate_system(options)
+    if coord_system is None:
+        return
+    frame = resolve_geometry_frame(options)
     for section in ("points", "sequence"):
         for number, entry in enumerate(payload.get(section) or [], start=1):
             if not isinstance(entry, dict):
                 continue
-            x = _as_numberline_float(entry.get("x", entry.get("col")))
-            y = _as_numberline_float(entry.get("y", entry.get("row")))
-            if x is None or y is None:
+            coordinates = _entry_coordinates(entry, section, coord_system)
+            if coordinates is None:
                 continue
-            if not (x_min <= x <= x_max and y_min <= y <= y_max):
-                collect.add("AN040", f"Punkt {number} in `{section}` ({x:g}|{y:g}) liegt außerhalb der Fläche.", anchor=f"AN040:{section}:{number}")
+            grid_point = coord_system.point(*coordinates)
+            if frame.is_in_main_area(*grid_point):
+                continue
+            where = "im Randbereich und damit außerhalb der Fläche" if frame.is_visible(*grid_point) else "außerhalb der Fläche"
+            x, y = coordinates
+            collect.add("AN040", f"Punkt {number} in `{section}` ({x:g}|{y:g}) liegt {where}.", anchor=f"AN040:{section}:{number}")
 
 
 def _check_functions(collect, payload) -> None:
@@ -125,7 +116,5 @@ def check_geometry(collect, options, content) -> None:
         return
     if not isinstance(payload, dict):
         return
-    visible = _visible_range(options)
-    if visible is not None:
-        _check_points(collect, payload, visible)
+    _check_points(collect, options, payload)
     _check_functions(collect, payload)

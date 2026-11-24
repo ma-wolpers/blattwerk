@@ -22,9 +22,11 @@ import re
 
 from .blatt_kern_shared_data import JA_NEIN_BOOLEAN_TOKENS
 from .answer_grid_axis import _resolve_axis_state
+from .answer_grid_frame import parse_geometry_margin
 from .blatt_validator_constants import (
     ANSWER_BLOCK_TYPES,
     BLOCK_OPTION_SPECS,
+    GEOMETRY_MARGIN_DEFAULT,
     KNOWN_SHOW_VALUES,
     OBJECT_ALIGN_VALUE_HINT,
     QRCODE_SIZE_OPTION_KEYS,
@@ -140,6 +142,30 @@ def _validate_geometry_axis_origin_pair(diagnostics, index, block_type, options)
             block_type=block_type,
             region_id=compute_block_region_id(block_type, options),
             anchor="axis",
+        )
+    )
+
+
+def _validate_geometry_margin(diagnostics, index, block_type, options):
+    """Prüft `:::geometry margin=` auf eine Zahl von 0 bis unter 1 (`OP002`, Warnung).
+
+    Dieselbe Funktion wie im Renderer (`parse_geometry_margin`): Was hier
+    gemeldet wird, ersetzt der Renderer still durch den Standardrand.
+    """
+    if "margin" not in options or parse_geometry_margin(options.get("margin")) is not None:
+        return
+    diagnostics.append(
+        BuildDiagnostic(
+            code="OP002",
+            message=(
+                f"Ungültiger Wert für `margin` in Block `{block_type}`: `{options.get('margin')}`. "
+                "Erlaubt ist eine Zahl von 0 bis unter 1 (Zellen Randbereich je Seite); "
+                f"stattdessen gilt der Standard {GEOMETRY_MARGIN_DEFAULT:g}."
+            ),
+            block_index=index,
+            block_type=block_type,
+            region_id=compute_block_region_id(block_type, options),
+            anchor="margin",
         )
     )
 
@@ -282,5 +308,6 @@ def _validate_block_options(diagnostics, index, block_type, options, allowed_opt
 
     if block_type == "geometry":
         _validate_geometry_axis_origin_pair(diagnostics, index, block_type, options)
+        _validate_geometry_margin(diagnostics, index, block_type, options)
 
     return qrcode_url_value

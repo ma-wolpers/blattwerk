@@ -146,7 +146,7 @@ Subprozess siehe `tests/test_blatt_diagnostics_cli.py` (Validator) sowie
 - `OPR007`: Operatorentabelle in einem Dokumenttyp ohne diese Funktion (z. B. Praesentation); sie wird nicht angezeigt. Warnung.
 - `OPR008`: Die Bereiche zweier Operatorentabellen ueberschneiden sich (dieselben Operatoren stehen in mehreren Tabellen). Warnung, einmal je beteiligter Tabelle.
 - `OP001`: Unbekannte Option fuer einen bekannten Block.
-- `OP002`: Ungueltiger Wert einer bekannten Option.
+- `OP002`: Ungueltiger Wert einer bekannten Option. Auch `:::geometry margin=` ausserhalb von 0 bis unter 1 (dann gilt der Standardrand 0.5).
 - `OP003`: Option `show` in einem Block ist veraltet; `mode=worksheet|solution` verwenden.
 - `OP004`: Veraltete Option, die ignoriert wird. Warnung. Faelle (eine Quelle: `block_mode_policy.deprecated_ignored_options`, auch die Editor-Vorschlaege richten sich danach):
   - `mode`, `show` oder `target` bei `:::solution` -- Loesungen erscheinen nur in der Loesungsfassung (in Praesentationen immer), `target=` ordnet nur noch `:::expectation` zu.
@@ -214,7 +214,7 @@ Subprozess siehe `tests/test_blatt_diagnostics_cli.py` (Validator) sowie
 - `AN027`-`AN031` (`matching`): `AN027` Verbindung auf fehlenden Eintrag, `AN031` `worksheet_matches` nicht in `matches` (Fehler); `AN028` keine `matches`, `AN029` Eintrag ohne Verbindung, `AN030` Lösung allein über die Position (Warnungen).
 - `AN032`, `AN033`, `AN049` (`table`, Warnungen): `AN032` `cells:` größer als `rows`/`cols`, `AN049` Kopfzeilen passen nicht zur Spalten- oder Zeilenzahl, `AN033` Tabelle ohne `rows=` wird aufgefüllt.
 - `AN037`-`AN039` (`numberline`): `AN037` Wert außerhalb des Bereichs (Warnung); `AN038` `min` nicht kleiner als `max`, `AN039` `tick_step` nicht positiv (Fehler).
-- `AN040`, `AN041` (`geometry`): `AN040` Punkt außerhalb der Fläche (Warnung); `AN041` Term nicht auswertbar (Fehler).
+- `AN040`, `AN041` (`geometry`): `AN040` Punkt außerhalb der Fläche (Warnung) -- auch ein Punkt im Randbereich (`margin`), der zwar gezeichnet wird, aber nicht zur Fläche zählt; Größe und Koordinaten wie im Renderer, also auch mit Standardgröße 20×5; `AN041` Term nicht auswertbar (Fehler).
 - `AN043`, `AN044` (`wordsearch`): `AN043` Wort doppelt (Warnung); `AN044` alle Richtungen aus (Fehler).
 - `AN045`, `AN046` (`cloze`): `AN045` keine Lücke (Warnung); `AN046` Lücke nicht geschlossen (Fehler).
 - `AN047`, `AN048` (`ordering`, Warnungen): weniger als zwei Elemente; Element doppelt.

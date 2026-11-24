@@ -13,6 +13,7 @@ import pytest
 
 from app.core.answer_grid_frame import parse_geometry_margin, resolve_geometry_frame
 from app.core.answer_grid_plot import render_geometry_answer
+from app.core.blatt_validator import inspect_markdown_text
 from app.core.blatt_validator_constants import GEOMETRY_MARGIN_DEFAULT
 
 
@@ -73,3 +74,41 @@ def test_function_graph_and_point_continue_into_margin():
 def test_background_lines_continue_into_margin_and_margin_zero_ends_at_area():
     assert "y1='-0.5000' x2='0.0000' y2='4.5000'" in _render({"background": "lines"})
     assert "y1='0.0000' x2='0.0000' y2='4.0000'" in _render({"background": "lines", "margin": "0"})
+
+
+HEAD = "---\ndocument_type: worksheet\nTitel: T\nFach: M\nThema: X\n---\n"
+
+
+def _messages(header, payload):
+    """Meldungen `(code, text)` des Validators für einen einzelnen Geometry-Block."""
+    report = inspect_markdown_text(f"{HEAD}:::geometry {header}\n{payload}:::\n")
+    return [(diagnostic.code, diagnostic.message) for diagnostic in report.diagnostics]
+
+
+def test_point_in_margin_is_drawn_but_reported_as_outside_the_area():
+    messages = _messages('width=4 height=4 axis=true origin="0,0"', "points:\n  - {x: 4.3, y: 1, label: R}\n")
+    an040 = [text for code, text in messages if code == "AN040"]
+    assert len(an040) == 1 and an040[0].endswith("Punkt 1 in `points` (4.3|1) liegt im Randbereich und damit außerhalb der Fläche.")
+    assert ">R</text>" in _render({"axis": "true", "origin": "0,0"}, "points:\n  - {x: 4.3, y: 1, label: R}\n")
+
+
+def test_point_on_the_far_edge_of_the_area_is_not_reported():
+    """Früher rechnete AN040 mit `width - 1` und meldete einen gezeichneten Randpunkt."""
+    messages = _messages('width=10 height=10 axis=true origin="5,5"', "points:\n  - {x: 5, y: 5, label: E}\n")
+    assert "AN040" not in [code for code, _text in messages]
+
+
+def test_point_far_outside_and_default_size_are_checked_like_the_renderer():
+    messages = _messages("height=3", "points:\n  - {col: 21, row: 1}\n  - {col: 20, row: 3}\n")
+    an040 = [text for code, text in messages if code == "AN040"]
+    assert len(an040) == 1 and an040[0].endswith("Punkt 1 in `points` (21|1) liegt außerhalb der Fläche.")
+
+
+@pytest.mark.parametrize("value", ["1", "-0.5", "breit"])
+def test_invalid_margin_is_reported(value):
+    assert any(code == "OP002" and "`margin`" in text for code, text in _messages(f"width=4 height=4 margin={value}", ""))
+
+
+def test_valid_margin_and_frame_are_accepted():
+    codes = [code for code, _text in _messages("width=4 height=4 margin=0.9 frame=true", "")]
+    assert "OP001" not in codes and "OP002" not in codes and "OP008" not in codes
