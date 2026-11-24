@@ -2,10 +2,17 @@
 
 Die Dateien unter `tests/golden/geometry/` entstanden vor dem Umbau auf
 Mathe-Koordinaten (Wunschliste Schritt 8) und werden nicht angepasst, solange
-sich die Ausgabe nicht gewollt ändert. Abdeckung: alle Sektionen, Achse mit
-gebrochenem, außerhalb liegendem und randständigem Ursprung, krumme
+sich die Ausgabe nicht gewollt ändert. Gewollt geändert am 2026-11-24 durch
+Randbereich (`margin`, Standard ½ Zelle) und optionalen Rahmen (Klasse
+`geometry`): vorher geprüft, dass alle bisherigen Fälle mit `margin=0`
+numerisch identisch bleiben (Unterschiede nur Klasse und Zahlformat
+`0` → `0.0000`); seitdem zeigen die Dateien den Standardrand.
+
+Abdeckung: alle Sektionen, Achse mit gebrochenem, außerhalb liegendem und
+randständigem Ursprung, krumme
 Schrittweiten (dort zeigen sich Rundungsunterschiede), Tick-Obergrenze,
-Label-Layout `auto`/`fixed`, Hintergründe und Sichtbarkeitsmarker.
+Label-Layout `auto`/`fixed`, Hintergründe, Sichtbarkeitsmarker, Randbereich
+(ohne, Standard, breit mit Rahmen) samt Graph und Punkt im Randbereich.
 """
 
 from __future__ import annotations
@@ -58,6 +65,13 @@ SPECS = {
     "background_lines_dashed": ({**_AXIS, "origin": "3,3", "background": "lines", "line": "dashed"}, _MIXED, False),
     "background_dots": ({**_PLAIN, "background": "dots"}, _MIXED, False),
     "show_markers_worksheet": (_PLAIN, "points:\n  - {x: 1, y: 1, label: W, show: '§'}\n  - {x: 2, y: 2, label: L, show: '%'}\n  - {x: 3, y: 3, label: B, show: '&'}\n", False),
+    "margin_zero": ({**_AXIS, "origin": "5,5", "margin": "0"}, _MIXED, False),
+    "margin_default_reaches_into_margin": (
+        {**_AXIS, "origin": "5,5", "background": "lines"},
+        "functions:\n  - {expr: 'x^2 - 2', domain: '-4:4', label: f}\npoints:\n  - {x: 5.3, y: 0, label: R}\n",
+        False,
+    ),
+    "margin_wide_framed": ({**_AXIS, "origin": "5,5", "margin": "0.9", "frame": "true", "background": "dots"}, _MIXED, False),
     "show_markers_solution": (_PLAIN, "points:\n  - {x: 1, y: 1, label: W, show: '§'}\n  - {x: 2, y: 2, label: L, show: '%'}\n  - {x: 3, y: 3, label: B, show: '&'}\n", True),
 }
 

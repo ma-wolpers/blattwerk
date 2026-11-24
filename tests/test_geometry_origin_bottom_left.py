@@ -31,8 +31,9 @@ def test_to_svg_counts_rows_from_bottom():
 
 def test_axis_origin_zero_zero_is_bottom_left_corner():
     svg = _render({"axis": "true", "origin": "0,0"}, "")
-    assert "<line class='grid-axis' x1='0' y1='10.0000' x2='10.0000' y2='10.0000' />" in svg
-    assert "<line class='grid-axis' x1='0.0000' y1='0' x2='0.0000' y2='10.0000' />" in svg
+    # Mit Standard-Randbereich (½ Zelle) laufen beide Achsen bis -0.5 bzw. 10.5 weiter.
+    assert "<line class='grid-axis' x1='-0.5000' y1='10.0000' x2='10.5000' y2='10.0000' />" in svg
+    assert "<line class='grid-axis' x1='0.0000' y1='-0.5000' x2='0.0000' y2='10.5000' />" in svg
 
 
 def test_axis_point_above_origin_is_drawn_higher():

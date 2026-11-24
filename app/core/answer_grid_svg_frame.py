@@ -17,25 +17,30 @@ from .answer_grid_axis import (
 )
 
 
-def _svg_viewport_frame(cols, rows, bleed_units=(0.0, 0.0, 0.0, 0.0)):
+def _svg_viewport_frame(cols, rows, bleed_units=(0.0, 0.0, 0.0, 0.0), margin=0.0):
     """Baut die gemeinsame SVG-Viewport-Geometrie für Hintergrund und Overlay.
 
-    `bleed_units` erweitert den sichtbaren Bereich über die reinen
-    `cols`/`rows` hinaus (z. B. für Achsenbeschriftungen, die außerhalb des
-    Rasters liegen) — Hintergrund-Raster und Objekt-Overlay teilen sich
-    exakt dieselbe `viewBox`/Positionierung, damit sie pixelgenau
+    Die Box (das HTML-Element, auf das sich die Prozentwerte beziehen) ist die
+    Hauptfläche `cols × rows` plus `margin` auf jeder Seite (Randbereich von
+    `:::geometry`, siehe `answer_grid_frame`; `:::grid` hat keinen). SVG-y
+    zählt nach unten, die Box beginnt also bei `(-margin, -margin)`.
+    `bleed_units` erweitert den sichtbaren Bereich über die Box hinaus (z. B.
+    für Achsenbeschriftungen) — Hintergrund-Raster und Objekt-Overlay teilen
+    sich exakt dieselbe `viewBox`/Positionierung, damit sie pixelgenau
     übereinanderliegen.
     """
     bleed_top, bleed_right, bleed_bottom, bleed_left = bleed_units
-    view_x = -bleed_left
-    view_y = -bleed_top
-    view_w = float(cols) + bleed_left + bleed_right
-    view_h = float(rows) + bleed_top + bleed_bottom
+    box_w = float(cols) + 2 * margin
+    box_h = float(rows) + 2 * margin
+    view_x = -bleed_left - margin
+    view_y = -bleed_top - margin
+    view_w = box_w + bleed_left + bleed_right
+    view_h = box_h + bleed_top + bleed_bottom
 
-    left_pct = -(bleed_left / float(cols)) * 100.0 if cols else 0.0
-    top_pct = -(bleed_top / float(rows)) * 100.0 if rows else 0.0
-    width_pct = (view_w / float(cols)) * 100.0 if cols else 100.0
-    height_pct = (view_h / float(rows)) * 100.0 if rows else 100.0
+    left_pct = -(bleed_left / box_w) * 100.0 if box_w else 0.0
+    top_pct = -(bleed_top / box_h) * 100.0 if box_h else 0.0
+    width_pct = (view_w / box_w) * 100.0 if box_w else 100.0
+    height_pct = (view_h / box_h) * 100.0 if box_h else 100.0
 
     style = (
         f"left:{left_pct:.4f}%; top:{top_pct:.4f}%; "
@@ -45,7 +50,7 @@ def _svg_viewport_frame(cols, rows, bleed_units=(0.0, 0.0, 0.0, 0.0)):
     return view_box, style
 
 
-def _render_grid_background_svg(cols, rows, bleed_units=(0.0, 0.0, 0.0, 0.0), line_style="solid"):
+def _render_grid_background_svg(cols, rows, bleed_units=(0.0, 0.0, 0.0, 0.0), line_style="solid", margin=0.0):
     """Rendert das Karo-Raster als SVG im selben Koordinatensystem wie die Overlays.
 
     `line_style` steuert nur das Aussehen der Rasterlinien selbst
@@ -53,20 +58,25 @@ def _render_grid_background_svg(cols, rows, bleed_units=(0.0, 0.0, 0.0, 0.0), li
     immer durchgezogenen Verhalten) — ein ungültiger Wert wird von der
     aufrufenden Seite bereits auf `"solid"` normalisiert, hier wird nur
     noch zwischen den zwei bekannten Werten unterschieden.
+
+    Die Linien liegen auf den ganzzahligen Positionen der Hauptfläche und
+    laufen um `margin` in den Randbereich weiter; weil `margin < 1` ist, kommt
+    dort keine eigene Linie hinzu.
     """
-    view_box, frame_style = _svg_viewport_frame(cols, rows, bleed_units)
+    view_box, frame_style = _svg_viewport_frame(cols, rows, bleed_units, margin)
     line_classes = "grid-background-line"
     if line_style == "dashed":
         line_classes += " grid-background-line-dashed"
     grid_lines = []
+    low, right, top = 0.0 - margin, float(cols) + margin, float(rows) + margin
 
     for x in range(0, int(cols) + 1):
         grid_lines.append(
-            f"<line class='{line_classes}' x1='{x:.4f}' y1='0' x2='{x:.4f}' y2='{rows:.4f}' />"
+            f"<line class='{line_classes}' x1='{x:.4f}' y1='{low:.4f}' x2='{x:.4f}' y2='{top:.4f}' />"
         )
     for y in range(0, int(rows) + 1):
         grid_lines.append(
-            f"<line class='{line_classes}' x1='0' y1='{y:.4f}' x2='{cols:.4f}' y2='{y:.4f}' />"
+            f"<line class='{line_classes}' x1='{low:.4f}' y1='{y:.4f}' x2='{right:.4f}' y2='{y:.4f}' />"
         )
 
     return (
@@ -76,7 +86,7 @@ def _render_grid_background_svg(cols, rows, bleed_units=(0.0, 0.0, 0.0, 0.0), li
     )
 
 
-def _render_geometry_background_dots_svg(cols, rows, bleed_units=(0.0, 0.0, 0.0, 0.0)):
+def _render_geometry_background_dots_svg(cols, rows, bleed_units=(0.0, 0.0, 0.0, 0.0), margin=0.0):
     """Rendert ein Punktraster (`:::geometry background=dots`) im selben Koordinatensystem wie `_render_grid_background_svg`.
 
     Ein Punkt pro Gitterschnittpunkt (inklusive Rand) statt voller
@@ -85,8 +95,12 @@ def _render_geometry_background_dots_svg(cols, rows, bleed_units=(0.0, 0.0, 0.0,
     Linienraster-Renderpfad unverändert), daher kein `line_style`-Parameter
     wie beim Linien-Pendant -- Punkte kennen in dieser DSL nur eine
     Erscheinungsform.
+
+    GRENZE: Punkte sitzen nur auf ganzzahligen Schnittpunkten der Hauptfläche;
+    der Randbereich (`margin < 1`) enthält deshalb keine eigenen Punkte, nur
+    der Viewport wächst um ihn mit.
     """
-    view_box, frame_style = _svg_viewport_frame(cols, rows, bleed_units)
+    view_box, frame_style = _svg_viewport_frame(cols, rows, bleed_units, margin)
     dot_markup = []
     for x in range(0, int(cols) + 1):
         for y in range(0, int(rows) + 1):
@@ -108,6 +122,7 @@ def _estimate_geometry_bleed_units(
     axis_enabled,
     axis_label_x,
     axis_label_y,
+    margin=0.0,
 ):
     """Schätzt den Bleed-Rand je Seite (in Grid-Einheiten) für Achsenlabels/-namen.
 
@@ -119,7 +134,14 @@ def _estimate_geometry_bleed_units(
     Verfügung steht (reines SVG-String-Building, kein Layout-Engine-Zugriff).
 
     `logical_origin` und alle Abstände sind Mathe-Rasterkoordinaten (y nach
-    oben): `axis_origin_y` ist der Abstand der x-Achse zur Unterkante.
+    oben): `axis_origin_y` ist der Abstand der x-Achse zur Unterkante der
+    Hauptfläche.
+
+    Der Bleed liegt außerhalb der Box (Hauptfläche plus `margin` je Seite).
+    Überhänge, die vom Achsenkreuz aus gemessen werden (Tick-Zahlen, x-Name
+    oben, y-Werte links), schrumpfen deshalb um `margin`; die an den
+    Pfeilspitzen hängenden nicht, weil die Pfeile mit dem Achsenende um
+    `margin` nach außen wandern.
     """
     base_top = 0.55
     base_right = 0.55
@@ -155,13 +177,13 @@ def _estimate_geometry_bleed_units(
     char_w = 0.26
     text_h = 0.78
 
-    y_tick_left_overhang = 0.28 + (char_w * max_y_chars) + 0.14
-    y_name_left_overhang = 0.12 + (char_w * max(1, len(axis_label_y or ""))) + 0.12
-    x_label_bottom_overhang = max(0.0, 0.58 - axis_origin_y) + text_h
+    y_tick_left_overhang = 0.28 + (char_w * max_y_chars) + 0.14 - margin
+    y_name_left_overhang = 0.12 + (char_w * max(1, len(axis_label_y or ""))) + 0.12 - margin
+    x_label_bottom_overhang = max(0.0, 0.58 - (axis_origin_y + margin)) + text_h
     x_name_right_overhang = max(0.0, (float(cols) + 0.34 + 0.16 + (char_w * max(1, len(axis_label_x or "")))) - float(cols)) + 0.12
     y_arrow_top_overhang = 0.34 + 0.08
     y_name_top_overhang = 0.42 + text_h
-    x_name_top_overhang = max(0.0, 0.28 - (float(rows) - axis_origin_y)) + text_h
+    x_name_top_overhang = max(0.0, 0.28 - (float(rows) - axis_origin_y + margin)) + text_h
 
     safety = 0.18
     top = max(base_top, y_arrow_top_overhang, y_name_top_overhang, x_name_top_overhang) + safety

@@ -5,17 +5,15 @@ Normative Quelle für "was ist ein gültiger YAML-Eintrag" je Geometry-Sektion
 der Renderer (`answer_grid_primitives.py`, `answer_grid_shapes.py`) als
 auch der Validator (`blatt_validator_yaml_entries.py`) beziehen ihr Wissen
 über erlaubte Felder von hier, damit keine zweite, potenziell abweichende
-Kopie dieser Liste entsteht. Enthält außerdem `_GeometryCoordinateSystem`,
-die einzige Stelle, an der die Umrechnung Objekt-Koordinaten ->
-Rasterkoordinaten passiert. Die reinen, renderer-unabhängigen
+Kopie dieser Liste entsteht. Die Umrechnung Objekt-Koordinaten ->
+Rasterkoordinaten (`_GeometryCoordinateSystem`) lebt in `answer_grid_coords.py`,
+hier nur das Lesen der Rohwerte (`_entry_coordinates`). Die reinen, renderer-unabhängigen
 Validitätsprädikate für `polygons`/`circles` leben in einem eigenen,
 ebenfalls neutralen Modul (`answer_grid_validity.py`, 300-Zeilen-
 Konvention) statt hier -- Details dort.
 """
 
 from __future__ import annotations
-
-from dataclasses import dataclass
 
 from .answer_special_shared import parse_svg_color, parse_svg_thickness
 
@@ -78,9 +76,20 @@ def _parse_domain(domain_text):
         return None, None
 
 
-def _inside_grid(x_value, y_value, cols, rows):
-    """Prüft, ob ein Punkt innerhalb des sichtbaren Rasterbereichs liegt."""
-    return 0.0 <= x_value <= float(cols) and 0.0 <= y_value <= float(rows)
+def _entry_coordinates(item, section, coord_system):
+    """Rohkoordinate `(x, y)` eines `points`-/`sequence`-Eintrags; ``None``, wenn nicht lesbar.
+
+    Eine Leseregel für Parser und Validator (`AN040`): Nur `points` ohne Achse
+    nimmt `col`/`row` (mit `x`/`y` als Alias), sonst gilt `x`/`y`. Die
+    Umrechnung in Rasterkoordinaten macht danach `coord_system.point()`.
+    """
+    if section == "points" and not coord_system.axis_active:
+        x, y = _as_float(item.get("col", item.get("x"))), _as_float(item.get("row", item.get("y")))
+    else:
+        x, y = _as_float(item.get("x")), _as_float(item.get("y"))
+    if x is None or y is None:
+        return None
+    return x, y
 
 
 def _normalize_show_mode(show_value):
@@ -116,53 +125,6 @@ def _is_visible(show_value, include_solutions):
     return False
 
 
-@dataclass(frozen=True)
-class _GeometryCoordinateSystem:
-    """Bündelt die Umrechnung Objekt-Koordinaten -> Mathe-Rasterkoordinaten an EINER Stelle.
-
-    Ersetzt das frühere Muster, `axis_enabled`/`origin`/`step_x`/`step_y`
-    als lose Parameter durch jede `_parse_*`-Funktion einzeln
-    durchzureichen -- die Umrechnungsformel existiert dadurch nur noch
-    einmal (hier), statt in `_parse_points`/`_parse_sequence`/`_parse_pairs`
-    und `_sample_function_points` (`answer_grid_function_eval.py`) separat
-    dupliziert zu werden.
-
-    `axis_active` ist nur im Tri-State `"active"` `True` (siehe
-    `_resolve_axis_state`, `answer_grid_axis.py`) -- der Zustand `"broken"`
-    erreicht das Parsing gar nicht erst, `_render_grid_primitives_svg`
-    bricht dafür schon vorher ab.
-
-    Eine einzige Konvention für alle Sektionen: `(0, 0)` ist die **linke
-    untere** Ecke, `y` wächst nach oben -- ohne Achse direkt in Rastereinheiten,
-    mit Achse relativ zu `origin` (dessen Zeile ebenfalls von unten zählt). Auch
-    das Ergebnis zählt von unten; die Umkehr fürs SVG macht allein
-    `answer_grid_coords.to_svg`. (Bis 2026-10-06 zählten `points[].col`/`row`
-    und die `origin`-Zeile von oben; Bestandsdokumente wurden migriert.)
-    """
-
-    axis_active: bool
-    origin: tuple[float, float] | None
-    step_x: float
-    step_y: float
-
-    def point(self, x, y):
-        """Bildet eine Objekt-Koordinate `(x, y)` auf eine Mathe-Rasterkoordinate ab."""
-        if self.axis_active:
-            return self.origin[0] + (x / self.step_x), self.origin[1] + (y / self.step_y)
-        return x, y
-
-    def radius(self, r):
-        """Bildet einen skalaren Radius `r` auf `(rx, ry)` in Rastereinheiten ab.
-
-        Im Achsenmodus ggf. anisotrop (unterschiedliche `step_x`/`step_y`
-        ergeben eine Ellipse); ohne Achse ist die Rasterzelle immer
-        quadratisch, daher `(r, r)`.
-        """
-        if self.axis_active:
-            return r / self.step_x, r / self.step_y
-        return r, r
-
-
 def _parse_points(raw_points, coord_system, include_solutions):
     """Parst `points`-Einträge zu Grid-Tupeln `(x, y, label, color, thickness, mode)`.
 
@@ -185,19 +147,10 @@ def _parse_points(raw_points, coord_system, include_solutions):
         if not _is_visible(mode, include_solutions):
             continue
 
-        if coord_system.axis_active:
-            x = _as_float(item.get("x"))
-            y = _as_float(item.get("y"))
-            if x is None or y is None:
-                continue
-            gx, gy = coord_system.point(x, y)
-        else:
-            col = _as_float(item.get("col", item.get("x")))
-            row = _as_float(item.get("row", item.get("y")))
-            if col is None or row is None:
-                continue
-            gx, gy = coord_system.point(col, row)
-
+        coordinates = _entry_coordinates(item, "points", coord_system)
+        if coordinates is None:
+            continue
+        gx, gy = coord_system.point(*coordinates)
         label = str(item.get("label", "")).strip()
         color = parse_svg_color(item.get("color"))
         thickness = parse_svg_thickness(item.get("thickness"))
@@ -226,11 +179,10 @@ def _parse_sequence(raw_sequence, coord_system, include_solutions):
         mode = _normalize_show_mode(item.get("show"))
         if not _is_visible(mode, include_solutions):
             continue
-        x = _as_float(item.get("x"))
-        y = _as_float(item.get("y"))
-        if x is None or y is None:
+        coordinates = _entry_coordinates(item, "sequence", coord_system)
+        if coordinates is None:
             continue
-        gx, gy = coord_system.point(x, y)
+        gx, gy = coord_system.point(*coordinates)
         label = str(item.get("label", "")).strip()
         color = parse_svg_color(item.get("color"))
         thickness = parse_svg_thickness(item.get("thickness"))

@@ -117,6 +117,15 @@ Hintergrund-Renderpfad unverändert -- diese Option existiert nur für
 `:::geometry`, das seit der Entkopplung von `:::grid`s Modell standardmäßig
 (`none`) *kein* Hintergrundraster mehr zeichnet.
 """
+GEOMETRY_MARGIN_DEFAULT = 0.5
+"""Standard-Randbereich von `:::geometry` (`margin=`) in Rasterzellen je Seite.
+
+Der Randbereich ist ein Saum um die Hauptfläche: Hintergrund, Achsen und
+Objekte laufen dort weiter, Ticks und Tick-Zahlen nicht, und er zählt nicht zur
+Fläche (`AN040`). `height=13` mit Standardrand ist also 14 Zellen hoch.
+"""
+GEOMETRY_MARGIN_LIMIT = 1.0
+"""Exklusive Obergrenze für `margin=` -- ab einer ganzen Zelle wäre der Saum eine weitere Rasterzeile."""
 KNOWN_ALIGN_VALUES = {
     "left",
     "l",
@@ -342,6 +351,7 @@ _OPT_AFB = BlockOptionSpec("afb", "enum", frozenset({"1", "2", "3"}), True, MISS
 _OPT_BONUS = BlockOptionSpec("bonus", "boolean", None, False, False)
 _OPT_WIDTHS = BlockOptionSpec("widths", "text", None, False, MISSING)
 _OPT_SCALE = BlockOptionSpec("scale", "css_length", None, False, "0.5cm")
+_OPT_FRAME = BlockOptionSpec("frame", "boolean", None, False, False)
 _DIAGRAM_COMMON_OPTIONS = (
     BlockOptionSpec("width", "css_length", None, False, "100%"),
     _OPT_SHOW,
@@ -414,10 +424,12 @@ BLOCK_OPTION_SPECS: dict[str, tuple[BlockOptionSpec, ...]] = {
         BlockOptionSpec("axis", "boolean", None, False, False),
         BlockOptionSpec("axis_label_x", "text", None, False, "x"),
         BlockOptionSpec("axis_label_y", "text", None, False, "y"),
-    BlockOptionSpec("labels", "enum", frozenset({"auto", "fixed"}), True, "auto"),
+        BlockOptionSpec("labels", "enum", frozenset({"auto", "fixed"}), True, "auto"),
         BlockOptionSpec("origin", "text", None, False, MISSING),  # Format "col,row"
         BlockOptionSpec("step_x", "number", None, False, 1.0),
         BlockOptionSpec("step_y", "number", None, False, 1.0),
+        BlockOptionSpec("margin", "number", None, False, GEOMETRY_MARGIN_DEFAULT),
+        _OPT_FRAME,
         _OPT_ALIGN,
     ),
     "dots": (
@@ -469,7 +481,7 @@ BLOCK_OPTION_SPECS: dict[str, tuple[BlockOptionSpec, ...]] = {
         BlockOptionSpec("full_width", "boolean", None, False, MISSING),
         BlockOptionSpec("positive_sign", "boolean", None, False, MISSING),
         BlockOptionSpec("signed_positive", "boolean", None, False, MISSING),  # Alias von positive_sign
-        BlockOptionSpec("frame", "boolean", None, False, False),
+        _OPT_FRAME,
         _OPT_ALIGN,
     ),
     "mc": (

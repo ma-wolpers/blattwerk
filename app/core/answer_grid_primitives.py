@@ -9,8 +9,10 @@ einzigen SVG-Overlay zusammen, das über dem Hintergrund-Raster
 Jeder Section-Renderer liefert `(shapes, label_specs, obstacles)`: SVG der
 Objekte, Beschreibungen ihrer Labels (`LabelSpec`, Standardposition = bisheriger
 fester Versatz) und die Hindernisse fürs Label-Layout
-(`answer_grid_label_model`). `build_geometry_scene` ist der eine Szenenaufbau
-für Renderer und Validator.
+(`answer_grid_label_model`). `layout_geometry_scene` ist der eine Szenenaufbau
+samt Label-Layout für Renderer, Validator (AN019) und Tests. Alle Maße kommen aus
+dem `GeometryFrame` (`answer_grid_frame.py`): gezeichnet wird bis an den Rand
+des Randbereichs, Ticks gibt es nur auf der Hauptfläche.
 """
 
 from __future__ import annotations
@@ -21,21 +23,18 @@ from .answer_grid_axis import (
     _clamp_axis_origin,
     _render_axis_ticks_and_labels,
     _resolve_axis_name,
-    _resolve_axis_state,
 )
 from .answer_grid_axis_names import _render_axis_arrowheads_and_names
 from .answer_grid_coords import to_svg
 from .answer_grid_entries import (
-    _GeometryCoordinateSystem,
-    _inside_grid,
     _parse_functions,
     _parse_pairs,
     _parse_points,
-    _parse_positive_float,
     _parse_sequence,
 )
+from .answer_grid_frame import resolve_coordinate_system
 from .answer_grid_function_eval import _sample_function_points
-from .answer_grid_label_layout import layout_labels
+from .answer_grid_label_layout import LabelPlacement, layout_labels
 from .answer_grid_label_model import (
     TIER_AXIS,
     TIER_LINE,
@@ -48,7 +47,6 @@ from .answer_grid_label_model import (
 )
 from .answer_grid_circles import _render_circles_section
 from .answer_grid_shapes import _render_polygons_section
-from .answer_grid_svg_frame import _svg_viewport_frame
 from .answer_grid_svg_style import _svg_fill_style_attr, _svg_stroke_style_attr
 
 _CROSS_HALF = 0.18
@@ -71,14 +69,14 @@ def _point_label(label, color, mode, px, py):
     )
 
 
-def _render_points_section(raw_entries, coord_system, cols, rows, include_solutions):
-    """Section-Renderer für `points`: liefert `(shapes, label_specs, obstacles)` (siehe Z-Order-Regel)."""
+def _render_points_section(raw_entries, coord_system, frame, include_solutions):
+    """Section-Renderer für `points`: liefert `(shapes, label_specs, obstacles)`; Punkte im Randbereich werden gezeichnet."""
     entries = _parse_points(raw_entries, coord_system, include_solutions)
     shapes, labels, obstacles = [], [], []
     for math_x, math_y, label, color, thickness, mode in entries:
-        if not _inside_grid(math_x, math_y, cols, rows):
+        if not frame.is_visible(math_x, math_y):
             continue
-        px, py = to_svg(math_x, math_y, rows)
+        px, py = to_svg(math_x, math_y, frame.height_units)
         shapes.extend(_point_cross_svg(px, py, mode, _svg_stroke_style_attr(color, thickness)))
         obstacles.extend(point_cross_obstacles(px, py, thickness or 1.15))
         if label:
@@ -86,10 +84,11 @@ def _render_points_section(raw_entries, coord_system, cols, rows, include_soluti
     return shapes, labels, obstacles
 
 
-def _render_sequence_section(raw_entries, coord_system, cols, rows, include_solutions):
+def _render_sequence_section(raw_entries, coord_system, frame, include_solutions):
     """Section-Renderer für `sequence`: Verbindungs-Polylinie und Punkt-Kreuze sind beide "Shapes" dieser Sektion."""
     entries = _parse_sequence(raw_entries, coord_system, include_solutions)
-    visible = [(*to_svg(x, y, rows), *rest) for x, y, *rest in entries if _inside_grid(x, y, cols, rows)]
+    rows = frame.height_units
+    visible = [(*to_svg(x, y, rows), *rest) for x, y, *rest in entries if frame.is_visible(x, y)]
 
     shapes, labels, obstacles = [], [], []
     if len(visible) >= 2:
@@ -110,9 +109,10 @@ def _render_sequence_section(raw_entries, coord_system, cols, rows, include_solu
     return shapes, labels, obstacles
 
 
-def _render_pairs_section(raw_entries, coord_system, cols, rows, include_solutions):
+def _render_pairs_section(raw_entries, coord_system, frame, include_solutions):
     """Section-Renderer für `pairs` (Standard-Label: rechts oberhalb der Streckenmitte)."""
     entries = _parse_pairs(raw_entries, coord_system, include_solutions)
+    rows = frame.height_units
     shapes, labels, obstacles = [], [], []
     for math_x1, math_y1, math_x2, math_y2, label, color, thickness, mode, line_style in entries:
         gx1, gy1 = to_svg(math_x1, math_y1, rows)
@@ -131,15 +131,15 @@ def _render_pairs_section(raw_entries, coord_system, cols, rows, include_solutio
     return shapes, labels, obstacles
 
 
-def _render_functions_section(raw_entries, coord_system, cols, rows, include_solutions):
-    """Section-Renderer für `functions`; Hindernisse nutzen exakt die gezeichneten Samples."""
+def _render_functions_section(raw_entries, coord_system, frame, include_solutions):
+    """Section-Renderer für `functions`; der Graph läuft bis in den Randbereich, Hindernisse nutzen exakt die gezeichneten Samples."""
     entries = _parse_functions(raw_entries, coord_system.axis_active, include_solutions)
     shapes, labels, obstacles = [], [], []
     for expr, x_min, x_max, label, color, thickness, mode in entries:
-        samples = _sample_function_points(expr, x_min, x_max, coord_system, cols, rows)
+        samples = _sample_function_points(expr, x_min, x_max, coord_system, frame)
         if len(samples) < 2:
             continue
-        poly_points = [to_svg(x, y, rows) for x, y in samples]
+        poly_points = [to_svg(x, y, frame.height_units) for x, y in samples]
         points_attr = " ".join(f"{x:.4f},{y:.4f}" for x, y in poly_points)
         stroke_style = _svg_stroke_style_attr(color, thickness)
         shapes.append(
@@ -163,7 +163,7 @@ _SECTION_RENDERERS = {
     "circles": _render_circles_section,
     "functions": _render_functions_section,
 }
-"""Dispatch-Tabelle Sektionsname -> `(raw_entries, coord_system, cols, rows, include_solutions) -> (shapes, label_specs, obstacles)`.
+"""Dispatch-Tabelle Sektionsname -> `(raw_entries, coord_system, frame, include_solutions) -> (shapes, label_specs, obstacles)`.
 
 `build_geometry_scene` iteriert `payload.items()` in YAML-Dokumentreihenfolge
 und schlägt hier nach, statt die Sektionen in einer im Code fest verdrahteten
@@ -184,7 +184,39 @@ class GeometryScene:
     obstacles: list[Obstacle] = field(default_factory=list)
 
 
-def build_geometry_scene(options, payload, rows, cols, include_solutions):
+def _add_axes(scene, options, coord_system, frame):
+    """Achsenkreuz, Pfeilspitzen, Achsennamen und Ticks in die Szene legen.
+
+    Die Achsen laufen über den sichtbaren Bereich (`frame.visible_extent`,
+    inklusive Randbereich); ihre Lage klemmt `_clamp_axis_origin` auf die
+    Hauptfläche, und Ticks samt Tick-Zahlen gibt es nur dort.
+    """
+    cols, rows = frame.width_units, frame.height_units
+    axis_ox, axis_oy = _clamp_axis_origin(coord_system.origin[0], coord_system.origin[1], cols, rows)
+    logical_ox, logical_oy = coord_system.origin
+    axis_label_x = _resolve_axis_name(options, "axis_label_x", aliases=("x_label", "axis_x_label"), default="x")
+    axis_label_y = _resolve_axis_name(options, "axis_label_y", aliases=("y_label", "axis_y_label"), default="y")
+    left, bottom, right, top = frame.visible_extent
+    _x, svg_axis_y = to_svg(axis_ox, axis_oy, rows)
+    _x, svg_top = to_svg(axis_ox, top, rows)
+    _x, svg_bottom = to_svg(axis_ox, bottom, rows)
+    scene.bottom.append(f"<line class='grid-axis' x1='{left:.4f}' y1='{svg_axis_y:.4f}' x2='{right:.4f}' y2='{svg_axis_y:.4f}' />")
+    scene.bottom.append(f"<line class='grid-axis' x1='{axis_ox:.4f}' y1='{svg_top:.4f}' x2='{axis_ox:.4f}' y2='{svg_bottom:.4f}' />")
+    axis_pad = stroke_pad(0.9)
+    scene.obstacles.append(Obstacle(TIER_AXIS, "segment", (left, svg_axis_y, right, svg_axis_y), axis_pad))
+    scene.obstacles.append(Obstacle(TIER_AXIS, "segment", (axis_ox, svg_top, axis_ox, svg_bottom), axis_pad))
+    for part_shapes, part_labels, part_obstacles in (
+        _render_axis_arrowheads_and_names(axis_ox, axis_oy, frame, axis_label_x, axis_label_y),
+        _render_axis_ticks_and_labels(
+            logical_ox, logical_oy, axis_ox, axis_oy, cols, rows, coord_system.step_x, coord_system.step_y
+        ),
+    ):
+        scene.bottom.extend(part_shapes)
+        scene.labels.extend(part_labels)
+        scene.obstacles.extend(part_obstacles)
+
+
+def build_geometry_scene(options, payload, frame, include_solutions):
     """Baut Achse, Objekte, Label-Beschreibungen und Hindernisse; ``None`` im Achsenzustand `"broken"`.
 
     Im Achsenzustand `"broken"` (`axis=true` mit ungültigem/fehlendem
@@ -194,50 +226,43 @@ def build_geometry_scene(options, payload, rows, cols, include_solutions):
     Label-Reihenfolge: Achsennamen, Tick-Zahlen, dann die Sektionen in
     YAML-Reihenfolge (wie bisher die Ausgabereihenfolge).
     """
-    axis_state, origin = _resolve_axis_state(options)
-    if axis_state == "broken":
+    coord_system = resolve_coordinate_system(options)
+    if coord_system is None:
         return None
 
-    step_x = _parse_positive_float(options.get("step_x"), 1.0)
-    step_y = _parse_positive_float(options.get("step_y"), 1.0)
-    coord_system = _GeometryCoordinateSystem(
-        axis_active=(axis_state == "active"), origin=origin, step_x=step_x, step_y=step_y,
-    )
-
     scene = GeometryScene()
-    if axis_state == "active":
-        axis_ox, axis_oy = _clamp_axis_origin(origin[0], origin[1], cols, rows)
-        logical_ox, logical_oy = origin
-        axis_label_x = _resolve_axis_name(options, "axis_label_x", aliases=("x_label", "axis_x_label"), default="x")
-        axis_label_y = _resolve_axis_name(options, "axis_label_y", aliases=("y_label", "axis_y_label"), default="y")
-        _x, svg_axis_y = to_svg(axis_ox, axis_oy, rows)
-        scene.bottom.append(f"<line class='grid-axis' x1='0' y1='{svg_axis_y:.4f}' x2='{cols:.4f}' y2='{svg_axis_y:.4f}' />")
-        scene.bottom.append(f"<line class='grid-axis' x1='{axis_ox:.4f}' y1='0' x2='{axis_ox:.4f}' y2='{rows:.4f}' />")
-        axis_pad = stroke_pad(0.9)
-        scene.obstacles.append(Obstacle(TIER_AXIS, "segment", (0.0, svg_axis_y, float(cols), svg_axis_y), axis_pad))
-        scene.obstacles.append(Obstacle(TIER_AXIS, "segment", (axis_ox, 0.0, axis_ox, float(rows)), axis_pad))
-        for part in (
-            _render_axis_arrowheads_and_names(axis_ox, axis_oy, cols, rows, axis_label_x, axis_label_y),
-            _render_axis_ticks_and_labels(logical_ox, logical_oy, axis_ox, axis_oy, cols, rows, step_x, step_y),
-        ):
-            part_shapes, part_labels, part_obstacles = part
-            scene.bottom.extend(part_shapes)
-            scene.labels.extend(part_labels)
-            scene.obstacles.extend(part_obstacles)
+    if coord_system.axis_active:
+        _add_axes(scene, options, coord_system, frame)
 
     if isinstance(payload, dict):
         for section, raw_entries in payload.items():
             renderer = _SECTION_RENDERERS.get(section)
             if renderer is None:
                 continue
-            section_shapes, section_labels, section_obstacles = renderer(raw_entries, coord_system, cols, rows, include_solutions)
+            section_shapes, section_labels, section_obstacles = renderer(raw_entries, coord_system, frame, include_solutions)
             scene.shapes.extend(section_shapes)
             scene.labels.extend(section_labels)
             scene.obstacles.extend(section_obstacles)
     return scene
 
 
-def _render_grid_primitives_svg(options, payload, rows, cols, include_solutions, bleed_units=(0.0, 0.0, 0.0, 0.0)):
+def layout_geometry_scene(options, payload, frame, include_solutions) -> tuple[GeometryScene, LabelPlacement] | None:
+    """Szene bauen und ihre Labels platzieren -- der eine Weg für Renderer, Validator (AN019) und Tests.
+
+    Die Label-Zone ist die Hauptfläche plus `frame.zone_units` (Randbereich und
+    Bleed); `labels=fixed` lässt alle Labels an ihrer Standardposition.
+    ``None`` im Achsenzustand `"broken"` (siehe `build_geometry_scene`).
+    """
+    scene = build_geometry_scene(options, payload, frame, include_solutions)
+    if scene is None:
+        return None
+    placement = layout_labels(
+        scene.labels, scene.obstacles, frame.width_units, frame.height_units, frame.zone_units, options.get("labels")
+    )
+    return scene, placement
+
+
+def _render_grid_primitives_svg(options, payload, frame, include_solutions):
     """Rendert optionale geometrische Primitive innerhalb des Rasters als SVG.
 
     Z-Reihenfolge: (1) Achse ganz unten (nur im Achsenzustand `"active"`,
@@ -248,17 +273,17 @@ def _render_grid_primitives_svg(options, payload, rows, cols, include_solutions,
     `labels=auto|fixed`). Gibt einen leeren String zurück, wenn kein einziges
     sichtbares Element übrig bleibt, und ebenso im Achsenzustand `"broken"`.
     """
-    scene = build_geometry_scene(options, payload, rows, cols, include_solutions)
-    if scene is None:
+    laid_out = layout_geometry_scene(options, payload, frame, include_solutions)
+    if laid_out is None:
         return ""
-    placement = layout_labels(scene.labels, scene.obstacles, cols, rows, bleed_units, options.get("labels"))
+    scene, placement = laid_out
     label_markup = [emit_label(spec, x, y) for spec, (x, y) in zip(scene.labels, placement.positions)]
 
     all_markup = scene.bottom + scene.shapes + label_markup
     if not all_markup:
         return ""
 
-    view_box, frame_style = _svg_viewport_frame(cols, rows, bleed_units)
+    view_box, frame_style = frame.viewport()
 
     return (
         f"<svg class='grid-overlay' viewBox='{view_box}' preserveAspectRatio='none' aria-hidden='true' style='{frame_style}'>"

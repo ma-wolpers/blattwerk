@@ -3,8 +3,8 @@
 Ausgelagert aus `answer_grid_shapes.py` (300-Zeilen-Konvention), als dort für
 das Label-Layout die Konturabtastung (`_circle_outline`) hinzukam. Nutzt
 dieselben Bausteine wie die übrigen `_parse_*`-Funktionen (`_as_float`,
-`_normalize_show_mode`, `_is_visible`, `_GeometryCoordinateSystem` aus
-`answer_grid_entries.py`; `parse_svg_color`/`parse_svg_thickness` aus
+`_normalize_show_mode`, `_is_visible` aus `answer_grid_entries.py`;
+`_GeometryCoordinateSystem` aus `answer_grid_coords.py`; `parse_svg_color`/`parse_svg_thickness` aus
 `answer_special_shared.py`; die neutralen Validitätsprädikate aus
 `answer_grid_validity.py`).
 """
@@ -101,7 +101,7 @@ def _parse_circles(raw_circles, coord_system, include_solutions):
     return parsed
 
 
-def _render_circles_section(raw_entries, coord_system, cols, rows, include_solutions):
+def _render_circles_section(raw_entries, coord_system, frame, include_solutions):
     """Section-Renderer für `circles`: liefert `(shapes, label_specs, obstacles)` (siehe Z-Order-Regel).
 
     Winkelkonvention: Grad, `0°` = Osten (positive x-Achse-Richtung),
@@ -125,6 +125,7 @@ def _render_circles_section(raw_entries, coord_system, cols, rows, include_solut
     im Mittelpunkt.
     """
     entries = _parse_circles(raw_entries, coord_system, include_solutions)
+    rows = frame.height_units
     shapes, labels, obstacles = [], [], []
     for circle in entries:
         svg_cx, svg_cy = to_svg(circle.cx, circle.cy, rows)

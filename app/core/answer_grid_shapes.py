@@ -6,8 +6,8 @@ prädikate (`_polygon_vertices_are_valid` u. a.) leben in einem eigenen,
 ebenfalls neutralen Modul (`answer_grid_validity.py`), damit der Validator
 sie importieren kann, ohne von diesem Renderer-Modul abzuhängen. Nutzt
 dieselben Bausteine wie die übrigen `_parse_*`-Funktionen (`_as_float`,
-`_normalize_show_mode`, `_is_visible`, `_GeometryCoordinateSystem` aus
-`answer_grid_entries.py`; `parse_svg_color`/`parse_svg_thickness` aus
+`_normalize_show_mode`, `_is_visible` aus `answer_grid_entries.py`;
+`_GeometryCoordinateSystem` aus `answer_grid_coords.py`; `parse_svg_color`/`parse_svg_thickness` aus
 `answer_special_shared.py`; `_svg_shape_style_attr`/`_svg_fill_style_attr`
 aus `answer_grid_svg_style.py`) statt eine zweite Kopie dieser
 Grundbausteine zu führen.
@@ -124,7 +124,7 @@ def _parse_polygons(raw_polygons, coord_system, include_solutions):
     return parsed
 
 
-def _render_polygons_section(raw_entries, coord_system, cols, rows, include_solutions):
+def _render_polygons_section(raw_entries, coord_system, frame, include_solutions):
     """Section-Renderer für `polygons`: liefert `(shapes, label_specs, obstacles)` (siehe Z-Order-Regel).
 
     Immer als geschlossene Fläche gerendert (SVG `<polygon>` verbindet
@@ -135,6 +135,7 @@ def _render_polygons_section(raw_entries, coord_system, cols, rows, include_solu
     Linien-Hindernisse.
     """
     entries = _parse_polygons(raw_entries, coord_system, include_solutions)
+    rows = frame.height_units
     shapes, labels, obstacles = [], [], []
     for polygon in entries:
         vertices = tuple(to_svg(vx, vy, rows) for vx, vy in polygon.vertices)

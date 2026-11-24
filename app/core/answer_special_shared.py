@@ -59,6 +59,18 @@ def _option_is_enabled(value, default=True):
     return default
 
 
+def frame_requested(options):
+    """Liest die Block-Option `frame` (Standard: aus) für alle Blöcke mit optionalem Rahmen.
+
+    Eine Stelle für die Regel „Rahmen nur auf ausdrücklichen Wunsch“, die
+    `:::numberline` und `:::geometry` teilen (Spec: `_OPT_FRAME` in
+    `blatt_validator_constants.py`). Die Blöcke setzen damit eine eigene
+    `…-framed`-Klasse; ihr CSS hält den Rahmen sonst transparent, damit die Box
+    in beiden Fällen gleich groß bleibt.
+    """
+    return _option_is_enabled((options or {}).get("frame"), default=False)
+
+
 def normalize_markdown(text):
     """Ergänzt Leerzeilen vor Listen für stabiles Markdown-Rendering."""
     lines = text.splitlines()

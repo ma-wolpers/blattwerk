@@ -935,6 +935,15 @@ h1 {
     print-color-adjust: exact;
 }
 
+/* `:::geometry`: Transparenter Rahmen hält die Box gleich groß; sichtbar nur mit `frame=true`. */
+.answer.grid.geometry {
+    border-color: transparent;
+}
+
+.answer.grid.geometry.geometry-framed {
+    border-color: var(--grid-border-color);
+}
+
 .grid-system-bleed {
     display: inline-block;
     width: fit-content;

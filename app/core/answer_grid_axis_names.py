@@ -15,13 +15,16 @@ from .answer_grid_label_model import TIER_LINE, LabelSpec, Obstacle, stroke_pad
 _AXIS_STROKE_PX = 0.9
 
 
-def _render_axis_arrowheads_and_names(origin_x, origin_y, cols, rows, axis_label_x, axis_label_y):
+def _render_axis_arrowheads_and_names(origin_x, origin_y, frame, axis_label_x, axis_label_y):
     """Rendert Pfeilspitzen am positiven Achsenende und beschreibt die Achsennamen (z. B. `x`, `y`).
 
-    Pfeilspitzen werden nur gezeichnet, wenn zwischen Ursprung und Rasterrand
-    genug Platz ist (Basis der Spitze liegt vor der Spitze) — bei sehr kleinen
-    Rastern oder einem Ursprung nahe am Rand würde eine erzwungene Pfeilspitze
-    sonst invertiert oder verzerrt wirken.
+    Das Achsenende ist der Rand des sichtbaren Bereichs
+    (`frame.visible_extent`, also inklusive Randbereich); die Spitze ragt wie
+    eh und je 0.34 darüber hinaus, die Flügel bleiben innerhalb des sichtbaren
+    Bereichs. Pfeilspitzen werden nur gezeichnet, wenn zwischen Ursprung und
+    Achsenende genug Platz ist (Basis der Spitze liegt vor der Spitze) — bei
+    sehr kleinen Rastern oder einem Ursprung nahe am Rand würde eine
+    erzwungene Pfeilspitze sonst invertiert oder verzerrt wirken.
 
     Liefert `(shapes, label_specs, obstacles)`: die Achsennamen
     (`axis_label_x`/`axis_label_y`) sind Text-Labels wie jedes andere
@@ -35,12 +38,14 @@ def _render_axis_arrowheads_and_names(origin_x, origin_y, cols, rows, axis_label
     """
     shapes, labels, obstacles = [], [], []
     pad = stroke_pad(_AXIS_STROKE_PX)
+    rows = frame.height_units
+    left, bottom, right, top = frame.visible_extent
 
-    x_tip = float(cols) + 0.34
+    x_tip = right + 0.34
     x_base = max(origin_x + 0.24, x_tip - 0.44)
     _x, tip_y = to_svg(x_tip, origin_y, rows)
-    _x, x_top = to_svg(x_tip, min(float(rows) - 0.04, origin_y + 0.18), rows)
-    _x, x_bottom = to_svg(x_tip, max(0.04, origin_y - 0.18), rows)
+    _x, x_top = to_svg(x_tip, min(top - 0.04, origin_y + 0.18), rows)
+    _x, x_bottom = to_svg(x_tip, max(bottom + 0.04, origin_y - 0.18), rows)
     if x_base < x_tip:
         shapes.append(
             "<polygon class='grid-axis' points='"
@@ -54,12 +59,12 @@ def _render_axis_arrowheads_and_names(origin_x, origin_y, cols, rows, axis_label
             extra_attrs=" text-anchor='start'",
         ))
 
-    math_y_tip = float(rows) + 0.34
+    math_y_tip = top + 0.34
     math_y_base = max(origin_y + 0.24, math_y_tip - 0.44)
     _x, y_tip = to_svg(origin_x, math_y_tip, rows)
     _x, y_base = to_svg(origin_x, math_y_base, rows)
-    y_left = max(0.04, origin_x - 0.18)
-    y_right = min(float(cols) - 0.04, origin_x + 0.18)
+    y_left = max(left + 0.04, origin_x - 0.18)
+    y_right = min(right - 0.04, origin_x + 0.18)
     if math_y_base < math_y_tip:
         shapes.append(
             "<polygon class='grid-axis' points='"

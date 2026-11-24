@@ -180,45 +180,40 @@ def render_geometry_answer(options, content, include_solutions, render_solution_
     behalten ihre `cols`/`rows`-Parameternamen unverändert (reine
     Viewport-Mathematik, kein DSL-Konzept) -- nur hier, am Options-Rand,
     heißen die lokalen Variablen `width_units`/`height_units`.
+
+    Die Box (`.answer.grid`) umfasst Hauptfläche plus Randbereich
+    (`frame.box_units`); ihr Rahmen ist nur mit `frame=true` sichtbar
+    (Klasse `geometry-framed`, wie `numberline-framed` beim Zahlenstrahl).
     """
     frame = resolve_geometry_frame(options)
     height_units, width_units = frame.height_units, frame.width_units
+    box_width_units, box_height_units = frame.box_units
     scale = _parse_grid_scale(options.get("scale"))
     cell_size_cm = _grid_cell_size_to_cm(scale)
     bleed_top_units, bleed_right_units, bleed_bottom_units, bleed_left_units = frame.bleed_units
 
     payload, fallback_solution_text = _parse_grid_payload(content)
-    background_bleed_units = (bleed_top_units, bleed_right_units, bleed_bottom_units, bleed_left_units)
     background_mode = _resolve_geometry_background_mode(options)
     if background_mode == "lines":
         grid_background_svg = _render_grid_background_svg(
             width_units,
             height_units,
-            bleed_units=background_bleed_units,
+            bleed_units=frame.bleed_units,
             line_style=_resolve_grid_line_style(options),
+            margin=frame.margin_units,
         )
     elif background_mode == "dots":
         grid_background_svg = _render_geometry_background_dots_svg(
-            width_units, height_units, bleed_units=background_bleed_units
+            width_units, height_units, bleed_units=frame.bleed_units, margin=frame.margin_units
         )
     else:
         grid_background_svg = ""
-    primitives_svg = _render_grid_primitives_svg(
-        options,
-        payload,
-        height_units,
-        width_units,
-        include_solutions,
-        bleed_units=(
-            bleed_top_units,
-            bleed_right_units,
-            bleed_bottom_units,
-            bleed_left_units,
-        ),
-    )
+    primitives_svg = _render_grid_primitives_svg(options, payload, frame, include_solutions)
 
-    grid_classes = ["answer", "grid"]
-    style_parts = [f"--rows:{height_units}", f"--cell-size:{scale}", f"--cols:{width_units}"]
+    grid_classes = ["answer", "grid", "geometry"]
+    if frame.framed:
+        grid_classes.append("geometry-framed")
+    style_parts = [f"--rows:{box_height_units:.4f}", f"--cell-size:{scale}", f"--cols:{box_width_units:.4f}"]
 
     solution_text_html = ""
     if include_solutions and fallback_solution_text.strip():

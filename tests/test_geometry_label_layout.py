@@ -21,10 +21,9 @@ from app.core.answer_grid_label_geometry import (
     point_in_polygon,
     segment_length_inside,
 )
-from app.core.answer_grid_label_layout import layout_labels
 from app.core.answer_grid_label_model import TIER_POINT, estimate_text_width, text_box
 from app.core.answer_grid_plot import render_geometry_answer
-from app.core.answer_grid_primitives import build_geometry_scene
+from app.core.answer_grid_primitives import layout_geometry_scene
 from app.core.blatt_validator import inspect_markdown_text
 
 AXIS = {"axis": "true", "origin": "5,4", "width": "12", "height": "8"}
@@ -33,8 +32,7 @@ HEAD = "---\ndocument_type: worksheet\nTitel: T\nFach: M\nThema: X\n---\n"
 
 def _layout(options, content, include_solutions=False):
     frame = resolve_geometry_frame(options)
-    scene = build_geometry_scene(options, yaml.safe_load(content) or {}, frame.height_units, frame.width_units, include_solutions)
-    placement = layout_labels(scene.labels, scene.obstacles, frame.width_units, frame.height_units, frame.bleed_units, options.get("labels"))
+    scene, placement = layout_geometry_scene(options, yaml.safe_load(content) or {}, frame, include_solutions)
     boxes = {spec.text: text_box(spec, *position) for spec, position in zip(scene.labels, placement.positions) if spec.movable}
     return scene, placement, boxes
 
@@ -169,7 +167,7 @@ def test_y_axis_name_is_right_aligned_left_of_the_axis():
     assert ".grid-axis-name[text-anchor='end'] {\n    text-anchor: end;" in css.replace("\r\n", "\n")
     assert ".grid-axis-name[text-anchor='start'] {\n    text-anchor: start;" in css.replace("\r\n", "\n")
     html = render_geometry_answer({**AXIS, "labels": "fixed"}, "", False, lambda text: text)
-    assert "class='grid-axis-label grid-axis-name' x='4.9000' y='-1.2400' text-anchor='end'>y</text>" in html
+    assert "class='grid-axis-label grid-axis-name' x='4.9000' y='-1.7400' text-anchor='end'>y</text>" in html
 
 
 @pytest.mark.parametrize("text", ["A", "P1", "Strecke g", "f(x)", "v in km/h", "WWW", "MMm", "Dreieck"])

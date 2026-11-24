@@ -1,7 +1,7 @@
 """Diagnose AN019: Geometry-Beschriftung ohne kollisionsfreien Platz.
 
-Rechnet das Label-Layout mit genau denselben Bausteinen nach wie der Renderer
-(`resolve_geometry_frame`, `build_geometry_scene`, `layout_labels`), für die
+Rechnet das Label-Layout auf genau demselben Weg nach wie der Renderer
+(`resolve_geometry_frame`, `layout_geometry_scene`), für die
 Arbeitsblatt- und die Lösungsfassung. Meldet jedes Label, das nach
 Kandidatenwahl, Relaxation und erweiterter Ringsuche noch ein Punktkreuz oder
 eine andere Beschriftung überdeckt -- einmal je Text und Block. Nur bei
@@ -12,8 +12,8 @@ gemeldet.
 from __future__ import annotations
 
 from .answer_grid_frame import resolve_geometry_frame
-from .answer_grid_label_layout import LABELS_FIXED, layout_labels, resolve_labels_mode
-from .answer_grid_primitives import build_geometry_scene
+from .answer_grid_label_layout import LABELS_FIXED, resolve_labels_mode
+from .answer_grid_primitives import layout_geometry_scene
 from .answer_yaml_payload import parse_yaml_answer_payload_with_solution
 from .blatt_validator_region import compute_block_region_id
 from .blatt_validator_types import BuildDiagnostic
@@ -30,10 +30,10 @@ def unresolved_geometry_labels(options, content) -> list[str]:
     frame = resolve_geometry_frame(options)
     result: list[str] = []
     for include_solutions in (False, True):
-        scene = build_geometry_scene(options, payload, frame.height_units, frame.width_units, include_solutions)
-        if scene is None:
+        laid_out = layout_geometry_scene(options, payload, frame, include_solutions)
+        if laid_out is None:
             return []
-        placement = layout_labels(scene.labels, scene.obstacles, frame.width_units, frame.height_units, frame.bleed_units)
+        _scene, placement = laid_out
         result.extend(text for text in placement.unresolved if text not in result)
     return result
 

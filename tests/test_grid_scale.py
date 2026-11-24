@@ -65,7 +65,7 @@ def test_geometry_without_width_keeps_default_column_count():
     )
 
     assert "--cell-size:0.5cm" in html
-    assert "--cols:20" in html
+    assert "--cols:21.0000" in html  # 20 Spalten plus je ½ Zelle Randbereich
 
 
 def test_grid_without_cols_uses_layout_context_for_page_format_and_hole_punch():
@@ -165,8 +165,8 @@ def test_grid_axis_origin_outside_grid_clamps_visual_axis_only():
         include_solutions=False,
     )
 
-    assert "<line class='grid-axis' x1='0' y1='10.0000' x2='10.0000' y2='10.0000' />" in html
-    assert "<line class='grid-axis' x1='0.0000' y1='0' x2='0.0000' y2='10.0000' />" in html
+    assert "<line class='grid-axis' x1='-0.5000' y1='10.0000' x2='10.5000' y2='10.0000' />" in html
+    assert "<line class='grid-axis' x1='0.0000' y1='-0.5000' x2='0.0000' y2='10.5000' />" in html
     assert ">3</text>" in html
     assert ">14</text>" in html
 
@@ -228,8 +228,9 @@ def test_grid_axis_border_keeps_labels_and_arrowheads_visible():
     assert re.search(r"class='grid-axis-label' x='1\.0000' y='[0-9.\-]+'\>1</text>", html)
     assert "class='grid-axis-label grid-axis-label-y' x='-0.2800' y='9.0400'>1</text>" in html
     assert "viewBox='-" in html
-    assert "10.3400,10.0000" in html
-    assert "0.0000,-0.3400" in html
+    # Pfeilspitzen 0.34 hinter dem Achsenende, das mit dem Randbereich bei 10.5 liegt.
+    assert "10.8400,10.0000" in html
+    assert "0.0000,-0.8400" in html
     assert re.search(r"class='grid-axis-label grid-axis-name' x='[0-9.\-]+' y='[0-9.\-]+' text-anchor='end'\>Amplitude</text>", html)
 
 
@@ -327,14 +328,14 @@ def test_geometry_segment_label_is_rendered_at_midpoint():
     assert ">AB</text>" in html
 
 
-def test_geometry_width_height_options_produce_same_css_vars_as_former_cols_rows():
+def test_geometry_width_height_options_set_box_css_vars_including_margin():
     html = _render_answer_block(
         {"type": "geometry", "width": "10", "height": "8", "axis": "true", "origin": "5,4"},
         "points:\n  - {x: 1, y: 1, label: A}\n",
         include_solutions=False,
     )
-    assert "--cols:10" in html
-    assert "--rows:8" in html
+    assert "--cols:11.0000" in html
+    assert "--rows:9.0000" in html
 
 
 def test_geometry_legacy_rows_cols_options_are_now_inert_and_fall_back_to_defaults():
@@ -343,8 +344,8 @@ def test_geometry_legacy_rows_cols_options_are_now_inert_and_fall_back_to_defaul
         "points:\n  - {x: 1, y: 1, label: A}\n",
         include_solutions=False,
     )
-    assert "--cols:20" in html
-    assert "--rows:5" in html
+    assert "--cols:21.0000" in html
+    assert "--rows:6.0000" in html
 
 
 def test_geometry_pairs_without_axis_renders_bottom_left_fallback():

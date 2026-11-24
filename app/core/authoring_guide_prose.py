@@ -515,7 +515,10 @@ PROSE_SECTIONS: dict[str, str] = {
         "auf Rasterkoordinaten zurückzufallen; `axis_label_x`/`axis_label_y` beschriften die "
         "Achsen (Standard `x`/`y`). Objekte werden in genau der Reihenfolge übereinander "
         "gezeichnet, in der ihre Abschnitte (`points`, `pairs`, ...) im YAML-Payload stehen -- die "
-        "Achse liegt dabei immer ganz unten, alle Beschriftungen immer ganz oben."
+        "Achse liegt dabei immer ganz unten, alle Beschriftungen immer ganz oben. Um die Fläche "
+        "liegt ein Randbereich (`margin`, Standard ½ Zelle je Seite), in dem Hintergrund, Achsen "
+        "und Objekte weiterlaufen, aber keine Ticks mehr stehen; einen Rahmen gibt es nur mit "
+        "`frame=true`."
     ),
     "block:dots": ("Punktraster-Schreibfeld (z. B. für Übungen zur Feinmotorik/Schrift)."),
     "block:space": ("Freier Leerraum ohne Linien/Raster, z. B. für Zeichnungen."),
@@ -785,6 +788,10 @@ PROSE_SECTIONS: dict[str, str] = {
         "Relative Breiten (Gewichte, z. B. `\"2 1\"`) oder feste CSS-Breiten für die Spalten/Elemente "
         "dieses Blocks."
     ),
+    "option:frame": (
+        "Zeichnet einen Rahmen um den Block (Standard: ohne Rahmen); die Box ist mit und ohne Rahmen "
+        "gleich groß."
+    ),
     "option:scale": (
         "Zellgröße als CSS-Länge, z. B. `scale=0.4cm` oder `scale=6mm` (Standard variiert je Blocktyp, "
         "siehe Besonderheit unten)."
@@ -926,6 +933,14 @@ PROSE_SECTIONS: dict[str, str] = {
         "Skalierung zwischen mathematischer y-Koordinate und Rasterzellen (Standard `1`), nur bei "
         "`axis=true`."
     ),
+    "block:geometry.margin": (
+        "Randbereich um die Fläche in Zellen je Seite, Zahl von `0` bis unter `1` (Standard `0.5`): "
+        "`height=13` ist mit Standardrand also 14 Zellen hoch. Hintergrund, Achsen, Funktionsgraphen "
+        "und Punkte laufen dort weiter, Ticks und Tick-Zahlen nicht; die Pfeilspitzen sitzen am Ende "
+        "des Randbereichs. Der Randbereich zählt nicht zur Fläche -- ein Punkt dort wird gezeichnet, "
+        "aber als `AN040` gemeldet. `margin=0` endet wie früher genau an der Fläche."
+    ),
+    "block:geometry.frame": ("Bei `:::geometry` umschließt der Rahmen auch den Randbereich (`margin`)."),
     "block:table.column_headers": (
         "Spaltenüberschriften, `|`-getrennt (z. B. `column_headers=\"A|B|C\"`); leere Positionen "
         "(z. B. `\"A||C\"`) lassen einzelne Kopfzellen bewusst leer."
@@ -1104,7 +1119,6 @@ PROSE_SECTIONS: dict[str, str] = {
     "block:numberline.max_width_mm": ("Maximale Darstellungsbreite des Zahlenstrahls in Millimetern."),
     "block:numberline.max_width_cm": ("Maximale Darstellungsbreite des Zahlenstrahls in Zentimetern."),
     "block:numberline.full_width": ("Erzwingt volle verfügbare Breite für den Zahlenstrahl."),
-    "block:numberline.frame": ("Zeichnet einen Rahmen um den Zahlenstrahl (Standard: ohne Rahmen)."),
     "block:numberline.positive_sign": (
         "Zeigt bei positiven Zahlen explizit ein `+`-Vorzeichen an (Standard: aus)."
     ),

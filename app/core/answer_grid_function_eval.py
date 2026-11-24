@@ -13,20 +13,18 @@ from __future__ import annotations
 import ast
 import math
 
-from .answer_grid_entries import _inside_grid
 
-
-def _sample_function_points(expr, x_min, x_max, coord_system, cols, rows):
+def _sample_function_points(expr, x_min, x_max, coord_system, frame):
     """Samplet einen Funktionsgraphen und bildet die Punkte auf Mathe-Rasterkoordinaten ab.
 
     Die Sample-Anzahl skaliert mit der Breite des Definitionsbereichs
     (min. 24, max. 360), damit sowohl kurze als auch weite Intervalle eine
     glatte Kurve ergeben, ohne bei extremen Domains unbegrenzt viele Punkte
     zu erzeugen. Punkte mit `NaN`/`Inf`-Ergebnis (z. B. bei Polstellen) oder
-    außerhalb des sichtbaren Rasters werden übersprungen statt die Kurve
-    abzubrechen. Nutzt `coord_system.point()` (`answer_grid_entries.py`)
-    statt einer eigenen Kopie der Koordinatenformel -- vorher hier separat
-    dupliziert.
+    außerhalb des sichtbaren Bereichs (`frame.is_visible`: Hauptfläche plus
+    Randbereich) werden übersprungen statt die Kurve abzubrechen. Nutzt
+    `coord_system.point()` (`answer_grid_coords.py`) statt einer eigenen Kopie
+    der Koordinatenformel.
     """
     if coord_system.origin is None:
         return []
@@ -40,7 +38,7 @@ def _sample_function_points(expr, x_min, x_max, coord_system, cols, rows):
             continue
 
         gx, gy = coord_system.point(x_value, y_value)
-        if _inside_grid(gx, gy, cols, rows):
+        if frame.is_visible(gx, gy):
             points.append((gx, gy))
 
     return points

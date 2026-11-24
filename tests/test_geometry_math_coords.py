@@ -9,7 +9,7 @@ import pytest
 
 from app.core.answer_grid_axis import _clamp_axis_origin, _iter_axis_tick_positions
 from app.core.answer_grid_coords import to_svg
-from app.core.answer_grid_entries import _GeometryCoordinateSystem
+from app.core.answer_grid_coords import _GeometryCoordinateSystem
 from app.core.answer_grid_plot import render_geometry_answer
 
 APP_CORE = Path(__file__).resolve().parents[1] / "app" / "core"
@@ -83,4 +83,4 @@ def test_clamp_keeps_a_far_away_origin_on_the_visible_edge():
     assert _clamp_axis_origin(20.0, -4.0, 10, 10) == (10.0, 0.0)
     assert _clamp_axis_origin(3.0, 4.0, 10, 10) == (3.0, 4.0)
     svg = _render({"axis": "true", "origin": "3,-4"}, "")
-    assert "<line class='grid-axis' x1='0' y1='10.0000' x2='10.0000' y2='10.0000' />" in svg
+    assert "<line class='grid-axis' x1='-0.5000' y1='10.0000' x2='10.5000' y2='10.0000' />" in svg
