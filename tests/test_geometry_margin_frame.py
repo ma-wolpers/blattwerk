@@ -13,6 +13,7 @@ import pytest
 
 from app.core.answer_grid_frame import parse_geometry_margin, resolve_geometry_frame
 from app.core.answer_grid_plot import render_geometry_answer
+from app.core.blatt_kern_layout_estimate import estimate_block_weight
 from app.core.blatt_validator import inspect_markdown_text
 from app.core.blatt_validator_constants import GEOMETRY_MARGIN_DEFAULT
 
@@ -112,3 +113,13 @@ def test_invalid_margin_is_reported(value):
 def test_valid_margin_and_frame_are_accepted():
     codes = [code for code, _text in _messages("width=4 height=4 margin=0.9 frame=true", "")]
     assert "OP001" not in codes and "OP002" not in codes and "OP008" not in codes
+
+
+def test_column_weight_follows_geometry_size_not_legacy_rows_cols():
+    """Die Spaltengewichtung liest `width`/`height` (plus Rand) wie der Renderer, nicht die alten `rows`/`cols`."""
+    small = estimate_block_weight("geometry", {"width": "4", "height": "4"}, "", include_solutions=False)
+    large = estimate_block_weight("geometry", {"width": "30", "height": "12"}, "", include_solutions=False)
+    legacy = estimate_block_weight("geometry", {"rows": "12", "cols": "30"}, "", include_solutions=False)
+    assert small < large
+    assert large == pytest.approx(31 * 13 / 48.0)
+    assert legacy == pytest.approx(21 * 6 / 48.0)

@@ -17,6 +17,7 @@ from .answer_special import (
     estimate_ordering_weight,
     estimate_wordsearch_weight,
 )
+from .answer_grid_frame import resolve_geometry_frame
 from .answer_special_mindmap import estimate_mindmap_weight
 from .diagram_block_catalog import DIAGRAM_BLOCK_NAMES
 from .diagram_block_dispatch import estimate_diagram_weight
@@ -35,6 +36,16 @@ def parse_height_cm(height_value, default_cm=4.0):
     if match:
         return float(match.group(1))
     return default_cm
+
+
+def _geometry_box_area(options):
+    """Fläche der Geometry-Box in Zellen (Hauptfläche plus Randbereich), aus demselben `GeometryFrame` wie der Renderer.
+
+    Früher las die Schätzung hier noch die alten Optionen `rows`/`cols`, die
+    `:::geometry` nicht mehr kennt, und rechnete deshalb immer mit 20×5.
+    """
+    box_width, box_height = resolve_geometry_frame(options).box_units
+    return box_width * box_height
 
 
 def estimate_block_weight(
@@ -145,9 +156,7 @@ def estimate_block_weight(
                 rows = max(1, _safe_int(options.get("rows", 5), 5))
                 return max(1.4, rows * 0.85 + (text_length / 260.0))
             if block_type == "geometry":
-                rows = max(1, _safe_int(options.get("rows", 5), 5))
-                cols = _safe_int(options.get("cols", 20), 20) if options.get("cols") else 20
-                return max(1.6, (rows * cols) / 52.0 + (text_length / 320.0))
+                return max(1.6, _geometry_box_area(options) / 52.0 + (text_length / 320.0))
             if block_type == "dots":
                 return max(
                     1.2,
@@ -176,9 +185,7 @@ def estimate_block_weight(
             cols = _safe_int(options.get("cols", 20), 20) if options.get("cols") else 20
             return max(1.2, (rows * cols) / 55.0)
         if block_type == "geometry":
-            rows = _safe_int(options.get("rows", 5), 5)
-            cols = _safe_int(options.get("cols", 20), 20) if options.get("cols") else 20
-            return max(1.4, (rows * cols) / 48.0)
+            return max(1.4, _geometry_box_area(options) / 48.0)
         if block_type == "dots":
             return max(1.0, parse_height_cm(options.get("height", "4cm")) * 1.1)
         if block_type == "space":
