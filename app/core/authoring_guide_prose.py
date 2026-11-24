@@ -396,7 +396,8 @@ PROSE_SECTIONS: dict[str, str] = {
     "geometry:block_options": (
         "`:::grid` und `:::geometry` unterstützen die Option `line=solid|dashed` (Standard: `solid`), "
         "die den Linienstil des Rasterhintergrunds selbst steuert -- unabhängig vom gleichnamigen "
-        "`pairs[].line`-Feld auf Objektebene (siehe unten), das nur die einzelne Strecke betrifft. "
+        "`line`-Feld von `pairs`/`functions` auf Objektebene (siehe unten), das nur die einzelne "
+        "Strecke bzw. den einzelnen Graphen betrifft. "
         "Nur `:::geometry` hat zusätzlich `background=none|lines|dots` (Standard `none`) -- ohne "
         "Angabe bleibt die Fläche leer, `lines` zeichnet dasselbe Karoraster wie `:::grid`, `dots` "
         "ein Punktraster."
@@ -469,7 +470,9 @@ PROSE_SECTIONS: dict[str, str] = {
         "definiert ist; ohne aktiven Achsenmodus wird `functions` als Warnung `AN015` gemeldet). "
         "`expr` ist der auszuwertende Funktionsterm, `domain` der Definitionsbereich als `min:max` "
         "(Standard `-10:10`, auch `min..max` erlaubt). `label` beschriftet den Graphen am rechten "
-        "(letzten sichtbaren) Kurvenende. `color`/`thickness` wie bei `points`."
+        "(letzten sichtbaren) Kurvenende. `line: dashed` zeichnet den Graphen gestrichelt "
+        "(Standard `solid`; ungültige Werte meldet `AN012`, wie bei `pairs`). `color`/`thickness` "
+        "wie bei `points`."
     ),
     # -- Blocktypen ----------------------------------------------------
     "block:material": (
@@ -778,8 +781,9 @@ PROSE_SECTIONS: dict[str, str] = {
     ),
     "option:line": (
         "Linienstil des Rasterhintergrunds: `solid` (Standard) oder `dashed`. Nur bei `:::grid`/"
-        "`:::geometry` vorhanden -- nicht zu verwechseln mit dem gleichnamigen `pairs[].line`-Feld "
-        "in der Geometry-YAML-Payload (dort eigene, unabhängige Einstellung pro Strecke)."
+        "`:::geometry` vorhanden -- nicht zu verwechseln mit dem gleichnamigen `line`-Feld von "
+        "`pairs`/`functions` in der Geometry-YAML-Payload (dort eigene, unabhängige Einstellung pro "
+        "Strecke bzw. Graph)."
     ),
     "option:title": (
         "Überschreibt die automatisch erzeugte Standardbeschriftung des Blocks mit einem eigenen Text."

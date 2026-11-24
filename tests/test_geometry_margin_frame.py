@@ -123,3 +123,12 @@ def test_column_weight_follows_geometry_size_not_legacy_rows_cols():
     assert small < large
     assert large == pytest.approx(31 * 13 / 48.0)
     assert legacy == pytest.approx(21 * 6 / 48.0)
+
+
+def test_function_line_style_defaults_to_solid_and_can_be_dashed():
+    """`functions[].line` wie `pairs[].line`; Standard ist hier durchgezogen, Ungültiges fällt still darauf zurück."""
+    html = _render(
+        {"axis": "true", "origin": "2,2"},
+        "functions:\n  - {expr: x}\n  - {expr: '-x', line: dashed}\n  - {expr: '0.5*x', line: wellig}\n",
+    )
+    assert re.findall(r"class='grid-function-line grid-function-line-(\w+)", html) == ["solid", "dashed", "solid"]

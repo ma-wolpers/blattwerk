@@ -14,7 +14,7 @@ pflegen.
 from __future__ import annotations
 
 from .answer_grid_axis import _resolve_axis_state
-from .answer_grid_entries import GEOMETRY_ENTRY_ALLOWED_KEYS
+from .answer_grid_entries import GEOMETRY_ENTRY_ALLOWED_KEYS, GEOMETRY_LINE_STYLE_DEFAULTS
 from .answer_grid_validity import (
     _circle_center_and_radius_are_valid,
     _describe_circle_angle_problem,
@@ -23,6 +23,7 @@ from .answer_grid_validity import (
 from .answer_special_shared import parse_svg_color, parse_svg_thickness
 from .blatt_validator_constants import (
     GRID_MARKER_SHOW_VALUES,
+    KNOWN_GRID_LINE_STYLES,
     MARKER_SHOW_SECTIONS_BY_ANSWER_TYPE,
     NUMBERLINE_ANSWER_TYPES,
 )
@@ -78,7 +79,8 @@ def _validate_geometry_entry_fields(diagnostics, block_index, answer_type, parse
     Iteriert über alle vier Sektionen aus `GEOMETRY_ENTRY_ALLOWED_KEYS`
     (`points`/`sequence`/`pairs`/`functions`) und meldet je Eintrag:
     - jeden Key außerhalb der für die Sektion erlaubten Menge (`AN011`);
-    - bei `pairs` einen vorhandenen, aber ungültigen `line`-Wert (`AN012`)
+    - bei `pairs`/`functions` (`GEOMETRY_LINE_STYLE_DEFAULTS`) einen
+      vorhandenen, aber ungültigen `line`-Wert (`AN012`)
       — eine eigene Diagnose-Ebene, getrennt von der Block-Option
       `line=solid|dashed` bei `:::grid`/`:::geometry` (`OP002`), die einen
       anderen DSL-Konzept mit demselben Namen prüft;
@@ -124,15 +126,15 @@ def _validate_geometry_entry_fields(diagnostics, block_index, answer_type, parse
                     )
 
             raw_line = entry.get("line")
-            if section == "pairs" and raw_line is not None:
+            if section in GEOMETRY_LINE_STYLE_DEFAULTS and raw_line is not None:
                 normalized_line = str(raw_line).strip().lower()
-                if normalized_line not in ("solid", "dashed"):
+                if normalized_line not in KNOWN_GRID_LINE_STYLES:
                     diagnostics.append(
                         BuildDiagnostic(
                             code="AN012",
                             message=(
-                                f"Ungültiger Wert für `line` in `pairs[{idx}]`: `{raw_line}`. "
-                                "Erlaubt: solid, dashed."
+                                f"Ungültiger Wert für `line` in `{section}[{idx}]`: `{raw_line}`. "
+                                f"Erlaubt: {', '.join(sorted(KNOWN_GRID_LINE_STYLES))}."
                             ),
                             severity="error",
                             block_index=block_index,

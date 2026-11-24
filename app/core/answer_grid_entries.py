@@ -16,6 +16,7 @@ Konvention) statt hier -- Details dort.
 from __future__ import annotations
 
 from .answer_special_shared import parse_svg_color, parse_svg_thickness
+from .blatt_validator_constants import KNOWN_GRID_LINE_STYLES
 
 
 GEOMETRY_ENTRY_ALLOWED_KEYS = {
@@ -24,7 +25,7 @@ GEOMETRY_ENTRY_ALLOWED_KEYS = {
     "pairs": {"x1", "y1", "x2", "y2", "line", "label", "show", "color", "thickness"},
     "polygons": {"vertices", "label", "show", "color", "thickness", "fill"},
     "circles": {"cx", "cy", "r", "start_angle", "end_angle", "label", "show", "color", "thickness", "fill"},
-    "functions": {"expr", "domain", "label", "show", "color", "thickness"},
+    "functions": {"expr", "domain", "line", "label", "show", "color", "thickness"},
 }
 """Normative Menge erlaubter YAML-Keys je Geometry-Sektion.
 
@@ -38,6 +39,15 @@ können dadurch nicht auseinanderlaufen. Ein Test
 *allen* hier gelisteten Keys und prüft sowohl, dass der Validator keine
 `AN011`-Diagnose meldet, als auch, dass die jeweilige `_parse_*`-Funktion
 kein Feld verliert — das hält beide Seiten nachweisbar synchron.
+"""
+
+GEOMETRY_LINE_STYLE_DEFAULTS = {"pairs": "dashed", "functions": "solid"}
+"""Sektionen mit Objekt-Feld `line` und ihr Linienstil ohne (gültige) Angabe.
+
+Erlaubt sind dieselben Werte wie bei der Block-Option `line=`
+(`KNOWN_GRID_LINE_STYLES`). Parser (`_parse_line_style`) und Validator (`AN012`)
+lesen beide diese Tabelle. Strecken sind seit jeher gestrichelt, Graphen
+durchgezogen.
 """
 
 
@@ -61,6 +71,18 @@ def _parse_positive_float(value, default):
     if parsed is None or parsed <= 0:
         return default
     return parsed
+
+
+def _parse_line_style(item, section):
+    """Linienstil (`solid`/`dashed`) eines `pairs`-/`functions`-Eintrags.
+
+    Fehlt `line` oder ist der Wert ungültig, gilt still der Standard der
+    Sektion (`GEOMETRY_LINE_STYLE_DEFAULTS`); die Diagnose für ungültige Werte
+    ist `AN012` im Validator.
+    """
+    default = GEOMETRY_LINE_STYLE_DEFAULTS[section]
+    raw_line = str(item.get("line", default)).strip().lower()
+    return raw_line if raw_line in KNOWN_GRID_LINE_STYLES else default
 
 
 def _parse_domain(domain_text):
@@ -199,10 +221,7 @@ def _parse_pairs(raw_pairs, coord_system, include_solutions):
     zum Achsenmodus-Pfad mit `origin=(0, 0)`, `step_x=step_y=1`,
     nur ohne dass dafür ein Achsenkreuz gezeichnet wird (das bleibt
     ausschließlich an `axis_active` in `_render_grid_primitives_svg`
-    gekoppelt). `line_style` fällt bei fehlendem oder ungültigem `line`-Wert
-    still auf `"dashed"` zurück — das ist der bestehende Default-Fallback
-    für die *Rendering*-Ebene, unabhängig von der separaten Validator-
-    Diagnose (`AN012`) für ungültige `line`-Werte.
+    gekoppelt). `line_style` liest `_parse_line_style` (Standard `"dashed"`).
     """
     if not isinstance(raw_pairs, list):
         return []
@@ -220,8 +239,7 @@ def _parse_pairs(raw_pairs, coord_system, include_solutions):
         y2 = _as_float(item.get("y2"))
         if x1 is None or y1 is None or x2 is None or y2 is None:
             continue
-        raw_line = str(item.get("line", "dashed")).strip().lower()
-        line_style = raw_line if raw_line in ("solid", "dashed") else "dashed"
+        line_style = _parse_line_style(item, "pairs")
         gx1, gy1 = coord_system.point(x1, y1)
         gx2, gy2 = coord_system.point(x2, y2)
         label = str(item.get("label", "")).strip()
@@ -232,10 +250,11 @@ def _parse_pairs(raw_pairs, coord_system, include_solutions):
 
 
 def _parse_functions(raw_functions, axis_enabled, include_solutions):
-    """Parst `functions`-Deskriptoren als `(expr, x_min, x_max, label, color, thickness, mode)`.
+    """Parst `functions`-Deskriptoren als `(expr, x_min, x_max, label, color, thickness, mode, line_style)`.
 
     Nur im Achsenmodus sinnvoll, da Funktionsgraphen ohne mathematisches
-    Koordinatensystem nicht definiert sind.
+    Koordinatensystem nicht definiert sind. `line_style` liest
+    `_parse_line_style` (Standard `"solid"`, mit `line: dashed` gestrichelt).
     """
     if not axis_enabled or not isinstance(raw_functions, list):
         return []
@@ -260,6 +279,6 @@ def _parse_functions(raw_functions, axis_enabled, include_solutions):
         label = str(item.get("label", "")).strip()
         color = parse_svg_color(item.get("color"))
         thickness = parse_svg_thickness(item.get("thickness"))
-        parsed.append((expr, x_min, x_max, label, color, thickness, mode))
+        parsed.append((expr, x_min, x_max, label, color, thickness, mode, _parse_line_style(item, "functions")))
 
     return parsed

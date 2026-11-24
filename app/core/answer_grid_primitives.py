@@ -135,7 +135,7 @@ def _render_functions_section(raw_entries, coord_system, frame, include_solution
     """Section-Renderer für `functions`; der Graph läuft bis in den Randbereich, Hindernisse nutzen exakt die gezeichneten Samples."""
     entries = _parse_functions(raw_entries, coord_system.axis_active, include_solutions)
     shapes, labels, obstacles = [], [], []
-    for expr, x_min, x_max, label, color, thickness, mode in entries:
+    for expr, x_min, x_max, label, color, thickness, mode, line_style in entries:
         samples = _sample_function_points(expr, x_min, x_max, coord_system, frame)
         if len(samples) < 2:
             continue
@@ -143,7 +143,7 @@ def _render_functions_section(raw_entries, coord_system, frame, include_solution
         points_attr = " ".join(f"{x:.4f},{y:.4f}" for x, y in poly_points)
         stroke_style = _svg_stroke_style_attr(color, thickness)
         shapes.append(
-            f"<polyline class='grid-function-line grid-mode-{mode}'{stroke_style} points='{points_attr}' />"
+            f"<polyline class='grid-function-line grid-function-line-{line_style} grid-mode-{mode}'{stroke_style} points='{points_attr}' />"
         )
         obstacles.extend(polyline_obstacles(poly_points, TIER_LINE, stroke_pad(thickness or 1.1), owner=("function", poly_points[-1])))
         if label:
