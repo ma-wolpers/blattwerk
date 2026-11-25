@@ -9,8 +9,9 @@ Konvention (analog Arbeitsblatt/`nl2br`):
   Folgezeile als eigener "S:innen"-Eintrag gilt; in allen anderen Spalten
   wird das `\\` einfach entfernt.
 
-`render_html` ruft diese Helfer auf, die eigentliche Absatz-/Listen-
-Erzeugung bleibt in `render_html._render_text`.
+`cell_html`/`activity_cell` rufen diese Helfer auf; die eigentliche
+Absatz-/Listen-Erzeugung liegt in `cell_html.render_cell_text`, das Label
+eines `ant<`-Blocks setzt `activity_cell`.
 """
 
 from __future__ import annotations
@@ -69,28 +70,3 @@ def label_entries(text: str, marker_label: str) -> str:
         output.append(line if continues_entry else f"**{label}** {line}")
         continues_entry = ends_with_hard_break(line)
     return "\n".join(output).strip()
-
-
-def label_block(text: str, marker_label: str) -> str:
-    """Setzt das Marker-Label (z. B. **Antizipiert:**) vor einen `ant<`-Block.
-
-    Einzeiliger Inhalt steht direkt hinter dem Label, mehrzeiliger Inhalt
-    beginnt in der Zeile nach dem Label. Leerzeilen im Block bleiben als
-    Absatzgrenze erhalten (mehrere hintereinander werden zusammengefasst).
-    """
-    content = str(text or "").strip()
-    if not content:
-        return ""
-
-    label = str(marker_label or "").strip()
-    if not label:
-        return content
-
-    lines: list[str] = []
-    for raw_line in content.splitlines():
-        line = raw_line.strip()
-        if line or (lines and lines[-1] != ""):
-            lines.append(line)
-    if len(lines) == 1:
-        return f"**{label}** {lines[0]}"
-    return f"**{label}**\n" + "\n".join(lines)

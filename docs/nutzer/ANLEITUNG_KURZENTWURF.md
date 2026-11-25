@@ -24,8 +24,8 @@ Material:
 S> Leitfrage als Problem, das mit dem Vorwissen noch nicht lösbar ist
 A>
 s< formulieren erste Vermutungen zur Leitfrage.
-ant< - "Ich vermute, dass ..."
-      - "Das liegt bestimmt an ..."
+ant< - Ich vermute, dass ...
+      - Das liegt bestimmt an ...
 U> LSG; Tafel
 
 #erarbeitung t=20
@@ -38,7 +38,7 @@ U> GA; Arbeitsblatt eintragen
 S> Lösungswege vergleichen
 A>
 s< vergleichen ihre Ergebnisse mit einer Nachbargruppe.
-ant< "Wir haben das anders gelöst, weil ..."
+ant< Wir haben das anders gelöst, weil ...
 U> SSG
 ```
 
@@ -69,7 +69,7 @@ Innerhalb einer Phase gliedern Zeilenmarker den Inhalt in drei Spalten (Lernschr
 - **`A>`**: Schaltet die aktive Spalte auf Lernaktivitäten um, trägt aber selbst **keinen** Inhalt -- Inhalt direkt hinter `A>` auf derselben Zeile ist ungültig und löst `KZF150` aus. Der eigentliche Inhalt gehört auf eine folgende `s<`-Zeile.
 - **`s<`**: Lernaktivität der Lernenden -- der eigentliche Inhalt der Spalte Lernaktivitäten, folgt typischerweise auf `A>`. Inhalt in dieser Spalte vor dem ersten `s<` löst `KZF151` aus.
 - **`U>`**: Beginnt die Spalte Lernumgebung/Sozialform; Inhalt direkt hinter `U>`. Materialangaben (z. B. welches Arbeitsblatt verwendet wird) gehören strukturell ausschließlich hierhin -- keine andere Spalte ist dafür vorgesehen.
-- **`ant<`**: Markiert eine antizipierte Schüler:innen-Antwort/-Reaktion zum jeweiligen Lernschritt -- **nicht nur Fehlvorstellungen**, sondern gute, neutrale wie falsche erwartete Antworten gleichermaßen. Antizipationen sind **mündliche Äußerungen im Unterrichtsgespräch**, wörtlich so, wie Lernende sie sagen würden -- keine Arbeitsergebnisse. In einem Segment mit Gesprächsform oder ohne erkennbare Sozialform sollte nach jedem `s<` ein `ant<` stehen, sonst erscheint die Warnung `KZF152`. Nennt `U>` nur Arbeitsformen (siehe Sozialformen unten), entfällt die Warnung. Gehört ausschließlich in einen `A>`-Block, direkt hinter das zugehörige `s<`: steht `ant<` vor dem ersten `s<` eines Segments oder hinter `S>`-/`U>`-Inhalt (bzw. nach einem `|`-Spaltenwechsel), erscheint die Warnung `KZF154`.
+- **`ant<`**: Markiert eine antizipierte Schüler:innen-Antwort/-Reaktion zum jeweiligen Lernschritt -- **nicht nur Fehlvorstellungen**, sondern gute, neutrale wie falsche erwartete Antworten gleichermaßen. Antizipationen sind **mündliche Äußerungen im Unterrichtsgespräch**, wörtlich so, wie Lernende sie sagen würden -- keine Arbeitsergebnisse. In einem Segment mit Gesprächsform oder ohne erkennbare Sozialform sollte nach jedem `s<` ein `ant<` stehen, sonst erscheint die Warnung `KZF152`. Nennt `U>` nur Arbeitsformen (siehe Sozialformen unten), entfällt die Warnung. Gehört ausschließlich in einen `A>`-Block, direkt hinter das zugehörige `s<`: steht `ant<` vor dem ersten `s<` eines Segments oder hinter `S>`-/`U>`-Inhalt (bzw. nach einem `|`-Spaltenwechsel), erscheint die Warnung `KZF154`. Im Rendering steht jede Antizipation direkt unter dem `s<`, hinter dem sie im Quelltext steht. Jede Zeile eines `ant<`-Blocks ist eine Äußerung und wird **ohne Anführungszeichen** geschrieben (z. B. `ant< - Das sind Hundertstel.`); Blattwerk setzt „…“ selbst. Eine Klammer am Zeilenende ist eine Anmerkung: sie steht hinter dem schließenden Anführungszeichen und erscheint grau (z. B. `- Das sind Zehntel. (Fehlvorstellung)`). Trotzdem gesetzte Anführungszeichen werden ignoriert und einmal pro `ant<`-Block mit der Warnung `KZF155` gemeldet.
 - **`ant>`**: **Kein** gültiger Alias von `ant<`, obwohl es vom Zeilenmarker-Muster erkannt wird -- führt immer zum Fehler `KZF153` ("Bitte ant< verwenden"). Nur `ant<` verwenden.
 
 ### Sozialformen in `U>`
@@ -116,6 +116,6 @@ Innerhalb von Zelleninhalten (Schritte/Aktivitäten/Umgebung) gilt dieselbe zent
 
 ## 7. Zeilenumbrüche und Formeln in Zellen
 
-Zeilenumbrüche funktionieren in allen Zellen wie im Arbeitsblatt: eine Folgezeile ohne Marker erscheint in derselben Zelle in einer neuen Zeile, eine **Leerzeile** beginnt einen neuen Absatz (mit kleinem Abstand). Leerzeilen direkt vor einem neuen Marker, vor `---` oder vor der nächsten `#phase` bleiben wirkungslos. Ausnahme Lernaktivitäten: nach `s<` gilt jede Folgezeile als **eigener** "S:innen"-Eintrag. Soll ein Eintrag stattdessen nur in einer neuen Zeile weiterlaufen, endet die Zeile davor mit einem `\` (z. B. `s< beschreiben die Grafik \` und darunter `und vergleichen sie`). In den anderen Spalten ist das `\` unnötig und wird einfach entfernt; ein doppeltes `\\` bleibt als Text stehen.
+Zeilenumbrüche funktionieren in allen Zellen wie im Arbeitsblatt: eine Folgezeile ohne Marker erscheint in derselben Zelle in einer neuen Zeile, eine **Leerzeile** beginnt einen neuen Absatz und bleibt als Leerzeile sichtbar. Leerzeilen direkt vor einem neuen Marker, vor `---` oder vor der nächsten `#phase` bleiben wirkungslos. Ausnahme Lernaktivitäten: nach `s<` gilt jede Folgezeile als **eigener** "S:innen"-Eintrag. Soll ein Eintrag stattdessen nur in einer neuen Zeile weiterlaufen, endet die Zeile davor mit einem `\` (z. B. `s< beschreiben die Grafik \` und darunter `und vergleichen sie`). In den anderen Spalten ist das `\` unnötig und wird einfach entfernt; ein doppeltes `\\` bleibt als Text stehen.
 
 In jeder Zelle funktionieren Formeln `$formel$` in LaTeX-Syntax (z. B. `$\frac{a}{b}$`, `$x^2$`) wie im Arbeitsblatt. `$$formel$$` ist ebenfalls erlaubt, wird im Kurzentwurf aber genauso **im Fließtext** gesetzt wie `$formel$` (keine eigene, zentrierte Formelzeile -- dafür sind die Tabellenzellen zu schmal; der Editor weist mit dem abhakbaren Hinweis `KZF161` darauf hin). Vorschau und PDF setzen Formeln auch ohne Internet. Eine exportierte HTML-Datei lädt MathJax beim Öffnen von einem CDN nach; ohne Internet zeigt sie die rohe Formel-Quelle als Text -- der HTML-Export weist einmal pro Dokument darauf hin (`KZF160`). Ein einzelnes `$` wie in `$5` wird nicht als Formelbeginn erkannt.

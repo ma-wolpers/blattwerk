@@ -1,16 +1,11 @@
 ﻿from __future__ import annotations
 
-import re
 from html import escape
 
-from ..inline_markup import render_inline_markup
-from .cell_text import label_block, label_entries, strip_hard_break
-from ..inline_markup.spans import drop_comment_only_lines
+from .activity_cell import ANT_NOTE_CLASS, activity_cell_html
+from .cell_html import CELL_GAP_CLASS, render_cell_text
 from .math_support import MATHJAX_INLINE_HEAD_HTML
 from .model import KurzentwurfDocument, KurzentwurfPhaseBlock, KurzentwurfSegment
-
-_ORDERED_DIGIT_RE = re.compile(r"^\d+[.)]\s+(.+)$")
-_ORDERED_ALPHA_RE = re.compile(r"^([a-zA-Z])[.)]\s+(.+)$")
 
 PHASE_SEPARATOR_LINE = "line"
 PHASE_SEPARATOR_SPACE = "space"
@@ -239,6 +234,15 @@ def render_document_html(
       margin-bottom: 0;
     }}
 
+    /* Leerzeile in der Quelle = eine sichtbare Leerzeile (Zeilenhöhe von .cell-content). */
+    .{CELL_GAP_CLASS} {{
+      margin-top: 1.26em;
+    }}
+
+    .{ANT_NOTE_CLASS} {{
+      color: #666;
+    }}
+
     .cell-list {{
       margin: 0 0 4px 17px;
       padding: 0;
@@ -365,16 +369,17 @@ def _render_phase_rows(
 
     full_row_indices = {i for i, s in enumerate(segments) if s.full_row}
 
+    # Jede Map liefert pro Gruppenanfang (rowspan, fertiges Zellen-HTML).
     schritte_map = _build_group_map(
         segments,
-        text_getter=lambda item: item.schritte,
+        text_getter=lambda item: render_cell_text(item.schritte),
         inherit_getter=lambda item: item.inherit_schritte,
         full_row_indices=full_row_indices,
     )
     aktivitaeten_map = _build_group_map(
         segments,
-        text_getter=lambda item: _activity_cell_text(
-            item,
+        text_getter=lambda item: activity_cell_html(
+            item.activities,
             s_marker_label=s_marker_label,
             ant_marker_label=ant_marker_label,
         ),
@@ -383,7 +388,7 @@ def _render_phase_rows(
     )
     umgebung_map = _build_group_map(
         segments,
-        text_getter=lambda item: item.umgebung,
+        text_getter=lambda item: render_cell_text(item.umgebung),
         inherit_getter=lambda item: item.inherit_umgebung,
         full_row_indices=full_row_indices,
     )
@@ -397,7 +402,7 @@ def _render_phase_rows(
             row_classes.append("phase-segment-row-nonlast")
 
         if index in full_row_indices:
-            text = _render_text(segments[index].schritte or "")
+            text = render_cell_text(segments[index].schritte or "")
             rows.append(
                 f"<tr class=\"{' '.join(row_classes)} full-row-segment\">"
                 "<td colspan=\"3\" class=\"full-row-cell\"><div class=\"cell-content\">"
@@ -427,7 +432,7 @@ def _render_phase_rows(
                 "\" rowspan=\""
                 f"{rowspan}"
                 "\"><div class=\"cell-content\">"
-                f"{_render_text(text)}"
+                f"{text}"
                 "</div></td>"
             )
 
@@ -440,7 +445,7 @@ def _render_phase_rows(
                 "\" rowspan=\""
                 f"{rowspan}"
                 "\"><div class=\"cell-content\">"
-                f"{_render_text(text)}"
+                f"{text}"
                 "</div></td>"
             )
 
@@ -453,7 +458,7 @@ def _render_phase_rows(
                 "\" rowspan=\""
                 f"{rowspan}"
                 "\"><div class=\"cell-content\">"
-                f"{_render_text(text)}"
+                f"{text}"
                 "</div></td>"
             )
 
@@ -482,23 +487,6 @@ def _build_group_map(
 
     groups[start_index] = (len(segments) - start_index, text_getter(segments[start_index]))
     return groups
-
-
-def _activity_cell_text(
-    segment: KurzentwurfSegment,
-    *,
-    s_marker_label: str,
-    ant_marker_label: str,
-) -> str:
-    # Kommentarzeilen vor dem zeilenweisen Labeln entfernen, sonst wird daraus ein leerer Eintrag.
-    base = label_entries(drop_comment_only_lines(str(segment.aktivitaeten or "")).strip(), s_marker_label)
-    antizipiert = drop_comment_only_lines(str(segment.antizipiert or "")).strip()
-    if not antizipiert:
-        return base
-    antizipiert_line = label_block(antizipiert, ant_marker_label)
-    if not base:
-        return antizipiert_line
-    return f"{base}\n\n{antizipiert_line}"
 
 
 def _segment_cell_classes(rowspan: int, *extra_classes: str) -> str:
@@ -580,116 +568,10 @@ def _render_legacy_row(row) -> str:
     return f"""
 <tr>
   <td class=\"phase-cell\"><div class=\"phase-main\">{escape(row.display_phase)}</div>{phase_time_html}</td>
-  <td><div class=\"cell-content\">{_render_text(row.schritte)}</div></td>
-  <td><div class=\"cell-content\">{_render_text(row.aktivitaeten)}</div></td>
-  <td class=\"umgebung-cell\"><div class=\"cell-content\">{_render_text(row.umgebung)}</div></td>
+  <td><div class=\"cell-content\">{render_cell_text(row.schritte)}</div></td>
+  <td><div class=\"cell-content\">{render_cell_text(row.aktivitaeten)}</div></td>
+  <td class=\"umgebung-cell\"><div class=\"cell-content\">{render_cell_text(row.umgebung)}</div></td>
 </tr>
 """.strip()
-
-
-def _render_text(text: str) -> str:
-    # Reine Kommentarzeilen zählen gar nicht (kein `<br>`, keine Absatzgrenze), auch mehrzeilige.
-    normalized = drop_comment_only_lines(str(text or "").replace("\r\n", "\n").replace("\r", "\n"))
-    lines = normalized.split("\n")
-
-    blocks: list[str] = []
-    paragraph_lines: list[str] = []
-    list_items: list[str] = []
-    list_ordered_type: str | None = None  # None=unordered, '1'/'a'/'A'=ordered
-
-    def flush_paragraph() -> None:
-        if not paragraph_lines:
-            return
-        rendered_lines = [
-            _render_inline_markup(strip_hard_break(line))
-            for line in paragraph_lines
-            if strip_hard_break(line)
-        ]
-        if rendered_lines:
-            blocks.append(f"<p class=\"cell-paragraph\">{'<br>'.join(rendered_lines)}</p>")
-        paragraph_lines.clear()
-
-    def flush_list() -> None:
-        if not list_items:
-            return
-        items_html = "".join(
-            f"<li>{_render_inline_markup(strip_hard_break(item))}</li>"
-            for item in list_items
-            if strip_hard_break(item)
-        )
-        if items_html:
-            if list_ordered_type is None:
-                blocks.append(f"<ul class=\"cell-list\">{items_html}</ul>")
-            else:
-                type_attr = f" type=\"{list_ordered_type}\"" if list_ordered_type != "1" else ""
-                blocks.append(f"<ol{type_attr} class=\"cell-list\">{items_html}</ol>")
-        list_items.clear()
-
-    for raw_line in lines:
-        stripped = raw_line.strip()
-
-        extracted = _extract_bullet_text(stripped)
-        if extracted is not None:
-            item_text, ordered_type = extracted
-            flush_paragraph()
-            if list_items and list_ordered_type != ordered_type:
-                flush_list()
-            list_ordered_type = ordered_type
-            list_items.append(item_text)
-            continue
-
-        if not stripped:
-            flush_paragraph()
-            flush_list()
-            continue
-
-        flush_list()
-        paragraph_lines.append(stripped)
-
-    flush_paragraph()
-    flush_list()
-
-    if not blocks:
-        return ""
-
-    return "".join(blocks)
-
-
-def _extract_bullet_text(line: str) -> tuple[str, str | None] | None:
-    """Returns (text, ordered_type) or None.
-
-    ordered_type is None for bullet lists, '1' for digit-ordered,
-    'a'/'A' for lower-/upper-alpha ordered lists.
-    """
-    if not line:
-        return None
-
-    for marker in ("- ", "* ", "• "):
-        if line.startswith(marker):
-            return line[len(marker):].strip(), None
-
-    digit_match = _ORDERED_DIGIT_RE.match(line)
-    if digit_match:
-        return digit_match.group(1).strip(), "1"
-
-    alpha_match = _ORDERED_ALPHA_RE.match(line)
-    if alpha_match:
-        ordered_type = "a" if alpha_match.group(1).islower() else "A"
-        return alpha_match.group(2).strip(), ordered_type
-
-    return None
-
-
-def _render_inline_markup(text: str) -> str:
-    """Rendert Inline-Markup über das zentrale `inline_markup`-Paket.
-
-    Dünner Namens-Alias auf `inline_markup.render_inline_markup`, damit
-    bestehende Aufrufstellen (`_render_text`, `_render_legacy_row`)
-    unverändert bleiben -- keine eigene Marker-Erkennung mehr in diesem
-    Modul. Escaping (inkl. `&`/`<`/`>`) übernimmt das zentrale Paket selbst
-    pro Run; hier darf NICHT zusätzlich vorab escaped werden.
-    """
-    return render_inline_markup(text or "")
-
 
 

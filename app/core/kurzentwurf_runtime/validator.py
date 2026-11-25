@@ -8,7 +8,9 @@ from .math_support import collect_math_diagnostics
 from .phase_order import collect_phase_order_diagnostics
 from .region import compute_phase_region_id
 from .model import (
+    ACTIVITY_KIND_STUDENT,
     ALLOWED_PHASES,
+    ActivityEntry,
     FORBIDDEN_BLATTWERK_MARKERS,
     LEGACY_ROW_MARKERS,
     PHASE_SPECS,
@@ -119,15 +121,16 @@ def inspect_kurzentwerfer_text(source: str) -> InspectionResult:
             continue
 
         current_schritte: str | None = None
-        current_aktivitaeten: str | None = None
+        # Geerbt werden nur die s<-Einträge (wie früher der s<-Text), nie Antizipationen.
+        current_student_entries: tuple[ActivityEntry, ...] = ()
         current_umgebung: str | None = None
         validated_segments: list[KurzentwurfSegment] = []
 
         for raw_segment in raw_phase.segments:
             explicit_schritte = _normalize_optional(raw_segment.schritte)
-            explicit_aktivitaeten = _normalize_optional(raw_segment.aktivitaeten)
             explicit_umgebung = _normalize_optional(raw_segment.umgebung)
-            antizipiert = _normalize_optional(raw_segment.antizipiert) or ""
+            student_entries = tuple(e for e in raw_segment.activities if e.kind == ACTIVITY_KIND_STUDENT)
+            has_anticipation = len(student_entries) < len(raw_segment.activities)
 
             if raw_segment.full_row:
                 # Full-row segments are standalone annotations: they neither
@@ -136,9 +139,7 @@ def inspect_kurzentwerfer_text(source: str) -> InspectionResult:
                 validated_segments.append(
                     KurzentwurfSegment(
                         schritte=explicit_schritte or "",
-                        aktivitaeten="",
                         umgebung="",
-                        antizipiert=antizipiert,
                         inherit_schritte=False,
                         inherit_aktivitaeten=False,
                         inherit_umgebung=False,
@@ -147,27 +148,26 @@ def inspect_kurzentwerfer_text(source: str) -> InspectionResult:
                     )
                 )
                 current_schritte = None
-                current_aktivitaeten = None
+                current_student_entries = ()
                 current_umgebung = None
                 continue
 
             inherit_schritte = explicit_schritte is None
             inherit_umgebung = explicit_umgebung is None
-            inherit_aktivitaeten = explicit_aktivitaeten is None and not antizipiert
+            inherit_aktivitaeten = not student_entries and not has_anticipation
 
             if explicit_schritte is not None:
                 current_schritte = explicit_schritte
-            if explicit_aktivitaeten is not None:
-                current_aktivitaeten = explicit_aktivitaeten
+            if student_entries:
+                current_student_entries = student_entries
             if explicit_umgebung is not None:
                 current_umgebung = explicit_umgebung
 
             validated_segments.append(
                 KurzentwurfSegment(
                     schritte=current_schritte or "",
-                    aktivitaeten=current_aktivitaeten or "",
                     umgebung=current_umgebung or "",
-                    antizipiert=antizipiert,
+                    activities=(() if student_entries else current_student_entries) + raw_segment.activities,
                     inherit_schritte=inherit_schritte,
                     inherit_aktivitaeten=inherit_aktivitaeten,
                     inherit_umgebung=inherit_umgebung,

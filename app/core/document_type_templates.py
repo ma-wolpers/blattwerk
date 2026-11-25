@@ -167,8 +167,8 @@ def _build_kurzentwurf_template(preferences: Mapping[str, object]) -> str:
         + "S> Leitfrage als Problem, das mit dem Vorwissen noch nicht lösbar ist\n"
         + "A>\n"
         + "s< formulieren erste Vermutungen zur Leitfrage.\n"
-        + 'ant< - "Ich vermute, dass ..."\n'
-        + '      - "Das liegt bestimmt an ..."\n'
+        + "ant< - Ich vermute, dass ...\n"
+        + "      - Das liegt bestimmt an ...\n"
         + "U> LSG; Tafel\n\n"
         + "#erarbeitung t=20\n"
         + "S> Fachlichen Lernschritt eintragen\n"
@@ -179,7 +179,7 @@ def _build_kurzentwurf_template(preferences: Mapping[str, object]) -> str:
         + "S> Lösungswege vergleichen\n"
         + "A>\n"
         + "s< vergleichen ihre Ergebnisse mit einer Nachbargruppe.\n"
-        + 'ant< "Wir haben das anders gelöst, weil ..."\n'
+        + "ant< Wir haben das anders gelöst, weil ...\n"
         + "U> SSG\n"
     )
 

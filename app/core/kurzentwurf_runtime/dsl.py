@@ -20,6 +20,7 @@ from .dsl_segments import (
     _finalize_segment,
     _is_column_switch_line,
     _misplaced_ant_diagnostic,
+    _quoted_ant_diagnostic,
 )
 from .model import Diagnostic, RawPhaseBlock
 
@@ -172,6 +173,8 @@ def parse_kurzentwerfer_text(source: str) -> ParsedKurzentwurf:
                 segment_builder.active_column_key = "aktivitaeten"
                 segment_builder.has_ant_marker = True
                 segment_builder.set_marker("antizipiert", value, line=line_index + 1)
+                if segment_builder.report_quoted_ant_line(value):
+                    diagnostics.append(_quoted_ant_diagnostic(phase_builder, stripped, line=line_index + 1))
                 # Keep antizipation active so multiline ant< content continues
                 # without triggering KZF151 on following lines.
                 line_index += 1
@@ -201,6 +204,8 @@ def parse_kurzentwerfer_text(source: str) -> ParsedKurzentwurf:
             continue
 
         target_key = segment_builder.append_implicit_line(raw_line.rstrip(), line=line_index + 1)
+        if target_key == "antizipiert" and segment_builder.report_quoted_ant_line(stripped):
+            diagnostics.append(_quoted_ant_diagnostic(phase_builder, stripped, line=line_index + 1))
         if target_key == "aktivitaeten":
             if not segment_builder.has_s_marker:
                 diagnostics.append(

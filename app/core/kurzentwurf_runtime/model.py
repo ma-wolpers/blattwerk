@@ -163,16 +163,58 @@ class Diagnostic:
     anchor: str | None = None
 
 
+ACTIVITY_KIND_STUDENT = "s"
+ACTIVITY_KIND_ANTICIPATION = "ant"
+"""Werte für `ActivityEntry.kind`: `s<`-Eintrag bzw. `ant<`-Block."""
+
+
+@dataclass(frozen=True)
+class ActivityEntry:
+    """Ein Eintrag der Spalte Lernaktivitäten: ein `s<`- oder ein `ant<`-Block.
+
+    Die Spalte ist eine **geordnete** Folge solcher Einträge in
+    Quellreihenfolge, damit jede Antizipation unter dem `s<` gerendert wird,
+    hinter dem sie im Quelltext steht. `text` enthält den (mehrzeiligen)
+    Rohinhalt ohne Marker.
+    """
+
+    kind: str
+    text: str
+
+
+def activity_text(entries: tuple[ActivityEntry, ...], kind: str) -> str | None:
+    """Verbindet die Texte aller Einträge einer Art (`kind`) zeilenweise.
+
+    Einzige Ableitung der früheren Einzelfelder `aktivitaeten`/`antizipiert`
+    aus `activities`; liefert `None`, wenn es keinen Eintrag dieser Art gibt.
+    """
+    texts = [entry.text for entry in entries if entry.kind == kind and entry.text.strip()]
+    return "\n".join(texts) if texts else None
+
+
 @dataclass(frozen=True)
 class RawSegment:
-    """Raw segment inside one phase block before semantic validation."""
+    """Raw segment inside one phase block before semantic validation.
+
+    `activities` ist die einzige Quelle der Spalte Lernaktivitäten;
+    `aktivitaeten`/`antizipiert` sind daraus abgeleitet.
+    """
 
     schritte: str | None
-    aktivitaeten: str | None
     umgebung: str | None
-    antizipiert: str | None
     line: int
+    activities: tuple[ActivityEntry, ...] = ()
     full_row: bool = False
+
+    @property
+    def aktivitaeten(self) -> str | None:
+        """Alle `s<`-Texte des Segments (ohne Antizipationen)."""
+        return activity_text(self.activities, ACTIVITY_KIND_STUDENT)
+
+    @property
+    def antizipiert(self) -> str | None:
+        """Alle `ant<`-Texte des Segments."""
+        return activity_text(self.activities, ACTIVITY_KIND_ANTICIPATION)
 
 
 @dataclass(frozen=True)
@@ -213,17 +255,31 @@ class KurzentwurfRow:
 
 @dataclass(frozen=True)
 class KurzentwurfSegment:
-    """Validated segment with explicit inheritance flags for rowspan rendering."""
+    """Validated segment with explicit inheritance flags for rowspan rendering.
+
+    `activities` enthält die Lernaktivitäten in Quellreihenfolge (ggf. mit
+    geerbten `s<`-Einträgen davor); `aktivitaeten`/`antizipiert` sind daraus
+    abgeleitet.
+    """
 
     schritte: str
-    aktivitaeten: str
     umgebung: str
-    antizipiert: str
     inherit_schritte: bool
     inherit_aktivitaeten: bool
     inherit_umgebung: bool
     line: int
+    activities: tuple[ActivityEntry, ...] = ()
     full_row: bool = False
+
+    @property
+    def aktivitaeten(self) -> str:
+        """Alle `s<`-Texte des Segments (ohne Antizipationen)."""
+        return activity_text(self.activities, ACTIVITY_KIND_STUDENT) or ""
+
+    @property
+    def antizipiert(self) -> str:
+        """Alle `ant<`-Texte des Segments."""
+        return activity_text(self.activities, ACTIVITY_KIND_ANTICIPATION) or ""
 
 
 @dataclass(frozen=True)

@@ -45,9 +45,9 @@ erwartete Antworten (z. B. eine gute, eine mittelmäßige, eine falsche, eine ab
 Markdown-Liste innerhalb von `ant<` schreiben statt als einzelnen Fließtext-Satz:
 
 ```markdown
-ant< - "Photosynthese wandelt Licht in Zucker um." (gut)
-      - "Pflanzen brauchen Licht zum Wachsen." (unvollständig)
-      - "Pflanzen atmen wie wir." (Fehlvorstellung)
+ant< - Photosynthese wandelt Licht in Zucker um. (gut)
+      - Pflanzen brauchen Licht zum Wachsen. (unvollständig)
+      - Pflanzen atmen wie wir. (Fehlvorstellung)
 ```
 
 Zeigt eine Antizipation eine *Progression* (Lernende nähern sich der Erkenntnis in
@@ -55,10 +55,10 @@ Schritten), gehört sie genauso in eine `ant<`-Liste -- nicht in mehrere separat
 `ant<`-Blöcke, sonst geht der Sequenz-Charakter verloren:
 
 ```markdown
-ant< - "Drei Männer, die sich die Hand geben."
-      - "Drei Männer, die es versuchen, aber nicht schaffen."
-      - "Auf dem einen werden Zahlen auf sich selbst zugeordnet..."
-      - "Das sind alles drei die gleiche Funktion."
+ant< - Drei Männer, die sich die Hand geben.
+      - Drei Männer, die es versuchen, aber nicht schaffen.
+      - Auf dem einen werden Zahlen auf sich selbst zugeordnet...
+      - Das sind alles drei die gleiche Funktion.
 ```
 
 **Antizipationen sind einzelne, alternative Aussagen -- kein Dialog.** Jeder `ant<`-Eintrag
@@ -75,10 +75,10 @@ Gesprächsfolge. Das heißt konkret:
 
 Beispiele:
 
-- Nicht (Dialog): `ant< - "Ist das überhaupt eine Funktion?" \n      - "Ja, weil jedem x genau ein y zugeordnet ist."`
-- Nicht (Lehrkraft im Dialog): `ant< - "Das ist linear." \n      - L: "Woran erkennst du das?"`
-- Nicht (verkettet): `ant< - "Der Server ist kaputt." \n      - "Oder der Router spinnt."`
-- Sondern: `ant< - "Der Server ist kaputt." \n      - "Der Router spinnt schon wieder."`
+- Nicht (Dialog): `ant< - Ist das überhaupt eine Funktion? \n      - Ja, weil jedem x genau ein y zugeordnet ist.`
+- Nicht (Lehrkraft im Dialog): `ant< - Das ist linear. \n      - L: Woran erkennst du das?`
+- Nicht (verkettet): `ant< - Der Server ist kaputt. \n      - Oder der Router spinnt.`
+- Sondern: `ant< - Der Server ist kaputt. \n      - Der Router spinnt schon wieder.`
 
 (Ausnahme: eine bewusst dargestellte *Progression*, siehe oben -- dort ist die Abfolge
 selbst der Punkt. Auch dann ist jeder Schritt eine eigenständige Aussage der Lernenden und
@@ -194,10 +194,10 @@ Lernaktivität sein.
 **Antizipationen als Sprechakte der Lernenden formulieren.** `ant<` sollte lauten wie
 etwas, das Lernende selbst sagen könnten -- nicht wie eine Frage der Lehrkraft:
 
-- Nicht: `ant< "Was ist besonders klar dargestellt?"`
-- Sondern: `ant< "Besonders klar hast du dargestellt..."`
-- Nicht: `ant< "Welche Fachbegriffe habt ihr erkannt?"`
-- Sondern: `ant< "Hier ist zusätzlich noch..."`
+- Nicht: `ant< Was ist besonders klar dargestellt?`
+- Sondern: `ant< Besonders klar hast du dargestellt...`
+- Nicht: `ant< Welche Fachbegriffe habt ihr erkannt?`
+- Sondern: `ant< Hier ist zusätzlich noch...`
 
 Dabei auch naheliegende/offensichtliche Antworten mit aufnehmen (z. B. "Sie erstellt ein
 Koordinatensystem."), nicht nur überraschende -- Antizipationen sind für die Lehrkraft da,
@@ -212,8 +212,8 @@ künstlich als Äußerung formuliert -- diese Segmente bekommen kein `ant<` (der
 verzichtet dann auf `KZF152`, wenn `U>` die Arbeitsform nennt). Typische Fehler aus der
 Arbeitsphase gehören als Äußerung in das anschließende Gespräch, z. B. in die Sicherung.
 
-- Nicht: `ant< „Bei g ist $e=5$."` / `ant< „Allgemein: $a\cdot(x-d)^3+e$"`
-- Sondern: `ant< „Bei g ist e fünf, die anderen braucht man da gar nicht."`
+- Nicht: `ant< Bei g ist $e=5$.` / `ant< Allgemein: $a\cdot(x-d)^3+e$`
+- Sondern: `ant< Bei g ist e fünf, die anderen braucht man da gar nicht.`
 
 **Hauptkompetenz in den Lernaktivitäten markieren (Pflicht).** In jedem Kurzentwurf wird
 jede Lernaktivität (`s<`), die zur vorrangig geförderten Kompetenz der Stunde passt,
