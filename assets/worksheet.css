@@ -12,6 +12,8 @@
     --grid-line-stroke: 1px;
     --grid-border-width: 1px;
     --grid-border-color: #000;
+    /* Strichmuster gestrichelter Geometry-Objektlinien (Strecken, Folgen, Graphen; non-scaling-stroke). */
+    --grid-object-dash: 2 2;
     --dot-border-color: #999;
     --dot-color: #999;
     --dot-radius: 0.5px;
@@ -1085,7 +1087,7 @@ h1 {
     fill: none;
     stroke: var(--theme-accent-main);
     stroke-width: 1.5;
-    stroke-dasharray: 2 2;
+    stroke-dasharray: var(--grid-object-dash);
     vector-effect: non-scaling-stroke;
 }
 
@@ -1103,7 +1105,7 @@ h1 {
     fill: none;
     stroke: var(--theme-accent-main);
     stroke-width: 2.5;
-    stroke-dasharray: 2 2;
+    stroke-dasharray: var(--grid-object-dash);
     vector-effect: non-scaling-stroke;
 }
 
@@ -1112,7 +1114,7 @@ h1 {
 }
 
 .grid-segment.grid-segment-dashed {
-    stroke-dasharray: 2 2;
+    stroke-dasharray: var(--grid-object-dash);
 }
 
 .grid-segment.grid-mode-worksheet {
@@ -1143,6 +1145,10 @@ h1 {
     stroke: var(--theme-accent-main);
     stroke-width: 1.1;
     vector-effect: non-scaling-stroke;
+}
+
+.grid-function-line.grid-function-line-dashed {
+    stroke-dasharray: var(--grid-object-dash);
 }
 
 .grid-function-line.grid-mode-worksheet {

@@ -162,7 +162,7 @@ Subprozess siehe `tests/test_blatt_diagnostics_cli.py` (Validator) sowie
 - `AN010`: Ein `task`-/`subtask`- oder textbasierter `answer`-Block nutzt explizite `§`-Marker ohne sichtbares Loesungs-Gegenstueck; pruefe die Paarung von Arbeitsblatt- und Loesungsinhalt.
 - `AN055`: In einer Praesentation (`.pbw`) enthaelt ein `task`-/`subtask`-Block `%`-markierte Loesungsteile. Aufgabenbloecke zeigen dort immer die Aufgabenfassung, die Teile erschienen also nie. Loesungen gehoeren in `:::solution` oder in einen Antwortblock mit `mode=solution`. Warnung.
 - `AN011`: Unbekannter YAML-Key in einem `geometry`-Objekt-Eintrag (`points`/`sequence`/`pairs`/`polygons`/`circles`/`functions`), z. B. ein Tippfehler wie `lable` statt `label`.
-- `AN012`: Ungueltiger `line`-Wert in einem `pairs`-Eintrag (erlaubt: `solid`, `dashed`). Objekt-Feld-Ebene, getrennt von der gleichnamigen Block-Option `line=solid|dashed` bei `:::grid`/`:::geometry` (dort `OP002`).
+- `AN012`: Ungueltiger `line`-Wert in einem `pairs`- oder `functions`-Eintrag (erlaubt: `solid`, `dashed`). Objekt-Feld-Ebene, getrennt von der gleichnamigen Block-Option `line=solid|dashed` bei `:::grid`/`:::geometry` (dort `OP002`).
 - `AN013`: Ungueltiger `color`- oder `fill`-Wert in einem `geometry`-Objekt-Eintrag (kein von `parse_svg_color` akzeptiertes CSS-Farbformat).
 - `AN014`: Ungueltiger `thickness`-Wert in einem `geometry`-Objekt-Eintrag (keine positive Zahl).
 - `AN015`: `functions`-Eintraege ohne aktiven Achsenmodus (`axis=true` mit gueltigem `origin`) -- rendern nie etwas, da Funktionsgraphen ohne mathematisches Koordinatensystem nicht definiert sind.

@@ -69,7 +69,7 @@ def test_geometry_all_allowed_entry_keys_do_not_emit_an011():
         "circles:\n"
         "  - {cx: 0, cy: 0, r: 1, start_angle: 0, end_angle: 90, label: c, show: '&', color: red, thickness: 1, fill: blue}\n"
         "functions:\n"
-        "  - {expr: x, domain: '-1:1', label: f, show: '&', color: red, thickness: 1}\n"
+        "  - {expr: x, domain: '-1:1', line: dashed, label: f, show: '&', color: red, thickness: 1}\n"
         ":::"
     )
     inspected = inspect_markdown_text(text)
@@ -158,6 +158,18 @@ def test_geometry_pairs_line_invalid_value_emits_an012_error_separately_from_op0
     assert an012[0].severity == "error"
     codes = {diagnostic.code for diagnostic in inspected.diagnostics}
     assert "OP002" not in codes
+
+
+def test_geometry_functions_line_invalid_value_emits_an012_with_section_name():
+    text = build_document(
+        ":::geometry width=4 height=4 axis=true origin=\"2,2\"\n"
+        "functions:\n"
+        "  - {expr: x, line: dotted}\n"
+        ":::"
+    )
+    an012 = [d for d in inspect_markdown_text(text).diagnostics if d.code == "AN012"]
+    assert len(an012) == 1
+    assert "`functions[1]`" in an012[0].message and "Erlaubt: dashed, solid." in an012[0].message
 
 
 def test_geometry_invalid_color_emits_an013_warning():

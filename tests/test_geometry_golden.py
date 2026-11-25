@@ -52,6 +52,7 @@ SPECS = {
     "axis_tiny_grid": ({"width": "2", "height": "2", "axis": "true", "origin": "1,1"}, "points:\n  - {x: 0, y: 0, label: O}\n", False),
     "axis_broken_origin": ({**_AXIS, "origin": "kaputt"}, _MIXED, False),
     "functions": ({**_AXIS, "origin": "5,5"}, "functions:\n  - {expr: 'x^2 - 2', domain: '-3:3', label: f}\n  - {expr: 'sin(x)', domain: '-5:5', label: g}\n  - {expr: '1/x', domain: '-5:5'}\n", False),
+    "functions_dashed": ({**_AXIS, "origin": "5,5"}, "functions:\n  - {expr: '0.5*x', domain: '-4:4', line: dashed, label: g}\n  - {expr: '2 - x', domain: '-3:5', line: solid}\n", False),
     "functions_crooked_step": ({**_AXIS, "origin": "2.5,1.5", "step_x": "0.7", "step_y": "1.3"}, "functions:\n  - {expr: '0.3*x + 0.1', domain: '-2:9', label: h}\n", False),
     "sequence": ({**_AXIS, "origin": "1,1"}, "sequence:\n  - {x: 3, y: 1, label: C}\n  - {x: 1, y: 2, label: A}\n  - {x: 2, y: 0.1, label: B}\n", False),
     "pairs_styles": (_PLAIN, "pairs:\n  - {x1: 1, y1: 1, x2: 9, y2: 1, line: solid, color: '#c00', thickness: 2}\n  - {x1: 0.1, y1: 0.2, x2: 0.7, y2: 9.9, label: d}\n", False),

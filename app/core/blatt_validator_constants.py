@@ -103,11 +103,11 @@ GRID_MARKER_SHOW_VALUES = {"&", "§", "%"}
 KNOWN_GRID_LINE_STYLES = {"solid", "dashed"}
 """Erlaubte Werte für die Block-Option `line=...` bei `:::grid`/`:::geometry`.
 
-Steuert den Linienstil des Rasterhintergrunds selbst (nicht zu verwechseln
-mit dem gleichnamigen Objekt-Feld `pairs[].line` in der Geometry-YAML-DSL,
-das den Linienstil einzelner Strecken steuert und separat über
-`GEOMETRY_ENTRY_ALLOWED_KEYS`/`_validate_geometry_entry_fields` geprüft
-wird — beide Ebenen teilen sich nur den Namen, nicht die Validierung.
+Steuert den Linienstil des Rasterhintergrunds selbst. Dieselbe Wertemenge gilt
+für das gleichnamige Objekt-Feld `pairs[].line`/`functions[].line` in der
+Geometry-YAML-DSL (Linienstil einzelner Strecken bzw. Graphen, Standards in
+`GEOMETRY_LINE_STYLE_DEFAULTS`); geprüft wird es dort separat als `AN012`
+(`_validate_geometry_entry_fields`), die Block-Option als `OP002`.
 """
 KNOWN_GEOMETRY_BACKGROUND_STYLES = {"none", "lines", "dots"}
 """Erlaubte Werte für die Block-Option `background=...` bei `:::geometry` (nur dort, nicht `:::grid`).
